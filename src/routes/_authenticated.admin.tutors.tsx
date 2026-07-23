@@ -166,7 +166,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
   const base: Record<string, unknown> = {
     display_name: v.display_name,
     headline: v.headline || null,
-    subjects: v.subjects_csv.split(",").map((s) => s.trim()).filter(Boolean),
+    subjects: v.subjects,
     district: v.district || null,
     hourly_rate: v.hourly_rate,
     badge: v.badge || null,
