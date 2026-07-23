@@ -276,7 +276,6 @@ export type Database = {
           intro_video_url: string | null
           is_published: boolean
           languages: string[]
-          lesson_mode: Database["public"]["Enums"]["case_mode"]
           photo_url: string | null
           rating: number
           review_count: number
@@ -303,7 +302,6 @@ export type Database = {
           intro_video_url?: string | null
           is_published?: boolean
           languages?: string[]
-          lesson_mode?: Database["public"]["Enums"]["case_mode"]
           photo_url?: string | null
           rating?: number
           review_count?: number
@@ -330,7 +328,6 @@ export type Database = {
           intro_video_url?: string | null
           is_published?: boolean
           languages?: string[]
-          lesson_mode?: Database["public"]["Enums"]["case_mode"]
           photo_url?: string | null
           rating?: number
           review_count?: number
