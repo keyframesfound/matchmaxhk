@@ -160,15 +160,18 @@ function Landing() {
       {/* Trust bar */}
       <section className="border-y border-border bg-muted/30 py-10">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 sm:grid-cols-4 sm:px-6">
-          {trustStats.map(({ key, value, icon: Icon }) => (
-            <div key={key} className="text-center">
-              <Icon className="mx-auto h-6 w-6 text-[color:var(--brand-teal)]" />
-              <p className="mt-3 text-3xl font-black text-[color:var(--brand-navy)]">{value}</p>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {t(`trust.${key}`)}
-              </p>
-            </div>
-          ))}
+          {trustStats.map(({ key, value }) => {
+            const Icon = STAT_ICONS[key];
+            return (
+              <div key={key} className="text-center">
+                <Icon className="mx-auto h-6 w-6 text-[color:var(--brand-teal)]" />
+                <p className="mt-3 text-3xl font-black text-[color:var(--brand-navy)]">{value}</p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t(`trust.${key}`)}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </section>
 
