@@ -35,6 +35,54 @@ export type Database = {
         }
         Relationships: []
       }
+      case_interests: {
+        Row: {
+          case_id: string
+          created_at: string
+          id: string
+          note: string | null
+          status: Database["public"]["Enums"]["case_interest_status"]
+          submitted_by: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          status?: Database["public"]["Enums"]["case_interest_status"]
+          submitted_by: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          status?: Database["public"]["Enums"]["case_interest_status"]
+          submitted_by?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_interests_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "tutoring_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_interests_tutor_id_fkey"
+            columns: ["tutor_id"]
+            isOneToOne: false
+            referencedRelation: "tutors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -114,6 +162,102 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tutoring_cases: {
+        Row: {
+          admin_notes: string | null
+          budget_max: number | null
+          budget_min: number | null
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          description: string | null
+          district: string | null
+          exam_system: string | null
+          id: string
+          is_public: boolean
+          language_of_instruction: string
+          mode: Database["public"]["Enums"]["case_mode"]
+          parent_id: string
+          preferred_gender: Database["public"]["Enums"]["case_gender_pref"]
+          preferred_tutor_type: string
+          schedule_note: string | null
+          session_length_minutes: number
+          sessions_per_week: number
+          start_date: string | null
+          status: Database["public"]["Enums"]["case_status"]
+          student_grade_current: string | null
+          student_level: string
+          student_school: string | null
+          subject: string
+          title: string
+          updated_at: string
+          urgency: Database["public"]["Enums"]["case_urgency"]
+          whatsapp_ok: boolean
+        }
+        Insert: {
+          admin_notes?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          contact_name: string
+          contact_phone: string
+          created_at?: string
+          description?: string | null
+          district?: string | null
+          exam_system?: string | null
+          id?: string
+          is_public?: boolean
+          language_of_instruction?: string
+          mode?: Database["public"]["Enums"]["case_mode"]
+          parent_id: string
+          preferred_gender?: Database["public"]["Enums"]["case_gender_pref"]
+          preferred_tutor_type?: string
+          schedule_note?: string | null
+          session_length_minutes?: number
+          sessions_per_week?: number
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["case_status"]
+          student_grade_current?: string | null
+          student_level: string
+          student_school?: string | null
+          subject: string
+          title: string
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["case_urgency"]
+          whatsapp_ok?: boolean
+        }
+        Update: {
+          admin_notes?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          description?: string | null
+          district?: string | null
+          exam_system?: string | null
+          id?: string
+          is_public?: boolean
+          language_of_instruction?: string
+          mode?: Database["public"]["Enums"]["case_mode"]
+          parent_id?: string
+          preferred_gender?: Database["public"]["Enums"]["case_gender_pref"]
+          preferred_tutor_type?: string
+          schedule_note?: string | null
+          session_length_minutes?: number
+          sessions_per_week?: number
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["case_status"]
+          student_grade_current?: string | null
+          student_level?: string
+          student_school?: string | null
+          subject?: string
+          title?: string
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["case_urgency"]
+          whatsapp_ok?: boolean
+        }
+        Relationships: []
       }
       tutors: {
         Row: {
@@ -229,9 +373,33 @@ export type Database = {
         }
         Returns: boolean
       }
+      match_tutors_for_case: {
+        Args: { _case_id: string; _limit?: number }
+        Returns: {
+          badge: string
+          display_name: string
+          district: string
+          experience_years: number
+          headline: string
+          hourly_rate: number
+          id: string
+          languages: string[]
+          photo_url: string
+          rating: number
+          review_count: number
+          score: number
+          subjects: string[]
+          tutor_code: string
+        }[]
+      }
     }
     Enums: {
       app_role: "super_admin" | "admin" | "staff" | "tutor" | "parent"
+      case_gender_pref: "any" | "male" | "female"
+      case_interest_status: "pending" | "contact_released" | "declined"
+      case_mode: "online" | "in_person" | "either"
+      case_status: "pending" | "approved" | "matched" | "closed" | "rejected"
+      case_urgency: "low" | "normal" | "high"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -360,6 +528,11 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "admin", "staff", "tutor", "parent"],
+      case_gender_pref: ["any", "male", "female"],
+      case_interest_status: ["pending", "contact_released", "declined"],
+      case_mode: ["online", "in_person", "either"],
+      case_status: ["pending", "approved", "matched", "closed", "rejected"],
+      case_urgency: ["low", "normal", "high"],
     },
   },
 } as const

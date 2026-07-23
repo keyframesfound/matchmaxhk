@@ -36,6 +36,11 @@ export function SiteHeader() {
           <Link to="/tutors" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
             {t("nav.find_tutor")}
           </Link>
+          {user && (
+            <Link to="/cases" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
+              Cases
+            </Link>
+          )}
           <Link to="/become-a-tutor" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
             {t("tutors_cta.cta")}
           </Link>
@@ -45,41 +50,42 @@ export function SiteHeader() {
           <LanguageToggle />
 
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9 font-semibold">
-                  {user.email?.split("@")[0] ?? "Account"}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/dashboard">{t("nav.dashboard")}</Link>
-                </DropdownMenuItem>
-                {isAdmin && (
-                  <>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/tutors">Manage tutors</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/users">{t("nav.admin")}</Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => void signOut()}>
-                  {t("nav.sign_out")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <>
+              <Button asChild size="sm" className="hidden h-9 bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)] sm:inline-flex">
+                <Link to="/post-case">{t("nav.post_case")}</Link>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-9 font-semibold">
+                    {user.email?.split("@")[0] ?? "Account"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild><Link to="/dashboard">{t("nav.dashboard")}</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link to="/my-cases">My cases</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link to="/cases">Browse cases</Link></DropdownMenuItem>
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild><Link to="/admin/cases">Cases queue</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/admin/tutors">Manage tutors</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/admin/users">{t("nav.admin")}</Link></DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => void signOut()}>{t("nav.sign_out")}</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             <>
               <Link to="/auth" className="hidden text-sm font-bold text-foreground/90 hover:text-[color:var(--brand-teal)] sm:inline">
                 {t("nav.sign_in")}
               </Link>
               <Button asChild size="sm" className="h-9 bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]">
-                <Link to="/auth">{t("nav.post_case")}</Link>
+                <Link to="/post-case">{t("nav.post_case")}</Link>
               </Button>
             </>
           )}

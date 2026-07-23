@@ -23,22 +23,23 @@ function roleCards(role: AppRole): Card[] {
   switch (role) {
     case "parent":
       return [
-        { icon: MessageSquarePlus, titleKey: "dashboard.parent.post_case", descKey: "dashboard.parent.post_case_desc" },
-        { icon: FolderKanban, titleKey: "dashboard.parent.my_cases", descKey: "dashboard.parent.my_cases_desc" },
+        { icon: MessageSquarePlus, titleKey: "dashboard.parent.post_case", descKey: "dashboard.parent.post_case_desc", to: "/post-case" },
+        { icon: FolderKanban, titleKey: "dashboard.parent.my_cases", descKey: "dashboard.parent.my_cases_desc", to: "/my-cases" },
       ];
     case "tutor":
       return [
-        { icon: Inbox, titleKey: "dashboard.tutor.leads", descKey: "dashboard.tutor.leads_desc" },
+        { icon: Inbox, titleKey: "dashboard.tutor.leads", descKey: "dashboard.tutor.leads_desc", to: "/cases" },
         { icon: UserCog, titleKey: "dashboard.tutor.profile", descKey: "dashboard.tutor.profile_desc" },
       ];
     case "staff":
       return [
-        { icon: ClipboardList, titleKey: "dashboard.staff.review", descKey: "dashboard.staff.review_desc" },
-        { icon: GraduationCap, titleKey: "dashboard.staff.tutors", descKey: "dashboard.staff.tutors_desc" },
+        { icon: ClipboardList, titleKey: "dashboard.staff.review", descKey: "dashboard.staff.review_desc", to: "/admin/cases" },
+        { icon: GraduationCap, titleKey: "dashboard.staff.tutors", descKey: "dashboard.staff.tutors_desc", to: "/admin/tutors" },
       ];
     case "admin":
     case "super_admin":
       return [
+        { icon: ClipboardList, titleKey: "dashboard.admin.cases", descKey: "dashboard.admin.cases_desc", to: "/admin/cases" },
         { icon: GraduationCap, titleKey: "dashboard.admin.tutors", descKey: "dashboard.admin.tutors_desc", to: "/admin/tutors" },
         { icon: Users2, titleKey: "dashboard.admin.users", descKey: "dashboard.admin.users_desc", to: "/admin/users" },
         { icon: Settings2, titleKey: "dashboard.admin.settings", descKey: "dashboard.admin.settings_desc", to: "/admin/settings" },
