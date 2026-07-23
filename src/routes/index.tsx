@@ -316,31 +316,54 @@ function Landing() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Reviews */}
       <section className="bg-muted/30 py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <h2 className="text-center text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
             {t("testimonials.title")}
           </h2>
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((n) => (
-              <figure key={n} className="rounded-3xl border border-border bg-card p-8">
-                <div className="mb-4 flex gap-0.5">
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <Star key={i} className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" />
-                  ))}
-                </div>
-                <blockquote className="text-base leading-relaxed text-foreground">
-                  “{t(`testimonials.t${n}`)}”
-                </blockquote>
-                <figcaption className="mt-6 text-sm font-bold text-muted-foreground">
-                  {t(`testimonials.t${n}_by`)}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+          <p className="mt-3 text-center text-muted-foreground">
+            Real reviews from parents and students. Admins can add or edit reviews on each tutor's profile.
+          </p>
+          {featuredReviews.length === 0 ? (
+            <p className="mt-14 text-center text-muted-foreground">No reviews yet.</p>
+          ) : (
+            <div className="mt-14 grid gap-6 md:grid-cols-3">
+              {featuredReviews.map((r) => (
+                <figure key={r.id} className="flex flex-col rounded-3xl border border-border bg-card p-8">
+                  <div className="mb-4 flex gap-0.5">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${i < r.rating ? "fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" : "text-muted-foreground/30"}`}
+                      />
+                    ))}
+                  </div>
+                  <blockquote className="flex-1 text-base leading-relaxed text-foreground">
+                    {r.comment ? `“${r.comment}”` : <span className="text-muted-foreground">No comment</span>}
+                  </blockquote>
+                  <figcaption className="mt-6 text-sm text-muted-foreground">
+                    <span className="font-bold text-foreground">{r.author_alias}</span>
+                    {r.tutor && (
+                      <>
+                        {" · "}
+                        <Link
+                          to="/tutors/$tutorCode"
+                          params={{ tutorCode: r.tutor.tutor_code }}
+                          className="font-semibold text-[color:var(--brand-teal)] hover:underline"
+                        >
+                          {r.tutor.display_name}
+                        </Link>
+                      </>
+                    )}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          )}
         </div>
       </section>
+
 
       <SiteFooter />
     </div>
