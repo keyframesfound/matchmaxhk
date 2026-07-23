@@ -31,10 +31,11 @@ const CaseInput = z.object({
 
 export type CaseFormInput = z.infer<typeof CaseInput>;
 
-async function assertAdmin(supabase: { rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" | "super_admin" | "staff" | "tutor" | "parent" }) => Promise<{ data: unknown }> }, userId: string) {
+async function assertAdmin(supabase: unknown, userId: string) {
   const roles: Array<"admin" | "super_admin" | "staff"> = ["admin", "super_admin", "staff"];
+  const client = supabase as { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }> };
   for (const r of roles) {
-    const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: r });
+    const { data } = await client.rpc("has_role", { _user_id: userId, _role: r });
     if (data === true) return;
   }
   throw new Error("Forbidden");
