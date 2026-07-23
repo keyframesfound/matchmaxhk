@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { BadgeCheck, MapPin, MessageCircle, GraduationCap, Award, Languages, Clock, Pencil, Trash2, Plus, X, Globe } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ import { StarRating } from "@/components/ui/StarRating";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import i18n from "@/features/i18n/config";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchTutorByCode, getTutorLessonModeLabel, getTutorLocationLabel, type Tutor } from "@/features/tutors/queries";
 import { getSystem } from "@/features/tutors/examSystems";
@@ -32,7 +30,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
     const url = `https://maxmatch.app/tutors/${params.tutorCode}`;
     if (!loaderData) {
       return {
-        meta: [{ title: i18n.t("tutor_profile.not_found_title") + " — MatchMax" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Tutor not found — MatchMax" }, { name: "robots", content: "noindex" }],
         links: [{ rel: "canonical", href: url }],
       };
     }
@@ -61,9 +59,9 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-24 text-center">
-        <h1 className="text-3xl font-black text-[color:var(--brand-navy)]">{i18n.t("tutor_profile.not_found_title")}</h1>
-        <p className="mt-3 text-muted-foreground">{i18n.t("tutor_profile.not_found_description")}</p>
-        <Button asChild className="mt-6"><Link to="/tutors">{i18n.t("tutor_profile.browse_all_tutors")}</Link></Button>
+        <h1 className="text-3xl font-black text-[color:var(--brand-navy)]">Tutor not found</h1>
+        <p className="mt-3 text-muted-foreground">This tutor code doesn’t match any published tutor.</p>
+        <Button asChild className="mt-6"><Link to="/tutors">Browse all tutors</Link></Button>
       </main>
       <SiteFooter />
     </div>
@@ -72,7 +70,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-24 text-center">
-        <h1 className="text-2xl font-bold text-destructive">{i18n.t("tutor_profile.error_title")}</h1>
+        <h1 className="text-2xl font-bold text-destructive">Something went wrong</h1>
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
       </main>
       <SiteFooter />
@@ -83,7 +81,6 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
 
 function TutorDetail() {
   const { tutor } = Route.useLoaderData();
-  const { t: tt } = useTranslation();
   const { user, hasAnyRole } = useAuth();
   const isAdmin = hasAnyRole(["admin", "super_admin"]);
   const queryClient = useQueryClient();
@@ -181,11 +178,7 @@ function TutorDetail() {
                   <StarRating value={Number(t.rating)} readOnly size={16} />
                   <span className="font-bold">{Number(t.rating).toFixed(1)}</span>
                   <span className="text-muted-foreground">
-                    {t.review_count === 0
-                      ? tt("tutor_profile.review_count_new")
-                      : t.review_count === 1
-                        ? tt("tutor_profile.review_count_one")
-                        : tt("tutor_profile.review_count_other", { count: t.review_count })}
+                    {t.review_count === 0 ? "· New" : `· ${t.review_count} review${t.review_count === 1 ? "" : "s"}`}
                   </span>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -205,16 +198,16 @@ function TutorDetail() {
               </div>
               <div className="text-right">
                 <p className="text-3xl font-black text-[color:var(--brand-navy)]">HK${t.hourly_rate}<span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span></p>
-                <p className="mt-1 text-xs text-muted-foreground">{tt("tutor_profile.tutor_code")} <strong>{t.tutor_code}</strong></p>
+                <p className="mt-1 text-xs text-muted-foreground">Tutor code: <strong>{t.tutor_code}</strong></p>
                 {waUrl ? (
                   <Button asChild className="mt-3 bg-brand-gradient font-bold text-white shadow-teal">
                     <a href={waUrl} target="_blank" rel="noopener noreferrer">
-                      <MessageCircle className="mr-2 h-4 w-4" /> {tt("tutor_profile.request_this_tutor")}
+                      <MessageCircle className="mr-2 h-4 w-4" /> Request this tutor
                     </a>
                   </Button>
                 ) : (
                   <Button disabled className="mt-3 bg-brand-gradient font-bold text-white shadow-teal">
-                    <MessageCircle className="mr-2 h-4 w-4" /> {tt("tutor_profile.contact_soon")}
+                    <MessageCircle className="mr-2 h-4 w-4" /> Contact coming soon
                   </Button>
                 )}
               </div>
@@ -228,7 +221,7 @@ function TutorDetail() {
             <div className="space-y-8 lg:col-span-2">
               {t.bio && (
                 <div>
-                  <h2 className="text-xl font-bold text-[color:var(--brand-navy)]">{tt("tutor_profile.about")}</h2>
+                  <h2 className="text-xl font-bold text-[color:var(--brand-navy)]">About</h2>
                   <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-foreground">{t.bio}</p>
                 </div>
               )}
@@ -236,7 +229,7 @@ function TutorDetail() {
               {t.education.length > 0 && (
                 <div>
                   <h2 className="flex items-center gap-2 text-xl font-bold text-[color:var(--brand-navy)]">
-                    <GraduationCap className="h-5 w-5" /> {tt("tutor_profile.education")}
+                    <GraduationCap className="h-5 w-5" /> Education
                   </h2>
                   <ul className="mt-3 space-y-2">
                     {t.education.map((e, i) => (
@@ -254,7 +247,7 @@ function TutorDetail() {
               {t.exam_results.length > 0 && (
                 <div>
                   <h2 className="flex items-center gap-2 text-xl font-bold text-[color:var(--brand-navy)]">
-                    <Award className="h-5 w-5" /> {tt("tutor_profile.exam_results")}
+                    <Award className="h-5 w-5" /> Exam results
                   </h2>
                   <div className="mt-3 space-y-3">
                     {t.exam_results.map((r, i) => {
@@ -286,21 +279,21 @@ function TutorDetail() {
               {/* Reviews */}
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-xl font-bold text-[color:var(--brand-navy)]">{tt("tutor_profile.reviews_title")}</h2>
+                  <h2 className="text-xl font-bold text-[color:var(--brand-navy)]">Reviews</h2>
                   <div className="flex gap-2">
                     {user && !isAdmin && (
                       <Button onClick={openWriteOwn} className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]">
-                        {myReview ? tt("tutor_profile.edit_your_review") : tt("tutor_profile.write_a_review")}
+                        {myReview ? "Edit your review" : "Write a review"}
                       </Button>
                     )}
                     {!user && (
                       <Button asChild variant="outline">
-                        <Link to="/auth">{tt("tutor_profile.sign_in_to_review")}</Link>
+                        <Link to="/auth">Sign in to review</Link>
                       </Button>
                     )}
                     {isAdmin && (
                       <Button onClick={openAdminAdd} className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]">
-                        <Plus className="mr-2 h-4 w-4" /> {tt("tutor_profile.add_review")}
+                        <Plus className="mr-2 h-4 w-4" /> Add review
                       </Button>
                     )}
                   </div>
@@ -309,7 +302,7 @@ function TutorDetail() {
                 <div className="mt-4 space-y-3">
                   {reviews.length === 0 && (
                     <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                      {tt("tutor_profile.no_reviews")}
+                      No reviews yet. Be the first to share your experience.
                     </p>
                   )}
                   {reviews.map((r) => (
@@ -321,7 +314,7 @@ function TutorDetail() {
                             <StarRating value={r.rating} readOnly size={14} />
                             <span className="text-xs text-muted-foreground">
                               {new Date(r.created_at).toLocaleDateString()}
-                              {!r.is_published && ` · ${tt("tutor_profile.hidden")}`}
+                              {!r.is_published && " · Hidden"}
                             </span>
                           </div>
                         </div>
@@ -334,7 +327,7 @@ function TutorDetail() {
                               size="sm"
                               variant="ghost"
                               onClick={() => {
-                                if (confirm(tt("tutor_profile.delete_review_confirm"))) remove.mutate(r.id);
+                                if (confirm("Delete this review?")) remove.mutate(r.id);
                               }}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -351,13 +344,13 @@ function TutorDetail() {
 
             <aside className="space-y-4">
               <div className="rounded-2xl border border-border bg-card p-5">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{tt("tutor_profile.details")}</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Details</h3>
                 <ul className="mt-3 space-y-2 text-sm">
                   {t.experience_years != null && (
-                    <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-[color:var(--brand-teal)]" /> {tt("tutor_profile.years_of_experience", { count: t.experience_years })}</li>
+                    <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-[color:var(--brand-teal)]" /> {t.experience_years} years of experience</li>
                   )}
                   {t.teaching_since != null && (
-                    <li className="flex items-center gap-2"><GraduationCap className="h-4 w-4 text-[color:var(--brand-teal)]" /> {tt("tutor_profile.teaching_since", { year: t.teaching_since })}</li>
+                    <li className="flex items-center gap-2"><GraduationCap className="h-4 w-4 text-[color:var(--brand-teal)]" /> Teaching since {t.teaching_since}</li>
                   )}
                   {t.languages.length > 0 && (
                     <li className="flex items-center gap-2"><Languages className="h-4 w-4 text-[color:var(--brand-teal)]" /> {t.languages.join(", ")}</li>
@@ -415,8 +408,8 @@ function ReviewDialog({
   const save = useMutation({
     mutationFn: async () => {
       const cleanAlias = alias.trim();
-      if (!cleanAlias) throw new Error(tt("tutor_profile.please_enter_alias"));
-      if (rating < 1 || rating > 5) throw new Error(tt("tutor_profile.rating_must_be"));
+      if (!cleanAlias) throw new Error("Please enter a name / alias.");
+      if (rating < 1 || rating > 5) throw new Error("Rating must be 1–5.");
       if (editing) {
         const { error } = await supabase
           .from("tutor_reviews")
@@ -444,7 +437,7 @@ function ReviewDialog({
       }
     },
     onSuccess: () => {
-      toast.success(tt("tutor_profile.review_saved"));
+      toast.success("Review saved");
       queryClient.invalidateQueries({ queryKey: ["tutor", tutorId, "reviews"] });
       queryClient.invalidateQueries({ queryKey: ["tutor", "byCode", tutorCode] });
       queryClient.invalidateQueries({ queryKey: ["landing", "featured_tutors"] });
@@ -460,39 +453,39 @@ function ReviewDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {editing ? tt("tutor_profile.edit_review") : adminMode ? tt("tutor_profile.add_review_guest") : tt("tutor_profile.write_a_review")}
+            {editing ? "Edit review" : adminMode ? "Add review (as guest)" : "Write a review"}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold">{tt("tutor_profile.display_name_alias")}</Label>
-            <Input value={alias} onChange={(e) => setAlias(e.target.value)} placeholder={tt("tutor_profile.alias_example")} />
+            <Label className="text-xs font-semibold">Display name / alias</Label>
+            <Input value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="e.g. Mrs. Chan" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold">{tt("tutor_profile.rating")}</Label>
+            <Label className="text-xs font-semibold">Rating</Label>
             <StarRating value={rating} onChange={setRating} size={28} />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold">{tt("tutor_profile.comment")}</Label>
-            <Textarea rows={4} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={tt("tutor_profile.comment_placeholder")} />
+            <Label className="text-xs font-semibold">Comment</Label>
+            <Textarea rows={4} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="How was your experience with this tutor?" />
           </div>
           {adminMode && (
             <div className="flex items-center gap-3">
               <Switch id="rpub" checked={published} onCheckedChange={setPublished} />
-              <Label htmlFor="rpub" className="text-sm">{tt("tutor_profile.published_visible_publicly")}</Label>
+              <Label htmlFor="rpub" className="text-sm">Published (visible publicly)</Label>
             </div>
           )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            <X className="mr-2 h-4 w-4" /> {tt("tutor_profile.cancel")}
+            <X className="mr-2 h-4 w-4" /> Cancel
           </Button>
           <Button
             onClick={() => save.mutate()}
             disabled={save.isPending}
             className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
           >
-            {save.isPending ? tt("common.loading") : tt("tutor_profile.save_review")}
+            {save.isPending ? "Saving…" : "Save review"}
           </Button>
         </DialogFooter>
       </DialogContent>

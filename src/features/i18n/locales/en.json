@@ -39,32 +39,6 @@
     "view_all": "View all tutors",
     "per_hour": "/hr"
   },
-  "landing": {
-    "meta": {
-      "title": "MatchMax — Hong Kong's tutoring marketplace",
-      "description": "⚡️ Instantly matched to the perfect Hong Kong tutor. 🎓 Verified IB, IGCSE, DSE, and AP top-scorer tutors ready to help.",
-      "og_title": "MatchMax — Hong Kong's tutoring marketplace",
-      "og_description": "⚡️ Instantly matched to the perfect Hong Kong tutor. 🎓 Verified IB, IGCSE, DSE, and AP top-scorer tutors ready to help."
-    },
-    "reviews": {
-      "description": "Real reviews from parents and students. Admins can add or edit reviews on each tutor's profile.",
-      "no_reviews": "No reviews yet. Be the first to share your experience.",
-      "no_comment": "No comment"
-    },
-    "hero_card": {
-      "featured": "Featured",
-      "code": "Code",
-      "rating": "Rating",
-      "view_profile": "View tutor profile",
-      "loading_featured_tutor": "Loading featured tutor…",
-      "no_featured_tutor": "No featured tutor yet."
-    },
-    "hero_badges": {
-      "verified_tutors": "Verified tutors",
-      "whatsapp_handoff": "WhatsApp handoff",
-      "no_hidden_fees": "No hidden fees"
-    }
-  },
   "subjects": {
     "title": "Popular subjects",
     "math": "Mathematics",
@@ -186,51 +160,6 @@
     "team": "Support team",
     "tutor": "Tutor",
     "parent": "Parent / Student"
-  },
-  "tutor_profile": {
-    "not_found_title": "Tutor not found",
-    "not_found_description": "This tutor code doesn’t match any published tutor.",
-    "browse_all_tutors": "Browse all tutors",
-    "error_title": "Something went wrong",
-    "reviews_title": "Reviews",
-    "edit_your_review": "Edit your review",
-    "write_a_review": "Write a review",
-    "sign_in_to_review": "Sign in to review",
-    "add_review": "Add review",
-    "no_reviews": "No reviews yet. Be the first to share your experience.",
-    "hidden": "Hidden",
-    "delete_review_confirm": "Delete this review?",
-    "about": "About",
-    "education": "Education",
-    "exam_results": "Exam results",
-    "details": "Details",
-    "tutor_code": "Tutor code:",
-    "years_of_experience": "{{count}} years of experience",
-    "teaching_since": "Teaching since {{year}}",
-    "languages": "Languages",
-    "district": "District",
-    "review_count_new": "· New",
-    "review_count_one": "· 1 review",
-    "review_count_other": "· {{count}} reviews",
-    "request_this_tutor": "Request this tutor",
-    "contact_soon": "Contact coming soon",
-    "not_found_title_small": "Tutor not found",
-    "not_found_description_small": "This tutor code doesn’t match any published tutor.",
-    "loading": "Loading…",
-    "edit_review": "Edit review",
-    "add_review_guest": "Add review (as guest)",
-    "display_name_alias": "Display name / alias",
-    "alias_example": "e.g. Mrs. Chan",
-    "rating": "Rating",
-    "comment": "Comment",
-    "comment_placeholder": "How was your experience with this tutor?",
-    "published_visible_publicly": "Published (visible publicly)",
-    "cancel": "Cancel",
-    "save_review": "Save review",
-    "please_enter_alias": "Please enter a name / alias.",
-    "rating_must_be": "Rating must be 1–5.",
-    "review_saved": "Review saved",
-    "review_deleted": "Review deleted"
   },
   "common": {
     "loading": "Loading…",
