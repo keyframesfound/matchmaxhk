@@ -98,7 +98,7 @@ type FormValues = z.infer<typeof formSchema>;
 const empty: FormValues = {
   display_name: "",
   headline: "",
-  subjects_csv: "",
+  subjects: [],
   district: "",
   hourly_rate: 0,
   badge: "",
