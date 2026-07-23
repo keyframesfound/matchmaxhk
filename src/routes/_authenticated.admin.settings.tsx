@@ -28,9 +28,10 @@ type Settings = {
   contact_email: string;
   whatsapp_number: string;
   whatsapp_template: string;
+  students_matched: string;
 };
 
-const KEYS: (keyof Settings)[] = ["brand_name", "contact_email", "whatsapp_number", "whatsapp_template"];
+const KEYS: (keyof Settings)[] = ["brand_name", "contact_email", "whatsapp_number", "whatsapp_template", "students_matched"];
 
 function AdminSettings() {
   const { t } = useTranslation();
