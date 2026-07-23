@@ -31,10 +31,8 @@ const CaseInput = z.object({
 
 export type CaseFormInput = z.infer<typeof CaseInput>;
 
-type AuthedSupabase = Parameters<Parameters<Parameters<typeof createServerFn>[0] extends never ? never : never>[0]>[0] extends never ? never : never;
-
-async function assertAdmin(supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }> }, userId: string) {
-  const roles = ["admin", "super_admin", "staff"] as const;
+async function assertAdmin(supabase: { rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" | "super_admin" | "staff" | "tutor" | "parent" }) => Promise<{ data: unknown }> }, userId: string) {
+  const roles: Array<"admin" | "super_admin" | "staff"> = ["admin", "super_admin", "staff"];
   for (const r of roles) {
     const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: r });
     if (data === true) return;
