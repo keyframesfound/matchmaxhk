@@ -16,22 +16,82 @@ export type ExamSystem = {
 
 const IB_SUBJECTS = [
   // Group 1
-  "English A Language & Literature", "English A Literature",
-  "Chinese A Language & Literature", "Chinese A Literature",
+  "English A Language & Literature HL",
+  "English A Language & Literature SL",
+  "English A Literature HL",
+  "English A Literature SL",
+  "Chinese A Language & Literature HL",
+  "Chinese A Language & Literature SL",
+  "Chinese A Literature HL",
+  "Chinese A Literature SL",
+
   // Group 2
-  "English B", "Chinese B", "French B", "Spanish B", "German B", "Japanese B",
-  "Spanish ab initio",
+  "English B HL",
+  "English B SL",
+  "Chinese B HL",
+  "Chinese B SL",
+  "French B HL",
+  "French B SL",
+  "Spanish B HL",
+  "Spanish B SL",
+  "German B HL",
+  "German B SL",
+  "Japanese B HL",
+  "Japanese B SL",
+  "Spanish ab initio SL",
+
   // Group 3
-  "Business Management", "Economics", "Geography", "Global Politics", "History",
-  "Philosophy", "Psychology", "Environmental Systems & Societies",
+  "Business Management HL",
+  "Business Management SL",
+  "Economics HL",
+  "Economics SL",
+  "Geography HL",
+  "Geography SL",
+  "Global Politics HL",
+  "Global Politics SL",
+  "History HL",
+  "History SL",
+  "Philosophy HL",
+  "Philosophy SL",
+  "Psychology HL",
+  "Psychology SL",
+  "Environmental Systems & Societies HL",
+  "Environmental Systems & Societies SL",
+
   // Group 4
-  "Biology", "Chemistry", "Computer Science", "Design Technology", "Physics", "Sports Exercise & Health Science",
+  "Biology HL",
+  "Biology SL",
+  "Chemistry HL",
+  "Chemistry SL",
+  "Computer Science HL",
+  "Computer Science SL",
+  "Design Technology HL",
+  "Design Technology SL",
+  "Physics HL",
+  "Physics SL",
+  "Sports Exercise & Health Science HL",
+  "Sports Exercise & Health Science SL",
+
   // Group 5
-  "Mathematics: Analysis & Approaches", "Mathematics: Applications & Interpretation",
+  "Mathematics: Analysis & Approaches HL",
+  "Mathematics: Analysis & Approaches SL",
+  "Mathematics: Applications & Interpretation HL",
+  "Mathematics: Applications & Interpretation SL",
+
   // Group 6
-  "Visual Arts", "Music", "Theatre", "Film", "Dance",
+  "Visual Arts HL",
+  "Visual Arts SL",
+  "Music HL",
+  "Music SL",
+  "Theatre HL",
+  "Theatre SL",
+  "Film HL",
+  "Film SL",
+  "Dance HL",
+  "Dance SL",
+
   // Core
-  "Theory of Knowledge", "Extended Essay",
+  "Theory of Knowledge & Extended Essay",
 ];
 
 const DSE_SUBJECTS = [
