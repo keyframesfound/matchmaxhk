@@ -19,7 +19,7 @@ const searchSchema = z.object({
   q: z.string().optional(),
 });
 
-export const Route = createFileRoute("/tutors")({
+export const Route = createFileRoute("/tutors/")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
