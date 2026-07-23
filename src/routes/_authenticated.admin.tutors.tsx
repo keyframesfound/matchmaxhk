@@ -378,8 +378,8 @@ function AdminTutors() {
                       <Field label="Badge (short credential)" error={errors.badge}>
                         <Input value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} placeholder="PhD Cambridge" />
                       </Field>
-                      <Field label="Photo URL" error={errors.photo_url}>
-                        <Input value={form.photo_url} onChange={(e) => setForm({ ...form, photo_url: e.target.value })} placeholder="https://…" />
+                      <Field label="Photo URL (optional)" error={errors.photo_url}>
+                        <Input value={form.photo_url} onChange={(e) => setForm({ ...form, photo_url: e.target.value })} placeholder="https://… (leave blank if none)" />
                       </Field>
                     </div>
                   </Section>
