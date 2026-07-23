@@ -24,14 +24,14 @@
     "districts": "Districts served"
   },
   "how": {
-    "title": "How MatchMax works",
+    "title": "How MatchMax Works",
     "subtitle": "Three simple steps to finding the right tutor",
-    "step1_title": "Post your case",
-    "step1_desc": "Share subject, level, district, and budget in under 2 minutes.",
-    "step2_title": "Get matched",
-    "step2_desc": "Our engine ranks the best-fit tutors and sends you a shortlist.",
-    "step3_title": "Connect via tutor code",
-    "step3_desc": "Get a unique tutor code and start your first lesson on WhatsApp."
+    "step1_title": "Find Your Tutor",
+    "step1_desc": "Browse Through Our List of Tutors and find one that suits your subject and level.",
+    "step2_title": "Get Matched",
+    "step2_desc": "Message our dedicated team via Whatsapp with the Tutor Code.",
+    "step3_title": "Start Your Lessons",
+    "step3_desc": "Get started immediately."
   },
   "featured": {
     "title": "Featured tutors",
@@ -168,4 +168,3 @@
     "no_tutors_yet": "New tutors are being added — check back soon."
   }
 }
-
