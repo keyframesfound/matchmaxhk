@@ -182,7 +182,6 @@ function TutorsDirectory() {
                     HK${tut.hourly_rate}
                     <span className="ml-1 text-sm font-semibold text-muted-foreground">{t("featured.per_hour")}</span>
                   </p>
-                  <p className="mt-auto pt-5 text-center text-[11px] text-muted-foreground">Tutor code: {tut.tutor_code}</p>
                 </Link>
               ))}
             </div>
