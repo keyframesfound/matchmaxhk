@@ -68,6 +68,53 @@ export type Database = {
         }
         Relationships: []
       }
+      tutor_reviews: {
+        Row: {
+          author_alias: string
+          author_user_id: string | null
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published: boolean
+          rating: number
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_alias: string
+          author_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          rating: number
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_alias?: string
+          author_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          rating?: number
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutor_reviews_tutor_id_fkey"
+            columns: ["tutor_id"]
+            isOneToOne: false
+            referencedRelation: "tutors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tutors: {
         Row: {
           badge: string | null
@@ -76,14 +123,19 @@ export type Database = {
           created_by: string | null
           display_name: string
           district: string | null
+          education: Json
+          experience_years: number | null
           headline: string | null
           hourly_rate: number
           id: string
+          intro_video_url: string | null
           is_published: boolean
+          languages: string[]
           photo_url: string | null
           rating: number
           review_count: number
           subjects: string[]
+          teaching_since: number | null
           tutor_code: string
           updated_at: string
           weekly_rating: number
@@ -96,14 +148,19 @@ export type Database = {
           created_by?: string | null
           display_name: string
           district?: string | null
+          education?: Json
+          experience_years?: number | null
           headline?: string | null
           hourly_rate?: number
           id?: string
+          intro_video_url?: string | null
           is_published?: boolean
+          languages?: string[]
           photo_url?: string | null
           rating?: number
           review_count?: number
           subjects?: string[]
+          teaching_since?: number | null
           tutor_code: string
           updated_at?: string
           weekly_rating?: number
@@ -116,14 +173,19 @@ export type Database = {
           created_by?: string | null
           display_name?: string
           district?: string | null
+          education?: Json
+          experience_years?: number | null
           headline?: string | null
           hourly_rate?: number
           id?: string
+          intro_video_url?: string | null
           is_published?: boolean
+          languages?: string[]
           photo_url?: string | null
           rating?: number
           review_count?: number
           subjects?: string[]
+          teaching_since?: number | null
           tutor_code?: string
           updated_at?: string
           weekly_rating?: number
