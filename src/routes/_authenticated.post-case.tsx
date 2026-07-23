@@ -62,6 +62,7 @@ function PostCasePage() {
     mutationFn: (data: CaseFormInput) => createFn({ data }),
     onSuccess: (res) => {
       toast.success("Case submitted. We'll notify you when matches are ready.");
+      qc.setQueryData(["case-matches", res.caseId], res.matches ?? []);
       navigate({ to: "/post-case/success/$caseId", params: { caseId: res.caseId } });
     },
     onError: (e: Error) => toast.error(e.message),
