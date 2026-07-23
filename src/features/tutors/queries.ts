@@ -66,10 +66,7 @@ export async function fetchPublishedTutors(): Promise<Tutor[]> {
 }
 
 export async function fetchAllTutors(): Promise<Tutor[]> {
-  const { data, error } = await supabase
-    .from("tutors")
-    .select(SELECT_COLS)
-    .order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("tutors").select(SELECT_COLS).order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map(normalize);
 }
@@ -103,10 +100,7 @@ export function getTutorLocationLabel(tutor: Pick<Tutor, "district" | "lesson_mo
 }
 
 export async function fetchLandingStats(): Promise<{ activeTutors: number; subjectsCovered: number }> {
-  const { data, error } = await supabase
-    .from("tutors")
-    .select("subjects")
-    .eq("is_published", true);
+  const { data, error } = await supabase.from("tutors").select("subjects").eq("is_published", true);
   if (error) throw error;
   const rows = (data ?? []) as { subjects: string[] | null }[];
   const set = new Set<string>();
@@ -120,7 +114,26 @@ export async function fetchLandingStats(): Promise<{ activeTutors: number; subje
 }
 
 export const HK_DISTRICTS = [
-  "Central", "Sheung Wan", "Wan Chai", "Causeway Bay", "North Point", "Quarry Bay",
-  "Tsim Sha Tsui", "Mong Kok", "Kowloon Tong", "Kowloon Bay", "Ho Man Tin",
-  "Sha Tin", "Tai Po", "Tuen Mun", "Yuen Long", "Tseung Kwan O", "Tung Chung", "Discovery Bay",
+  "Open to Discussion",
+  "Within Hong Kong Island",
+  "Within New Territories",
+  "Within Kowloon",
+  "Central",
+  "Sheung Wan",
+  "Wan Chai",
+  "Causeway Bay",
+  "North Point",
+  "Quarry Bay",
+  "Tsim Sha Tsui",
+  "Mong Kok",
+  "Kowloon Tong",
+  "Kowloon Bay",
+  "Ho Man Tin",
+  "Sha Tin",
+  "Tai Po",
+  "Tuen Mun",
+  "Yuen Long",
+  "Tseung Kwan O",
+  "Tung Chung",
+  "Discovery Bay",
 ];
