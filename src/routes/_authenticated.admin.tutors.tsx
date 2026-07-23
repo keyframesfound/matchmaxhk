@@ -153,6 +153,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
       institution: e.institution.trim(),
       qualification: e.qualification.trim(),
       year: e.year === "" || e.year == null ? null : Number(e.year),
+      level: e.level && e.level.trim() ? e.level.trim() : null,
     }))
     .filter((e) => e.institution && e.qualification);
   const cleanExams: ExamResult[] = v.exam_results
