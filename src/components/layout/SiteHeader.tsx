@@ -84,7 +84,7 @@ export function SiteHeader() {
                 {t("nav.sign_in")}
               </Link>
               <Button asChild size="sm" className="h-9 bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]">
-                <Link to="/auth">{t("nav.post_case")}</Link>
+                <Link to="/auth" search={{ redirect: "/post-case" }}>{t("nav.post_case")}</Link>
               </Button>
             </>
           )}
