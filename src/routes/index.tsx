@@ -340,24 +340,14 @@ function Landing() {
             <h2 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">{t("subjects.title")}</h2>
           </div>
           <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {[
-              { key: "math", subject: "Mathematics" },
-              { key: "english", subject: "English" },
-              { key: "chinese", subject: "Chinese" },
-              { key: "physics", subject: "Physics" },
-              { key: "chemistry", subject: "Chemistry" },
-              { key: "biology", subject: "Biology" },
-              { key: "economics", subject: "Economics" },
-              { key: "dse", subject: "DSE" },
-              { key: "ib", subject: "IB" },
-            ].map(({ key, subject }) => (
+            {popularSubjects.map((subject) => (
               <Link
-                key={key}
+                key={subject}
                 to="/tutors"
                 search={{ subject }}
                 className="rounded-2xl border border-border bg-card px-5 py-4 text-center text-sm font-bold text-foreground transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)] hover:shadow-teal"
               >
-                {t(`subjects.${key}`)}
+                {subject}
               </Link>
             ))}
           </div>
