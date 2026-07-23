@@ -47,6 +47,86 @@ const EDUCATION_LEVELS = [
 
 import { DEFAULT_SUBJECT_OPTIONS as SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 
+function PhotoUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const inputId = "tutor-photo-upload";
+
+  const handleFile = async (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please pick an image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5 MB.");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("tutor-photos").upload(path, file, {
+        cacheControl: "31536000",
+        upsert: false,
+        contentType: file.type,
+      });
+      if (upErr) throw upErr;
+      // 100-year signed URL so displays work everywhere without extra plumbing.
+      const { data, error: signErr } = await supabase.storage
+        .from("tutor-photos")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 100);
+      if (signErr || !data?.signedUrl) throw signErr ?? new Error("Could not sign URL");
+      onChange(data.signedUrl);
+      toast.success("Photo uploaded.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Upload failed.";
+      toast.error(msg);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-3">
+      {value ? (
+        <img src={value} alt="" className="h-16 w-16 rounded-md object-cover ring-1 ring-border" />
+      ) : (
+        <div className="h-16 w-16 rounded-md bg-muted ring-1 ring-border" />
+      )}
+      <div className="flex-1 space-y-2">
+        <input
+          id={inputId}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void handleFile(f);
+            e.target.value = "";
+          }}
+        />
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={uploading}
+            onClick={() => document.getElementById(inputId)?.click()}
+          >
+            {uploading ? "Uploading…" : value ? "Replace photo" : "Upload photo"}
+          </Button>
+          {value ? (
+            <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>
+              Remove
+            </Button>
+          ) : null}
+        </div>
+        <p className="text-xs text-muted-foreground">JPG or PNG, up to 5 MB.</p>
+      </div>
+    </div>
+  );
+}
+
 const CURRENT_YEAR = new Date().getFullYear();
 
 const eduSchema = z.object({
@@ -74,7 +154,7 @@ const formSchema = z.object({
   hourly_rate: z.coerce.number().int().min(0).max(100000),
   badge: z.string().trim().max(80).optional().or(z.literal("")),
   bio: z.string().trim().max(2000).optional().or(z.literal("")),
-  photo_url: z.string().trim().url().max(500).optional().or(z.literal("")),
+  photo_url: z.string().trim().max(1000).optional().or(z.literal("")),
   tutor_code: z.string().trim().min(2).max(20).regex(/^[A-Za-z0-9-]+$/, "Letters, numbers, dashes only"),
   weekly_rating: z.coerce.number().min(0).max(5),
   weekly_score: z.coerce.number().int().min(0).max(100),
@@ -368,8 +448,11 @@ function AdminTutors() {
                       <Field label="Badge (short credential)" error={errors.badge}>
                         <Input value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} placeholder="PhD Cambridge" />
                       </Field>
-                      <Field label="Photo URL (optional)" error={errors.photo_url}>
-                        <Input value={form.photo_url} onChange={(e) => setForm({ ...form, photo_url: e.target.value })} placeholder="https://… (leave blank if none)" />
+                      <Field label="Photo (optional)" error={errors.photo_url}>
+                        <PhotoUpload
+                          value={form.photo_url ?? ""}
+                          onChange={(url) => setForm({ ...form, photo_url: url })}
+                        />
                       </Field>
                     </div>
                   </Section>
