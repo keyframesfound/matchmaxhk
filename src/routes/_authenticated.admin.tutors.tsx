@@ -119,7 +119,7 @@ function tutorToForm(t: Tutor): FormValues {
   return {
     display_name: t.display_name,
     headline: t.headline ?? "",
-    subjects_csv: (t.subjects ?? []).join(", "),
+    subjects: t.subjects ?? [],
     district: t.district ?? "",
     hourly_rate: t.hourly_rate,
     badge: t.badge ?? "",
