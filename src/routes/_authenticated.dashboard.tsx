@@ -10,12 +10,15 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — MatchMax" },
-      { name: "description", content: "Your MatchMax dashboard." },
+      { name: "description", content: "Your MatchMax dashboard — post a tutoring case, review matched leads, or manage your tutor profile in one place." },
+      { property: "og:url", content: "https://maxmatch.app/dashboard" },
       { name: "robots", content: "noindex" },
     ],
+    links: [{ rel: "canonical", href: "https://maxmatch.app/dashboard" }],
   }),
   component: Dashboard,
 });
+
 
 type Card = { icon: React.ComponentType<{ className?: string }>; titleKey: string; descKey: string; to?: string };
 

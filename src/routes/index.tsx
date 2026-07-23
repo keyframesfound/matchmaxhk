@@ -13,13 +13,19 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "MatchMax — Hong Kong's tutoring marketplace" },
-      { name: "description", content: "⚡️Instantly matching you to the perfect tutor\n🎓IB, IGCSE, DSE, AP Top scorer tutors available" },
+      { name: "description", content: "⚡️ Instantly matched to the perfect Hong Kong tutor. 🎓 Verified IB, IGCSE, DSE, and AP top-scorer tutors ready to help." },
       { property: "og:title", content: "MatchMax — Hong Kong's tutoring marketplace" },
-      { property: "og:description", content: "⚡️Instantly matching you to the perfect tutor\n🎓IB, IGCSE, DSE, AP Top scorer tutors available" },
+      { property: "og:description", content: "⚡️ Instantly matched to the perfect Hong Kong tutor. 🎓 Verified IB, IGCSE, DSE, and AP top-scorer tutors ready to help." },
+      { property: "og:url", content: "https://maxmatch.app/" },
+      { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp" },
     ],
+    links: [{ rel: "canonical", href: "https://maxmatch.app/" }],
   }),
   component: Landing,
 });
+
 
 const STAT_ICONS = { students: Users, tutors: GraduationCap, subjects: BookOpen, districts: MapPin } as const;
 

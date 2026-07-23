@@ -1,0 +1,11 @@
+# MatchMax
+
+> Hong Kong's tutoring marketplace — instantly matching parents and students to verified DSE, IB, IGCSE, and AP tutors.
+
+MatchMax connects Hong Kong families with vetted local tutors. Parents post a case and get auto-matched to the best-fit tutors; tutors build a verified profile to receive leads.
+
+## Pages
+
+- [Home](/): Overview, featured tutors, live stats, and parent reviews.
+- [Browse tutors](/tutors): Directory of verified Hong Kong tutors filterable by subject and district.
+- [Become a tutor](/become-a-tutor): How tutors join the MatchMax marketplace.

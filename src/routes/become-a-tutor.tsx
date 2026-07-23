@@ -12,11 +12,14 @@ export const Route = createFileRoute("/become-a-tutor")({
       { title: "Become a tutor — MatchMax" },
       { name: "description", content: "Join MatchMax as a tutor. Contact our team on WhatsApp to get verified and start receiving case leads." },
       { property: "og:title", content: "Become a tutor — MatchMax" },
-      { property: "og:description", content: "Join Hong Kong's smart tutoring marketplace." },
+      { property: "og:description", content: "Join Hong Kong's smart tutoring marketplace and receive matched case leads from parents." },
+      { property: "og:url", content: "https://maxmatch.app/become-a-tutor" },
     ],
+    links: [{ rel: "canonical", href: "https://maxmatch.app/become-a-tutor" }],
   }),
   component: BecomeATutor,
 });
+
 
 function BecomeATutor() {
   const { data: whatsapp } = useQuery({

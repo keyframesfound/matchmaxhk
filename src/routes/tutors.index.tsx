@@ -26,11 +26,14 @@ export const Route = createFileRoute("/tutors/")({
       { title: "Browse tutors — MatchMax" },
       { name: "description", content: "Browse verified tutors across Hong Kong by subject, district, and rating." },
       { property: "og:title", content: "Browse tutors — MatchMax" },
-      { property: "og:description", content: "Verified Hong Kong tutors for DSE, IB, IGCSE, AP and more." },
+      { property: "og:description", content: "Verified Hong Kong tutors for DSE, IB, IGCSE, AP and more — filter by subject and district." },
+      { property: "og:url", content: "https://maxmatch.app/tutors" },
     ],
+    links: [{ rel: "canonical", href: "https://maxmatch.app/tutors" }],
   }),
   component: TutorsDirectory,
 });
+
 
 function TutorsDirectory() {
   const { t } = useTranslation();
