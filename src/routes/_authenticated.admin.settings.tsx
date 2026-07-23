@@ -35,10 +35,17 @@ type Settings = {
   students_matched: string;
   hero_tutor_code: string;
   subject_options: string[];
+  popular_subjects: string[];
 };
 
 const STRING_KEYS = ["brand_name", "contact_email", "whatsapp_number", "whatsapp_template", "students_matched", "hero_tutor_code"] as const;
-const ALL_KEYS = [...STRING_KEYS, "subject_options"] as const;
+const ARRAY_KEYS = ["subject_options", "popular_subjects"] as const;
+const ALL_KEYS = [...STRING_KEYS, ...ARRAY_KEYS] as const;
+
+const DEFAULT_POPULAR_SUBJECTS = [
+  "Mathematics", "English", "Chinese", "Physics", "Chemistry",
+  "Biology", "Economics", "DSE", "IB",
+];
 
 function AdminSettings() {
   const { t } = useTranslation();
