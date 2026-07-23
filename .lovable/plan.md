@@ -1,142 +1,88 @@
-# MatchMax — Build Plan (Phase 1)
+## Goal
 
-Scope locked from your answers: **Foundation + Parent Cases + Auto-Match**, **bilingual EN / zh-HK**, **3 rendered design directions first**, WhatsApp number deferred (placeholder + admin-editable setting).
+Turn v1 into a working product: real tutors on the landing page, an admin CRUD to add them, no dead buttons, a "become a tutor" info page, and friendlier vocabulary (no raw role names like "parent").
 
----
+## 1. Database: `tutors` table
 
-## Phase 0 — Design directions (before any build)
+New migration creating `public.tutors`:
 
-I'll generate **3 rendered landing-page directions** using your brand:
-- Logo: MatchMax (navy → teal → cyan gradient wordmark, growth arrow mark)
-- Palette: `#041344` `#0A245F` `#1FA8B6` `#2ED5DE` `#77E8EE` `#FFFFFF`
-- Content shown: hero ("Find the right tutor, matched for you"), trust strip, how-it-works (3 steps), featured tutors, parent CTA, tutor CTA, footer
-- Bilingual toggle visible in header (EN / 繁)
+- Fields: `id`, `display_name`, `headline`, `subjects text[]`, `district`, `hourly_rate int`, `badge`, `bio`, `photo_url`, `tutor_code` (unique, short), `rating numeric(2,1) default 0`, `review_count int default 0`, `weekly_rating numeric(2,1) default 0`, `weekly_score int default 0` (used to pick "highest-rated this week"), `is_published bool default true`, `created_by uuid`, `created_at`, `updated_at`.
+- Grants: `SELECT` to `anon, authenticated` (public directory); full CRUD to `authenticated` gated by RLS; `ALL` to `service_role`.
+- RLS policies:
+  - Public/anon read only where `is_published = true`.
+  - Admin/super_admin: full insert/update/delete via `has_role`.
+- `updated_at` trigger.
 
-You pick one → I lock its tokens (colors, radii, shadows, type, spacing) into `src/styles.css` and build against it.
+No seed data — admin will add tutors.
 
----
+## 2. Landing page: real featured tutors
 
-## Phase 1 — Foundation
+`src/routes/index.tsx`:
 
-**Auth**
-- Email/password + Google SSO (via Lovable broker)
-- Public `/auth` route; managed `_authenticated` gate for private routes
-- Sign-in affordance in header reflects session; proper sign-out hygiene
+- Replace hardcoded `featuredTutors` array with a `useQuery` reading published tutors ordered by `weekly_score desc, weekly_rating desc, rating desc` limit 3.
+- Loading skeleton + empty state ("Tutors coming soon") so page never looks broken pre-seed.
+- Hero preview card uses the first fetched tutor when available.
 
-**Roles (separate `user_roles` table, enum + `has_role` SECURITY DEFINER)**
-- `super_admin`, `admin`, `staff`, `tutor`, `parent`
-- Seed `super_admin` for `ryanyeung0925@gmail.com` on first sign-in (trigger: if email matches and no super_admin exists, grant)
-- Admin page `/admin/users` — search users, grant/revoke roles (super_admin only for admin/staff grants)
+## 3. Admin: manage tutors
 
-**Profiles**
-- `profiles` table (id → auth.users, display_name, phone, locale, avatar_url)
-- Auto-created via trigger on new user
+New route `src/routes/_authenticated.admin.tutors.tsx`:
 
-**i18n**
-- `react-i18next` with `en` and `zh-HK` resource files
-- Locale persisted in profile + localStorage; header toggle
-- All UI strings keyed from day one
+- Table of tutors (name, subjects, district, rate, rating, published toggle).
+- "Add tutor" dialog with form (zod-validated): display_name, headline, subjects (comma input → array), district (select from HK districts list), hourly_rate, badge, bio, photo_url, tutor_code, initial rating, weekly_score.
+- Edit + delete actions.
+- Route protected by same admin gate pattern as existing admin pages.
+- Add card + link on Dashboard (already stubbed as "Tutors" — wire `to: "/admin/tutors"`).
 
-**Role dashboards (shells)**
-- `/dashboard` routes by role: parent, tutor, staff, admin
-- Empty state cards pointing to the features that arrive next
+## 4. "Become a tutor" info page
 
-**Settings**
-- `app_settings` table (key/value) — holds WhatsApp number, message template, brand contact email; editable by admin
+New public route `src/routes/become-a-tutor.tsx`:
 
----
+- Explains joining process, shows WhatsApp contact (reads `whatsapp_number` from `app_settings`; falls back to "TBC — contact coming soon").
+- Big WhatsApp CTA button (disabled/greyed when TBC).
+- Own `head()` meta.
 
-## Phase 2 — Tutor data + Directory (needed for matching)
+## 5. Wire up all buttons / no dead links
 
-**Taxonomies** (seeded):
-- `subjects` (Math, English, Chinese, Physics, Chem, Bio, Econ, BAFS, LS, etc.)
-- `levels` (K1–K3, P1–P6, S1–S6, DSE, IB, IGCSE, University)
-- `districts` (18 HK districts + "Online")
+Landing (`index.tsx`):
+- Hero "Get matched" primary → `/auth` (already).
+- Hero secondary "See tutors" → smooth-scroll to `#tutors` (keep).
+- "View all" in Featured → new `/tutors` route OR keep as `#tutors`; make it a real `<Link>` to a simple `/tutors` directory page listing all published tutors (server-side query, cards).
+- Subject chips → `/tutors?subject=math` (directory page reads search param and filters).
+- "Become a tutor" CTA banner → `/become-a-tutor`.
+- Hero "Contact via tutor code" card button → scroll to tutors section (visual demo only, add title tooltip).
 
-**Tutors**
-- `tutors` table linked to profile: headline, bio, education, experience_years, hourly_rate_min/max, teaching_mode (in-person / online / both), districts[], subjects[], levels[], languages[], verified, active
-- Admin **Tutor Creation Wizard** (`/admin/tutors/new`) — 5 steps: account → profile → qualifications → subjects/levels/districts → rate/mode/publish
-- Public **directory** `/tutors` with filters: subject, level, district, mode, rate range, language; card grid + tutor profile page `/tutors/:id`
+SiteHeader:
+- "Post case" (nav + top-right button for logged-out) → currently `/auth`; keep, but relabel to friendlier copy.
+- "Find tutor" → `/tutors`.
+- "How it works" → `/#how` (keep).
 
-RLS: public SELECT on active+verified tutors only; owner + admin/staff for full row.
+Footer: audit any dead links, point to real routes or remove.
 
----
+New `src/routes/tutors.tsx`:
+- Public directory page listing all published tutors with subject filter from `?subject=`, district filter, search box.
 
-## Phase 3 — Parent Cases + Auto-Match
+## 6. Vocabulary refinements
 
-**Case creation** `/post-case` (parent, auth required — inline "sign in to post" CTA if not)
-- Fields: subject, level, district (or online), mode, budget range, schedule (weekday × time slot chips), language preference, gender preference (optional), notes
-- Multi-step form with progress + validation
+Stop surfacing internal role slugs. In `en.json` and `zh-HK.json`:
 
-**Cases table**
-- `cases`: parent_id, status (open / matched / closed), all case fields, created_at
-- `case_matches`: case_id, tutor_id, score, reasons[], status (suggested / contacted / accepted / rejected), created_at
+- Dashboard badge "Your role: parent" → replace with friendly label: Parent → "Parent / Student", Tutor → "Tutor", Staff → "Team", Admin/super_admin → "Administrator".
+- Add helper `roleLabel(role)` in `useAuth.tsx` (or a small `src/features/auth/roleLabel.ts`) returning the translated friendly label; use it in Dashboard, admin users table, header dropdown label.
+- Admin users page role select still uses raw enum values (needed), but display column uses friendly labels.
+- Landing/nav copy: "Post case" → "Request a tutor". "Find tutor" → "Browse tutors". "Sign in to be a tutor" flows point to `/become-a-tutor`.
 
-**Rule-based matching engine** (server function `matchCase`)
-- Filters: subject ∈ tutor.subjects, level ∈ tutor.levels, district match or online-ok, budget overlap, language match
-- Score components (weighted): subject+level exact (40), district (15), budget fit (15), experience_years (10), verified (10), rating placeholder (10)
-- Returns top N (default 10) with score + reason chips
+## 7. Verification
 
-**Recommendation display** on case detail page — ranked tutor cards with score, matched-reason chips, and **"Get Tutor Code"** action
+- `bunx tsgo` typecheck.
+- Playwright: load `/`, confirm featured section renders (empty state acceptable pre-seed); load `/become-a-tutor`; click through subject chip → `/tutors?subject=math`.
+- After adding a test tutor via admin, confirm it appears on landing when weekly_score set.
 
-**Tutor Code / WhatsApp handoff**
-- On request, generate short code (e.g. `MM-8FJ2K`) bound to (case_id, tutor_id, parent_id), stored in `tutor_codes`
-- Show WhatsApp deep link built from `app_settings.whatsapp_number` + templated message including the code + subject/level (placeholder number for now, editable in admin)
-- Tutor dashboard: "Incoming leads" list showing codes they've been referred with
+## Out of scope
 
-**Staff-assisted matching (light hook, full flow later)**
-- Cases have `needs_staff_review` flag; staff dashboard lists flagged cases
+- Case-posting flow, matching engine, tutor self-signup form (deferred to Phase 3 as originally planned).
+- Weekly rating auto-computation — `weekly_score` is admin-editable now; a scheduled recompute can come later.
 
----
+## Technical notes
 
-## Technical section
-
-**Stack:** TanStack Start (already scaffolded), Tailwind v4, shadcn, Lovable Cloud (Supabase), TanStack Query, react-i18next, zod + react-hook-form, lucide-react.
-
-**Folder layout (feature-based):**
-```
-src/
-  features/
-    auth/           # sign-in, sign-up, session hooks
-    profiles/
-    roles/          # user_roles, has_role client helpers, admin RBAC UI
-    tutors/         # directory, profile, admin wizard
-    cases/          # post-case form, case detail, my-cases
-    matching/       # scoring engine (server), recommendation UI
-    handoff/        # tutor codes, whatsapp link builder
-    i18n/           # config + locales/{en,zh-HK}/*.json
-    settings/       # app_settings admin
-  components/ui/    # shadcn
-  routes/           # file-based
-  integrations/supabase/  # generated, do not edit
-```
-
-**Migrations (Phase 1 first, then 2, then 3) — each with GRANTs before RLS/policies:**
-1. `app_role` enum, `user_roles`, `has_role()`, `profiles`, `handle_new_user` trigger, super_admin seed trigger, `app_settings`
-2. `subjects`, `levels`, `districts`, `tutors`, join arrays (or normalized `tutor_subjects` / `tutor_levels` / `tutor_districts` — normalized for filter perf)
-3. `cases`, `case_matches`, `tutor_codes`, `match_case()` server fn
-
-**Server functions (all `createServerFn`, not edge functions):**
-- `grantRole` / `revokeRole` (super_admin gated via `has_role`)
-- `createTutorProfile` (admin/staff)
-- `createCase`, `listMyCases`, `getCaseDetail`
-- `matchCase(caseId)` → writes `case_matches`, returns ranked list
-- `issueTutorCode(caseId, tutorId)` → returns code + whatsapp URL
-- `updateAppSetting(key, value)` (admin)
-
-Public directory reads use the server publishable client (narrow `anon` SELECT on active+verified tutors); everything user-scoped uses `requireSupabaseAuth`.
-
-**SEO:** per-route `head()` on `/`, `/tutors`, `/tutors/:id`, `/post-case`, `/auth`, `/how-it-works` with unique EN titles/descriptions (zh variants swap via URL param `?lang=zh` in Phase 2.5 if you want localized OG).
-
-**Out of scope for Phase 1 build (roadmap):**
-- Reviews & ratings
-- Staff full workspace (assignments, notes, timeline)
-- Payments / commission
-- Messaging in-app (WhatsApp handoff covers Phase 1)
-- Tutor self-signup public flow (admin creates tutors this phase)
-
----
-
-## What happens next
-
-If you approve this plan, I'll switch to build mode and start with **Phase 0: generate the 3 landing-page design directions** and ask you to pick one before any code lands.
+- Directory/landing reads use the browser Supabase client with anon SELECT (no server fn needed).
+- Admin mutations use the browser client under RLS `has_role` policies.
+- Tutor photo: URL input only for now (no upload UI).
