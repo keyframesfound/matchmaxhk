@@ -82,7 +82,7 @@ function TutorsDirectory() {
               </div>
               <Select
                 value={search.subject ?? "__all"}
-                onValueChange={(v) => navigate({ search: (prev) => ({ ...prev, subject: v === "__all" ? undefined : v }) })}
+                onValueChange={(v) => navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, subject: v === "__all" ? undefined : v }) })}
               >
                 <SelectTrigger><SelectValue placeholder="Any subject" /></SelectTrigger>
                 <SelectContent>
@@ -94,7 +94,7 @@ function TutorsDirectory() {
               </Select>
               <Select
                 value={search.district ?? "__all"}
-                onValueChange={(v) => navigate({ search: (prev) => ({ ...prev, district: v === "__all" ? undefined : v }) })}
+                onValueChange={(v) => navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, district: v === "__all" ? undefined : v }) })}
               >
                 <SelectTrigger><SelectValue placeholder="Any district" /></SelectTrigger>
                 <SelectContent>
