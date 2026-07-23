@@ -274,6 +274,65 @@ function AdminSettings() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label>Landing page "Popular subjects"</Label>
+                <p className="text-xs text-muted-foreground">
+                  Quick-link chips shown in the Popular subjects section of the homepage. Each links to /tutors filtered by that subject.
+                </p>
+                {form.popular_subjects.length > 0 && (
+                  <div className="flex flex-wrap gap-2 rounded-md border border-border bg-background p-2">
+                    {form.popular_subjects.map((s) => (
+                      <span
+                        key={s}
+                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
+                      >
+                        {s}
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, popular_subjects: form.popular_subjects.filter((x) => x !== s) })}
+                          className="rounded-full p-0.5 hover:bg-black/10"
+                          aria-label={`Remove ${s}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <SearchableSelect
+                    value=""
+                    onChange={(v) => {
+                      const val = v.trim();
+                      if (!val) return;
+                      if (form.popular_subjects.some((x) => x.toLowerCase() === val.toLowerCase())) return;
+                      setForm({ ...form, popular_subjects: [...form.popular_subjects, val] });
+                    }}
+                    options={form.subject_options
+                      .filter((s) => !form.popular_subjects.some((x) => x.toLowerCase() === s.toLowerCase()))
+                      .map((s) => ({ value: s, label: s }))}
+                    placeholder="Add a popular subject…"
+                    searchPlaceholder="Search subjects…"
+                  />
+                </div>
+                <div className="flex gap-3 pt-1">
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-[color:var(--brand-teal)] hover:underline"
+                    onClick={() => setForm({ ...form, popular_subjects: DEFAULT_POPULAR_SUBJECTS })}
+                  >
+                    Reset to defaults
+                  </button>
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-muted-foreground hover:underline"
+                    onClick={() => setForm({ ...form, popular_subjects: [] })}
+                  >
+                    Clear all
+                  </button>
+                </div>
+              </div>
+
               <Button
                 type="submit"
                 disabled={save.isPending}
