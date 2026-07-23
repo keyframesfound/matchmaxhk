@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { StarRating } from "@/components/ui/StarRating";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
@@ -148,6 +149,7 @@ const formSchema = z.object({
   headline: z.string().trim().max(200).optional().or(z.literal("")),
   subjects: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one subject"),
   district: z.string().trim().max(80).optional().or(z.literal("")),
+  lesson_mode: z.enum(["online", "in_person", "either"]),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
   badge: z.string().trim().max(80).optional().or(z.literal("")),
   bio: z.string().trim().max(2000).optional().or(z.literal("")),
@@ -169,6 +171,7 @@ const empty: FormValues = {
   headline: "",
   subjects: [],
   district: "",
+  lesson_mode: "either",
   hourly_rate: 0,
   badge: "",
   bio: "",
@@ -189,6 +192,7 @@ function tutorToForm(t: Tutor): FormValues {
     headline: t.headline ?? "",
     subjects: t.subjects ?? [],
     district: t.district ?? "",
+    lesson_mode: t.lesson_mode ?? "either",
     hourly_rate: t.hourly_rate,
     badge: t.badge ?? "",
     bio: t.bio ?? "",
@@ -235,7 +239,8 @@ function formToPayload(v: FormValues, isNew: boolean) {
     display_name: v.tutor_code.trim(),
     headline: v.headline || null,
     subjects: v.subjects,
-    district: v.district || null,
+    district: v.lesson_mode === "online" ? null : v.district || null,
+    lesson_mode: v.lesson_mode,
     hourly_rate: v.hourly_rate,
     badge: v.badge || null,
     bio: v.bio || null,
@@ -433,6 +438,26 @@ function AdminTutors() {
                         <Input value={form.tutor_code} onChange={(e) => setForm({ ...form, tutor_code: e.target.value })} placeholder="MM-1042" />
                         <p className="text-xs text-muted-foreground">This is the public identifier shown instead of a separate display name.</p>
                       </Field>
+                      <Field label="Lesson mode" error={errors.lesson_mode}>
+                        <ToggleGroup
+                          type="single"
+                          variant="outline"
+                          value={form.lesson_mode}
+                          onValueChange={(value) => {
+                            if (!value) return;
+                            setForm({
+                              ...form,
+                              lesson_mode: value as FormValues["lesson_mode"],
+                              district: value === "online" ? "" : form.district,
+                            });
+                          }}
+                          className="grid w-full grid-cols-3 gap-2"
+                        >
+                          <ToggleGroupItem value="online" className="w-full">Online</ToggleGroupItem>
+                          <ToggleGroupItem value="in_person" className="w-full">In person</ToggleGroupItem>
+                          <ToggleGroupItem value="either" className="w-full">Hybrid</ToggleGroupItem>
+                        </ToggleGroup>
+                      </Field>
                     </div>
                     <Field label="Headline" error={errors.headline}>
                       <Input value={form.headline} onChange={(e) => setForm({ ...form, headline: e.target.value })} placeholder="DSE Mathematics · M2" />
@@ -486,15 +511,21 @@ function AdminTutors() {
                       </div>
                     </Field>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <Field label="District" error={errors.district}>
-                        <Select value={form.district || "__none"} onValueChange={(v) => setForm({ ...form, district: v === "__none" ? "" : v })}>
-                          <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__none">—</SelectItem>
-                            {HK_DISTRICTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </Field>
+                      {form.lesson_mode !== "online" ? (
+                        <Field label="District" error={errors.district}>
+                          <Select value={form.district || "__none"} onValueChange={(v) => setForm({ ...form, district: v === "__none" ? "" : v })}>
+                            <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__none">—</SelectItem>
+                              {HK_DISTRICTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      ) : (
+                        <div className="rounded-xl border border-dashed border-border bg-muted/30 px-3 py-4 text-xs text-muted-foreground sm:mt-6">
+                          Online lessons do not need a district.
+                        </div>
+                      )}
                       <Field label="Hourly rate (HKD)" error={errors.hourly_rate}>
                         <Input type="number" value={form.hourly_rate} onChange={(e) => setForm({ ...form, hourly_rate: Number(e.target.value) })} />
                       </Field>
@@ -503,10 +534,38 @@ function AdminTutors() {
                       <Field label="Languages (comma separated)" error={errors.languages_csv}>
                         <Input value={form.languages_csv} onChange={(e) => setForm({ ...form, languages_csv: e.target.value })} placeholder="English, Cantonese" />
                       </Field>
-                      <div className="rounded-xl border border-dashed border-border bg-muted/30 px-3 py-4 text-xs text-muted-foreground sm:mt-6">
-                        Experience is no longer collected here.
-                      </div>
+                      <Field label="Experience (years)" error={errors.experience_years}>
+                        <Input
+                          type="number"
+                          value={form.experience_years}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === "") {
+                              setForm({ ...form, experience_years: "", teaching_since: "" });
+                            } else {
+                              const years = Number(raw);
+                              setForm({ ...form, experience_years: years, teaching_since: new Date().getFullYear() - years });
+                            }
+                          }}
+                        />
+                      </Field>
                     </div>
+                    <Field label="Teaching since (year)" error={errors.teaching_since}>
+                      <Input
+                        type="number"
+                        value={form.teaching_since}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          if (raw === "") {
+                            setForm({ ...form, teaching_since: "", experience_years: "" });
+                          } else {
+                            const year = Number(raw);
+                            setForm({ ...form, teaching_since: year, experience_years: Math.max(0, new Date().getFullYear() - year) });
+                          }
+                        }}
+                        placeholder="2015"
+                      />
+                    </Field>
                     <Field label="Bio" error={errors.bio}>
                       <Textarea rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} />
                     </Field>
