@@ -29,6 +29,12 @@ const trustStats = [
 
 function Landing() {
   const { t } = useTranslation();
+  const { data: featuredTutors = [], isLoading: featuredLoading } = useQuery({
+    queryKey: ["landing", "featured_tutors"],
+    queryFn: () => fetchTopWeeklyTutors(3),
+  });
+
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -166,37 +172,50 @@ function Landing() {
               <p className="mt-3 text-lg text-muted-foreground">{t("featured.subtitle")}</p>
             </div>
             <Button asChild variant="outline" className="font-bold">
-              <a href="#tutors">{t("featured.view_all")} <ArrowRight className="ml-2 h-4 w-4" /></a>
+              <Link to="/tutors">{t("featured.view_all")} <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </div>
+          {featuredLoading && (
+            <p className="mt-10 text-center text-muted-foreground">{t("common.loading")}</p>
+          )}
+          {!featuredLoading && featuredTutors.length === 0 && (
+            <p className="mt-10 text-center text-muted-foreground">{t("common.no_tutors_yet")}</p>
+          )}
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {featuredTutors.map((tut) => (
-              <div key={tut.name} className="rounded-3xl border border-border bg-card p-6 transition-all hover:shadow-brand">
+              <div key={tut.id} className="rounded-3xl border border-border bg-card p-6 transition-all hover:shadow-brand">
                 <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 shrink-0 rounded-full bg-brand-gradient-soft" />
+                  {tut.photo_url ? (
+                    <img src={tut.photo_url} alt={tut.display_name} className="h-14 w-14 shrink-0 rounded-full object-cover" />
+                  ) : (
+                    <div className="h-14 w-14 shrink-0 rounded-full bg-brand-gradient-soft" />
+                  )}
                   <div className="min-w-0">
-                    <p className="truncate text-base font-bold text-foreground">{tut.name}</p>
-                    <p className="truncate text-sm text-muted-foreground">{tut.subject}</p>
+                    <p className="truncate text-base font-bold text-foreground">{tut.display_name}</p>
+                    <p className="truncate text-sm text-muted-foreground">{tut.headline ?? tut.subjects.join(", ")}</p>
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] font-bold text-[color:var(--brand-teal)]">
-                    <BadgeCheck className="h-3 w-3" /> {tut.badge}
-                  </span>
-                </div>
+                {tut.badge && (
+                  <div className="mt-4 flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] font-bold text-[color:var(--brand-teal)]">
+                      <BadgeCheck className="h-3 w-3" /> {tut.badge}
+                    </span>
+                  </div>
+                )}
                 <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
                   <span className="inline-flex items-center gap-1 text-muted-foreground">
-                    <MapPin className="h-4 w-4" /> {tut.district}
+                    <MapPin className="h-4 w-4" /> {tut.district ?? "HK"}
                   </span>
                   <span className="inline-flex items-center gap-1 font-bold text-foreground">
-                    <Star className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" /> {tut.rating}
+                    <Star className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" /> {Number(tut.rating).toFixed(1)}
                   </span>
                 </div>
                 <p className="mt-4 text-2xl font-black text-[color:var(--brand-navy)]">
-                  HK${tut.rate}
+                  HK${tut.hourly_rate}
                   <span className="ml-1 text-sm font-semibold text-muted-foreground">{t("featured.per_hour")}</span>
                 </p>
               </div>
+
             ))}
           </div>
         </div>
