@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -29,6 +30,11 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as AuthenticatedPostCaseSuccessCaseIdRouteImport } from './routes/_authenticated.post-case.success.$caseId'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BecomeATutorRoute = BecomeATutorRouteImport.update({
   id: '/become-a-tutor',
   path: '/become-a-tutor',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-cases': typeof AuthenticatedMyCasesRoute
   '/post-case': typeof AuthenticatedPostCaseRouteWithChildren
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-cases': typeof AuthenticatedMyCasesRoute
   '/post-case': typeof AuthenticatedPostCaseRouteWithChildren
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/my-cases': typeof AuthenticatedMyCasesRoute
   '/_authenticated/post-case': typeof AuthenticatedPostCaseRouteWithChildren
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/become-a-tutor'
+    | '/sitemap.xml'
     | '/dashboard'
     | '/my-cases'
     | '/post-case'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/become-a-tutor'
+    | '/sitemap.xml'
     | '/dashboard'
     | '/my-cases'
     | '/post-case'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/become-a-tutor'
+    | '/sitemap.xml'
     | '/_authenticated/dashboard'
     | '/_authenticated/my-cases'
     | '/_authenticated/post-case'
@@ -260,6 +272,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -269,6 +282,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/become-a-tutor': {
       id: '/become-a-tutor'
       path: '/become-a-tutor'
@@ -452,6 +472,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
   TutorsIndexRoute: TutorsIndexRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
