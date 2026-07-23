@@ -97,8 +97,10 @@ function AdminSettings() {
 
   const save = useMutation({
     mutationFn: async (payload: Settings) => {
-      const rows: { key: string; value: unknown }[] = STRING_KEYS.map((k) => ({ key: k, value: payload[k] ?? "" }));
-      rows.push({ key: "subject_options", value: payload.subject_options });
+      const rows = [
+        ...STRING_KEYS.map((k) => ({ key: k, value: (payload[k] ?? "") as unknown as string })),
+        { key: "subject_options", value: payload.subject_options as unknown as string },
+      ];
       const { error } = await supabase.from("app_settings").upsert(rows, { onConflict: "key" });
       if (error) throw error;
     },
