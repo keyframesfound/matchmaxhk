@@ -57,6 +57,28 @@ function Landing() {
     queryFn: () => fetchFeaturedReviews(3),
   });
 
+  const { data: heroTutorCode } = useQuery({
+    queryKey: ["settings", "hero_tutor_code"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "hero_tutor_code")
+        .maybeSingle();
+      if (error) throw error;
+      const v = data?.value;
+      return typeof v === "string" ? v.trim() : "";
+    },
+  });
+
+  const { data: pickedHeroTutor } = useQuery({
+    queryKey: ["landing", "hero_tutor", heroTutorCode ?? ""],
+    queryFn: () => fetchTutorByCode(heroTutorCode as string),
+    enabled: !!heroTutorCode,
+  });
+
+  const heroTutor: Tutor | null = pickedHeroTutor ?? featuredTutors[0] ?? null;
+
   const trustStats = [
     { key: "students" as const, value: formatCount(studentsMatchedSetting ?? 0) },
     { key: "tutors" as const, value: formatCount(liveStats?.activeTutors ?? 0) },
