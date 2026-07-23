@@ -177,7 +177,7 @@ function AdminSettings() {
                   options={tutorOptions}
                   placeholder="Auto (top-rated this week)"
                   searchPlaceholder="Search tutors…"
-                  emptyLabel="No published tutors yet."
+                  
                 />
                 <div className="flex items-center gap-3">
                   <p className="text-xs text-muted-foreground">
@@ -230,7 +230,7 @@ function AdminSettings() {
                         .map((s) => ({ value: s, label: s }))}
                       placeholder="Add from suggested subjects…"
                       searchPlaceholder="Search subjects…"
-                      emptyLabel="No suggestions left."
+                      
                     />
                   </div>
                   <div className="flex gap-2">
