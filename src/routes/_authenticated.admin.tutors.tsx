@@ -271,6 +271,29 @@ function AdminTutors() {
     setForm({ ...form, education: form.education.filter((_, idx) => idx !== i) });
   }
 
+  function addExam() {
+    setForm({
+      ...form,
+      exam_results: [...form.exam_results, { system: "ib", subject: "", grade: "", year: "" }],
+    });
+  }
+  function updateExam(i: number, patch: Partial<ExamResult & { year: number | "" | null }>) {
+    const next = form.exam_results.slice();
+    const current = next[i];
+    // Reset dependent fields when the system changes
+    if (patch.system && patch.system !== current.system) {
+      next[i] = { ...current, ...patch, subject: "", grade: "" };
+    } else if (patch.subject && patch.subject !== current.subject) {
+      next[i] = { ...current, ...patch, grade: "" };
+    } else {
+      next[i] = { ...current, ...patch };
+    }
+    setForm({ ...form, exam_results: next });
+  }
+  function removeExam(i: number) {
+    setForm({ ...form, exam_results: form.exam_results.filter((_, idx) => idx !== i) });
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
