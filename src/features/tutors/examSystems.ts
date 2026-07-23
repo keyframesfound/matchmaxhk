@@ -138,10 +138,39 @@ export function getGradesForSelection(systemId: string, subject: string): string
   return sys.grades;
 }
 
+export type ExamResultEntry = { subject: string; grade: string };
+
 export type ExamResult = {
   system: ExamSystemId | string;
-  subject: string;
-  grade: string;
-  /** Optional exam year e.g. 2024 */
-  year?: number | null;
+  subjects: ExamResultEntry[];
 };
+
+/** Accepts both the new grouped shape and legacy flat rows. */
+export function normalizeExamResults(raw: unknown): ExamResult[] {
+  if (!Array.isArray(raw)) return [];
+  const bySystem = new Map<string, ExamResultEntry[]>();
+  const order: string[] = [];
+  for (const item of raw as Array<Record<string, unknown>>) {
+    if (!item || typeof item !== "object") continue;
+    const system = String(item.system ?? "").trim();
+    if (!system) continue;
+    if (!bySystem.has(system)) {
+      bySystem.set(system, []);
+      order.push(system);
+    }
+    const bucket = bySystem.get(system)!;
+    if (Array.isArray(item.subjects)) {
+      for (const s of item.subjects as Array<Record<string, unknown>>) {
+        const subject = String(s?.subject ?? "").trim();
+        const grade = String(s?.grade ?? "").trim();
+        if (subject && grade) bucket.push({ subject, grade });
+      }
+    } else if (item.subject && item.grade) {
+      bucket.push({ subject: String(item.subject).trim(), grade: String(item.grade).trim() });
+    }
+  }
+  return order
+    .map((sys) => ({ system: sys, subjects: bySystem.get(sys) ?? [] }))
+    .filter((r) => r.subjects.length > 0);
+}
+

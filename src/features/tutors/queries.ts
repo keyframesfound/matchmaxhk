@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { ExamResult } from "./examSystems";
+import { normalizeExamResults, type ExamResult } from "./examSystems";
 
 export type Education = {
   institution: string;
@@ -37,7 +37,7 @@ const SELECT_COLS =
 
 function normalize(row: Record<string, unknown>): Tutor {
   const edu = Array.isArray(row.education) ? (row.education as Education[]) : [];
-  const exams = Array.isArray(row.exam_results) ? (row.exam_results as ExamResult[]) : [];
+  const exams = normalizeExamResults(row.exam_results);
   return { ...(row as unknown as Tutor), education: edu, exam_results: exams };
 }
 
