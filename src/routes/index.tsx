@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "MatchMax — Hong Kong's smart tutoring marketplace" },
-      { name: "description", content: "Post a case for free and get matched with qualified Hong Kong tutors by subject, level, district and budget." },
-      { property: "og:title", content: "MatchMax — Find the right tutor, matched for you" },
-      { property: "og:description", content: "Smart matching for Hong Kong families. Vetted tutors, transparent rates, WhatsApp handoff." },
+      { title: "MatchMax — Hong Kong's tutoring marketplace" },
+      { name: "description", content: "⚡️Instantly matching you to the perfect tutor\n🎓IB, IGCSE, DSE, AP Top scorer tutors available" },
+      { property: "og:title", content: "MatchMax — Hong Kong's tutoring marketplace" },
+      { property: "og:description", content: "⚡️Instantly matching you to the perfect tutor\n🎓IB, IGCSE, DSE, AP Top scorer tutors available" },
     ],
   }),
   component: Landing,
