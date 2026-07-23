@@ -364,7 +364,7 @@ function ReviewDialog({
           // In admin-authored mode we leave author_user_id null (anonymous on behalf of someone).
           author_user_id: adminMode ? null : user?.id ?? null,
         };
-        const { error } = await supabase.from("tutor_reviews").insert(payload);
+        const { error } = await supabase.from("tutor_reviews").insert(payload as never);
         if (error) throw error;
       }
     },
