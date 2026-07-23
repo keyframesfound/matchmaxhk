@@ -5,6 +5,7 @@ import { ArrowRight, BadgeCheck, Sparkles, MessageCircle, Star, Users, Graduatio
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import i18n from "@/features/i18n/config";
 import { fetchTopWeeklyTutors, fetchLandingStats, fetchTutorByCode, getTutorLessonModeLabel, getTutorLocationLabel, type Tutor } from "@/features/tutors/queries";
 import { fetchFeaturedReviews } from "@/features/tutors/reviews";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,10 +13,10 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "MatchMax — Hong Kong's tutoring marketplace" },
-      { name: "description", content: "⚡️ Instantly matched to the perfect Hong Kong tutor. 🎓 Verified IB, IGCSE, DSE, and AP top-scorer tutors ready to help." },
-      { property: "og:title", content: "MatchMax — Hong Kong's tutoring marketplace" },
-      { property: "og:description", content: "⚡️ Instantly matched to the perfect Hong Kong tutor. 🎓 Verified IB, IGCSE, DSE, and AP top-scorer tutors ready to help." },
+      { title: i18n.t("landing.meta.title") },
+      { name: "description", content: i18n.t("landing.meta.description") },
+      { property: "og:title", content: i18n.t("landing.meta.og_title") },
+      { property: "og:description", content: i18n.t("landing.meta.og_description") },
       { property: "og:url", content: "https://maxmatch.app/" },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp" },
@@ -155,9 +156,9 @@ function Landing() {
             </div>
 
             <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5"><BadgeCheck className="h-4 w-4 text-[color:var(--brand-teal)]" /> Verified tutors</span>
-              <span className="inline-flex items-center gap-1.5"><MessageCircle className="h-4 w-4 text-[color:var(--brand-teal)]" /> WhatsApp handoff</span>
-              <span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4 text-[color:var(--brand-teal)]" /> No hidden fees</span>
+              <span className="inline-flex items-center gap-1.5"><BadgeCheck className="h-4 w-4 text-[color:var(--brand-teal)]" /> {t("landing.hero_badges.verified_tutors")}</span>
+              <span className="inline-flex items-center gap-1.5"><MessageCircle className="h-4 w-4 text-[color:var(--brand-teal)]" /> {t("landing.hero_badges.whatsapp_handoff")}</span>
+              <span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4 text-[color:var(--brand-teal)]" /> {t("landing.hero_badges.no_hidden_fees")}</span>
             </div>
           </div>
 
@@ -184,20 +185,20 @@ function Landing() {
                           {heroTutor.headline ?? heroTutor.subjects.slice(0, 3).join(" · ")}
                         </p>
                       </div>
-                      <span className="rounded-full bg-[color:var(--brand-teal)]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-teal)]">Featured</span>
+                      <span className="rounded-full bg-[color:var(--brand-teal)]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-teal)]">{t("landing.hero_card.featured")}</span>
                     </div>
                     <div className="mt-5 grid grid-cols-3 gap-3 rounded-2xl bg-muted/50 p-4 text-center text-xs">
                       <div>
                         <p className="font-bold text-lg text-[color:var(--brand-navy)]">{heroTutor.tutor_code}</p>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Code</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("landing.hero_card.code")}</p>
                       </div>
                       <div>
                         <p className="font-bold text-lg text-[color:var(--brand-navy)]">${heroTutor.hourly_rate}</p>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">/hr</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("featured.per_hour")}</p>
                       </div>
                       <div>
                         <p className="font-bold text-lg text-[color:var(--brand-navy)]">{heroTutor.rating.toFixed(1)}★</p>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Rating</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("landing.hero_card.rating")}</p>
                       </div>
                     </div>
                     <div className="mt-5 space-y-2">
@@ -218,13 +219,13 @@ function Landing() {
                     </div>
                     <Button asChild className="mt-6 w-full rounded-xl bg-brand-gradient py-3 text-sm font-bold text-white shadow-teal">
                       <Link to="/tutors/$tutorCode" params={{ tutorCode: heroTutor.tutor_code }}>
-                        <MessageCircle className="mr-2 inline h-4 w-4" /> View tutor profile
+                        <MessageCircle className="mr-2 inline h-4 w-4" /> {t("landing.hero_card.view_profile")}
                       </Link>
                     </Button>
                   </>
                 ) : (
                   <div className="py-16 text-center text-sm text-muted-foreground">
-                    {featuredLoading ? "Loading featured tutor…" : "No featured tutor yet."}
+                    {featuredLoading ? t("landing.hero_card.loading_featured_tutor") : t("landing.hero_card.no_featured_tutor")}
                   </div>
                 )}
               </div>
@@ -402,10 +403,10 @@ function Landing() {
             {t("testimonials.title")}
           </h2>
           <p className="mt-3 text-center text-muted-foreground">
-            Real reviews from parents and students. Admins can add or edit reviews on each tutor's profile.
+            {t("landing.reviews.description")}
           </p>
           {featuredReviews.length === 0 ? (
-            <p className="mt-14 text-center text-muted-foreground">No reviews yet.</p>
+            <p className="mt-14 text-center text-muted-foreground">{t("landing.reviews.no_reviews")}</p>
           ) : (
             <div className="mt-14 grid gap-6 md:grid-cols-3">
               {featuredReviews.map((r) => (
@@ -419,7 +420,7 @@ function Landing() {
                     ))}
                   </div>
                   <blockquote className="flex-1 text-base leading-relaxed text-foreground">
-                    {r.comment ? `“${r.comment}”` : <span className="text-muted-foreground">No comment</span>}
+                    {r.comment ? `“${r.comment}”` : <span className="text-muted-foreground">{t("landing.reviews.no_comment")}</span>}
                   </blockquote>
                   <figcaption className="mt-6 text-sm text-muted-foreground">
                     <span className="font-bold text-foreground">{r.author_alias}</span>

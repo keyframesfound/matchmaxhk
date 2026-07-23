@@ -39,6 +39,32 @@
     "view_all": "瀏覽全部導師",
     "per_hour": "/小時"
   },
+  "landing": {
+    "meta": {
+      "title": "MatchMax — 香港補習配對平台",
+      "description": "⚡️ 即時配對最適合嘅香港導師。🎓 經驗認證嘅 IB、IGCSE、DSE、AP 導師隨時幫到你。",
+      "og_title": "MatchMax — 香港補習配對平台",
+      "og_description": "⚡️ 即時配對最適合嘅香港導師。🎓 經驗認證嘅 IB、IGCSE、DSE、AP 導師隨時幫到你。"
+    },
+    "reviews": {
+      "description": "來自家長同學生嘅真實評價。管理員可以喺每位導師嘅個人檔案新增或編輯評價。",
+      "no_reviews": "暫時未有評價，歡迎你率先分享經驗。",
+      "no_comment": "沒有留言"
+    },
+    "hero_card": {
+      "featured": "精選",
+      "code": "編號",
+      "rating": "評分",
+      "view_profile": "查看導師資料",
+      "loading_featured_tutor": "載入精選導師中…",
+      "no_featured_tutor": "暫時未有精選導師。"
+    },
+    "hero_badges": {
+      "verified_tutors": "已驗證導師",
+      "whatsapp_handoff": "WhatsApp 跟進",
+      "no_hidden_fees": "無隱藏收費"
+    }
+  },
   "subjects": {
     "title": "熱門科目",
     "math": "數學",
@@ -160,6 +186,49 @@
     "team": "客服團隊",
     "tutor": "導師",
     "parent": "家長／學生"
+  },
+  "tutor_profile": {
+    "not_found_title": "搵唔到導師",
+    "not_found_description": "呢個導師編號未有對應已發佈導師。",
+    "browse_all_tutors": "瀏覽全部導師",
+    "error_title": "發生咗啲問題",
+    "reviews_title": "評價",
+    "edit_your_review": "編輯你嘅評價",
+    "write_a_review": "撰寫評價",
+    "sign_in_to_review": "登入後評價",
+    "add_review": "新增評價",
+    "no_reviews": "暫時未有評價，歡迎你率先分享經驗。",
+    "hidden": "隱藏中",
+    "delete_review_confirm": "刪除呢則評價？",
+    "about": "關於",
+    "education": "學歷",
+    "exam_results": "公開試成績",
+    "details": "詳細資料",
+    "tutor_code": "導師編號：",
+    "years_of_experience": "有 {{count}} 年經驗",
+    "teaching_since": "由 {{year}} 年開始教學",
+    "languages": "語言",
+    "district": "地區",
+    "review_count_new": "· 新導師",
+    "review_count_one": "· 1 則評價",
+    "review_count_other": "· {{count}} 則評價",
+    "request_this_tutor": "聯絡呢位導師",
+    "contact_soon": "即將可聯絡",
+    "loading": "載入中…",
+    "edit_review": "編輯評價",
+    "add_review_guest": "新增評價（以訪客身份）",
+    "display_name_alias": "顯示名稱／別名",
+    "alias_example": "例如：陳太",
+    "rating": "評分",
+    "comment": "留言",
+    "comment_placeholder": "你對呢位導師嘅體驗如何？",
+    "published_visible_publicly": "已發佈（公開可見）",
+    "cancel": "取消",
+    "save_review": "儲存評價",
+    "please_enter_alias": "請輸入姓名／別名。",
+    "rating_must_be": "評分必須係 1–5。",
+    "review_saved": "已儲存評價",
+    "review_deleted": "已刪除評價"
   },
   "common": {
     "loading": "載入中…",
