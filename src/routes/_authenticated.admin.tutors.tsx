@@ -76,7 +76,7 @@ const examSchema = z.object({
 const formSchema = z.object({
   display_name: z.string().trim().min(1).max(120),
   headline: z.string().trim().max(200).optional().or(z.literal("")),
-  subjects_csv: z.string().trim().min(1).max(300),
+  subjects: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one subject"),
   district: z.string().trim().max(80).optional().or(z.literal("")),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
   badge: z.string().trim().max(80).optional().or(z.literal("")),
