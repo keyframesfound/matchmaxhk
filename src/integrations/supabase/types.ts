@@ -124,6 +124,7 @@ export type Database = {
           display_name: string
           district: string | null
           education: Json
+          exam_results: Json
           experience_years: number | null
           headline: string | null
           hourly_rate: number
@@ -149,6 +150,7 @@ export type Database = {
           display_name: string
           district?: string | null
           education?: Json
+          exam_results?: Json
           experience_years?: number | null
           headline?: string | null
           hourly_rate?: number
@@ -174,6 +176,7 @@ export type Database = {
           display_name?: string
           district?: string | null
           education?: Json
+          exam_results?: Json
           experience_years?: number | null
           headline?: string | null
           hourly_rate?: number

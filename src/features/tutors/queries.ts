@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { ExamResult } from "./examSystems";
 
 export type Education = {
   institution: string;
@@ -27,14 +28,16 @@ export type Tutor = {
   teaching_since: number | null;
   languages: string[];
   intro_video_url: string | null;
+  exam_results: ExamResult[];
 };
 
 const SELECT_COLS =
-  "id, display_name, headline, subjects, district, hourly_rate, badge, bio, photo_url, tutor_code, rating, review_count, weekly_rating, weekly_score, is_published, education, experience_years, teaching_since, languages, intro_video_url";
+  "id, display_name, headline, subjects, district, hourly_rate, badge, bio, photo_url, tutor_code, rating, review_count, weekly_rating, weekly_score, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results";
 
 function normalize(row: Record<string, unknown>): Tutor {
   const edu = Array.isArray(row.education) ? (row.education as Education[]) : [];
-  return { ...(row as unknown as Tutor), education: edu };
+  const exams = Array.isArray(row.exam_results) ? (row.exam_results as ExamResult[]) : [];
+  return { ...(row as unknown as Tutor), education: edu, exam_results: exams };
 }
 
 export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {

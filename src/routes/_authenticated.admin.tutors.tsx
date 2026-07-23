@@ -22,6 +22,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { fetchAllTutors, HK_DISTRICTS, type Tutor, type Education } from "@/features/tutors/queries";
+import { EXAM_SYSTEMS, getSystem, getGradesForSelection, type ExamResult } from "@/features/tutors/examSystems";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 export const Route = createFileRoute("/_authenticated/admin/tutors")({
   head: () => ({
@@ -38,6 +40,13 @@ const eduSchema = z.object({
   institution: z.string().trim().min(1).max(120),
   qualification: z.string().trim().min(1).max(120),
   year: z.union([z.coerce.number().int().min(1900).max(2100), z.literal(""), z.null()]).optional(),
+});
+
+const examSchema = z.object({
+  system: z.string().trim().min(1),
+  subject: z.string().trim().min(1).max(120),
+  grade: z.string().trim().min(1).max(40),
+  year: z.union([z.coerce.number().int().min(1950).max(2100), z.literal(""), z.null()]).optional(),
 });
 
 const formSchema = z.object({
@@ -57,6 +66,7 @@ const formSchema = z.object({
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
   teaching_since: z.union([z.coerce.number().int().min(1950).max(2100), z.literal("")]).optional(),
   education: z.array(eduSchema),
+  exam_results: z.array(examSchema),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -78,6 +88,7 @@ const empty: FormValues = {
   experience_years: "",
   teaching_since: "",
   education: [],
+  exam_results: [],
 };
 
 function tutorToForm(t: Tutor): FormValues {
@@ -102,6 +113,12 @@ function tutorToForm(t: Tutor): FormValues {
       qualification: e.qualification ?? "",
       year: e.year ?? "",
     })),
+    exam_results: (t.exam_results ?? []).map((r) => ({
+      system: r.system ?? "",
+      subject: r.subject ?? "",
+      grade: r.grade ?? "",
+      year: r.year ?? "",
+    })),
   };
 }
 
@@ -113,6 +130,14 @@ function formToPayload(v: FormValues, isNew: boolean) {
       year: e.year === "" || e.year == null ? null : Number(e.year),
     }))
     .filter((e) => e.institution && e.qualification);
+  const cleanExams: ExamResult[] = v.exam_results
+    .map((r) => ({
+      system: r.system,
+      subject: r.subject.trim(),
+      grade: r.grade.trim(),
+      year: r.year === "" || r.year == null ? null : Number(r.year),
+    }))
+    .filter((r) => r.system && r.subject && r.grade);
   const langs = (v.languages_csv || "").split(",").map((s) => s.trim()).filter(Boolean);
   const base: Record<string, unknown> = {
     display_name: v.display_name,
@@ -131,6 +156,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
     experience_years: v.experience_years === "" ? null : Number(v.experience_years),
     teaching_since: v.teaching_since === "" ? null : Number(v.teaching_since),
     education: cleanEdu,
+    exam_results: cleanExams,
   };
   if (isNew) {
     // New tutors start at 5★; rating auto-updates once reviews exist.
@@ -243,6 +269,29 @@ function AdminTutors() {
   }
   function removeEdu(i: number) {
     setForm({ ...form, education: form.education.filter((_, idx) => idx !== i) });
+  }
+
+  function addExam() {
+    setForm({
+      ...form,
+      exam_results: [...form.exam_results, { system: "ib", subject: "", grade: "", year: "" }],
+    });
+  }
+  function updateExam(i: number, patch: Partial<ExamResult & { year: number | "" | null }>) {
+    const next = form.exam_results.slice();
+    const current = next[i];
+    // Reset dependent fields when the system changes
+    if (patch.system && patch.system !== current.system) {
+      next[i] = { ...current, ...patch, subject: "", grade: "" };
+    } else if (patch.subject && patch.subject !== current.subject) {
+      next[i] = { ...current, ...patch, grade: "" };
+    } else {
+      next[i] = { ...current, ...patch };
+    }
+    setForm({ ...form, exam_results: next });
+  }
+  function removeExam(i: number) {
+    setForm({ ...form, exam_results: form.exam_results.filter((_, idx) => idx !== i) });
   }
 
   return (
@@ -358,6 +407,70 @@ function AdminTutors() {
                       </Button>
                     </div>
                   </Section>
+
+                  <Section title="Exam results (scores)">
+                    <p className="text-xs text-muted-foreground">
+                      Pick an exam system, then the subject and grade — both lists are searchable and update to the chosen system.
+                    </p>
+                    <div className="space-y-3">
+                      {form.exam_results.length === 0 && (
+                        <p className="text-sm text-muted-foreground">No scores yet. Add one below.</p>
+                      )}
+                      {form.exam_results.map((row, i) => {
+                        const sys = getSystem(row.system);
+                        const subjectOptions = sys?.subjects ?? [];
+                        const gradeOptions = getGradesForSelection(row.system, row.subject);
+                        return (
+                          <div
+                            key={i}
+                            className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[160px_1fr_140px_90px_auto]"
+                          >
+                            <SearchableSelect
+                              value={row.system}
+                              onChange={(v) => updateExam(i, { system: v })}
+                              options={EXAM_SYSTEMS.map((s) => ({ value: s.id, label: s.label }))}
+                              placeholder="Exam system"
+                              searchPlaceholder="Search systems…"
+                            />
+                            <SearchableSelect
+                              value={row.subject}
+                              onChange={(v) => updateExam(i, { subject: v })}
+                              options={subjectOptions}
+                              placeholder={sys?.freeSubject ? "Type a subject" : "Subject"}
+                              searchPlaceholder="Search subjects…"
+                              allowCustom={sys?.freeSubject ?? false}
+                              disabled={!row.system}
+                            />
+                            <SearchableSelect
+                              value={row.grade}
+                              onChange={(v) => updateExam(i, { grade: v })}
+                              options={gradeOptions}
+                              placeholder={gradeOptions.length === 0 ? "Type a grade" : "Grade"}
+                              searchPlaceholder="Search grades…"
+                              allowCustom={gradeOptions.length === 0}
+                              disabled={!row.subject}
+                            />
+                            <Input
+                              type="number"
+                              placeholder="Year"
+                              value={row.year ?? ""}
+                              onChange={(e) =>
+                                updateExam(i, { year: e.target.value === "" ? null : Number(e.target.value) })
+                              }
+                            />
+                            <Button type="button" variant="outline" size="icon" onClick={() => removeExam(i)}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                      <Button type="button" variant="outline" onClick={addExam}>
+                        <Plus className="mr-2 h-4 w-4" /> Add exam result
+                      </Button>
+                    </div>
+                  </Section>
+
+
 
                   <Section title="Scoring">
                     {editing && (
