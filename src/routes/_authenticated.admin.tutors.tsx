@@ -22,6 +22,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { fetchAllTutors, HK_DISTRICTS, type Tutor, type Education } from "@/features/tutors/queries";
+import { EXAM_SYSTEMS, getSystem, getGradesForSelection, type ExamResult } from "@/features/tutors/examSystems";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 export const Route = createFileRoute("/_authenticated/admin/tutors")({
   head: () => ({
