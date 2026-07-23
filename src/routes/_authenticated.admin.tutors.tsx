@@ -408,6 +408,70 @@ function AdminTutors() {
                     </div>
                   </Section>
 
+                  <Section title="Exam results (scores)">
+                    <p className="text-xs text-muted-foreground">
+                      Pick an exam system, then the subject and grade — both lists are searchable and update to the chosen system.
+                    </p>
+                    <div className="space-y-3">
+                      {form.exam_results.length === 0 && (
+                        <p className="text-sm text-muted-foreground">No scores yet. Add one below.</p>
+                      )}
+                      {form.exam_results.map((row, i) => {
+                        const sys = getSystem(row.system);
+                        const subjectOptions = sys?.subjects ?? [];
+                        const gradeOptions = getGradesForSelection(row.system, row.subject);
+                        return (
+                          <div
+                            key={i}
+                            className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[160px_1fr_140px_90px_auto]"
+                          >
+                            <SearchableSelect
+                              value={row.system}
+                              onChange={(v) => updateExam(i, { system: v })}
+                              options={EXAM_SYSTEMS.map((s) => ({ value: s.id, label: s.label }))}
+                              placeholder="Exam system"
+                              searchPlaceholder="Search systems…"
+                            />
+                            <SearchableSelect
+                              value={row.subject}
+                              onChange={(v) => updateExam(i, { subject: v })}
+                              options={subjectOptions}
+                              placeholder={sys?.freeSubject ? "Type a subject" : "Subject"}
+                              searchPlaceholder="Search subjects…"
+                              allowCustom={sys?.freeSubject ?? false}
+                              disabled={!row.system}
+                            />
+                            <SearchableSelect
+                              value={row.grade}
+                              onChange={(v) => updateExam(i, { grade: v })}
+                              options={gradeOptions}
+                              placeholder={gradeOptions.length === 0 ? "Type a grade" : "Grade"}
+                              searchPlaceholder="Search grades…"
+                              allowCustom={gradeOptions.length === 0}
+                              disabled={!row.subject}
+                            />
+                            <Input
+                              type="number"
+                              placeholder="Year"
+                              value={row.year ?? ""}
+                              onChange={(e) =>
+                                updateExam(i, { year: e.target.value === "" ? null : Number(e.target.value) })
+                              }
+                            />
+                            <Button type="button" variant="outline" size="icon" onClick={() => removeExam(i)}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                      <Button type="button" variant="outline" onClick={addExam}>
+                        <Plus className="mr-2 h-4 w-4" /> Add exam result
+                      </Button>
+                    </div>
+                  </Section>
+
+
+
                   <Section title="Scoring">
                     {editing && (
                       <p className="rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
