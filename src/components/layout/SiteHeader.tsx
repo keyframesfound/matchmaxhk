@@ -36,11 +36,6 @@ export function SiteHeader() {
           <Link to="/tutors" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
             {t("nav.find_tutor")}
           </Link>
-          {user && (
-            <Link to="/cases" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
-              Cases
-            </Link>
-          )}
           <Link to="/become-a-tutor" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
             {t("tutors_cta.cta")}
           </Link>
