@@ -12,6 +12,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { fetchPublishedTutors, HK_DISTRICTS } from "@/features/tutors/queries";
+import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
+import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({
   subject: z.string().optional(),
