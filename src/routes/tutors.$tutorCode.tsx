@@ -81,6 +81,20 @@ function TutorDetail() {
     queryFn: () => fetchReviewsForTutor(tutor.id),
   });
 
+  const { data: whatsappNumber } = useQuery({
+    queryKey: ["settings", "whatsapp_number"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "whatsapp_number")
+        .maybeSingle();
+      if (error) throw error;
+      const v = data?.value;
+      return typeof v === "string" ? v : "";
+    },
+  });
+
   // liveTutor: refresh rating/review_count after mutations
   const { data: liveTutor } = useQuery({
     queryKey: ["tutor", "byCode", tutor.tutor_code],
@@ -88,6 +102,11 @@ function TutorDetail() {
     initialData: tutor,
   });
   const t: Tutor = liveTutor ?? tutor;
+
+  const waDigits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
+  const waUrl = waDigits
+    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`I would like to request tutor ${t.tutor_code}`)}`
+    : "";
 
   const myReview = useMemo(
     () => (user ? reviews.find((r) => r.author_user_id === user.id) ?? null : null),
@@ -172,9 +191,17 @@ function TutorDetail() {
               <div className="text-right">
                 <p className="text-3xl font-black text-[color:var(--brand-navy)]">HK${t.hourly_rate}<span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span></p>
                 <p className="mt-1 text-xs text-muted-foreground">Tutor code: <strong>{t.tutor_code}</strong></p>
-                <Button asChild className="mt-3 bg-brand-gradient font-bold text-white shadow-teal">
-                  <Link to="/auth"><MessageCircle className="mr-2 h-4 w-4" /> Request this tutor</Link>
-                </Button>
+                {waUrl ? (
+                  <Button asChild className="mt-3 bg-brand-gradient font-bold text-white shadow-teal">
+                    <a href={waUrl} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle className="mr-2 h-4 w-4" /> Request this tutor
+                    </a>
+                  </Button>
+                ) : (
+                  <Button disabled className="mt-3 bg-brand-gradient font-bold text-white shadow-teal">
+                    <MessageCircle className="mr-2 h-4 w-4" /> Contact coming soon
+                  </Button>
+                )}
               </div>
             </div>
           </div>

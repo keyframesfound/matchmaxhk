@@ -20,6 +20,7 @@ const IB_SUBJECTS = [
   "Chinese A Language & Literature", "Chinese A Literature",
   // Group 2
   "English B", "Chinese B", "French B", "Spanish B", "German B", "Japanese B",
+  "Spanish ab initio",
   // Group 3
   "Business Management", "Economics", "Geography", "Global Politics", "History",
   "Philosophy", "Psychology", "Environmental Systems & Societies",

@@ -23,3 +23,20 @@ export async function fetchReviewsForTutor(tutorId: string): Promise<TutorReview
   if (error) throw error;
   return (data ?? []) as TutorReview[];
 }
+
+export type FeaturedReview = TutorReview & {
+  tutor: { display_name: string; tutor_code: string } | null;
+};
+
+export async function fetchFeaturedReviews(limit = 6): Promise<FeaturedReview[]> {
+  const { data, error } = await supabase
+    .from("tutor_reviews")
+    .select(`${COLS}, tutor:tutors(display_name, tutor_code, is_published)`)
+    .eq("is_published", true)
+    .order("rating", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(limit * 2);
+  if (error) throw error;
+  const rows = (data ?? []) as unknown as (FeaturedReview & { tutor: { display_name: string; tutor_code: string; is_published: boolean } | null })[];
+  return rows.filter((r) => r.tutor?.is_published).slice(0, limit);
+}

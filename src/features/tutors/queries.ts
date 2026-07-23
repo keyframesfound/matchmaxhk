@@ -84,6 +84,23 @@ export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
   return data ? normalize(data as Record<string, unknown>) : null;
 }
 
+export async function fetchLandingStats(): Promise<{ activeTutors: number; subjectsCovered: number }> {
+  const { data, error } = await supabase
+    .from("tutors")
+    .select("subjects")
+    .eq("is_published", true);
+  if (error) throw error;
+  const rows = (data ?? []) as { subjects: string[] | null }[];
+  const set = new Set<string>();
+  for (const r of rows) {
+    for (const s of r.subjects ?? []) {
+      const v = (s ?? "").trim();
+      if (v) set.add(v);
+    }
+  }
+  return { activeTutors: rows.length, subjectsCovered: set.size };
+}
+
 export const HK_DISTRICTS = [
   "Central", "Sheung Wan", "Wan Chai", "Causeway Bay", "North Point", "Quarry Bay",
   "Tsim Sha Tsui", "Mong Kok", "Kowloon Tong", "Kowloon Bay", "Ho Man Tin",

@@ -5,7 +5,9 @@ import { ArrowRight, BadgeCheck, Sparkles, MessageCircle, Star, Users, Graduatio
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { fetchTopWeeklyTutors } from "@/features/tutors/queries";
+import { fetchTopWeeklyTutors, fetchLandingStats } from "@/features/tutors/queries";
+import { fetchFeaturedReviews } from "@/features/tutors/reviews";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,13 +21,12 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const trustStats = [
-  { key: "students", value: "12,000+", icon: Users },
-  { key: "tutors", value: "3,500+", icon: GraduationCap },
-  { key: "subjects", value: "80+", icon: BookOpen },
-  { key: "districts", value: "18", icon: MapPin },
-];
+const STAT_ICONS = { students: Users, tutors: GraduationCap, subjects: BookOpen, districts: MapPin } as const;
 
+function formatCount(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k+`;
+  return `${n}`;
+}
 
 function Landing() {
   const { t } = useTranslation();
@@ -33,6 +34,35 @@ function Landing() {
     queryKey: ["landing", "featured_tutors"],
     queryFn: () => fetchTopWeeklyTutors(3),
   });
+  const { data: liveStats } = useQuery({
+    queryKey: ["landing", "stats"],
+    queryFn: () => fetchLandingStats(),
+  });
+  const { data: studentsMatchedSetting } = useQuery({
+    queryKey: ["settings", "students_matched"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "students_matched")
+        .maybeSingle();
+      if (error) throw error;
+      const v = data?.value;
+      const n = typeof v === "string" ? parseInt(v, 10) : typeof v === "number" ? v : 0;
+      return Number.isFinite(n) ? n : 0;
+    },
+  });
+  const { data: featuredReviews = [] } = useQuery({
+    queryKey: ["landing", "featured_reviews"],
+    queryFn: () => fetchFeaturedReviews(3),
+  });
+
+  const trustStats = [
+    { key: "students" as const, value: formatCount(studentsMatchedSetting ?? 0) },
+    { key: "tutors" as const, value: formatCount(liveStats?.activeTutors ?? 0) },
+    { key: "subjects" as const, value: formatCount(liveStats?.subjectsCovered ?? 0) },
+    { key: "districts" as const, value: "18" },
+  ];
 
 
 
@@ -130,15 +160,18 @@ function Landing() {
       {/* Trust bar */}
       <section className="border-y border-border bg-muted/30 py-10">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 sm:grid-cols-4 sm:px-6">
-          {trustStats.map(({ key, value, icon: Icon }) => (
-            <div key={key} className="text-center">
-              <Icon className="mx-auto h-6 w-6 text-[color:var(--brand-teal)]" />
-              <p className="mt-3 text-3xl font-black text-[color:var(--brand-navy)]">{value}</p>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {t(`trust.${key}`)}
-              </p>
-            </div>
-          ))}
+          {trustStats.map(({ key, value }) => {
+            const Icon = STAT_ICONS[key];
+            return (
+              <div key={key} className="text-center">
+                <Icon className="mx-auto h-6 w-6 text-[color:var(--brand-teal)]" />
+                <p className="mt-3 text-3xl font-black text-[color:var(--brand-navy)]">{value}</p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t(`trust.${key}`)}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -283,31 +316,54 @@ function Landing() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Reviews */}
       <section className="bg-muted/30 py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <h2 className="text-center text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
             {t("testimonials.title")}
           </h2>
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((n) => (
-              <figure key={n} className="rounded-3xl border border-border bg-card p-8">
-                <div className="mb-4 flex gap-0.5">
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <Star key={i} className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" />
-                  ))}
-                </div>
-                <blockquote className="text-base leading-relaxed text-foreground">
-                  “{t(`testimonials.t${n}`)}”
-                </blockquote>
-                <figcaption className="mt-6 text-sm font-bold text-muted-foreground">
-                  {t(`testimonials.t${n}_by`)}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+          <p className="mt-3 text-center text-muted-foreground">
+            Real reviews from parents and students. Admins can add or edit reviews on each tutor's profile.
+          </p>
+          {featuredReviews.length === 0 ? (
+            <p className="mt-14 text-center text-muted-foreground">No reviews yet.</p>
+          ) : (
+            <div className="mt-14 grid gap-6 md:grid-cols-3">
+              {featuredReviews.map((r) => (
+                <figure key={r.id} className="flex flex-col rounded-3xl border border-border bg-card p-8">
+                  <div className="mb-4 flex gap-0.5">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${i < r.rating ? "fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" : "text-muted-foreground/30"}`}
+                      />
+                    ))}
+                  </div>
+                  <blockquote className="flex-1 text-base leading-relaxed text-foreground">
+                    {r.comment ? `“${r.comment}”` : <span className="text-muted-foreground">No comment</span>}
+                  </blockquote>
+                  <figcaption className="mt-6 text-sm text-muted-foreground">
+                    <span className="font-bold text-foreground">{r.author_alias}</span>
+                    {r.tutor && (
+                      <>
+                        {" · "}
+                        <Link
+                          to="/tutors/$tutorCode"
+                          params={{ tutorCode: r.tutor.tutor_code }}
+                          className="font-semibold text-[color:var(--brand-teal)] hover:underline"
+                        >
+                          {r.tutor.display_name}
+                        </Link>
+                      </>
+                    )}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          )}
         </div>
       </section>
+
 
       <SiteFooter />
     </div>
