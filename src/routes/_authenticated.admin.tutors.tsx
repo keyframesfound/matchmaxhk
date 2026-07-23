@@ -136,6 +136,7 @@ function tutorToForm(t: Tutor): FormValues {
       institution: e.institution ?? "",
       qualification: e.qualification ?? "",
       year: e.year ?? "",
+      level: e.level ?? "",
     })),
     exam_results: (t.exam_results ?? []).map((r) => ({
       system: r.system ?? "",
