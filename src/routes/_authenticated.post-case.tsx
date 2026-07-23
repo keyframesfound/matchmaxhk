@@ -31,6 +31,7 @@ const LEVELS = ["Pre-primary", "P1", "P2", "P3", "P4", "P5", "P6", "S1", "S2", "
 
 function PostCasePage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const createFn = useServerFn(createCase);
   const [form, setForm] = useState<CaseFormInput>({
     title: "",
