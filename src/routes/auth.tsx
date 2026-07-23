@@ -69,7 +69,7 @@ function AuthPage() {
     }
   }
 
-  async function onOAuth(provider: "google" | "apple") {
+  async function onOAuth(provider: "google") {
     setBusy(true);
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
@@ -85,6 +85,7 @@ function AuthPage() {
       setBusy(false);
     }
   }
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
