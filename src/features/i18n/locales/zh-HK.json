@@ -1,0 +1,162 @@
+{
+  "brand": "MatchMax",
+  "nav": {
+    "how_it_works": "運作方式",
+    "find_tutor": "尋找導師",
+    "post_case": "刊登個案",
+    "sign_in": "登入",
+    "sign_out": "登出",
+    "dashboard": "主頁",
+    "admin": "管理"
+  },
+  "hero": {
+    "eyebrow": "香港智能導師配對平台",
+    "title_a": "為你精準配對",
+    "title_b": "最合適的導師。",
+    "subtitle": "為香港家庭而設的智能配對系統。根據科目、程度、地區及預算,幾分鐘內找到合資格導師。",
+    "cta_primary": "免費刊登個案",
+    "cta_secondary": "瀏覽導師"
+  },
+  "trust": {
+    "students": "已配對學生",
+    "tutors": "活躍導師",
+    "subjects": "涵蓋科目",
+    "districts": "涵蓋地區"
+  },
+  "how": {
+    "title": "MatchMax 運作方式",
+    "subtitle": "三個簡單步驟,找到合適的導師",
+    "step1_title": "刊登你的個案",
+    "step1_desc": "分享科目、程度、地區及預算,不到兩分鐘完成。",
+    "step2_title": "自動配對",
+    "step2_desc": "我們的系統即時為你篩選最合適的導師名單。",
+    "step3_title": "以導師編號聯絡",
+    "step3_desc": "獲得專屬導師編號,即刻透過 WhatsApp 開始第一堂。"
+  },
+  "featured": {
+    "title": "精選導師",
+    "subtitle": "廣受香港家長好評的專業導師",
+    "view_all": "查看全部導師",
+    "per_hour": "/小時"
+  },
+  "subjects": {
+    "title": "熱門科目",
+    "math": "數學",
+    "english": "英文",
+    "chinese": "中文",
+    "physics": "物理",
+    "chemistry": "化學",
+    "biology": "生物",
+    "economics": "經濟",
+    "dse": "DSE 應試",
+    "ib": "IB 課程",
+    "view_all": "查看所有科目"
+  },
+  "tutors_cta": {
+    "title": "你是熱心的導師嗎?",
+    "subtitle": "加入香港最透明的導師平台,自行定價,接收優質個案。",
+    "cta": "成為導師"
+  },
+  "testimonials": {
+    "title": "深受香港家長信賴",
+    "t1": "一日內就找到出色的 DSE 數學導師,女兒進步了兩個級別。",
+    "t1_by": "陳太 — 九龍塘",
+    "t2": "溝通清晰、導師經核實、不會 hard sell,非常清爽。",
+    "t2_by": "林先生 — 沙田",
+    "t3": "配對非常準確,第一位導師就 book 咗。",
+    "t3_by": "黃太 — 中環"
+  },
+  "footer": {
+    "tagline": "以智能配對與透明連結,提升香港補習質素。",
+    "quick_links": "快速連結",
+    "support": "支援",
+    "about": "關於我們",
+    "how": "運作方式",
+    "verification": "導師驗證",
+    "districts": "地區指南",
+    "help": "幫助中心",
+    "contact": "聯絡我們",
+    "privacy": "私隱政策",
+    "terms": "使用條款",
+    "rights": "版權所有。"
+  },
+  "auth": {
+    "sign_in_title": "歡迎回來",
+    "sign_in_subtitle": "登入你的 MatchMax 帳戶",
+    "sign_up_title": "建立帳戶",
+    "sign_up_subtitle": "以家長或導師身份加入 MatchMax",
+    "email": "電郵",
+    "password": "密碼",
+    "name": "姓名",
+    "continue": "繼續",
+    "continue_google": "使用 Google 繼續",
+    "or": "或",
+    "no_account": "還未有帳戶?",
+    "have_account": "已有帳戶?",
+    "sign_up": "註冊",
+    "sign_in": "登入",
+    "check_email": "請查收電郵以確認你的帳戶。",
+    "signing_in": "登入中…"
+  },
+  "dashboard": {
+    "welcome": "歡迎回來",
+    "your_role": "你的身份",
+    "parent": {
+      "title": "家長主頁",
+      "post_case": "刊登新個案",
+      "post_case_desc": "告訴我們你的需要,我們為你配對導師。",
+      "my_cases": "我的個案",
+      "my_cases_desc": "追蹤未配對與已配對的個案。"
+    },
+    "tutor": {
+      "title": "導師主頁",
+      "leads": "新客戶查詢",
+      "leads_desc": "已收到你導師編號的家長。",
+      "profile": "我的檔案",
+      "profile_desc": "更新科目、收費與時間表。"
+    },
+    "staff": {
+      "title": "職員主頁",
+      "review": "待審核個案",
+      "review_desc": "需要人手處理的配對個案。",
+      "tutors": "導師目錄",
+      "tutors_desc": "管理導師檔案。"
+    },
+    "admin": {
+      "title": "管理員主頁",
+      "users": "用戶與身份",
+      "users_desc": "授予或撤銷身份。",
+      "settings": "系統設定",
+      "settings_desc": "WhatsApp 號碼、訊息範本、品牌資料。",
+      "tutors": "新增導師",
+      "tutors_desc": "建立新導師檔案。"
+    },
+    "coming_soon": "下一版本推出"
+  },
+  "admin": {
+    "users_title": "用戶與身份",
+    "users_subtitle": "為 MatchMax 用戶授予或撤銷身份",
+    "search_placeholder": "以電郵或姓名搜尋…",
+    "name": "姓名",
+    "email": "電郵",
+    "roles": "身份",
+    "actions": "操作",
+    "grant": "授予",
+    "revoke": "撤銷",
+    "select_role": "選擇身份",
+    "no_users": "尚未有用戶。",
+    "settings_title": "系統設定",
+    "settings_subtitle": "全站設定",
+    "save": "儲存",
+    "saved": "已儲存。",
+    "whatsapp_number": "WhatsApp 聯絡號碼",
+    "whatsapp_template": "WhatsApp 訊息範本",
+    "contact_email": "聯絡電郵",
+    "brand_name": "品牌名稱"
+  },
+  "common": {
+    "loading": "載入中…",
+    "error": "發生錯誤。",
+    "back_home": "返回首頁"
+  }
+}
