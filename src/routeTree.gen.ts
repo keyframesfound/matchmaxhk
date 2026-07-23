@@ -16,11 +16,14 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
 import { Route as AuthenticatedPostCaseRouteImport } from './routes/_authenticated.post-case'
+import { Route as AuthenticatedMyCasesRouteImport } from './routes/_authenticated.my-cases'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedCasesIndexRouteImport } from './routes/_authenticated.cases.index'
+import { Route as AuthenticatedCasesCaseIdRouteImport } from './routes/_authenticated.cases.$caseId'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
 import { Route as AuthenticatedAdminTutorsRouteImport } from './routes/_authenticated.admin.tutors'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
+import { Route as AuthenticatedAdminCasesRouteImport } from './routes/_authenticated.admin.cases'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -60,6 +63,11 @@ const AuthenticatedPostCaseRoute = AuthenticatedPostCaseRouteImport.update({
   path: '/post-case',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMyCasesRoute = AuthenticatedMyCasesRouteImport.update({
+  id: '/my-cases',
+  path: '/my-cases',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -70,6 +78,12 @@ const AuthenticatedCasesIndexRoute = AuthenticatedCasesIndexRouteImport.update({
   path: '/cases/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedCasesCaseIdRoute =
+  AuthenticatedCasesCaseIdRouteImport.update({
+    id: '/cases/$caseId',
+    path: '/cases/$caseId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/admin/users',
   path: '/admin/users',
@@ -87,6 +101,11 @@ const AuthenticatedAdminSettingsRoute =
     path: '/admin/settings',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminCasesRoute = AuthenticatedAdminCasesRouteImport.update({
+  id: '/admin/cases',
+  path: '/admin/cases',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const LovableEmailTransactionalPreviewRoute =
   LovableEmailTransactionalPreviewRouteImport.update({
     id: '/lovable/email/transactional/preview',
@@ -115,12 +134,15 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/my-cases': typeof AuthenticatedMyCasesRoute
   '/post-case': typeof AuthenticatedPostCaseRouteWithChildren
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
+  '/admin/cases': typeof AuthenticatedAdminCasesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/cases/': typeof AuthenticatedCasesIndexRoute
   '/post-case/success/$caseId': typeof AuthenticatedPostCaseSuccessCaseIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -132,12 +154,15 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/my-cases': typeof AuthenticatedMyCasesRoute
   '/post-case': typeof AuthenticatedPostCaseRouteWithChildren
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors': typeof TutorsIndexRoute
+  '/admin/cases': typeof AuthenticatedAdminCasesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/cases': typeof AuthenticatedCasesIndexRoute
   '/post-case/success/$caseId': typeof AuthenticatedPostCaseSuccessCaseIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -151,12 +176,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/my-cases': typeof AuthenticatedMyCasesRoute
   '/_authenticated/post-case': typeof AuthenticatedPostCaseRouteWithChildren
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
+  '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/_authenticated/cases/': typeof AuthenticatedCasesIndexRoute
   '/_authenticated/post-case/success/$caseId': typeof AuthenticatedPostCaseSuccessCaseIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -170,12 +198,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/dashboard'
+    | '/my-cases'
     | '/post-case'
     | '/tutors/$tutorCode'
     | '/tutors/'
+    | '/admin/cases'
     | '/admin/settings'
     | '/admin/tutors'
     | '/admin/users'
+    | '/cases/$caseId'
     | '/cases/'
     | '/post-case/success/$caseId'
     | '/lovable/email/auth/preview'
@@ -187,12 +218,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/dashboard'
+    | '/my-cases'
     | '/post-case'
     | '/tutors/$tutorCode'
     | '/tutors'
+    | '/admin/cases'
     | '/admin/settings'
     | '/admin/tutors'
     | '/admin/users'
+    | '/cases/$caseId'
     | '/cases'
     | '/post-case/success/$caseId'
     | '/lovable/email/auth/preview'
@@ -205,12 +239,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/_authenticated/dashboard'
+    | '/_authenticated/my-cases'
     | '/_authenticated/post-case'
     | '/tutors/$tutorCode'
     | '/tutors/'
+    | '/_authenticated/admin/cases'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/tutors'
     | '/_authenticated/admin/users'
+    | '/_authenticated/cases/$caseId'
     | '/_authenticated/cases/'
     | '/_authenticated/post-case/success/$caseId'
     | '/lovable/email/auth/preview'
@@ -281,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPostCaseRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/my-cases': {
+      id: '/_authenticated/my-cases'
+      path: '/my-cases'
+      fullPath: '/my-cases'
+      preLoaderRoute: typeof AuthenticatedMyCasesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -293,6 +337,13 @@ declare module '@tanstack/react-router' {
       path: '/cases'
       fullPath: '/cases/'
       preLoaderRoute: typeof AuthenticatedCasesIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/cases/$caseId': {
+      id: '/_authenticated/cases/$caseId'
+      path: '/cases/$caseId'
+      fullPath: '/cases/$caseId'
+      preLoaderRoute: typeof AuthenticatedCasesCaseIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/users': {
@@ -314,6 +365,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/cases': {
+      id: '/_authenticated/admin/cases'
+      path: '/admin/cases'
+      fullPath: '/admin/cases'
+      preLoaderRoute: typeof AuthenticatedAdminCasesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/lovable/email/transactional/preview': {
@@ -363,19 +421,25 @@ const AuthenticatedPostCaseRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMyCasesRoute: typeof AuthenticatedMyCasesRoute
   AuthenticatedPostCaseRoute: typeof AuthenticatedPostCaseRouteWithChildren
+  AuthenticatedAdminCasesRoute: typeof AuthenticatedAdminCasesRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTutorsRoute: typeof AuthenticatedAdminTutorsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedCasesCaseIdRoute: typeof AuthenticatedCasesCaseIdRoute
   AuthenticatedCasesIndexRoute: typeof AuthenticatedCasesIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMyCasesRoute: AuthenticatedMyCasesRoute,
   AuthenticatedPostCaseRoute: AuthenticatedPostCaseRouteWithChildren,
+  AuthenticatedAdminCasesRoute: AuthenticatedAdminCasesRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTutorsRoute: AuthenticatedAdminTutorsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+  AuthenticatedCasesCaseIdRoute: AuthenticatedCasesCaseIdRoute,
   AuthenticatedCasesIndexRoute: AuthenticatedCasesIndexRoute,
 }
 
