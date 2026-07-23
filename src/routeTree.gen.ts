@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
+import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
 import { Route as AuthenticatedAdminTutorsRouteImport } from './routes/_authenticated.admin.tutors'
@@ -41,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
 const TutorsIndexRoute = TutorsIndexRouteImport.update({
   id: '/tutors/',
   path: '/tutors/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TutorsTutorCodeRoute = TutorsTutorCodeRouteImport.update({
+  id: '/tutors/$tutorCode',
+  path: '/tutors/$tutorCode',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors': typeof TutorsIndexRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/tutors': typeof AuthenticatedAdminTutorsRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/dashboard'
+    | '/tutors/$tutorCode'
     | '/tutors/'
     | '/admin/settings'
     | '/admin/tutors'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/dashboard'
+    | '/tutors/$tutorCode'
     | '/tutors'
     | '/admin/settings'
     | '/admin/tutors'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/_authenticated/dashboard'
+    | '/tutors/$tutorCode'
     | '/tutors/'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/tutors'
@@ -137,6 +149,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
+  TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
 }
 
@@ -175,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/tutors'
       fullPath: '/tutors/'
       preLoaderRoute: typeof TutorsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tutors/$tutorCode': {
+      id: '/tutors/$tutorCode'
+      path: '/tutors/$tutorCode'
+      fullPath: '/tutors/$tutorCode'
+      preLoaderRoute: typeof TutorsTutorCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard': {
@@ -231,6 +251,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
+  TutorsTutorCodeRoute: TutorsTutorCodeRoute,
   TutorsIndexRoute: TutorsIndexRoute,
 }
 export const routeTree = rootRouteImport
