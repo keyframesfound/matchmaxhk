@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, Sparkles, MessageCircle, Star, Users, GraduationCap, MapPin, BookOpen } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { fetchTopWeeklyTutors } from "@/features/tutors/queries";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,11 +26,6 @@ const trustStats = [
   { key: "districts", value: "18", icon: MapPin },
 ];
 
-const featuredTutors = [
-  { name: "Dr. Michelle Ho", subject: "DSE Mathematics · M2", district: "Kowloon Tong", rate: 650, rating: 4.9, badge: "PhD Cambridge" },
-  { name: "Mr. Kevin Chan", subject: "English · IELTS · IB", district: "Central", rate: 550, rating: 4.9, badge: "Ex-DBS Teacher" },
-  { name: "Ms. Ada Wong", subject: "Physics · Chemistry", district: "Sha Tin", rate: 500, rating: 5.0, badge: "HKU First-class" },
-];
 
 function Landing() {
   const { t } = useTranslation();
