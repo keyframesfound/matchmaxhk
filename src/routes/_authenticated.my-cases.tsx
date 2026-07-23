@@ -32,7 +32,6 @@ function MyCases() {
         <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
           <div className="flex items-center justify-between gap-4">
             <h1 className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-4xl">My cases</h1>
-            <Button asChild className="bg-[color:var(--brand-navy)] text-white hover:bg-[color:var(--brand-royal)]"><Link to="/post-case">Post a new case</Link></Button>
           </div>
 
           {isLoading ? (

@@ -51,9 +51,6 @@ export function SiteHeader() {
 
           {user ? (
             <>
-              <Button asChild size="sm" className="hidden h-9 bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)] sm:inline-flex">
-                <Link to="/post-case">{t("nav.post_case")}</Link>
-              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="h-9 font-semibold">
@@ -80,14 +77,9 @@ export function SiteHeader() {
               </DropdownMenu>
             </>
           ) : (
-            <>
-              <Link to="/auth" className="hidden text-sm font-bold text-foreground/90 hover:text-[color:var(--brand-teal)] sm:inline">
-                {t("nav.sign_in")}
-              </Link>
-              <Button asChild size="sm" className="h-9 bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]">
-                <Link to="/post-case">{t("nav.post_case")}</Link>
-              </Button>
-            </>
+            <Link to="/auth" className="hidden text-sm font-bold text-foreground/90 hover:text-[color:var(--brand-teal)] sm:inline">
+              {t("nav.sign_in")}
+            </Link>
           )}
 
           <button

@@ -26,7 +26,6 @@ function roleCards(role: AppRole): Card[] {
   switch (role) {
     case "parent":
       return [
-        { icon: MessageSquarePlus, titleKey: "dashboard.parent.post_case", descKey: "dashboard.parent.post_case_desc", to: "/post-case" },
         { icon: FolderKanban, titleKey: "dashboard.parent.my_cases", descKey: "dashboard.parent.my_cases_desc", to: "/my-cases" },
       ];
     case "tutor":

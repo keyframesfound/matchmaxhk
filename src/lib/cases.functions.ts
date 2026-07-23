@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+const POST_CASES_ENABLED = false;
+
 const phoneRegex = /^[+\d][\d\s()\-]{5,20}$/;
 
 const CaseInput = z.object({
@@ -45,6 +47,9 @@ export const createCase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => CaseInput.parse(data))
   .handler(async ({ data, context }) => {
+    if (!POST_CASES_ENABLED) {
+      throw new Error("Posting cases is temporarily disabled.");
+    }
     const { supabase, userId } = context;
     const insertRow = { ...data, parent_id: userId };
     const { data: row, error } = await supabase
