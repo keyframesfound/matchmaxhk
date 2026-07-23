@@ -112,6 +112,17 @@ function AdminSettings() {
                 <Textarea rows={4} value={form.whatsapp_template} onChange={(e) => setForm({ ...form, whatsapp_template: e.target.value })} />
                 <p className="text-xs text-muted-foreground">Use <code>{"{tutor_code}"}</code> as a placeholder.</p>
               </div>
+              <div className="space-y-2">
+                <Label>Students matched (landing page stat)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={form.students_matched}
+                  onChange={(e) => setForm({ ...form, students_matched: e.target.value })}
+                  placeholder="0"
+                />
+                <p className="text-xs text-muted-foreground">Shown on the homepage trust bar.</p>
+              </div>
               <Button
                 type="submit"
                 disabled={save.isPending}
