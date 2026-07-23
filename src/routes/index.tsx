@@ -23,6 +23,11 @@ export const Route = createFileRoute("/")({
 
 const STAT_ICONS = { students: Users, tutors: GraduationCap, subjects: BookOpen, districts: MapPin } as const;
 
+const DEFAULT_POPULAR_SUBJECTS = [
+  "Mathematics", "English", "Chinese", "Physics", "Chemistry",
+  "Biology", "Economics", "DSE", "IB",
+];
+
 function formatCount(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k+`;
   return `${n}`;
