@@ -9,13 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TutorsRouteImport } from './routes/tutors'
+import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
+import { Route as AuthenticatedAdminTutorsRouteImport } from './routes/_authenticated.admin.tutors'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
 
+const TutorsRoute = TutorsRouteImport.update({
+  id: '/tutors',
+  path: '/tutors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BecomeATutorRoute = BecomeATutorRouteImport.update({
+  id: '/become-a-tutor',
+  path: '/become-a-tutor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -40,6 +53,12 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminTutorsRoute =
+  AuthenticatedAdminTutorsRouteImport.update({
+    id: '/admin/tutors',
+    path: '/admin/tutors',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: '/admin/settings',
@@ -50,15 +69,21 @@ const AuthenticatedAdminSettingsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/become-a-tutor': typeof BecomeATutorRoute
+  '/tutors': typeof TutorsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/become-a-tutor': typeof BecomeATutorRoute
+  '/tutors': typeof TutorsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
 }
 export interface FileRoutesById {
@@ -66,22 +91,44 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
+  '/become-a-tutor': typeof BecomeATutorRoute
+  '/tutors': typeof TutorsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/_authenticated/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/admin/settings' | '/admin/users'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/become-a-tutor'
+    | '/tutors'
+    | '/dashboard'
+    | '/admin/settings'
+    | '/admin/tutors'
+    | '/admin/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/admin/settings' | '/admin/users'
+  to:
+    | '/'
+    | '/auth'
+    | '/become-a-tutor'
+    | '/tutors'
+    | '/dashboard'
+    | '/admin/settings'
+    | '/admin/tutors'
+    | '/admin/users'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/become-a-tutor'
+    | '/tutors'
     | '/_authenticated/dashboard'
     | '/_authenticated/admin/settings'
+    | '/_authenticated/admin/tutors'
     | '/_authenticated/admin/users'
   fileRoutesById: FileRoutesById
 }
@@ -89,10 +136,26 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BecomeATutorRoute: typeof BecomeATutorRoute
+  TutorsRoute: typeof TutorsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tutors': {
+      id: '/tutors'
+      path: '/tutors'
+      fullPath: '/tutors'
+      preLoaderRoute: typeof TutorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/become-a-tutor': {
+      id: '/become-a-tutor'
+      path: '/become-a-tutor'
+      fullPath: '/become-a-tutor'
+      preLoaderRoute: typeof BecomeATutorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -128,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/tutors': {
+      id: '/_authenticated/admin/tutors'
+      path: '/admin/tutors'
+      fullPath: '/admin/tutors'
+      preLoaderRoute: typeof AuthenticatedAdminTutorsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/settings': {
       id: '/_authenticated/admin/settings'
       path: '/admin/settings'
@@ -141,12 +211,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
+  AuthenticatedAdminTutorsRoute: typeof AuthenticatedAdminTutorsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
+  AuthenticatedAdminTutorsRoute: AuthenticatedAdminTutorsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
 }
 
@@ -158,6 +230,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
+  BecomeATutorRoute: BecomeATutorRoute,
+  TutorsRoute: TutorsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
