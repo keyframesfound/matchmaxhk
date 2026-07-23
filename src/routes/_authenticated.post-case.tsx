@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -31,6 +31,7 @@ const LEVELS = ["Pre-primary", "P1", "P2", "P3", "P4", "P5", "P6", "S1", "S2", "
 
 function PostCasePage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const createFn = useServerFn(createCase);
   const [form, setForm] = useState<CaseFormInput>({
     title: "",
@@ -61,6 +62,7 @@ function PostCasePage() {
     mutationFn: (data: CaseFormInput) => createFn({ data }),
     onSuccess: (res) => {
       toast.success("Case submitted. We'll notify you when matches are ready.");
+      qc.setQueryData(["case-matches", res.caseId], res.matches ?? []);
       navigate({ to: "/post-case/success/$caseId", params: { caseId: res.caseId } });
     },
     onError: (e: Error) => toast.error(e.message),
