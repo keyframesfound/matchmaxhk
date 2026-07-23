@@ -21,13 +21,12 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const trustStats = [
-  { key: "students", value: "12,000+", icon: Users },
-  { key: "tutors", value: "3,500+", icon: GraduationCap },
-  { key: "subjects", value: "80+", icon: BookOpen },
-  { key: "districts", value: "18", icon: MapPin },
-];
+const STAT_ICONS = { students: Users, tutors: GraduationCap, subjects: BookOpen, districts: MapPin } as const;
 
+function formatCount(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k+`;
+  return `${n}`;
+}
 
 function Landing() {
   const { t } = useTranslation();
@@ -35,6 +34,35 @@ function Landing() {
     queryKey: ["landing", "featured_tutors"],
     queryFn: () => fetchTopWeeklyTutors(3),
   });
+  const { data: liveStats } = useQuery({
+    queryKey: ["landing", "stats"],
+    queryFn: () => fetchLandingStats(),
+  });
+  const { data: studentsMatchedSetting } = useQuery({
+    queryKey: ["settings", "students_matched"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "students_matched")
+        .maybeSingle();
+      if (error) throw error;
+      const v = data?.value;
+      const n = typeof v === "string" ? parseInt(v, 10) : typeof v === "number" ? v : 0;
+      return Number.isFinite(n) ? n : 0;
+    },
+  });
+  const { data: featuredReviews = [] } = useQuery({
+    queryKey: ["landing", "featured_reviews"],
+    queryFn: () => fetchFeaturedReviews(3),
+  });
+
+  const trustStats = [
+    { key: "students" as const, value: formatCount(studentsMatchedSetting ?? 0) },
+    { key: "tutors" as const, value: formatCount(liveStats?.activeTutors ?? 0) },
+    { key: "subjects" as const, value: formatCount(liveStats?.subjectsCovered ?? 0) },
+    { key: "districts" as const, value: "18" },
+  ];
 
 
 
