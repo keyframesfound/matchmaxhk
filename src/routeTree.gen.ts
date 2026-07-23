@@ -23,6 +23,7 @@ import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authen
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as AuthenticatedPostCaseSuccessCaseIdRouteImport } from './routes/_authenticated.post-case.success.$caseId'
 
 const BecomeATutorRoute = BecomeATutorRouteImport.update({
   id: '/become-a-tutor',
@@ -96,18 +97,25 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPostCaseSuccessCaseIdRoute =
+  AuthenticatedPostCaseSuccessCaseIdRouteImport.update({
+    id: '/success/$caseId',
+    path: '/success/$caseId',
+    getParentRoute: () => AuthenticatedPostCaseRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/post-case': typeof AuthenticatedPostCaseRoute
+  '/post-case': typeof AuthenticatedPostCaseRouteWithChildren
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/post-case/success/$caseId': typeof AuthenticatedPostCaseSuccessCaseIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -117,12 +125,13 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/post-case': typeof AuthenticatedPostCaseRoute
+  '/post-case': typeof AuthenticatedPostCaseRouteWithChildren
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors': typeof TutorsIndexRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/post-case/success/$caseId': typeof AuthenticatedPostCaseSuccessCaseIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -134,12 +143,13 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/post-case': typeof AuthenticatedPostCaseRoute
+  '/_authenticated/post-case': typeof AuthenticatedPostCaseRouteWithChildren
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/post-case/success/$caseId': typeof AuthenticatedPostCaseSuccessCaseIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/tutors'
     | '/admin/users'
+    | '/post-case/success/$caseId'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/tutors'
     | '/admin/users'
+    | '/post-case/success/$caseId'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -188,6 +200,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/tutors'
     | '/_authenticated/admin/users'
+    | '/_authenticated/post-case/success/$caseId'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -305,12 +318,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/post-case/success/$caseId': {
+      id: '/_authenticated/post-case/success/$caseId'
+      path: '/success/$caseId'
+      fullPath: '/post-case/success/$caseId'
+      preLoaderRoute: typeof AuthenticatedPostCaseSuccessCaseIdRouteImport
+      parentRoute: typeof AuthenticatedPostCaseRoute
+    }
   }
 }
 
+interface AuthenticatedPostCaseRouteChildren {
+  AuthenticatedPostCaseSuccessCaseIdRoute: typeof AuthenticatedPostCaseSuccessCaseIdRoute
+}
+
+const AuthenticatedPostCaseRouteChildren: AuthenticatedPostCaseRouteChildren = {
+  AuthenticatedPostCaseSuccessCaseIdRoute:
+    AuthenticatedPostCaseSuccessCaseIdRoute,
+}
+
+const AuthenticatedPostCaseRouteWithChildren =
+  AuthenticatedPostCaseRoute._addFileChildren(
+    AuthenticatedPostCaseRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedPostCaseRoute: typeof AuthenticatedPostCaseRoute
+  AuthenticatedPostCaseRoute: typeof AuthenticatedPostCaseRouteWithChildren
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTutorsRoute: typeof AuthenticatedAdminTutorsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
@@ -318,7 +352,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedPostCaseRoute: AuthenticatedPostCaseRoute,
+  AuthenticatedPostCaseRoute: AuthenticatedPostCaseRouteWithChildren,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTutorsRoute: AuthenticatedAdminTutorsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,

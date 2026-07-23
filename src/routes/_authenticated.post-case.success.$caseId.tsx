@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/post-case/success/$caseId"
   component: SuccessPage,
 });
 
-type Match = { tutor_id: string; tutor_code: string; display_name: string; photo_url: string | null; hourly_rate: number; rating: number; district: string | null; score: number };
+type Match = { id: string; tutor_code: string; display_name: string; photo_url: string | null; hourly_rate: number; rating: number; district: string | null; score: number };
 
 function SuccessPage() {
   const { caseId } = Route.useParams();
