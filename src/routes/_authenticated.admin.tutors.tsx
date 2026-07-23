@@ -364,8 +364,39 @@ function AdminTutors() {
                   </Section>
 
                   <Section title="Teaching">
-                    <Field label="Subjects (comma separated)" error={errors.subjects_csv}>
-                      <Input value={form.subjects_csv} onChange={(e) => setForm({ ...form, subjects_csv: e.target.value })} placeholder="Mathematics, Physics" />
+                    <Field label="Subjects" error={errors.subjects}>
+                      <div className="space-y-2">
+                        {form.subjects.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {form.subjects.map((s) => (
+                              <span key={s} className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-navy)]">
+                                {s}
+                                <button
+                                  type="button"
+                                  aria-label={`Remove ${s}`}
+                                  onClick={() => setForm({ ...form, subjects: form.subjects.filter((x) => x !== s) })}
+                                  className="hover:text-destructive"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <SearchableSelect
+                          value=""
+                          onChange={(v) => {
+                            const val = v.trim();
+                            if (!val) return;
+                            if (form.subjects.includes(val)) return;
+                            setForm({ ...form, subjects: [...form.subjects, val] });
+                          }}
+                          options={SUBJECT_OPTIONS.filter((s) => !form.subjects.includes(s))}
+                          placeholder="Add a subject…"
+                          searchPlaceholder="Search or type a subject…"
+                          allowCustom
+                        />
+                      </div>
                     </Field>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Field label="District" error={errors.district}>
@@ -389,14 +420,30 @@ function AdminTutors() {
                         <Input
                           type="number"
                           value={form.experience_years}
-                          onChange={(e) => setForm({ ...form, experience_years: e.target.value === "" ? "" : Number(e.target.value) })}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === "") {
+                              setForm({ ...form, experience_years: "", teaching_since: "" });
+                            } else {
+                              const years = Number(raw);
+                              setForm({ ...form, experience_years: years, teaching_since: CURRENT_YEAR - years });
+                            }
+                          }}
                         />
                       </Field>
                       <Field label="Teaching since (year)" error={errors.teaching_since}>
                         <Input
                           type="number"
                           value={form.teaching_since}
-                          onChange={(e) => setForm({ ...form, teaching_since: e.target.value === "" ? "" : Number(e.target.value) })}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === "") {
+                              setForm({ ...form, teaching_since: "", experience_years: "" });
+                            } else {
+                              const year = Number(raw);
+                              setForm({ ...form, teaching_since: year, experience_years: Math.max(0, CURRENT_YEAR - year) });
+                            }
+                          }}
                           placeholder="2015"
                         />
                       </Field>
