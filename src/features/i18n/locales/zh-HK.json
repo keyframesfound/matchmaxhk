@@ -12,8 +12,8 @@
   "hero": {
     "eyebrow": "香港智能補習配對平台",
     "title_a": "搵到最適合",
-    "title_b": "你嘅導師。",
-    "subtitle": "按科目、程度同預算，幫你快速配對合適導師，幾分鐘就可以開始。",
+    "title_b": "你嘅導師",
+    "subtitle": "按科目、程度同預算，幫你快速配對合適導師，幾分鐘就可以開始",
     "cta_primary": "免費發佈補習需求",
     "cta_secondary": "瀏覽導師"
   },
@@ -27,11 +27,11 @@
     "title": "點樣使用 MatchMax",
     "subtitle": "三個簡單步驟，輕鬆開始補習",
     "step1_title": "揀導師",
-    "step1_desc": "瀏覽導師資料，按科目同程度搵到最適合你嘅導師。",
+    "step1_desc": "瀏覽導師資料，按科目同程度搵到最適合你嘅導師",
     "step2_title": "聯絡我哋",
-    "step2_desc": "將導師編號經 WhatsApp 發俾我哋，其餘安排交俾我哋跟進。",
+    "step2_desc": "將導師編號經 WhatsApp 發俾我哋，其餘安排交俾我哋跟進",
     "step3_title": "開始上堂",
-    "step3_desc": "確認時間後即可開始補習，簡單又方便。"
+    "step3_desc": "確認時間後即可開始補習，簡單又方便"
   },
   "featured": {
     "title": "精選導師",
@@ -54,20 +54,20 @@
   },
   "tutors_cta": {
     "title": "想成為補習導師？",
-    "subtitle": "加入 MatchMax，自由設定收費，獲得真實可靠嘅補習配對。",
+    "subtitle": "加入 MatchMax，自由設定收費，獲得真實可靠嘅補習配對",
     "cta": "立即加入導師"
   },
   "testimonials": {
     "title": "香港家長一致推薦",
-    "t1": "一日內就搵到好嘅 DSE 數學導師，女兒成績進步咗好多。",
+    "t1": "一日內就搵到好嘅 DSE 數學導師，女兒成績進步咗好多",
     "t1_by": "陳太｜九龍塘",
-    "t2": "導師資料清楚，溝通方便，完全冇硬銷，感覺好舒服。",
+    "t2": "導師資料清楚，溝通方便，完全冇硬銷，感覺好舒服",
     "t2_by": "林先生｜沙田",
-    "t3": "配對好準，第一位聯絡嘅導師就決定請。",
+    "t3": "配對好準，第一位聯絡嘅導師就決定請",
     "t3_by": "黃太｜中環"
   },
   "footer": {
-    "tagline": "🤝 我哋會按你嘅需要，配對喺各大公開考試及學科中取得優異成績嘅導師，透過一對一補習，陪你一步一步進步。",
+    "tagline": "🤝 我哋會按你嘅需要，配對喺各大公開考試及學科中取得優異成績嘅導師，透過一對一補習，陪你一步一步進步",
     "quick_links": "快速連結",
     "support": "支援",
     "about": "關於我哋",
@@ -78,7 +78,7 @@
     "contact": "聯絡我哋",
     "privacy": "私隱政策",
     "terms": "使用條款",
-    "rights": "版權所有。"
+    "rights": "版權所有"
   },
   "auth": {
     "sign_in_title": "歡迎返嚟",
@@ -96,7 +96,7 @@
     "have_account": "已有帳戶？",
     "sign_up": "註冊",
     "sign_in": "登入",
-    "check_email": "請到電郵確認你嘅帳戶。",
+    "check_email": "請到電郵確認你嘅帳戶",
     "signing_in": "登入中…"
   },
   "dashboard": {
@@ -105,32 +105,32 @@
     "parent": {
       "title": "家長／學生專區",
       "post_case": "新增補習需求",
-      "post_case_desc": "話俾我哋知你需要咩導師，我哋會幫你配對。",
+      "post_case_desc": "話俾我哋知你需要咩導師，我哋會幫你配對",
       "my_cases": "我嘅需求",
-      "my_cases_desc": "查看補習需求同配對進度。"
+      "my_cases_desc": "查看補習需求同配對進度"
     },
     "tutor": {
       "title": "導師專區",
       "leads": "最新配對",
-      "leads_desc": "查看有家長索取你導師編號嘅補習需求。",
+      "leads_desc": "查看有家長索取你導師編號嘅補習需求",
       "profile": "我的資料",
-      "profile_desc": "更新科目、收費同可授課時間。"
+      "profile_desc": "更新科目、收費同可授課時間"
     },
     "staff": {
       "title": "團隊控制台",
       "review": "待處理需求",
-      "review_desc": "查看需要人工跟進嘅補習需求。",
+      "review_desc": "查看需要人工跟進嘅補習需求",
       "tutors": "導師名單",
-      "tutors_desc": "管理導師資料。"
+      "tutors_desc": "管理導師資料"
     },
     "admin": {
       "title": "管理後台",
       "users": "用戶與權限",
-      "users_desc": "管理用戶身份。",
+      "users_desc": "管理用戶身份",
       "settings": "網站設定",
-      "settings_desc": "設定 WhatsApp、品牌資訊等。",
+      "settings_desc": "設定 WhatsApp、品牌資訊等",
       "tutors": "新增導師",
-      "tutors_desc": "建立新導師資料。"
+      "tutors_desc": "建立新導師資料"
     },
     "coming_soon": "更多功能即將推出"
   },
@@ -145,11 +145,11 @@
     "grant": "新增",
     "revoke": "移除",
     "select_role": "選擇身份",
-    "no_users": "暫時未有用戶。",
+    "no_users": "暫時未有用戶",
     "settings_title": "網站設定",
     "settings_subtitle": "網站整體設定",
     "save": "儲存",
-    "saved": "已儲存。",
+    "saved": "已儲存",
     "whatsapp_number": "WhatsApp 聯絡電話",
     "whatsapp_template": "WhatsApp 訊息範本",
     "contact_email": "聯絡電郵",
@@ -163,7 +163,7 @@
   },
   "common": {
     "loading": "載入中…",
-    "error": "發生咗啲問題。",
+    "error": "發生咗啲問題",
     "back_home": "返回首頁",
     "no_tutors_yet": "更多導師即將加入，記得再返嚟睇下！"
   }
