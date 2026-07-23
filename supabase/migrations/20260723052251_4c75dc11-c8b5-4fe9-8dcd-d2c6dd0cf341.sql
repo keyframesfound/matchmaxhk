@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.match_tutors_for_case(uuid, integer) FROM PUBLIC, anon;
