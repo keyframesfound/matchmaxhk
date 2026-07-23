@@ -26,9 +26,13 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
     if (!tutor) throw notFound();
     return { tutor };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
+    const url = `https://maxmatch.app/tutors/${params.tutorCode}`;
     if (!loaderData) {
-      return { meta: [{ title: "Tutor not found — MatchMax" }, { name: "robots", content: "noindex" }] };
+      return {
+        meta: [{ title: "Tutor not found — MatchMax" }, { name: "robots", content: "noindex" }],
+        links: [{ rel: "canonical", href: url }],
+      };
     }
     const t = loaderData.tutor;
     const title = `${t.display_name} — MatchMax`;
@@ -39,13 +43,17 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
         { name: "description", content: desc },
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "profile" },
         ...(t.photo_url ? [
           { property: "og:image", content: t.photo_url },
           { name: "twitter:image", content: t.photo_url },
         ] : []),
       ],
+      links: [{ rel: "canonical", href: url }],
     };
   },
+
   notFoundComponent: () => (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
