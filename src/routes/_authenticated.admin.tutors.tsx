@@ -450,7 +450,7 @@ function AdminTutors() {
                       </Field>
                       <Field label="Photo (optional)" error={errors.photo_url}>
                         <PhotoUpload
-                          value={form.photo_url}
+                          value={form.photo_url ?? ""}
                           onChange={(url) => setForm({ ...form, photo_url: url })}
                         />
                       </Field>
