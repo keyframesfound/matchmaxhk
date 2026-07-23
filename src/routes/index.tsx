@@ -228,14 +228,25 @@ function Landing() {
             <h2 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">{t("subjects.title")}</h2>
           </div>
           <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {["math", "english", "chinese", "physics", "chemistry", "biology", "economics", "dse", "ib"].map((s) => (
-              <a
-                key={s}
-                href="#tutors"
+            {[
+              { key: "math", subject: "Mathematics" },
+              { key: "english", subject: "English" },
+              { key: "chinese", subject: "Chinese" },
+              { key: "physics", subject: "Physics" },
+              { key: "chemistry", subject: "Chemistry" },
+              { key: "biology", subject: "Biology" },
+              { key: "economics", subject: "Economics" },
+              { key: "dse", subject: "DSE" },
+              { key: "ib", subject: "IB" },
+            ].map(({ key, subject }) => (
+              <Link
+                key={key}
+                to="/tutors"
+                search={{ subject }}
                 className="rounded-2xl border border-border bg-card px-5 py-4 text-center text-sm font-bold text-foreground transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)] hover:shadow-teal"
               >
-                {t(`subjects.${s}`)}
-              </a>
+                {t(`subjects.${key}`)}
+              </Link>
             ))}
           </div>
         </div>
@@ -256,7 +267,7 @@ function Landing() {
                 <p className="mt-3 text-base text-white/80">{t("tutors_cta.subtitle")}</p>
               </div>
               <Button asChild size="lg" className="h-14 bg-white px-8 text-base font-bold text-[color:var(--brand-navy)] hover:bg-white/90">
-                <Link to="/auth">
+                <Link to="/become-a-tutor">
                   {t("tutors_cta.cta")}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
