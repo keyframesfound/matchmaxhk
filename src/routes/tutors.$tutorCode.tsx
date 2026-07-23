@@ -214,30 +214,27 @@ function TutorDetail() {
                   <h2 className="flex items-center gap-2 text-xl font-bold text-[color:var(--brand-navy)]">
                     <Award className="h-5 w-5" /> Exam results
                   </h2>
-                  <div className="mt-3 overflow-hidden rounded-xl border border-border bg-card">
-                    <table className="w-full text-sm">
-                      <thead className="bg-muted/40 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        <tr>
-                          <th className="px-3 py-2">System</th>
-                          <th className="px-3 py-2">Subject</th>
-                          <th className="px-3 py-2">Grade</th>
-                          <th className="px-3 py-2">Year</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {t.exam_results.map((r, i) => {
-                          const sys = getSystem(r.system);
-                          return (
-                            <tr key={i} className="border-t border-border">
-                              <td className="px-3 py-2 text-muted-foreground">{sys?.label ?? r.system}</td>
-                              <td className="px-3 py-2 font-medium text-foreground">{r.subject}</td>
-                              <td className="px-3 py-2 font-bold text-[color:var(--brand-navy)]">{r.grade}</td>
-                              <td className="px-3 py-2 text-muted-foreground">{r.year ?? "—"}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                  <div className="mt-3 space-y-3">
+                    {t.exam_results.map((r, i) => {
+                      const sys = getSystem(r.system);
+                      return (
+                        <div key={i} className="overflow-hidden rounded-xl border border-border bg-card">
+                          <div className="border-b border-border bg-muted/40 px-3 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                            {sys?.label ?? r.system}
+                          </div>
+                          <table className="w-full text-sm">
+                            <tbody>
+                              {r.subjects.map((s, j) => (
+                                <tr key={j} className="border-t border-border first:border-t-0">
+                                  <td className="px-3 py-2 font-medium text-foreground">{s.subject}</td>
+                                  <td className="px-3 py-2 text-right font-bold text-[color:var(--brand-navy)]">{s.grade}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

@@ -22,7 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { fetchAllTutors, HK_DISTRICTS, type Tutor, type Education } from "@/features/tutors/queries";
-import { EXAM_SYSTEMS, getSystem, getGradesForSelection, type ExamResult } from "@/features/tutors/examSystems";
+import { EXAM_SYSTEMS, getSystem, getGradesForSelection, type ExamResult, type ExamResultEntry } from "@/features/tutors/examSystems";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 
 export const Route = createFileRoute("/_authenticated/admin/tutors")({
@@ -66,11 +66,14 @@ const eduSchema = z.object({
   level: z.string().trim().max(60).optional().or(z.literal("")).nullable(),
 });
 
-const examSchema = z.object({
-  system: z.string().trim().min(1),
+const examEntrySchema = z.object({
   subject: z.string().trim().min(1).max(120),
   grade: z.string().trim().min(1).max(40),
-  year: z.union([z.coerce.number().int().min(1950).max(2100), z.literal(""), z.null()]).optional(),
+});
+
+const examSchema = z.object({
+  system: z.string().trim().min(1),
+  subjects: z.array(examEntrySchema).min(1, "Add at least one subject"),
 });
 
 const formSchema = z.object({
@@ -140,9 +143,7 @@ function tutorToForm(t: Tutor): FormValues {
     })),
     exam_results: (t.exam_results ?? []).map((r) => ({
       system: r.system ?? "",
-      subject: r.subject ?? "",
-      grade: r.grade ?? "",
-      year: r.year ?? "",
+      subjects: (r.subjects ?? []).map((s) => ({ subject: s.subject ?? "", grade: s.grade ?? "" })),
     })),
   };
 }
@@ -159,11 +160,11 @@ function formToPayload(v: FormValues, isNew: boolean) {
   const cleanExams: ExamResult[] = v.exam_results
     .map((r) => ({
       system: r.system,
-      subject: r.subject.trim(),
-      grade: r.grade.trim(),
-      year: r.year === "" || r.year == null ? null : Number(r.year),
+      subjects: (r.subjects ?? [])
+        .map((s) => ({ subject: s.subject.trim(), grade: s.grade.trim() }))
+        .filter((s) => s.subject && s.grade),
     }))
-    .filter((r) => r.system && r.subject && r.grade);
+    .filter((r) => r.system && r.subjects.length > 0);
   const langs = (v.languages_csv || "").split(",").map((s) => s.trim()).filter(Boolean);
   const base: Record<string, unknown> = {
     display_name: v.display_name,
@@ -300,20 +301,38 @@ function AdminTutors() {
   function addExam() {
     setForm({
       ...form,
-      exam_results: [...form.exam_results, { system: "ib", subject: "", grade: "", year: "" }],
+      exam_results: [...form.exam_results, { system: "ib", subjects: [{ subject: "", grade: "" }] }],
     });
   }
-  function updateExam(i: number, patch: Partial<ExamResult & { year: number | "" | null }>) {
+  function updateExamSystem(i: number, system: string) {
     const next = form.exam_results.slice();
-    const current = next[i];
-    // Reset dependent fields when the system changes
-    if (patch.system && patch.system !== current.system) {
-      next[i] = { ...current, ...patch, subject: "", grade: "" };
-    } else if (patch.subject && patch.subject !== current.subject) {
-      next[i] = { ...current, ...patch, grade: "" };
+    if (next[i].system === system) return;
+    // Reset dependent subjects/grades when the system changes.
+    next[i] = { system, subjects: [{ subject: "", grade: "" }] };
+    setForm({ ...form, exam_results: next });
+  }
+  function addSubjectRow(i: number) {
+    const next = form.exam_results.slice();
+    next[i] = { ...next[i], subjects: [...next[i].subjects, { subject: "", grade: "" }] };
+    setForm({ ...form, exam_results: next });
+  }
+  function updateSubjectRow(i: number, j: number, patch: Partial<ExamResultEntry>) {
+    const next = form.exam_results.slice();
+    const subs = next[i].subjects.slice();
+    const current = subs[j];
+    // Reset grade if subject changes (grade options depend on subject for some systems).
+    if (patch.subject && patch.subject !== current.subject) {
+      subs[j] = { ...current, ...patch, grade: "" };
     } else {
-      next[i] = { ...current, ...patch };
+      subs[j] = { ...current, ...patch };
     }
+    next[i] = { ...next[i], subjects: subs };
+    setForm({ ...form, exam_results: next });
+  }
+  function removeSubjectRow(i: number, j: number) {
+    const next = form.exam_results.slice();
+    const subs = next[i].subjects.filter((_, idx) => idx !== j);
+    next[i] = { ...next[i], subjects: subs.length ? subs : [{ subject: "", grade: "" }] };
     setForm({ ...form, exam_results: next });
   }
   function removeExam(i: number) {
@@ -493,65 +512,82 @@ function AdminTutors() {
 
                   <Section title="Exam results (scores)">
                     <p className="text-xs text-muted-foreground">
-                      Pick an exam system, then the subject and grade — both lists are searchable and update to the chosen system.
+                      Pick an exam system, then add each subject with its grade. Lists are searchable and match the chosen system.
                     </p>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {form.exam_results.length === 0 && (
-                        <p className="text-sm text-muted-foreground">No scores yet. Add one below.</p>
+                        <p className="text-sm text-muted-foreground">No scores yet. Add an exam system below.</p>
                       )}
                       {form.exam_results.map((row, i) => {
                         const sys = getSystem(row.system);
                         const subjectOptions = sys?.subjects ?? [];
-                        const gradeOptions = getGradesForSelection(row.system, row.subject);
                         return (
-                          <div
-                            key={i}
-                            className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[160px_1fr_140px_90px_auto]"
-                          >
-                            <SearchableSelect
-                              value={row.system}
-                              onChange={(v) => updateExam(i, { system: v })}
-                              options={EXAM_SYSTEMS.map((s) => ({ value: s.id, label: s.label }))}
-                              placeholder="Exam system"
-                              searchPlaceholder="Search systems…"
-                            />
-                            <SearchableSelect
-                              value={row.subject}
-                              onChange={(v) => updateExam(i, { subject: v })}
-                              options={subjectOptions}
-                              placeholder={sys?.freeSubject ? "Type a subject" : "Subject"}
-                              searchPlaceholder="Search subjects…"
-                              allowCustom={sys?.freeSubject ?? false}
-                              disabled={!row.system}
-                            />
-                            <SearchableSelect
-                              value={row.grade}
-                              onChange={(v) => updateExam(i, { grade: v })}
-                              options={gradeOptions}
-                              placeholder={gradeOptions.length === 0 ? "Type a grade" : "Grade"}
-                              searchPlaceholder="Search grades…"
-                              allowCustom={gradeOptions.length === 0}
-                              disabled={!row.subject}
-                            />
-                            <Input
-                              type="number"
-                              placeholder="Year"
-                              value={row.year ?? ""}
-                              onChange={(e) =>
-                                updateExam(i, { year: e.target.value === "" ? null : Number(e.target.value) })
-                              }
-                            />
-                            <Button type="button" variant="outline" size="icon" onClick={() => removeExam(i)}>
-                              <X className="h-4 w-4" />
-                            </Button>
+                          <div key={i} className="rounded-xl border border-border bg-muted/30 p-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <div className="min-w-[180px] flex-1">
+                                <SearchableSelect
+                                  value={row.system}
+                                  onChange={(v) => updateExamSystem(i, v)}
+                                  options={EXAM_SYSTEMS.map((s) => ({ value: s.id, label: s.label }))}
+                                  placeholder="Exam system"
+                                  searchPlaceholder="Search systems…"
+                                />
+                              </div>
+                              <Button type="button" variant="outline" size="sm" onClick={() => addSubjectRow(i)}>
+                                <Plus className="mr-1 h-3.5 w-3.5" /> Subject
+                              </Button>
+                              <Button type="button" variant="outline" size="icon" onClick={() => removeExam(i)} aria-label="Remove exam system">
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <div className="mt-3 space-y-2">
+                              {row.subjects.map((entry, j) => {
+                                const gradeOptions = getGradesForSelection(row.system, entry.subject);
+                                return (
+                                  <div
+                                    key={j}
+                                    className="grid grid-cols-[minmax(0,1fr)_minmax(0,140px)_auto] gap-2"
+                                  >
+                                    <SearchableSelect
+                                      value={entry.subject}
+                                      onChange={(v) => updateSubjectRow(i, j, { subject: v })}
+                                      options={subjectOptions}
+                                      placeholder={sys?.freeSubject ? "Type a subject" : "Subject"}
+                                      searchPlaceholder="Search subjects…"
+                                      allowCustom={sys?.freeSubject ?? false}
+                                      disabled={!row.system}
+                                    />
+                                    <SearchableSelect
+                                      value={entry.grade}
+                                      onChange={(v) => updateSubjectRow(i, j, { grade: v })}
+                                      options={gradeOptions}
+                                      placeholder={gradeOptions.length === 0 ? "Type a grade" : "Grade"}
+                                      searchPlaceholder="Search grades…"
+                                      allowCustom={gradeOptions.length === 0}
+                                      disabled={!entry.subject}
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => removeSubjectRow(i, j)}
+                                      aria-label="Remove subject"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
                         );
                       })}
                       <Button type="button" variant="outline" onClick={addExam}>
-                        <Plus className="mr-2 h-4 w-4" /> Add exam result
+                        <Plus className="mr-2 h-4 w-4" /> Add exam system
                       </Button>
                     </div>
                   </Section>
+
 
 
 
