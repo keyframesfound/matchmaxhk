@@ -1,5 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 
+export type Education = {
+  institution: string;
+  qualification: string;
+  year?: number | null;
+};
+
 export type Tutor = {
   id: string;
   display_name: string;
@@ -16,10 +22,20 @@ export type Tutor = {
   weekly_rating: number;
   weekly_score: number;
   is_published: boolean;
+  education: Education[];
+  experience_years: number | null;
+  teaching_since: number | null;
+  languages: string[];
+  intro_video_url: string | null;
 };
 
 const SELECT_COLS =
-  "id, display_name, headline, subjects, district, hourly_rate, badge, bio, photo_url, tutor_code, rating, review_count, weekly_rating, weekly_score, is_published";
+  "id, display_name, headline, subjects, district, hourly_rate, badge, bio, photo_url, tutor_code, rating, review_count, weekly_rating, weekly_score, is_published, education, experience_years, teaching_since, languages, intro_video_url";
+
+function normalize(row: Record<string, unknown>): Tutor {
+  const edu = Array.isArray(row.education) ? (row.education as Education[]) : [];
+  return { ...(row as unknown as Tutor), education: edu };
+}
 
 export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
   const { data, error } = await supabase
@@ -31,7 +47,7 @@ export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
     .order("rating", { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return (data ?? []) as Tutor[];
+  return (data ?? []).map(normalize);
 }
 
 export async function fetchPublishedTutors(): Promise<Tutor[]> {
@@ -41,7 +57,7 @@ export async function fetchPublishedTutors(): Promise<Tutor[]> {
     .eq("is_published", true)
     .order("rating", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as Tutor[];
+  return (data ?? []).map(normalize);
 }
 
 export async function fetchAllTutors(): Promise<Tutor[]> {
@@ -50,7 +66,18 @@ export async function fetchAllTutors(): Promise<Tutor[]> {
     .select(SELECT_COLS)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as Tutor[];
+  return (data ?? []).map(normalize);
+}
+
+export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
+  const { data, error } = await supabase
+    .from("tutors")
+    .select(SELECT_COLS)
+    .eq("tutor_code", code)
+    .eq("is_published", true)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? normalize(data as Record<string, unknown>) : null;
 }
 
 export const HK_DISTRICTS = [

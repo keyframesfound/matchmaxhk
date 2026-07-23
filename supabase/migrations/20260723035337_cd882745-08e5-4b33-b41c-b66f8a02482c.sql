@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.refresh_tutor_rating() FROM PUBLIC, anon, authenticated;

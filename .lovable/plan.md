@@ -1,88 +1,68 @@
-## Goal
+## 1. Schema changes (one migration)
 
-Turn v1 into a working product: real tutors on the landing page, an admin CRUD to add them, no dead buttons, a "become a tutor" info page, and friendlier vocabulary (no raw role names like "parent").
+**Tutors — richer profile + better defaults**
+- Add columns: `education jsonb default '[]'` (array of `{institution, qualification, year}`), `experience_years int`, `teaching_since int` (year), `languages text[] default '{}'`, `intro_video_url text`.
+- Change defaults: `rating` default `5.0`, `weekly_rating` default `5.0` (existing rows stay as-is; admin can bulk-set).
+- Keep `rating`/`review_count`/`weekly_*` columns — they'll be auto-computed from reviews going forward (see trigger below).
 
-## 1. Database: `tutors` table
+**New `tutor_reviews` table**
+- Fields: `id`, `tutor_id → tutors.id (cascade)`, `author_user_id uuid null` (null when admin-authored on behalf of someone), `author_alias text not null` (display name shown publicly, e.g. "Mrs. Chan"), `rating int check 1..5`, `comment text`, `is_published bool default true`, `created_by uuid` (admin/parent who inserted), `created_at`, `updated_at`.
+- Grants + RLS:
+  - Public/anon: SELECT where `is_published = true`.
+  - Authenticated parent: INSERT one review per `(tutor_id, author_user_id)` (unique index); UPDATE/DELETE own review.
+  - Admin/super_admin: full CRUD (can post with any alias, on behalf of anyone).
+- Trigger `refresh_tutor_rating()` after insert/update/delete: recomputes `tutors.rating` = avg of published reviews (fallback 5.0 when none), `review_count` = count.
+- `weekly_rating`/`weekly_score` remain admin-editable (out of scope to auto-compute weekly window here).
 
-New migration creating `public.tutors`:
+## 2. Admin — easier tutor form (`_authenticated.admin.tutors.tsx`)
 
-- Fields: `id`, `display_name`, `headline`, `subjects text[]`, `district`, `hourly_rate int`, `badge`, `bio`, `photo_url`, `tutor_code` (unique, short), `rating numeric(2,1) default 0`, `review_count int default 0`, `weekly_rating numeric(2,1) default 0`, `weekly_score int default 0` (used to pick "highest-rated this week"), `is_published bool default true`, `created_by uuid`, `created_at`, `updated_at`.
-- Grants: `SELECT` to `anon, authenticated` (public directory); full CRUD to `authenticated` gated by RLS; `ALL` to `service_role`.
-- RLS policies:
-  - Public/anon read only where `is_published = true`.
-  - Admin/super_admin: full insert/update/delete via `has_role`.
-- `updated_at` trigger.
+Replace the current flat form with grouped sections + friendlier inputs:
 
-No seed data — admin will add tutors.
+- **Basics**: display_name, tutor_code, headline, badge, photo_url.
+- **Teaching**: subjects (comma), district (select), hourly_rate, languages (comma), experience_years, teaching_since.
+- **Education** (repeater): "+ Add qualification" rows with `institution`, `qualification`, `year` inputs; remove button per row. Stored as `education` jsonb.
+- **Scoring** (simplified):
+  - Overall rating: read-only, shown as "auto from reviews (X reviews)".
+  - This week rating: **star picker (1–5)** instead of numeric.
+  - Weekly rank score: **slider 0–100** with number display (replaces raw number box).
+  - New tutors default to 5★ everywhere.
+- Bio, published toggle unchanged.
 
-## 2. Landing page: real featured tutors
+Zod schema updated; defaults for a new tutor set `rating=5, weekly_rating=5, weekly_score=50`.
 
-`src/routes/index.tsx`:
+## 3. Reviews UI
 
-- Replace hardcoded `featuredTutors` array with a `useQuery` reading published tutors ordered by `weekly_score desc, weekly_rating desc, rating desc` limit 3.
-- Loading skeleton + empty state ("Tutors coming soon") so page never looks broken pre-seed.
-- Hero preview card uses the first fetched tutor when available.
+**Tutor detail route** — new `src/routes/tutors.$tutorCode.tsx` (public):
+- Loads tutor by `tutor_code`, shows profile (education, languages, experience, bio) and reviews list.
+- Signed-in parent sees "Write a review" (alias defaults to their display_name, star picker, comment). Uses their own `author_user_id`; edits/deletes their own review.
+- Admin sees an extra "Add review as…" button opening a dialog with `alias`, `rating` (stars), `comment`, published toggle. Admin can also edit/delete any review inline.
+- `/tutors` directory cards link to `/tutors/<tutor_code>`.
 
-## 3. Admin: manage tutors
+**Admin — reviews management**: on the tutor row in `/admin/tutors`, add a "Reviews" action that opens the same tutor page's admin panel (reuse the dialog). Keeps it in one place.
 
-New route `src/routes/_authenticated.admin.tutors.tsx`:
+## 4. i18n & vocab polish
 
-- Table of tutors (name, subjects, district, rate, rating, published toggle).
-- "Add tutor" dialog with form (zod-validated): display_name, headline, subjects (comma input → array), district (select from HK districts list), hourly_rate, badge, bio, photo_url, tutor_code, initial rating, weekly_score.
-- Edit + delete actions.
-- Route protected by same admin gate pattern as existing admin pages.
-- Add card + link on Dashboard (already stubbed as "Tutors" — wire `to: "/admin/tutors"`).
+Add strings under `tutor.*` and `reviews.*` (en + zh-HK) for: education, qualification, institution, year, experience, languages, write a review, alias, rating, add review as guest, published, no reviews yet, based on N reviews.
 
-## 4. "Become a tutor" info page
+## 5. Finalise (small)
 
-New public route `src/routes/become-a-tutor.tsx`:
+- Landing "featured tutors" cards link to `/tutors/<code>`.
+- Show `review_count` on featured/directory cards (e.g. "5.0 · 12 reviews", or "New" when 0).
+- Become-a-tutor page: unchanged.
 
-- Explains joining process, shows WhatsApp contact (reads `whatsapp_number` from `app_settings`; falls back to "TBC — contact coming soon").
-- Big WhatsApp CTA button (disabled/greyed when TBC).
-- Own `head()` meta.
-
-## 5. Wire up all buttons / no dead links
-
-Landing (`index.tsx`):
-- Hero "Get matched" primary → `/auth` (already).
-- Hero secondary "See tutors" → smooth-scroll to `#tutors` (keep).
-- "View all" in Featured → new `/tutors` route OR keep as `#tutors`; make it a real `<Link>` to a simple `/tutors` directory page listing all published tutors (server-side query, cards).
-- Subject chips → `/tutors?subject=math` (directory page reads search param and filters).
-- "Become a tutor" CTA banner → `/become-a-tutor`.
-- Hero "Contact via tutor code" card button → scroll to tutors section (visual demo only, add title tooltip).
-
-SiteHeader:
-- "Post case" (nav + top-right button for logged-out) → currently `/auth`; keep, but relabel to friendlier copy.
-- "Find tutor" → `/tutors`.
-- "How it works" → `/#how` (keep).
-
-Footer: audit any dead links, point to real routes or remove.
-
-New `src/routes/tutors.tsx`:
-- Public directory page listing all published tutors with subject filter from `?subject=`, district filter, search box.
-
-## 6. Vocabulary refinements
-
-Stop surfacing internal role slugs. In `en.json` and `zh-HK.json`:
-
-- Dashboard badge "Your role: parent" → replace with friendly label: Parent → "Parent / Student", Tutor → "Tutor", Staff → "Team", Admin/super_admin → "Administrator".
-- Add helper `roleLabel(role)` in `useAuth.tsx` (or a small `src/features/auth/roleLabel.ts`) returning the translated friendly label; use it in Dashboard, admin users table, header dropdown label.
-- Admin users page role select still uses raw enum values (needed), but display column uses friendly labels.
-- Landing/nav copy: "Post case" → "Request a tutor". "Find tutor" → "Browse tutors". "Sign in to be a tutor" flows point to `/become-a-tutor`.
-
-## 7. Verification
+## Verification
 
 - `bunx tsgo` typecheck.
-- Playwright: load `/`, confirm featured section renders (empty state acceptable pre-seed); load `/become-a-tutor`; click through subject chip → `/tutors?subject=math`.
-- After adding a test tutor via admin, confirm it appears on landing when weekly_score set.
+- Playwright: as admin, add a tutor with 2 education rows + slider score → appears on landing; open `/tutors/<code>`, add admin review with alias "Mrs. Chan" 5★ → rating auto-updates to 5.0 (1 review). Sign in as parent, post review 4★ → rating recomputes to 4.5 (2 reviews). Edit own review, delete own review — count drops.
 
 ## Out of scope
 
-- Case-posting flow, matching engine, tutor self-signup form (deferred to Phase 3 as originally planned).
-- Weekly rating auto-computation — `weekly_score` is admin-editable now; a scheduled recompute can come later.
+- Photo upload UI (still URL).
+- Automatic weekly ranking recompute (still admin-driven; slider just makes entry easier).
+- Case-posting / matching flow.
 
 ## Technical notes
 
-- Directory/landing reads use the browser Supabase client with anon SELECT (no server fn needed).
-- Admin mutations use the browser client under RLS `has_role` policies.
-- Tutor photo: URL input only for now (no upload UI).
+- `education` stored as jsonb array for schema flexibility; typed as `Array<{institution:string; qualification:string; year?:number}>` in TS.
+- Trigger uses `SECURITY DEFINER` + `set search_path = public` and only touches `public.tutors`.
+- Unique `(tutor_id, author_user_id) where author_user_id is not null` allows many admin-authored anonymous reviews but one per real user.
