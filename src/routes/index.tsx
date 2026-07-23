@@ -140,39 +140,67 @@ function Landing() {
             <div className="relative w-full max-w-md">
               <div className="absolute -inset-4 rounded-3xl bg-brand-gradient opacity-20 blur-2xl" aria-hidden />
               <div className="relative rounded-3xl border border-border bg-card p-6 shadow-brand">
-                <div className="flex items-center gap-3">
-                  <div className="h-11 w-11 shrink-0 rounded-full bg-brand-gradient-soft" />
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-foreground">Dr. Michelle Ho</p>
-                    <p className="text-xs text-muted-foreground">DSE Mathematics · M2</p>
-                  </div>
-                  <span className="rounded-full bg-[color:var(--brand-teal)]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-teal)]">Matched</span>
-                </div>
-                <div className="mt-5 grid grid-cols-3 gap-3 rounded-2xl bg-muted/50 p-4 text-center text-xs">
-                  <div>
-                    <p className="font-bold text-lg text-[color:var(--brand-navy)]">98%</p>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Match</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-lg text-[color:var(--brand-navy)]">$650</p>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">/hr</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-lg text-[color:var(--brand-navy)]">4.9★</p>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Rating</p>
-                  </div>
-                </div>
-                <div className="mt-5 space-y-2">
-                  {["DSE Math M2", "Kowloon Tong", "Weekday evenings", "10+ years"].map((tag) => (
-                    <div key={tag} className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <BadgeCheck className="h-3.5 w-3.5 text-[color:var(--brand-teal)]" />
-                      {tag}
+                {heroTutor ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      {heroTutor.photo_url ? (
+                        <img
+                          src={heroTutor.photo_url}
+                          alt={heroTutor.display_name}
+                          className="h-11 w-11 shrink-0 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-11 w-11 shrink-0 rounded-full bg-brand-gradient-soft" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="truncate text-sm font-bold text-foreground">{heroTutor.display_name}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {heroTutor.headline ?? heroTutor.subjects.slice(0, 3).join(" · ")}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-[color:var(--brand-teal)]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-teal)]">Featured</span>
                     </div>
-                  ))}
-                </div>
-                <button className="mt-6 w-full rounded-xl bg-brand-gradient py-3 text-sm font-bold text-white shadow-teal">
-                  <MessageCircle className="mr-2 inline h-4 w-4" /> Contact via tutor code
-                </button>
+                    <div className="mt-5 grid grid-cols-3 gap-3 rounded-2xl bg-muted/50 p-4 text-center text-xs">
+                      <div>
+                        <p className="font-bold text-lg text-[color:var(--brand-navy)]">{heroTutor.tutor_code}</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Code</p>
+                      </div>
+                      <div>
+                        <p className="font-bold text-lg text-[color:var(--brand-navy)]">${heroTutor.hourly_rate}</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">/hr</p>
+                      </div>
+                      <div>
+                        <p className="font-bold text-lg text-[color:var(--brand-navy)]">{heroTutor.rating.toFixed(1)}★</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Rating</p>
+                      </div>
+                    </div>
+                    <div className="mt-5 space-y-2">
+                      {[
+                        heroTutor.badge,
+                        heroTutor.district,
+                        heroTutor.experience_years ? `${heroTutor.experience_years}+ years` : null,
+                        heroTutor.subjects[0] ?? null,
+                      ]
+                        .filter((x): x is string => !!x)
+                        .slice(0, 4)
+                        .map((tag) => (
+                          <div key={tag} className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <BadgeCheck className="h-3.5 w-3.5 text-[color:var(--brand-teal)]" />
+                            {tag}
+                          </div>
+                        ))}
+                    </div>
+                    <Button asChild className="mt-6 w-full rounded-xl bg-brand-gradient py-3 text-sm font-bold text-white shadow-teal">
+                      <Link to="/tutors/$tutorCode" params={{ tutorCode: heroTutor.tutor_code }}>
+                        <MessageCircle className="mr-2 inline h-4 w-4" /> View tutor profile
+                      </Link>
+                    </Button>
+                  </>
+                ) : (
+                  <div className="py-16 text-center text-sm text-muted-foreground">
+                    {featuredLoading ? "Loading featured tutor…" : "No featured tutor yet."}
+                  </div>
+                )}
               </div>
             </div>
           </div>
