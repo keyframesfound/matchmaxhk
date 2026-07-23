@@ -2,7 +2,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, type AppRole } from "@/features/auth/useAuth";
+import { deleteUserAccount } from "@/lib/cases.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({
@@ -45,6 +48,7 @@ function AdminUsers() {
   const { hasAnyRole, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const deleteFn = useServerFn(deleteUserAccount);
   const [search, setSearch] = useState("");
   const [addRole, setAddRole] = useState<Record<string, AppRole>>({});
 
@@ -93,6 +97,17 @@ function AdminUsers() {
     },
     onSuccess: () => {
       toast.success("Role granted");
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteAccount = useMutation({
+    mutationFn: async (userId: string) => {
+      return deleteFn({ data: { userId } });
+    },
+    onSuccess: () => {
+      toast.success("Account deleted");
       queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -192,6 +207,19 @@ function AdminUsers() {
                           }}
                         >
                           {t("admin.grant")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="h-9 font-bold"
+                          onClick={() => {
+                            const confirmed = window.confirm("Delete this account? This will remove the user, their tutor profile, and their roles.");
+                            if (!confirmed) return;
+                            deleteAccount.mutate(row.user_id);
+                          }}
+                          disabled={deleteAccount.isPending}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Delete
                         </Button>
                       </div>
                     </td>

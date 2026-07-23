@@ -269,3 +269,23 @@ export const setInterestStatus = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const deleteUserAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ userId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { error: tutorError } = await supabaseAdmin
+      .from("tutors")
+      .delete()
+      .eq("created_by", data.userId);
+    if (tutorError) throw new Error(tutorError.message);
+
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (deleteError) throw new Error(deleteError.message);
+
+    return { ok: true };
+  });
