@@ -54,7 +54,7 @@ function AuthPage() {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: { full_name: name },
+            data: { display_name: name },
           },
         });
         if (error) throw error;
