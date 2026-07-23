@@ -175,10 +175,10 @@ function AdminTutors() {
     mutationFn: async (payload: Record<string, unknown> & { id?: string }) => {
       if (payload.id) {
         const { id, ...rest } = payload;
-        const { error } = await supabase.from("tutors").update(rest).eq("id", id as string);
+        const { error } = await supabase.from("tutors").update(rest as never).eq("id", id as string);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("tutors").insert({ ...payload, created_by: user?.id ?? null });
+        const { error } = await supabase.from("tutors").insert({ ...payload, created_by: user?.id ?? null } as never);
         if (error) throw error;
       }
     },
