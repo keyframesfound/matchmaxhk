@@ -49,7 +49,7 @@ function SuccessPage() {
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               {matches.map((m) => (
                 <Link
-                  key={m.tutor_id}
+                  key={m.id}
                   to="/tutors/$tutorCode"
                   params={{ tutorCode: m.tutor_code }}
                   className="flex gap-4 rounded-2xl border border-border bg-card p-5 transition hover:border-[color:var(--brand-teal)]/40 hover:shadow-brand"
