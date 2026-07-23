@@ -286,7 +286,7 @@ function AdminTutors() {
   }
 
   function addEdu() {
-    setForm({ ...form, education: [...form.education, { institution: "", qualification: "", year: "" }] });
+    setForm({ ...form, education: [...form.education, { institution: "", qualification: "", year: "", level: "" }] });
   }
   function updateEdu(i: number, patch: Partial<Education & { year: number | "" | null }>) {
     const next = form.education.slice();
