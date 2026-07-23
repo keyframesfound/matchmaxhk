@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { BadgeCheck, MapPin, MessageCircle, GraduationCap, Award, Languages, Clock, Pencil, Trash2, Plus, X } from "lucide-react";
+import { BadgeCheck, MapPin, MessageCircle, GraduationCap, Award, Languages, Clock, Pencil, Trash2, Plus, X, Globe } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchTutorByCode, type Tutor } from "@/features/tutors/queries";
+import { fetchTutorByCode, getTutorLessonModeLabel, getTutorLocationLabel, type Tutor } from "@/features/tutors/queries";
 import { getSystem } from "@/features/tutors/examSystems";
 import { fetchReviewsForTutor, type TutorReview } from "@/features/tutors/reviews";
 import { useAuth } from "@/features/auth/useAuth";
@@ -36,7 +36,8 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
     }
     const t = loaderData.tutor;
     const title = `${t.display_name} — MatchMax`;
-    const desc = t.headline ?? `${(t.subjects ?? []).slice(0, 3).join(", ")} tutor in ${t.district ?? "Hong Kong"}.`;
+    const subjects = (t.subjects ?? []).slice(0, 3).join(", ");
+    const desc = t.headline ?? `${subjects} tutor · ${getTutorLessonModeLabel(t.lesson_mode)}${t.lesson_mode === "online" ? "" : t.district ? ` in ${t.district}` : ""}.`;
     return {
       meta: [
         { title },
@@ -181,14 +182,13 @@ function TutorDetail() {
                   </span>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                    {t.lesson_mode === "online" ? <Globe className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
+                    {getTutorLocationLabel(t)}
+                  </span>
                   {t.badge && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-3 py-1 text-xs font-bold text-[color:var(--brand-teal)]">
                       <BadgeCheck className="h-3 w-3" /> {t.badge}
-                    </span>
-                  )}
-                  {t.district && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-                      <MapPin className="h-3 w-3" /> {t.district}
                     </span>
                   )}
                   {(t.subjects ?? []).map((s) => (

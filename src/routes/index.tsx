@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, Sparkles, MessageCircle, Star, Users, GraduationCap, MapPin, BookOpen } from "lucide-react";
+import { ArrowRight, BadgeCheck, Sparkles, MessageCircle, Star, Users, GraduationCap, MapPin, BookOpen, Globe } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { fetchTopWeeklyTutors, fetchLandingStats, fetchTutorByCode, type Tutor } from "@/features/tutors/queries";
+import { fetchTopWeeklyTutors, fetchLandingStats, fetchTutorByCode, getTutorLessonModeLabel, getTutorLocationLabel, type Tutor } from "@/features/tutors/queries";
 import { fetchFeaturedReviews } from "@/features/tutors/reviews";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -306,8 +306,20 @@ function Landing() {
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-base font-bold text-foreground">{tut.display_name}</p>
-                    <p className="truncate text-sm text-muted-foreground">{tut.headline ?? tut.subjects.join(", ")}</p>
+                    <p className="truncate text-sm text-muted-foreground">{tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}</p>
                   </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {tut.subjects.slice(0, 3).map((subject) => (
+                    <span key={subject} className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                      {subject}
+                    </span>
+                  ))}
+                  {tut.subjects.length > 3 && (
+                    <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                      +{tut.subjects.length - 3} more
+                    </span>
+                  )}
                 </div>
                 {tut.badge && (
                   <div className="mt-4 flex items-center gap-2">
@@ -318,7 +330,8 @@ function Landing() {
                 )}
                 <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
                   <span className="inline-flex items-center gap-1 text-muted-foreground">
-                    <MapPin className="h-4 w-4" /> {tut.district ?? "HK"}
+                    {tut.lesson_mode === "online" ? <Globe className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
+                    {getTutorLocationLabel(tut)}
                   </span>
                   <span className="inline-flex items-center gap-1 font-bold text-foreground">
                     <Star className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" /> {Number(tut.rating).toFixed(1)}

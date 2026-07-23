@@ -85,6 +85,23 @@ export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
   return data ? normalize(data as Record<string, unknown>) : null;
 }
 
+export function getTutorLessonModeLabel(mode: Tutor["lesson_mode"]): string {
+  switch (mode) {
+    case "online":
+      return "Online tutoring";
+    case "in_person":
+      return "In-person tutoring";
+    case "either":
+      return "Online & in-person tutoring";
+  }
+}
+
+export function getTutorLocationLabel(tutor: Pick<Tutor, "district" | "lesson_mode">): string {
+  if (tutor.lesson_mode === "online") return "Online";
+  if (tutor.lesson_mode === "in_person") return tutor.district ?? "In person";
+  return tutor.district ? `${tutor.district} · Online & in-person` : "Online & in-person";
+}
+
 export async function fetchLandingStats(): Promise<{ activeTutors: number; subjectsCovered: number }> {
   const { data, error } = await supabase
     .from("tutors")

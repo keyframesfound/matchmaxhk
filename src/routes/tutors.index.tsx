@@ -3,13 +3,13 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { BadgeCheck, MapPin, Star, MessageCircle, Search } from "lucide-react";
+import { BadgeCheck, MapPin, Star, MessageCircle, Search, Globe } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { fetchPublishedTutors, HK_DISTRICTS } from "@/features/tutors/queries";
+import { fetchPublishedTutors, getTutorLessonModeLabel, getTutorLocationLabel, HK_DISTRICTS } from "@/features/tutors/queries";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -147,8 +147,20 @@ function TutorsDirectory() {
                     )}
                     <div className="min-w-0">
                       <p className="truncate text-base font-bold text-foreground">{tut.display_name}</p>
-                      <p className="truncate text-sm text-muted-foreground">{tut.headline ?? tut.subjects.join(", ")}</p>
+                      <p className="truncate text-sm text-muted-foreground">{tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}</p>
                     </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {tut.subjects.slice(0, 3).map((subject) => (
+                      <span key={subject} className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                        {subject}
+                      </span>
+                    ))}
+                    {tut.subjects.length > 3 && (
+                      <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                        +{tut.subjects.length - 3} more
+                      </span>
+                    )}
                   </div>
                   {tut.badge && (
                     <div className="mt-4">
@@ -159,7 +171,8 @@ function TutorsDirectory() {
                   )}
                   <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
                     <span className="inline-flex items-center gap-1 text-muted-foreground">
-                      <MapPin className="h-4 w-4" /> {tut.district ?? "HK"}
+                      {tut.lesson_mode === "online" ? <Globe className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
+                      {getTutorLocationLabel(tut)}
                     </span>
                     <span className="inline-flex items-center gap-1 font-bold text-foreground">
                       <Star className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" /> {Number(tut.rating).toFixed(1)}
