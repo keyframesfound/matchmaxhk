@@ -16,14 +16,17 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — MatchMax" },
-      { name: "description", content: "Sign in or create your MatchMax account to post a case or manage your tutor profile." },
+      { name: "description", content: "Sign in or create your MatchMax account to post a tutoring case or manage your tutor profile." },
       { property: "og:title", content: "Sign in — MatchMax" },
-      { property: "og:description", content: "Access your MatchMax dashboard." },
+      { property: "og:description", content: "Access your MatchMax dashboard to post a tutoring case or manage your verified tutor profile." },
+      { property: "og:url", content: "https://maxmatch.app/auth" },
       { name: "robots", content: "noindex" },
     ],
+    links: [{ rel: "canonical", href: "https://maxmatch.app/auth" }],
   }),
   component: AuthPage,
 });
+
 
 function AuthPage() {
   const { t } = useTranslation();
