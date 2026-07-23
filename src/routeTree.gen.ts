@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
+import { Route as AuthenticatedPostCaseRouteImport } from './routes/_authenticated.post-case'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
 import { Route as AuthenticatedAdminTutorsRouteImport } from './routes/_authenticated.admin.tutors'
@@ -51,6 +52,11 @@ const TutorsTutorCodeRoute = TutorsTutorCodeRouteImport.update({
   id: '/tutors/$tutorCode',
   path: '/tutors/$tutorCode',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedPostCaseRoute = AuthenticatedPostCaseRouteImport.update({
+  id: '/post-case',
+  path: '/post-case',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/post-case': typeof AuthenticatedPostCaseRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/post-case': typeof AuthenticatedPostCaseRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors': typeof TutorsIndexRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/post-case': typeof AuthenticatedPostCaseRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/dashboard'
+    | '/post-case'
     | '/tutors/$tutorCode'
     | '/tutors/'
     | '/admin/settings'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/dashboard'
+    | '/post-case'
     | '/tutors/$tutorCode'
     | '/tutors'
     | '/admin/settings'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/_authenticated/dashboard'
+    | '/_authenticated/post-case'
     | '/tutors/$tutorCode'
     | '/tutors/'
     | '/_authenticated/admin/settings'
@@ -237,6 +249,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TutorsTutorCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/post-case': {
+      id: '/_authenticated/post-case'
+      path: '/post-case'
+      fullPath: '/post-case'
+      preLoaderRoute: typeof AuthenticatedPostCaseRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -291,6 +310,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedPostCaseRoute: typeof AuthenticatedPostCaseRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTutorsRoute: typeof AuthenticatedAdminTutorsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
@@ -298,6 +318,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedPostCaseRoute: AuthenticatedPostCaseRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTutorsRoute: AuthenticatedAdminTutorsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
