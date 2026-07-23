@@ -346,7 +346,7 @@ function AdminTutors() {
                             type="number"
                             placeholder="Year"
                             value={row.year ?? ""}
-                            onChange={(e) => updateEdu(i, { year: e.target.value === "" ? "" : Number(e.target.value) })}
+                            onChange={(e) => updateEdu(i, { year: e.target.value === "" ? null : Number(e.target.value) })}
                           />
                           <Button type="button" variant="outline" size="icon" onClick={() => removeEdu(i)}>
                             <X className="h-4 w-4" />
