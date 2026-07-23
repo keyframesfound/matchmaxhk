@@ -71,6 +71,24 @@ function Landing() {
     },
   });
 
+  const { data: popularSubjects = DEFAULT_POPULAR_SUBJECTS } = useQuery({
+    queryKey: ["settings", "popular_subjects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "popular_subjects")
+        .maybeSingle();
+      if (error) throw error;
+      const v = data?.value;
+      if (Array.isArray(v)) {
+        const arr = (v as unknown[]).filter((x): x is string => typeof x === "string" && x.trim().length > 0);
+        if (arr.length > 0) return arr;
+      }
+      return DEFAULT_POPULAR_SUBJECTS;
+    },
+  });
+
   const { data: pickedHeroTutor } = useQuery({
     queryKey: ["landing", "hero_tutor", heroTutorCode ?? ""],
     queryFn: () => fetchTutorByCode(heroTutorCode as string),
