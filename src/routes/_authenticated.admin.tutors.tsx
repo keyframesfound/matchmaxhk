@@ -36,10 +36,34 @@ export const Route = createFileRoute("/_authenticated/admin/tutors")({
   component: AdminTutors,
 });
 
+const EDUCATION_LEVELS = [
+  "Secondary school",
+  "Undergraduate",
+  "Postgraduate",
+  "Doctorate",
+  "Diploma / Certificate",
+  "Other",
+];
+
+// Curated subject list built from every exam system, deduped + a few generals.
+const SUBJECT_OPTIONS: string[] = (() => {
+  const set = new Set<string>();
+  for (const sys of EXAM_SYSTEMS) for (const s of sys.subjects) set.add(s);
+  for (const s of [
+    "Mathematics", "English", "Chinese", "Physics", "Chemistry", "Biology",
+    "Economics", "Geography", "History", "Computer Science", "Music", "Art",
+    "Primary English", "Primary Mathematics", "Primary Chinese",
+  ]) set.add(s);
+  return Array.from(set).sort((a, b) => a.localeCompare(b));
+})();
+
+const CURRENT_YEAR = new Date().getFullYear();
+
 const eduSchema = z.object({
   institution: z.string().trim().min(1).max(120),
   qualification: z.string().trim().min(1).max(120),
   year: z.union([z.coerce.number().int().min(1900).max(2100), z.literal(""), z.null()]).optional(),
+  level: z.string().trim().max(60).optional().or(z.literal("")).nullable(),
 });
 
 const examSchema = z.object({
