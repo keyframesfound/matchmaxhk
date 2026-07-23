@@ -3,41 +3,41 @@
   "nav": {
     "how_it_works": "點樣運作",
     "find_tutor": "搵導師",
-    "post_case": "登個案",
+    "post_case": "發佈補習需求",
     "sign_in": "登入",
     "sign_out": "登出",
-    "dashboard": "我的主頁",
-    "admin": "管理"
+    "dashboard": "控制台",
+    "admin": "管理後台"
   },
   "hero": {
-    "eyebrow": "香港最啱用嘅智能補習配對平台",
-    "title_a": "幫你搵啱位",
-    "title_b": "最夾嘅補習老師。",
-    "subtitle": "專為香港家長而設嘅智能配對系統。輸入科目、程度、地區同預算,幾分鐘就搵到啱心水嘅導師。",
-    "cta_primary": "免費登個案",
-    "cta_secondary": "睇吓有邊啲導師"
+    "eyebrow": "香港智能補習配對平台",
+    "title_a": "輕鬆搵到",
+    "title_b": "最啱你嘅導師。",
+    "subtitle": "根據科目、年級、地區同預算，快速幫你配對合適導師，幾分鐘就可以開始。",
+    "cta_primary": "免費發佈補習需求",
+    "cta_secondary": "瀏覽導師"
   },
   "trust": {
-    "students": "已配對嘅學生",
-    "tutors": "現役導師",
-    "subjects": "涵蓋科目",
-    "districts": "覆蓋地區"
+    "students": "成功配對學生",
+    "tutors": "活躍導師",
+    "subjects": "補習科目",
+    "districts": "服務地區"
   },
   "how": {
-    "title": "MatchMax 點樣運作",
-    "subtitle": "三步搞掂,快夾靚正",
-    "step1_title": "登你個案",
-    "step1_desc": "填低科目、程度、地區同預算,唔使兩分鐘。",
-    "step2_title": "自動幫你配對",
-    "step2_desc": "系統即刻幫你揀出最夾嘅導師名單。",
-    "step3_title": "用導師編號直接聯絡",
-    "step3_desc": "攞到專屬導師編號,即刻 WhatsApp 傾第一堂。"
+    "title": "點樣使用 MatchMax",
+    "subtitle": "三個簡單步驟，搵到最適合嘅導師",
+    "step1_title": "搵導師",
+    "step1_desc": "瀏覽導師資料，按科目、程度同要求揀最適合你嘅導師。",
+    "step2_title": "聯絡我哋",
+    "step2_desc": "將導師編號透過 WhatsApp 發俾我哋，其餘配對同安排交俾我哋處理。",
+    "step3_title": "開始上堂",
+    "step3_desc": "確認安排後，即可開始補習，簡單又方便。"
   },
   "featured": {
     "title": "精選導師",
-    "subtitle": "香港家長高評價嘅專業導師",
-    "view_all": "睇晒所有導師",
-    "per_hour": "／每堂"
+    "subtitle": "香港各區人氣導師",
+    "view_all": "睇全部導師",
+    "per_hour": "/小時"
   },
   "subjects": {
     "title": "熱門科目",
@@ -48,26 +48,26 @@
     "chemistry": "化學",
     "biology": "生物",
     "economics": "經濟",
-    "dse": "DSE 應試",
-    "ib": "IB 課程",
-    "view_all": "睇晒所有科目"
+    "dse": "DSE 補習",
+    "ib": "IB 國際文憑",
+    "view_all": "睇全部科目"
   },
   "tutors_cta": {
-    "title": "你係有心教嘅導師?",
-    "subtitle": "加入香港最透明嘅補習平台,自己定價,收啱嘅個案。",
-    "cta": "登記做導師"
+    "title": "想做補習導師？",
+    "subtitle": "加入 MatchMax，自由設定收費，獲得真實可靠嘅學生配對。",
+    "cta": "加入成為導師"
   },
   "testimonials": {
-    "title": "香港家長信得過",
-    "t1": "一日就搵到勁 DSE 數學導師,個女直升兩級。",
-    "t1_by": "陳太 — 九龍塘",
-    "t2": "傾得清楚、導師有認證,又唔會 hard sell,好正。",
-    "t2_by": "林生 — 沙田",
-    "t3": "配對真係好準,第一個導師已經 book 咗。",
-    "t3_by": "黃太 — 中環"
+    "title": "香港家長都推薦",
+    "t1": "一日內就搵到好嘅 DSE 數學導師，女兒成績提升咗好多。",
+    "t1_by": "陳太・九龍塘",
+    "t2": "導師資料清楚，溝通順暢，完全冇硬銷，感覺好舒服。",
+    "t2_by": "林先生・沙田",
+    "t3": "配對好準，第一位聯絡嘅導師就決定咗。",
+    "t3_by": "黃太・中環"
   },
   "footer": {
-    "tagline": "用智能配對同透明溝通,提升香港補習水準。",
+    "tagline": "希望令香港搵補習變得更簡單、更透明。",
     "quick_links": "快速連結",
     "support": "支援",
     "about": "關於我哋",
@@ -82,89 +82,89 @@
   },
   "auth": {
     "sign_in_title": "歡迎返嚟",
-    "sign_in_subtitle": "登入你嘅 MatchMax 戶口",
-    "sign_up_title": "開個新戶口",
-    "sign_up_subtitle": "以家長或者導師身份加入 MatchMax",
+    "sign_in_subtitle": "登入你嘅 MatchMax 帳戶",
+    "sign_up_title": "建立帳戶",
+    "sign_up_subtitle": "立即加入 MatchMax，開始搵導師或接補習",
     "email": "電郵",
     "password": "密碼",
-    "name": "全名",
+    "name": "姓名",
     "continue": "繼續",
-    "continue_google": "用 Google 繼續",
-    "continue_apple": "用 Apple 繼續",
+    "continue_google": "使用 Google 繼續",
+    "continue_apple": "使用 Apple 繼續",
     "or": "或者",
-    "no_account": "仲未有戶口?",
-    "have_account": "已經有戶口?",
+    "no_account": "未有帳戶？",
+    "have_account": "已有帳戶？",
     "sign_up": "註冊",
     "sign_in": "登入",
-    "check_email": "請開電郵確認你嘅戶口。",
-    "signing_in": "登緊入…"
+    "check_email": "請到電郵確認你嘅帳戶。",
+    "signing_in": "登入中…"
   },
   "dashboard": {
     "welcome": "歡迎返嚟",
     "your_role": "你嘅身份",
     "parent": {
-      "title": "家長主頁",
-      "post_case": "登新個案",
-      "post_case_desc": "話俾我哋知你要乜,幫你搵啱導師。",
-      "my_cases": "我嘅個案",
-      "my_cases_desc": "睇吓未配對同已配對嘅個案。"
+      "title": "家長／學生",
+      "post_case": "新增補習需求",
+      "post_case_desc": "話俾我哋知你想搵咩導師，我哋會幫你配對。",
+      "my_cases": "我嘅需求",
+      "my_cases_desc": "查看補習需求同配對進度。"
     },
     "tutor": {
-      "title": "導師主頁",
-      "leads": "新查詢",
-      "leads_desc": "收到你導師編號嘅家長。",
-      "profile": "我嘅檔案",
+      "title": "導師專區",
+      "leads": "最新配對",
+      "leads_desc": "查看有家長索取你導師編號嘅個案。",
+      "profile": "我的資料",
       "profile_desc": "更新科目、收費同時間表。"
     },
     "staff": {
-      "title": "職員主頁",
-      "review": "等審核嘅個案",
-      "review_desc": "要人手跟進嘅配對個案。",
-      "tutors": "導師名冊",
-      "tutors_desc": "管理導師檔案。"
+      "title": "團隊控制台",
+      "review": "待處理需求",
+      "review_desc": "查看需要人工跟進嘅補習需求。",
+      "tutors": "導師名單",
+      "tutors_desc": "管理導師資料。"
     },
     "admin": {
-      "title": "管理員主頁",
-      "users": "用戶同身份",
-      "users_desc": "俾或者收返身份權限。",
-      "settings": "系統設定",
-      "settings_desc": "WhatsApp 號碼、訊息範本、品牌資料。",
-      "tutors": "加導師",
-      "tutors_desc": "開一個新導師檔案。"
+      "title": "管理後台",
+      "users": "用戶與權限",
+      "users_desc": "管理帳戶身份。",
+      "settings": "網站設定",
+      "settings_desc": "設定 WhatsApp、品牌資訊等。",
+      "tutors": "新增導師",
+      "tutors_desc": "建立新導師資料。"
     },
-    "coming_soon": "下個版本推出"
+    "coming_soon": "更多功能即將推出"
   },
   "admin": {
-    "users_title": "用戶同身份",
-    "users_subtitle": "為 MatchMax 用戶俾或者收返身份",
-    "search_placeholder": "用電郵或姓名搵…",
+    "users_title": "用戶與權限",
+    "users_subtitle": "管理 MatchMax 用戶身份",
+    "search_placeholder": "搜尋姓名或電郵…",
     "name": "姓名",
     "email": "電郵",
     "roles": "身份",
     "actions": "操作",
-    "grant": "授予",
-    "revoke": "收返",
-    "select_role": "揀身份",
+    "grant": "新增",
+    "revoke": "移除",
+    "select_role": "選擇身份",
     "no_users": "暫時未有用戶。",
-    "settings_title": "系統設定",
-    "settings_subtitle": "全站設定",
+    "settings_title": "網站設定",
+    "settings_subtitle": "網站整體設定",
     "save": "儲存",
     "saved": "已儲存。",
-    "whatsapp_number": "WhatsApp 聯絡號碼",
+    "whatsapp_number": "WhatsApp 聯絡電話",
     "whatsapp_template": "WhatsApp 訊息範本",
     "contact_email": "聯絡電郵",
     "brand_name": "品牌名稱"
   },
   "roles": {
-    "administrator": "團隊成員",
-    "team": "支援團隊",
+    "administrator": "管理員",
+    "team": "客服團隊",
     "tutor": "導師",
-    "parent": "家長 / 學生"
+    "parent": "家長／學生"
   },
   "common": {
-    "loading": "載入緊…",
-    "error": "有啲嘢出錯。",
-    "back_home": "返首頁",
-    "no_tutors_yet": "新導師陸續加入,遲啲返嚟睇吓。"
+    "loading": "載入中…",
+    "error": "發生咗啲問題。",
+    "back_home": "返回首頁",
+    "no_tutors_yet": "我哋陸續加入更多導師，記得再返嚟睇下！"
   }
 }
