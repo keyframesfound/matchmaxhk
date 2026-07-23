@@ -5,6 +5,7 @@ export type Education = {
   institution: string;
   qualification: string;
   year?: number | null;
+  level?: string | null;
 };
 
 export type Tutor = {

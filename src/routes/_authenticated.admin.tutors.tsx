@@ -36,10 +36,34 @@ export const Route = createFileRoute("/_authenticated/admin/tutors")({
   component: AdminTutors,
 });
 
+const EDUCATION_LEVELS = [
+  "Secondary school",
+  "Undergraduate",
+  "Postgraduate",
+  "Doctorate",
+  "Diploma / Certificate",
+  "Other",
+];
+
+// Curated subject list built from every exam system, deduped + a few generals.
+const SUBJECT_OPTIONS: string[] = (() => {
+  const set = new Set<string>();
+  for (const sys of EXAM_SYSTEMS) for (const s of sys.subjects) set.add(s);
+  for (const s of [
+    "Mathematics", "English", "Chinese", "Physics", "Chemistry", "Biology",
+    "Economics", "Geography", "History", "Computer Science", "Music", "Art",
+    "Primary English", "Primary Mathematics", "Primary Chinese",
+  ]) set.add(s);
+  return Array.from(set).sort((a, b) => a.localeCompare(b));
+})();
+
+const CURRENT_YEAR = new Date().getFullYear();
+
 const eduSchema = z.object({
   institution: z.string().trim().min(1).max(120),
   qualification: z.string().trim().min(1).max(120),
   year: z.union([z.coerce.number().int().min(1900).max(2100), z.literal(""), z.null()]).optional(),
+  level: z.string().trim().max(60).optional().or(z.literal("")).nullable(),
 });
 
 const examSchema = z.object({
@@ -52,7 +76,7 @@ const examSchema = z.object({
 const formSchema = z.object({
   display_name: z.string().trim().min(1).max(120),
   headline: z.string().trim().max(200).optional().or(z.literal("")),
-  subjects_csv: z.string().trim().min(1).max(300),
+  subjects: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one subject"),
   district: z.string().trim().max(80).optional().or(z.literal("")),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
   badge: z.string().trim().max(80).optional().or(z.literal("")),
@@ -74,7 +98,7 @@ type FormValues = z.infer<typeof formSchema>;
 const empty: FormValues = {
   display_name: "",
   headline: "",
-  subjects_csv: "",
+  subjects: [],
   district: "",
   hourly_rate: 0,
   badge: "",
@@ -95,7 +119,7 @@ function tutorToForm(t: Tutor): FormValues {
   return {
     display_name: t.display_name,
     headline: t.headline ?? "",
-    subjects_csv: (t.subjects ?? []).join(", "),
+    subjects: t.subjects ?? [],
     district: t.district ?? "",
     hourly_rate: t.hourly_rate,
     badge: t.badge ?? "",
@@ -112,6 +136,7 @@ function tutorToForm(t: Tutor): FormValues {
       institution: e.institution ?? "",
       qualification: e.qualification ?? "",
       year: e.year ?? "",
+      level: e.level ?? "",
     })),
     exam_results: (t.exam_results ?? []).map((r) => ({
       system: r.system ?? "",
@@ -128,6 +153,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
       institution: e.institution.trim(),
       qualification: e.qualification.trim(),
       year: e.year === "" || e.year == null ? null : Number(e.year),
+      level: e.level && e.level.trim() ? e.level.trim() : null,
     }))
     .filter((e) => e.institution && e.qualification);
   const cleanExams: ExamResult[] = v.exam_results
@@ -142,7 +168,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
   const base: Record<string, unknown> = {
     display_name: v.display_name,
     headline: v.headline || null,
-    subjects: v.subjects_csv.split(",").map((s) => s.trim()).filter(Boolean),
+    subjects: v.subjects,
     district: v.district || null,
     hourly_rate: v.hourly_rate,
     badge: v.badge || null,
@@ -260,7 +286,7 @@ function AdminTutors() {
   }
 
   function addEdu() {
-    setForm({ ...form, education: [...form.education, { institution: "", qualification: "", year: "" }] });
+    setForm({ ...form, education: [...form.education, { institution: "", qualification: "", year: "", level: "" }] });
   }
   function updateEdu(i: number, patch: Partial<Education & { year: number | "" | null }>) {
     const next = form.education.slice();
@@ -340,8 +366,39 @@ function AdminTutors() {
                   </Section>
 
                   <Section title="Teaching">
-                    <Field label="Subjects (comma separated)" error={errors.subjects_csv}>
-                      <Input value={form.subjects_csv} onChange={(e) => setForm({ ...form, subjects_csv: e.target.value })} placeholder="Mathematics, Physics" />
+                    <Field label="Subjects" error={errors.subjects}>
+                      <div className="space-y-2">
+                        {form.subjects.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {form.subjects.map((s) => (
+                              <span key={s} className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-navy)]">
+                                {s}
+                                <button
+                                  type="button"
+                                  aria-label={`Remove ${s}`}
+                                  onClick={() => setForm({ ...form, subjects: form.subjects.filter((x) => x !== s) })}
+                                  className="hover:text-destructive"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <SearchableSelect
+                          value=""
+                          onChange={(v) => {
+                            const val = v.trim();
+                            if (!val) return;
+                            if (form.subjects.includes(val)) return;
+                            setForm({ ...form, subjects: [...form.subjects, val] });
+                          }}
+                          options={SUBJECT_OPTIONS.filter((s) => !form.subjects.includes(s))}
+                          placeholder="Add a subject…"
+                          searchPlaceholder="Search or type a subject…"
+                          allowCustom
+                        />
+                      </div>
                     </Field>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Field label="District" error={errors.district}>
@@ -365,14 +422,30 @@ function AdminTutors() {
                         <Input
                           type="number"
                           value={form.experience_years}
-                          onChange={(e) => setForm({ ...form, experience_years: e.target.value === "" ? "" : Number(e.target.value) })}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === "") {
+                              setForm({ ...form, experience_years: "", teaching_since: "" });
+                            } else {
+                              const years = Number(raw);
+                              setForm({ ...form, experience_years: years, teaching_since: CURRENT_YEAR - years });
+                            }
+                          }}
                         />
                       </Field>
                       <Field label="Teaching since (year)" error={errors.teaching_since}>
                         <Input
                           type="number"
                           value={form.teaching_since}
-                          onChange={(e) => setForm({ ...form, teaching_since: e.target.value === "" ? "" : Number(e.target.value) })}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === "") {
+                              setForm({ ...form, teaching_since: "", experience_years: "" });
+                            } else {
+                              const year = Number(raw);
+                              setForm({ ...form, teaching_since: year, experience_years: Math.max(0, CURRENT_YEAR - year) });
+                            }
+                          }}
                           placeholder="2015"
                         />
                       </Field>
@@ -388,9 +461,19 @@ function AdminTutors() {
                         <p className="text-sm text-muted-foreground">No qualifications yet. Add one below.</p>
                       )}
                       {form.education.map((row, i) => (
-                        <div key={i} className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[1fr_1fr_100px_auto]">
-                          <Input placeholder="Institution (e.g. HKU)" value={row.institution} onChange={(e) => updateEdu(i, { institution: e.target.value })} />
-                          <Input placeholder="Qualification (e.g. BSc Maths)" value={row.qualification} onChange={(e) => updateEdu(i, { qualification: e.target.value })} />
+                        <div key={i} className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[160px_1fr_1fr_100px_auto]">
+                          <Select
+                            value={row.level || "__none"}
+                            onValueChange={(v) => updateEdu(i, { level: v === "__none" ? "" : v })}
+                          >
+                            <SelectTrigger><SelectValue placeholder="Level" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__none">Level…</SelectItem>
+                              {EDUCATION_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <Input placeholder="Institution (e.g. DBS, HKU)" value={row.institution} onChange={(e) => updateEdu(i, { institution: e.target.value })} />
+                          <Input placeholder="Qualification (e.g. HKDSE, BSc Maths)" value={row.qualification} onChange={(e) => updateEdu(i, { qualification: e.target.value })} />
                           <Input
                             type="number"
                             placeholder="Year"
