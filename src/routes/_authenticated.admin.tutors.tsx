@@ -22,7 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { fetchAllTutors, HK_DISTRICTS, type Tutor, type Education } from "@/features/tutors/queries";
-import { EXAM_SYSTEMS, getSystem, getGradesForSelection, type ExamResult } from "@/features/tutors/examSystems";
+import { EXAM_SYSTEMS, getSystem, getGradesForSelection, type ExamResult, type ExamResultEntry } from "@/features/tutors/examSystems";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 
 export const Route = createFileRoute("/_authenticated/admin/tutors")({
@@ -66,11 +66,14 @@ const eduSchema = z.object({
   level: z.string().trim().max(60).optional().or(z.literal("")).nullable(),
 });
 
-const examSchema = z.object({
-  system: z.string().trim().min(1),
+const examEntrySchema = z.object({
   subject: z.string().trim().min(1).max(120),
   grade: z.string().trim().min(1).max(40),
-  year: z.union([z.coerce.number().int().min(1950).max(2100), z.literal(""), z.null()]).optional(),
+});
+
+const examSchema = z.object({
+  system: z.string().trim().min(1),
+  subjects: z.array(examEntrySchema).min(1, "Add at least one subject"),
 });
 
 const formSchema = z.object({
@@ -140,9 +143,7 @@ function tutorToForm(t: Tutor): FormValues {
     })),
     exam_results: (t.exam_results ?? []).map((r) => ({
       system: r.system ?? "",
-      subject: r.subject ?? "",
-      grade: r.grade ?? "",
-      year: r.year ?? "",
+      subjects: (r.subjects ?? []).map((s) => ({ subject: s.subject ?? "", grade: s.grade ?? "" })),
     })),
   };
 }
@@ -159,11 +160,11 @@ function formToPayload(v: FormValues, isNew: boolean) {
   const cleanExams: ExamResult[] = v.exam_results
     .map((r) => ({
       system: r.system,
-      subject: r.subject.trim(),
-      grade: r.grade.trim(),
-      year: r.year === "" || r.year == null ? null : Number(r.year),
+      subjects: (r.subjects ?? [])
+        .map((s) => ({ subject: s.subject.trim(), grade: s.grade.trim() }))
+        .filter((s) => s.subject && s.grade),
     }))
-    .filter((r) => r.system && r.subject && r.grade);
+    .filter((r) => r.system && r.subjects.length > 0);
   const langs = (v.languages_csv || "").split(",").map((s) => s.trim()).filter(Boolean);
   const base: Record<string, unknown> = {
     display_name: v.display_name,
@@ -300,20 +301,38 @@ function AdminTutors() {
   function addExam() {
     setForm({
       ...form,
-      exam_results: [...form.exam_results, { system: "ib", subject: "", grade: "", year: "" }],
+      exam_results: [...form.exam_results, { system: "ib", subjects: [{ subject: "", grade: "" }] }],
     });
   }
-  function updateExam(i: number, patch: Partial<ExamResult & { year: number | "" | null }>) {
+  function updateExamSystem(i: number, system: string) {
     const next = form.exam_results.slice();
-    const current = next[i];
-    // Reset dependent fields when the system changes
-    if (patch.system && patch.system !== current.system) {
-      next[i] = { ...current, ...patch, subject: "", grade: "" };
-    } else if (patch.subject && patch.subject !== current.subject) {
-      next[i] = { ...current, ...patch, grade: "" };
+    if (next[i].system === system) return;
+    // Reset dependent subjects/grades when the system changes.
+    next[i] = { system, subjects: [{ subject: "", grade: "" }] };
+    setForm({ ...form, exam_results: next });
+  }
+  function addSubjectRow(i: number) {
+    const next = form.exam_results.slice();
+    next[i] = { ...next[i], subjects: [...next[i].subjects, { subject: "", grade: "" }] };
+    setForm({ ...form, exam_results: next });
+  }
+  function updateSubjectRow(i: number, j: number, patch: Partial<ExamResultEntry>) {
+    const next = form.exam_results.slice();
+    const subs = next[i].subjects.slice();
+    const current = subs[j];
+    // Reset grade if subject changes (grade options depend on subject for some systems).
+    if (patch.subject && patch.subject !== current.subject) {
+      subs[j] = { ...current, ...patch, grade: "" };
     } else {
-      next[i] = { ...current, ...patch };
+      subs[j] = { ...current, ...patch };
     }
+    next[i] = { ...next[i], subjects: subs };
+    setForm({ ...form, exam_results: next });
+  }
+  function removeSubjectRow(i: number, j: number) {
+    const next = form.exam_results.slice();
+    const subs = next[i].subjects.filter((_, idx) => idx !== j);
+    next[i] = { ...next[i], subjects: subs.length ? subs : [{ subject: "", grade: "" }] };
     setForm({ ...form, exam_results: next });
   }
   function removeExam(i: number) {
