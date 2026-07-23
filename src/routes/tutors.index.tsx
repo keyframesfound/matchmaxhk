@@ -140,7 +140,12 @@ function TutorsDirectory() {
             )}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filtered.map((tut) => (
-                <article key={tut.id} className="flex flex-col rounded-3xl border border-border bg-card p-6 transition-all hover:shadow-brand">
+                <Link
+                  key={tut.id}
+                  to="/tutors/$tutorCode"
+                  params={{ tutorCode: tut.tutor_code }}
+                  className="flex flex-col rounded-3xl border border-border bg-card p-6 transition-all hover:shadow-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-teal)]"
+                >
                   <div className="flex items-center gap-4">
                     {tut.photo_url ? (
                       <img src={tut.photo_url} alt={tut.display_name} className="h-14 w-14 shrink-0 rounded-full object-cover" />
@@ -171,15 +176,8 @@ function TutorsDirectory() {
                     HK${tut.hourly_rate}
                     <span className="ml-1 text-sm font-semibold text-muted-foreground">{t("featured.per_hour")}</span>
                   </p>
-                  <div className="mt-auto pt-5">
-                    <Button asChild className="w-full bg-brand-gradient font-bold text-white shadow-teal">
-                      <Link to="/tutors/$tutorCode" params={{ tutorCode: tut.tutor_code }}>
-                        <MessageCircle className="mr-2 h-4 w-4" /> View profile
-                      </Link>
-                    </Button>
-                    <p className="mt-2 text-center text-[11px] text-muted-foreground">Tutor code: {tut.tutor_code}</p>
-                  </div>
-                </article>
+                  <p className="mt-auto pt-5 text-center text-[11px] text-muted-foreground">Tutor code: {tut.tutor_code}</p>
+                </Link>
               ))}
             </div>
           </div>
