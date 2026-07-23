@@ -55,6 +55,7 @@ function AdminSettings() {
         contact_email: "",
         whatsapp_number: "",
         whatsapp_template: "Hi, I'd like to contact tutor {tutor_code} via MatchMax.",
+        students_matched: "0",
       };
       (data ?? []).forEach((row) => {
         (map as Record<string, string>)[row.key] = typeof row.value === "string" ? row.value : "";
