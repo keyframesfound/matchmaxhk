@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchTutorByCode, type Tutor } from "@/features/tutors/queries";
+import { getSystem } from "@/features/tutors/examSystems";
 import { fetchReviewsForTutor, type TutorReview } from "@/features/tutors/reviews";
 import { useAuth } from "@/features/auth/useAuth";
 
