@@ -74,7 +74,7 @@ const formSchema = z.object({
   hourly_rate: z.coerce.number().int().min(0).max(100000),
   badge: z.string().trim().max(80).optional().or(z.literal("")),
   bio: z.string().trim().max(2000).optional().or(z.literal("")),
-  photo_url: z.string().trim().url().max(500).optional().or(z.literal("")),
+  photo_url: z.string().trim().max(1000).optional().or(z.literal("")),
   tutor_code: z.string().trim().min(2).max(20).regex(/^[A-Za-z0-9-]+$/, "Letters, numbers, dashes only"),
   weekly_rating: z.coerce.number().min(0).max(5),
   weekly_score: z.coerce.number().int().min(0).max(100),
