@@ -183,7 +183,12 @@ function Landing() {
           )}
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {featuredTutors.map((tut) => (
-              <div key={tut.id} className="rounded-3xl border border-border bg-card p-6 transition-all hover:shadow-brand">
+              <Link
+                key={tut.id}
+                to="/tutors/$tutorCode"
+                params={{ tutorCode: tut.tutor_code }}
+                className="block rounded-3xl border border-border bg-card p-6 transition-all hover:shadow-brand"
+              >
                 <div className="flex items-center gap-4">
                   {tut.photo_url ? (
                     <img src={tut.photo_url} alt={tut.display_name} className="h-14 w-14 shrink-0 rounded-full object-cover" />
@@ -208,13 +213,14 @@ function Landing() {
                   </span>
                   <span className="inline-flex items-center gap-1 font-bold text-foreground">
                     <Star className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" /> {Number(tut.rating).toFixed(1)}
+                    <span className="ml-1 text-xs font-normal text-muted-foreground">({tut.review_count})</span>
                   </span>
                 </div>
                 <p className="mt-4 text-2xl font-black text-[color:var(--brand-navy)]">
                   HK${tut.hourly_rate}
                   <span className="ml-1 text-sm font-semibold text-muted-foreground">{t("featured.per_hour")}</span>
                 </p>
-              </div>
+              </Link>
 
             ))}
           </div>

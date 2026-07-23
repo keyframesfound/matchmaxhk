@@ -153,7 +153,9 @@ function TutorsDirectory() {
                   </p>
                   <div className="mt-auto pt-5">
                     <Button asChild className="w-full bg-brand-gradient font-bold text-white shadow-teal">
-                      <Link to="/auth"><MessageCircle className="mr-2 h-4 w-4" /> Request this tutor</Link>
+                      <Link to="/tutors/$tutorCode" params={{ tutorCode: tut.tutor_code }}>
+                        <MessageCircle className="mr-2 h-4 w-4" /> View profile
+                      </Link>
                     </Button>
                     <p className="mt-2 text-center text-[11px] text-muted-foreground">Tutor code: {tut.tutor_code}</p>
                   </div>
