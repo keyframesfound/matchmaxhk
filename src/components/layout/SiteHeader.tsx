@@ -33,12 +33,12 @@ export function SiteHeader() {
           <a href="/#how" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
             {t("nav.how_it_works")}
           </a>
-          <a href="/#tutors" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
+          <Link to="/tutors" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
             {t("nav.find_tutor")}
-          </a>
-          <a href="/#subjects" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
-            {t("nav.post_case")}
-          </a>
+          </Link>
+          <Link to="/become-a-tutor" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
+            {t("tutors_cta.cta")}
+          </Link>
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
@@ -58,9 +58,14 @@ export function SiteHeader() {
                   <Link to="/dashboard">{t("nav.dashboard")}</Link>
                 </DropdownMenuItem>
                 {isAdmin && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/users">{t("nav.admin")}</Link>
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/tutors">Manage tutors</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/users">{t("nav.admin")}</Link>
+                    </DropdownMenuItem>
+                  </>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => void signOut()}>
@@ -95,12 +100,12 @@ export function SiteHeader() {
             <a href="/#how" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
               {t("nav.how_it_works")}
             </a>
-            <a href="/#tutors" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
+            <Link to="/tutors" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
               {t("nav.find_tutor")}
-            </a>
-            <a href="/#subjects" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
-              {t("nav.post_case")}
-            </a>
+            </Link>
+            <Link to="/become-a-tutor" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
+              {t("tutors_cta.cta")}
+            </Link>
             {!user && (
               <Link to="/auth" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
                 {t("nav.sign_in")}

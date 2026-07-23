@@ -4,6 +4,7 @@ import { Users2, ClipboardList, Inbox, UserCog, Settings2, GraduationCap, Messag
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { useAuth, type AppRole } from "@/features/auth/useAuth";
+import { ROLE_LABEL_KEY, primaryRole } from "@/features/auth/roleLabel";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -38,17 +39,13 @@ function roleCards(role: AppRole): Card[] {
     case "admin":
     case "super_admin":
       return [
+        { icon: GraduationCap, titleKey: "dashboard.admin.tutors", descKey: "dashboard.admin.tutors_desc", to: "/admin/tutors" },
         { icon: Users2, titleKey: "dashboard.admin.users", descKey: "dashboard.admin.users_desc", to: "/admin/users" },
         { icon: Settings2, titleKey: "dashboard.admin.settings", descKey: "dashboard.admin.settings_desc", to: "/admin/settings" },
-        { icon: GraduationCap, titleKey: "dashboard.admin.tutors", descKey: "dashboard.admin.tutors_desc" },
       ];
   }
 }
 
-function primaryRole(roles: AppRole[]): AppRole {
-  const order: AppRole[] = ["super_admin", "admin", "staff", "tutor", "parent"];
-  return order.find((r) => roles.includes(r)) ?? "parent";
-}
 
 function titleKeyFor(role: AppRole): string {
   if (role === "super_admin" || role === "admin") return "dashboard.admin.title";
@@ -80,7 +77,7 @@ function Dashboard() {
             </div>
             <div className="rounded-full border border-border bg-card px-4 py-2 text-xs">
               <span className="mr-2 text-muted-foreground">{t("dashboard.your_role")}:</span>
-              <span className="font-bold text-[color:var(--brand-navy)] capitalize">{role.replace("_", " ")}</span>
+              <span className="font-bold text-[color:var(--brand-navy)]">{t(ROLE_LABEL_KEY[role])}</span>
             </div>
           </div>
 

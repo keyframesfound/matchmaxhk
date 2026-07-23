@@ -20,10 +20,10 @@ export function SiteFooter() {
               {t("footer.quick_links")}
             </h4>
             <ul className="space-y-3 text-sm font-semibold">
-              <li><a href="#" className="hover:text-[color:var(--brand-teal)]">{t("footer.about")}</a></li>
               <li><a href="/#how" className="hover:text-[color:var(--brand-teal)]">{t("footer.how")}</a></li>
-              <li><a href="#" className="hover:text-[color:var(--brand-teal)]">{t("footer.verification")}</a></li>
-              <li><a href="#" className="hover:text-[color:var(--brand-teal)]">{t("footer.districts")}</a></li>
+              <li><a href="/tutors" className="hover:text-[color:var(--brand-teal)]">{t("nav.find_tutor")}</a></li>
+              <li><a href="/become-a-tutor" className="hover:text-[color:var(--brand-teal)]">{t("tutors_cta.cta")}</a></li>
+              <li><a href="/auth" className="hover:text-[color:var(--brand-teal)]">{t("nav.sign_in")}</a></li>
             </ul>
           </div>
           <div>
@@ -31,10 +31,10 @@ export function SiteFooter() {
               {t("footer.support")}
             </h4>
             <ul className="space-y-3 text-sm font-semibold">
-              <li><a href="#" className="hover:text-[color:var(--brand-teal)]">{t("footer.help")}</a></li>
-              <li><a href="#" className="hover:text-[color:var(--brand-teal)]">{t("footer.contact")}</a></li>
-              <li><a href="#" className="hover:text-[color:var(--brand-teal)]">{t("footer.privacy")}</a></li>
-              <li><a href="#" className="hover:text-[color:var(--brand-teal)]">{t("footer.terms")}</a></li>
+              <li><a href="/become-a-tutor" className="hover:text-[color:var(--brand-teal)]">{t("footer.contact")}</a></li>
+              <li><a href="/#how" className="hover:text-[color:var(--brand-teal)]">{t("footer.help")}</a></li>
+              <li><a href="/#" className="hover:text-[color:var(--brand-teal)]">{t("footer.privacy")}</a></li>
+              <li><a href="/#" className="hover:text-[color:var(--brand-teal)]">{t("footer.terms")}</a></li>
             </ul>
           </div>
         </div>
