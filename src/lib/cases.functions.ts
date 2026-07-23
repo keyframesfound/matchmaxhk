@@ -221,10 +221,9 @@ export const updateCaseStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const patch: Record<string, unknown> = { status: data.status };
+    const patch: { status: "pending" | "approved" | "matched" | "closed" | "rejected"; is_public?: boolean; admin_notes?: string | null } = { status: data.status };
     if (typeof data.is_public === "boolean") patch.is_public = data.is_public;
     if (data.admin_notes !== undefined) patch.admin_notes = data.admin_notes;
-    // Auto-publish on approval unless explicitly overridden
     if (data.status === "approved" && data.is_public === undefined) patch.is_public = true;
     if (data.status === "rejected" || data.status === "closed") patch.is_public = false;
     const { error } = await context.supabase
