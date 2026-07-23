@@ -105,9 +105,9 @@ function TutorsDirectory() {
                 onValueChange={(v) => navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, subject: v === "__all" ? undefined : v }) })}
               >
                 <SelectTrigger><SelectValue placeholder="Any subject" /></SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-72">
                   <SelectItem value="__all">Any subject</SelectItem>
-                  {["Mathematics", "English", "Chinese", "Physics", "Chemistry", "Biology", "Economics", "DSE", "IB"].map((s) => (
+                  {subjectOptions.map((s) => (
                     <SelectItem key={s} value={s}>{s}</SelectItem>
                   ))}
                 </SelectContent>
