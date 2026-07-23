@@ -1,0 +1,162 @@
+{
+  "brand": "MatchMax",
+  "nav": {
+    "how_it_works": "How it works",
+    "find_tutor": "Find a Tutor",
+    "post_case": "Post a Case",
+    "sign_in": "Sign in",
+    "sign_out": "Sign out",
+    "dashboard": "Dashboard",
+    "admin": "Admin"
+  },
+  "hero": {
+    "eyebrow": "Hong Kong's smart tutoring marketplace",
+    "title_a": "Find the right tutor,",
+    "title_b": "matched for you.",
+    "subtitle": "Smart matching for Hong Kong families. Connect with qualified tutors based on subject, level, district, and budget — in minutes.",
+    "cta_primary": "Post a case for free",
+    "cta_secondary": "Browse tutors"
+  },
+  "trust": {
+    "students": "Students matched",
+    "tutors": "Active tutors",
+    "subjects": "Subjects covered",
+    "districts": "Districts served"
+  },
+  "how": {
+    "title": "How MatchMax works",
+    "subtitle": "Three simple steps to finding the right tutor",
+    "step1_title": "Post your case",
+    "step1_desc": "Share subject, level, district, and budget in under 2 minutes.",
+    "step2_title": "Get matched",
+    "step2_desc": "Our engine ranks the best-fit tutors and sends you a shortlist.",
+    "step3_title": "Connect via tutor code",
+    "step3_desc": "Get a unique tutor code and start your first lesson on WhatsApp."
+  },
+  "featured": {
+    "title": "Featured tutors",
+    "subtitle": "Highly rated professionals across Hong Kong",
+    "view_all": "View all tutors",
+    "per_hour": "/hr"
+  },
+  "subjects": {
+    "title": "Popular subjects",
+    "math": "Mathematics",
+    "english": "English",
+    "chinese": "Chinese",
+    "physics": "Physics",
+    "chemistry": "Chemistry",
+    "biology": "Biology",
+    "economics": "Economics",
+    "dse": "DSE Prep",
+    "ib": "IB Diploma",
+    "view_all": "View all subjects"
+  },
+  "tutors_cta": {
+    "title": "Are you a passionate tutor?",
+    "subtitle": "Join Hong Kong's most transparent tutoring marketplace. Set your own rates and receive vetted case leads.",
+    "cta": "Join as a tutor"
+  },
+  "testimonials": {
+    "title": "Trusted by Hong Kong parents",
+    "t1": "Found a top DSE Math tutor within a day. My daughter jumped two grades.",
+    "t1_by": "Mrs. Chan — Kowloon Tong",
+    "t2": "Clear communication, verified tutors, and no pushy sales calls. Refreshing.",
+    "t2_by": "Mr. Lam — Sha Tin",
+    "t3": "The matching was spot on. Booked the first tutor we contacted.",
+    "t3_by": "Mrs. Wong — Central"
+  },
+  "footer": {
+    "tagline": "Elevating the standard of tutoring in Hong Kong through smart matching and transparent connections.",
+    "quick_links": "Quick links",
+    "support": "Support",
+    "about": "About us",
+    "how": "How it works",
+    "verification": "Tutor verification",
+    "districts": "District guides",
+    "help": "Help center",
+    "contact": "Contact us",
+    "privacy": "Privacy policy",
+    "terms": "Terms of use",
+    "rights": "All rights reserved."
+  },
+  "auth": {
+    "sign_in_title": "Welcome back",
+    "sign_in_subtitle": "Sign in to your MatchMax account",
+    "sign_up_title": "Create your account",
+    "sign_up_subtitle": "Join MatchMax as a parent or tutor",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full name",
+    "continue": "Continue",
+    "continue_google": "Continue with Google",
+    "or": "or",
+    "no_account": "No account?",
+    "have_account": "Already have an account?",
+    "sign_up": "Sign up",
+    "sign_in": "Sign in",
+    "check_email": "Check your email to confirm your account.",
+    "signing_in": "Signing in…"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "your_role": "Your role",
+    "parent": {
+      "title": "Parent dashboard",
+      "post_case": "Post a new case",
+      "post_case_desc": "Tell us what you need — we'll find matching tutors.",
+      "my_cases": "My cases",
+      "my_cases_desc": "Track your open and matched cases."
+    },
+    "tutor": {
+      "title": "Tutor dashboard",
+      "leads": "Incoming leads",
+      "leads_desc": "Parents who received your tutor code.",
+      "profile": "My profile",
+      "profile_desc": "Keep your subjects, rate, and availability current."
+    },
+    "staff": {
+      "title": "Staff dashboard",
+      "review": "Cases to review",
+      "review_desc": "Cases flagged for staff-assisted matching.",
+      "tutors": "Tutor directory",
+      "tutors_desc": "Manage tutor profiles."
+    },
+    "admin": {
+      "title": "Admin dashboard",
+      "users": "Users & roles",
+      "users_desc": "Grant or revoke roles.",
+      "settings": "App settings",
+      "settings_desc": "WhatsApp number, message template, brand info.",
+      "tutors": "Create tutor",
+      "tutors_desc": "Add a new tutor profile."
+    },
+    "coming_soon": "Coming in the next release"
+  },
+  "admin": {
+    "users_title": "Users & roles",
+    "users_subtitle": "Grant or revoke roles for MatchMax users",
+    "search_placeholder": "Search by email or name…",
+    "name": "Name",
+    "email": "Email",
+    "roles": "Roles",
+    "actions": "Actions",
+    "grant": "Grant",
+    "revoke": "Revoke",
+    "select_role": "Select role",
+    "no_users": "No users yet.",
+    "settings_title": "App settings",
+    "settings_subtitle": "Site-wide configuration",
+    "save": "Save",
+    "saved": "Saved.",
+    "whatsapp_number": "WhatsApp contact number",
+    "whatsapp_template": "WhatsApp message template",
+    "contact_email": "Contact email",
+    "brand_name": "Brand name"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong.",
+    "back_home": "Back home"
+  }
+}
