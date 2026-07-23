@@ -1,36 +1,27 @@
-## Changes
+## 1. Admin-controlled landing hero tutor
 
-### 1. Photo URL optional (admin tutor form)
-`src/routes/_authenticated.admin.tutors.tsx`: relabel to "Photo URL (optional)". Zod already allows empty.
+**Data**
+- Add a new `app_settings` row: `hero_tutor_code` (string, the tutor's code to feature). Extend the public whitelist policy to expose this key.
 
-### 2. Add "Spanish ab initio" (IB)
-`src/features/tutors/examSystems.ts`: append `"Spanish ab initio"` to the IB subject list.
+**Admin UI** — `src/routes/_authenticated.admin.settings.tsx`
+- Add a "Landing hero tutor" searchable dropdown (using existing `SearchableSelect`) populated from all published tutors (`display_name — tutor_code`). Saves the selected `tutor_code` into `hero_tutor_code`.
 
-### 3. Dynamic landing-page stats
-`src/routes/index.tsx`: replace hardcoded `trustStats`.
-- **Students matched** — admin-editable via `app_settings.students_matched` (numeric). Added to `src/routes/_authenticated.admin.settings.tsx`. Migration extends the public-read whitelist policy on `app_settings` to include `students_matched`.
-- **Active tutors** — `count` of `tutors` where `is_published = true`.
-- **Subjects covered** — distinct subject count aggregated from published tutors.
-- **Districts** — keep at 18.
+**Landing hero** — `src/routes/index.tsx`
+- Fetch `hero_tutor_code` from `app_settings` and load that tutor via `fetchTutorByCode`. Fallback to the top weekly tutor when unset or not found.
+- Replace the hardcoded "Dr. Michelle Ho / DSE Mathematics · M2 / 98% / $650 / 4.9★" card with real fields: photo (or brand gradient placeholder), `display_name`, `headline` or top subjects, hourly rate, and rating. The card links to `/tutors/{tutor_code}`.
 
-New `fetchLandingStats()` in `src/features/tutors/queries.ts`; landing uses `useQuery` for stats and reads `students_matched` from `app_settings`.
+## 2. Admin-controlled subject list (Browse Tutors filter)
 
-### 4. Landing-page reviews section
-Add "What parents say" section at bottom of `src/routes/index.tsx`, fed by a new `fetchFeaturedReviews()` in `src/features/tutors/reviews.ts` (latest published reviews with tutor name). Admins add/edit reviews on each tutor's profile page (existing dialog). Per-tutor review sections stay as-is.
+**Data**
+- Add `app_settings` row `subject_options` (JSON array of strings, e.g. `["Mathematics","English",...]`). Add to the public whitelist policy so anonymous visitors can read it.
+- Seed with the full canonical subject list already used inside the admin tutor form (`ALL_SUBJECTS`).
 
-### 5. "Request this tutor" → WhatsApp
-`src/routes/tutors.$tutorCode.tsx`: change the button from `Link to="/auth"` to an `<a href={waUrl}>` that opens WhatsApp in a new tab.
-- Fetch `whatsapp_number` from `app_settings` (same pattern as `become-a-tutor.tsx`).
-- Message: `"I would like to request tutor {tutor_code}"` (URL-encoded).
-- URL: `https://wa.me/{digits}?text=...`.
-- If `whatsapp_number` isn't set yet, disable the button with a "Contact coming soon" tooltip/label so it doesn't 404.
+**Admin UI** — `src/routes/_authenticated.admin.settings.tsx`
+- New "Browse-page subjects" section: multi-select chips + free-text add, seeded with the current default list, saved back to `subject_options`.
 
-### Files touched
-- `src/features/tutors/examSystems.ts`
-- `src/routes/_authenticated.admin.tutors.tsx`
-- `src/routes/_authenticated.admin.settings.tsx`
-- `src/features/tutors/queries.ts`
-- `src/features/tutors/reviews.ts`
-- `src/routes/index.tsx`
-- `src/routes/tutors.$tutorCode.tsx`
-- Migration — whitelist `students_matched` in public `app_settings` read policy.
+**Browse page** — `src/routes/tutors.index.tsx`
+- Replace the hardcoded 9-item list in the "Any subject" dropdown with a `useQuery` on `subject_options`. If the setting is empty, fall back to the canonical `ALL_SUBJECTS` list from the tutor form so the dropdown always matches what admins can actually assign to tutors (no more mismatch between browse filter and tutor profile).
+
+## Scope guardrails
+- No changes to tutor schema, review flow, or WhatsApp behavior.
+- Existing tutor cards on the landing page (Featured Tutors section) remain unchanged; only the top hero-visual card and the browse-page subject filter are affected.
