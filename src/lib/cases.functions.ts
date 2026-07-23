@@ -203,7 +203,7 @@ export const listCasesForAdmin = createServerFn({ method: "POST" })
       .select("id, title, subject, student_level, district, status, is_public, created_at, contact_name, contact_phone, budget_min, budget_max")
       .order("created_at", { ascending: false })
       .limit(500);
-    if (data.status) q = q.eq("status", data.status);
+    if (data.status) q = q.eq("status", data.status as "pending" | "approved" | "matched" | "closed" | "rejected");
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return rows ?? [];
