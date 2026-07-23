@@ -461,9 +461,19 @@ function AdminTutors() {
                         <p className="text-sm text-muted-foreground">No qualifications yet. Add one below.</p>
                       )}
                       {form.education.map((row, i) => (
-                        <div key={i} className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[1fr_1fr_100px_auto]">
-                          <Input placeholder="Institution (e.g. HKU)" value={row.institution} onChange={(e) => updateEdu(i, { institution: e.target.value })} />
-                          <Input placeholder="Qualification (e.g. BSc Maths)" value={row.qualification} onChange={(e) => updateEdu(i, { qualification: e.target.value })} />
+                        <div key={i} className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[160px_1fr_1fr_100px_auto]">
+                          <Select
+                            value={row.level || "__none"}
+                            onValueChange={(v) => updateEdu(i, { level: v === "__none" ? "" : v })}
+                          >
+                            <SelectTrigger><SelectValue placeholder="Level" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__none">Level…</SelectItem>
+                              {EDUCATION_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <Input placeholder="Institution (e.g. DBS, HKU)" value={row.institution} onChange={(e) => updateEdu(i, { institution: e.target.value })} />
+                          <Input placeholder="Qualification (e.g. HKDSE, BSc Maths)" value={row.qualification} onChange={(e) => updateEdu(i, { qualification: e.target.value })} />
                           <Input
                             type="number"
                             placeholder="Year"
