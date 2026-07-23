@@ -72,13 +72,14 @@ function AdminSettings() {
         students_matched: "0",
         hero_tutor_code: "",
         subject_options: DEFAULT_SUBJECT_OPTIONS,
+        popular_subjects: DEFAULT_POPULAR_SUBJECTS,
       };
       (data ?? []).forEach((row) => {
         const v = row.value as unknown;
-        if (row.key === "subject_options") {
+        if ((ARRAY_KEYS as readonly string[]).includes(row.key)) {
           if (Array.isArray(v)) {
             const arr = (v as unknown[]).filter((x): x is string => typeof x === "string" && x.trim().length > 0);
-            if (arr.length > 0) map.subject_options = arr;
+            if (arr.length > 0) (map as unknown as Record<string, string[]>)[row.key] = arr;
           }
         } else if ((STRING_KEYS as readonly string[]).includes(row.key)) {
           (map as unknown as Record<string, string>)[row.key] = typeof v === "string" ? v : "";
