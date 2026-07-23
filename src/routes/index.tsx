@@ -72,7 +72,7 @@ function Landing() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-14 border-2 px-8 text-base font-bold">
-                <a href="#tutors">{t("hero.cta_secondary")}</a>
+                <Link to="/tutors">{t("hero.cta_secondary")}</Link>
               </Button>
             </div>
 
