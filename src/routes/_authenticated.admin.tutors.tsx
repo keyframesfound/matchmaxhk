@@ -42,6 +42,13 @@ const eduSchema = z.object({
   year: z.union([z.coerce.number().int().min(1900).max(2100), z.literal(""), z.null()]).optional(),
 });
 
+const examSchema = z.object({
+  system: z.string().trim().min(1),
+  subject: z.string().trim().min(1).max(120),
+  grade: z.string().trim().min(1).max(40),
+  year: z.union([z.coerce.number().int().min(1950).max(2100), z.literal(""), z.null()]).optional(),
+});
+
 const formSchema = z.object({
   display_name: z.string().trim().min(1).max(120),
   headline: z.string().trim().max(200).optional().or(z.literal("")),
@@ -59,6 +66,7 @@ const formSchema = z.object({
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
   teaching_since: z.union([z.coerce.number().int().min(1950).max(2100), z.literal("")]).optional(),
   education: z.array(eduSchema),
+  exam_results: z.array(examSchema),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -80,6 +88,7 @@ const empty: FormValues = {
   experience_years: "",
   teaching_since: "",
   education: [],
+  exam_results: [],
 };
 
 function tutorToForm(t: Tutor): FormValues {
@@ -104,6 +113,12 @@ function tutorToForm(t: Tutor): FormValues {
       qualification: e.qualification ?? "",
       year: e.year ?? "",
     })),
+    exam_results: (t.exam_results ?? []).map((r) => ({
+      system: r.system ?? "",
+      subject: r.subject ?? "",
+      grade: r.grade ?? "",
+      year: r.year ?? "",
+    })),
   };
 }
 
@@ -115,6 +130,14 @@ function formToPayload(v: FormValues, isNew: boolean) {
       year: e.year === "" || e.year == null ? null : Number(e.year),
     }))
     .filter((e) => e.institution && e.qualification);
+  const cleanExams: ExamResult[] = v.exam_results
+    .map((r) => ({
+      system: r.system,
+      subject: r.subject.trim(),
+      grade: r.grade.trim(),
+      year: r.year === "" || r.year == null ? null : Number(r.year),
+    }))
+    .filter((r) => r.system && r.subject && r.grade);
   const langs = (v.languages_csv || "").split(",").map((s) => s.trim()).filter(Boolean);
   const base: Record<string, unknown> = {
     display_name: v.display_name,
@@ -133,6 +156,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
     experience_years: v.experience_years === "" ? null : Number(v.experience_years),
     teaching_since: v.teaching_since === "" ? null : Number(v.teaching_since),
     education: cleanEdu,
+    exam_results: cleanExams,
   };
   if (isNew) {
     // New tutors start at 5★; rating auto-updates once reviews exist.
