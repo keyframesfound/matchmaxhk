@@ -8,9 +8,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { fetchPublishedTutors, HK_DISTRICTS } from "@/features/tutors/queries";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,28 +98,20 @@ function TutorsDirectory() {
                   onChange={(e) => setQ(e.target.value)}
                 />
               </div>
-              <Select
-                value={search.subject ?? "__all"}
-                onValueChange={(v) => navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, subject: v === "__all" ? undefined : v }) })}
-              >
-                <SelectTrigger><SelectValue placeholder="Any subject" /></SelectTrigger>
-                <SelectContent className="max-h-72">
-                  <SelectItem value="__all">Any subject</SelectItem>
-                  {subjectOptions.map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={search.district ?? "__all"}
-                onValueChange={(v) => navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, district: v === "__all" ? undefined : v }) })}
-              >
-                <SelectTrigger><SelectValue placeholder="Any district" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all">Any district</SelectItem>
-                  {HK_DISTRICTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={search.subject ?? ""}
+                onChange={(v) => navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, subject: v || undefined }) })}
+                options={[{ value: "", label: "Any subject" }, ...subjectOptions.map((s) => ({ value: s, label: s }))]}
+                placeholder="Any subject"
+                searchPlaceholder="Search subject…"
+              />
+              <SearchableSelect
+                value={search.district ?? ""}
+                onChange={(v) => navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, district: v || undefined }) })}
+                options={[{ value: "", label: "Any district" }, ...HK_DISTRICTS.map((d) => ({ value: d, label: d }))]}
+                placeholder="Any district"
+                searchPlaceholder="Search district…"
+              />
             </div>
           </div>
         </section>
