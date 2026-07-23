@@ -35,10 +35,17 @@ type Settings = {
   students_matched: string;
   hero_tutor_code: string;
   subject_options: string[];
+  popular_subjects: string[];
 };
 
 const STRING_KEYS = ["brand_name", "contact_email", "whatsapp_number", "whatsapp_template", "students_matched", "hero_tutor_code"] as const;
-const ALL_KEYS = [...STRING_KEYS, "subject_options"] as const;
+const ARRAY_KEYS = ["subject_options", "popular_subjects"] as const;
+const ALL_KEYS = [...STRING_KEYS, ...ARRAY_KEYS] as const;
+
+const DEFAULT_POPULAR_SUBJECTS = [
+  "Mathematics", "English", "Chinese", "Physics", "Chemistry",
+  "Biology", "Economics", "DSE", "IB",
+];
 
 function AdminSettings() {
   const { t } = useTranslation();
@@ -65,13 +72,14 @@ function AdminSettings() {
         students_matched: "0",
         hero_tutor_code: "",
         subject_options: DEFAULT_SUBJECT_OPTIONS,
+        popular_subjects: DEFAULT_POPULAR_SUBJECTS,
       };
       (data ?? []).forEach((row) => {
         const v = row.value as unknown;
-        if (row.key === "subject_options") {
+        if ((ARRAY_KEYS as readonly string[]).includes(row.key)) {
           if (Array.isArray(v)) {
             const arr = (v as unknown[]).filter((x): x is string => typeof x === "string" && x.trim().length > 0);
-            if (arr.length > 0) map.subject_options = arr;
+            if (arr.length > 0) (map as unknown as Record<string, string[]>)[row.key] = arr;
           }
         } else if ((STRING_KEYS as readonly string[]).includes(row.key)) {
           (map as unknown as Record<string, string>)[row.key] = typeof v === "string" ? v : "";
@@ -100,6 +108,7 @@ function AdminSettings() {
       const rows = [
         ...STRING_KEYS.map((k) => ({ key: k, value: (payload[k] ?? "") as unknown as string })),
         { key: "subject_options", value: payload.subject_options as unknown as string },
+        { key: "popular_subjects", value: payload.popular_subjects as unknown as string },
       ];
       const { error } = await supabase.from("app_settings").upsert(rows, { onConflict: "key" });
       if (error) throw error;
@@ -259,6 +268,65 @@ function AdminSettings() {
                     type="button"
                     className="text-xs font-semibold text-muted-foreground hover:underline"
                     onClick={() => setForm({ ...form, subject_options: [] })}
+                  >
+                    Clear all
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Landing page "Popular subjects"</Label>
+                <p className="text-xs text-muted-foreground">
+                  Quick-link chips shown in the Popular subjects section of the homepage. Each links to /tutors filtered by that subject.
+                </p>
+                {form.popular_subjects.length > 0 && (
+                  <div className="flex flex-wrap gap-2 rounded-md border border-border bg-background p-2">
+                    {form.popular_subjects.map((s) => (
+                      <span
+                        key={s}
+                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
+                      >
+                        {s}
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, popular_subjects: form.popular_subjects.filter((x) => x !== s) })}
+                          className="rounded-full p-0.5 hover:bg-black/10"
+                          aria-label={`Remove ${s}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <SearchableSelect
+                    value=""
+                    onChange={(v) => {
+                      const val = v.trim();
+                      if (!val) return;
+                      if (form.popular_subjects.some((x) => x.toLowerCase() === val.toLowerCase())) return;
+                      setForm({ ...form, popular_subjects: [...form.popular_subjects, val] });
+                    }}
+                    options={form.subject_options
+                      .filter((s) => !form.popular_subjects.some((x) => x.toLowerCase() === s.toLowerCase()))
+                      .map((s) => ({ value: s, label: s }))}
+                    placeholder="Add a popular subject…"
+                    searchPlaceholder="Search subjects…"
+                  />
+                </div>
+                <div className="flex gap-3 pt-1">
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-[color:var(--brand-teal)] hover:underline"
+                    onClick={() => setForm({ ...form, popular_subjects: DEFAULT_POPULAR_SUBJECTS })}
+                  >
+                    Reset to defaults
+                  </button>
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-muted-foreground hover:underline"
+                    onClick={() => setForm({ ...form, popular_subjects: [] })}
                   >
                     Clear all
                   </button>

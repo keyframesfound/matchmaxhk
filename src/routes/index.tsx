@@ -23,6 +23,11 @@ export const Route = createFileRoute("/")({
 
 const STAT_ICONS = { students: Users, tutors: GraduationCap, subjects: BookOpen, districts: MapPin } as const;
 
+const DEFAULT_POPULAR_SUBJECTS = [
+  "Mathematics", "English", "Chinese", "Physics", "Chemistry",
+  "Biology", "Economics", "DSE", "IB",
+];
+
 function formatCount(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k+`;
   return `${n}`;
@@ -68,6 +73,24 @@ function Landing() {
       if (error) throw error;
       const v = data?.value;
       return typeof v === "string" ? v.trim() : "";
+    },
+  });
+
+  const { data: popularSubjects = DEFAULT_POPULAR_SUBJECTS } = useQuery({
+    queryKey: ["settings", "popular_subjects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "popular_subjects")
+        .maybeSingle();
+      if (error) throw error;
+      const v = data?.value;
+      if (Array.isArray(v)) {
+        const arr = (v as unknown[]).filter((x): x is string => typeof x === "string" && x.trim().length > 0);
+        if (arr.length > 0) return arr;
+      }
+      return DEFAULT_POPULAR_SUBJECTS;
     },
   });
 
@@ -317,24 +340,14 @@ function Landing() {
             <h2 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">{t("subjects.title")}</h2>
           </div>
           <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {[
-              { key: "math", subject: "Mathematics" },
-              { key: "english", subject: "English" },
-              { key: "chinese", subject: "Chinese" },
-              { key: "physics", subject: "Physics" },
-              { key: "chemistry", subject: "Chemistry" },
-              { key: "biology", subject: "Biology" },
-              { key: "economics", subject: "Economics" },
-              { key: "dse", subject: "DSE" },
-              { key: "ib", subject: "IB" },
-            ].map(({ key, subject }) => (
+            {popularSubjects.map((subject) => (
               <Link
-                key={key}
+                key={subject}
                 to="/tutors"
                 search={{ subject }}
                 className="rounded-2xl border border-border bg-card px-5 py-4 text-center text-sm font-bold text-foreground transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)] hover:shadow-teal"
               >
-                {t(`subjects.${key}`)}
+                {subject}
               </Link>
             ))}
           </div>
