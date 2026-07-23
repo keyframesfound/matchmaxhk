@@ -5,7 +5,7 @@ import { ArrowRight, BadgeCheck, Sparkles, MessageCircle, Star, Users, Graduatio
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { fetchTopWeeklyTutors, fetchLandingStats } from "@/features/tutors/queries";
+import { fetchTopWeeklyTutors, fetchLandingStats, fetchTutorByCode, type Tutor } from "@/features/tutors/queries";
 import { fetchFeaturedReviews } from "@/features/tutors/reviews";
 import { supabase } from "@/integrations/supabase/client";
 
