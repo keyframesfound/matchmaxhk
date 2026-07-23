@@ -32,7 +32,7 @@ const ROLES: AppRole[] = ["super_admin", "admin", "staff", "tutor", "parent"];
 
 type Row = {
   user_id: string;
-  full_name: string | null;
+  display_name: string | null;
   email: string | null;
   roles: AppRole[];
 };
@@ -55,7 +55,7 @@ function AdminUsers() {
     queryKey: ["admin", "users"],
     queryFn: async (): Promise<Row[]> => {
       const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, email").order("created_at", { ascending: false }),
+        supabase.from("profiles").select("id, display_name, email").order("created_at", { ascending: false }),
         supabase.from("user_roles").select("user_id, role"),
       ]);
       if (pErr) throw pErr;
@@ -68,7 +68,7 @@ function AdminUsers() {
       });
       return (profiles ?? []).map((p) => ({
         user_id: p.id,
-        full_name: p.full_name,
+        display_name: p.display_name,
         email: p.email,
         roles: byUser.get(p.id) ?? [],
       }));
@@ -79,7 +79,7 @@ function AdminUsers() {
     const q = search.trim().toLowerCase();
     if (!q) return rows;
     return rows.filter(
-      (r) => r.email?.toLowerCase().includes(q) || r.full_name?.toLowerCase().includes(q),
+      (r) => r.email?.toLowerCase().includes(q) || r.display_name?.toLowerCase().includes(q),
     );
   }, [rows, search]);
 
@@ -145,7 +145,7 @@ function AdminUsers() {
                 )}
                 {filtered.map((row) => (
                   <tr key={row.user_id} className="border-t border-border align-top">
-                    <td className="px-4 py-4 font-semibold">{row.full_name ?? "—"}</td>
+                    <td className="px-4 py-4 font-semibold">{row.display_name ?? "—"}</td>
                     <td className="px-4 py-4 text-muted-foreground">{row.email ?? "—"}</td>
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-1.5">
