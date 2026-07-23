@@ -155,9 +155,17 @@
     "contact_email": "Contact email",
     "brand_name": "Brand name"
   },
+  "roles": {
+    "administrator": "Team member",
+    "team": "Support team",
+    "tutor": "Tutor",
+    "parent": "Parent / Student"
+  },
   "common": {
     "loading": "Loading…",
     "error": "Something went wrong.",
-    "back_home": "Back home"
+    "back_home": "Back home",
+    "no_tutors_yet": "New tutors are being added — check back soon."
   }
 }
+

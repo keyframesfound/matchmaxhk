@@ -68,6 +68,69 @@ export type Database = {
         }
         Relationships: []
       }
+      tutors: {
+        Row: {
+          badge: string | null
+          bio: string | null
+          created_at: string
+          created_by: string | null
+          display_name: string
+          district: string | null
+          headline: string | null
+          hourly_rate: number
+          id: string
+          is_published: boolean
+          photo_url: string | null
+          rating: number
+          review_count: number
+          subjects: string[]
+          tutor_code: string
+          updated_at: string
+          weekly_rating: number
+          weekly_score: number
+        }
+        Insert: {
+          badge?: string | null
+          bio?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_name: string
+          district?: string | null
+          headline?: string | null
+          hourly_rate?: number
+          id?: string
+          is_published?: boolean
+          photo_url?: string | null
+          rating?: number
+          review_count?: number
+          subjects?: string[]
+          tutor_code: string
+          updated_at?: string
+          weekly_rating?: number
+          weekly_score?: number
+        }
+        Update: {
+          badge?: string | null
+          bio?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_name?: string
+          district?: string | null
+          headline?: string | null
+          hourly_rate?: number
+          id?: string
+          is_published?: boolean
+          photo_url?: string | null
+          rating?: number
+          review_count?: number
+          subjects?: string[]
+          tutor_code?: string
+          updated_at?: string
+          weekly_rating?: number
+          weekly_score?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

@@ -155,9 +155,17 @@
     "contact_email": "聯絡電郵",
     "brand_name": "品牌名稱"
   },
+  "roles": {
+    "administrator": "團隊成員",
+    "team": "支援團隊",
+    "tutor": "導師",
+    "parent": "家長 / 學生"
+  },
   "common": {
     "loading": "載入中…",
     "error": "發生錯誤。",
-    "back_home": "返回首頁"
+    "back_home": "返回首頁",
+    "no_tutors_yet": "新導師陸續加入,稍後回來查看。"
   }
 }
+
