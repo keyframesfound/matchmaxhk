@@ -10,16 +10,23 @@ export const Route = createFileRoute("/become-a-tutor")({
   head: () => ({
     meta: [
       { title: "Become a tutor — MatchMax" },
-      { name: "description", content: "Join MatchMax as a tutor. Contact our team on WhatsApp to get verified and start receiving case leads." },
+      {
+        name: "description",
+        content:
+          "Join MatchMax as a tutor. Contact our team on WhatsApp to get verified and start receiving case leads.",
+      },
       { property: "og:title", content: "Become a tutor — MatchMax" },
-      { property: "og:description", content: "Join Hong Kong's smart tutoring marketplace and receive matched case leads from parents." },
+      {
+        property: "og:description",
+        content:
+          "Join Hong Kong's smart tutoring marketplace and receive matched case leads from parents.",
+      },
       { property: "og:url", content: "https://maxmatch.app/become-a-tutor" },
     ],
     links: [{ rel: "canonical", href: "https://maxmatch.app/become-a-tutor" }],
   }),
   component: BecomeATutor,
 });
-
 
 function BecomeATutor() {
   const { data: whatsapp } = useQuery({
@@ -68,8 +75,12 @@ function BecomeATutor() {
             </p>
 
             <div className="mt-10 rounded-3xl border border-border bg-card p-8 shadow-brand">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Step 1</p>
-              <h2 className="mt-2 text-2xl font-black text-[color:var(--brand-navy)]">Contact us on WhatsApp</h2>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Step 1
+              </p>
+              <h2 className="mt-2 text-2xl font-black text-[color:var(--brand-navy)]">
+                Contact us on WhatsApp
+              </h2>
               <p className="mt-3 text-sm text-muted-foreground">
                 {whatsapp
                   ? `Send a short intro (subjects, levels, districts, availability) to ${whatsapp}. We reply within one working day.`
@@ -77,7 +88,11 @@ function BecomeATutor() {
               </p>
 
               {waLink ? (
-                <Button asChild size="lg" className="mt-6 h-14 bg-[#25D366] px-8 text-base font-bold text-white hover:bg-[#1ebe57]">
+                <Button
+                  asChild
+                  size="lg"
+                  className="mt-6 h-14 bg-[#25D366] px-8 text-base font-bold text-white hover:bg-[#1ebe57]"
+                >
                   <a href={waLink} target="_blank" rel="noreferrer">
                     <MessageCircle className="mr-2 h-5 w-5" /> Message us on WhatsApp
                   </a>
@@ -107,7 +122,9 @@ function BecomeATutor() {
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <Button asChild variant="outline" className="font-bold">
-                <Link to="/">Back to home <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link to="/">
+                  Back to home <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
               <Button asChild variant="ghost" className="font-bold">
                 <Link to="/tutors">Browse existing tutors</Link>

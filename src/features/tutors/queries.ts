@@ -66,7 +66,10 @@ export async function fetchPublishedTutors(): Promise<Tutor[]> {
 }
 
 export async function fetchAllTutors(): Promise<Tutor[]> {
-  const { data, error } = await supabase.from("tutors").select(SELECT_COLS).order("created_at", { ascending: false });
+  const { data, error } = await supabase
+    .from("tutors")
+    .select(SELECT_COLS)
+    .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map(normalize);
 }
@@ -99,7 +102,10 @@ export function getTutorLocationLabel(tutor: Pick<Tutor, "district" | "lesson_mo
   return tutor.district ? `${tutor.district} · Online & in-person` : "Online & in-person";
 }
 
-export async function fetchLandingStats(): Promise<{ activeTutors: number; subjectsCovered: number }> {
+export async function fetchLandingStats(): Promise<{
+  activeTutors: number;
+  subjectsCovered: number;
+}> {
   const { data, error } = await supabase.from("tutors").select("subjects").eq("is_published", true);
   if (error) throw error;
   const rows = (data ?? []) as { subjects: string[] | null }[];

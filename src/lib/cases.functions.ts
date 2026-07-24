@@ -18,7 +18,11 @@ const CaseInput = z.object({
   mode: z.enum(["online", "in_person", "either"]),
   sessions_per_week: z.number().int().min(1).max(14),
   session_length_minutes: z.number().int().min(30).max(240),
-  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+  start_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .nullable(),
   schedule_note: z.string().trim().max(400).optional().nullable(),
   preferred_gender: z.enum(["any", "male", "female"]),
   language_of_instruction: z.enum(["en", "zh-HK", "either"]),
@@ -35,7 +39,9 @@ export type CaseFormInput = z.infer<typeof CaseInput>;
 
 async function assertAdmin(supabase: unknown, userId: string) {
   const roles: Array<"admin" | "super_admin" | "staff"> = ["admin", "super_admin", "staff"];
-  const client = supabase as { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }> };
+  const client = supabase as {
+    rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>;
+  };
   for (const r of roles) {
     const { data } = await client.rpc("has_role", { _user_id: userId, _role: r });
     if (data === true) return;
@@ -71,7 +77,9 @@ export const listMyCases = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("tutoring_cases")
-      .select("id, title, subject, student_level, district, status, is_public, created_at, budget_min, budget_max")
+      .select(
+        "id, title, subject, student_level, district, status, is_public, created_at, budget_min, budget_max",
+      )
       .eq("parent_id", context.userId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -115,7 +123,9 @@ export const listPublicCases = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     let q = context.supabase
       .from("tutoring_cases")
-      .select("id, title, subject, exam_system, student_level, student_grade_current, district, mode, sessions_per_week, budget_min, budget_max, urgency, language_of_instruction, description, created_at, status")
+      .select(
+        "id, title, subject, exam_system, student_level, student_grade_current, district, mode, sessions_per_week, budget_min, budget_max, urgency, language_of_instruction, description, created_at, status",
+      )
       .eq("is_public", true)
       .in("status", ["approved", "matched"])
       .order("created_at", { ascending: false })
@@ -134,7 +144,9 @@ export const getPublicCase = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("tutoring_cases")
-      .select("id, title, subject, exam_system, student_level, student_grade_current, district, mode, sessions_per_week, session_length_minutes, budget_min, budget_max, urgency, language_of_instruction, preferred_gender, preferred_tutor_type, schedule_note, description, created_at, status, is_public, parent_id")
+      .select(
+        "id, title, subject, exam_system, student_level, student_grade_current, district, mode, sessions_per_week, session_length_minutes, budget_min, budget_max, urgency, language_of_instruction, preferred_gender, preferred_tutor_type, schedule_note, description, created_at, status, is_public, parent_id",
+      )
       .eq("id", data.caseId)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -151,11 +163,13 @@ export const getPublicCase = createServerFn({ method: "POST" })
 export const expressInterest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
-    z.object({
-      caseId: z.string().uuid(),
-      tutorId: z.string().uuid(),
-      note: z.string().trim().max(1000).optional().nullable(),
-    }).parse(data),
+    z
+      .object({
+        caseId: z.string().uuid(),
+        tutorId: z.string().uuid(),
+        note: z.string().trim().max(1000).optional().nullable(),
+      })
+      .parse(data),
   )
   .handler(async ({ data, context }) => {
     // Verify caller owns the tutor row or is admin
@@ -169,18 +183,20 @@ export const expressInterest = createServerFn({ method: "POST" })
     const isOwner = tutor.created_by === context.userId;
     let isAdmin = false;
     if (!isOwner) {
-      const { data: adm } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+      const { data: adm } = await context.supabase.rpc("has_role", {
+        _user_id: context.userId,
+        _role: "admin",
+      });
       isAdmin = adm === true;
     }
-    if (!isOwner && !isAdmin) throw new Error("Only the tutor profile owner or an admin can express interest");
-    const { error } = await context.supabase
-      .from("case_interests")
-      .insert({
-        case_id: data.caseId,
-        tutor_id: data.tutorId,
-        submitted_by: context.userId,
-        note: data.note ?? null,
-      });
+    if (!isOwner && !isAdmin)
+      throw new Error("Only the tutor profile owner or an admin can express interest");
+    const { error } = await context.supabase.from("case_interests").insert({
+      case_id: data.caseId,
+      tutor_id: data.tutorId,
+      submitted_by: context.userId,
+      note: data.note ?? null,
+    });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -200,15 +216,20 @@ export const listMyInterests = createServerFn({ method: "GET" })
 // Admin
 export const listCasesForAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ status: z.string().optional().nullable() }).parse(data ?? {}))
+  .inputValidator((data: unknown) =>
+    z.object({ status: z.string().optional().nullable() }).parse(data ?? {}),
+  )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     let q = context.supabase
       .from("tutoring_cases")
-      .select("id, title, subject, student_level, district, status, is_public, created_at, contact_name, contact_phone, budget_min, budget_max")
+      .select(
+        "id, title, subject, student_level, district, status, is_public, created_at, contact_name, contact_phone, budget_min, budget_max",
+      )
       .order("created_at", { ascending: false })
       .limit(500);
-    if (data.status) q = q.eq("status", data.status as "pending" | "approved" | "matched" | "closed" | "rejected");
+    if (data.status)
+      q = q.eq("status", data.status as "pending" | "approved" | "matched" | "closed" | "rejected");
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return rows ?? [];
@@ -217,16 +238,22 @@ export const listCasesForAdmin = createServerFn({ method: "POST" })
 export const updateCaseStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
-    z.object({
-      caseId: z.string().uuid(),
-      status: z.enum(["pending", "approved", "matched", "closed", "rejected"]),
-      is_public: z.boolean().optional(),
-      admin_notes: z.string().trim().max(2000).optional().nullable(),
-    }).parse(data),
+    z
+      .object({
+        caseId: z.string().uuid(),
+        status: z.enum(["pending", "approved", "matched", "closed", "rejected"]),
+        is_public: z.boolean().optional(),
+        admin_notes: z.string().trim().max(2000).optional().nullable(),
+      })
+      .parse(data),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const patch: { status: "pending" | "approved" | "matched" | "closed" | "rejected"; is_public?: boolean; admin_notes?: string | null } = { status: data.status };
+    const patch: {
+      status: "pending" | "approved" | "matched" | "closed" | "rejected";
+      is_public?: boolean;
+      admin_notes?: string | null;
+    } = { status: data.status };
     if (typeof data.is_public === "boolean") patch.is_public = data.is_public;
     if (data.admin_notes !== undefined) patch.admin_notes = data.admin_notes;
     if (data.status === "approved" && data.is_public === undefined) patch.is_public = true;
@@ -245,7 +272,9 @@ export const listInterestsForCase = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
       .from("case_interests")
-      .select("id, tutor_id, note, status, created_at, tutors ( display_name, tutor_code, hourly_rate, rating, photo_url )")
+      .select(
+        "id, tutor_id, note, status, created_at, tutors ( display_name, tutor_code, hourly_rate, rating, photo_url )",
+      )
       .eq("case_id", data.caseId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -255,10 +284,12 @@ export const listInterestsForCase = createServerFn({ method: "POST" })
 export const setInterestStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
-    z.object({
-      interestId: z.string().uuid(),
-      status: z.enum(["pending", "contact_released", "declined"]),
-    }).parse(data),
+    z
+      .object({
+        interestId: z.string().uuid(),
+        status: z.enum(["pending", "contact_released", "declined"]),
+      })
+      .parse(data),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
