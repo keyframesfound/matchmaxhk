@@ -13,9 +13,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
-      { name: "description", content: "Find verified IB, HKDSE, IGCSE, A-Level and international school tutors in Hong Kong. Compare experienced tutors, request lessons and get matched quickly." },
+      { name: "description", content: "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong. Compare experienced tutors, request lessons and get matched quickly." },
       { property: "og:title", content: "IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
-      { property: "og:description", content: "Find verified IB, HKDSE, IGCSE, A-Level and international school tutors in Hong Kong. Compare experienced tutors, request lessons and get matched quickly." },
+      { property: "og:description", content: "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong. Compare experienced tutors, request lessons and get matched quickly." },
       { property: "og:url", content: "https://maxmatch.app/" },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp" },
@@ -31,7 +31,7 @@ const STAT_ICONS = { students: Users, tutors: GraduationCap, subjects: BookOpen,
 
 const DEFAULT_POPULAR_SUBJECTS = [
   "Mathematics", "English", "Chinese", "Physics", "Chemistry",
-  "Biology", "Economics", "DSE", "IB",
+  "Biology", "Economics", "DSE", "IB", "AP"
 ];
 
 function formatCount(n: number): string {
