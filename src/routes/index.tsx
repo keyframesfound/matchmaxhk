@@ -5,6 +5,7 @@ import { ArrowRight, BadgeCheck, Sparkles, MessageCircle, Star, Users, Graduatio
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { blurActive } from "@/lib/dom";
 import { fetchTopWeeklyTutors, fetchLandingStats, fetchTutorByCode, getTutorLessonModeLabel, getTutorLocationLabel, type Tutor } from "@/features/tutors/queries";
 import { fetchFeaturedReviews } from "@/features/tutors/reviews";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +54,7 @@ function formatCount(n: number): string {
 
 function Landing() {
   const { t } = useTranslation();
+  // Use shared blur helper
   const { data: featuredTutors = [], isLoading: featuredLoading } = useQuery({
     queryKey: ["landing", "featured_tutors"],
     queryFn: () => fetchTopWeeklyTutors(3),
@@ -216,7 +218,7 @@ function Landing() {
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
               <Button asChild size="lg" className="h-14 bg-[color:var(--brand-navy)] px-8 text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)]">
-                <Link to="/tutors">
+                <Link to="/tutors" onClick={() => blurActive()}>
                   {t("hero.cta_secondary")}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
@@ -252,8 +254,8 @@ function Landing() {
                         <div className="h-11 w-11 shrink-0 rounded-full bg-brand-gradient-soft" />
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="truncate text-sm font-bold text-foreground">{heroTutor.display_name}</p>
-                        <p className="truncate text-xs text-muted-foreground">
+                        <p className="text-sm font-bold text-foreground break-words md:truncate">{heroTutor.display_name}</p>
+                        <p className="text-xs text-muted-foreground break-words md:truncate">
                           {heroTutor.headline ?? heroTutor.subjects.slice(0, 3).join(" · ")}
                         </p>
                       </div>
@@ -354,7 +356,7 @@ function Landing() {
               <p className="mt-3 text-lg text-muted-foreground">{t("featured.subtitle")}</p>
             </div>
             <Button asChild variant="outline" className="font-bold">
-              <Link to="/tutors">{t("featured.view_all")} <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <Link to="/tutors" onClick={() => blurActive()}>{t("featured.view_all")} <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </div>
           {featuredLoading && (
@@ -370,6 +372,7 @@ function Landing() {
                 to="/tutors/$tutorCode"
                 params={{ tutorCode: tut.tutor_code }}
                 className="block rounded-3xl border border-border bg-card p-6 transition-all hover:shadow-brand"
+                onClick={() => blurActive()}
               >
                 <div className="flex items-center gap-4">
                   {tut.photo_url ? (
@@ -384,9 +387,9 @@ function Landing() {
                   ) : (
                     <div className="h-14 w-14 shrink-0 rounded-full bg-brand-gradient-soft" />
                   )}
-                  <div className="min-w-0">
-                    <p className="truncate text-base font-bold text-foreground">{tut.display_name}</p>
-                    <p className="truncate text-sm text-muted-foreground">{tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}</p>
+                    <div className="min-w-0">
+                    <p className="text-base font-bold text-foreground break-words md:truncate">{tut.display_name}</p>
+                    <p className="text-sm text-muted-foreground break-words md:truncate">{tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}</p>
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">

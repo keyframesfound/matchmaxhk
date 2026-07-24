@@ -25,18 +25,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6">
-        <Link
-          to="/"
-          className="shrink-0"
-          onClick={() => {
-            try {
-              const active = document.activeElement as HTMLElement | null;
-              if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) {
-                active.blur();
-              }
-            } catch { /* no-op */ }
-          }}
-        >
+        <Link to="/" className="shrink-0" onClick={() => blurActive()}>
           <Logo />
         </Link>
 
