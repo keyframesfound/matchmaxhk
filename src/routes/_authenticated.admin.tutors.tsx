@@ -204,7 +204,7 @@ function tutorToForm(t: Tutor): FormValues {
     weekly_score: t.weekly_score,
     is_published: t.is_published,
     languages_csv: (t.languages ?? []).join(", "),
-    gender: (t as unknown as { gender?: string | null }).gender ?? "",
+    gender: (["male", "female", "other"].includes((t as unknown as { gender?: string | null }).gender ?? "") ? ((t as unknown as { gender: "male" | "female" | "other" }).gender) : ""),
     experience_years: t.experience_years ?? "",
     teaching_since: t.teaching_since ?? "",
     education: (t.education ?? []).map((e) => ({
