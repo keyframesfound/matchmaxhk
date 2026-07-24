@@ -9,25 +9,33 @@ import { fetchTopWeeklyTutors, fetchLandingStats, fetchTutorByCode, getTutorLess
 import { fetchFeaturedReviews } from "@/features/tutors/reviews";
 import { supabase } from "@/integrations/supabase/client";
 
+const OG_IMAGE = "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
       { name: "description", content: "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong. Compare experienced tutors, request lessons and get matched quickly." },
+      { name: "robots", content: "index, follow" },
       { property: "og:title", content: "IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
       { property: "og:description", content: "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong. Compare experienced tutors, request lessons and get matched quickly." },
       { property: "og:url", content: "https://maxmatch.app/" },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp" },
+      { property: "og:site_name", content: "MatchMax" },
+      { property: "og:locale", content: "en_HK" },
+      { property: "og:image", content: OG_IMAGE },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
+      { name: "twitter:description", content: "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong." },
+      { name: "twitter:image", content: OG_IMAGE },
     ],
-    links: [{ rel: "canonical", href: "https://maxmatch.app/" }],
-            { rel: "icon", type: "image/png", href: "/favicon." },
+    links: [
+      { rel: "canonical", href: "https://maxmatch.app/" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
+    ],
   }),
-  component: Landing,
-});
-
-
 const STAT_ICONS = { students: Users, tutors: GraduationCap, subjects: BookOpen, districts: MapPin } as const;
 
 const DEFAULT_POPULAR_SUBJECTS = [
@@ -116,10 +124,67 @@ function Landing() {
     { key: "districts" as const, value: "18" },
   ];
 
+  // JSON-LD: helps Google understand this as an educational service and
+  // (once you have enough reviews) surface star ratings in search results.
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    name: "MatchMax",
+    url: "https://maxmatch.app/",
+    description:
+      "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
+    areaServed: {
+      "@type": "City",
+      name: "Hong Kong",
+    },
+    ...(featuredReviews.length > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: (
+          featuredReviews.reduce((sum, r) => sum + r.rating, 0) / featuredReviews.length
+        ).toFixed(1),
+        reviewCount: featuredReviews.length,
+      },
+    }),
+  };
 
+  const tutorListStructuredData =
+    featuredTutors.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          itemListElement: featuredTutors.map((tut, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            item: {
+              "@type": "Person",
+              name: tut.display_name,
+              url: `https://maxmatch.app/tutors/${tut.tutor_code}`,
+              ...(tut.rating && {
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: tut.rating,
+                  reviewCount: tut.review_count,
+                },
+              }),
+            },
+          })),
+        }
+      : null;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      {tutorListStructuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(tutorListStructuredData) }}
+        />
+      )}
+
       <SiteHeader />
 
       {/* Hero */}
@@ -173,7 +238,11 @@ function Landing() {
                       {heroTutor.photo_url ? (
                         <img
                           src={heroTutor.photo_url}
-                          alt={heroTutor.display_name}
+                          alt={`${heroTutor.display_name}, tutor for ${heroTutor.subjects.slice(0, 2).join(" and ")}`}
+                          width={44}
+                          height={44}
+                          loading="eager"
+                          fetchPriority="high"
                           className="h-11 w-11 shrink-0 rounded-full object-cover"
                         />
                       ) : (
@@ -219,7 +288,7 @@ function Landing() {
                     </div>
                     <Button asChild className="mt-6 w-full rounded-xl bg-brand-gradient py-3 text-sm font-bold text-white shadow-teal">
                       <Link to="/tutors/$tutorCode" params={{ tutorCode: heroTutor.tutor_code }}>
-                        <MessageCircle className="mr-2 inline h-4 w-4" /> View tutor profile
+                        <MessageCircle className="mr-2 inline h-4 w-4" /> View {heroTutor.display_name}'s profile
                       </Link>
                     </Button>
                   </>
@@ -241,7 +310,7 @@ function Landing() {
             const Icon = STAT_ICONS[key];
             return (
               <div key={key} className="text-center">
-                <Icon className="mx-auto h-6 w-6 text-[color:var(--brand-teal)]" />
+                <Icon className="mx-auto h-6 w-6 text-[color:var(--brand-teal)]" aria-hidden="true" />
                 <p className="mt-3 text-3xl font-black text-[color:var(--brand-navy)]">{value}</p>
                 <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   {t(`trust.${key}`)}
@@ -262,7 +331,7 @@ function Landing() {
           <div className="mt-16 grid gap-6 md:grid-cols-3">
             {[1, 2, 3].map((n) => (
               <div key={n} className="group relative rounded-3xl border border-border bg-card p-8 transition-all hover:border-[color:var(--brand-teal)]/40 hover:shadow-brand">
-                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-gradient text-2xl font-black text-white shadow-teal">
+                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-gradient text-2xl font-black text-white shadow-teal" aria-hidden="true">
                   {n}
                 </div>
                 <h3 className="text-xl font-bold text-foreground">{t(`how.step${n}_title`)}</h3>
@@ -301,7 +370,14 @@ function Landing() {
               >
                 <div className="flex items-center gap-4">
                   {tut.photo_url ? (
-                    <img src={tut.photo_url} alt={tut.display_name} className="h-14 w-14 shrink-0 rounded-full object-cover" />
+                    <img
+                      src={tut.photo_url}
+                      alt={`${tut.display_name}, ${tut.subjects.slice(0, 2).join(" and ")} tutor in Hong Kong`}
+                      width={56}
+                      height={56}
+                      loading="lazy"
+                      className="h-14 w-14 shrink-0 rounded-full object-cover"
+                    />
                   ) : (
                     <div className="h-14 w-14 shrink-0 rounded-full bg-brand-gradient-soft" />
                   )}
@@ -331,11 +407,11 @@ function Landing() {
                 )}
                 <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
                   <span className="inline-flex items-center gap-1 text-muted-foreground">
-                    {tut.lesson_mode === "online" ? <Globe className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
+                    {tut.lesson_mode === "online" ? <Globe className="h-4 w-4" aria-hidden="true" /> : <MapPin className="h-4 w-4" aria-hidden="true" />}
                     {getTutorLocationLabel(tut)}
                   </span>
                   <span className="inline-flex items-center gap-1 font-bold text-foreground">
-                    <Star className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" /> {Number(tut.rating).toFixed(1)}
+                    <Star className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" aria-hidden="true" /> {Number(tut.rating).toFixed(1)}
                     <span className="ml-1 text-xs font-normal text-muted-foreground">({tut.review_count})</span>
                   </span>
                 </div>
@@ -364,7 +440,7 @@ function Landing() {
                 search={{ subject }}
                 className="rounded-2xl border border-border bg-card px-5 py-4 text-center text-sm font-bold text-foreground transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)] hover:shadow-teal"
               >
-                {subject}
+                {subject} tutors
               </Link>
             ))}
           </div>
@@ -415,12 +491,13 @@ function Landing() {
                     {[0, 1, 2, 3, 4].map((i) => (
                       <Star
                         key={i}
+                        aria-hidden="true"
                         className={`h-4 w-4 ${i < r.rating ? "fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" : "text-muted-foreground/30"}`}
                       />
                     ))}
                   </div>
                   <blockquote className="flex-1 text-base leading-relaxed text-foreground">
-                    {r.comment ? `“${r.comment}”` : <span className="text-muted-foreground">No comment</span>}
+                    {r.comment ? `"${r.comment}"` : <span className="text-muted-foreground">No comment</span>}
                   </blockquote>
                   <figcaption className="mt-6 text-sm text-muted-foreground">
                     <span className="font-bold text-foreground">{r.author_alias}</span>
