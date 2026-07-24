@@ -182,6 +182,7 @@ const empty: FormValues = {
   weekly_score: 50,
   is_published: true,
   languages_csv: "",
+  gender: "",
   experience_years: "",
   teaching_since: "",
   education: [],
