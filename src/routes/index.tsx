@@ -12,10 +12,10 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "MatchMax — Hong Kong's tutoring marketplace" },
-      { name: "description", content: "⚡️ Instantly matched to the perfect Hong Kong tutor. 🎓 Verified IB, IGCSE, DSE, and AP top-scorer tutors ready to help." },
-      { property: "og:title", content: "MatchMax — Hong Kong's tutoring marketplace" },
-      { property: "og:description", content: "⚡️ Instantly matched to the perfect Hong Kong tutor. 🎓 Verified IB, IGCSE, DSE, and AP top-scorer tutors ready to help." },
+      { title: "IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
+      { name: "description", content: "Find verified IB, HKDSE, IGCSE, A-Level and international school tutors in Hong Kong. Compare experienced tutors, request lessons and get matched quickly." },
+      { property: "og:title", content: "IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
+      { property: "og:description", content: "Find verified IB, HKDSE, IGCSE, A-Level and international school tutors in Hong Kong. Compare experienced tutors, request lessons and get matched quickly." },
       { property: "og:url", content: "https://maxmatch.app/" },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp" },
