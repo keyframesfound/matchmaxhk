@@ -159,6 +159,7 @@ const formSchema = z.object({
   weekly_score: z.coerce.number().int().min(0).max(100),
   is_published: z.boolean(),
   languages_csv: z.string().trim().max(200).optional().or(z.literal("")),
+  gender: z.enum(["male", "female", "other", ""]).optional(),
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
   teaching_since: z.union([z.coerce.number().int().min(1950).max(2100), z.literal("")]).optional(),
   education: z.array(eduSchema),
@@ -181,6 +182,7 @@ const empty: FormValues = {
   weekly_score: 50,
   is_published: true,
   languages_csv: "",
+  gender: "",
   experience_years: "",
   teaching_since: "",
   education: [],
@@ -202,6 +204,7 @@ function tutorToForm(t: Tutor): FormValues {
     weekly_score: t.weekly_score,
     is_published: t.is_published,
     languages_csv: (t.languages ?? []).join(", "),
+    gender: (["male", "female", "other"].includes((t as unknown as { gender?: string | null }).gender ?? "") ? ((t as unknown as { gender: "male" | "female" | "other" }).gender) : ""),
     experience_years: t.experience_years ?? "",
     teaching_since: t.teaching_since ?? "",
     education: (t.education ?? []).map((e) => ({
@@ -250,6 +253,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
     weekly_score: v.weekly_score,
     is_published: v.is_published,
     languages: langs,
+    gender: v.gender ? v.gender : null,
     experience_years: v.experience_years === "" ? null : Number(v.experience_years),
     teaching_since: v.teaching_since === "" ? null : Number(v.teaching_since),
     education: cleanEdu,
@@ -565,6 +569,18 @@ function AdminTutors() {
                         }}
                         placeholder="2015"
                       />
+                    </Field>
+                    <Field label="Gender (optional)" error={errors.gender}>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        value={form.gender ?? ""}
+                        onChange={(e) => setForm({ ...form, gender: e.target.value as "" | "male" | "female" | "other" })}
+                      >
+                        <option value="">Not specified</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
                     </Field>
                     <Field label="Bio" error={errors.bio}>
                       <Textarea rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} />
