@@ -11,7 +11,21 @@ const SITE_NAME = "matchmaxhk"
 // verified in your Resend account (Resend -> Domains).
 const FROM_DOMAIN = "maxmatch.app"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy singleton — mirrors the supabaseAdmin Proxy pattern in client.server.ts.
+// Constructing Resend eagerly at module scope means a missing RESEND_API_KEY
+// throws the moment this file is imported, which crashes every page (not just
+// email sends) since route modules are loaded eagerly at server startup.
+let _resend: Resend | undefined
+function getResend(): Resend {
+  if (!_resend) {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY is not configured')
+    }
+    _resend = new Resend(apiKey)
+  }
+  return _resend
+}
 
 export type SendTemplateEmailResult =
   | { sent: true }
@@ -41,11 +55,6 @@ export async function sendTemplateEmail(
   to: string,
   options: SendTemplateEmailOptions = {}
 ): Promise<SendTemplateEmailResult> {
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) {
-    throw new Error('RESEND_API_KEY is not configured')
-  }
-
   const template = TEMPLATES[templateName]
   if (!template) {
     throw new Error(
@@ -69,7 +78,7 @@ export async function sendTemplateEmail(
       ? template.subject(templateData)
       : template.subject
 
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
     to: recipient,
     subject,

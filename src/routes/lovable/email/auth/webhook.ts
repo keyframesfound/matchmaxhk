@@ -16,7 +16,20 @@ const ROOT_DOMAIN = "maxmatch.app"
 const FROM_DOMAIN = "maxmatch.app"
 const SITE_URL = `https://${ROOT_DOMAIN}`
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy singleton — see send-email.ts for why this can't be constructed eagerly
+// at module scope (it would crash every page, not just this webhook, if
+// RESEND_API_KEY is ever unset).
+let _resend: Resend | undefined
+function getResend(): Resend {
+  if (!_resend) {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY is not configured')
+    }
+    _resend = new Resend(apiKey)
+  }
+  return _resend
+}
 
 // Set in Supabase Dashboard -> Authentication -> Hooks -> Send Email Hook.
 // The dashboard gives you a secret formatted "v1,whsec_<base64>" — strip the prefix,
@@ -143,7 +156,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
 
         try {
           const { subject, html } = await renderAuthEmail(payload)
-          const { error } = await resend.emails.send({
+          const { error } = await getResend().emails.send({
             from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
             to: [payload.user.email],
             subject,
