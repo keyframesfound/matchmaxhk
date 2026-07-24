@@ -159,6 +159,7 @@ const formSchema = z.object({
   weekly_score: z.coerce.number().int().min(0).max(100),
   is_published: z.boolean(),
   languages_csv: z.string().trim().max(200).optional().or(z.literal("")),
+  gender: z.enum(["male", "female", "other", ""]).optional(),
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
   teaching_since: z.union([z.coerce.number().int().min(1950).max(2100), z.literal("")]).optional(),
   education: z.array(eduSchema),
