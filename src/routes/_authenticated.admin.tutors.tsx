@@ -253,6 +253,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
     weekly_score: v.weekly_score,
     is_published: v.is_published,
     languages: langs,
+    gender: v.gender ? v.gender : null,
     experience_years: v.experience_years === "" ? null : Number(v.experience_years),
     teaching_since: v.teaching_since === "" ? null : Number(v.teaching_since),
     education: cleanEdu,
