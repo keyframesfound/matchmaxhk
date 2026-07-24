@@ -20,6 +20,7 @@ Parent (logged in) ─▶ /post-case  ──submit──▶ [case row: status=pe
 ## Data model (one migration)
 
 **tutoring_cases** — parent-posted requirement
+
 - Owner: `parent_id → auth.users`
 - Academic: `subject`, `exam_system` (IB/DSE/IGCSE/A-Level/HKCEE/Other/None), `student_level` (P1–P6, S1–S6, University, Adult), `student_grade_current` (optional text), `student_school` (optional text)
 - Logistics: `district`, `mode` (online/in-person/either), `sessions_per_week` (int), `session_length_minutes`, `start_date`, `schedule_note`
@@ -31,10 +32,12 @@ Parent (logged in) ─▶ /post-case  ──submit──▶ [case row: status=pe
 - Standard: `id`, `created_at`, `updated_at`
 
 **case_interests** — tutor interest on a case
+
 - `case_id → tutoring_cases`, `tutor_id → tutors`, `note`, `status` (`pending`, `contact_released`, `declined`), `created_at`
 - Unique (`case_id`, `tutor_id`)
 
 **RLS**
+
 - `tutoring_cases`
   - Parent: full CRUD on own rows (`auth.uid() = parent_id`).
   - Authenticated read of approved+public rows, but through a `public_cases` view that projects only anonymized columns (no contact info, no free-text description if it may contain PII — description shown, contact hidden).
@@ -47,6 +50,7 @@ Parent (logged in) ─▶ /post-case  ──submit──▶ [case row: status=pe
 ## Auto-match (SQL function `match_tutors_for_case(case_id)`)
 
 Server-side ranking (security definer, `TO authenticated`), returns top 5 published tutors ordered by score:
+
 - +40 if `subject = ANY(tutors.subjects)`
 - +15 if `district = tutors.district`
 - +15 if `budget_max >= tutors.hourly_rate` AND `budget_min <= tutors.hourly_rate` (or overlap)
@@ -54,7 +58,7 @@ Server-side ranking (security definer, `TO authenticated`), returns top 5 publis
 - +10 * `LEAST(experience_years, 10) / 10`
 - +5 * `rating` (0–25)
 - Tie-break by `weekly_score DESC, rating DESC`
-Only returns published tutors. Also exposed via a server function that any signed-in parent can call for their own case.
+  Only returns published tutors. Also exposed via a server function that any signed-in parent can call for their own case.
 
 ## Server functions (`src/lib/cases.functions.ts`)
 

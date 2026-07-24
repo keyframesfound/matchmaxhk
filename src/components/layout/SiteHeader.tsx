@@ -30,13 +30,22 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
-          <a href="/#how" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
+          <a
+            href="/#how"
+            className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]"
+          >
             {t("nav.how_it_works")}
           </a>
-          <Link to="/tutors" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
+          <Link
+            to="/tutors"
+            className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]"
+          >
             {t("nav.find_tutor")}
           </Link>
-          <Link to="/become-a-tutor" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
+          <Link
+            to="/become-a-tutor"
+            className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]"
+          >
             {t("tutors_cta.cta")}
           </Link>
         </nav>
@@ -55,24 +64,41 @@ export function SiteHeader() {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild><Link to="/dashboard">{t("nav.dashboard")}</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link to="/my-cases">My cases</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link to="/cases">Browse cases</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard">{t("nav.dashboard")}</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/my-cases">My cases</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/cases">Browse cases</Link>
+                  </DropdownMenuItem>
                   {isAdmin && (
                     <>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild><Link to="/admin/cases">Cases queue</Link></DropdownMenuItem>
-                      <DropdownMenuItem asChild><Link to="/admin/tutors">Manage tutors</Link></DropdownMenuItem>
-                      <DropdownMenuItem asChild><Link to="/admin/users">{t("nav.admin")}</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/cases">Cases queue</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/tutors">Manage tutors</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/users">{t("nav.admin")}</Link>
+                      </DropdownMenuItem>
                     </>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => void signOut()}>{t("nav.sign_out")}</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => void signOut()}>
+                    {t("nav.sign_out")}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
           ) : (
-            <Link to="/auth" className="hidden text-sm font-bold text-foreground/90 hover:text-[color:var(--brand-teal)] sm:inline">
+            <Link
+              to="/auth"
+              className="hidden text-sm font-bold text-foreground/90 hover:text-[color:var(--brand-teal)] sm:inline"
+            >
               {t("nav.sign_in")}
             </Link>
           )}
@@ -90,17 +116,33 @@ export function SiteHeader() {
       {mobileOpen && (
         <div className="border-t border-border bg-background lg:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3">
-            <a href="/#how" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
+            <a
+              href="/#how"
+              className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted"
+              onClick={() => setMobileOpen(false)}
+            >
               {t("nav.how_it_works")}
             </a>
-            <Link to="/tutors" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
+            <Link
+              to="/tutors"
+              className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted"
+              onClick={() => setMobileOpen(false)}
+            >
               {t("nav.find_tutor")}
             </Link>
-            <Link to="/become-a-tutor" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
+            <Link
+              to="/become-a-tutor"
+              className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted"
+              onClick={() => setMobileOpen(false)}
+            >
               {t("tutors_cta.cta")}
             </Link>
             {!user && (
-              <Link to="/auth" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
+              <Link
+                to="/auth"
+                className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted"
+                onClick={() => setMobileOpen(false)}
+              >
                 {t("nav.sign_in")}
               </Link>
             )}

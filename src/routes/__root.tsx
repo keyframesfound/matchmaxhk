@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 import { Toaster } from "sonner";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import appCss from "../styles.css?url";
 import { I18nProvider } from "@/features/i18n/I18nProvider";
@@ -77,15 +78,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "MatchMax" },
-      { name: "description", content: "MatchMax connects Hong Kong parents and students with verified DSE, IB, IGCSE, and AP tutors — matched instantly." },
+      {
+        name: "description",
+        content:
+          "MatchMax connects Hong Kong parents and students with verified DSE, IB, IGCSE, and AP tutors — matched instantly.",
+      },
       { name: "author", content: "MatchMax" },
       { property: "og:site_name", content: "MatchMax" },
       { property: "og:title", content: "MatchMax" },
-      { property: "og:description", content: "MatchMax connects Hong Kong parents and students with verified DSE, IB, IGCSE, and AP tutors — matched instantly." },
+      {
+        property: "og:description",
+        content:
+          "MatchMax connects Hong Kong parents and students with verified DSE, IB, IGCSE, and AP tutors — matched instantly.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "MatchMax" },
-      { name: "twitter:description", content: "MatchMax connects Hong Kong parents and students with verified DSE, IB, IGCSE, and AP tutors — matched instantly." },
+      {
+        name: "twitter:description",
+        content:
+          "MatchMax connects Hong Kong parents and students with verified DSE, IB, IGCSE, and AP tutors — matched instantly.",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -106,7 +119,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           name: "MatchMax",
           url: "https://maxmatch.app",
           logo: "https://maxmatch.app/favicon.png",
-          description: "Hong Kong tutoring marketplace matching parents and students with verified DSE, IB, IGCSE, and AP tutors.",
+          description:
+            "Hong Kong tutoring marketplace matching parents and students with verified DSE, IB, IGCSE, and AP tutors.",
         }),
       },
       {
@@ -155,6 +169,7 @@ function RootComponent() {
         <AuthProvider>
           <Outlet />
           <Toaster richColors position="top-center" closeButton />
+          <SpeedInsights />
         </AuthProvider>
       </I18nProvider>
     </QueryClientProvider>

@@ -1,6 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Users2, ClipboardList, Inbox, UserCog, Settings2, GraduationCap, MessageSquarePlus, FolderKanban } from "lucide-react";
+import {
+  Users2,
+  ClipboardList,
+  Inbox,
+  UserCog,
+  Settings2,
+  GraduationCap,
+  MessageSquarePlus,
+  FolderKanban,
+} from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { useAuth, type AppRole } from "@/features/auth/useAuth";
@@ -10,7 +19,11 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — MatchMax" },
-      { name: "description", content: "Your MatchMax dashboard — post a tutoring case, review matched leads, or manage your tutor profile in one place." },
+      {
+        name: "description",
+        content:
+          "Your MatchMax dashboard — post a tutoring case, review matched leads, or manage your tutor profile in one place.",
+      },
       { property: "og:url", content: "https://maxmatch.app/dashboard" },
       { name: "robots", content: "noindex" },
     ],
@@ -19,36 +32,83 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-
-type Card = { icon: React.ComponentType<{ className?: string }>; titleKey: string; descKey: string; to?: string };
+type Card = {
+  icon: React.ComponentType<{ className?: string }>;
+  titleKey: string;
+  descKey: string;
+  to?: string;
+};
 
 function roleCards(role: AppRole): Card[] {
   switch (role) {
     case "parent":
       return [
-        { icon: FolderKanban, titleKey: "dashboard.parent.my_cases", descKey: "dashboard.parent.my_cases_desc", to: "/my-cases" },
+        {
+          icon: FolderKanban,
+          titleKey: "dashboard.parent.my_cases",
+          descKey: "dashboard.parent.my_cases_desc",
+          to: "/my-cases",
+        },
       ];
     case "tutor":
       return [
-        { icon: Inbox, titleKey: "dashboard.tutor.leads", descKey: "dashboard.tutor.leads_desc", to: "/cases" },
-        { icon: UserCog, titleKey: "dashboard.tutor.profile", descKey: "dashboard.tutor.profile_desc" },
+        {
+          icon: Inbox,
+          titleKey: "dashboard.tutor.leads",
+          descKey: "dashboard.tutor.leads_desc",
+          to: "/cases",
+        },
+        {
+          icon: UserCog,
+          titleKey: "dashboard.tutor.profile",
+          descKey: "dashboard.tutor.profile_desc",
+        },
       ];
     case "staff":
       return [
-        { icon: ClipboardList, titleKey: "dashboard.staff.review", descKey: "dashboard.staff.review_desc", to: "/admin/cases" },
-        { icon: GraduationCap, titleKey: "dashboard.staff.tutors", descKey: "dashboard.staff.tutors_desc", to: "/admin/tutors" },
+        {
+          icon: ClipboardList,
+          titleKey: "dashboard.staff.review",
+          descKey: "dashboard.staff.review_desc",
+          to: "/admin/cases",
+        },
+        {
+          icon: GraduationCap,
+          titleKey: "dashboard.staff.tutors",
+          descKey: "dashboard.staff.tutors_desc",
+          to: "/admin/tutors",
+        },
       ];
     case "admin":
     case "super_admin":
       return [
-        { icon: ClipboardList, titleKey: "dashboard.admin.cases", descKey: "dashboard.admin.cases_desc", to: "/admin/cases" },
-        { icon: GraduationCap, titleKey: "dashboard.admin.tutors", descKey: "dashboard.admin.tutors_desc", to: "/admin/tutors" },
-        { icon: Users2, titleKey: "dashboard.admin.users", descKey: "dashboard.admin.users_desc", to: "/admin/users" },
-        { icon: Settings2, titleKey: "dashboard.admin.settings", descKey: "dashboard.admin.settings_desc", to: "/admin/settings" },
+        {
+          icon: ClipboardList,
+          titleKey: "dashboard.admin.cases",
+          descKey: "dashboard.admin.cases_desc",
+          to: "/admin/cases",
+        },
+        {
+          icon: GraduationCap,
+          titleKey: "dashboard.admin.tutors",
+          descKey: "dashboard.admin.tutors_desc",
+          to: "/admin/tutors",
+        },
+        {
+          icon: Users2,
+          titleKey: "dashboard.admin.users",
+          descKey: "dashboard.admin.users_desc",
+          to: "/admin/users",
+        },
+        {
+          icon: Settings2,
+          titleKey: "dashboard.admin.settings",
+          descKey: "dashboard.admin.settings_desc",
+          to: "/admin/settings",
+        },
       ];
   }
 }
-
 
 function titleKeyFor(role: AppRole): string {
   if (role === "super_admin" || role === "admin") return "dashboard.admin.title";
@@ -80,7 +140,9 @@ function Dashboard() {
             </div>
             <div className="rounded-full border border-border bg-card px-4 py-2 text-xs">
               <span className="mr-2 text-muted-foreground">{t("dashboard.your_role")}:</span>
-              <span className="font-bold text-[color:var(--brand-navy)]">{t(ROLE_LABEL_KEY[role])}</span>
+              <span className="font-bold text-[color:var(--brand-navy)]">
+                {t(ROLE_LABEL_KEY[role])}
+              </span>
             </div>
           </div>
 
@@ -101,7 +163,9 @@ function Dashboard() {
                 </div>
               );
               return to ? (
-                <Link key={titleKey} to={to}>{inner}</Link>
+                <Link key={titleKey} to={to}>
+                  {inner}
+                </Link>
               ) : (
                 <div key={titleKey}>{inner}</div>
               );

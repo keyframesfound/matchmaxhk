@@ -8,7 +8,10 @@ export const Route = createFileRoute("/_authenticated/post-case")({
   head: () => ({
     meta: [
       { title: "Case posting paused — MatchMax" },
-      { name: "description", content: "Case posting is temporarily paused. Browse tutors instead." },
+      {
+        name: "description",
+        content: "Case posting is temporarily paused. Browse tutors instead.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -29,10 +32,15 @@ function PostCasePaused() {
             We’re not accepting new cases right now.
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Browsing tutors is still available, but case submission is temporarily disabled while we update the matching flow.
+            Browsing tutors is still available, but case submission is temporarily disabled while we
+            update the matching flow.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]">
+            <Button
+              asChild
+              size="lg"
+              className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+            >
               <Link to="/tutors">
                 Browse tutors
                 <ArrowRight className="ml-2 h-4 w-4" />

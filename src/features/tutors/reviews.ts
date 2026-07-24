@@ -37,6 +37,8 @@ export async function fetchFeaturedReviews(limit = 6): Promise<FeaturedReview[]>
     .order("created_at", { ascending: false })
     .limit(limit * 2);
   if (error) throw error;
-  const rows = (data ?? []) as unknown as (FeaturedReview & { tutor: { display_name: string; tutor_code: string; is_published: boolean } | null })[];
+  const rows = (data ?? []) as unknown as (FeaturedReview & {
+    tutor: { display_name: string; tutor_code: string; is_published: boolean } | null;
+  })[];
   return rows.filter((r) => r.tutor?.is_published).slice(0, limit);
 }

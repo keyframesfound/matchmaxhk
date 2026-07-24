@@ -9,7 +9,13 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { fetchPublishedTutors, getTutorLessonModeLabel, getTutorLocationLabel, HK_DISTRICTS, type Tutor } from "@/features/tutors/queries";
+import {
+  fetchPublishedTutors,
+  getTutorLessonModeLabel,
+  getTutorLocationLabel,
+  HK_DISTRICTS,
+  type Tutor,
+} from "@/features/tutors/queries";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -30,9 +36,16 @@ export const Route = createFileRoute("/tutors/")({
   head: () => ({
     meta: [
       { title: "Browse tutors — MatchMax" },
-      { name: "description", content: "Browse verified tutors across Hong Kong by subject, district, price, and rating." },
+      {
+        name: "description",
+        content: "Browse verified tutors across Hong Kong by subject, district, price, and rating.",
+      },
       { property: "og:title", content: "Browse tutors — MatchMax" },
-      { property: "og:description", content: "Verified Hong Kong tutors for DSE, IB, IGCSE, AP and more — filter by subject, district, price, and rating." },
+      {
+        property: "og:description",
+        content:
+          "Verified Hong Kong tutors for DSE, IB, IGCSE, AP and more — filter by subject, district, price, and rating.",
+      },
       { property: "og:url", content: "https://maxmatch.app/tutors" },
     ],
     links: [{ rel: "canonical", href: "https://maxmatch.app/tutors" }],
@@ -73,7 +86,8 @@ function TutorsDirectory() {
         const next: SearchState = { ...prev, ...patch };
         (Object.keys(next) as (keyof SearchState)[]).forEach((k) => {
           const v = next[k];
-          if (v === "" || v === undefined || (typeof v === "number" && Number.isNaN(v))) delete next[k];
+          if (v === "" || v === undefined || (typeof v === "number" && Number.isNaN(v)))
+            delete next[k];
         });
         return next;
       },
@@ -89,11 +103,16 @@ function TutorsDirectory() {
     queryKey: ["settings", "subject_options"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("app_settings").select("value").eq("key", "subject_options").maybeSingle();
+        .from("app_settings")
+        .select("value")
+        .eq("key", "subject_options")
+        .maybeSingle();
       if (error) throw error;
       const v = data?.value;
       if (Array.isArray(v)) {
-        const arr = (v as unknown[]).filter((x): x is string => typeof x === "string" && x.trim().length > 0);
+        const arr = (v as unknown[]).filter(
+          (x): x is string => typeof x === "string" && x.trim().length > 0,
+        );
         if (arr.length > 0) return arr;
       }
       return DEFAULT_SUBJECT_OPTIONS;
@@ -103,10 +122,11 @@ function TutorsDirectory() {
   // Derived: unique languages across published tutors
   const languageOptions = useMemo(() => {
     const set = new Set<string>();
-    for (const t of tutors) for (const l of t.languages ?? []) {
-      const v = (l ?? "").trim();
-      if (v) set.add(v);
-    }
+    for (const t of tutors)
+      for (const l of t.languages ?? []) {
+        const v = (l ?? "").trim();
+        if (v) set.add(v);
+      }
     return Array.from(set).sort();
   }, [tutors]);
 
@@ -125,7 +145,8 @@ function TutorsDirectory() {
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
     const list = tutors.filter((tut) => {
-      if (subjectFilter && !tut.subjects.some((s) => s.toLowerCase().includes(subjectFilter))) return false;
+      if (subjectFilter && !tut.subjects.some((s) => s.toLowerCase().includes(subjectFilter)))
+        return false;
       if (districtFilter && tut.district !== districtFilter) return false;
       if (modeFilter && tut.lesson_mode !== modeFilter) return false;
       if (genderFilter) {
@@ -134,34 +155,95 @@ function TutorsDirectory() {
       }
       if (maxPrice && tut.hourly_rate > maxPrice) return false;
       if (minRating && Number(tut.rating) < minRating) return false;
-      if (languageFilter && !(tut.languages ?? []).some((l) => l.toLowerCase() === languageFilter.toLowerCase())) return false;
-      if (query && !(
-        tut.display_name.toLowerCase().includes(query) ||
-        tut.subjects.some((s) => s.toLowerCase().includes(query)) ||
-        (tut.headline ?? "").toLowerCase().includes(query)
-      )) return false;
+      if (
+        languageFilter &&
+        !(tut.languages ?? []).some((l) => l.toLowerCase() === languageFilter.toLowerCase())
+      )
+        return false;
+      if (
+        query &&
+        !(
+          tut.display_name.toLowerCase().includes(query) ||
+          tut.subjects.some((s) => s.toLowerCase().includes(query)) ||
+          (tut.headline ?? "").toLowerCase().includes(query)
+        )
+      )
+        return false;
       return true;
     });
 
     const sorted = [...list];
     switch (sort) {
-      case "price_asc": sorted.sort((a, b) => a.hourly_rate - b.hourly_rate); break;
-      case "price_desc": sorted.sort((a, b) => b.hourly_rate - a.hourly_rate); break;
-      case "experience": sorted.sort((a, b) => (b.experience_years ?? 0) - (a.experience_years ?? 0)); break;
+      case "price_asc":
+        sorted.sort((a, b) => a.hourly_rate - b.hourly_rate);
+        break;
+      case "price_desc":
+        sorted.sort((a, b) => b.hourly_rate - a.hourly_rate);
+        break;
+      case "experience":
+        sorted.sort((a, b) => (b.experience_years ?? 0) - (a.experience_years ?? 0));
+        break;
       case "rating":
-      default: sorted.sort((a, b) => Number(b.rating) - Number(a.rating));
+      default:
+        sorted.sort((a, b) => Number(b.rating) - Number(a.rating));
     }
     return sorted;
-  }, [tutors, subjectFilter, districtFilter, modeFilter, genderFilter, maxPrice, minRating, languageFilter, q, sort]);
+  }, [
+    tutors,
+    subjectFilter,
+    districtFilter,
+    modeFilter,
+    genderFilter,
+    maxPrice,
+    minRating,
+    languageFilter,
+    q,
+    sort,
+  ]);
 
   const activeChips: { key: string; label: string; onClear: () => void }[] = [];
-  if (search.subject) activeChips.push({ key: "subject", label: `Subject: ${search.subject}`, onClear: () => setParam({ subject: undefined }) });
-  if (search.district) activeChips.push({ key: "district", label: `District: ${search.district}`, onClear: () => setParam({ district: undefined }) });
-  if (search.mode) activeChips.push({ key: "mode", label: `Mode: ${MODE_OPTIONS.find((m) => m.value === search.mode)?.label ?? search.mode}`, onClear: () => setParam({ mode: undefined }) });
-  if (search.gender) activeChips.push({ key: "gender", label: `Gender: ${GENDER_OPTIONS.find((g) => g.value === search.gender)?.label ?? search.gender}`, onClear: () => setParam({ gender: undefined }) });
-  if (maxPrice) activeChips.push({ key: "price", label: `≤ HK$${maxPrice}/hr`, onClear: () => setParam({ maxPrice: undefined }) });
-  if (minRating) activeChips.push({ key: "rating", label: `≥ ${minRating}★`, onClear: () => setParam({ minRating: undefined }) });
-  if (languageFilter) activeChips.push({ key: "lang", label: `Language: ${languageFilter}`, onClear: () => setLanguageFilter("") });
+  if (search.subject)
+    activeChips.push({
+      key: "subject",
+      label: `Subject: ${search.subject}`,
+      onClear: () => setParam({ subject: undefined }),
+    });
+  if (search.district)
+    activeChips.push({
+      key: "district",
+      label: `District: ${search.district}`,
+      onClear: () => setParam({ district: undefined }),
+    });
+  if (search.mode)
+    activeChips.push({
+      key: "mode",
+      label: `Mode: ${MODE_OPTIONS.find((m) => m.value === search.mode)?.label ?? search.mode}`,
+      onClear: () => setParam({ mode: undefined }),
+    });
+  if (search.gender)
+    activeChips.push({
+      key: "gender",
+      label: `Gender: ${GENDER_OPTIONS.find((g) => g.value === search.gender)?.label ?? search.gender}`,
+      onClear: () => setParam({ gender: undefined }),
+    });
+  if (maxPrice)
+    activeChips.push({
+      key: "price",
+      label: `≤ HK$${maxPrice}/hr`,
+      onClear: () => setParam({ maxPrice: undefined }),
+    });
+  if (minRating)
+    activeChips.push({
+      key: "rating",
+      label: `≥ ${minRating}★`,
+      onClear: () => setParam({ minRating: undefined }),
+    });
+  if (languageFilter)
+    activeChips.push({
+      key: "lang",
+      label: `Language: ${languageFilter}`,
+      onClear: () => setLanguageFilter(""),
+    });
 
   const clearAll = () => {
     setQ("");
@@ -175,9 +257,12 @@ function TutorsDirectory() {
       <main className="flex-1">
         <section className="border-b border-border bg-muted/30 py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">Browse tutors</h1>
+            <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
+              Browse tutors
+            </h1>
             <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-              Verified tutors across Hong Kong. Filter by subject, district, lesson mode, price, and rating.
+              Verified tutors across Hong Kong. Filter by subject, district, lesson mode, price, and
+              rating.
             </p>
 
             {/* Primary row: search + subject + district */}
@@ -194,14 +279,20 @@ function TutorsDirectory() {
               <SearchableSelect
                 value={search.subject ?? ""}
                 onChange={(v) => setParam({ subject: v || undefined })}
-                options={[{ value: "", label: "Any subject" }, ...subjectOptions.map((s) => ({ value: s, label: s }))]}
+                options={[
+                  { value: "", label: "Any subject" },
+                  ...subjectOptions.map((s) => ({ value: s, label: s })),
+                ]}
                 placeholder="Any subject"
                 searchPlaceholder="Search subject…"
               />
               <SearchableSelect
                 value={search.district ?? ""}
                 onChange={(v) => setParam({ district: v || undefined })}
-                options={[{ value: "", label: "Any district" }, ...HK_DISTRICTS.map((d) => ({ value: d, label: d }))]}
+                options={[
+                  { value: "", label: "Any district" },
+                  ...HK_DISTRICTS.map((d) => ({ value: d, label: d })),
+                ]}
                 placeholder="Any district"
                 searchPlaceholder="Search district…"
               />
@@ -224,7 +315,10 @@ function TutorsDirectory() {
               <SearchableSelect
                 value={languageFilter}
                 onChange={(v) => setLanguageFilter(v)}
-                options={[{ value: "", label: "Any language" }, ...languageOptions.map((l) => ({ value: l, label: l }))]}
+                options={[
+                  { value: "", label: "Any language" },
+                  ...languageOptions.map((l) => ({ value: l, label: l })),
+                ]}
                 placeholder="Any language"
                 searchPlaceholder="Search language…"
               />
@@ -261,20 +355,36 @@ function TutorsDirectory() {
                 {q && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--brand-navy)]/5 px-3 py-1 text-xs font-semibold text-[color:var(--brand-navy)]">
                     “{q}”
-                    <button aria-label="Clear search" onClick={() => setQ("")} className="rounded-full p-0.5 hover:bg-[color:var(--brand-navy)]/10">
+                    <button
+                      aria-label="Clear search"
+                      onClick={() => setQ("")}
+                      className="rounded-full p-0.5 hover:bg-[color:var(--brand-navy)]/10"
+                    >
                       <X className="h-3 w-3" />
                     </button>
                   </span>
                 )}
                 {activeChips.map((c) => (
-                  <span key={c.key} className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--brand-teal)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--brand-teal)]">
+                  <span
+                    key={c.key}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--brand-teal)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--brand-teal)]"
+                  >
                     {c.label}
-                    <button aria-label={`Clear ${c.key}`} onClick={c.onClear} className="rounded-full p-0.5 hover:bg-[color:var(--brand-teal)]/20">
+                    <button
+                      aria-label={`Clear ${c.key}`}
+                      onClick={c.onClear}
+                      className="rounded-full p-0.5 hover:bg-[color:var(--brand-teal)]/20"
+                    >
                       <X className="h-3 w-3" />
                     </button>
                   </span>
                 ))}
-                <Button variant="ghost" size="sm" onClick={clearAll} className="ml-auto h-7 text-xs font-semibold text-muted-foreground hover:text-foreground">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAll}
+                  className="ml-auto h-7 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                >
                   Clear all
                 </Button>
               </div>
@@ -286,8 +396,13 @@ function TutorsDirectory() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="mb-6 flex items-baseline justify-between">
               <p className="text-sm text-muted-foreground">
-                {isLoading ? "Loading…" : (
-                  <><span className="font-bold text-foreground">{filtered.length}</span> {filtered.length === 1 ? "tutor" : "tutors"} found</>
+                {isLoading ? (
+                  "Loading…"
+                ) : (
+                  <>
+                    <span className="font-bold text-foreground">{filtered.length}</span>{" "}
+                    {filtered.length === 1 ? "tutor" : "tutors"} found
+                  </>
                 )}
               </p>
             </div>
@@ -295,18 +410,30 @@ function TutorsDirectory() {
             {isLoading && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="h-64 animate-pulse rounded-3xl border border-border bg-muted/40" />
+                  <div
+                    key={i}
+                    className="h-64 animate-pulse rounded-3xl border border-border bg-muted/40"
+                  />
                 ))}
               </div>
             )}
 
             {!isLoading && filtered.length === 0 && (
               <div className="rounded-3xl border border-dashed border-border bg-card p-12 text-center">
-                <p className="text-lg font-bold text-[color:var(--brand-navy)]">No tutors match your filters yet</p>
-                <p className="mt-2 text-sm text-muted-foreground">Try widening your search, or clear filters to see everyone.</p>
+                <p className="text-lg font-bold text-[color:var(--brand-navy)]">
+                  No tutors match your filters yet
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Try widening your search, or clear filters to see everyone.
+                </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  <Button variant="outline" onClick={clearAll}>Clear filters</Button>
-                  <Button asChild className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]">
+                  <Button variant="outline" onClick={clearAll}>
+                    Clear filters
+                  </Button>
+                  <Button
+                    asChild
+                    className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                  >
                     <Link to="/auth">Request a tutor</Link>
                   </Button>
                 </div>
@@ -324,18 +451,29 @@ function TutorsDirectory() {
                   >
                     <div className="flex items-center gap-4">
                       {tut.photo_url ? (
-                        <img src={tut.photo_url} alt={tut.display_name} className="h-14 w-14 shrink-0 rounded-full object-cover" />
+                        <img
+                          src={tut.photo_url}
+                          alt={tut.display_name}
+                          className="h-14 w-14 shrink-0 rounded-full object-cover"
+                        />
                       ) : (
                         <div className="h-14 w-14 shrink-0 rounded-full bg-brand-gradient-soft" />
                       )}
                       <div className="min-w-0">
-                        <p className="truncate text-base font-bold text-foreground">{tut.display_name}</p>
-                        <p className="truncate text-sm text-muted-foreground">{tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}</p>
+                        <p className="truncate text-base font-bold text-foreground">
+                          {tut.display_name}
+                        </p>
+                        <p className="truncate text-sm text-muted-foreground">
+                          {tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}
+                        </p>
                       </div>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {tut.subjects.slice(0, 3).map((subject) => (
-                        <span key={subject} className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                        <span
+                          key={subject}
+                          className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+                        >
                           {subject}
                         </span>
                       ))}
@@ -354,16 +492,23 @@ function TutorsDirectory() {
                     )}
                     <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
                       <span className="inline-flex items-center gap-1 text-muted-foreground">
-                        {tut.lesson_mode === "online" ? <Globe className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
+                        {tut.lesson_mode === "online" ? (
+                          <Globe className="h-4 w-4" />
+                        ) : (
+                          <MapPin className="h-4 w-4" />
+                        )}
                         {getTutorLocationLabel(tut)}
                       </span>
                       <span className="inline-flex items-center gap-1 font-bold text-foreground">
-                        <Star className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" /> {Number(tut.rating).toFixed(1)}
+                        <Star className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" />{" "}
+                        {Number(tut.rating).toFixed(1)}
                       </span>
                     </div>
                     <p className="mt-4 text-2xl font-black text-[color:var(--brand-navy)]">
                       HK${tut.hourly_rate}
-                      <span className="ml-1 text-sm font-semibold text-muted-foreground">{t("featured.per_hour")}</span>
+                      <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                        {t("featured.per_hour")}
+                      </span>
                     </p>
                   </Link>
                 ))}

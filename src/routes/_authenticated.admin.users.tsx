@@ -24,7 +24,11 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({
     meta: [
       { title: "Users & roles — MatchMax admin" },
-      { name: "description", content: "Grant or revoke MatchMax user roles — manage admins, staff, tutors, and parent accounts across the platform." },
+      {
+        name: "description",
+        content:
+          "Grant or revoke MatchMax user roles — manage admins, staff, tutors, and parent accounts across the platform.",
+      },
       { property: "og:url", content: "https://maxmatch.app/admin/users" },
       { name: "robots", content: "noindex" },
     ],
@@ -32,7 +36,6 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
   }),
   component: AdminUsers,
 });
-
 
 const ROLES: AppRole[] = ["super_admin", "admin", "staff", "tutor", "parent"];
 
@@ -62,7 +65,10 @@ function AdminUsers() {
     queryKey: ["admin", "users"],
     queryFn: async (): Promise<Row[]> => {
       const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
-        supabase.from("profiles").select("id, display_name, email").order("created_at", { ascending: false }),
+        supabase
+          .from("profiles")
+          .select("id, display_name, email")
+          .order("created_at", { ascending: false }),
         supabase.from("user_roles").select("user_id, role"),
       ]);
       if (pErr) throw pErr;
@@ -115,7 +121,11 @@ function AdminUsers() {
 
   const revoke = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
-      const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role);
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", role);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -156,10 +166,18 @@ function AdminUsers() {
               </thead>
               <tbody>
                 {isLoading && (
-                  <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">{t("common.loading")}</td></tr>
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                      {t("common.loading")}
+                    </td>
+                  </tr>
                 )}
                 {!isLoading && filtered.length === 0 && (
-                  <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">{t("admin.no_users")}</td></tr>
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                      {t("admin.no_users")}
+                    </td>
+                  </tr>
                 )}
                 {filtered.map((row) => (
                   <tr key={row.user_id} className="border-t border-border align-top">
@@ -167,9 +185,14 @@ function AdminUsers() {
                     <td className="px-4 py-4 text-muted-foreground">{row.email ?? "—"}</td>
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-1.5">
-                        {row.roles.length === 0 && <span className="text-xs text-muted-foreground">—</span>}
+                        {row.roles.length === 0 && (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                         {row.roles.map((r) => (
-                          <span key={r} className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] font-bold text-[color:var(--brand-teal)]">
+                          <span
+                            key={r}
+                            className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] font-bold text-[color:var(--brand-teal)]"
+                          >
                             {r.replace("_", " ")}
                             <button
                               className="opacity-70 hover:opacity-100"
@@ -186,12 +209,18 @@ function AdminUsers() {
                       <div className="flex items-center justify-end gap-2">
                         <Select
                           value={addRole[row.user_id] ?? ""}
-                          onValueChange={(v) => setAddRole((s) => ({ ...s, [row.user_id]: v as AppRole }))}
+                          onValueChange={(v) =>
+                            setAddRole((s) => ({ ...s, [row.user_id]: v as AppRole }))
+                          }
                         >
-                          <SelectTrigger className="h-9 w-[140px]"><SelectValue placeholder={t("admin.select_role")} /></SelectTrigger>
+                          <SelectTrigger className="h-9 w-[140px]">
+                            <SelectValue placeholder={t("admin.select_role")} />
+                          </SelectTrigger>
                           <SelectContent>
                             {ROLES.filter((r) => !row.roles.includes(r)).map((r) => (
-                              <SelectItem key={r} value={r}>{r.replace("_", " ")}</SelectItem>
+                              <SelectItem key={r} value={r}>
+                                {r.replace("_", " ")}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -213,7 +242,9 @@ function AdminUsers() {
                           variant="destructive"
                           className="h-9 font-bold"
                           onClick={() => {
-                            const confirmed = window.confirm("Delete this account? This will remove the user, their tutor profile, and their roles.");
+                            const confirmed = window.confirm(
+                              "Delete this account? This will remove the user, their tutor profile, and their roles.",
+                            );
                             if (!confirmed) return;
                             deleteAccount.mutate(row.user_id);
                           }}

@@ -71,25 +71,25 @@
 
   /* Brand raw */
   --brand-navy: #041344;
-  --brand-royal: #0A245F;
-  --brand-teal: #1FA8B6;
-  --brand-cyan: #2ED5DE;
-  --brand-aqua: #77E8EE;
+  --brand-royal: #0a245f;
+  --brand-teal: #1fa8b6;
+  --brand-cyan: #2ed5de;
+  --brand-aqua: #77e8ee;
 
   /* Semantic — light theme */
   --background: oklch(1 0 0);
-  --foreground: oklch(0.16 0.09 265);           /* Deep navy */
+  --foreground: oklch(0.16 0.09 265); /* Deep navy */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.16 0.09 265);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.16 0.09 265);
-  --primary: oklch(0.16 0.09 265);              /* Deep navy */
+  --primary: oklch(0.16 0.09 265); /* Deep navy */
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.66 0.11 197);            /* Teal */
+  --secondary: oklch(0.66 0.11 197); /* Teal */
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.97 0.005 250);
   --muted-foreground: oklch(0.45 0.03 260);
-  --accent: oklch(0.78 0.13 195);               /* Cyan */
+  --accent: oklch(0.78 0.13 195); /* Cyan */
   --accent-foreground: oklch(0.16 0.09 265);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
@@ -113,10 +113,10 @@
   --sidebar-ring: oklch(0.66 0.11 197);
 
   /* Gradients & shadows */
-  --gradient-brand: linear-gradient(135deg, #041344 0%, #1FA8B6 55%, #2ED5DE 100%);
-  --gradient-brand-soft: linear-gradient(135deg, #1FA8B6 0%, #2ED5DE 100%);
+  --gradient-brand: linear-gradient(135deg, #041344 0%, #1fa8b6 55%, #2ed5de 100%);
+  --gradient-brand-soft: linear-gradient(135deg, #1fa8b6 0%, #2ed5de 100%);
   --shadow-brand: 0 20px 40px -20px color-mix(in oklab, #041344 30%, transparent);
-  --shadow-teal: 0 12px 30px -12px color-mix(in oklab, #1FA8B6 40%, transparent);
+  --shadow-teal: 0 12px 30px -12px color-mix(in oklab, #1fa8b6 40%, transparent);
 }
 
 .dark {
@@ -157,11 +157,21 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family:
+      "Inter",
+      "Noto Sans HK",
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, sans-serif;
     letter-spacing: -0.02em;
   }

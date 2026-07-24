@@ -3,11 +3,14 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
 } from "@/components/ui/command";
-import {
-  Popover, PopoverContent, PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export type SearchableOption = { value: string; label?: string };
 
@@ -53,7 +56,11 @@ export function SearchableSelect({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className={cn("w-full justify-between font-normal", !value && "text-muted-foreground", className)}
+          className={cn(
+            "w-full justify-between font-normal",
+            !value && "text-muted-foreground",
+            className,
+          )}
         >
           <span className="truncate">{displayLabel}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -66,11 +73,7 @@ export function SearchableSelect({
         collisionPadding={8}
       >
         <Command shouldFilter>
-          <CommandInput
-            placeholder={searchPlaceholder}
-            value={query}
-            onValueChange={setQuery}
-          />
+          <CommandInput placeholder={searchPlaceholder} value={query} onValueChange={setQuery} />
           <CommandList className="max-h-64 overflow-y-auto">
             <CommandEmpty>
               {allowCustom && query.trim() ? (
@@ -100,7 +103,12 @@ export function SearchableSelect({
                     setQuery("");
                   }}
                 >
-                  <Check className={cn("mr-2 h-4 w-4", value === opt.value ? "opacity-100" : "opacity-0")} />
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === opt.value ? "opacity-100" : "opacity-0",
+                    )}
+                  />
                   {opt.label}
                 </CommandItem>
               ))}

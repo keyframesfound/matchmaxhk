@@ -28,7 +28,11 @@ export const Route = createFileRoute("/sitemap.xml")({
             .eq("is_published", true);
           for (const t of data ?? []) {
             if (t.tutor_code) {
-              entries.push({ path: `/tutors/${t.tutor_code}`, changefreq: "weekly", priority: "0.6" });
+              entries.push({
+                path: `/tutors/${t.tutor_code}`,
+                changefreq: "weekly",
+                priority: "0.6",
+              });
             }
           }
         } catch {
@@ -43,7 +47,9 @@ export const Route = createFileRoute("/sitemap.xml")({
             e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,
             `  </url>`,
-          ].filter(Boolean).join("\n"),
+          ]
+            .filter(Boolean)
+            .join("\n"),
         );
 
         const xml = [
