@@ -270,6 +270,7 @@ export type Database = {
           education: Json
           exam_results: Json
           experience_years: number | null
+          gender: string | null
           headline: string | null
           hourly_rate: number
           id: string
@@ -297,6 +298,7 @@ export type Database = {
           education?: Json
           exam_results?: Json
           experience_years?: number | null
+          gender?: string | null
           headline?: string | null
           hourly_rate?: number
           id?: string
@@ -324,6 +326,7 @@ export type Database = {
           education?: Json
           exam_results?: Json
           experience_years?: number | null
+          gender?: string | null
           headline?: string | null
           hourly_rate?: number
           id?: string
