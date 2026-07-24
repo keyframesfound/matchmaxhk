@@ -329,8 +329,8 @@ function TutorsDirectory() {
                         <div className="h-14 w-14 shrink-0 rounded-full bg-brand-gradient-soft" />
                       )}
                       <div className="min-w-0">
-                        <p className="truncate text-base font-bold text-foreground">{tut.display_name}</p>
-                        <p className="truncate text-sm text-muted-foreground">{tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}</p>
+                        <p className="text-base font-bold text-foreground break-words md:truncate">{tut.display_name}</p>
+                        <p className="text-sm text-muted-foreground break-words md:truncate">{tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}</p>
                       </div>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">

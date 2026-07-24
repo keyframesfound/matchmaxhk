@@ -217,12 +217,12 @@ function TutorDetail() {
 
         {/* Body */}
         <section className="py-14">
-          <div className="mx-auto grid max-w-5xl gap-10 px-4 sm:px-6 lg:grid-cols-3">
-            <div className="space-y-8 lg:col-span-2">
+          <div className="mx-auto grid max-w-5xl gap-10 px-4 sm:px-6 lg:grid-cols-3 min-h-0">
+            <div className="space-y-8 lg:col-span-2 min-h-0">
               {t.bio && (
                 <div>
                   <h2 className="text-xl font-bold text-[color:var(--brand-navy)]">About</h2>
-                  <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-foreground">{t.bio}</p>
+                  <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-foreground break-words">{t.bio}</p>
                 </div>
               )}
 
