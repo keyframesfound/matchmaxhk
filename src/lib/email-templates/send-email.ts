@@ -1,18 +1,17 @@
 import * as React from 'react'
 import { render } from '@react-email/render'
-import { EmailAPIError, sendLovableEmail } from '@lovable.dev/email-js'
+import { Resend } from 'resend'
 import { TEMPLATES } from './registry'
 
-// Server-only: reads LOVABLE_API_KEY. Never import from client components.
+// Server-only: reads RESEND_API_KEY. Never import from client components.
 
 // Configuration baked in at scaffold time
 const SITE_NAME = "matchmaxhk"
-// SENDER_DOMAIN is the verified sender subdomain FQDN (e.g., "notify.example.com").
-// It MUST match the subdomain delegated to Lovable's nameservers. NEVER use the root domain.
-const SENDER_DOMAIN = "notify.maxmatch.app"
-// FROM_DOMAIN is the domain shown in the From: header (e.g., "example.com").
-// Can be the root domain when display_from_root is enabled — this is cosmetic only.
+// FROM_DOMAIN is the domain shown in the From: header. Must be a domain you've
+// verified in your Resend account (Resend -> Domains).
 const FROM_DOMAIN = "maxmatch.app"
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export type SendTemplateEmailResult =
   | { sent: true }
@@ -26,20 +25,25 @@ export interface SendTemplateEmailOptions {
 }
 
 /**
- * Renders a registered template and sends it through Lovable's managed email
- * API. Suppression, retries, and rate limits are enforced by Lovable
- * server-side. A suppressed recipient is an expected outcome
- * ({ sent: false }); any other failure throws — EmailAPIError exposes
- * .code and .status for branching.
+ * Renders a registered template and sends it through Resend.
+ *
+ * NOTE on behavior change: Lovable's email-js enforced suppression/retry/rate-limit
+ * rules server-side and returned { sent: false, reason: 'recipient_suppressed' } for
+ * suppressed recipients instead of throwing. Resend has its own suppression list
+ * product (Resend -> Suppressions) but surfaces it differently (via a `x-resend-*`
+ * error code, not a stable `.reason` field on success). Until you've confirmed the
+ * exact shape Resend returns for your account, this version treats every send error
+ * as a thrown exception — adjust the catch block below if you need the same
+ * "suppressed recipient" branch as before.
  */
 export async function sendTemplateEmail(
   templateName: string,
   to: string,
   options: SendTemplateEmailOptions = {}
 ): Promise<SendTemplateEmailResult> {
-  const apiKey = process.env.LOVABLE_API_KEY
+  const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
-    throw new Error('LOVABLE_API_KEY is not configured')
+    throw new Error('RESEND_API_KEY is not configured')
   }
 
   const template = TEMPLATES[templateName]
@@ -65,27 +69,20 @@ export async function sendTemplateEmail(
       ? template.subject(templateData)
       : template.subject
 
-  try {
-    await sendLovableEmail(
-      {
-        to: recipient,
-        from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
-        sender_domain: SENDER_DOMAIN,
-        subject,
-        html,
-        text,
-        purpose: 'transactional',
-        label: templateName,
-        idempotency_key: options.idempotencyKey || crypto.randomUUID(),
-        reply_to: options.replyTo,
-      },
-      { apiKey, sendUrl: process.env.LOVABLE_SEND_URL }
-    )
-  } catch (error) {
-    if (error instanceof EmailAPIError && error.code === 'recipient_suppressed') {
-      return { sent: false, reason: 'recipient_suppressed' }
-    }
-    throw error
+  const { error } = await resend.emails.send({
+    from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+    to: recipient,
+    subject,
+    html,
+    text,
+    reply_to: options.replyTo,
+    headers: options.idempotencyKey
+      ? { 'Idempotency-Key': options.idempotencyKey }
+      : undefined,
+  })
+
+  if (error) {
+    throw new Error(`Resend send failed: ${error.message}`)
   }
 
   return { sent: true }

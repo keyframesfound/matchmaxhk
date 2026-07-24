@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/features/auth/useAuth";
 
 export const Route = createFileRoute("/auth")({
@@ -72,19 +71,25 @@ function AuthPage() {
     }
   }
 
+  // Was routed through Lovable's cloud-auth-js OAuth broker. Now goes straight to
+  // Supabase's own OAuth support. Requires the "google" provider to be configured
+  // under Authentication -> Providers in your Supabase project dashboard, with a
+  // Google OAuth client ID/secret set there.
   async function onOAuth(provider: "google") {
     setBusy(true);
     try {
-      const result = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: window.location.origin,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
       });
-      if (result.error) throw result.error;
-      if (result.redirected) return;
-      router.navigate({ to: "/dashboard", replace: true });
+      if (error) throw error;
+      // Supabase redirects the browser to the provider immediately, so we
+      // never actually reach the code below in normal operation.
     } catch (err) {
       const msg = err instanceof Error ? err.message : `${provider} sign-in failed`;
       toast.error(msg);
-    } finally {
       setBusy(false);
     }
   }
