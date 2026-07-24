@@ -36,6 +36,9 @@ export const Route = createFileRoute("/")({
       { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
   }),
+  component: Landing,
+});
+
 const STAT_ICONS = { students: Users, tutors: GraduationCap, subjects: BookOpen, districts: MapPin } as const;
 
 const DEFAULT_POPULAR_SUBJECTS = [
