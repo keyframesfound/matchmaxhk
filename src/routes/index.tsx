@@ -22,6 +22,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp" },
     ],
     links: [{ rel: "canonical", href: "https://maxmatch.app/" }],
+            { rel: "icon", type: "image/png", href: "/favicon." },
   }),
   component: Landing,
 });
