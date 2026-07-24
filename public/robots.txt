@@ -1,9 +1,14 @@
+# https://maxmatch.app/robots.txt
+
 User-agent: *
 Allow: /
+
 Disallow: /admin
 Disallow: /dashboard
 Disallow: /auth
 Disallow: /my-cases
 Disallow: /post-case
+Disallow: /cases
+Disallow: /lovable/
 
 Sitemap: https://maxmatch.app/sitemap.xml
