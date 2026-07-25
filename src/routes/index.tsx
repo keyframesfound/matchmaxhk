@@ -220,8 +220,8 @@ function Landing() {
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {[
-                  { label: "IB tutor", search: { subject: "IB Geography" } },
-                  { label: "DSE tutor", search: { subject: "Physics" } },
+                  { label: "IB Geography", search: { subject: "IB Geography" } },
+                  { label: "Physics tutor", search: { subject: "Physics" } },
                   { label: "Math tutor", search: { subject: "Mathematics" } },
                   { label: "Online tutor", search: { mode: "online" } },
                   { label: "Hong Kong tutor", search: {} },
