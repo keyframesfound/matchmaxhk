@@ -263,7 +263,7 @@ function TutorDetail() {
         <section className="py-14">
           <div className="mx-auto grid max-w-5xl gap-10 px-4 sm:px-6 min-h-0">
             <div className="space-y-8 min-h-0">
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-4">
                 <div className="rounded-2xl border border-border bg-card p-5">
                   <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
                     <BookOpen className="h-5 w-5 text-[color:var(--brand-teal)]" /> 1. 📚 Subjects & Target Students
@@ -275,17 +275,13 @@ function TutorDetail() {
                           <span className="font-semibold text-foreground">{subject}</span>
                         </li>
                       ))
-                    ) : (
-                      <li className="rounded-xl border border-dashed border-border p-3">Subjects will appear here once added.</li>
-                    )}
+                    ) : null}
                     {t.target_students.length > 0 ? (
                       <li className="rounded-xl border border-border/70 bg-background/70 p-3">
                         <p className="font-semibold text-foreground">Target students</p>
                         <p className="mt-1">{t.target_students.join(", ")}</p>
                       </li>
-                    ) : (
-                      <li className="rounded-xl border border-dashed border-border p-3">Target student groups will appear here once added.</li>
-                    )}
+                    ) : null}
                   </ul>
                 </div>
 
@@ -298,9 +294,7 @@ function TutorDetail() {
                       <li className="rounded-xl border border-border/70 bg-background/70 p-3 whitespace-pre-line">
                         {t.academic_summary}
                       </li>
-                    ) : (
-                      <li className="rounded-xl border border-dashed border-border p-3">Academic summary will appear here once added.</li>
-                    )}
+                    ) : null}
                     {t.exam_results.length > 0 ? (
                       t.exam_results.map((result, i) => (
                         <li key={i} className="rounded-xl border border-border/70 bg-background/70 p-3">
@@ -308,9 +302,7 @@ function TutorDetail() {
                           <p className="mt-1">{result.subjects.map((entry) => `${entry.subject}: ${entry.grade}`).join(" · ")}</p>
                         </li>
                       ))
-                    ) : (
-                      <li className="rounded-xl border border-dashed border-border p-3">Public exam results will appear here once added.</li>
-                    )}
+                    ) : null}
                   </ul>
                 </div>
 
@@ -335,9 +327,6 @@ function TutorDetail() {
                     {t.experience_years != null ? <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Experience:</span> {t.experience_years} years tutoring</li> : null}
                     {t.teaching_since != null ? <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Teaching since:</span> {t.teaching_since}</li> : null}
                     {t.languages.length > 0 ? <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Languages:</span> {t.languages.join(", ")}</li> : null}
-                    {!t.qualifications_summary && t.education.length === 0 && t.experience_years == null && t.teaching_since == null && t.languages.length === 0 ? (
-                      <li className="rounded-xl border border-dashed border-border p-3">Qualifications and experience will appear here once added.</li>
-                    ) : null}
                   </ul>
                 </div>
 
