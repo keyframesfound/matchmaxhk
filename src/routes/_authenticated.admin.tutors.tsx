@@ -136,35 +136,20 @@ const eduSchema = z.object({
 });
 
 const examEntrySchema = z.object({
-  subject: z.string().trim().min(1).max(120),
-  grade: z.string().trim().min(1).max(40),
+  subject: z.string().trim().max(120),
+  grade: z.string().trim().max(40),
 });
 
 const examSchema = z.object({
-  system: z.string().trim().min(1),
-  subjects: z.array(examEntrySchema).min(1, "Add at least one subject"),
+  system: z.string().trim(),
+  subjects: z.array(examEntrySchema),
 });
-
-const TARGET_STUDENT_OPTIONS = [
-  "Kindergarten",
-  "Primary",
-  "Lower Secondary",
-  "Upper Secondary",
-  "IB",
-  "IGCSE",
-  "A-Level",
-  "DSE",
-  "University",
-  "Adult Learners",
-];
 
 const formSchema = z.object({
   headline: z.string().trim().min(1, "Headline is required").max(200),
   subjects: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one subject"),
-  target_students: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one target student group"),
   university: z.string().trim().max(120).optional().or(z.literal("")),
   highschool: z.string().trim().max(120).optional().or(z.literal("")),
-  academic_summary: z.string().trim().max(800).optional().or(z.literal("")),
   qualifications_summary: z.string().trim().max(1200).optional().or(z.literal("")),
   district: z.string().trim().max(80).optional().or(z.literal("")),
   lesson_mode: z.enum(["online", "in_person", "either"]),
@@ -189,10 +174,8 @@ type FormValues = z.infer<typeof formSchema>;
 const empty: FormValues = {
   headline: "",
   subjects: [],
-  target_students: [],
   university: "",
   highschool: "",
-  academic_summary: "",
   qualifications_summary: "",
   district: "",
   lesson_mode: "either",
@@ -216,10 +199,8 @@ function tutorToForm(t: Tutor): FormValues {
   return {
     headline: t.headline ?? "",
     subjects: t.subjects ?? [],
-    target_students: t.target_students ?? [],
     university: t.university ?? "",
     highschool: t.highschool ?? "",
-    academic_summary: t.academic_summary ?? "",
     qualifications_summary: t.qualifications_summary ?? "",
     district: t.district ?? "",
     lesson_mode: t.lesson_mode ?? "either",
@@ -273,8 +254,6 @@ function formToPayload(v: FormValues, isNew: boolean) {
     headline: v.headline.trim(),
     university: v.university || null,
     highschool: v.highschool || null,
-    target_students: v.target_students,
-    academic_summary: v.academic_summary || null,
     qualifications_summary: v.qualifications_summary || null,
     subjects: v.subjects,
     district: v.lesson_mode === "online" ? null : v.district || null,
@@ -396,9 +375,6 @@ function AdminTutors() {
     if (parsed.data.is_published) {
       if (!(parsed.data.university ?? "").trim() && !(parsed.data.highschool ?? "").trim()) {
         publishErrors.university = "Add at least university or highschool before publishing.";
-      }
-      if (!(parsed.data.academic_summary ?? "").trim() && parsed.data.exam_results.length === 0) {
-        publishErrors.academic_summary = "Add academic summary or exam results before publishing.";
       }
       if (!(parsed.data.qualifications_summary ?? "").trim() && parsed.data.education.length === 0 && parsed.data.experience_years === "") {
         publishErrors.qualifications_summary = "Add qualifications summary, education, or experience before publishing.";
@@ -531,7 +507,7 @@ function AdminTutors() {
                     </div>
                   </Section>
 
-                  <Section title="1. 📚 Subjects & Target Students">
+                  <Section title="1. 📚 Subjects">
                     <Field label="Subjects" error={errors.subjects}>
                       <div className="space-y-2">
                         {form.subjects.length > 0 && (
@@ -567,52 +543,9 @@ function AdminTutors() {
                       </div>
                     </Field>
 
-                    <Field label="Target students" error={errors.target_students}>
-                      <div className="space-y-2">
-                        {form.target_students.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5">
-                            {form.target_students.map((segment) => (
-                              <span key={segment} className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-teal)]">
-                                {segment}
-                                <button
-                                  type="button"
-                                  aria-label={`Remove ${segment}`}
-                                  onClick={() => setForm({ ...form, target_students: form.target_students.filter((x) => x !== segment) })}
-                                  className="hover:text-destructive"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        <SearchableSelect
-                          value=""
-                          onChange={(v) => {
-                            const val = v.trim();
-                            if (!val) return;
-                            if (form.target_students.includes(val)) return;
-                            setForm({ ...form, target_students: [...form.target_students, val] });
-                          }}
-                          options={TARGET_STUDENT_OPTIONS.filter((item) => !form.target_students.includes(item))}
-                          placeholder="Add a target student group…"
-                          searchPlaceholder="Search target student groups…"
-                          allowCustom
-                        />
-                      </div>
-                    </Field>
                   </Section>
 
                   <Section title="2. ✨ Academic Excellence">
-                    <Field label="IB/AL/DSE score summary" error={errors.academic_summary}>
-                      <Textarea
-                        rows={3}
-                        value={form.academic_summary}
-                        onChange={(e) => setForm({ ...form, academic_summary: e.target.value })}
-                        placeholder="IB 45/45, DSE 5** in Chemistry and Biology"
-                      />
-                    </Field>
-
                     <div className="space-y-3">
                       {form.education.length === 0 && (
                         <p className="text-sm text-muted-foreground">No qualifications yet. Add one below.</p>

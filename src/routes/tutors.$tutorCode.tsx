@@ -219,7 +219,7 @@ function TutorDetail() {
             <div className="space-y-4 min-h-0">
               <div className="rounded-2xl border border-border bg-card p-5">
                 <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                  <BookOpen className="h-5 w-5 text-[color:var(--brand-teal)]" /> 1. 📚 Subjects & Target Students
+                  <BookOpen className="h-5 w-5 text-[color:var(--brand-teal)]" /> 1. 📚 Subjects
                 </div>
                 <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                   {t.subjects.length > 0
@@ -229,12 +229,6 @@ function TutorDetail() {
                         </li>
                       ))
                     : null}
-                  {t.target_students.length > 0 ? (
-                    <li className="rounded-xl border border-border/70 bg-background/70 p-3">
-                      <p className="font-semibold text-foreground">Target students</p>
-                      <p className="mt-1">{t.target_students.join(", ")}</p>
-                    </li>
-                  ) : null}
                 </ul>
               </div>
 
@@ -243,11 +237,6 @@ function TutorDetail() {
                   <Award className="h-5 w-5 text-[color:var(--brand-teal)]" /> 2. ✨ Academic Excellence
                 </div>
                 <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                  {t.academic_summary ? (
-                    <li className="rounded-xl border border-border/70 bg-background/70 p-3 whitespace-pre-line">
-                      {t.academic_summary}
-                    </li>
-                  ) : null}
                   {t.exam_results.length > 0
                     ? t.exam_results.map((result, i) => (
                         <li key={i} className="rounded-xl border border-border/70 bg-background/70 p-3">
