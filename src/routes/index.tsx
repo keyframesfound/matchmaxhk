@@ -6,8 +6,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { blurActive } from "@/lib/dom";
-import { fetchTopWeeklyTutors, fetchLandingStats, fetchTutorByCode, getTutorLessonModeLabel, getTutorLocationLabel, type Tutor } from "@/features/tutors/queries";
-import { fetchFeaturedReviews } from "@/features/tutors/reviews";
+import { fetchTopWeeklyTutors, fetchLandingStats, fetchTutorByCode, getTutorGenderLabel, getTutorLessonModeLabel, getTutorLocationLabel, type Tutor } from "@/features/tutors/queries";
 import { supabase } from "@/integrations/supabase/client";
 
 const OG_IMAGE = "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp";
@@ -82,11 +81,6 @@ function Landing() {
       return Number.isFinite(n) ? n : 0;
     },
   });
-  const { data: featuredReviews = [] } = useQuery({
-    queryKey: ["landing", "featured_reviews"],
-    queryFn: () => fetchFeaturedReviews(3),
-  });
-
   const { data: heroTutorCode } = useQuery({
     queryKey: ["settings", "hero_tutor_code"],
     queryFn: async () => {
@@ -134,8 +128,7 @@ function Landing() {
     { key: "districts" as const, value: "18" },
   ];
 
-  // JSON-LD: helps Google understand this as an educational service and
-  // (once you have enough reviews) surface star ratings in search results.
+  // JSON-LD: helps Google understand this as an educational service.
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
@@ -147,15 +140,6 @@ function Landing() {
       "@type": "City",
       name: "Hong Kong",
     },
-    ...(featuredReviews.length > 0 && {
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: (
-          featuredReviews.reduce((sum, r) => sum + r.rating, 0) / featuredReviews.length
-        ).toFixed(1),
-        reviewCount: featuredReviews.length,
-      },
-    }),
   };
 
   const tutorListStructuredData =
@@ -168,15 +152,8 @@ function Landing() {
             position: i + 1,
             item: {
               "@type": "Person",
-              name: tut.display_name,
+              name: tut.tutor_code,
               url: `https://maxmatch.app/tutors/${tut.tutor_code}`,
-              ...(tut.rating && {
-                aggregateRating: {
-                  "@type": "AggregateRating",
-                  ratingValue: tut.rating,
-                  reviewCount: tut.review_count,
-                },
-              }),
             },
           })),
         }
@@ -273,7 +250,7 @@ function Landing() {
                       {heroTutor.photo_url ? (
                         <img
                           src={heroTutor.photo_url}
-                          alt={`${heroTutor.display_name}, tutor for ${heroTutor.subjects.slice(0, 2).join(" and ")}`}
+                          alt={`${heroTutor.tutor_code}, tutor for ${heroTutor.subjects.slice(0, 2).join(" and ")}`}
                           width={44}
                           height={44}
                           loading="eager"
@@ -284,8 +261,8 @@ function Landing() {
                         <div className="h-11 w-11 shrink-0 rounded-full bg-brand-gradient-soft" />
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-foreground break-words md:truncate">{heroTutor.display_name}</p>
-                        <p className="text-xs text-muted-foreground break-words md:truncate">
+                        <p className="text-sm font-bold text-foreground break-words">{heroTutor.tutor_code}{getTutorGenderLabel(heroTutor.gender) ? ` · ${getTutorGenderLabel(heroTutor.gender)}` : ""}</p>
+                        <p className="text-xs leading-relaxed text-muted-foreground break-words whitespace-pre-line">
                           {heroTutor.headline ?? heroTutor.subjects.slice(0, 3).join(" · ")}
                         </p>
                       </div>
@@ -323,7 +300,7 @@ function Landing() {
                     </div>
                     <Button asChild className="mt-6 w-full rounded-xl bg-brand-gradient py-3 text-sm font-bold text-white shadow-teal">
                       <Link to="/tutors/$tutorCode" params={{ tutorCode: heroTutor.tutor_code }}>
-                        <MessageCircle className="mr-2 inline h-4 w-4" /> View {heroTutor.display_name}'s profile
+                        <MessageCircle className="mr-2 inline h-4 w-4" /> View tutor profile
                       </Link>
                     </Button>
                   </>
@@ -408,7 +385,7 @@ function Landing() {
                   {tut.photo_url ? (
                     <img
                       src={tut.photo_url}
-                      alt={`${tut.display_name}, ${tut.subjects.slice(0, 2).join(" and ")} tutor in Hong Kong`}
+                      alt={`${tut.tutor_code}, ${tut.subjects.slice(0, 2).join(" and ")} tutor in Hong Kong`}
                       width={56}
                       height={56}
                       loading="lazy"
@@ -417,9 +394,9 @@ function Landing() {
                   ) : (
                     <div className="h-14 w-14 shrink-0 rounded-full bg-brand-gradient-soft" />
                   )}
-                    <div className="min-w-0">
-                    <p className="text-base font-bold text-foreground break-words md:truncate">{tut.display_name}</p>
-                    <p className="text-sm text-muted-foreground break-words md:truncate">{tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}</p>
+                  <div className="min-w-0">
+                    <p className="text-base font-bold text-foreground break-words">{tut.tutor_code}{getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}</p>
+                    <p className="text-sm leading-relaxed text-muted-foreground break-words whitespace-pre-line">{tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}</p>
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -445,10 +422,6 @@ function Landing() {
                   <span className="inline-flex items-center gap-1 text-muted-foreground">
                     {tut.lesson_mode === "online" ? <Globe className="h-4 w-4" aria-hidden="true" /> : <MapPin className="h-4 w-4" aria-hidden="true" />}
                     {getTutorLocationLabel(tut)}
-                  </span>
-                  <span className="inline-flex items-center gap-1 font-bold text-foreground">
-                    <Star className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" aria-hidden="true" /> {Number(tut.rating).toFixed(1)}
-                    <span className="ml-1 text-xs font-normal text-muted-foreground">({tut.review_count})</span>
                   </span>
                 </div>
                 <p className="mt-4 text-2xl font-black text-[color:var(--brand-navy)]">
@@ -507,56 +480,6 @@ function Landing() {
           </div>
         </div>
       </section>
-
-      {/* Reviews */}
-      <section className="bg-muted/30 py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="text-center text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
-            {t("testimonials.title")}
-          </h2>
-          <p className="mt-3 text-center text-muted-foreground">
-            Real reviews from parents and students. Admins can add or edit reviews on each tutor's profile.
-          </p>
-          {featuredReviews.length === 0 ? (
-            <p className="mt-14 text-center text-muted-foreground">No reviews yet.</p>
-          ) : (
-            <div className="mt-14 grid gap-6 md:grid-cols-3">
-              {featuredReviews.map((r) => (
-                <figure key={r.id} className="flex flex-col rounded-3xl border border-border bg-card p-8">
-                  <div className="mb-4 flex gap-0.5">
-                    {[0, 1, 2, 3, 4].map((i) => (
-                      <Star
-                        key={i}
-                        aria-hidden="true"
-                        className={`h-4 w-4 ${i < r.rating ? "fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" : "text-muted-foreground/30"}`}
-                      />
-                    ))}
-                  </div>
-                  <blockquote className="flex-1 text-base leading-relaxed text-foreground">
-                    {r.comment ? `"${r.comment}"` : <span className="text-muted-foreground">No comment</span>}
-                  </blockquote>
-                  <figcaption className="mt-6 text-sm text-muted-foreground">
-                    <span className="font-bold text-foreground">{r.author_alias}</span>
-                    {r.tutor && (
-                      <>
-                        {" · "}
-                        <Link
-                          to="/tutors/$tutorCode"
-                          params={{ tutorCode: r.tutor.tutor_code }}
-                          className="font-semibold text-[color:var(--brand-teal)] hover:underline"
-                        >
-                          {r.tutor.display_name}
-                        </Link>
-                      </>
-                    )}
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
 
       <SiteFooter />
     </div>

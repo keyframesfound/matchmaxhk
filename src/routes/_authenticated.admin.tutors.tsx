@@ -295,7 +295,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
     exam_results: cleanExams,
   };
   if (isNew) {
-    // New tutors start at 5★; rating auto-updates once reviews exist.
+    // New tutors start with baseline scoring values.
     base.rating = 5.0;
     base.review_count = 0;
   }
@@ -820,7 +820,7 @@ function AdminTutors() {
                   <Section title="Scoring">
                     {editing && (
                       <p className="rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                        Overall rating auto-updates from reviews. Current: <strong>{Number(editing.rating).toFixed(1)}★</strong> ({editing.review_count} review{editing.review_count === 1 ? "" : "s"}).
+                        Current profile quality score: <strong>{Number(editing.rating).toFixed(1)}★</strong>.
                       </p>
                     )}
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -867,7 +867,6 @@ function AdminTutors() {
                   <th className="px-4 py-3">Subjects</th>
                   <th className="px-4 py-3">District</th>
                   <th className="px-4 py-3">Rate</th>
-                  <th className="px-4 py-3">Rating</th>
                   <th className="px-4 py-3">Week</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3 text-right">Actions</th>
@@ -875,10 +874,10 @@ function AdminTutors() {
               </thead>
               <tbody>
                 {isLoading && (
-                  <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
                 )}
                 {!isLoading && filtered.length === 0 && (
-                  <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No tutors yet. Click “Add tutor” to create one.</td></tr>
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No tutors yet. Click “Add tutor” to create one.</td></tr>
                 )}
                 {filtered.map((row) => (
                   <tr key={row.id} className="border-t border-border">
@@ -886,12 +885,11 @@ function AdminTutors() {
                       <Link to="/tutors/$tutorCode" params={{ tutorCode: row.tutor_code }} className="font-semibold text-foreground hover:underline">
                         {row.tutor_code}{getTutorGenderLabel(row.gender) ? ` · ${getTutorGenderLabel(row.gender)}` : ""}
                       </Link>
-                      <p className="text-xs text-muted-foreground">{row.headline ?? "No headline yet"}</p>
+                      <p className="text-xs leading-relaxed text-muted-foreground break-words whitespace-pre-line">{row.headline ?? "No headline yet"}</p>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{(row.subjects ?? []).join(", ")}</td>
                     <td className="px-4 py-3 text-muted-foreground">{row.district ?? "—"}</td>
                     <td className="px-4 py-3">HK${row.hourly_rate}</td>
-                    <td className="px-4 py-3">{Number(row.rating).toFixed(1)}★ <span className="text-xs text-muted-foreground">({row.review_count})</span></td>
                     <td className="px-4 py-3">{row.weekly_score}</td>
                     <td className="px-4 py-3">
                       <span className={row.is_published ? "text-[color:var(--brand-teal)]" : "text-muted-foreground"}>
@@ -901,7 +899,7 @@ function AdminTutors() {
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
                         <Button size="sm" variant="outline" asChild>
-                          <Link to="/tutors/$tutorCode" params={{ tutorCode: row.tutor_code }}>Reviews</Link>
+                          <Link to="/tutors/$tutorCode" params={{ tutorCode: row.tutor_code }}>View profile</Link>
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => openEdit(row)}>
                           <Pencil className="h-3.5 w-3.5" />

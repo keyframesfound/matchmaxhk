@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { BadgeCheck, MapPin, Star, Search, Globe, X, SlidersHorizontal } from "lucide-react";
+import { BadgeCheck, MapPin, Search, Globe, X, SlidersHorizontal } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
@@ -338,10 +338,10 @@ function TutorsDirectory() {
                         <div className="h-14 w-14 shrink-0 rounded-full bg-brand-gradient-soft" />
                       )}
                       <div className="min-w-0">
-                        <p className="text-base font-bold text-foreground break-words md:truncate">
+                        <p className="text-base font-bold text-foreground break-words">
                           {tut.tutor_code}{getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}
                         </p>
-                        <p className="text-sm text-muted-foreground break-words md:truncate">
+                        <p className="text-sm leading-relaxed text-muted-foreground break-words whitespace-pre-line">
                           {tut.headline ?? ([tut.university, tut.highschool].filter(Boolean).join(" | ") || getTutorLessonModeLabel(tut.lesson_mode))}
                         </p>
                       </div>
@@ -374,9 +374,6 @@ function TutorsDirectory() {
                       <span className="inline-flex items-center gap-1 text-muted-foreground">
                         {tut.lesson_mode === "online" ? <Globe className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
                         {getTutorLocationLabel(tut)}
-                      </span>
-                      <span className="inline-flex items-center gap-1 font-bold text-foreground">
-                        <Star className="h-4 w-4 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" /> {Number(tut.rating).toFixed(1)}
                       </span>
                     </div>
                     <p className="mt-4 text-2xl font-black text-[color:var(--brand-navy)]">
