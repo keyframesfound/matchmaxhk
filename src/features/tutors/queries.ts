@@ -14,6 +14,7 @@ export type Tutor = {
   headline: string | null;
   subjects: string[];
   district: string | null;
+  gender: string | null;
   lesson_mode: "online" | "in_person" | "either";
   hourly_rate: number;
   badge: string | null;
@@ -34,7 +35,7 @@ export type Tutor = {
 };
 
 const SELECT_COLS =
-  "id, display_name, headline, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, rating, review_count, weekly_rating, weekly_score, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results";
+  "id, display_name, headline, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, rating, review_count, weekly_rating, weekly_score, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
 
 function normalize(row: Record<string, unknown>): Tutor {
   const edu = Array.isArray(row.education) ? (row.education as Education[]) : [];

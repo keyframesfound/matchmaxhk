@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { BadgeCheck, MapPin, MessageCircle, GraduationCap, Award, Languages, Clock, Pencil, Trash2, Plus, X, Globe } from "lucide-react";
+import { BadgeCheck, MapPin, MessageCircle, GraduationCap, Award, Languages, Clock, Pencil, Trash2, Plus, X, Globe, BookOpen } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,29 @@ import { getSystem } from "@/features/tutors/examSystems";
 import { fetchReviewsForTutor, type TutorReview } from "@/features/tutors/reviews";
 import { useAuth } from "@/features/auth/useAuth";
 
+function formatGenderLabel(gender: string | null | undefined): string {
+  const normalized = (gender ?? "").toLowerCase();
+  if (normalized === "male") return "Male";
+  if (normalized === "female") return "Female";
+  if (normalized === "other") return "Other";
+  return "";
+}
+
+function buildTutorSeoMeta(tutor: Tutor, url: string) {
+  const subjects = (tutor.subjects ?? []).filter(Boolean);
+  const subjectText = subjects.slice(0, 3).join(", ");
+  const locationText = tutor.district ? ` in ${tutor.district}` : " in Hong Kong";
+  const lessonModeText = tutor.lesson_mode === "online" ? "online" : tutor.lesson_mode === "either" ? "online or in-person" : "in-person";
+  const title = `${tutor.display_name} | ${subjectText || "Tutor"} ${lessonModeText} ${locationText} | MatchMax`;
+  const description = `${tutor.display_name} is a ${subjectText || "qualified"} tutor${locationText}. Browse ${tutor.display_name}'s profile, lesson mode, rates, reviews and availability on MatchMax.`;
+
+  return {
+    title,
+    description,
+    url,
+  };
+}
+
 export const Route = createFileRoute("/tutors/$tutorCode")({
   loader: async ({ params }) => {
     const tutor = await fetchTutorByCode(params.tutorCode);
@@ -35,16 +58,15 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
       };
     }
     const t = loaderData.tutor;
-    const title = `${t.display_name} — MatchMax`;
-    const subjects = (t.subjects ?? []).slice(0, 3).join(", ");
-    const desc = t.headline ?? `${subjects} tutor · ${getTutorLessonModeLabel(t.lesson_mode)}${t.lesson_mode === "online" ? "" : t.district ? ` in ${t.district}` : ""}.`;
+    const seo = buildTutorSeoMeta(t, url);
     return {
       meta: [
-        { title },
-        { name: "description", content: desc },
-        { property: "og:title", content: title },
-        { property: "og:description", content: desc },
-        { property: "og:url", content: url },
+        { title: seo.title },
+        { name: "description", content: seo.description },
+        { name: "robots", content: "index, follow" },
+        { property: "og:title", content: seo.title },
+        { property: "og:description", content: seo.description },
+        { property: "og:url", content: seo.url },
         { property: "og:type", content: "profile" },
         ...(t.photo_url ? [
           { property: "og:image", content: t.photo_url },
@@ -117,6 +139,27 @@ function TutorDetail() {
     ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`I would like to request tutor ${t.tutor_code}`)}`
     : "";
 
+  const genderLabel = formatGenderLabel(t.gender);
+  const profileTitle = `${t.tutor_code}: ${t.display_name}${genderLabel ? ` • ${genderLabel}` : ""}`;
+  const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
+  const tutorSeoSummary = `${t.display_name} offers ${subjectText || "tutoring"} support${t.district ? ` in ${t.district}` : " in Hong Kong"}. ${t.lesson_mode === "online" ? "Online lessons are available." : t.lesson_mode === "either" ? "Online and in-person lessons are available." : "In-person lessons are available."} Browse rates, availability and reviews on MatchMax.`;
+  const tutorStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: t.display_name,
+    url: `https://maxmatch.app/tutors/${t.tutor_code}`,
+    description: tutorSeoSummary,
+    ...(t.photo_url ? { image: t.photo_url } : {}),
+    ...(t.district ? {
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: t.district,
+        addressRegion: "Hong Kong",
+      },
+    } : {}),
+    ...(t.subjects?.length ? { knowsAbout: t.subjects } : {}),
+  };
+
   const myReview = useMemo(
     () => (user ? reviews.find((r) => r.author_user_id === user.id) ?? null : null),
     [reviews, user],
@@ -160,6 +203,10 @@ function TutorDetail() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(tutorStructuredData) }}
+      />
       <SiteHeader />
       <main className="flex-1">
         {/* Header */}
@@ -172,7 +219,7 @@ function TutorDetail() {
                 <div className="h-24 w-24 shrink-0 rounded-2xl bg-brand-gradient-soft" />
               )}
               <div className="min-w-0 flex-1">
-                <h1 className="text-3xl font-black text-[color:var(--brand-navy)] sm:text-4xl">{t.display_name}</h1>
+                <h1 className="text-3xl font-black text-[color:var(--brand-navy)] sm:text-4xl">{profileTitle}</h1>
                 {t.headline && <p className="mt-1 text-lg text-muted-foreground">{t.headline}</p>}
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
                   <StarRating value={Number(t.rating)} readOnly size={16} />
@@ -215,66 +262,94 @@ function TutorDetail() {
           </div>
         </section>
 
+        <section className="border-b border-border bg-background/80 py-8">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <h2 className="text-xl font-black text-[color:var(--brand-navy)]">{t.display_name} tutoring in {t.district ?? "Hong Kong"}</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">{tutorSeoSummary}</p>
+          </div>
+        </section>
+
         {/* Body */}
         <section className="py-14">
           <div className="mx-auto grid max-w-5xl gap-10 px-4 sm:px-6 lg:grid-cols-3 min-h-0">
             <div className="space-y-8 lg:col-span-2 min-h-0">
               {t.bio && (
-                <div>
+                <div className="rounded-2xl border border-border bg-card p-6">
                   <h2 className="text-xl font-bold text-[color:var(--brand-navy)]">About</h2>
                   <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-foreground break-words">{t.bio}</p>
                 </div>
               )}
 
-              {t.education.length > 0 && (
-                <div>
-                  <h2 className="flex items-center gap-2 text-xl font-bold text-[color:var(--brand-navy)]">
-                    <GraduationCap className="h-5 w-5" /> Education
-                  </h2>
-                  <ul className="mt-3 space-y-2">
-                    {t.education.map((e, i) => (
-                      <li key={i} className="rounded-xl border border-border bg-card p-3 text-sm">
-                        <p className="font-semibold text-foreground">{e.qualification}</p>
-                        <p className="text-muted-foreground">
-                          {e.institution}{e.year ? ` · ${e.year}` : ""}
-                        </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
+                    <GraduationCap className="h-5 w-5 text-[color:var(--brand-teal)]" /> Academic achievements
+                  </div>
+                  <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                    {t.education.length > 0 ? (
+                      t.education.map((e, i) => (
+                        <li key={i} className="rounded-xl border border-border/70 bg-background/70 p-3">
+                          <p className="font-semibold text-foreground">{e.qualification}</p>
+                          <p className="mt-1">{e.institution}{e.year ? ` · ${e.year}` : ""}</p>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="rounded-xl border border-dashed border-border p-3">Academic qualifications will appear here once added.</li>
+                    )}
+                    {t.exam_results.length > 0 && (
+                      <li className="rounded-xl border border-border/70 bg-background/70 p-3">
+                        <p className="font-semibold text-foreground">Exam results</p>
+                        <p className="mt-1">{t.exam_results.length} recorded exam result set{t.exam_results.length > 1 ? "s" : ""} available.</p>
                       </li>
-                    ))}
+                    )}
                   </ul>
                 </div>
-              )}
 
-              {t.exam_results.length > 0 && (
-                <div>
-                  <h2 className="flex items-center gap-2 text-xl font-bold text-[color:var(--brand-navy)]">
-                    <Award className="h-5 w-5" /> Exam results
-                  </h2>
-                  <div className="mt-3 space-y-3">
-                    {t.exam_results.map((r, i) => {
-                      const sys = getSystem(r.system);
-                      return (
-                        <div key={i} className="overflow-hidden rounded-xl border border-border bg-card">
-                          <div className="border-b border-border bg-muted/40 px-3 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                            {sys?.label ?? r.system}
-                          </div>
-                          <table className="w-full text-sm">
-                            <tbody>
-                              {r.subjects.map((s, j) => (
-                                <tr key={j} className="border-t border-border first:border-t-0">
-                                  <td className="px-3 py-2 font-medium text-foreground">{s.subject}</td>
-                                  <td className="px-3 py-2 text-right font-bold text-[color:var(--brand-navy)]">{s.grade}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      );
-                    })}
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
+                    <Award className="h-5 w-5 text-[color:var(--brand-teal)]" /> Other achievements
                   </div>
+                  <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                    {t.badge ? <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Featured badge:</span> {t.badge}</li> : null}
+                    {t.experience_years != null ? <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Experience:</span> {t.experience_years} years tutoring</li> : null}
+                    {t.teaching_since != null ? <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Teaching since:</span> {t.teaching_since}</li> : null}
+                    {t.languages.length > 0 ? <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Languages:</span> {t.languages.join(", ")}</li> : null}
+                    {!t.badge && t.experience_years == null && t.teaching_since == null && t.languages.length === 0 ? (
+                      <li className="rounded-xl border border-dashed border-border p-3">Additional achievements will be displayed here as they are added.</li>
+                    ) : null}
+                  </ul>
                 </div>
-              )}
 
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
+                    <BookOpen className="h-5 w-5 text-[color:var(--brand-teal)]" /> Teach what
+                  </div>
+                  <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                    {(t.subjects ?? []).length > 0 ? (
+                      (t.subjects ?? []).map((subject) => (
+                        <li key={subject} className="rounded-xl border border-border/70 bg-background/70 p-3">
+                          <span className="font-semibold text-foreground">{subject}</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="rounded-xl border border-dashed border-border p-3">Subjects will be listed here once added.</li>
+                    )}
+                  </ul>
+                </div>
 
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
+                    <MapPin className="h-5 w-5 text-[color:var(--brand-teal)]" /> Lesson format + location
+                  </div>
+                  <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                    <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Format:</span> {getTutorLessonModeLabel(t.lesson_mode)}</li>
+                    <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Location:</span> {t.district ?? "Hong Kong"}</li>
+                    {t.lesson_mode === "online" ? <li className="rounded-xl border border-border/70 bg-background/70 p-3">Online sessions available for flexible learning.</li> : null}
+                    {t.lesson_mode === "either" ? <li className="rounded-xl border border-border/70 bg-background/70 p-3">Online and in-person sessions available.</li> : null}
+                    {t.lesson_mode === "in_person" ? <li className="rounded-xl border border-border/70 bg-background/70 p-3">In-person teaching available at the listed location.</li> : null}
+                  </ul>
+                </div>
+              </div>
 
               {/* Reviews */}
               <div>
