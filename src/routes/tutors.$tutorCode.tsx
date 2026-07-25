@@ -164,7 +164,7 @@ function TutorDetail() {
               <div className="min-w-0 flex-1">
                 <h1 className="text-3xl font-black text-[color:var(--brand-navy)] sm:text-4xl">{profileTitle}</h1>
                 {t.headline && (
-                  <p className="mt-1 text-lg leading-relaxed text-muted-foreground break-words whitespace-pre-line">
+                  <p className="mt-1 max-h-[5.5rem] overflow-hidden text-lg leading-relaxed text-muted-foreground break-words whitespace-pre-line sm:max-h-[7rem]">
                     {t.headline}
                   </p>
                 )}
@@ -313,11 +313,6 @@ function TutorDetail() {
                   <li className="rounded-xl border border-border/70 bg-background/70 p-3">
                     <span className="font-semibold text-foreground">Location:</span> {t.district ?? "Hong Kong"}
                   </li>
-                  {t.lesson_mode === "online" ? (
-                    <li className="rounded-xl border border-border/70 bg-background/70 p-3">
-                      Online sessions available for flexible learning.
-                    </li>
-                  ) : null}
                   {t.lesson_mode === "either" ? (
                     <li className="rounded-xl border border-border/70 bg-background/70 p-3">
                       Online and in-person sessions available.
