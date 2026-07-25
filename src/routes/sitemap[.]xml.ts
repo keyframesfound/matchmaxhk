@@ -11,51 +11,106 @@ interface SitemapEntry {
   priority?: string;
 }
 
+function toLastmod(value?: string | null): string | undefined {
+  if (!value) return undefined;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return date.toISOString().slice(0, 10);
+}
+
+function escapeXml(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => {
+    switch (char) {
+      case "&":
+        return `\u0026amp;`;
+      case "<":
+        return `\u0026lt;`;
+      case ">":
+        return `\u0026gt;`;
+      case '"':
+        return `\u0026quot;`;
+      case "'":
+        return `\u0026apos;`;
+      default:
+        return char;
+    }
+  });
+}
+
+function renderUrl(entry: SitemapEntry): string {
+  const lines = [
+    "  <url>",
+    `    <loc>${escapeXml(`${BASE_URL}${entry.path}`)}</loc>`,
+    entry.lastmod ? `    <lastmod>${entry.lastmod}</lastmod>` : null,
+    entry.changefreq ? `    <changefreq>${entry.changefreq}</changefreq>` : null,
+    entry.priority ? `    <priority>${entry.priority}</priority>` : null,
+    "  </url>",
+  ];
+  return lines.filter(Boolean).join("\n");
+}
+
+async function fetchPublishedTutorEntries(): Promise<SitemapEntry[]> {
+  const pageSize = 1000;
+  let from = 0;
+  const entries: SitemapEntry[] = [];
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("tutors")
+      .select("tutor_code, updated_at")
+      .eq("is_published", true)
+      .order("tutor_code", { ascending: true })
+      .range(from, from + pageSize - 1);
+
+    if (error) throw error;
+
+    const rows = data ?? [];
+    for (const tutor of rows) {
+      if (!tutor.tutor_code) continue;
+      entries.push({
+        path: `/tutors/${tutor.tutor_code}`,
+        lastmod: toLastmod(tutor.updated_at),
+        changefreq: "weekly",
+        priority: "0.6",
+      });
+    }
+
+    if (rows.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return entries;
+}
+
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
+        const today = new Date().toISOString().slice(0, 10);
         const entries: SitemapEntry[] = [
-          { path: "/", changefreq: "weekly", priority: "1.0" },
-          { path: "/tutors", changefreq: "daily", priority: "0.9" },
-          { path: "/become-a-tutor", changefreq: "monthly", priority: "0.7" },
+          { path: "/", lastmod: today, changefreq: "weekly", priority: "1.0" },
+          { path: "/tutors", lastmod: today, changefreq: "daily", priority: "0.9" },
+          { path: "/become-a-tutor", lastmod: today, changefreq: "monthly", priority: "0.7" },
         ];
 
         try {
-          const { data } = await supabase
-            .from("tutors")
-            .select("tutor_code")
-            .eq("is_published", true);
-          for (const t of data ?? []) {
-            if (t.tutor_code) {
-              entries.push({ path: `/tutors/${t.tutor_code}`, changefreq: "weekly", priority: "0.6" });
-            }
-          }
+          const tutorEntries = await fetchPublishedTutorEntries();
+          entries.push(...tutorEntries);
         } catch {
-          // ignore — sitemap still serves core routes
+          // ignore — sitemap still serves core public routes
         }
-
-        const urls = entries.map((e) =>
-          [
-            `  <url>`,
-            `    <loc>${BASE_URL}${e.path}</loc>`,
-            e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
-            e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
-            e.priority ? `    <priority>${e.priority}</priority>` : null,
-            `  </url>`,
-          ].filter(Boolean).join("\n"),
-        );
 
         const xml = [
           `<?xml version="1.0" encoding="UTF-8"?>`,
           `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
-          ...urls,
+          ...entries.map(renderUrl),
           `</urlset>`,
+          "",
         ].join("\n");
 
         return new Response(xml, {
           headers: {
-            "Content-Type": "application/xml",
+            "Content-Type": "application/xml; charset=utf-8",
             "Cache-Control": "public, max-age=3600",
           },
         });
