@@ -15,9 +15,18 @@ import {
 } from "@/features/tutors/queries";
 import { getSystem } from "@/features/tutors/examSystems";
 
-function useTwoLineAutoFit(text: string, baseSize = 18, minSize = 13) {
+function useResponsiveHeadlineFit(text: string, baseSize = 18, minSize = 13) {
   const ref = useRef<HTMLParagraphElement | null>(null);
   const [fontSizePx, setFontSizePx] = useState(baseSize);
+  const [maxLines, setMaxLines] = useState(2);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const updateLines = () => setMaxLines(media.matches ? 1 : 2);
+    updateLines();
+    media.addEventListener("change", updateLines);
+    return () => media.removeEventListener("change", updateLines);
+  }, []);
 
   useEffect(() => {
     const node = ref.current;
@@ -32,7 +41,7 @@ function useTwoLineAutoFit(text: string, baseSize = 18, minSize = 13) {
       if (!Number.isFinite(lineHeight) || lineHeight <= 0) {
         lineHeight = current * 1.45;
       }
-      const maxHeight = lineHeight * 2 + 1;
+      const maxHeight = lineHeight * maxLines + 1;
 
       while (current > minSize && node.scrollHeight > maxHeight) {
         current -= 0.5;
@@ -57,9 +66,9 @@ function useTwoLineAutoFit(text: string, baseSize = 18, minSize = 13) {
       cancelAnimationFrame(raf);
       observer.disconnect();
     };
-  }, [text, baseSize, minSize]);
+  }, [text, baseSize, minSize, maxLines]);
 
-  return { ref, fontSizePx };
+  return { ref, fontSizePx, maxLines };
 }
 
 function buildTutorSeoMeta(tutor: Tutor, url: string) {
@@ -176,7 +185,7 @@ function TutorDetail() {
   const genderLabel = getTutorGenderLabel(t.gender);
   const profileTitle = `${t.tutor_code}${genderLabel ? ` • ${genderLabel}` : ""}`;
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
-  const { ref: headlineRef, fontSizePx: headlineSize } = useTwoLineAutoFit(t.headline ?? "", 18, 13);
+  const { ref: headlineRef, fontSizePx: headlineSize, maxLines } = useResponsiveHeadlineFit(t.headline ?? "", 18, 13);
   const tutorSeoSummary = `Tutor ${t.tutor_code} offers ${subjectText || "tutoring"} support${t.district ? ` in ${t.district}` : " in Hong Kong"}. ${t.lesson_mode === "online" ? "Online lessons are available." : t.lesson_mode === "either" ? "Online and in-person lessons are available." : "In-person lessons are available."} Browse rates and availability on MatchMax.`;
   const tutorStructuredData = {
     "@context": "https://schema.org",
@@ -220,7 +229,7 @@ function TutorDetail() {
                       fontSize: `${headlineSize}px`,
                       lineHeight: 1.45,
                       display: "-webkit-box",
-                      WebkitLineClamp: 2,
+                      WebkitLineClamp: maxLines,
                       WebkitBoxOrient: "vertical",
                       overflow: "hidden",
                     }}
