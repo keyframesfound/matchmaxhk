@@ -34,8 +34,9 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "https://maxmatch.app/" },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
-    ],
+    ]
   }),
   component: Landing,
 });
