@@ -12,6 +12,11 @@ export type Tutor = {
   id: string;
   display_name: string;
   headline: string | null;
+  university: string | null;
+  highschool: string | null;
+  target_students: string[];
+  academic_summary: string | null;
+  qualifications_summary: string | null;
   subjects: string[];
   district: string | null;
   gender: string | null;
@@ -35,12 +40,23 @@ export type Tutor = {
 };
 
 const SELECT_COLS =
-  "id, display_name, headline, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, rating, review_count, weekly_rating, weekly_score, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
+  "id, display_name, headline, university, highschool, target_students, academic_summary, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, rating, review_count, weekly_rating, weekly_score, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
 
 function normalize(row: Record<string, unknown>): Tutor {
   const edu = Array.isArray(row.education) ? (row.education as Education[]) : [];
   const exams = normalizeExamResults(row.exam_results);
-  return { ...(row as unknown as Tutor), education: edu, exam_results: exams };
+  const targetStudents = Array.isArray(row.target_students)
+    ? (row.target_students as unknown[]).filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    : [];
+  return { ...(row as unknown as Tutor), education: edu, exam_results: exams, target_students: targetStudents };
+}
+
+export function getTutorGenderLabel(gender: string | null | undefined): string {
+  const normalized = (gender ?? "").toLowerCase();
+  if (normalized === "male") return "Male";
+  if (normalized === "female") return "Female";
+  if (normalized === "other") return "Other";
+  return "";
 }
 
 export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {

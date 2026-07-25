@@ -15,26 +15,18 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchTutorByCode, getTutorLessonModeLabel, getTutorLocationLabel, type Tutor } from "@/features/tutors/queries";
+import { fetchTutorByCode, getTutorGenderLabel, getTutorLessonModeLabel, getTutorLocationLabel, type Tutor } from "@/features/tutors/queries";
 import { getSystem } from "@/features/tutors/examSystems";
 import { fetchReviewsForTutor, type TutorReview } from "@/features/tutors/reviews";
 import { useAuth } from "@/features/auth/useAuth";
-
-function formatGenderLabel(gender: string | null | undefined): string {
-  const normalized = (gender ?? "").toLowerCase();
-  if (normalized === "male") return "Male";
-  if (normalized === "female") return "Female";
-  if (normalized === "other") return "Other";
-  return "";
-}
 
 function buildTutorSeoMeta(tutor: Tutor, url: string) {
   const subjects = (tutor.subjects ?? []).filter(Boolean);
   const subjectText = subjects.slice(0, 3).join(", ");
   const locationText = tutor.district ? ` in ${tutor.district}` : " in Hong Kong";
   const lessonModeText = tutor.lesson_mode === "online" ? "online" : tutor.lesson_mode === "either" ? "online or in-person" : "in-person";
-  const title = `${tutor.display_name} | ${subjectText || "Tutor"} ${lessonModeText} ${locationText} | MatchMax`;
-  const description = `${tutor.display_name} is a ${subjectText || "qualified"} tutor${locationText}. Browse ${tutor.display_name}'s profile, lesson mode, rates, reviews and availability on MatchMax.`;
+  const title = `${tutor.tutor_code} | ${subjectText || "Tutor"} ${lessonModeText} ${locationText} | MatchMax`;
+  const description = `Tutor ${tutor.tutor_code} offers ${subjectText || "subject"} support${locationText}. Browse profile details, lesson mode, rates, reviews and availability on MatchMax.`;
 
   return {
     title,
@@ -139,14 +131,14 @@ function TutorDetail() {
     ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`I would like to request tutor ${t.tutor_code}`)}`
     : "";
 
-  const genderLabel = formatGenderLabel(t.gender);
-  const profileTitle = `${t.tutor_code}: ${t.display_name}${genderLabel ? ` • ${genderLabel}` : ""}`;
+  const genderLabel = getTutorGenderLabel(t.gender);
+  const profileTitle = `${t.tutor_code}${genderLabel ? ` • ${genderLabel}` : ""}`;
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
-  const tutorSeoSummary = `${t.display_name} offers ${subjectText || "tutoring"} support${t.district ? ` in ${t.district}` : " in Hong Kong"}. ${t.lesson_mode === "online" ? "Online lessons are available." : t.lesson_mode === "either" ? "Online and in-person lessons are available." : "In-person lessons are available."} Browse rates, availability and reviews on MatchMax.`;
+  const tutorSeoSummary = `Tutor ${t.tutor_code} offers ${subjectText || "tutoring"} support${t.district ? ` in ${t.district}` : " in Hong Kong"}. ${t.lesson_mode === "online" ? "Online lessons are available." : t.lesson_mode === "either" ? "Online and in-person lessons are available." : "In-person lessons are available."} Browse rates, availability and reviews on MatchMax.`;
   const tutorStructuredData = {
     "@context": "https://schema.org",
     "@type": "Person",
-    name: t.display_name,
+    name: t.tutor_code,
     url: `https://maxmatch.app/tutors/${t.tutor_code}`,
     description: tutorSeoSummary,
     ...(t.photo_url ? { image: t.photo_url } : {}),
@@ -214,13 +206,18 @@ function TutorDetail() {
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <div className="flex flex-wrap items-start gap-6">
               {t.photo_url ? (
-                <img src={t.photo_url} alt={t.display_name} className="h-24 w-24 shrink-0 rounded-2xl object-cover" />
+                <img src={t.photo_url} alt={t.tutor_code} className="h-24 w-24 shrink-0 rounded-2xl object-cover" />
               ) : (
                 <div className="h-24 w-24 shrink-0 rounded-2xl bg-brand-gradient-soft" />
               )}
               <div className="min-w-0 flex-1">
                 <h1 className="text-3xl font-black text-[color:var(--brand-navy)] sm:text-4xl">{profileTitle}</h1>
                 {t.headline && <p className="mt-1 text-lg text-muted-foreground">{t.headline}</p>}
+                {(t.university || t.highschool) && (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {[t.university, t.highschool].filter(Boolean).join(" | ")}
+                  </p>
+                )}
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
                   <StarRating value={Number(t.rating)} readOnly size={16} />
                   <span className="font-bold">{Number(t.rating).toFixed(1)}</span>
@@ -266,19 +263,67 @@ function TutorDetail() {
         <section className="py-14">
           <div className="mx-auto grid max-w-5xl gap-10 px-4 sm:px-6 min-h-0">
             <div className="space-y-8 min-h-0">
-              {t.bio && (
-                <div className="rounded-2xl border border-border bg-card p-6">
-                  <h2 className="text-xl font-bold text-[color:var(--brand-navy)]">About</h2>
-                  <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-foreground break-words">{t.bio}</p>
-                </div>
-              )}
-
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl border border-border bg-card p-5">
                   <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                    <GraduationCap className="h-5 w-5 text-[color:var(--brand-teal)]" /> Academic achievements
+                    <BookOpen className="h-5 w-5 text-[color:var(--brand-teal)]" /> 1. 📚 Subjects & Target Students
                   </div>
                   <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                    {t.subjects.length > 0 ? (
+                      t.subjects.map((subject) => (
+                        <li key={subject} className="rounded-xl border border-border/70 bg-background/70 p-3">
+                          <span className="font-semibold text-foreground">{subject}</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="rounded-xl border border-dashed border-border p-3">Subjects will appear here once added.</li>
+                    )}
+                    {t.target_students.length > 0 ? (
+                      <li className="rounded-xl border border-border/70 bg-background/70 p-3">
+                        <p className="font-semibold text-foreground">Target students</p>
+                        <p className="mt-1">{t.target_students.join(", ")}</p>
+                      </li>
+                    ) : (
+                      <li className="rounded-xl border border-dashed border-border p-3">Target student groups will appear here once added.</li>
+                    )}
+                  </ul>
+                </div>
+
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
+                    <Award className="h-5 w-5 text-[color:var(--brand-teal)]" /> 2. ✨ Academic Excellence
+                  </div>
+                  <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                    {t.academic_summary ? (
+                      <li className="rounded-xl border border-border/70 bg-background/70 p-3 whitespace-pre-line">
+                        {t.academic_summary}
+                      </li>
+                    ) : (
+                      <li className="rounded-xl border border-dashed border-border p-3">Academic summary will appear here once added.</li>
+                    )}
+                    {t.exam_results.length > 0 ? (
+                      t.exam_results.map((result, i) => (
+                        <li key={i} className="rounded-xl border border-border/70 bg-background/70 p-3">
+                          <p className="font-semibold text-foreground">{getSystem(result.system)?.label ?? result.system.toUpperCase()}</p>
+                          <p className="mt-1">{result.subjects.map((entry) => `${entry.subject}: ${entry.grade}`).join(" · ")}</p>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="rounded-xl border border-dashed border-border p-3">Public exam results will appear here once added.</li>
+                    )}
+                  </ul>
+                </div>
+
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
+                    <GraduationCap className="h-5 w-5 text-[color:var(--brand-teal)]" /> 3. 🎓 Qualifications and Experience
+                  </div>
+                  <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                    {t.qualifications_summary ? (
+                      <li className="rounded-xl border border-border/70 bg-background/70 p-3 whitespace-pre-line">
+                        {t.qualifications_summary}
+                      </li>
+                    ) : null}
                     {t.education.length > 0 ? (
                       t.education.map((e, i) => (
                         <li key={i} className="rounded-xl border border-border/70 bg-background/70 p-3">
@@ -286,53 +331,19 @@ function TutorDetail() {
                           <p className="mt-1">{e.institution}{e.year ? ` · ${e.year}` : ""}</p>
                         </li>
                       ))
-                    ) : (
-                      <li className="rounded-xl border border-dashed border-border p-3">Academic qualifications will appear here once added.</li>
-                    )}
-                    {t.exam_results.length > 0 && (
-                      <li className="rounded-xl border border-border/70 bg-background/70 p-3">
-                        <p className="font-semibold text-foreground">Exam results</p>
-                        <p className="mt-1">{t.exam_results.length} recorded exam result set{t.exam_results.length > 1 ? "s" : ""} available.</p>
-                      </li>
-                    )}
-                  </ul>
-                </div>
-
-                <div className="rounded-2xl border border-border bg-card p-5">
-                  <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                    <Award className="h-5 w-5 text-[color:var(--brand-teal)]" /> Other achievements
-                  </div>
-                  <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                    {t.badge ? <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Featured badge:</span> {t.badge}</li> : null}
+                    ) : null}
                     {t.experience_years != null ? <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Experience:</span> {t.experience_years} years tutoring</li> : null}
                     {t.teaching_since != null ? <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Teaching since:</span> {t.teaching_since}</li> : null}
                     {t.languages.length > 0 ? <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Languages:</span> {t.languages.join(", ")}</li> : null}
-                    {!t.badge && t.experience_years == null && t.teaching_since == null && t.languages.length === 0 ? (
-                      <li className="rounded-xl border border-dashed border-border p-3">Additional achievements will be displayed here as they are added.</li>
+                    {!t.qualifications_summary && t.education.length === 0 && t.experience_years == null && t.teaching_since == null && t.languages.length === 0 ? (
+                      <li className="rounded-xl border border-dashed border-border p-3">Qualifications and experience will appear here once added.</li>
                     ) : null}
                   </ul>
                 </div>
 
                 <div className="rounded-2xl border border-border bg-card p-5">
                   <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                    <BookOpen className="h-5 w-5 text-[color:var(--brand-teal)]" /> Subjects taught
-                  </div>
-                  <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                    {(t.subjects ?? []).length > 0 ? (
-                      (t.subjects ?? []).map((subject) => (
-                        <li key={subject} className="rounded-xl border border-border/70 bg-background/70 p-3">
-                          <span className="font-semibold text-foreground">{subject}</span>
-                        </li>
-                      ))
-                    ) : (
-                      <li className="rounded-xl border border-dashed border-border p-3">Subjects will be listed here once added.</li>
-                    )}
-                  </ul>
-                </div>
-
-                <div className="rounded-2xl border border-border bg-card p-5">
-                  <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                    <MapPin className="h-5 w-5 text-[color:var(--brand-teal)]" /> Lesson format + location
+                    <MapPin className="h-5 w-5 text-[color:var(--brand-teal)]" /> 4. 📍 Lesson Format
                   </div>
                   <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                     <li className="rounded-xl border border-border/70 bg-background/70 p-3"><span className="font-semibold text-foreground">Format:</span> {getTutorLessonModeLabel(t.lesson_mode)}</li>

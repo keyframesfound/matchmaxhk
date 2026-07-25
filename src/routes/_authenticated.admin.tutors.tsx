@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
-import { fetchAllTutors, HK_DISTRICTS, type Tutor, type Education } from "@/features/tutors/queries";
+import { fetchAllTutors, getTutorGenderLabel, HK_DISTRICTS, type Tutor, type Education } from "@/features/tutors/queries";
 import { EXAM_SYSTEMS, getSystem, getGradesForSelection, type ExamResult, type ExamResultEntry } from "@/features/tutors/examSystems";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 
@@ -145,9 +145,27 @@ const examSchema = z.object({
   subjects: z.array(examEntrySchema).min(1, "Add at least one subject"),
 });
 
+const TARGET_STUDENT_OPTIONS = [
+  "Kindergarten",
+  "Primary",
+  "Lower Secondary",
+  "Upper Secondary",
+  "IB",
+  "IGCSE",
+  "A-Level",
+  "DSE",
+  "University",
+  "Adult Learners",
+];
+
 const formSchema = z.object({
-  headline: z.string().trim().max(200).optional().or(z.literal("")),
+  headline: z.string().trim().min(1, "Headline is required").max(200),
   subjects: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one subject"),
+  target_students: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one target student group"),
+  university: z.string().trim().max(120).optional().or(z.literal("")),
+  highschool: z.string().trim().max(120).optional().or(z.literal("")),
+  academic_summary: z.string().trim().max(800).optional().or(z.literal("")),
+  qualifications_summary: z.string().trim().max(1200).optional().or(z.literal("")),
   district: z.string().trim().max(80).optional().or(z.literal("")),
   lesson_mode: z.enum(["online", "in_person", "either"]),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
@@ -159,7 +177,7 @@ const formSchema = z.object({
   weekly_score: z.coerce.number().int().min(0).max(100),
   is_published: z.boolean(),
   languages_csv: z.string().trim().max(200).optional().or(z.literal("")),
-  gender: z.enum(["male", "female", "other", ""]).optional(),
+  gender: z.enum(["male", "female", "other"]),
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
   teaching_since: z.union([z.coerce.number().int().min(1950).max(2100), z.literal("")]).optional(),
   education: z.array(eduSchema),
@@ -171,6 +189,11 @@ type FormValues = z.infer<typeof formSchema>;
 const empty: FormValues = {
   headline: "",
   subjects: [],
+  target_students: [],
+  university: "",
+  highschool: "",
+  academic_summary: "",
+  qualifications_summary: "",
   district: "",
   lesson_mode: "either",
   hourly_rate: 0,
@@ -182,7 +205,7 @@ const empty: FormValues = {
   weekly_score: 50,
   is_published: true,
   languages_csv: "",
-  gender: "",
+  gender: "female",
   experience_years: "",
   teaching_since: "",
   education: [],
@@ -193,6 +216,11 @@ function tutorToForm(t: Tutor): FormValues {
   return {
     headline: t.headline ?? "",
     subjects: t.subjects ?? [],
+    target_students: t.target_students ?? [],
+    university: t.university ?? "",
+    highschool: t.highschool ?? "",
+    academic_summary: t.academic_summary ?? "",
+    qualifications_summary: t.qualifications_summary ?? "",
     district: t.district ?? "",
     lesson_mode: t.lesson_mode ?? "either",
     hourly_rate: t.hourly_rate,
@@ -204,7 +232,9 @@ function tutorToForm(t: Tutor): FormValues {
     weekly_score: t.weekly_score,
     is_published: t.is_published,
     languages_csv: (t.languages ?? []).join(", "),
-    gender: (["male", "female", "other"].includes((t as unknown as { gender?: string | null }).gender ?? "") ? ((t as unknown as { gender: "male" | "female" | "other" }).gender) : ""),
+    gender: (["male", "female", "other"].includes((t as unknown as { gender?: string | null }).gender ?? "")
+      ? ((t as unknown as { gender: "male" | "female" | "other" }).gender)
+      : "female"),
     experience_years: t.experience_years ?? "",
     teaching_since: t.teaching_since ?? "",
     education: (t.education ?? []).map((e) => ({
@@ -240,7 +270,12 @@ function formToPayload(v: FormValues, isNew: boolean) {
   const langs = (v.languages_csv || "").split(",").map((s) => s.trim()).filter(Boolean);
   const base: Record<string, unknown> = {
     display_name: v.tutor_code.trim(),
-    headline: v.headline || null,
+    headline: v.headline.trim(),
+    university: v.university || null,
+    highschool: v.highschool || null,
+    target_students: v.target_students,
+    academic_summary: v.academic_summary || null,
+    qualifications_summary: v.qualifications_summary || null,
     subjects: v.subjects,
     district: v.lesson_mode === "online" ? null : v.district || null,
     lesson_mode: v.lesson_mode,
@@ -253,7 +288,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
     weekly_score: v.weekly_score,
     is_published: v.is_published,
     languages: langs,
-    gender: v.gender ? v.gender : null,
+    gender: v.gender,
     experience_years: v.experience_years === "" ? null : Number(v.experience_years),
     teaching_since: v.teaching_since === "" ? null : Number(v.teaching_since),
     education: cleanEdu,
@@ -357,6 +392,25 @@ function AdminTutors() {
       setErrors(errs);
       return;
     }
+    const publishErrors: Record<string, string> = {};
+    if (parsed.data.is_published) {
+      if (!(parsed.data.university ?? "").trim() && !(parsed.data.highschool ?? "").trim()) {
+        publishErrors.university = "Add at least university or highschool before publishing.";
+      }
+      if (!(parsed.data.academic_summary ?? "").trim() && parsed.data.exam_results.length === 0) {
+        publishErrors.academic_summary = "Add academic summary or exam results before publishing.";
+      }
+      if (!(parsed.data.qualifications_summary ?? "").trim() && parsed.data.education.length === 0 && parsed.data.experience_years === "") {
+        publishErrors.qualifications_summary = "Add qualifications summary, education, or experience before publishing.";
+      }
+      if (parsed.data.lesson_mode !== "online" && !(parsed.data.district ?? "").trim()) {
+        publishErrors.district = "District is required for in-person or hybrid tutoring.";
+      }
+    }
+    if (Object.keys(publishErrors).length > 0) {
+      setErrors(publishErrors);
+      return;
+    }
     save.mutate({ ...formToPayload(parsed.data, !editing), ...(editing ? { id: editing.id } : {}) });
   }
 
@@ -436,50 +490,48 @@ function AdminTutors() {
                   <DialogTitle>{editing ? "Edit tutor" : "Add tutor"}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={onSubmit} className="space-y-6">
-                  <Section title="Basics">
+                  <Section title="Tutor identity">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Field label="Tutor code (unique)" error={errors.tutor_code}>
                         <Input value={form.tutor_code} onChange={(e) => setForm({ ...form, tutor_code: e.target.value })} placeholder="MM-1042" />
-                        <p className="text-xs text-muted-foreground">This is the public identifier shown instead of a separate display name.</p>
                       </Field>
-                      <Field label="Lesson mode" error={errors.lesson_mode}>
-                        <ToggleGroup
-                          type="single"
-                          variant="outline"
-                          value={form.lesson_mode}
-                          onValueChange={(value) => {
-                            if (!value) return;
-                            setForm({
-                              ...form,
-                              lesson_mode: value as FormValues["lesson_mode"],
-                              district: value === "online" ? "" : form.district,
-                            });
-                          }}
-                          className="grid w-full grid-cols-3 gap-2"
+                      <Field label="Gender" error={errors.gender}>
+                        <select
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          value={form.gender}
+                          onChange={(e) => setForm({ ...form, gender: e.target.value as "male" | "female" | "other" })}
                         >
-                          <ToggleGroupItem value="online" className="w-full">Online</ToggleGroupItem>
-                          <ToggleGroupItem value="in_person" className="w-full">In person</ToggleGroupItem>
-                          <ToggleGroupItem value="either" className="w-full">Hybrid</ToggleGroupItem>
-                        </ToggleGroup>
+                          <option value="female">Female</option>
+                          <option value="male">Male</option>
+                          <option value="other">Other</option>
+                        </select>
                       </Field>
                     </div>
                     <Field label="Headline" error={errors.headline}>
-                      <Input value={form.headline} onChange={(e) => setForm({ ...form, headline: e.target.value })} placeholder="DSE Mathematics · M2" />
+                      <Input value={form.headline} onChange={(e) => setForm({ ...form, headline: e.target.value })} placeholder="IB Biology tutor focused on exam strategy" />
                     </Field>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <Field label="Badge (short credential)" error={errors.badge}>
-                        <Input value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} placeholder="PhD Cambridge" />
+                      <Field label="University" error={errors.university}>
+                        <Input value={form.university} onChange={(e) => setForm({ ...form, university: e.target.value })} placeholder="Chinese University of Hong Kong" />
                       </Field>
+                      <Field label="Highschool" error={errors.highschool}>
+                        <Input value={form.highschool} onChange={(e) => setForm({ ...form, highschool: e.target.value })} placeholder="Diocesan Boys' School" />
+                      </Field>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <Field label="Photo (optional)" error={errors.photo_url}>
                         <PhotoUpload
                           value={form.photo_url ?? ""}
                           onChange={(url) => setForm({ ...form, photo_url: url })}
                         />
                       </Field>
+                      <Field label="Badge (optional)" error={errors.badge}>
+                        <Input value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} placeholder="CUHK MBChB Year 2" />
+                      </Field>
                     </div>
                   </Section>
 
-                  <Section title="Teaching">
+                  <Section title="1. 📚 Subjects & Target Students">
                     <Field label="Subjects" error={errors.subjects}>
                       <div className="space-y-2">
                         {form.subjects.length > 0 && (
@@ -514,79 +566,53 @@ function AdminTutors() {
                         />
                       </div>
                     </Field>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {form.lesson_mode !== "online" ? (
-                        <Field label="District" error={errors.district}>
-                          <Select value={form.district || "__none"} onValueChange={(v) => setForm({ ...form, district: v === "__none" ? "" : v })}>
-                            <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__none">—</SelectItem>
-                              {HK_DISTRICTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                        </Field>
-                      ) : (
-                        <div className="rounded-xl border border-dashed border-border bg-muted/30 px-3 py-4 text-xs text-muted-foreground sm:mt-6">
-                          Online lessons do not need a district.
-                        </div>
-                      )}
-                      <Field label="Hourly rate (HKD)" error={errors.hourly_rate}>
-                        <Input type="number" value={form.hourly_rate} onChange={(e) => setForm({ ...form, hourly_rate: Number(e.target.value) })} />
-                      </Field>
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <Field label="Languages (comma separated)" error={errors.languages_csv}>
-                        <Input value={form.languages_csv} onChange={(e) => setForm({ ...form, languages_csv: e.target.value })} placeholder="English, Cantonese" />
-                      </Field>
-                      <Field label="Experience (years)" error={errors.experience_years}>
-                        <Input
-                          type="number"
-                          value={form.experience_years}
-                          onChange={(e) => {
-                            const raw = e.target.value;
-                            if (raw === "") {
-                              setForm({ ...form, experience_years: "", teaching_since: "" });
-                            } else {
-                              const years = Number(raw);
-                              setForm({ ...form, experience_years: years, teaching_since: new Date().getFullYear() - years });
-                            }
+
+                    <Field label="Target students" error={errors.target_students}>
+                      <div className="space-y-2">
+                        {form.target_students.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {form.target_students.map((segment) => (
+                              <span key={segment} className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-teal)]">
+                                {segment}
+                                <button
+                                  type="button"
+                                  aria-label={`Remove ${segment}`}
+                                  onClick={() => setForm({ ...form, target_students: form.target_students.filter((x) => x !== segment) })}
+                                  className="hover:text-destructive"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <SearchableSelect
+                          value=""
+                          onChange={(v) => {
+                            const val = v.trim();
+                            if (!val) return;
+                            if (form.target_students.includes(val)) return;
+                            setForm({ ...form, target_students: [...form.target_students, val] });
                           }}
+                          options={TARGET_STUDENT_OPTIONS.filter((item) => !form.target_students.includes(item))}
+                          placeholder="Add a target student group…"
+                          searchPlaceholder="Search target student groups…"
+                          allowCustom
                         />
-                      </Field>
-                    </div>
-                    <Field label="Teaching since (year)" error={errors.teaching_since}>
-                      <Input
-                        type="number"
-                        value={form.teaching_since}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          if (raw === "") {
-                            setForm({ ...form, teaching_since: "", experience_years: "" });
-                          } else {
-                            const year = Number(raw);
-                            setForm({ ...form, teaching_since: year, experience_years: Math.max(0, new Date().getFullYear() - year) });
-                          }
-                        }}
-                        placeholder="2015"
-                      />
-                    </Field>
-                    <Field label="Gender" error={errors.gender}>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        value={form.gender ?? ""}
-                        onChange={(e) => setForm({ ...form, gender: e.target.value as "" | "male" | "female"})}
-                      >
-                        <option value="">Not specified</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                      </select>
-                    </Field>
-                    <Field label="Bio" error={errors.bio}>
-                      <Textarea rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} />
+                      </div>
                     </Field>
                   </Section>
 
-                  <Section title="Education & qualifications">
+                  <Section title="2. ✨ Academic Excellence">
+                    <Field label="IB/AL/DSE score summary" error={errors.academic_summary}>
+                      <Textarea
+                        rows={3}
+                        value={form.academic_summary}
+                        onChange={(e) => setForm({ ...form, academic_summary: e.target.value })}
+                        placeholder="IB 45/45, DSE 5** in Chemistry and Biology"
+                      />
+                    </Field>
+
                     <div className="space-y-3">
                       {form.education.length === 0 && (
                         <p className="text-sm text-muted-foreground">No qualifications yet. Add one below.</p>
@@ -620,9 +646,7 @@ function AdminTutors() {
                         <Plus className="mr-2 h-4 w-4" /> Add qualification
                       </Button>
                     </div>
-                  </Section>
 
-                  <Section title="Exam results (scores)">
                     <p className="text-xs text-muted-foreground">
                       Pick an exam system, then add each subject with its grade. Lists are searchable and match the chosen system.
                     </p>
@@ -700,6 +724,96 @@ function AdminTutors() {
                     </div>
                   </Section>
 
+                  <Section title="3. 🎓 Qualifications and Experience">
+                    <Field label="Qualifications & teaching profile" error={errors.qualifications_summary}>
+                      <Textarea
+                        rows={4}
+                        value={form.qualifications_summary}
+                        onChange={(e) => setForm({ ...form, qualifications_summary: e.target.value })}
+                        placeholder="Private tutoring focused on medical-track sciences since 2024"
+                      />
+                    </Field>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field label="Languages (comma separated)" error={errors.languages_csv}>
+                        <Input value={form.languages_csv} onChange={(e) => setForm({ ...form, languages_csv: e.target.value })} placeholder="English, Cantonese" />
+                      </Field>
+                      <Field label="Experience (years)" error={errors.experience_years}>
+                        <Input
+                          type="number"
+                          value={form.experience_years}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === "") {
+                              setForm({ ...form, experience_years: "", teaching_since: "" });
+                            } else {
+                              const years = Number(raw);
+                              setForm({ ...form, experience_years: years, teaching_since: new Date().getFullYear() - years });
+                            }
+                          }}
+                        />
+                      </Field>
+                    </div>
+                    <Field label="Teaching since (year)" error={errors.teaching_since}>
+                      <Input
+                        type="number"
+                        value={form.teaching_since}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          if (raw === "") {
+                            setForm({ ...form, teaching_since: "", experience_years: "" });
+                          } else {
+                            const year = Number(raw);
+                            setForm({ ...form, teaching_since: year, experience_years: Math.max(0, new Date().getFullYear() - year) });
+                          }
+                        }}
+                        placeholder="2015"
+                      />
+                    </Field>
+                  </Section>
+
+                  <Section title="4. 📍 Lesson Format">
+                    <Field label="Lesson mode" error={errors.lesson_mode}>
+                      <ToggleGroup
+                        type="single"
+                        variant="outline"
+                        value={form.lesson_mode}
+                        onValueChange={(value) => {
+                          if (!value) return;
+                          setForm({
+                            ...form,
+                            lesson_mode: value as FormValues["lesson_mode"],
+                            district: value === "online" ? "" : form.district,
+                          });
+                        }}
+                        className="grid w-full grid-cols-3 gap-2"
+                      >
+                        <ToggleGroupItem value="online" className="w-full">Online</ToggleGroupItem>
+                        <ToggleGroupItem value="in_person" className="w-full">In person</ToggleGroupItem>
+                        <ToggleGroupItem value="either" className="w-full">Hybrid</ToggleGroupItem>
+                      </ToggleGroup>
+                    </Field>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {form.lesson_mode !== "online" ? (
+                        <Field label="District" error={errors.district}>
+                          <Select value={form.district || "__none"} onValueChange={(v) => setForm({ ...form, district: v === "__none" ? "" : v })}>
+                            <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__none">—</SelectItem>
+                              {HK_DISTRICTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      ) : (
+                        <div className="rounded-xl border border-dashed border-border bg-muted/30 px-3 py-4 text-xs text-muted-foreground sm:mt-6">
+                          Online lessons do not need a district.
+                        </div>
+                      )}
+                      <Field label="Hourly rate (HKD)" error={errors.hourly_rate}>
+                        <Input type="number" value={form.hourly_rate} onChange={(e) => setForm({ ...form, hourly_rate: Number(e.target.value) })} />
+                      </Field>
+                    </div>
+                  </Section>
+
 
 
 
@@ -749,7 +863,7 @@ function AdminTutors() {
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3">Name</th>
+                  <th className="px-4 py-3">Tutor</th>
                   <th className="px-4 py-3">Subjects</th>
                   <th className="px-4 py-3">District</th>
                   <th className="px-4 py-3">Rate</th>
@@ -770,9 +884,9 @@ function AdminTutors() {
                   <tr key={row.id} className="border-t border-border">
                     <td className="px-4 py-3">
                       <Link to="/tutors/$tutorCode" params={{ tutorCode: row.tutor_code }} className="font-semibold text-foreground hover:underline">
-                        {row.display_name}
+                        {row.tutor_code}{getTutorGenderLabel(row.gender) ? ` · ${getTutorGenderLabel(row.gender)}` : ""}
                       </Link>
-                      <p className="text-xs text-muted-foreground">{row.tutor_code}</p>
+                      <p className="text-xs text-muted-foreground">{row.headline ?? "No headline yet"}</p>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{(row.subjects ?? []).join(", ")}</td>
                     <td className="px-4 py-3 text-muted-foreground">{row.district ?? "—"}</td>
@@ -796,7 +910,7 @@ function AdminTutors() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            if (confirm(`Delete tutor "${row.display_name}"?`)) remove.mutate(row.id);
+                            if (confirm(`Delete tutor "${row.tutor_code}"?`)) remove.mutate(row.id);
                           }}
                         >
                           <Trash2 className="h-3.5 w-3.5" />

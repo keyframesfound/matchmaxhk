@@ -9,7 +9,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { fetchPublishedTutors, getTutorLessonModeLabel, getTutorLocationLabel, HK_DISTRICTS, type Tutor } from "@/features/tutors/queries";
+import { fetchPublishedTutors, getTutorGenderLabel, getTutorLessonModeLabel, getTutorLocationLabel, HK_DISTRICTS, type Tutor } from "@/features/tutors/queries";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -137,7 +137,7 @@ function TutorsDirectory() {
       if (minRating && Number(tut.rating) < minRating) return false;
       if (languageFilter && !(tut.languages ?? []).some((l) => l.toLowerCase() === languageFilter.toLowerCase())) return false;
       if (query && !(
-        tut.display_name.toLowerCase().includes(query) ||
+        tut.tutor_code.toLowerCase().includes(query) ||
         tut.subjects.some((s) => s.toLowerCase().includes(query)) ||
         (tut.headline ?? "").toLowerCase().includes(query)
       )) return false;
@@ -195,7 +195,7 @@ function TutorsDirectory() {
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   className="pl-9"
-                  placeholder="Search name, subject, keyword…"
+                  placeholder="Search tutor code, subject, keyword…"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                 />
@@ -333,13 +333,17 @@ function TutorsDirectory() {
                   >
                     <div className="flex items-center gap-4">
                       {tut.photo_url ? (
-                        <img src={tut.photo_url} alt={tut.display_name} className="h-14 w-14 shrink-0 rounded-full object-cover" />
+                        <img src={tut.photo_url} alt={tut.tutor_code} className="h-14 w-14 shrink-0 rounded-full object-cover" />
                       ) : (
                         <div className="h-14 w-14 shrink-0 rounded-full bg-brand-gradient-soft" />
                       )}
                       <div className="min-w-0">
-                        <p className="text-base font-bold text-foreground break-words md:truncate">{tut.display_name}</p>
-                        <p className="text-sm text-muted-foreground break-words md:truncate">{tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}</p>
+                        <p className="text-base font-bold text-foreground break-words md:truncate">
+                          {tut.tutor_code}{getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}
+                        </p>
+                        <p className="text-sm text-muted-foreground break-words md:truncate">
+                          {tut.headline ?? ([tut.university, tut.highschool].filter(Boolean).join(" | ") || getTutorLessonModeLabel(tut.lesson_mode))}
+                        </p>
                       </div>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -360,6 +364,11 @@ function TutorsDirectory() {
                           <BadgeCheck className="h-3 w-3" /> {tut.badge}
                         </span>
                       </div>
+                    )}
+                    {tut.target_students.length > 0 && (
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        Target students: {tut.target_students.slice(0, 2).join(", ")}{tut.target_students.length > 2 ? ` +${tut.target_students.length - 2} more` : ""}
+                      </p>
                     )}
                     <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
                       <span className="inline-flex items-center gap-1 text-muted-foreground">
