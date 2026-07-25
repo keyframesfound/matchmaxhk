@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { BadgeCheck, MapPin, MessageCircle, GraduationCap, Award, Globe, BookOpen } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -13,6 +14,53 @@ import {
   type Tutor,
 } from "@/features/tutors/queries";
 import { getSystem } from "@/features/tutors/examSystems";
+
+function useTwoLineAutoFit(text: string, baseSize = 18, minSize = 13) {
+  const ref = useRef<HTMLParagraphElement | null>(null);
+  const [fontSizePx, setFontSizePx] = useState(baseSize);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    const fitToTwoLines = () => {
+      let current = baseSize;
+      node.style.fontSize = `${current}px`;
+      node.style.lineHeight = "1.45";
+
+      let lineHeight = Number.parseFloat(window.getComputedStyle(node).lineHeight);
+      if (!Number.isFinite(lineHeight) || lineHeight <= 0) {
+        lineHeight = current * 1.45;
+      }
+      const maxHeight = lineHeight * 2 + 1;
+
+      while (current > minSize && node.scrollHeight > maxHeight) {
+        current -= 0.5;
+        node.style.fontSize = `${current}px`;
+        lineHeight = Number.parseFloat(window.getComputedStyle(node).lineHeight) || current * 1.45;
+      }
+
+      setFontSizePx(current);
+    };
+
+    fitToTwoLines();
+
+    let raf = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(fitToTwoLines);
+    });
+    observer.observe(node);
+    if (node.parentElement) observer.observe(node.parentElement);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
+  }, [text, baseSize, minSize]);
+
+  return { ref, fontSizePx };
+}
 
 function buildTutorSeoMeta(tutor: Tutor, url: string) {
   const subjects = (tutor.subjects ?? []).filter(Boolean);
@@ -128,6 +176,7 @@ function TutorDetail() {
   const genderLabel = getTutorGenderLabel(t.gender);
   const profileTitle = `${t.tutor_code}${genderLabel ? ` • ${genderLabel}` : ""}`;
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
+  const { ref: headlineRef, fontSizePx: headlineSize } = useTwoLineAutoFit(t.headline ?? "", 18, 13);
   const tutorSeoSummary = `Tutor ${t.tutor_code} offers ${subjectText || "tutoring"} support${t.district ? ` in ${t.district}` : " in Hong Kong"}. ${t.lesson_mode === "online" ? "Online lessons are available." : t.lesson_mode === "either" ? "Online and in-person lessons are available." : "In-person lessons are available."} Browse rates and availability on MatchMax.`;
   const tutorStructuredData = {
     "@context": "https://schema.org",
@@ -164,7 +213,18 @@ function TutorDetail() {
               <div className="min-w-0 flex-1">
                 <h1 className="text-3xl font-black text-[color:var(--brand-navy)] sm:text-4xl">{profileTitle}</h1>
                 {t.headline && (
-                  <p className="mt-1 text-lg leading-relaxed text-muted-foreground break-words whitespace-pre-line">
+                  <p
+                    ref={headlineRef}
+                    className="mt-1 text-muted-foreground break-words whitespace-pre-line"
+                    style={{
+                      fontSize: `${headlineSize}px`,
+                      lineHeight: 1.45,
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
                     {t.headline}
                   </p>
                 )}
