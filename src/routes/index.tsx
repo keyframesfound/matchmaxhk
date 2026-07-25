@@ -224,7 +224,6 @@ function Landing() {
                   { label: "Physics tutor", search: { subject: "Physics" } },
                   { label: "Math tutor", search: { subject: "Mathematics" } },
                   { label: "Online tutor", search: { mode: "online" } },
-                  { label: "Hong Kong tutor", search: {} },
                 ].map((item) => (
                   <Link
                     key={item.label}
