@@ -29,10 +29,11 @@ export const Route = createFileRoute("/tutors/")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
-      { title: "Browse tutors — MatchMax" },
-      { name: "description", content: "Browse verified tutors across Hong Kong by subject, district, price, and rating." },
-      { property: "og:title", content: "Browse tutors — MatchMax" },
-      { property: "og:description", content: "Verified Hong Kong tutors for DSE, IB, IGCSE, AP and more — filter by subject, district, price, and rating." },
+      { title: "Find Verified Tutors in Hong Kong | MatchMax" },
+      { name: "description", content: "Browse verified tutors in Hong Kong by subject, district, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more." },
+      { name: "robots", content: "index, follow" },
+      { property: "og:title", content: "Find Verified Tutors in Hong Kong | MatchMax" },
+      { property: "og:description", content: "Browse verified tutors in Hong Kong by subject, district, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more." },
       { property: "og:url", content: "https://maxmatch.app/tutors" },
     ],
     links: [{ rel: "canonical", href: "https://maxmatch.app/tutors" }],
@@ -175,10 +176,18 @@ function TutorsDirectory() {
       <main className="flex-1">
         <section className="border-b border-border bg-muted/30 py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">Browse tutors</h1>
-            <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-              Verified tutors across Hong Kong. Filter by subject, district, lesson mode, price, and rating.
+            <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">Find verified tutors in Hong Kong</h1>
+            <p className="mt-3 max-w-3xl text-lg text-muted-foreground">
+              Browse tutors for IB, DSE, IGCSE, AP, A-Level, Mathematics, English, Science and more. Filter by district, lesson mode, price and rating to find the right tutor quickly.
             </p>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              {['IB tutor', 'DSE tutor', 'Math tutor', 'Online tutor', 'Hong Kong tutor'].map((item) => (
+                <span key={item} className="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-muted-foreground">
+                  {item}
+                </span>
+              ))}
+            </div>
 
             {/* Primary row: search + subject + district */}
             <div className="mt-8 grid gap-3 sm:grid-cols-[1fr_220px_220px]">

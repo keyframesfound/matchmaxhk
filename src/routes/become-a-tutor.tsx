@@ -9,10 +9,11 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/become-a-tutor")({
   head: () => ({
     meta: [
-      { title: "Become a tutor — MatchMax" },
-      { name: "description", content: "Join MatchMax as a tutor. Contact our team on WhatsApp to get verified and start receiving case leads." },
-      { property: "og:title", content: "Become a tutor — MatchMax" },
-      { property: "og:description", content: "Join Hong Kong's smart tutoring marketplace and receive matched case leads from parents." },
+      { title: "Become a Tutor in Hong Kong | MatchMax" },
+      { name: "description", content: "Join MatchMax as a tutor in Hong Kong. Get verified, build your profile and receive quality case leads from parents for IB, DSE, IGCSE and more." },
+      { name: "robots", content: "index, follow" },
+      { property: "og:title", content: "Become a Tutor in Hong Kong | MatchMax" },
+      { property: "og:description", content: "Join MatchMax as a tutor in Hong Kong. Get verified, build your profile and receive quality case leads from parents for IB, DSE, IGCSE and more." },
       { property: "og:url", content: "https://maxmatch.app/become-a-tutor" },
     ],
     links: [{ rel: "canonical", href: "https://maxmatch.app/become-a-tutor" }],
@@ -60,11 +61,10 @@ function BecomeATutor() {
               Join MatchMax
             </span>
             <h1 className="mt-6 text-5xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-6xl">
-              Become a MatchMax tutor
+              Become a tutor in Hong Kong
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-              We hand-pick every tutor on MatchMax. To get verified and start receiving case leads,
-              message our team on WhatsApp — we'll walk you through the short onboarding.
+              We hand-pick every tutor on MatchMax. To get verified and start receiving case leads for IB, DSE, IGCSE, A-Level and more, message our team on WhatsApp — we'll walk you through the short onboarding.
             </p>
 
             <div className="mt-10 rounded-3xl border border-border bg-card p-8 shadow-brand">

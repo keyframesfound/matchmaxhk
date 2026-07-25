@@ -15,11 +15,11 @@ const OG_IMAGE = "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNhe
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
-      { name: "description", content: "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong. Compare experienced tutors, request lessons and get matched quickly." },
+      { title: "Find Verified IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
+      { name: "description", content: "Find verified IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly." },
       { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
-      { property: "og:description", content: "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong. Compare experienced tutors, request lessons and get matched quickly." },
+      { property: "og:title", content: "Find Verified IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
+      { property: "og:description", content: "Find verified IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly." },
       { property: "og:url", content: "https://maxmatch.app/" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "MatchMax" },
@@ -34,8 +34,12 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "https://maxmatch.app/" },
-      { rel: "icon", href: "/favicon.ico", sizes: "any" },
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+      { rel: "shortcut icon", href: "/favicon.ico" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/site.webmanifest" },
     ]
   }),
   component: Landing,
@@ -230,6 +234,31 @@ function Landing() {
               <span className="inline-flex items-center gap-1.5"><BadgeCheck className="h-4 w-4 text-[color:var(--brand-teal)]" /> Verified tutors</span>
               <span className="inline-flex items-center gap-1.5"><MessageCircle className="h-4 w-4 text-[color:var(--brand-teal)]" /> WhatsApp handoff</span>
               <span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4 text-[color:var(--brand-teal)]" /> No hidden fees</span>
+            </div>
+
+            <div className="mt-8 rounded-3xl border border-border/70 bg-background/80 p-6 shadow-sm backdrop-blur">
+              <h2 className="text-xl font-black text-[color:var(--brand-navy)]">Find the right tutor for your subject and exam board</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Search for Hong Kong tutors by IB, DSE, IGCSE, AP, A-Level, mathematics, sciences, languages and more. Narrow by district, online lessons or in-person teaching to match your schedule and budget.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {[
+                  { label: "IB tutor", search: { subject: "IB" } },
+                  { label: "DSE tutor", search: { subject: "DSE" } },
+                  { label: "Math tutor", search: { subject: "Mathematics" } },
+                  { label: "Online tutor", search: { mode: "online" } },
+                  { label: "Hong Kong tutor", search: {} },
+                ].map((item) => (
+                  <Link
+                    key={item.label}
+                    to="/tutors"
+                    search={item.search}
+                    className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)]"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
 
