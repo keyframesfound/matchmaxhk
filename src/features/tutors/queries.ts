@@ -42,13 +42,45 @@ export type Tutor = {
 const SELECT_COLS =
   "id, display_name, headline, university, highschool, target_students, academic_summary, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, rating, review_count, weekly_rating, weekly_score, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
 
+const LEGACY_SELECT_COLS =
+  "id, display_name, headline, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, rating, review_count, weekly_rating, weekly_score, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
+
+function hasMissingProfileColumns(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const maybe = error as { code?: unknown; message?: unknown };
+  const code = typeof maybe.code === "string" ? maybe.code : "";
+  const message = typeof maybe.message === "string" ? maybe.message : "";
+  return code === "42703" || /column\s+"?(university|highschool|target_students|academic_summary|qualifications_summary)"?\s+does\s+not\s+exist/i.test(message);
+}
+
+async function withTutorSelectFallback<T>(
+  run: (selectCols: string) => Promise<{ data: T | null; error: unknown }>,
+): Promise<T> {
+  const first = await run(SELECT_COLS);
+  if (!first.error) return (first.data ?? ([] as unknown as T));
+  if (!hasMissingProfileColumns(first.error)) throw first.error;
+
+  const second = await run(LEGACY_SELECT_COLS);
+  if (second.error) throw second.error;
+  return (second.data ?? ([] as unknown as T));
+}
+
 function normalize(row: Record<string, unknown>): Tutor {
   const edu = Array.isArray(row.education) ? (row.education as Education[]) : [];
   const exams = normalizeExamResults(row.exam_results);
   const targetStudents = Array.isArray(row.target_students)
     ? (row.target_students as unknown[]).filter((value): value is string => typeof value === "string" && value.trim().length > 0)
     : [];
-  return { ...(row as unknown as Tutor), education: edu, exam_results: exams, target_students: targetStudents };
+  return {
+    ...(row as unknown as Tutor),
+    university: typeof row.university === "string" ? row.university : null,
+    highschool: typeof row.highschool === "string" ? row.highschool : null,
+    academic_summary: typeof row.academic_summary === "string" ? row.academic_summary : null,
+    qualifications_summary: typeof row.qualifications_summary === "string" ? row.qualifications_summary : null,
+    education: edu,
+    exam_results: exams,
+    target_students: targetStudents,
+  };
 }
 
 export function getTutorGenderLabel(gender: string | null | undefined): string {
@@ -60,42 +92,46 @@ export function getTutorGenderLabel(gender: string | null | undefined): string {
 }
 
 export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
-  const { data, error } = await supabase
-    .from("tutors")
-    .select(SELECT_COLS)
-    .eq("is_published", true)
-    .order("weekly_score", { ascending: false })
-    .order("weekly_rating", { ascending: false })
-    .order("rating", { ascending: false })
-    .limit(limit);
-  if (error) throw error;
+  const data = await withTutorSelectFallback<Record<string, unknown>[]>((selectCols) =>
+    supabase
+      .from("tutors")
+      .select(selectCols)
+      .eq("is_published", true)
+      .order("weekly_score", { ascending: false })
+      .order("weekly_rating", { ascending: false })
+      .order("rating", { ascending: false })
+      .limit(limit),
+  );
   return (data ?? []).map(normalize);
 }
 
 export async function fetchPublishedTutors(): Promise<Tutor[]> {
-  const { data, error } = await supabase
-    .from("tutors")
-    .select(SELECT_COLS)
-    .eq("is_published", true)
-    .order("rating", { ascending: false });
-  if (error) throw error;
+  const data = await withTutorSelectFallback<Record<string, unknown>[]>((selectCols) =>
+    supabase
+      .from("tutors")
+      .select(selectCols)
+      .eq("is_published", true)
+      .order("rating", { ascending: false }),
+  );
   return (data ?? []).map(normalize);
 }
 
 export async function fetchAllTutors(): Promise<Tutor[]> {
-  const { data, error } = await supabase.from("tutors").select(SELECT_COLS).order("created_at", { ascending: false });
-  if (error) throw error;
+  const data = await withTutorSelectFallback<Record<string, unknown>[]>((selectCols) =>
+    supabase.from("tutors").select(selectCols).order("created_at", { ascending: false }),
+  );
   return (data ?? []).map(normalize);
 }
 
 export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
-  const { data, error } = await supabase
-    .from("tutors")
-    .select(SELECT_COLS)
-    .eq("tutor_code", code)
-    .eq("is_published", true)
-    .maybeSingle();
-  if (error) throw error;
+  const data = await withTutorSelectFallback<Record<string, unknown> | null>((selectCols) =>
+    supabase
+      .from("tutors")
+      .select(selectCols)
+      .eq("tutor_code", code)
+      .eq("is_published", true)
+      .maybeSingle(),
+  );
   return data ? normalize(data as Record<string, unknown>) : null;
 }
 
