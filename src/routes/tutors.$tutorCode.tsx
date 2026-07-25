@@ -262,17 +262,10 @@ function TutorDetail() {
           </div>
         </section>
 
-        <section className="border-b border-border bg-background/80 py-8">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <h2 className="text-xl font-black text-[color:var(--brand-navy)]">{t.display_name} tutoring in {t.district ?? "Hong Kong"}</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">{tutorSeoSummary}</p>
-          </div>
-        </section>
-
         {/* Body */}
         <section className="py-14">
-          <div className="mx-auto grid max-w-5xl gap-10 px-4 sm:px-6 lg:grid-cols-3 min-h-0">
-            <div className="space-y-8 lg:col-span-2 min-h-0">
+          <div className="mx-auto grid max-w-5xl gap-10 px-4 sm:px-6 min-h-0">
+            <div className="space-y-8 min-h-0">
               {t.bio && (
                 <div className="rounded-2xl border border-border bg-card p-6">
                   <h2 className="text-xl font-bold text-[color:var(--brand-navy)]">About</h2>
@@ -322,7 +315,7 @@ function TutorDetail() {
 
                 <div className="rounded-2xl border border-border bg-card p-5">
                   <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                    <BookOpen className="h-5 w-5 text-[color:var(--brand-teal)]" /> Teach what
+                    <BookOpen className="h-5 w-5 text-[color:var(--brand-teal)]" /> Subjects taught
                   </div>
                   <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                     {(t.subjects ?? []).length > 0 ? (
@@ -416,26 +409,6 @@ function TutorDetail() {
                 </div>
               </div>
             </div>
-
-            <aside className="space-y-4">
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Details</h3>
-                <ul className="mt-3 space-y-2 text-sm">
-                  {t.experience_years != null && (
-                    <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-[color:var(--brand-teal)]" /> {t.experience_years} years of experience</li>
-                  )}
-                  {t.teaching_since != null && (
-                    <li className="flex items-center gap-2"><GraduationCap className="h-4 w-4 text-[color:var(--brand-teal)]" /> Teaching since {t.teaching_since}</li>
-                  )}
-                  {t.languages.length > 0 && (
-                    <li className="flex items-center gap-2"><Languages className="h-4 w-4 text-[color:var(--brand-teal)]" /> {t.languages.join(", ")}</li>
-                  )}
-                  {t.district && (
-                    <li className="flex items-center gap-2"><MapPin className="h-4 w-4 text-[color:var(--brand-teal)]" /> {t.district}</li>
-                  )}
-                </ul>
-              </div>
-            </aside>
           </div>
         </section>
       </main>
