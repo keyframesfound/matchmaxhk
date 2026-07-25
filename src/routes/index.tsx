@@ -212,30 +212,6 @@ function Landing() {
               <span className="inline-flex items-center gap-1.5"><MessageCircle className="h-4 w-4 text-[color:var(--brand-teal)]" /> WhatsApp handoff</span>
               <span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4 text-[color:var(--brand-teal)]" /> No hidden fees</span>
             </div>
-
-            <div className="mt-8 rounded-3xl border border-border/70 bg-background/80 p-6 shadow-sm backdrop-blur">
-              <h2 className="text-xl font-black text-[color:var(--brand-navy)]">Find the right tutor for your subject and exam board</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Search for Hong Kong tutors by IB, DSE, IGCSE, AP, A-Level, mathematics, sciences, languages and more. Narrow by district, online lessons or in-person teaching to match your schedule and budget.
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {[
-                  { label: "IB Geography", search: { subject: "IB Geography" } },
-                  { label: "Physics tutor", search: { subject: "Physics" } },
-                  { label: "Math tutor", search: { subject: "Mathematics" } },
-                  { label: "Online tutor", search: { mode: "online" } },
-                ].map((item) => (
-                  <Link
-                    key={item.label}
-                    to="/tutors"
-                    search={item.search}
-                    className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)]"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Hero visual card */}
