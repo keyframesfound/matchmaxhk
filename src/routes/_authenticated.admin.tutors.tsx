@@ -507,7 +507,7 @@ function AdminTutors() {
                     </div>
                   </Section>
 
-                  <Section title="📚 Subjects">
+                  <Section title="Subjects">
                     <Field label="Subjects" error={errors.subjects}>
                       <div className="space-y-2">
                         {form.subjects.length > 0 && (
@@ -545,7 +545,7 @@ function AdminTutors() {
 
                   </Section>
 
-                  <Section title="✨ Academic Excellence">
+                  <Section title="Academic Excellence">
                     <div className="space-y-3">
                       {form.education.length === 0 && (
                         <p className="text-sm text-muted-foreground">No qualifications yet. Add one below.</p>
@@ -704,7 +704,7 @@ function AdminTutors() {
                     </Field>
                   </Section>
 
-                  <Section title="📍 Lesson Format">
+                  <Section title="Lesson Format">
                     <Field label="Lesson mode" error={errors.lesson_mode}>
                       <ToggleGroup
                         type="single"
