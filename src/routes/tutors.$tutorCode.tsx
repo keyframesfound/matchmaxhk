@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BadgeCheck, MapPin, MessageCircle, GraduationCap, Award, Globe, BookOpen } from "lucide-react";
+import { BadgeCheck, MapPin, MessageCircle, Award, Globe, BookOpen } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -195,9 +195,6 @@ function TutorDetail() {
                   HK${t.hourly_rate}
                   <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Tutor code: <strong>{t.tutor_code}</strong>
-                </p>
                 {waUrl ? (
                   <Button asChild className="mt-3 bg-brand-gradient font-bold text-white shadow-teal">
                     <a href={waUrl} target="_blank" rel="noopener noreferrer">
@@ -254,46 +251,7 @@ function TutorDetail() {
 
               <div className="rounded-2xl border border-border bg-card p-5">
                 <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                  <GraduationCap className="h-5 w-5 text-[color:var(--brand-teal)]" /> 3. 🎓 Qualifications and Experience
-                </div>
-                <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                  {t.qualifications_summary ? (
-                    <li className="rounded-xl border border-border/70 bg-background/70 p-3 whitespace-pre-line">
-                      {t.qualifications_summary}
-                    </li>
-                  ) : null}
-                  {t.education.length > 0
-                    ? t.education.map((e, i) => (
-                        <li key={i} className="rounded-xl border border-border/70 bg-background/70 p-3">
-                          <p className="font-semibold text-foreground">{e.qualification}</p>
-                          <p className="mt-1">
-                            {e.institution}
-                            {e.year ? ` · ${e.year}` : ""}
-                          </p>
-                        </li>
-                      ))
-                    : null}
-                  {t.experience_years != null ? (
-                    <li className="rounded-xl border border-border/70 bg-background/70 p-3">
-                      <span className="font-semibold text-foreground">Experience:</span> {t.experience_years} years tutoring
-                    </li>
-                  ) : null}
-                  {t.teaching_since != null ? (
-                    <li className="rounded-xl border border-border/70 bg-background/70 p-3">
-                      <span className="font-semibold text-foreground">Teaching since:</span> {t.teaching_since}
-                    </li>
-                  ) : null}
-                  {t.languages.length > 0 ? (
-                    <li className="rounded-xl border border-border/70 bg-background/70 p-3">
-                      <span className="font-semibold text-foreground">Languages:</span> {t.languages.join(", ")}
-                    </li>
-                  ) : null}
-                </ul>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                  <MapPin className="h-5 w-5 text-[color:var(--brand-teal)]" /> 4. 📍 Lesson Format
+                  <MapPin className="h-5 w-5 text-[color:var(--brand-teal)]" /> 3. 📍 Lesson Format
                 </div>
                 <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                   <li className="rounded-xl border border-border/70 bg-background/70 p-3">
