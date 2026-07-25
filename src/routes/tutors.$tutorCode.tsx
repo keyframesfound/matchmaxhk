@@ -155,7 +155,7 @@ function TutorDetail() {
       <main className="flex-1">
         <section className="border-b border-border bg-muted/30 py-14">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <div className="flex flex-wrap items-start gap-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6">
               {t.photo_url ? (
                 <img src={t.photo_url} alt={t.tutor_code} className="h-24 w-24 shrink-0 rounded-2xl object-cover" />
               ) : (
@@ -190,19 +190,19 @@ function TutorDetail() {
                   ))}
                 </div>
               </div>
-              <div className="text-right">
+              <div className="w-full sm:w-auto sm:text-right">
                 <p className="text-3xl font-black text-[color:var(--brand-navy)]">
                   HK${t.hourly_rate}
                   <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
                 </p>
                 {waUrl ? (
-                  <Button asChild className="mt-3 bg-brand-gradient font-bold text-white shadow-teal">
+                  <Button asChild className="mt-3 w-full bg-brand-gradient font-bold text-white shadow-teal sm:w-auto">
                     <a href={waUrl} target="_blank" rel="noopener noreferrer">
                       <MessageCircle className="mr-2 h-4 w-4" /> Request this tutor
                     </a>
                   </Button>
                 ) : (
-                  <Button disabled className="mt-3 bg-brand-gradient font-bold text-white shadow-teal">
+                  <Button disabled className="mt-3 w-full bg-brand-gradient font-bold text-white shadow-teal sm:w-auto">
                     <MessageCircle className="mr-2 h-4 w-4" /> Contact coming soon
                   </Button>
                 )}
@@ -240,9 +240,22 @@ function TutorDetail() {
                           <p className="font-semibold text-foreground">
                             {getSystem(result.system)?.label ?? result.system.toUpperCase()}
                           </p>
-                          <p className="mt-1">
-                            {result.subjects.map((entry) => `${entry.subject}: ${entry.grade}`).join(" · ")}
-                          </p>
+                          <div className="mt-2 overflow-x-auto">
+                            <div className="min-w-[260px]">
+                              <div className="grid grid-cols-[1fr_auto] gap-x-3 border-b border-border/60 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                <span>Subject</span>
+                                <span>Grade</span>
+                              </div>
+                              <div className="mt-1 space-y-1">
+                                {result.subjects.map((entry, subjectIndex) => (
+                                  <div key={`${entry.subject}-${subjectIndex}`} className="grid grid-cols-[1fr_auto] gap-x-3 py-1">
+                                    <span className="text-foreground">{entry.subject}</span>
+                                    <span className="font-semibold text-foreground">{entry.grade}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
                         </li>
                       ))
                     : null}
