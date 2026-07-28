@@ -144,9 +144,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <div className="site-root-anim">
-          {children}
-        </div>
+        {children}
         <Scripts />
       </body>
     </html>
@@ -155,11 +153,6 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-
-  useEffect(() => {
-    document.body.classList.add('animate-loaded');
-    return () => document.body.classList.remove('animate-loaded');
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
