@@ -174,7 +174,7 @@
 }
 
 @layer utilities {
-  .parallax-background {
+  .fixed-background {
     position: fixed;
     inset: 0;
     z-index: -1;
@@ -184,8 +184,6 @@
     background-position: center top;
     background-color: var(--color-background);
     background-size: auto;
-    transform: translate3d(0, calc(var(--bg-parallax, 0px)), 0);
-    will-change: transform;
     image-rendering: optimizeQuality;
   }
 
@@ -193,27 +191,6 @@
     background: url('/education-pattern.png') repeat center top fixed, var(--color-background);
     background-size: auto;
     background-attachment: fixed;
-  }
-}
-
-  h1, h2, h3, h4 {
-    font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, sans-serif;
-    letter-spacing: -0.02em;
-  }
-}
-
-@layer utilities {
-  .bg-background {
-    background: url('/education-pattern.png') repeat center top fixed, var(--color-background);
-    background-size: auto;
-    background-attachment: fixed;
-  }
-
-
-  @supports (-webkit-touch-callout: none) {
-    .site-background {
-      background-attachment: scroll;
-    }
   }
 }
 
