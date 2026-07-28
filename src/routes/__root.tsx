@@ -144,7 +144,6 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <div className="site-background" aria-hidden="true" />
         {children}
         <Scripts />
       </body>

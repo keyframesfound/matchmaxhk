@@ -157,12 +157,32 @@
   html, body {
     width: 100vw;
     overflow-x: hidden;
+    min-height: 100%;
+  }
+
+  html::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -9999;
+    pointer-events: none;
+    background-image: url('/education-pattern.png');
+    background-repeat: repeat;
+    background-position: center top;
+    background-color: var(--color-background);
+    background-size: auto;
+    image-rendering: optimizeQuality;
+    transform: translateZ(0);
+  }
+
+  @media (pointer: coarse), (hover: none) {
+    html::before {
+      background-attachment: scroll;
+    }
   }
 
   body {
-    background: url('/education-pattern.png') repeat center top fixed;
-    background-color: var(--color-background);
-    background-size: auto;
+    background-color: transparent;
     color: var(--color-foreground);
     font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -181,17 +201,11 @@
     background-attachment: fixed;
   }
 
-  .site-background {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background: url('/education-pattern.png') repeat center top fixed;
-    background-color: var(--color-background);
-    background-size: auto;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    will-change: transform;
+
+  @supports (-webkit-touch-callout: none) {
+    .site-background {
+      background-attachment: scroll;
+    }
   }
 }
 
