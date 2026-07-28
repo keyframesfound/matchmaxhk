@@ -171,6 +171,13 @@
     letter-spacing: -0.02em;
   }
 
+  /* Ensure `bg-background` shows the repeating site pattern above the
+     base semantic background color so pages using that utility display it. */
+  .bg-background {
+    background: url('/education-pattern.png') repeat center top fixed, var(--color-background);
+    background-size: auto;
+  }
+
     /* NOTE: background-image was moved to the root route to avoid
       accidental overrides during Cloudflare troubleshooting. */
 }
