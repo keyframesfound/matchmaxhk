@@ -174,10 +174,11 @@
 }
 
 @layer utilities {
-  .fixed-background {
+  .fixed-background,
+  .fixed-background-overlay {
     position: fixed;
     inset: 0;
-    z-index: -1;
+    z-index: -9999;
     pointer-events: none;
     background-image: url('/education-pattern.png');
     background-repeat: repeat;
@@ -185,12 +186,20 @@
     background-color: var(--color-background);
     background-size: auto;
     image-rendering: optimizeQuality;
+    background-attachment: scroll;
   }
 
-  .bg-background {
-    background: url('/education-pattern.png') repeat center top fixed, var(--color-background);
-    background-size: auto;
-    background-attachment: fixed;
+  .fixed-background-overlay {
+    z-index: -9998;
+    opacity: 0.999;
+  }
+
+  .bg-background,
+  .bg-background\:\:before,
+  .bg-background\:\:after {
+    background: transparent !important;
+    background-image: none !important;
+    background-attachment: scroll !important;
   }
 }
 
