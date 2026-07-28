@@ -143,7 +143,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body style={{ backgroundImage: "url('/education-pattern.png')", backgroundRepeat: 'repeat', backgroundPosition: 'center top', backgroundAttachment: 'fixed' }}>
         {children}
         <Scripts />
       </body>

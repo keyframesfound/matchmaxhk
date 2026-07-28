@@ -164,19 +164,15 @@
     color: var(--color-foreground);
     font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
-    /* Global page background image — place your image at `/public/education-pattern.png` */
-    background-image: url('/education-pattern.png');
-    background-repeat: repeat;
-    background-position: center top;
-    background-attachment: fixed;
-    /* Ensure the background is visible behind page containers */
-    background-color: var(--color-background);
   }
 
   h1, h2, h3, h4 {
     font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, sans-serif;
     letter-spacing: -0.02em;
   }
+
+    /* NOTE: background-image was moved to the root route to avoid
+      accidental overrides during Cloudflare troubleshooting. */
 }
 
 @utility bg-brand-gradient {
