@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
@@ -144,7 +144,9 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        {children}
+        <div className="site-root-anim">
+          {children}
+        </div>
         <Scripts />
       </body>
     </html>
@@ -153,6 +155,11 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    document.body.classList.add('animate-loaded');
+    return () => document.body.classList.remove('animate-loaded');
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

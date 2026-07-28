@@ -198,6 +198,36 @@
   }
 }
 
+/* Slide-in animation for initial page load */
+@keyframes slideDown {
+  from {
+    transform: translateY(-18px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.site-root-anim {
+  transform: translateY(-18px);
+  opacity: 0;
+}
+
+body.animate-loaded .site-root-anim {
+  animation: slideDown 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-root-anim,
+  body.animate-loaded .site-root-anim {
+    transform: none;
+    opacity: 1;
+    animation: none !important;
+  }
+}
+
 @utility bg-brand-gradient {
   background-image: var(--gradient-brand);
 }
