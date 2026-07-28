@@ -160,7 +160,9 @@
   }
 
   body {
+    background: url('/education-pattern.png') repeat center top fixed;
     background-color: var(--color-background);
+    background-size: auto;
     color: var(--color-foreground);
     font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -170,16 +172,14 @@
     font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, sans-serif;
     letter-spacing: -0.02em;
   }
+}
 
-  /* Ensure `bg-background` shows the repeating site pattern above the
-     base semantic background color so pages using that utility display it. */
+@layer utilities {
   .bg-background {
     background: url('/education-pattern.png') repeat center top fixed, var(--color-background);
     background-size: auto;
+    background-attachment: fixed;
   }
-
-    /* NOTE: background-image was moved to the root route to avoid
-      accidental overrides during Cloudflare troubleshooting. */
 }
 
 @utility bg-brand-gradient {
