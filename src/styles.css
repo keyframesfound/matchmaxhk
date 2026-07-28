@@ -180,6 +180,19 @@
     background-size: auto;
     background-attachment: fixed;
   }
+
+  .site-background {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: url('/education-pattern.png') repeat center top fixed;
+    background-color: var(--color-background);
+    background-size: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
+  }
 }
 
 @utility bg-brand-gradient {
