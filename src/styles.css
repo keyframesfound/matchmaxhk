@@ -167,19 +167,12 @@
     z-index: -9999;
     pointer-events: none;
     background-image: url('/education-pattern.png');
-    background-repeat: no-repeat;
+    background-repeat: repeat;
     background-position: center top;
     background-color: var(--color-background);
     background-size: contain;
     image-rendering: optimizeQuality;
     transform: translateZ(0);
-  }
-
-  /* Optional full-image repeat mode */
-  html.bg-repeat::before {
-    background-repeat: repeat;
-    background-position: center top;
-    background-size: auto;
   }
 
   body {
