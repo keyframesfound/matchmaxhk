@@ -160,33 +160,41 @@
     min-height: 100%;
   }
 
-  html::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -9999;
-    pointer-events: none;
-    background-image: url('/education-pattern.png');
-    background-repeat: repeat;
-    background-position: center top;
-    background-color: var(--color-background);
-    background-size: auto;
-    image-rendering: optimizeQuality;
-    transform: translateZ(0);
-  }
-
-  @media (pointer: coarse), (hover: none) {
-    html::before {
-      background-attachment: scroll;
-    }
-  }
-
   body {
     background-color: transparent;
     color: var(--color-foreground);
     font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
   }
+
+  h1, h2, h3, h4 {
+    font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .parallax-background {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: url('/education-pattern.png');
+    background-repeat: repeat;
+    background-position: center top;
+    background-color: var(--color-background);
+    background-size: auto;
+    transform: translate3d(0, calc(var(--bg-parallax, 0px)), 0);
+    will-change: transform;
+    image-rendering: optimizeQuality;
+  }
+
+  .bg-background {
+    background: url('/education-pattern.png') repeat center top fixed, var(--color-background);
+    background-size: auto;
+    background-attachment: fixed;
+  }
+}
 
   h1, h2, h3, h4 {
     font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, sans-serif;
