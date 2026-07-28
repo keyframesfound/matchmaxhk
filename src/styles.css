@@ -160,11 +160,16 @@
     min-height: 100%;
   }
 
-  html::before {
+  .hero-startup-bg {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-startup-bg::before {
     content: "";
-    position: fixed;
+    position: absolute;
     inset: 0;
-    z-index: -9999;
+    z-index: -1;
     pointer-events: none;
     background-image: url('/education-pattern.png');
     background-repeat: repeat;
@@ -172,7 +177,6 @@
     background-color: var(--color-background);
     background-size: contain;
     image-rendering: optimizeQuality;
-    transform: translateZ(0);
   }
 
   body {

@@ -175,7 +175,7 @@ function Landing() {
       <SiteHeader />
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section className="hero-startup-bg relative overflow-hidden">
         <div
           aria-hidden
           className="absolute inset-0 -z-10"
