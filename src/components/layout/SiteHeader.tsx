@@ -56,8 +56,6 @@ export function SiteHeader() {
                   <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild><Link to="/dashboard">{t("nav.dashboard")}</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link to="/my-cases">My cases</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link to="/cases">Browse cases</Link></DropdownMenuItem>
                   {isAdmin && (
                     <>
                       <DropdownMenuSeparator />

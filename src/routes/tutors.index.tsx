@@ -19,8 +19,7 @@ const searchSchema = z.object({
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
   maxPrice: z.coerce.number().optional(),
-  minRating: z.coerce.number().optional(),
-  sort: z.string().optional(), // rating | price_asc | price_desc | experience
+  sort: z.string().optional(), // price_asc | price_desc | experience
   q: z.string().optional(),
 });
 type SearchState = z.infer<typeof searchSchema>;
@@ -56,10 +55,9 @@ const GENDER_OPTIONS = [
 ];
 
 const SORT_OPTIONS = [
-  { value: "rating", label: "Top rated" },
+  { value: "experience", label: "Most experienced" },
   { value: "price_asc", label: "Price: low to high" },
   { value: "price_desc", label: "Price: high to low" },
-  { value: "experience", label: "Most experienced" },
 ];
 
 function TutorsDirectory() {
@@ -113,15 +111,13 @@ function TutorsDirectory() {
 
   const [languageFilter, setLanguageFilter] = useState<string>("");
   const priceCaps = [300, 500, 800, 1200, 2000];
-  const ratingFloors = [3, 4, 4.5];
 
   const subjectFilter = (search.subject ?? "").toLowerCase();
   const districtFilter = search.district ?? "";
   const modeFilter = search.mode ?? "";
   const genderFilter = search.gender ?? "";
   const maxPrice = search.maxPrice;
-  const minRating = search.minRating;
-  const sort = search.sort ?? "rating";
+  const sort = search.sort ?? "experience";
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -134,7 +130,6 @@ function TutorsDirectory() {
         if (g !== genderFilter) return false;
       }
       if (maxPrice && tut.hourly_rate > maxPrice) return false;
-      if (minRating && Number(tut.rating) < minRating) return false;
       if (languageFilter && !(tut.languages ?? []).some((l) => l.toLowerCase() === languageFilter.toLowerCase())) return false;
       if (query && !(
         tut.tutor_code.toLowerCase().includes(query) ||
@@ -148,12 +143,11 @@ function TutorsDirectory() {
     switch (sort) {
       case "price_asc": sorted.sort((a, b) => a.hourly_rate - b.hourly_rate); break;
       case "price_desc": sorted.sort((a, b) => b.hourly_rate - a.hourly_rate); break;
-      case "experience": sorted.sort((a, b) => (b.experience_years ?? 0) - (a.experience_years ?? 0)); break;
-      case "rating":
-      default: sorted.sort((a, b) => Number(b.rating) - Number(a.rating));
+      case "experience":
+      default: sorted.sort((a, b) => (b.experience_years ?? 0) - (a.experience_years ?? 0) || a.hourly_rate - b.hourly_rate || a.tutor_code.localeCompare(b.tutor_code));
     }
     return sorted;
-  }, [tutors, subjectFilter, districtFilter, modeFilter, genderFilter, maxPrice, minRating, languageFilter, q, sort]);
+  }, [tutors, subjectFilter, districtFilter, modeFilter, genderFilter, maxPrice, languageFilter, q, sort]);
 
   const activeChips: { key: string; label: string; onClear: () => void }[] = [];
   if (search.subject) activeChips.push({ key: "subject", label: `Subject: ${search.subject}`, onClear: () => setParam({ subject: undefined }) });
@@ -161,7 +155,6 @@ function TutorsDirectory() {
   if (search.mode) activeChips.push({ key: "mode", label: `Mode: ${MODE_OPTIONS.find((m) => m.value === search.mode)?.label ?? search.mode}`, onClear: () => setParam({ mode: undefined }) });
   if (search.gender) activeChips.push({ key: "gender", label: `Gender: ${GENDER_OPTIONS.find((g) => g.value === search.gender)?.label ?? search.gender}`, onClear: () => setParam({ gender: undefined }) });
   if (maxPrice) activeChips.push({ key: "price", label: `≤ HK$${maxPrice}/hr`, onClear: () => setParam({ maxPrice: undefined }) });
-  if (minRating) activeChips.push({ key: "rating", label: `≥ ${minRating}★`, onClear: () => setParam({ minRating: undefined }) });
   if (languageFilter) activeChips.push({ key: "lang", label: `Language: ${languageFilter}`, onClear: () => setLanguageFilter("") });
 
   const clearAll = () => {
@@ -178,7 +171,7 @@ function TutorsDirectory() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">Find verified tutors in Hong Kong</h1>
             <p className="mt-3 max-w-3xl text-lg text-muted-foreground">
-              Browse tutors for IB, DSE, IGCSE, AP, A-Level, Mathematics, English, Science and more. Filter by district, lesson mode, price and rating to find the right tutor quickly.
+              Browse tutors for IB, DSE, IGCSE, AP, A-Level, Mathematics, English, Science and more. Filter by district, lesson mode, price and language to find the right tutor quickly.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2">
@@ -216,8 +209,8 @@ function TutorsDirectory() {
               />
             </div>
 
-            {/* Secondary row: mode, gender, language, price, rating, sort */}
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+            {/* Secondary row: mode, gender, language, price, sort */}
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               <SearchableSelect
                 value={search.mode ?? ""}
                 onChange={(v) => setParam({ mode: v || undefined })}
@@ -247,17 +240,8 @@ function TutorsDirectory() {
                 placeholder="Any price"
               />
               <SearchableSelect
-                value={minRating ? String(minRating) : ""}
-                onChange={(v) => setParam({ minRating: v ? Number(v) : undefined })}
-                options={[
-                  { value: "", label: "Any rating" },
-                  ...ratingFloors.map((r) => ({ value: String(r), label: `${r}★ & up` })),
-                ]}
-                placeholder="Any rating"
-              />
-              <SearchableSelect
                 value={sort}
-                onChange={(v) => setParam({ sort: v === "rating" ? undefined : v })}
+                onChange={(v) => setParam({ sort: v || undefined })}
                 options={SORT_OPTIONS}
                 placeholder="Sort by"
               />

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, Star } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/post-case/success/$caseId"
   component: SuccessPage,
 });
 
-type Match = { id: string; tutor_code: string; display_name: string; photo_url: string | null; hourly_rate: number; rating: number; district: string | null; score: number };
+type Match = { id: string; tutor_code: string; display_name: string; photo_url: string | null; hourly_rate: number; district: string | null; score: number };
 
 function SuccessPage() {
   const { caseId } = Route.useParams();
@@ -63,10 +63,6 @@ function SuccessPage() {
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Score {Math.round(m.score)}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">{m.district ?? "Any district"} · HK${m.hourly_rate}/hr</p>
-                    <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                      <Star className="h-3 w-3 fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]" />
-                      {Number(m.rating).toFixed(1)}
-                    </p>
                   </div>
                 </Link>
               ))}

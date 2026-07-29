@@ -253,8 +253,8 @@ function Landing() {
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">/hr</p>
                       </div>
                       <div>
-                        <p className="font-bold text-lg text-[color:var(--brand-navy)]">{heroTutor.rating.toFixed(1)}★</p>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Rating</p>
+                        <p className="font-bold text-lg text-[color:var(--brand-navy)]">{heroTutor.experience_years ? `${heroTutor.experience_years}+ yrs` : "New"}</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Experience</p>
                       </div>
                     </div>
                     <div className="mt-5 rounded-md border border-border/70 bg-muted/40 p-4">

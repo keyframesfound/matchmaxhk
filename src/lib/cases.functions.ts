@@ -43,6 +43,22 @@ async function assertAdmin(supabase: unknown, userId: string) {
   throw new Error("Forbidden");
 }
 
+function isMissingSupabaseResourceError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const maybe = error as { code?: unknown; message?: unknown };
+  const code = typeof maybe.code === "string" ? maybe.code : "";
+  const message = typeof maybe.message === "string" ? maybe.message : "";
+  return code === "42P01" || code === "42703" || /relation\s+["']?(tutoring_cases|case_interests)["']?\s+does not exist/i.test(message) || /column\s+.+\s+does not exist/i.test(message);
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error && typeof (error as { message?: unknown }).message === "string") {
+    return (error as { message: string }).message;
+  }
+  return "Unknown error";
+}
+
 export const createCase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => CaseInput.parse(data))
@@ -87,7 +103,10 @@ export const getCase = createServerFn({ method: "POST" })
       .select("*")
       .eq("id", data.caseId)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) {
+      if (isMissingSupabaseResourceError(error)) return null;
+      throw new Error(getErrorMessage(error));
+    }
     return row;
   });
 
@@ -137,7 +156,10 @@ export const getPublicCase = createServerFn({ method: "POST" })
       .select("id, title, subject, exam_system, student_level, student_grade_current, district, mode, sessions_per_week, session_length_minutes, budget_min, budget_max, urgency, language_of_instruction, preferred_gender, preferred_tutor_type, schedule_note, description, created_at, status, is_public, parent_id")
       .eq("id", data.caseId)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) {
+      if (isMissingSupabaseResourceError(error)) return null;
+      throw new Error(getErrorMessage(error));
+    }
     if (!row) return null;
     const isOwner = row.parent_id === context.userId;
     // Non-owners never see parent_id
@@ -245,10 +267,13 @@ export const listInterestsForCase = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
       .from("case_interests")
-      .select("id, tutor_id, note, status, created_at, tutors ( display_name, tutor_code, hourly_rate, rating, photo_url )")
+      .select("id, tutor_id, note, status, created_at, tutors ( display_name, tutor_code, hourly_rate, photo_url )")
       .eq("case_id", data.caseId)
       .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
+    if (error) {
+      if (isMissingSupabaseResourceError(error)) return [];
+      throw new Error(getErrorMessage(error));
+    }
     return rows ?? [];
   });
 

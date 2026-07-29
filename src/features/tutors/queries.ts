@@ -26,10 +26,6 @@ export type Tutor = {
   bio: string | null;
   photo_url: string | null;
   tutor_code: string;
-  rating: number;
-  review_count: number;
-  weekly_rating: number;
-  weekly_score: number;
   is_published: boolean;
   education: Education[];
   experience_years: number | null;
@@ -40,10 +36,10 @@ export type Tutor = {
 };
 
 const SELECT_COLS =
-  "id, display_name, headline, university, highschool, target_students, academic_summary, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, rating, review_count, weekly_rating, weekly_score, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
+  "id, display_name, headline, university, highschool, target_students, academic_summary, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
 
 const LEGACY_SELECT_COLS =
-  "id, display_name, headline, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, rating, review_count, weekly_rating, weekly_score, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
+  "id, display_name, headline, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
 
 function hasMissingProfileColumns(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
@@ -97,9 +93,7 @@ export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
       .from("tutors")
       .select(selectCols)
       .eq("is_published", true)
-      .order("weekly_score", { ascending: false })
-      .order("weekly_rating", { ascending: false })
-      .order("rating", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(limit),
   );
   return (data ?? []).map(normalize);
@@ -111,7 +105,7 @@ export async function fetchPublishedTutors(): Promise<Tutor[]> {
       .from("tutors")
       .select(selectCols)
       .eq("is_published", true)
-      .order("rating", { ascending: false }),
+      .order("created_at", { ascending: false }),
   );
   return (data ?? []).map(normalize);
 }
