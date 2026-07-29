@@ -217,8 +217,8 @@ function Landing() {
           {/* Hero visual card */}
           <div className="relative flex items-center justify-center">
             <div className="relative w-full max-w-md">
-              <div className="absolute inset-0 rounded-[20px] border border-border/50 bg-muted/30" aria-hidden />
-              <div className="relative rounded-[20px] border border-border/80 bg-card/95 p-6 shadow-[0_10px_30px_rgba(4,19,68,0.06)]">
+              <div className="absolute inset-0 rounded-sm border border-border/50 bg-muted/30" aria-hidden />
+              <div className="relative rounded-sm border border-border/80 bg-card/95 p-6 shadow-[0_10px_30px_rgba(4,19,68,0.06)]">
                 {heroTutor ? (
                   <>
                     <div className="flex items-center gap-3">
@@ -243,7 +243,7 @@ function Landing() {
                       </div>
                       <span className="rounded-lg border border-[color:var(--brand-teal)]/15 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-teal)]">Featured</span>
                     </div>
-                    <div className="mt-5 grid grid-cols-3 gap-3 rounded-[16px] border border-border/70 bg-muted/50 p-4 text-center text-xs">
+                    <div className="mt-5 grid grid-cols-3 gap-3 rounded-md border border-border/70 bg-muted/50 p-4 text-center text-xs">
                       <div>
                         <p className="font-bold text-lg text-[color:var(--brand-navy)]">{heroTutor.tutor_code}</p>
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Code</p>
@@ -257,7 +257,7 @@ function Landing() {
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Rating</p>
                       </div>
                     </div>
-                    <div className="mt-5 rounded-[16px] border border-border/70 bg-muted/40 p-4">
+                    <div className="mt-5 rounded-md border border-border/70 bg-muted/40 p-4">
                       <div className="space-y-2">
                         {[
                           heroTutor.badge,
@@ -321,9 +321,9 @@ function Landing() {
             {[1, 2, 3].map((n) => (
               <div
                 key={n}
-                className="group relative overflow-hidden rounded-3xl border border-border/80 bg-card/95 p-8 shadow-[0_10px_24px_rgba(4,19,68,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--brand-teal)]/45 hover:shadow-brand"
+                className="group relative overflow-hidden rounded-sm border border-border/80 bg-card/95 p-8 shadow-[0_10px_24px_rgba(4,19,68,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--brand-teal)]/45 hover:shadow-brand"
               >
-                <div className="relative mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-gradient text-2xl font-black text-white shadow-teal" aria-hidden="true">
+                <div className="relative mb-6 flex h-14 w-14 items-center justify-center rounded-md bg-brand-gradient text-2xl font-black text-white shadow-teal" aria-hidden="true">
                   {n}
                 </div>
                 <h3 className="text-xl font-bold text-foreground">{t(`how.step${n}_title`)}</h3>
@@ -358,7 +358,7 @@ function Landing() {
                 key={tut.id}
                 to="/tutors/$tutorCode"
                 params={{ tutorCode: tut.tutor_code }}
-                className="block rounded-[20px] border border-border/80 bg-card p-6 shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)]/30 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]"
+                className="block rounded-sm border border-border/80 bg-card p-6 shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)]/30 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]"
                 onClick={() => blurActive()}
               >
                 <div className="flex items-center gap-4">
@@ -427,7 +427,7 @@ function Landing() {
                 key={subject}
                 to="/tutors"
                 search={{ subject }}
-                className="rounded-2xl border border-border bg-card px-5 py-4 text-center text-sm font-bold text-foreground transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)] hover:shadow-teal"
+                className="rounded-md border border-border bg-card px-5 py-4 text-center text-sm font-bold text-foreground transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)] hover:shadow-teal"
               >
                 {subject} tutors
               </Link>
@@ -439,7 +439,7 @@ function Landing() {
       {/* Tutor CTA banner */}
       <section className="pb-20 sm:pb-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="relative overflow-hidden rounded-3xl bg-[color:var(--brand-navy)] p-10 sm:p-14">
+          <div className="relative overflow-hidden rounded-sm bg-[color:var(--brand-navy)] p-10 sm:p-14">
             <div
               aria-hidden
               className="absolute inset-0 opacity-40"
