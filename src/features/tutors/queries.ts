@@ -45,7 +45,7 @@ function hasMissingProfileColumns(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const maybe = error as { code?: unknown; message?: unknown };
   const code = typeof maybe.code === "string" ? maybe.code : "";
-  return code === "42703"; // undefined_column
+  return code === "42703" || code === "42P01"; // undefined_column or undefined_table
 }
 
 async function withTutorSelectFallback<T>(
