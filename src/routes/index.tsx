@@ -217,8 +217,8 @@ function Landing() {
           {/* Hero visual card */}
           <div className="relative flex items-center justify-center">
             <div className="relative w-full max-w-md">
-              <div className="absolute -inset-4 rounded-3xl bg-brand-gradient opacity-20 blur-2xl" aria-hidden />
-              <div className="relative rounded-3xl border border-border bg-card p-6 shadow-brand">
+              <div className="absolute inset-0 rounded-[20px] border border-border/50 bg-muted/30" aria-hidden />
+              <div className="relative rounded-[20px] border border-border/80 bg-card/95 p-6 shadow-[0_10px_30px_rgba(4,19,68,0.06)]">
                 {heroTutor ? (
                   <>
                     <div className="flex items-center gap-3">
@@ -241,9 +241,9 @@ function Landing() {
                           {heroTutor.headline ?? heroTutor.subjects.slice(0, 3).join(" · ")}
                         </p>
                       </div>
-                      <span className="rounded-full bg-[color:var(--brand-teal)]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-teal)]">Featured</span>
+                      <span className="rounded-lg border border-[color:var(--brand-teal)]/15 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-teal)]">Featured</span>
                     </div>
-                    <div className="mt-5 grid grid-cols-3 gap-3 rounded-2xl bg-muted/50 p-4 text-center text-xs">
+                    <div className="mt-5 grid grid-cols-3 gap-3 rounded-[16px] border border-border/70 bg-muted/50 p-4 text-center text-xs">
                       <div>
                         <p className="font-bold text-lg text-[color:var(--brand-navy)]">{heroTutor.tutor_code}</p>
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Code</p>
@@ -257,23 +257,25 @@ function Landing() {
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Rating</p>
                       </div>
                     </div>
-                    <div className="mt-5 space-y-2">
-                      {[
-                        heroTutor.badge,
-                        heroTutor.district,
-                        heroTutor.experience_years ? `${heroTutor.experience_years}+ years` : null,
-                        heroTutor.subjects[0] ?? null,
-                      ]
-                        .filter((x): x is string => !!x)
-                        .slice(0, 4)
-                        .map((tag) => (
-                          <div key={tag} className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <BadgeCheck className="h-3.5 w-3.5 text-[color:var(--brand-teal)]" />
-                            {tag}
-                          </div>
-                        ))}
+                    <div className="mt-5 rounded-[16px] border border-border/70 bg-muted/40 p-4">
+                      <div className="space-y-2">
+                        {[
+                          heroTutor.badge,
+                          heroTutor.district,
+                          heroTutor.experience_years ? `${heroTutor.experience_years}+ years` : null,
+                          heroTutor.subjects[0] ?? null,
+                        ]
+                          .filter((x): x is string => !!x)
+                          .slice(0, 4)
+                          .map((tag) => (
+                            <div key={tag} className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <BadgeCheck className="h-3.5 w-3.5 text-[color:var(--brand-teal)]" />
+                              {tag}
+                            </div>
+                          ))}
+                      </div>
                     </div>
-                    <Button asChild className="mt-6 w-full rounded-xl bg-brand-gradient py-3 text-sm font-bold text-white shadow-teal">
+                    <Button asChild className="mt-6 w-full rounded-lg bg-[color:var(--brand-navy)] py-3 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)]">
                       <Link to="/tutors/$tutorCode" params={{ tutorCode: heroTutor.tutor_code }}>
                         <MessageCircle className="mr-2 inline h-4 w-4" /> View tutor profile
                       </Link>
@@ -353,7 +355,7 @@ function Landing() {
                 key={tut.id}
                 to="/tutors/$tutorCode"
                 params={{ tutorCode: tut.tutor_code }}
-                className="block rounded-3xl border border-border bg-card p-6 transition-all hover:shadow-brand"
+                className="block rounded-[20px] border border-border/80 bg-card p-6 shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)]/30 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]"
                 onClick={() => blurActive()}
               >
                 <div className="flex items-center gap-4">
