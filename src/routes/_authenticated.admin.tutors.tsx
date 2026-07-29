@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { StarRating } from "@/components/ui/StarRating";
+
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -158,8 +158,6 @@ const formSchema = z.object({
   bio: z.string().trim().max(2000).optional().or(z.literal("")),
   photo_url: z.string().trim().max(1000).optional().or(z.literal("")),
   tutor_code: z.string().trim().min(2).max(20).regex(/^[A-Za-z0-9-]+$/, "Letters, numbers, dashes only"),
-  weekly_rating: z.coerce.number().min(0).max(5),
-  weekly_score: z.coerce.number().int().min(0).max(100),
   is_published: z.boolean(),
   languages_csv: z.string().trim().max(200).optional().or(z.literal("")),
   gender: z.enum(["male", "female", "other"]),
@@ -184,8 +182,6 @@ const empty: FormValues = {
   bio: "",
   photo_url: "",
   tutor_code: "",
-  weekly_rating: 5,
-  weekly_score: 50,
   is_published: true,
   languages_csv: "",
   gender: "female",
@@ -209,8 +205,6 @@ function tutorToForm(t: Tutor): FormValues {
     bio: t.bio ?? "",
     photo_url: t.photo_url ?? "",
     tutor_code: t.tutor_code,
-    weekly_rating: Number(t.weekly_rating),
-    weekly_score: t.weekly_score,
     is_published: t.is_published,
     languages_csv: (t.languages ?? []).join(", "),
     gender: (["male", "female", "other"].includes((t as unknown as { gender?: string | null }).gender ?? "")
@@ -263,8 +257,6 @@ function formToPayload(v: FormValues, isNew: boolean) {
     bio: v.bio || null,
     photo_url: v.photo_url || null,
     tutor_code: v.tutor_code.trim(),
-    weekly_rating: v.weekly_rating,
-    weekly_score: v.weekly_score,
     is_published: v.is_published,
     languages: langs,
     gender: v.gender,
@@ -273,11 +265,6 @@ function formToPayload(v: FormValues, isNew: boolean) {
     education: cleanEdu,
     exam_results: cleanExams,
   };
-  if (isNew) {
-    // New tutors start with baseline scoring values.
-    base.rating = 5.0;
-    base.review_count = 0;
-  }
   return base;
 }
 
@@ -778,7 +765,6 @@ function AdminTutors() {
                   <th className="px-4 py-3">Subjects</th>
                   <th className="px-4 py-3">District</th>
                   <th className="px-4 py-3">Rate</th>
-                  <th className="px-4 py-3">Week</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
@@ -801,7 +787,6 @@ function AdminTutors() {
                     <td className="px-4 py-3 text-muted-foreground">{(row.subjects ?? []).join(", ")}</td>
                     <td className="px-4 py-3 text-muted-foreground">{row.district ?? "—"}</td>
                     <td className="px-4 py-3">HK${row.hourly_rate}</td>
-                    <td className="px-4 py-3">{row.weekly_score}</td>
                     <td className="px-4 py-3">
                       <span className={row.is_published ? "text-[color:var(--brand-teal)]" : "text-muted-foreground"}>
                         {row.is_published ? "Published" : "Hidden"}

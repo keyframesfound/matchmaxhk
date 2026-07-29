@@ -54,6 +54,7 @@ async function withTutorSelectFallback<T>(
 ): Promise<T> {
   const first = await run(SELECT_COLS);
   if (!first.error) return (first.data ?? ([] as unknown as T));
+  console.log(first.error);
   if (!hasMissingProfileColumns(first.error)) throw first.error;
 
   const second = await run(LEGACY_SELECT_COLS);
