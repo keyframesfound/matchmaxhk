@@ -750,32 +750,10 @@ function AdminTutors() {
 
 
 
-                  <Section title="Scoring">
-                    {editing && (
-                      <p className="rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                        Current profile quality score: <strong>{Number(editing.rating).toFixed(1)}★</strong>.
-                      </p>
-                    )}
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <Field label="This week rating">
-                        <StarRating value={form.weekly_rating} onChange={(v) => setForm({ ...form, weekly_rating: v })} />
-                      </Field>
-                      <Field label={`Weekly rank score (${form.weekly_score})`}>
-                        <Slider
-                          min={0}
-                          max={100}
-                          step={1}
-                          value={[form.weekly_score]}
-                          onValueChange={(v) => setForm({ ...form, weekly_score: v[0] ?? 0 })}
-                        />
-                        <p className="mt-1 text-[11px] text-muted-foreground">Higher = shown earlier in “Featured tutors”.</p>
-                      </Field>
-                    </div>
-                    <div className="flex items-center gap-3 pt-2">
+                  <div className="flex items-center gap-3 pt-2">
                       <Switch id="pub" checked={form.is_published} onCheckedChange={(v) => setForm({ ...form, is_published: v })} />
                       <Label htmlFor="pub">Published (visible to visitors)</Label>
                     </div>
-                  </Section>
 
                   <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
