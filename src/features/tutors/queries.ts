@@ -31,21 +31,21 @@ export type Tutor = {
   experience_years: number | null;
   teaching_since: number | null;
   languages: string[];
-  intro_video_url: string | null;
   exam_results: ExamResult[];
 };
 
 const SELECT_COLS =
-  "id, display_name, headline, university, highschool, target_students, academic_summary, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
+  "id, display_name, headline, university, highschool, target_students, academic_summary, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, exam_results, gender";
 
 const LEGACY_SELECT_COLS =
-  "id, display_name, headline, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
+  "id, display_name, headline, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, exam_results, gender";
 
 function hasMissingProfileColumns(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const maybe = error as { code?: unknown; message?: unknown };
   const code = typeof maybe.code === "string" ? maybe.code : "";
-  return code === "42703" || code === "42P01"; // undefined_column or undefined_table
+  const message = typeof maybe.message === "string" ? maybe.message : "";
+  return code === "42703" || /column\s+"?(university|highschool|target_students|academic_summary|qualifications_summary)"?\s+does\s+not\s+exist/i.test(message);
 }
 
 async function withTutorSelectFallback<T>(
