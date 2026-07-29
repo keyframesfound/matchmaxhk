@@ -35,11 +35,29 @@ export type Tutor = {
   exam_results: ExamResult[];
 };
 
+const SELECT_COLS =
+  "id, display_name, headline, university, highschool, target_students, academic_summary, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
+
 const LEGACY_SELECT_COLS =
+  "id, display_name, headline, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, intro_video_url, exam_results, gender";
+
+function hasMissingProfileColumns(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const maybe = error as { code?: unknown; message?: unknown };
+  const code = typeof maybe.code === "string" ? maybe.code : "";
+  return code === "42703"; // undefined_column
+}
 
 async function withTutorSelectFallback<T>(
   run: (selectCols: string) => Promise<{ data: T | null; error: unknown }>,
 ): Promise<T> {
+  const first = await run(SELECT_COLS);
+  if (!first.error) return (first.data ?? ([] as unknown as T));
+
+  if (!hasMissingProfileColumns(first.error)) {
+    throw first.error;
+  }
+
   const second = await run(LEGACY_SELECT_COLS);
   if (second.error) throw second.error;
   return (second.data ?? ([] as unknown as T));
