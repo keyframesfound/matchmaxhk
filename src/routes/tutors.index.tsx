@@ -304,13 +304,13 @@ function TutorsDirectory() {
             {isLoading && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="h-64 animate-pulse rounded-3xl border border-border bg-muted/40" />
+                  <div key={i} className="h-64 animate-pulse rounded-sm border border-border bg-muted/40" />
                 ))}
               </div>
             )}
 
             {!isLoading && filtered.length === 0 && (
-              <div className="rounded-3xl border border-dashed border-border bg-card p-12 text-center">
+              <div className="rounded-sm border border-dashed border-border bg-card p-12 text-center">
                 <p className="text-lg font-bold text-[color:var(--brand-navy)]">No tutors match your filters yet</p>
                 <p className="mt-2 text-sm text-muted-foreground">Try widening your search, or clear filters to see everyone.</p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -329,7 +329,7 @@ function TutorsDirectory() {
                     key={tut.id}
                     to="/tutors/$tutorCode"
                     params={{ tutorCode: tut.tutor_code }}
-                    className="flex flex-col rounded-3xl border border-border bg-card p-6 transition-all hover:shadow-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-teal)]"
+                    className="flex flex-col rounded-sm border border-border bg-card p-6 transition-all hover:shadow-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-teal)]"
                   >
                     <div className="flex items-center gap-4">
                       {tut.photo_url ? (

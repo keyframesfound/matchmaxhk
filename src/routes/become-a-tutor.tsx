@@ -67,7 +67,7 @@ function BecomeATutor() {
               We hand-pick every tutor on MatchMax. To get verified and start receiving case leads for IB, DSE, IGCSE, A-Level and more, message our team on WhatsApp — we'll walk you through the short onboarding.
             </p>
 
-            <div className="mt-10 rounded-3xl border border-border bg-card p-8 shadow-brand">
+            <div className="mt-10 rounded-sm border border-border bg-card p-8 shadow-brand">
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Step 1</p>
               <h2 className="mt-2 text-2xl font-black text-[color:var(--brand-navy)]">Contact us on WhatsApp</h2>
               <p className="mt-3 text-sm text-muted-foreground">
@@ -96,7 +96,7 @@ function BecomeATutor() {
                 { t: "Quality case leads", d: "Only matched families are introduced to you." },
                 { t: "No hidden fees", d: "Transparent pricing, no surprise commissions." },
               ].map((f) => (
-                <div key={f.t} className="rounded-2xl border border-border bg-card p-5">
+                <div key={f.t} className="rounded-md border border-border bg-card p-5">
                   <div className="flex items-center gap-2 text-sm font-bold text-foreground">
                     <BadgeCheck className="h-4 w-4 text-[color:var(--brand-teal)]" /> {f.t}
                   </div>
