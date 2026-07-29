@@ -323,10 +323,6 @@ function Landing() {
                 key={n}
                 className="group relative overflow-hidden rounded-3xl border border-border/80 bg-card/95 p-8 shadow-[0_10px_24px_rgba(4,19,68,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--brand-teal)]/45 hover:shadow-brand"
               >
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute -top-14 -right-12 h-32 w-32 rounded-full bg-[color:var(--brand-cyan)]/12 blur-2xl transition-opacity duration-300 group-hover:opacity-100"
-                />
                 <div className="relative mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-gradient text-2xl font-black text-white shadow-teal" aria-hidden="true">
                   {n}
                 </div>
