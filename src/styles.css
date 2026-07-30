@@ -182,12 +182,12 @@
   body {
     background-color: transparent;
     color: var(--color-foreground);
-    font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: "Hanleth Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4 {
-    font-family: "Inter", "Noto Sans HK", ui-sans-serif, system-ui, sans-serif;
+    font-family: "Hanleth Sans", ui-sans-serif, system-ui, sans-serif;
     letter-spacing: -0.02em;
   }
 }

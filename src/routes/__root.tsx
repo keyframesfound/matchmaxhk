@@ -75,17 +75,32 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      },
       { title: "MatchMax | Verified Tutors in Hong Kong" },
-      { name: "description", content: "MatchMax helps Hong Kong families find verified tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching." },
+      {
+        name: "description",
+        content:
+          "MatchMax helps Hong Kong families find verified tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching.",
+      },
       { name: "author", content: "MatchMax" },
       { property: "og:site_name", content: "MatchMax" },
       { property: "og:title", content: "MatchMax | Verified Tutors in Hong Kong" },
-      { property: "og:description", content: "MatchMax helps Hong Kong families find verified tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching." },
+      {
+        property: "og:description",
+        content:
+          "MatchMax helps Hong Kong families find verified tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "MatchMax" },
-      { name: "twitter:description", content: "MatchMax connects Hong Kong parents and students with verified DSE, IB, IGCSE, and AP tutors — matched instantly." },
+      {
+        name: "twitter:description",
+        content:
+          "MatchMax connects Hong Kong parents and students with verified DSE, IB, IGCSE, and AP tutors — matched instantly.",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -95,12 +110,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/site.webmanifest" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+HK:wght@400;500;700;900&display=swap",
-      },
     ],
     scripts: [
       {
@@ -111,7 +120,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           name: "MatchMax",
           url: "https://maxmatch.app",
           logo: "https://maxmatch.app/favicon.png",
-          description: "Hong Kong tutoring marketplace matching parents and students with verified DSE, IB, IGCSE, and AP tutors.",
+          description:
+            "Hong Kong tutoring marketplace matching parents and students with verified DSE, IB, IGCSE, and AP tutors.",
         }),
       },
       {
