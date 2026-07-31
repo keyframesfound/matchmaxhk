@@ -58,7 +58,7 @@ export function SiteHeader() {
             href="/#how"
             className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
           >
-            {t("nav.how")}
+            {t("nav.about")}
 
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
           </a>
@@ -311,7 +311,7 @@ export function SiteHeader() {
                 hover:text-[#1FA8B6]
               "
             >
-              {t("nav.how")}
+              {t("nav.about")}
             </a>
 
             {/* Find a tutor */}
