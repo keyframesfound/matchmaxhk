@@ -51,7 +51,6 @@ const GENDER_OPTIONS = [
   { value: "", label: "Any gender" },
   { value: "female", label: "Female" },
   { value: "male", label: "Male" },
-  { value: "other", label: "Other" },
 ];
 
 const SORT_OPTIONS = [
