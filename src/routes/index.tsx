@@ -163,10 +163,6 @@ function Landing() {
         />
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-4 pt-16 pb-20 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:pt-24 lg:pb-28">
           <div className="flex flex-col justify-center">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-[color:var(--brand-teal)]">
-              <Sparkles className="h-3.5 w-3.5" />
-              {t("hero.eyebrow")}
-            </span>
             <h1 className="mt-6 text-5xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-6xl lg:text-7xl">
               {t("hero.title_a")}
               <br />
