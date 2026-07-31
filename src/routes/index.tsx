@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, Sparkles, MessageCircle, Star, Users, GraduationCap, MapPin, BookOpen, Globe } from "lucide-react";
+import { ArrowRight, BadgeCheck, Sparkles, MessageCircle, Star, Users, GraduationCap, MapPin, BookOpen, Globe, Calendar, Clock, CreditCard } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -367,29 +367,4 @@ function Landing() {
       {/* Tutor CTA banner */}
       <section className="pb-20 sm:pb-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="relative overflow-hidden rounded-sm bg-[color:var(--brand-navy)] p-10 sm:p-14">
-            <div
-              aria-hidden
-              className="absolute inset-0 opacity-40"
-              style={{ background: "radial-gradient(ellipse at top right, #2ED5DE 0%, transparent 60%)" }}
-            />
-            <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-              <div className="max-w-xl">
-                <h3 className="text-3xl font-black text-white sm:text-4xl">{t("tutors_cta.title")}</h3>
-                <p className="mt-3 text-base text-white/80">{t("tutors_cta.subtitle")}</p>
-              </div>
-              <Button asChild size="lg" className="h-14 bg-white px-8 text-base font-bold text-[color:var(--brand-navy)] hover:bg-white/90">
-                <Link to="/become-a-tutor">
-                  {t("tutors_cta.cta")}
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <SiteFooter />
-    </div>
-  );
-}
+          <h2 className="mb-6 text-3xl font-black text-foreground sm:
