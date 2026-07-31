@@ -34,7 +34,7 @@ export function SiteHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#2ED5DE]/20 bg-[#0A245F]">
+    <header className="sticky top-0 z-50 w-full border-b border-[#041344]/10 bg-white">
       <div className="mx-auto flex h-[76px] max-w-[1440px] items-center px-5 sm:px-8 lg:px-10">
         {/* -------------------------------------------------- */}
         {/* Logo */}
@@ -42,7 +42,7 @@ export function SiteHeader() {
 
         <Link
           to="/"
-          className="shrink-0 text-white"
+          className="shrink-0"
           onClick={blurActive}
           aria-label="MatchMax home"
         >
@@ -56,29 +56,29 @@ export function SiteHeader() {
         <nav className="ml-12 hidden items-center gap-9 lg:flex">
           <a
             href="/#how"
-            className="group relative text-[15px] font-semibold text-white transition-colors duration-200 hover:text-[#2ED5DE]"
+            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
           >
             {t("About")}
 
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#2ED5DE] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
           </a>
 
           <Link
             to="/tutors"
-            className="group relative text-[15px] font-semibold text-white transition-colors duration-200 hover:text-[#2ED5DE]"
+            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
           >
             {t("nav.find")}
 
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#2ED5DE] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
           </Link>
 
           <Link
             to="/become-a-tutor"
-            className="group relative text-[15px] font-semibold text-white transition-colors duration-200 hover:text-[#2ED5DE]"
+            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
           >
             {t("tutors_cta.cta")}
 
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#2ED5DE] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
           </Link>
         </nav>
 
@@ -88,7 +88,7 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-3 sm:gap-4">
           {/* Language */}
-          <div className="hidden sm:block text-white">
+          <div className="hidden sm:block">
             <LanguageToggle />
           </div>
 
@@ -104,16 +104,16 @@ export function SiteHeader() {
                     rounded-full
                     px-4
                     font-semibold
-                    text-white
-                    hover:bg-[#1FA8B6]/20
-                    hover:text-white
+                    text-[#041344]
+                    hover:bg-[#77E8EE]/20
+                    hover:text-[#041344]
                   "
                 >
                   <span className="max-w-[120px] truncate">
                     {user.email?.split("@")[0] ?? "Account"}
                   </span>
 
-                  <ChevronDown className="h-4 w-4 opacity-80" />
+                  <ChevronDown className="h-4 w-4 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>
 
@@ -219,9 +219,9 @@ export function SiteHeader() {
                   hidden
                   text-[15px]
                   font-semibold
-                  text-white
+                  text-[#041344]
                   transition-colors
-                  hover:text-[#2ED5DE]
+                  hover:text-[#1FA8B6]
                   sm:inline
                 "
               >
@@ -234,7 +234,7 @@ export function SiteHeader() {
                   className="
                     h-11
                     rounded-full
-                    bg-[#1FA8B6]
+                    bg-[#0A245F]
                     px-6
                     text-[15px]
                     font-semibold
@@ -242,8 +242,7 @@ export function SiteHeader() {
                     shadow-sm
                     transition-all
                     duration-200
-                    hover:bg-[#2ED5DE]
-                    hover:text-[#041344]
+                    hover:bg-[#041344]
                     hover:shadow-md
                   "
                 >
@@ -264,11 +263,11 @@ export function SiteHeader() {
               justify-center
               rounded-full
               border
-              border-white/20
-              text-white
+              border-[#041344]/10
+              text-[#041344]
               transition-all
-              hover:border-[#2ED5DE]/50
-              hover:bg-[#1FA8B6]/20
+              hover:border-[#1FA8B6]/30
+              hover:bg-[#77E8EE]/15
               lg:hidden
             "
             onClick={() => setMobileOpen((v) => !v)}
@@ -289,10 +288,10 @@ export function SiteHeader() {
       {/* -------------------------------------------------- */}
 
       {mobileOpen && (
-        <div className="border-t border-white/10 bg-[#0A245F] lg:hidden">
+        <div className="border-t border-[#041344]/10 bg-white lg:hidden">
           <nav className="mx-auto flex max-w-[1440px] flex-col px-5 py-4 sm:px-8">
             {/* Mobile Language */}
-            <div className="mb-3 flex items-center px-3 py-2 text-white">
+            <div className="mb-3 flex items-center px-3 py-2">
               <LanguageToggle />
             </div>
 
@@ -306,10 +305,10 @@ export function SiteHeader() {
                 py-3
                 text-[15px]
                 font-semibold
-                text-white
+                text-[#041344]
                 transition-colors
-                hover:bg-[#1FA8B6]/20
-                hover:text-[#2ED5DE]
+                hover:bg-[#77E8EE]/15
+                hover:text-[#1FA8B6]
               "
             >
               {t("About")}
@@ -325,10 +324,10 @@ export function SiteHeader() {
                 py-3
                 text-[15px]
                 font-semibold
-                text-white
+                text-[#041344]
                 transition-colors
-                hover:bg-[#1FA8B6]/20
-                hover:text-[#2ED5DE]
+                hover:bg-[#77E8EE]/15
+                hover:text-[#1FA8B6]
               "
             >
               {t("nav.find")}
@@ -344,10 +343,10 @@ export function SiteHeader() {
                 py-3
                 text-[15px]
                 font-semibold
-                text-white
+                text-[#041344]
                 transition-colors
-                hover:bg-[#1FA8B6]/20
-                hover:text-[#2ED5DE]
+                hover:bg-[#77E8EE]/15
+                hover:text-[#1FA8B6]
               "
             >
               {t("tutors_cta.cta")}
@@ -355,7 +354,7 @@ export function SiteHeader() {
 
             {/* Logged-out mobile actions */}
             {!user && (
-              <div className="mt-3 border-t border-white/10 pt-4">
+              <div className="mt-3 border-t border-[#041344]/10 pt-4">
                 <Link
                   to="/auth"
                   onClick={closeMobile}
@@ -366,9 +365,9 @@ export function SiteHeader() {
                     py-3
                     text-[15px]
                     font-semibold
-                    text-white
+                    text-[#041344]
                     transition-colors
-                    hover:bg-[#1FA8B6]/20
+                    hover:bg-[#77E8EE]/15
                   "
                 >
                   {t("nav.sign_in")}
@@ -384,12 +383,11 @@ export function SiteHeader() {
                       h-11
                       w-full
                       rounded-full
-                      bg-[#1FA8B6]
+                      bg-[#0A245F]
                       text-[15px]
                       font-semibold
                       text-white
-                      hover:bg-[#2ED5DE]
-                      hover:text-[#041344]
+                      hover:bg-[#041344]
                     "
                   >
                     Sign up
@@ -400,7 +398,7 @@ export function SiteHeader() {
 
             {/* Logged-in mobile actions */}
             {user && (
-              <div className="mt-3 border-t border-white/10 pt-4">
+              <div className="mt-3 border-t border-[#041344]/10 pt-4">
                 <Link
                   to="/dashboard"
                   onClick={closeMobile}
@@ -411,9 +409,8 @@ export function SiteHeader() {
                     py-3
                     text-[15px]
                     font-semibold
-                    text-white
-                    hover:bg-[#1FA8B6]/20
-                    hover:text-[#2ED5DE]
+                    text-[#041344]
+                    hover:bg-[#77E8EE]/15
                   "
                 >
                   {t("nav.dashboard")}
