@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Menu, X, Globe2, ChevronDown } from "lucide-react";
 import { useState } from "react";
 
-import { Logo } from "@/components/brand/Logo";
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/useAuth";
@@ -46,7 +45,9 @@ export function SiteHeader() {
           onClick={blurActive}
           aria-label="MatchMax home"
         >
-          <Logo />
+          <span className="text-xl font-bold tracking-tight text-brand-gradient">
+            MatchMax
+          </span>
         </Link>
 
         {/* -------------------------------------------------- */}
