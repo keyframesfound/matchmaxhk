@@ -210,7 +210,9 @@ function Landing() {
                           className="h-11 w-11 shrink-0 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="h-11 w-11 shrink-0 rounded-full bg-brand-gradient-soft" />
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-sm font-semibold text-[color:var(--brand-teal)]">
+                          {heroTutor.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
+                        </div>
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-foreground break-words">{heroTutor.tutor_code}{getTutorGenderLabel(heroTutor.gender) ? ` · ${getTutorGenderLabel(heroTutor.gender)}` : ""}</p>
@@ -349,7 +351,9 @@ function Landing() {
                       className="h-14 w-14 shrink-0 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="h-14 w-14 shrink-0 rounded-full bg-brand-gradient-soft" />
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-base font-semibold text-[color:var(--brand-teal)]">
+                      {tut.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
+                    </div>
                   )}
                   <div className="min-w-0">
                     <p className="text-base font-bold text-foreground break-words">{tut.tutor_code}{getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}</p>

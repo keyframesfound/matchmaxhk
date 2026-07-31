@@ -310,7 +310,9 @@ function TutorsDirectory() {
                       {tut.photo_url ? (
                         <img src={tut.photo_url} alt={tut.tutor_code} className="h-14 w-14 shrink-0 rounded-full object-cover" />
                       ) : (
-                        <div className="h-14 w-14 shrink-0 rounded-full bg-brand-gradient-soft" />
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-base font-semibold text-[color:var(--brand-teal)]">
+                          {tut.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
+                        </div>
                       )}
                       <div className="min-w-0">
                         <p className="text-base font-bold text-foreground break-words">

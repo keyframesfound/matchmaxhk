@@ -217,7 +217,9 @@ function TutorDetail() {
               {t.photo_url ? (
                 <img src={t.photo_url} alt={t.tutor_code} className="h-24 w-24 shrink-0 rounded-2xl object-cover" />
               ) : (
-                <div className="h-24 w-24 shrink-0 rounded-2xl bg-brand-gradient-soft" />
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-2xl font-semibold text-[color:var(--brand-teal)]">
+                  {t.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
+                </div>
               )}
               <div className="min-w-0 flex-1">
                 <h1 className="text-3xl font-black text-[color:var(--brand-navy)] sm:text-4xl">{profileTitle}</h1>
