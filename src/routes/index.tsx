@@ -290,7 +290,6 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">{t("how.title")}</h2>
-            <p className="mt-4 text-lg text-muted-foreground">{t("how.subtitle")}</p>
           </div>
           <div className="mt-16 grid gap-6 md:grid-cols-3">
             {[1, 2, 3].map((n) => (
