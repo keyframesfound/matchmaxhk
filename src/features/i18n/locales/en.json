@@ -12,9 +12,8 @@
   "hero": {
     "title_a": "Find the right tutor, matched",
     "title_b": "for you",
-    "subtitle": "Smart matching for Hong Kong families. Connect with qualified tutors based on subject, level, and budget — in minutes.",
-    "cta_primary": "Post a case for free",
-    "cta_secondary": "Browse tutors"
+    "subtitle": "Smart matching, connect qualified tutors based on subject, level, and budget — in minutes.",
+    "cta_primary": "Browse tutors"
   },
   "trust": {
     "students": "Students matched",
@@ -37,19 +36,6 @@
     "subtitle": "Highly rated professionals across Hong Kong",
     "view_all": "View all tutors",
     "per_hour": "/hr"
-  },
-  "subjects": {
-    "title": "Popular subjects",
-    "math": "Mathematics",
-    "english": "English",
-    "chinese": "Chinese",
-    "physics": "Physics",
-    "chemistry": "Chemistry",
-    "biology": "Biology",
-    "economics": "Economics",
-    "dse": "DSE Prep",
-    "ib": "IB Diploma",
-    "view_all": "View all subjects"
   },
   "tutors_cta": {
     "title": "Are you a passionate tutor?",

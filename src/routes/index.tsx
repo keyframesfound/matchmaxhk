@@ -174,7 +174,7 @@ function Landing() {
             <div className="mt-10 flex flex-wrap gap-3">
               <Button asChild size="lg" className="h-14 bg-[color:var(--brand-navy)] px-8 text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)]">
                 <Link to="/tutors" onClick={() => blurActive()}>
-                  {t("hero.cta_secondary")}
+                  {t("hero.cta_primary")}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
