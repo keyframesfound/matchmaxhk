@@ -212,7 +212,7 @@ export function SiteHeader() {
             </DropdownMenu>
           ) : (
             <>
-              {/* Sign in */}
+              {/* Log in */}
               <Link
                 to="/auth"
                 className="

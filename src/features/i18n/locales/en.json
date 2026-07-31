@@ -3,7 +3,7 @@
   "nav": {
     "how": "About",
     "find": "Find",
-    "sign_in": "Sign in",
+    "sign_in": "Log in",
     "sign_out": "Sign out",
     "dashboard": "Dashboard",
     "admin": "Admin"
@@ -55,7 +55,7 @@
   },
   "auth": {
     "sign_in_title": "Welcome back",
-    "sign_in_subtitle": "Sign in to your MatchMax account",
+    "sign_in_subtitle": "Log in to your MatchMax account",
     "sign_up_title": "Create your account",
     "sign_up_subtitle": "Join MatchMax as a parent or tutor",
     "email": "Email",
@@ -68,7 +68,7 @@
     "no_account": "No account?",
     "have_account": "Already have an account?",
     "sign_up": "Sign up",
-    "sign_in": "Sign in",
+    "sign_in": "Log in",
     "check_email": "Check your email to confirm your account.",
     "signing_in": "Signing in…"
   },

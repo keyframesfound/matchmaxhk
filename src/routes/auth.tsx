@@ -14,13 +14,13 @@ import { useAuth } from "@/features/auth/useAuth";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — MatchMax" },
+      { title: "Log in — MatchMax" },
       {
         name: "description",
         content:
-          "Sign in or create your MatchMax account to post a tutoring case or manage your tutor profile.",
+          "Log in or create your MatchMax account to post a tutoring case or manage your tutor profile.",
       },
-      { property: "og:title", content: "Sign in — MatchMax" },
+      { property: "og:title", content: "Log in — MatchMax" },
       {
         property: "og:description",
         content:
