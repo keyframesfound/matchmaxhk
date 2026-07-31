@@ -36,6 +36,18 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#041344]/10 bg-white">
       <div className="mx-auto flex h-[76px] max-w-[1440px] items-center px-5 sm:px-8 lg:px-10">
+        {/* -------------------------------------------------- */}
+        {/* Logo */}
+        {/* -------------------------------------------------- */}
+
+        <Link
+          to="/"
+          className="shrink-0"
+          onClick={blurActive}
+          aria-label="MatchMax home"
+        >
+          <Logo />
+        </Link>
 
         {/* -------------------------------------------------- */}
         {/* Desktop Navigation */}
@@ -46,7 +58,7 @@ export function SiteHeader() {
             href="/#how"
             className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
           >
-            {t("nav.about")}
+            {t("About")}
 
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
           </a>
