@@ -1,8 +1,8 @@
 {
   "brand": "MatchMax",
   "nav": {
-    "how_it_works": "How it works",
-    "find_tutor": "Find a Tutor",
+    "how_it_works": "How",
+    "find_tutor": "Find",
     "post_case": "Post a Case",
     "sign_in": "Sign in",
     "sign_out": "Sign out",
@@ -39,7 +39,7 @@
   "tutors_cta": {
     "title": "Are you a passionate tutor?",
     "subtitle": "Join Hong Kong's most transparent tutoring marketplace. Set your own rates and receive vetted case leads.",
-    "cta": "Join as a tutor"
+    "cta": "Join"
   },
   "footer": {
     "tagline": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them—through tailored 1-on-1 tutoring.",
