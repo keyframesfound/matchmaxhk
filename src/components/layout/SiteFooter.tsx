@@ -21,7 +21,7 @@ export function SiteFooter() {
             </h4>
             <ul className="space-y-3 text-sm font-semibold">
               <li><a href="/#how" className="hover:text-[color:var(--brand-teal)]">{t("footer.how")}</a></li>
-              <li><a href="/tutors" className="hover:text-[color:var(--brand-teal)]">{t("nav.find_tutor")}</a></li>
+              <li><a href="/tutors" className="hover:text-[color:var(--brand-teal)]">{t("nav.find")}</a></li>
               <li><a href="/become-a-tutor" className="hover:text-[color:var(--brand-teal)]">{t("tutors_cta.cta")}</a></li>
               <li><a href="/auth" className="hover:text-[color:var(--brand-teal)]">{t("nav.sign_in")}</a></li>
             </ul>

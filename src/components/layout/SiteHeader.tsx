@@ -31,10 +31,10 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-8 lg:flex">
           <a href="/#how" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
-            {t("nav.how_it_works")}
+            {t("nav.how")}
           </a>
           <Link to="/tutors" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
-            {t("nav.find_tutor")}
+            {t("nav.find")}
           </Link>
           <Link to="/become-a-tutor" className="text-sm font-semibold text-foreground/80 transition-colors hover:text-[color:var(--brand-teal)]">
             {t("tutors_cta.cta")}
@@ -88,10 +88,10 @@ export function SiteHeader() {
         <div className="border-t border-border bg-background lg:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3">
             <a href="/#how" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
-              {t("nav.how_it_works")}
+              {t("nav.how")}
             </a>
             <Link to="/tutors" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
-              {t("nav.find_tutor")}
+              {t("nav.find")}
             </Link>
             <Link to="/become-a-tutor" className="rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted" onClick={() => setMobileOpen(false)}>
               {t("tutors_cta.cta")}

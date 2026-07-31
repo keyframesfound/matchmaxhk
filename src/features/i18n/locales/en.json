@@ -1,9 +1,8 @@
 {
   "brand": "MatchMax",
   "nav": {
-    "how_it_works": "How",
-    "find_tutor": "Find",
-    "post_case": "Post a Case",
+    "how": "How",
+    "find": "Find",
     "sign_in": "Sign in",
     "sign_out": "Sign out",
     "dashboard": "Dashboard",
