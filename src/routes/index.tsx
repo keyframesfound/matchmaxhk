@@ -168,9 +168,6 @@ function Landing() {
               <br />
               <span className="text-brand-gradient">{t("hero.title_b")}</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-              {t("hero.subtitle")}
-            </p>
             <div className="mt-10 flex flex-wrap gap-3">
               <Button asChild size="lg" className="h-14 bg-[color:var(--brand-navy)] px-8 text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)]">
                 <Link to="/tutors" onClick={() => blurActive()}>
