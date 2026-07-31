@@ -268,7 +268,7 @@ function Landing() {
       </section>
 
       {/* Trust bar */}
-      <section className="border-y border-border bg-muted/30 py-10">
+      <section className="py-10">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 sm:grid-cols-4 sm:px-6">
           {trustStats.map(({ key, value }) => {
             const Icon = STAT_ICONS[key];
@@ -309,7 +309,7 @@ function Landing() {
       </section>
 
       {/* Featured tutors */}
-      <section id="tutors" className="bg-muted/30 py-20 sm:py-28">
+      <section id="tutors" className="py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
