@@ -36,18 +36,6 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#041344]/10 bg-white">
       <div className="mx-auto flex h-[76px] max-w-[1440px] items-center px-5 sm:px-8 lg:px-10">
-        {/* -------------------------------------------------- */}
-        {/* Logo */}
-        {/* -------------------------------------------------- */}
-
-        <Link
-          to="/"
-          className="shrink-0"
-          onClick={blurActive}
-          aria-label="MatchMax home"
-        >
-          <Logo />
-        </Link>
 
         {/* -------------------------------------------------- */}
         {/* Desktop Navigation */}
