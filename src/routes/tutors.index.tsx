@@ -174,14 +174,6 @@ function TutorsDirectory() {
               Browse tutors for IB, DSE, IGCSE, AP, A-Level, Mathematics, English, Science and more. Filter by district, lesson mode, price and language to find the right tutor quickly.
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-2">
-              {['IB tutor', 'DSE tutor', 'Math tutor', 'Online tutor', 'Hong Kong tutor'].map((item) => (
-                <span key={item} className="rounded-full border border-border bg-background px-3 py-1.5 text-sm text-muted-foreground">
-                  {item}
-                </span>
-              ))}
-            </div>
-
             {/* Primary row: search + subject + district */}
             <div className="mt-8 grid gap-3 sm:grid-cols-[1fr_220px_220px]">
               <div className="relative">
