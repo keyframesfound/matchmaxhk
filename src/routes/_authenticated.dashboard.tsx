@@ -35,13 +35,11 @@ function roleCards(role: AppRole): Card[] {
       ];
     case "staff":
       return [
-        { icon: ClipboardList, titleKey: "dashboard.staff.review", descKey: "dashboard.staff.review_desc", to: "/admin/cases" },
         { icon: GraduationCap, titleKey: "dashboard.staff.tutors", descKey: "dashboard.staff.tutors_desc", to: "/admin/tutors" },
       ];
     case "admin":
     case "super_admin":
       return [
-        { icon: ClipboardList, titleKey: "dashboard.admin.cases", descKey: "dashboard.admin.cases_desc", to: "/admin/cases" },
         { icon: GraduationCap, titleKey: "dashboard.admin.tutors", descKey: "dashboard.admin.tutors_desc", to: "/admin/tutors" },
         { icon: Users2, titleKey: "dashboard.admin.users", descKey: "dashboard.admin.users_desc", to: "/admin/users" },
         { icon: Settings2, titleKey: "dashboard.admin.settings", descKey: "dashboard.admin.settings_desc", to: "/admin/settings" },

@@ -59,7 +59,6 @@ export function SiteHeader() {
                   {isAdmin && (
                     <>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild><Link to="/admin/cases">Cases queue</Link></DropdownMenuItem>
                       <DropdownMenuItem asChild><Link to="/admin/tutors">Manage tutors</Link></DropdownMenuItem>
                       <DropdownMenuItem asChild><Link to="/admin/users">{t("nav.admin")}</Link></DropdownMenuItem>
                     </>
