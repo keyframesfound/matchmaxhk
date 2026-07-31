@@ -156,12 +156,14 @@
 @layer base {
   * {
     border-color: var(--color-border);
+    font-family: inherit;
   }
 
-  html, body {
+  html, body, #root {
     width: 100vw;
     overflow-x: hidden;
     min-height: 100%;
+    font-family: var(--font-sans);
   }
 
   .hero-startup-bg {
@@ -195,7 +197,7 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-weight: 700;
     line-height: 1.15;
@@ -220,7 +222,7 @@
     font-weight: 600;
   }
 
-  p, li, label, button, input, textarea, select, small {
+  p, li, label, button, input, textarea, select, small, a, span, div, td, th {
     font-family: var(--font-body);
   }
 
