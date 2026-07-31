@@ -68,7 +68,7 @@
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.7rem;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-heading: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -117,10 +117,10 @@
   --sidebar-ring: oklch(0.66 0.11 197);
 
   /* Gradients & shadows */
-  --gradient-brand: linear-gradient(135deg, #041344 0%, #1FA8B6 55%, #2ED5DE 100%);
-  --gradient-brand-soft: linear-gradient(135deg, #1FA8B6 0%, #2ED5DE 100%);
-  --shadow-brand: 0 20px 40px -20px color-mix(in oklab, #041344 30%, transparent);
-  --shadow-teal: 0 12px 30px -12px color-mix(in oklab, #1FA8B6 40%, transparent);
+  --gradient-brand: linear-gradient(135deg, #041344 0%, #0A245F 45%, #1FA8B6 100%);
+  --gradient-brand-soft: linear-gradient(135deg, #F5FBFC 0%, #E8F8FA 100%);
+  --shadow-brand: 0 10px 30px -18px color-mix(in oklab, #041344 24%, transparent);
+  --shadow-teal: 0 12px 24px -16px color-mix(in oklab, #1FA8B6 28%, transparent);
 }
 
 .dark {
@@ -186,7 +186,7 @@
   }
 
   body {
-    background-color: transparent;
+    background-color: #ffffff;
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-size: 0.95rem;
