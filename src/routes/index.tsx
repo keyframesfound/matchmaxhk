@@ -180,13 +180,6 @@ function Landing() {
               </Button>
             </div>
 
-            <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5"><BadgeCheck className="h-4 w-4 text-[color:var(--brand-teal)]" /> Verified tutors</span>
-              <span className="inline-flex items-center gap-1.5"><MessageCircle className="h-4 w-4 text-[color:var(--brand-teal)]" /> WhatsApp handoff</span>
-              <span className="inline-flex items-center gap-1.5"><Star className="h-4 w-4 text-[color:var(--brand-teal)]" /> No hidden fees</span>
-            </div>
-          </div>
-
           {/* Hero visual card */}
           <div className="relative flex items-center justify-center">
             <div className="relative w-full max-w-md">
