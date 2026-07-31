@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -68,6 +69,9 @@
 
 :root {
   --radius: 0.75rem;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* Brand raw */
   --brand-navy: #041344;
@@ -182,13 +186,67 @@
   body {
     background-color: transparent;
     color: var(--color-foreground);
-    font-family: "Hanleth Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 400;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+    text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4 {
-    font-family: "Hanleth Sans", ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    line-height: 1.15;
     letter-spacing: -0.02em;
+    color: var(--color-foreground);
+  }
+
+  h1 {
+    font-size: clamp(1.75rem, 2vw + 1.1rem, 2.45rem);
+  }
+
+  h2 {
+    font-size: clamp(1.35rem, 1.1vw + 1rem, 1.75rem);
+  }
+
+  h3 {
+    font-size: clamp(1.1rem, 0.85vw + 0.9rem, 1.3rem);
+  }
+
+  h4 {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  p, li, label, button, input, textarea, select, small {
+    font-family: var(--font-body);
+  }
+
+  button, input, textarea, select {
+    font-weight: 500;
+  }
+
+  .font-black,
+  .font-extrabold {
+    font-weight: 700 !important;
+  }
+
+  .font-bold {
+    font-weight: 600 !important;
+  }
+
+  .font-semibold {
+    font-weight: 600 !important;
+  }
+
+  .font-medium {
+    font-weight: 500 !important;
+  }
+
+  .font-normal {
+    font-weight: 400 !important;
   }
 }
 
