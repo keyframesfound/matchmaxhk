@@ -311,7 +311,7 @@ export function SiteHeader() {
                 hover:text-[#1FA8B6]
               "
             >
-              {t("nav.about")}
+              {t("About")}
             </a>
 
             {/* Find a tutor */}
