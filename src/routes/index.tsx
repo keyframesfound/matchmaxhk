@@ -179,6 +179,7 @@ function Landing() {
                 </Link>
               </Button>
             </div>
+          </div>
 
           {/* Hero visual card */}
           <div className="relative flex items-center justify-center">
