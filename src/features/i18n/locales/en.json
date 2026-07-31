@@ -21,17 +21,17 @@
     "districts": "Districts served"
   },
   "how": {
-    "title": "How MatchMax Works",
-    "step1_title": "Discover",
-    "step1_desc": "Browse our curated list of tutors and find the perfect match for your subject and level.",
-    "step2_title": "Connect",
-    "step2_desc": "Reach out to our dedicated team on WhatsApp with your Tutor Code, and we'll handle the rest.",
-    "step3_title": "Learn",
-    "step3_desc": "Jump straight into your lessons — no delays, no hassle."
+    "title": "Search for the right tutor on MatchMax",
+    "step1_title": "Find a tutor",
+    "step1_desc": "Browse tutors by subject, level, location, and budget.",
+    "step2_title": "Get matched",
+    "step2_desc": "Share your Tutor Code with our team and we'll connect you with your tutor.",
+    "step3_title": "Start learning",
+    "step3_desc": "Connect with your tutor and get started with your lessons."
   },
   "featured": {
-    "title": "Featured tutors",
-    "subtitle": "Highly rated professionals across Hong Kong",
+    "title": "Explore the tutors MatchMax offers",
+    "subtitle": "Top scorering tutors across Hong Kong",
     "view_all": "View all tutors",
     "per_hour": "/hr"
   },
