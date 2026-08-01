@@ -256,7 +256,7 @@ export function SiteHeader() {
           {/* Mobile Menu Button */}
           <button
             type="button"
-            className={`
+            className="
               flex
               h-10
               w-10
@@ -264,14 +264,13 @@ export function SiteHeader() {
               justify-center
               rounded-full
               border
+              border-[#041344]/10
+              text-[#041344]
               transition-all
+              hover:border-[#1FA8B6]/30
+              hover:bg-[#77E8EE]/15
               lg:hidden
-              ${
-                mobileOpen
-                  ? "border-transparent bg-[#0A245F] text-white shadow-lg"
-                  : "border-[#041344]/10 bg-white text-[#041344] hover:border-[#1FA8B6]/30 hover:bg-[#77E8EE]/15"
-              }
-            `}
+            "
             onClick={() => setMobileOpen((v) => !v)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
@@ -290,95 +289,136 @@ export function SiteHeader() {
       {/* -------------------------------------------------- */}
 
       {mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-[#041344]/35 backdrop-blur-[2px] lg:hidden"
-          onClick={closeMobile}
-        >
-          <div className="mx-auto flex max-w-[1440px] justify-end px-3 pt-3 sm:px-6 sm:pt-4">
-            <div
-              className="w-full max-w-[420px] rounded-[28px] border border-[#041344]/10 bg-white/95 p-4 shadow-[0_20px_70px_rgba(4,19,68,0.2)]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="mb-4 flex items-center justify-between rounded-2xl bg-[#F8FAFC] px-3 py-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#1FA8B6]">
-                    Quick access
-                  </p>
-                  <p className="text-sm font-semibold text-[#041344]">
-                    Explore MatchMax
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[#041344]/10 bg-white text-[#041344] transition-colors hover:bg-[#77E8EE]/20"
-                  onClick={closeMobile}
-                  aria-label="Close menu"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <nav className="space-y-2">
-                <a
-                  href="/#how"
-                  onClick={closeMobile}
-                  className="flex items-center justify-between rounded-2xl border border-transparent px-3 py-3 text-[15px] font-semibold text-[#041344] transition-all hover:border-[#77E8EE]/40 hover:bg-[#77E8EE]/15 hover:text-[#1FA8B6]"
-                >
-                  <span>{t("About")}</span>
-                  <span className="text-sm text-[#1FA8B6]">↗</span>
-                </a>
-
-                <Link
-                  to="/tutors"
-                  onClick={closeMobile}
-                  className="flex items-center justify-between rounded-2xl border border-transparent px-3 py-3 text-[15px] font-semibold text-[#041344] transition-all hover:border-[#77E8EE]/40 hover:bg-[#77E8EE]/15 hover:text-[#1FA8B6]"
-                >
-                  <span>{t("nav.find")}</span>
-                  <span className="text-sm text-[#1FA8B6]">↗</span>
-                </Link>
-
-                <Link
-                  to="/become-a-tutor"
-                  onClick={closeMobile}
-                  className="flex items-center justify-between rounded-2xl border border-transparent px-3 py-3 text-[15px] font-semibold text-[#041344] transition-all hover:border-[#77E8EE]/40 hover:bg-[#77E8EE]/15 hover:text-[#1FA8B6]"
-                >
-                  <span>{t("tutors_cta.cta")}</span>
-                  <span className="text-sm text-[#1FA8B6]">↗</span>
-                </Link>
-              </nav>
-
-              {!user ? (
-                <div className="mt-4 border-t border-[#041344]/10 pt-4">
-                  <Link
-                    to="/auth"
-                    onClick={closeMobile}
-                    className="mb-2 flex items-center justify-between rounded-2xl border border-[#041344]/10 px-3 py-3 text-[15px] font-semibold text-[#041344] transition-colors hover:bg-[#77E8EE]/15"
-                  >
-                    <span>{t("nav.sign_in")}</span>
-                    <span className="text-sm text-[#1FA8B6]">→</span>
-                  </Link>
-
-                  <Link to="/auth" onClick={closeMobile} className="block">
-                    <Button className="h-11 w-full rounded-full bg-[#0A245F] text-[15px] font-semibold text-white shadow-sm transition-all hover:bg-[#041344]">
-                      Sign up
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                <div className="mt-4 border-t border-[#041344]/10 pt-4">
-                  <Link
-                    to="/dashboard"
-                    onClick={closeMobile}
-                    className="flex items-center justify-between rounded-2xl border border-[#041344]/10 px-3 py-3 text-[15px] font-semibold text-[#041344] transition-colors hover:bg-[#77E8EE]/15"
-                  >
-                    <span>{t("nav.dashboard")}</span>
-                    <span className="text-sm text-[#1FA8B6]">→</span>
-                  </Link>
-                </div>
-              )}
+        <div className="border-t border-[#041344]/10 bg-white/95 backdrop-blur-sm shadow-[0_10px_30px_rgba(4,19,68,0.08)] lg:hidden">
+          <nav className="mx-auto flex max-w-[1440px] flex-col px-5 py-4 sm:px-8">
+            {/* Mobile Language */}
+            <div className="mb-3 flex items-center px-3 py-2">
+              <LanguageToggle />
             </div>
-          </div>
+
+            {/* How it works */}
+            <a
+              href="/#how"
+              onClick={closeMobile}
+              className="
+                rounded-xl
+                px-3
+                py-3
+                text-[15px]
+                font-semibold
+                text-[#041344]
+                transition-colors
+                hover:bg-[#77E8EE]/15
+                hover:text-[#1FA8B6]
+              "
+            >
+              {t("About")}
+            </a>
+
+            {/* Find a tutor */}
+            <Link
+              to="/tutors"
+              onClick={closeMobile}
+              className="
+                rounded-xl
+                px-3
+                py-3
+                text-[15px]
+                font-semibold
+                text-[#041344]
+                transition-colors
+                hover:bg-[#77E8EE]/15
+                hover:text-[#1FA8B6]
+              "
+            >
+              {t("nav.find")}
+            </Link>
+
+            {/* Become a tutor */}
+            <Link
+              to="/become-a-tutor"
+              onClick={closeMobile}
+              className="
+                rounded-xl
+                px-3
+                py-3
+                text-[15px]
+                font-semibold
+                text-[#041344]
+                transition-colors
+                hover:bg-[#77E8EE]/15
+                hover:text-[#1FA8B6]
+              "
+            >
+              {t("tutors_cta.cta")}
+            </Link>
+
+            {/* Logged-out mobile actions */}
+            {!user && (
+              <div className="mt-3 border-t border-[#041344]/10 pt-4">
+                <Link
+                  to="/auth"
+                  onClick={closeMobile}
+                  className="
+                    block
+                    rounded-xl
+                    px-3
+                    py-3
+                    text-[15px]
+                    font-semibold
+                    text-[#041344]
+                    transition-colors
+                    hover:bg-[#77E8EE]/15
+                  "
+                >
+                  {t("nav.sign_in")}
+                </Link>
+
+                <Link
+                  to="/auth"
+                  onClick={closeMobile}
+                  className="mt-2 block"
+                >
+                  <Button
+                    className="
+                      h-11
+                      w-full
+                      rounded-full
+                      bg-[#0A245F]
+                      text-[15px]
+                      font-semibold
+                      text-white
+                      hover:bg-[#041344]
+                    "
+                  >
+                    Sign up
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {/* Logged-in mobile actions */}
+            {user && (
+              <div className="mt-3 border-t border-[#041344]/10 pt-4">
+                <Link
+                  to="/dashboard"
+                  onClick={closeMobile}
+                  className="
+                    block
+                    rounded-xl
+                    px-3
+                    py-3
+                    text-[15px]
+                    font-semibold
+                    text-[#041344]
+                    hover:bg-[#77E8EE]/15
+                  "
+                >
+                  {t("nav.dashboard")}
+                </Link>
+              </div>
+            )}
+          </nav>
         </div>
       )}
     </header>
