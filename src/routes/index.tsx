@@ -4,8 +4,9 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { 
   ArrowRight, BadgeCheck, MessageCircle, MapPin, 
-  Globe, Users, GraduationCap, BookOpen, X, ChevronDown, Menu 
+  Globe, X, ChevronDown, Menu, Users, GraduationCap, BookOpen 
 } from "lucide-react";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { blurActive } from "@/lib/dom";
@@ -136,139 +137,165 @@ function Landing() {
   } : null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-black font-sans selection:bg-black selection:text-white">
+    <div className="flex min-h-screen flex-col bg-background">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       {tutorListStructuredData && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tutorListStructuredData) }} />
       )}
 
-      {/* MOBILE NAVIGATION MENU OVERLAY */}
-      {isMobileMenuOpen ? (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white">
-          <div className="flex h-16 items-center justify-between bg-black px-4 text-white">
-            <span className="text-xl font-medium tracking-tight">MatchMax</span>
-            <div className="flex items-center gap-4 text-sm font-medium">
-              <button onClick={() => setIsMobileMenuOpen(false)}>Log in</button>
-              <button className="rounded-full bg-white px-4 py-1.5 text-black hover:bg-gray-200 transition-colors">
-                Sign up
-              </button>
-              <button onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu">
-                <X className="h-6 w-6" />
-              </button>
-            </div>
+      {/* DESKTOP HEADER - Unchanged from original */}
+      <div className="hidden md:block">
+        <SiteHeader />
+      </div>
+
+      {/* MOBILE HEADER - Uber Style (Only visible on small screens) */}
+      <div className="flex md:hidden h-16 items-center justify-between px-4 bg-background z-40 sticky top-0">
+        <span className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)]">MatchMax</span>
+        <button 
+          onClick={() => setIsMobileMenuOpen(true)} 
+          className="text-[color:var(--brand-navy)] hover:opacity-70 transition-opacity"
+          aria-label="Open menu"
+        >
+          <Menu className="h-8 w-8" />
+        </button>
+      </div>
+
+      {/* MOBILE MENU OVERLAY */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-background md:hidden">
+          <div className="flex h-16 items-center justify-between px-4 border-b border-border/50 bg-background/95">
+            <span className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)]">MatchMax</span>
+            <button onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu" className="text-muted-foreground hover:text-foreground">
+              <X className="h-8 w-8" />
+            </button>
           </div>
-          <div className="flex flex-col px-6 py-8 space-y-10 overflow-y-auto">
-            <Link to="/tutors" className="text-[40px] font-bold leading-none tracking-tight" onClick={() => setIsMobileMenuOpen(false)}>
-              Ride <span className="text-gray-400 text-lg ml-2 align-middle">(Find Tutors)</span>
+          
+          <div className="flex flex-col px-6 py-8 space-y-10 overflow-y-auto flex-1">
+            <Link to="/tutors" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)]" onClick={() => setIsMobileMenuOpen(false)}>
+              Find Tutors
             </Link>
-            <Link to="/become-a-tutor" className="text-[40px] font-bold leading-none tracking-tight" onClick={() => setIsMobileMenuOpen(false)}>
-              Drive <span className="text-gray-400 text-lg ml-2 align-middle">(Teach)</span>
+            <Link to="/become-a-tutor" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)]" onClick={() => setIsMobileMenuOpen(false)}>
+              Teach
             </Link>
-            <Link to="/business" className="text-[40px] font-bold leading-none tracking-tight" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link to="/business" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)]" onClick={() => setIsMobileMenuOpen(false)}>
               Business
             </Link>
-            <div className="flex items-center justify-between mt-4">
-              <span className="text-[40px] font-bold leading-none tracking-tight">About</span>
-              <ChevronDown className="h-8 w-8" />
+            <div className="flex items-center justify-between mt-4 text-[color:var(--brand-navy)]">
+              <span className="text-[44px] font-black leading-none tracking-tighter">About</span>
+              <ChevronDown className="h-10 w-10 text-[color:var(--brand-teal)]" />
             </div>
-            <span className="text-[40px] font-bold leading-none tracking-tight">Help</span>
-            <div className="mt-12 flex items-center gap-2 text-sm font-medium">
-              <Globe className="h-5 w-5" /> EN
+            <span className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)]">Help</span>
+            
+            <div className="mt-auto pt-10 flex gap-4">
+              <button className="flex-1 rounded-xl bg-muted py-4 text-lg font-bold text-[color:var(--brand-navy)]" onClick={() => setIsMobileMenuOpen(false)}>Log in</button>
+              <button className="flex-1 rounded-xl bg-[color:var(--brand-navy)] py-4 text-lg font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)]">Sign up</button>
             </div>
           </div>
         </div>
-      ) : (
-        /* STANDARD HEADER */
-        <header className="flex h-16 items-center justify-between bg-black px-4 text-white sm:px-6">
-          <span className="text-xl font-medium tracking-tight">MatchMax</span>
-          <button className="sm:hidden" onClick={() => setIsMobileMenuOpen(true)}>
-            <Menu className="h-6 w-6" />
-          </button>
-          <div className="hidden sm:flex items-center gap-6 text-sm font-medium">
-            <Link to="/tutors" className="hover:text-gray-300">Find Tutors</Link>
-            <Link to="/become-a-tutor" className="hover:text-gray-300">Teach</Link>
-            <div className="flex items-center gap-4 border-l border-gray-700 pl-6">
-              <button className="hover:text-gray-300">Log in</button>
-              <button className="rounded-full bg-white px-4 py-2 text-black hover:bg-gray-200">Sign up</button>
-            </div>
-          </div>
-        </header>
       )}
 
       {/* HERO SECTION */}
-      <section className="relative overflow-hidden bg-white">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-4 pt-16 pb-20 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:pt-24 lg:pb-28">
+      <section className="hero-startup-bg relative overflow-hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(ellipse at top right, color-mix(in oklab, #2ED5DE 25%, transparent) 0%, transparent 55%), radial-gradient(ellipse at bottom left, color-mix(in oklab, #041344 15%, transparent) 0%, transparent 50%)",
+          }}
+        />
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-4 pt-10 pb-20 md:px-6 lg:grid-cols-2 lg:gap-16 md:pt-24 md:pb-28">
           <div className="flex flex-col justify-center">
-            <h1 className="mt-6 text-5xl font-black leading-[1.05] tracking-tight text-black sm:text-6xl lg:text-7xl">
+            {/* Mobile gets text-6xl font-black, Desktop reverts to original text-5xl font-black */}
+            <h1 className="mt-6 text-6xl md:text-5xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-6xl lg:text-7xl">
               {t("hero.title_a")}
               <br />
-              <span>{t("hero.title_b")}</span>
+              <span className="text-brand-gradient">{t("hero.title_b")}</span>
             </h1>
             <div className="mt-10 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="h-14 bg-black px-8 text-base font-bold text-white rounded-none hover:bg-gray-800">
+              {/* Mobile gets huge h-16 button, Desktop reverts to h-14 */}
+              <Button asChild size="lg" className="h-16 md:h-14 rounded-2xl md:rounded-md bg-[color:var(--brand-navy)] px-8 text-lg md:text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] w-full md:w-auto">
                 <Link to="/tutors" onClick={() => blurActive()}>
                   {t("hero.cta_primary")}
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-6 w-6 md:h-5 md:w-5" />
                 </Link>
               </Button>
             </div>
           </div>
 
-          {/* HERO VISUAL CARD */}
           <div className="relative flex items-center justify-center">
             <div className="relative w-full max-w-md">
-              <div className="relative rounded-none border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <div className="absolute inset-0 rounded-2xl md:rounded-sm border border-border/50 bg-muted/30" aria-hidden />
+              {/* Mobile gets rounded-2xl p-8, Desktop reverts to rounded-sm p-6 */}
+              <div className="relative rounded-2xl md:rounded-sm border border-border/80 bg-card/95 p-8 md:p-6 shadow-[0_10px_30px_rgba(4,19,68,0.06)]">
                 {heroTutor ? (
                   <>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 md:gap-3">
                       {heroTutor.photo_url ? (
                         <img
                           src={heroTutor.photo_url}
-                          alt="Tutor profile"
-                          className="h-14 w-14 shrink-0 rounded-full object-cover grayscale border border-black"
+                          alt="Featured Tutor"
+                          width={56}
+                          height={56}
+                          className="h-16 w-16 md:h-11 md:w-11 shrink-0 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-black text-white text-lg font-bold">
+                        <div className="flex h-16 w-16 md:h-11 md:w-11 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-xl md:text-sm font-bold md:font-semibold text-[color:var(--brand-teal)]">
                           {heroTutor.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-lg font-bold text-black break-words">
-                          {heroTutor.tutor_code}
-                        </p>
-                        <p className="text-sm text-gray-600 truncate">
-                          {heroTutor.subjects.join(" · ")}
+                        <p className="text-xl md:text-sm font-black md:font-bold text-foreground break-words">{heroTutor.tutor_code}{getTutorGenderLabel(heroTutor.gender) ? ` · ${getTutorGenderLabel(heroTutor.gender)}` : ""}</p>
+                        <p className="text-sm md:text-xs leading-relaxed text-muted-foreground break-words whitespace-pre-line">
+                          {heroTutor.headline ?? heroTutor.subjects.slice(0, 3).join(" · ")}
                         </p>
                       </div>
-                      <span className="bg-black px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-                        Featured
-                      </span>
+                      <span className="rounded-lg md:rounded-md border border-[color:var(--brand-teal)]/15 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] md:text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-teal)]">Featured</span>
                     </div>
                     
-                    <div className="mt-6 grid grid-cols-3 gap-4 border-t-2 border-black pt-6 text-center">
+                    <div className="mt-8 md:mt-5 grid grid-cols-3 gap-3 rounded-xl md:rounded-md border border-border/70 bg-muted/50 p-5 md:p-4 text-center text-xs">
                       <div>
-                        <p className="font-bold text-xl text-black">${heroTutor.hourly_rate}</p>
-                        <p className="text-xs uppercase tracking-wider text-gray-500">/hr</p>
+                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">{heroTutor.tutor_code}</p>
+                        <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">Code</p>
                       </div>
                       <div>
-                        <p className="font-bold text-xl text-black">{heroTutor.experience_years || 1}+</p>
-                        <p className="text-xs uppercase tracking-wider text-gray-500">Yrs</p>
+                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">${heroTutor.hourly_rate}</p>
+                        <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">/hr</p>
                       </div>
                       <div>
-                        <p className="font-bold text-xl text-black">{heroTutor.lesson_mode === 'online' ? 'Web' : 'Local'}</p>
-                        <p className="text-xs uppercase tracking-wider text-gray-500">Mode</p>
+                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">{heroTutor.experience_years ? `${heroTutor.experience_years}+ yrs` : "New"}</p>
+                        <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">Experience</p>
                       </div>
                     </div>
-
-                    <Button asChild className="mt-8 w-full rounded-none bg-black py-6 text-base font-bold text-white hover:bg-gray-800">
+                    
+                    <div className="mt-5 rounded-xl md:rounded-md border border-border/70 bg-muted/40 p-5 md:p-4">
+                      <div className="space-y-3 md:space-y-2">
+                        {[
+                          heroTutor.badge,
+                          heroTutor.district,
+                          heroTutor.experience_years ? `${heroTutor.experience_years}+ years` : null,
+                          heroTutor.subjects[0] ?? null,
+                        ]
+                          .filter((x): x is string => !!x)
+                          .slice(0, 4)
+                          .map((tag) => (
+                            <div key={tag} className="flex items-center gap-3 md:gap-2 text-sm md:text-xs text-muted-foreground font-medium md:font-normal">
+                              <BadgeCheck className="h-5 w-5 md:h-3.5 md:w-3.5 text-[color:var(--brand-teal)]" />
+                              {tag}
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                    
+                    <Button asChild className="mt-8 md:mt-6 w-full rounded-xl md:rounded-lg bg-[color:var(--brand-navy)] py-6 md:py-3 text-lg md:text-sm font-bold text-white hover:bg-[color:var(--brand-royal)]">
                       <Link to="/tutors/$tutorCode" params={{ tutorCode: heroTutor.tutor_code }}>
-                        View Profile <ArrowRight className="ml-2 h-5 w-5" />
+                        <MessageCircle className="mr-2 inline h-5 w-5 md:h-4 md:w-4" /> View tutor profile
                       </Link>
                     </Button>
                   </>
                 ) : (
-                  <div className="py-16 text-center text-sm text-gray-500">
-                    Loading featured tutor…
+                  <div className="py-16 text-center text-sm text-muted-foreground">
+                    {featuredLoading ? "Loading featured tutor…" : "No featured tutor yet."}
                   </div>
                 )}
               </div>
@@ -278,22 +305,23 @@ function Landing() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how" className="py-20 sm:py-28 border-t-2 border-black">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <section id="how" className="py-20 md:py-28">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-4xl font-black tracking-tight text-black sm:text-5xl">{t("how.title")}</h2>
+            <h2 className="text-5xl md:text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">{t("how.title")}</h2>
           </div>
-          <div className="mt-16 grid gap-6 md:grid-cols-3">
+          <div className="mt-16 grid gap-8 md:gap-6 md:grid-cols-3">
             {[1, 2, 3].map((n) => (
               <div
                 key={n}
-                className="group relative overflow-hidden rounded-none border-2 border-black bg-white p-8 transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+                // Mobile: rounded-2xl, extra padding. Desktop: reverts to original rounded-sm, standard padding.
+                className="group relative overflow-hidden rounded-3xl md:rounded-sm border border-border/80 bg-card/95 p-10 md:p-8 shadow-[0_10px_24px_rgba(4,19,68,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--brand-teal)]/45 hover:shadow-brand"
               >
-                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-black text-2xl font-black text-white">
+                <div className="relative mb-8 md:mb-6 flex h-16 w-16 md:h-14 md:w-14 items-center justify-center rounded-2xl md:rounded-md bg-brand-gradient text-3xl md:text-2xl font-black text-white shadow-teal" aria-hidden="true">
                   {n}
                 </div>
-                <h3 className="text-xl font-bold text-black">{t(`how.step${n}_title`)}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-gray-600">{t(`how.step${n}_desc`)}</p>
+                <h3 className="text-3xl md:text-xl font-black md:font-bold text-foreground">{t(`how.step${n}_title`)}</h3>
+                <p className="mt-4 md:mt-3 text-lg md:text-sm leading-relaxed text-muted-foreground font-medium md:font-normal">{t(`how.step${n}_desc`)}</p>
               </div>
             ))}
           </div>
@@ -301,82 +329,85 @@ function Landing() {
       </section>
 
       {/* FEATURED TUTORS */}
-      <section id="tutors" className="py-20 sm:py-28 border-t-2 border-black">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <section id="tutors" className="py-20 md:py-28 bg-muted/10">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 className="text-4xl font-black tracking-tight text-black sm:text-5xl">{t("featured.title")}</h2>
-              <p className="mt-3 text-lg text-gray-600">{t("featured.subtitle")}</p>
+              <h2 className="text-5xl md:text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">{t("featured.title")}</h2>
+              <p className="mt-4 md:mt-3 text-xl md:text-lg text-muted-foreground">{t("featured.subtitle")}</p>
             </div>
-            <Button asChild variant="outline" className="font-bold border-2 border-black rounded-none hover:bg-black hover:text-white">
-              <Link to="/tutors" onClick={() => blurActive()}>{t("featured.view_all")} <ArrowRight className="ml-2 h-4 w-4" /></Link>
+            <Button asChild variant="outline" className="font-bold h-12 md:h-10 px-6 md:px-4 rounded-xl md:rounded-md w-full md:w-auto mt-4 md:mt-0">
+              <Link to="/tutors" onClick={() => blurActive()}>{t("featured.view_all")} <ArrowRight className="ml-2 h-5 w-5 md:h-4 md:w-4" /></Link>
             </Button>
           </div>
           
-          {featuredLoading && <p className="mt-10 text-center text-gray-500">{t("common.loading")}</p>}
-          {!featuredLoading && featuredTutors.length === 0 && <p className="mt-10 text-center text-gray-500">{t("common.no_tutors_yet")}</p>}
+          {featuredLoading && (
+            <p className="mt-10 text-center text-muted-foreground">{t("common.loading")}</p>
+          )}
+          {!featuredLoading && featuredTutors.length === 0 && (
+            <p className="mt-10 text-center text-muted-foreground">{t("common.no_tutors_yet")}</p>
+          )}
           
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <div className="mt-12 md:mt-10 grid gap-8 md:gap-6 md:grid-cols-3">
             {featuredTutors.map((tut) => (
               <Link
                 key={tut.id}
                 to="/tutors/$tutorCode"
                 params={{ tutorCode: tut.tutor_code }}
-                className="block rounded-none border-2 border-black bg-white p-6 transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+                // Mobile: rounded-3xl p-8. Desktop: original rounded-sm p-6.
+                className="block rounded-3xl md:rounded-sm border border-border/80 bg-card p-8 md:p-6 shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)]/30 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]"
                 onClick={() => blurActive()}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-5 md:gap-4">
                   {tut.photo_url ? (
                     <img
                       src={tut.photo_url}
                       alt="Tutor"
                       loading="lazy"
-                      className="h-14 w-14 shrink-0 rounded-full object-cover grayscale border border-black"
+                      className="h-16 w-16 md:h-14 md:w-14 shrink-0 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-black text-base font-bold text-white">
+                    <div className="flex h-16 w-16 md:h-14 md:w-14 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-xl md:text-base font-bold md:font-semibold text-[color:var(--brand-teal)]">
                       {tut.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="text-base font-bold text-black break-words">
-                      {tut.tutor_code}{getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}
-                    </p>
-                    <p className="text-sm text-gray-600 truncate">{tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}</p>
+                    <p className="text-xl md:text-base font-black md:font-bold text-foreground break-words">{tut.tutor_code}{getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}</p>
+                    <p className="text-base md:text-sm leading-relaxed text-muted-foreground break-words whitespace-pre-line font-medium md:font-normal">{tut.headline ?? getTutorLessonModeLabel(tut.lesson_mode)}</p>
                   </div>
                 </div>
                 
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-5 md:mt-3 flex flex-wrap gap-2 md:gap-2">
                   {tut.subjects.slice(0, 3).map((subject) => (
-                    <span key={subject} className="bg-gray-100 border border-black px-2 py-1 text-[11px] font-bold text-black uppercase tracking-wider">
+                    <span key={subject} className="rounded-full bg-muted px-3 py-1.5 md:px-2.5 md:py-1 text-xs md:text-[11px] font-bold md:font-medium text-muted-foreground">
                       {subject}
                     </span>
                   ))}
                   {tut.subjects.length > 3 && (
-                    <span className="bg-gray-100 border border-black px-2 py-1 text-[11px] font-bold text-black uppercase tracking-wider">
+                    <span className="rounded-full bg-muted px-3 py-1.5 md:px-2.5 md:py-1 text-xs md:text-[11px] font-bold md:font-medium text-muted-foreground">
                       +{tut.subjects.length - 3} more
                     </span>
                   )}
                 </div>
                 
                 {tut.badge && (
-                  <div className="mt-4 flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 bg-black px-2 py-1 text-[11px] font-bold text-white uppercase tracking-wider">
-                      <BadgeCheck className="h-3 w-3" /> {tut.badge}
+                  <div className="mt-5 md:mt-4 flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 md:gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-3 py-1.5 md:px-2.5 md:py-1 text-xs md:text-[11px] font-bold text-[color:var(--brand-teal)]">
+                      <BadgeCheck className="h-4 w-4 md:h-3 md:w-3" /> {tut.badge}
                     </span>
                   </div>
                 )}
                 
-                <div className="mt-6 flex items-center justify-between border-t-2 border-black pt-4 text-sm">
-                  <span className="inline-flex items-center gap-1 font-medium text-black">
-                    {tut.lesson_mode === "online" ? <Globe className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
+                <div className="mt-6 md:mt-5 flex items-center justify-between border-t border-border pt-5 md:pt-4 text-base md:text-sm">
+                  <span className="inline-flex items-center gap-2 md:gap-1 font-bold md:font-normal text-muted-foreground">
+                    {tut.lesson_mode === "online" ? <Globe className="h-5 w-5 md:h-4 md:w-4" aria-hidden="true" /> : <MapPin className="h-5 w-5 md:h-4 md:w-4" aria-hidden="true" />}
                     {getTutorLocationLabel(tut)}
                   </span>
                 </div>
                 
-                <p className="mt-4 text-2xl font-black text-black">
+                <p className="mt-6 md:mt-4 text-4xl md:text-2xl font-black text-[color:var(--brand-navy)]">
                   HK${tut.hourly_rate}
-                  <span className="ml-1 text-sm font-semibold text-gray-500 uppercase tracking-wider">{t("featured.per_hour")}</span>
+                  <span className="ml-1.5 md:ml-1 text-base md:text-sm font-bold md:font-semibold text-muted-foreground">{t("featured.per_hour")}</span>
                 </p>
               </Link>
             ))}
@@ -385,19 +416,27 @@ function Landing() {
       </section>
 
       {/* CTA BANNER */}
-      <section className="py-20 sm:py-28 border-t-2 border-black bg-black">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-            <div className="max-w-xl">
-              <h3 className="text-4xl font-black text-white sm:text-5xl">{t("tutors_cta.title")}</h3>
-              <p className="mt-4 text-lg text-gray-300">{t("tutors_cta.subtitle")}</p>
+      <section className="pb-20 md:pb-28 pt-10 md:pt-0">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
+          {/* Mobile: rounded-3xl p-10. Desktop: rounded-sm p-14 */}
+          <div className="relative overflow-hidden rounded-3xl md:rounded-sm bg-[color:var(--brand-navy)] p-10 sm:p-14">
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-40"
+              style={{ background: "radial-gradient(ellipse at top right, #2ED5DE 0%, transparent 60%)" }}
+            />
+            <div className="relative flex flex-col items-start justify-between gap-8 md:gap-6 sm:flex-row sm:items-center">
+              <div className="max-w-xl">
+                <h3 className="text-4xl md:text-3xl font-black text-white sm:text-4xl">{t("tutors_cta.title")}</h3>
+                <p className="mt-4 md:mt-3 text-lg md:text-base font-medium md:font-normal text-white/80">{t("tutors_cta.subtitle")}</p>
+              </div>
+              <Button asChild size="lg" className="h-16 md:h-14 w-full md:w-auto rounded-2xl md:rounded-md bg-white px-8 text-lg md:text-base font-bold text-[color:var(--brand-navy)] hover:bg-white/90">
+                <Link to="/become-a-tutor">
+                  {t("tutors_cta.cta")}
+                  <ArrowRight className="ml-2 h-6 w-6 md:h-5 md:w-5" />
+                </Link>
+              </Button>
             </div>
-            <Button asChild size="lg" className="h-14 rounded-none bg-white px-8 text-base font-bold text-black hover:bg-gray-200">
-              <Link to="/become-a-tutor">
-                {t("tutors_cta.cta")}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
           </div>
         </div>
       </section>
