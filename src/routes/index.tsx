@@ -166,7 +166,7 @@ function Landing() {
             </button>
           </div>
           
-          {/* Menu Body - Uber Typography for Desktop Links */}
+          {/* Menu Body - Typography for Desktop Links */}
           <div className="flex flex-col px-6 py-10 space-y-8 overflow-y-auto flex-1 bg-background">
             <Link to="/tutors" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)] active:opacity-70" onClick={() => setIsMobileMenuOpen(false)}>
               Find Tutors
@@ -175,8 +175,9 @@ function Landing() {
               Teach
             </Link>
             <div className="flex items-center justify-between mt-4 text-[color:var(--brand-navy)]">
-              <span className="text-[44px] font-black leading-none tracking-tighter">About Us</span>
-              <ChevronDown className="h-10 w-10 text-[color:var(--brand-teal)]" />
+            <Link to="/#how" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)] active:opacity-70" onClick={() => setIsMobileMenuOpen(false)}>
+              About
+            </Link>
             </div>
             
             {/* MatchMax Style Auth Buttons Pushed to Bottom */}
