@@ -2,8 +2,7 @@ import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-r
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Logo } from "@/components/brand/Logo";
-import { LanguageToggle } from "@/components/brand/LanguageToggle";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -103,12 +102,7 @@ function AuthPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="flex items-center justify-between border-b border-border px-6 py-4">
-        <Link to="/">
-          <Logo />
-        </Link>
-        <LanguageToggle />
-      </header>
+      <SiteHeader />
 
       <main className="flex flex-1 items-center justify-center p-4 lg:p-8">
         <div className="grid w-full max-w-6xl items-center gap-8 lg:grid-cols-[minmax(0,1fr)_28rem]">
