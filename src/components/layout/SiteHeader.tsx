@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Menu, X, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,17 @@ export function SiteHeader() {
       document.activeElement.blur();
     }
   };
+
+  // Lock body scroll while the full-screen mobile nav is open
+  useEffect(() => {
+    if (mobileOpen) {
+      const original = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = original;
+      };
+    }
+  }, [mobileOpen]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#041344]/10 bg-white/95 backdrop-blur-sm">
@@ -288,17 +299,50 @@ export function SiteHeader() {
       </div>
 
       {/* -------------------------------------------------- */}
-      {/* Mobile Navigation */}
+      {/* Mobile Navigation — full-screen overlay              */}
       {/* -------------------------------------------------- */}
 
       {mobileOpen && (
-        <div className="border-t border-[#041344]/10 bg-white/95 backdrop-blur-sm shadow-[0_12px_40px_rgba(4,19,68,0.10)] lg:hidden">
-          <nav className="mx-auto flex max-w-[1440px] flex-col gap-2 px-4 py-4 sm:px-8 sm:py-5">
-            <div className="mb-1 flex items-center rounded-full border border-[#041344]/10 bg-[#F8FCFE] px-3 py-2.5 shadow-sm">
-              <LanguageToggle />
-            </div>
+        <div className="fixed inset-0 z-50 flex flex-col bg-white lg:hidden">
+          {/* Top bar — mirrors the main header, brand colours kept */}
+          <div className="flex h-[76px] shrink-0 items-center justify-between border-b border-[#041344]/10 px-5 sm:px-8">
+            <Link
+              to="/"
+              className="shrink-0"
+              onClick={() => {
+                closeMobile();
+                blurActive();
+              }}
+              aria-label="MatchMax home"
+            >
+              <span className="text-xl font-bold tracking-tight text-brand-gradient">
+                MatchMax
+              </span>
+            </Link>
 
-            <div className="grid gap-2">
+            <button
+              type="button"
+              onClick={closeMobile}
+              aria-label="Close menu"
+              className="
+                flex
+                h-10
+                w-10
+                items-center
+                justify-center
+                rounded-full
+                text-[#041344]
+                transition-colors
+                hover:bg-[#77E8EE]/20
+              "
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+
+          {/* Scrollable body */}
+          <div className="flex flex-1 flex-col overflow-y-auto px-5 sm:px-8">
+            <nav className="flex flex-col">
               <a
                 href="/#how"
                 onClick={closeMobile}
@@ -306,24 +350,19 @@ export function SiteHeader() {
                   flex
                   items-center
                   justify-between
-                  rounded-full
-                  border
+                  border-b
                   border-[#041344]/10
-                  bg-white
-                  px-4
-                  py-3
-                  text-[15px]
-                  font-semibold
+                  py-6
+                  text-[28px]
+                  font-bold
+                  leading-none
+                  tracking-tight
                   text-[#041344]
-                  shadow-sm
-                  transition-all
-                  hover:border-[#1FA8B6]/25
-                  hover:bg-[#77E8EE]/20
-                  hover:text-[#041344]
+                  transition-colors
+                  active:text-[#1FA8B6]
                 "
               >
-                <span>{t("About")}</span>
-                <span className="text-sm text-[#1FA8B6]">↗</span>
+                {t("About")}
               </a>
 
               <Link
@@ -333,24 +372,19 @@ export function SiteHeader() {
                   flex
                   items-center
                   justify-between
-                  rounded-full
-                  border
+                  border-b
                   border-[#041344]/10
-                  bg-white
-                  px-4
-                  py-3
-                  text-[15px]
-                  font-semibold
+                  py-6
+                  text-[28px]
+                  font-bold
+                  leading-none
+                  tracking-tight
                   text-[#041344]
-                  shadow-sm
-                  transition-all
-                  hover:border-[#1FA8B6]/25
-                  hover:bg-[#77E8EE]/20
-                  hover:text-[#041344]
+                  transition-colors
+                  active:text-[#1FA8B6]
                 "
               >
-                <span>{t("nav.find")}</span>
-                <span className="text-sm text-[#1FA8B6]">↗</span>
+                {t("nav.find")}
               </Link>
 
               <Link
@@ -360,104 +394,168 @@ export function SiteHeader() {
                   flex
                   items-center
                   justify-between
-                  rounded-full
-                  border
+                  border-b
                   border-[#041344]/10
-                  bg-white
-                  px-4
-                  py-3
-                  text-[15px]
-                  font-semibold
+                  py-6
+                  text-[28px]
+                  font-bold
+                  leading-none
+                  tracking-tight
                   text-[#041344]
-                  shadow-sm
-                  transition-all
-                  hover:border-[#1FA8B6]/25
-                  hover:bg-[#77E8EE]/20
-                  hover:text-[#041344]
+                  transition-colors
+                  active:text-[#1FA8B6]
                 "
               >
-                <span>{t("tutors_cta.cta")}</span>
-                <span className="text-sm text-[#1FA8B6]">↗</span>
+                {t("tutors_cta.cta")}
               </Link>
-            </div>
 
-            {!user ? (
-              <div className="mt-2 grid gap-2 border-t border-[#041344]/10 pt-4">
-                <Link
-                  to="/auth"
-                  onClick={closeMobile}
-                  className="
-                    flex
-                    items-center
-                    justify-center
-                    rounded-full
-                    border
-                    border-[#041344]/10
-                    bg-[#F8FCFE]
-                    px-4
-                    py-3
-                    text-[15px]
-                    font-semibold
-                    text-[#041344]
-                    shadow-sm
-                    transition-all
-                    hover:border-[#1FA8B6]/25
-                    hover:bg-[#77E8EE]/20
-                  "
-                >
-                  {t("nav.sign_in")}
-                </Link>
-
-                <Link to="/auth" onClick={closeMobile} className="block">
-                  <Button
-                    className="
-                      h-11
-                      w-full
-                      rounded-full
-                      bg-[#0A245F]
-                      text-[15px]
-                      font-semibold
-                      text-white
-                      shadow-sm
-                      transition-all
-                      duration-200
-                      hover:bg-[#041344]
-                      hover:shadow-md
-                    "
-                  >
-                    Sign up
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="mt-2 border-t border-[#041344]/10 pt-4">
+              {user && (
                 <Link
                   to="/dashboard"
                   onClick={closeMobile}
                   className="
                     flex
                     items-center
-                    justify-center
-                    rounded-full
-                    border
+                    justify-between
+                    border-b
                     border-[#041344]/10
-                    bg-[#F8FCFE]
-                    px-4
-                    py-3
-                    text-[15px]
-                    font-semibold
+                    py-6
+                    text-[28px]
+                    font-bold
+                    leading-none
+                    tracking-tight
                     text-[#041344]
-                    shadow-sm
-                    transition-all
-                    hover:border-[#1FA8B6]/25
-                    hover:bg-[#77E8EE]/20
+                    transition-colors
+                    active:text-[#1FA8B6]
                   "
                 >
                   {t("nav.dashboard")}
                 </Link>
+              )}
+
+              {isAdmin && (
+                <>
+                  <Link
+                    to="/admin/tutors"
+                    onClick={closeMobile}
+                    className="
+                      flex
+                      items-center
+                      justify-between
+                      border-b
+                      border-[#041344]/10
+                      py-6
+                      text-[28px]
+                      font-bold
+                      leading-none
+                      tracking-tight
+                      text-[#041344]
+                      transition-colors
+                      active:text-[#1FA8B6]
+                    "
+                  >
+                    Manage tutors
+                  </Link>
+
+                  <Link
+                    to="/admin/users"
+                    onClick={closeMobile}
+                    className="
+                      flex
+                      items-center
+                      justify-between
+                      border-b
+                      border-[#041344]/10
+                      py-6
+                      text-[28px]
+                      font-bold
+                      leading-none
+                      tracking-tight
+                      text-[#041344]
+                      transition-colors
+                      active:text-[#1FA8B6]
+                    "
+                  >
+                    {t("nav.admin")}
+                  </Link>
+                </>
+              )}
+            </nav>
+
+            {/* Bottom section — auth actions + language, pinned low like the reference */}
+            <div className="mt-auto flex flex-col gap-3 py-8">
+              {!user ? (
+                <>
+                  <Link to="/auth" onClick={closeMobile}>
+                    <Button
+                      variant="outline"
+                      className="
+                        h-12
+                        w-full
+                        rounded-full
+                        border-[#041344]/15
+                        text-[15px]
+                        font-semibold
+                        text-[#041344]
+                        hover:bg-[#77E8EE]/20
+                        hover:text-[#041344]
+                      "
+                    >
+                      {t("nav.sign_in")}
+                    </Button>
+                  </Link>
+
+                  <Link to="/auth" onClick={closeMobile}>
+                    <Button
+                      className="
+                        h-12
+                        w-full
+                        rounded-full
+                        bg-[#0A245F]
+                        text-[15px]
+                        font-semibold
+                        text-white
+                        shadow-sm
+                        transition-all
+                        duration-200
+                        hover:bg-[#041344]
+                        hover:shadow-md
+                      "
+                    >
+                      Sign up
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    void signOut();
+                    closeMobile();
+                  }}
+                  className="
+                    h-12
+                    w-full
+                    rounded-full
+                    border
+                    border-[#041344]/15
+                    text-[15px]
+                    font-semibold
+                    text-[#041344]
+                    transition-colors
+                    hover:bg-red-50
+                    hover:text-red-600
+                  "
+                >
+                  {t("nav.sign_out")}
+                </button>
+              )}
+
+              <div className="flex items-center justify-start pt-2">
+                <LanguageToggle />
               </div>
-            )}
-          </nav>
+            </div>
+          </div>
         </div>
       )}
     </header>
