@@ -87,9 +87,9 @@ export function SiteHeader() {
         {/* Right Side */}
         {/* -------------------------------------------------- */}
 
-        <div className="ml-auto flex items-center gap-3 sm:gap-4">
+        <div className="ml-auto flex items-center gap-2 sm:gap-4">
           {/* Language */}
-          <div className="hidden sm:block">
+          <div className="flex items-center">
             <LanguageToggle />
           </div>
 
