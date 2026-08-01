@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { 
   ArrowRight, BadgeCheck, MessageCircle, MapPin, 
-  Globe, X, ChevronDown, Menu, Users, GraduationCap, BookOpen 
+  Globe, X, ChevronDown, Menu 
 } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -51,11 +51,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Landing,
 });
-
-function formatCount(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k+`;
-  return `${n}`;
-}
 
 function Landing() {
   const { t } = useTranslation();
@@ -143,52 +138,55 @@ function Landing() {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tutorListStructuredData) }} />
       )}
 
-      {/* DESKTOP HEADER - Unchanged from original */}
+      {/* DESKTOP HEADER */}
       <div className="hidden md:block">
         <SiteHeader />
       </div>
 
-      {/* MOBILE HEADER - Uber Style (Only visible on small screens) */}
-      <div className="flex md:hidden h-16 items-center justify-between px-4 bg-background z-40 sticky top-0">
+      {/* MOBILE HEADER STRIP (Triggers the menu) */}
+      <div className="flex md:hidden h-16 items-center justify-between px-4 bg-background border-b border-border/40 z-40 sticky top-0">
         <span className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)]">MatchMax</span>
         <button 
           onClick={() => setIsMobileMenuOpen(true)} 
-          className="text-[color:var(--brand-navy)] hover:opacity-70 transition-opacity"
+          className="text-[color:var(--brand-navy)] hover:opacity-70 transition-opacity p-2 -mr-2"
           aria-label="Open menu"
         >
-          <Menu className="h-8 w-8" />
+          <Menu className="h-7 w-7" />
         </button>
       </div>
 
-      {/* MOBILE MENU OVERLAY */}
+      {/* MOBILE MENU OVERLAY - Fixed missing background & locking to full viewport */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-background md:hidden">
-          <div className="flex h-16 items-center justify-between px-4 border-b border-border/50 bg-background/95">
+        <div className="fixed inset-0 z-[100] flex flex-col bg-background w-full h-[100dvh] overflow-hidden">
+          {/* Menu Header */}
+          <div className="flex h-16 shrink-0 items-center justify-between px-4 border-b border-border/50 bg-background">
             <span className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)]">MatchMax</span>
-            <button onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu" className="text-muted-foreground hover:text-foreground">
-              <X className="h-8 w-8" />
+            <button onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu" className="text-[color:var(--brand-navy)] p-2 -mr-2">
+              <X className="h-7 w-7" />
             </button>
           </div>
           
-          <div className="flex flex-col px-6 py-8 space-y-10 overflow-y-auto flex-1">
-            <Link to="/tutors" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)]" onClick={() => setIsMobileMenuOpen(false)}>
+          {/* Menu Body - Uber Typography for Desktop Links */}
+          <div className="flex flex-col px-6 py-10 space-y-8 overflow-y-auto flex-1 bg-background">
+            <Link to="/tutors" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)] active:opacity-70" onClick={() => setIsMobileMenuOpen(false)}>
               Find Tutors
             </Link>
-            <Link to="/become-a-tutor" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)]" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link to="/become-a-tutor" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)] active:opacity-70" onClick={() => setIsMobileMenuOpen(false)}>
               Teach
             </Link>
-            <Link to="/business" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)]" onClick={() => setIsMobileMenuOpen(false)}>
-              Business
-            </Link>
             <div className="flex items-center justify-between mt-4 text-[color:var(--brand-navy)]">
-              <span className="text-[44px] font-black leading-none tracking-tighter">About</span>
+              <span className="text-[44px] font-black leading-none tracking-tighter">About Us</span>
               <ChevronDown className="h-10 w-10 text-[color:var(--brand-teal)]" />
             </div>
-            <span className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)]">Help</span>
             
-            <div className="mt-auto pt-10 flex gap-4">
-              <button className="flex-1 rounded-xl bg-muted py-4 text-lg font-bold text-[color:var(--brand-navy)]" onClick={() => setIsMobileMenuOpen(false)}>Log in</button>
-              <button className="flex-1 rounded-xl bg-[color:var(--brand-navy)] py-4 text-lg font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)]">Sign up</button>
+            {/* MatchMax Style Auth Buttons Pushed to Bottom */}
+            <div className="mt-auto pt-12 pb-8 flex flex-col gap-4">
+              <Button asChild size="lg" className="w-full h-14 rounded-xl bg-[color:var(--brand-navy)] text-lg font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)]">
+                <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Sign up</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="w-full h-14 rounded-xl border-2 border-[color:var(--brand-navy)]/20 text-lg font-bold text-[color:var(--brand-navy)] bg-transparent hover:bg-muted/50">
+                <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Log in</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -206,14 +204,12 @@ function Landing() {
         />
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-4 pt-10 pb-20 md:px-6 lg:grid-cols-2 lg:gap-16 md:pt-24 md:pb-28">
           <div className="flex flex-col justify-center">
-            {/* Mobile gets text-6xl font-black, Desktop reverts to original text-5xl font-black */}
             <h1 className="mt-6 text-6xl md:text-5xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-6xl lg:text-7xl">
               {t("hero.title_a")}
               <br />
               <span className="text-brand-gradient">{t("hero.title_b")}</span>
             </h1>
             <div className="mt-10 flex flex-wrap gap-3">
-              {/* Mobile gets huge h-16 button, Desktop reverts to h-14 */}
               <Button asChild size="lg" className="h-16 md:h-14 rounded-2xl md:rounded-md bg-[color:var(--brand-navy)] px-8 text-lg md:text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] w-full md:w-auto">
                 <Link to="/tutors" onClick={() => blurActive()}>
                   {t("hero.cta_primary")}
@@ -223,10 +219,10 @@ function Landing() {
             </div>
           </div>
 
+          {/* HERO VISUAL CARD */}
           <div className="relative flex items-center justify-center">
             <div className="relative w-full max-w-md">
               <div className="absolute inset-0 rounded-2xl md:rounded-sm border border-border/50 bg-muted/30" aria-hidden />
-              {/* Mobile gets rounded-2xl p-8, Desktop reverts to rounded-sm p-6 */}
               <div className="relative rounded-2xl md:rounded-sm border border-border/80 bg-card/95 p-8 md:p-6 shadow-[0_10px_30px_rgba(4,19,68,0.06)]">
                 {heroTutor ? (
                   <>
@@ -314,7 +310,6 @@ function Landing() {
             {[1, 2, 3].map((n) => (
               <div
                 key={n}
-                // Mobile: rounded-2xl, extra padding. Desktop: reverts to original rounded-sm, standard padding.
                 className="group relative overflow-hidden rounded-3xl md:rounded-sm border border-border/80 bg-card/95 p-10 md:p-8 shadow-[0_10px_24px_rgba(4,19,68,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--brand-teal)]/45 hover:shadow-brand"
               >
                 <div className="relative mb-8 md:mb-6 flex h-16 w-16 md:h-14 md:w-14 items-center justify-center rounded-2xl md:rounded-md bg-brand-gradient text-3xl md:text-2xl font-black text-white shadow-teal" aria-hidden="true">
@@ -354,7 +349,6 @@ function Landing() {
                 key={tut.id}
                 to="/tutors/$tutorCode"
                 params={{ tutorCode: tut.tutor_code }}
-                // Mobile: rounded-3xl p-8. Desktop: original rounded-sm p-6.
                 className="block rounded-3xl md:rounded-sm border border-border/80 bg-card p-8 md:p-6 shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)]/30 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]"
                 onClick={() => blurActive()}
               >
@@ -418,7 +412,6 @@ function Landing() {
       {/* CTA BANNER */}
       <section className="pb-20 md:pb-28 pt-10 md:pt-0">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          {/* Mobile: rounded-3xl p-10. Desktop: rounded-sm p-14 */}
           <div className="relative overflow-hidden rounded-3xl md:rounded-sm bg-[color:var(--brand-navy)] p-10 sm:p-14">
             <div
               aria-hidden
