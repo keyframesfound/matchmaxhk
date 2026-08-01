@@ -271,11 +271,9 @@ export function SiteHeader() {
               flex
               h-10
               w-10
+              rounded-xl
               items-center
               justify-center
-              border
-              border-[#041344]/10
-              bg-[#F8FCFE]
               text-[#041344]
               shadow-sm
               transition-all
