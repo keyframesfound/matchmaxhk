@@ -275,7 +275,6 @@ export function SiteHeader() {
               items-center
               justify-center
               text-[#041344]
-              shadow-sm
               transition-all
               hover:bg-transparent
               hover:text-[#1FA8B6]
