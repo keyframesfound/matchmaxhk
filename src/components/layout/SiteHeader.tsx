@@ -273,15 +273,14 @@ export function SiteHeader() {
               w-10
               items-center
               justify-center
-              rounded-full
               border
               border-[#041344]/10
               bg-[#F8FCFE]
               text-[#041344]
               shadow-sm
               transition-all
-              hover:border-[#1FA8B6]/30
-              hover:bg-[#77E8EE]/20
+              hover:bg-transparent
+              hover:text-[#1FA8B6]
               hover:text-[#041344]
               lg:hidden
             "
