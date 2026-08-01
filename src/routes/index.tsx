@@ -144,11 +144,11 @@ function Landing() {
       </div>
 
       {/* MOBILE HEADER STRIP (Triggers the menu) */}
-      <div className="flex md:hidden h-16 items-center justify-between px-4 bg-background border-b border-border/40 z-40 sticky top-0">
-        <span className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)]">MatchMax</span>
+      <div className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border/40 bg-[color:var(--background)]/95 px-4 backdrop-blur-sm md:hidden">
+        <span className="text-2xl font-black tracking-tight text-brand-gradient">MatchMax</span>
         <button 
           onClick={() => setIsMobileMenuOpen(true)} 
-          className="text-[color:var(--brand-navy)] hover:opacity-70 transition-opacity p-2 -mr-2"
+          className="-mr-2 p-2 text-[color:var(--brand-navy)] transition-opacity hover:opacity-70"
           aria-label="Open menu"
         >
           <Menu className="h-7 w-7" />
@@ -157,11 +157,11 @@ function Landing() {
 
       {/* MOBILE MENU OVERLAY - Fixed missing background & locking to full viewport */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-background w-full h-[100dvh] overflow-hidden">
+        <div className="fixed inset-0 z-[100] flex h-[100dvh] w-full flex-col overflow-hidden bg-[color:var(--background)]/95 backdrop-blur-sm">
           {/* Menu Header */}
-          <div className="flex h-16 shrink-0 items-center justify-between px-4 border-b border-border/50 bg-background">
-            <span className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)]">MatchMax</span>
-            <button onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu" className="text-[color:var(--brand-navy)] p-2 -mr-2">
+          <div className="flex h-16 shrink-0 items-center justify-between border-b border-border/50 bg-[color:var(--background)]/95 px-4 backdrop-blur-sm">
+            <span className="text-2xl font-black tracking-tight text-brand-gradient">MatchMax</span>
+            <button onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu" className="-mr-2 p-2 text-[color:var(--brand-navy)]">
               <X className="h-7 w-7" />
             </button>
           </div>
