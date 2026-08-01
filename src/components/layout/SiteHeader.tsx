@@ -114,12 +114,11 @@ export function SiteHeader() {
                   className="
                     h-10
                     gap-2
-                    rounded-full
                     px-4
                     font-semibold
                     text-[#041344]
-                    hover:bg-[#77E8EE]/20
-                    hover:text-[#041344]
+                    hover:bg-transparent
+                    hover:text-[#1FA8B6]
                   "
                 >
                   <span className="max-w-[120px] truncate">
