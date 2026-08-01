@@ -1,10 +1,9 @@
-import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { 
   ArrowRight, BadgeCheck, MessageCircle, MapPin, 
-  Globe, X, ChevronDown, Menu 
+  Globe 
 } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -54,7 +53,6 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   const { t } = useTranslation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Queries
   const { data: featuredTutors = [], isLoading: featuredLoading } = useQuery({
@@ -138,60 +136,7 @@ function Landing() {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tutorListStructuredData) }} />
       )}
 
-      {/* DESKTOP HEADER */}
-      <div className="hidden md:block">
-        <SiteHeader />
-      </div>
-
-      {/* MOBILE HEADER STRIP (Triggers the menu) */}
-      <div className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border/40 bg-[color:var(--background)]/95 px-4 backdrop-blur-sm md:hidden">
-        <span className="text-2xl font-black tracking-tight text-brand-gradient">MatchMax</span>
-        <button 
-          onClick={() => setIsMobileMenuOpen(true)} 
-          className="-mr-2 p-2 text-[color:var(--brand-navy)] transition-opacity hover:opacity-70"
-          aria-label="Open menu"
-        >
-          <Menu className="h-7 w-7" />
-        </button>
-      </div>
-
-      {/* MOBILE MENU OVERLAY - Fixed missing background & locking to full viewport */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[100] flex h-[100dvh] w-full flex-col overflow-hidden bg-[color:var(--background)]/95 backdrop-blur-sm">
-          {/* Menu Header */}
-          <div className="flex h-16 shrink-0 items-center justify-between border-b border-border/50 bg-[color:var(--background)]/95 px-4 backdrop-blur-sm">
-            <span className="text-2xl font-black tracking-tight text-brand-gradient">MatchMax</span>
-            <button onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu" className="-mr-2 p-2 text-[color:var(--brand-navy)]">
-              <X className="h-7 w-7" />
-            </button>
-          </div>
-          
-          {/* Menu Body - Typography for Desktop Links */}
-          <div className="flex flex-col px-6 py-10 space-y-8 overflow-y-auto flex-1 bg-background">
-            <Link to="/tutors" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)] active:opacity-70" onClick={() => setIsMobileMenuOpen(false)}>
-              Find Tutors
-            </Link>
-            <Link to="/become-a-tutor" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)] active:opacity-70" onClick={() => setIsMobileMenuOpen(false)}>
-              Teach
-            </Link>
-            <div className="flex items-center justify-between mt-4 text-[color:var(--brand-navy)]">
-            <Link to="/#how" className="text-[44px] font-black leading-none tracking-tighter text-[color:var(--brand-navy)] active:opacity-70" onClick={() => setIsMobileMenuOpen(false)}>
-              About
-            </Link>
-            </div>
-            
-            {/* MatchMax Style Auth Buttons Pushed to Bottom */}
-            <div className="mt-auto pt-12 pb-8 flex flex-col gap-4">
-              <Button asChild size="lg" className="w-full h-14 rounded-xl bg-[color:var(--brand-navy)] text-lg font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)]">
-                <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Sign up</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="w-full h-14 rounded-xl border-2 border-[color:var(--brand-navy)]/20 text-lg font-bold text-[color:var(--brand-navy)] bg-transparent hover:bg-muted/50">
-                <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Log in</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SiteHeader />
 
       {/* HERO SECTION */}
       <section className="hero-startup-bg relative overflow-hidden">

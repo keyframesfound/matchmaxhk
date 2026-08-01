@@ -33,7 +33,7 @@ export function SiteHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#041344]/10 bg-white">
+    <header className="sticky top-0 z-50 w-full border-b border-[#041344]/10 bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex h-[76px] max-w-[1440px] items-center px-5 sm:px-8 lg:px-10">
         {/* -------------------------------------------------- */}
         {/* Logo */}
@@ -289,7 +289,7 @@ export function SiteHeader() {
       {/* -------------------------------------------------- */}
 
       {mobileOpen && (
-        <div className="border-t border-[#041344]/10 bg-white lg:hidden">
+        <div className="border-t border-[#041344]/10 bg-white/95 backdrop-blur-sm shadow-[0_10px_30px_rgba(4,19,68,0.08)] lg:hidden">
           <nav className="mx-auto flex max-w-[1440px] flex-col px-5 py-4 sm:px-8">
             {/* Mobile Language */}
             <div className="mb-3 flex items-center px-3 py-2">
