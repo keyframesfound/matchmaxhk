@@ -44,6 +44,7 @@ export function SiteHeader() {
   }, [mobileOpen]);
 
   return (
+    <>
     <header className="sticky top-0 z-50 w-full border-b border-[#041344]/10 bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex h-[76px] max-w-[1440px] items-center px-5 sm:px-8 lg:px-10">
         {/* -------------------------------------------------- */}
@@ -297,6 +298,7 @@ export function SiteHeader() {
           </button>
         </div>
       </div>
+    </header>
 
       {/* -------------------------------------------------- */}
       {/* Mobile Navigation — full-screen overlay              */}
@@ -558,6 +560,6 @@ export function SiteHeader() {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }
