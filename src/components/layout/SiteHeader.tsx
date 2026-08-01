@@ -265,10 +265,13 @@ export function SiteHeader() {
               rounded-full
               border
               border-[#041344]/10
+              bg-[#F8FCFE]
               text-[#041344]
+              shadow-sm
               transition-all
               hover:border-[#1FA8B6]/30
-              hover:bg-[#77E8EE]/15
+              hover:bg-[#77E8EE]/20
+              hover:text-[#041344]
               lg:hidden
             "
             onClick={() => setMobileOpen((v) => !v)}
@@ -289,96 +292,123 @@ export function SiteHeader() {
       {/* -------------------------------------------------- */}
 
       {mobileOpen && (
-        <div className="border-t border-[#041344]/10 bg-white/95 backdrop-blur-sm shadow-[0_10px_30px_rgba(4,19,68,0.08)] lg:hidden">
-          <nav className="mx-auto flex max-w-[1440px] flex-col px-5 py-4 sm:px-8">
-            {/* Mobile Language */}
-            <div className="mb-3 flex items-center px-3 py-2">
+        <div className="border-t border-[#041344]/10 bg-white/95 backdrop-blur-sm shadow-[0_12px_40px_rgba(4,19,68,0.10)] lg:hidden">
+          <nav className="mx-auto flex max-w-[1440px] flex-col gap-2 px-4 py-4 sm:px-8 sm:py-5">
+            <div className="mb-1 flex items-center rounded-full border border-[#041344]/10 bg-[#F8FCFE] px-3 py-2.5 shadow-sm">
               <LanguageToggle />
             </div>
 
-            {/* How it works */}
-            <a
-              href="/#how"
-              onClick={closeMobile}
-              className="
-                rounded-xl
-                px-3
-                py-3
-                text-[15px]
-                font-semibold
-                text-[#041344]
-                transition-colors
-                hover:bg-[#77E8EE]/15
-                hover:text-[#1FA8B6]
-              "
-            >
-              {t("About")}
-            </a>
+            <div className="grid gap-2">
+              <a
+                href="/#how"
+                onClick={closeMobile}
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  rounded-full
+                  border
+                  border-[#041344]/10
+                  bg-white
+                  px-4
+                  py-3
+                  text-[15px]
+                  font-semibold
+                  text-[#041344]
+                  shadow-sm
+                  transition-all
+                  hover:border-[#1FA8B6]/25
+                  hover:bg-[#77E8EE]/20
+                  hover:text-[#041344]
+                "
+              >
+                <span>{t("About")}</span>
+                <span className="text-sm text-[#1FA8B6]">↗</span>
+              </a>
 
-            {/* Find a tutor */}
-            <Link
-              to="/tutors"
-              onClick={closeMobile}
-              className="
-                rounded-xl
-                px-3
-                py-3
-                text-[15px]
-                font-semibold
-                text-[#041344]
-                transition-colors
-                hover:bg-[#77E8EE]/15
-                hover:text-[#1FA8B6]
-              "
-            >
-              {t("nav.find")}
-            </Link>
+              <Link
+                to="/tutors"
+                onClick={closeMobile}
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  rounded-full
+                  border
+                  border-[#041344]/10
+                  bg-white
+                  px-4
+                  py-3
+                  text-[15px]
+                  font-semibold
+                  text-[#041344]
+                  shadow-sm
+                  transition-all
+                  hover:border-[#1FA8B6]/25
+                  hover:bg-[#77E8EE]/20
+                  hover:text-[#041344]
+                "
+              >
+                <span>{t("nav.find")}</span>
+                <span className="text-sm text-[#1FA8B6]">↗</span>
+              </Link>
 
-            {/* Become a tutor */}
-            <Link
-              to="/become-a-tutor"
-              onClick={closeMobile}
-              className="
-                rounded-xl
-                px-3
-                py-3
-                text-[15px]
-                font-semibold
-                text-[#041344]
-                transition-colors
-                hover:bg-[#77E8EE]/15
-                hover:text-[#1FA8B6]
-              "
-            >
-              {t("tutors_cta.cta")}
-            </Link>
+              <Link
+                to="/become-a-tutor"
+                onClick={closeMobile}
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  rounded-full
+                  border
+                  border-[#041344]/10
+                  bg-white
+                  px-4
+                  py-3
+                  text-[15px]
+                  font-semibold
+                  text-[#041344]
+                  shadow-sm
+                  transition-all
+                  hover:border-[#1FA8B6]/25
+                  hover:bg-[#77E8EE]/20
+                  hover:text-[#041344]
+                "
+              >
+                <span>{t("tutors_cta.cta")}</span>
+                <span className="text-sm text-[#1FA8B6]">↗</span>
+              </Link>
+            </div>
 
-            {/* Logged-out mobile actions */}
-            {!user && (
-              <div className="mt-3 border-t border-[#041344]/10 pt-4">
+            {!user ? (
+              <div className="mt-2 grid gap-2 border-t border-[#041344]/10 pt-4">
                 <Link
                   to="/auth"
                   onClick={closeMobile}
                   className="
-                    block
-                    rounded-xl
-                    px-3
+                    flex
+                    items-center
+                    justify-center
+                    rounded-full
+                    border
+                    border-[#041344]/10
+                    bg-[#F8FCFE]
+                    px-4
                     py-3
                     text-[15px]
                     font-semibold
                     text-[#041344]
-                    transition-colors
-                    hover:bg-[#77E8EE]/15
+                    shadow-sm
+                    transition-all
+                    hover:border-[#1FA8B6]/25
+                    hover:bg-[#77E8EE]/20
                   "
                 >
                   {t("nav.sign_in")}
                 </Link>
 
-                <Link
-                  to="/auth"
-                  onClick={closeMobile}
-                  className="mt-2 block"
-                >
+                <Link to="/auth" onClick={closeMobile} className="block">
                   <Button
                     className="
                       h-11
@@ -388,30 +418,39 @@ export function SiteHeader() {
                       text-[15px]
                       font-semibold
                       text-white
+                      shadow-sm
+                      transition-all
+                      duration-200
                       hover:bg-[#041344]
+                      hover:shadow-md
                     "
                   >
                     Sign up
                   </Button>
                 </Link>
               </div>
-            )}
-
-            {/* Logged-in mobile actions */}
-            {user && (
-              <div className="mt-3 border-t border-[#041344]/10 pt-4">
+            ) : (
+              <div className="mt-2 border-t border-[#041344]/10 pt-4">
                 <Link
                   to="/dashboard"
                   onClick={closeMobile}
                   className="
-                    block
-                    rounded-xl
-                    px-3
+                    flex
+                    items-center
+                    justify-center
+                    rounded-full
+                    border
+                    border-[#041344]/10
+                    bg-[#F8FCFE]
+                    px-4
                     py-3
                     text-[15px]
                     font-semibold
                     text-[#041344]
-                    hover:bg-[#77E8EE]/15
+                    shadow-sm
+                    transition-all
+                    hover:border-[#1FA8B6]/25
+                    hover:bg-[#77E8EE]/20
                   "
                 >
                   {t("nav.dashboard")}
