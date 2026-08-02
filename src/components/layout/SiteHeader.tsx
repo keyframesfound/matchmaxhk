@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -20,10 +20,8 @@ import {
 export function SiteHeader() {
   const { t } = useTranslation();
   const { user, signOut, hasAnyRole } = useAuth();
-  const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   const [mobileOpen, setMobileOpen] = useState(false);
-  const isHome = pathname === "/";
 
   const isAdmin = hasAnyRole(["admin", "super_admin"]);
 
@@ -56,22 +54,14 @@ export function SiteHeader() {
 
         <Link
           to="/"
-          className={
-            isHome
-              ? "flex shrink-0 items-center"
-              : "flex shrink-0 items-center justify-center overflow-hidden rounded-full"
-          }
+          className="flex shrink-0 items-center"
           onClick={blurActive}
           aria-label="MatchMax home"
         >
-          {isHome ? (
-            <div className="flex items-center gap-2">
-              <img src="/matchmax-logo.png" alt="MatchMax logo" className="h-9 w-9 object-contain" />
-              <span className="text-xl font-bold tracking-tight text-brand-gradient">MatchMax</span>
-            </div>
-          ) : (
-            <Logo className="h-10 w-10 sm:h-11 sm:w-11" />
-          )}
+          <div className="flex items-center gap-2">
+            <img src="/matchmax-logo.png" alt="MatchMax logo" className="h-9 w-9 object-contain" />
+            <span className="text-xl font-bold tracking-tight text-brand-gradient">MatchMax</span>
+          </div>
         </Link>
 
         {/* -------------------------------------------------- */}
@@ -317,14 +307,17 @@ export function SiteHeader() {
           <div className="flex h-[76px] shrink-0 items-center justify-between border-b border-[#041344]/10 px-5 sm:px-8">
             <Link
               to="/"
-              className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
+              className="flex shrink-0 items-center"
               onClick={() => {
                 closeMobile();
                 blurActive();
               }}
               aria-label="MatchMax home"
             >
-              <Logo className="h-8 w-8" />
+              <div className="flex items-center gap-2">
+                <img src="/matchmax-logo.png" alt="MatchMax logo" className="h-8 w-8 object-contain" />
+                <span className="text-lg font-bold tracking-tight text-brand-gradient">MatchMax</span>
+              </div>
             </Link>
 
             <button
