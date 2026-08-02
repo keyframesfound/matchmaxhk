@@ -106,7 +106,13 @@ function AuthPage() {
 
       <main className="flex flex-1 items-center justify-center p-4 lg:p-8">
         <div className="grid w-full max-w-6xl items-center gap-8 lg:grid-cols-[minmax(0,1fr)_28rem]">
-          <div className="hidden h-[560px] rounded-3xl border border-dashed border-border bg-muted/20 lg:block" />
+          <div className="hidden h-[560px] overflow-hidden rounded-3xl border border-border/60 bg-muted/20 lg:block">
+            <img
+              src="/auth-illustration.png"
+              alt="MatchMax authentication illustration"
+              className="h-full w-full object-cover"
+            />
+          </div>
 
           <div className="w-full max-w-md justify-self-center lg:max-w-none">
             <div className="rounded-3xl border border-border bg-card p-8 shadow-brand">
