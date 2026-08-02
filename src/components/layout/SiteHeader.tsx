@@ -4,6 +4,7 @@ import { Menu, X, ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
+import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/useAuth";
 
@@ -53,13 +54,11 @@ export function SiteHeader() {
 
         <Link
           to="/"
-          className="shrink-0"
+          className="shrink-0 overflow-hidden"
           onClick={blurActive}
           aria-label="MatchMax home"
         >
-          <span className="text-xl font-bold tracking-tight text-brand-gradient">
-            MatchMax
-          </span>
+          <Logo className="max-w-[120px]" />
         </Link>
 
         {/* -------------------------------------------------- */}
@@ -305,16 +304,14 @@ export function SiteHeader() {
           <div className="flex h-[76px] shrink-0 items-center justify-between border-b border-[#041344]/10 px-5 sm:px-8">
             <Link
               to="/"
-              className="shrink-0"
+              className="shrink-0 overflow-hidden"
               onClick={() => {
                 closeMobile();
                 blurActive();
               }}
               aria-label="MatchMax home"
             >
-              <span className="text-xl font-bold tracking-tight text-brand-gradient">
-                MatchMax
-              </span>
+              <Logo className="max-w-[120px]" />
             </Link>
 
             <button
