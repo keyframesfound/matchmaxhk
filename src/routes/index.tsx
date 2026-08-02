@@ -246,29 +246,6 @@ function Landing() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section id="how" className="py-20 md:py-28">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-5xl md:text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">{t("how.title")}</h2>
-          </div>
-          <div className="mt-16 grid gap-8 md:gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((n) => (
-              <div
-                key={n}
-                className="group relative overflow-hidden rounded-3xl md:rounded-sm border border-border/80 bg-card/95 p-10 md:p-8 shadow-[0_10px_24px_rgba(4,19,68,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--brand-teal)]/45 hover:shadow-brand"
-              >
-                <div className="relative mb-8 md:mb-6 flex h-16 w-16 md:h-14 md:w-14 items-center justify-center rounded-2xl md:rounded-md bg-brand-gradient text-3xl md:text-2xl font-black text-white shadow-teal" aria-hidden="true">
-                  {n}
-                </div>
-                <h3 className="text-3xl md:text-xl font-black md:font-bold text-foreground">{t(`how.step${n}_title`)}</h3>
-                <p className="mt-4 md:mt-3 text-lg md:text-sm leading-relaxed text-muted-foreground font-medium md:font-normal">{t(`how.step${n}_desc`)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* FEATURED TUTORS */}
       <section id="tutors" className="py-20 md:py-28 bg-muted/10">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
@@ -350,6 +327,29 @@ function Landing() {
                   <span className="ml-1.5 md:ml-1 text-base md:text-sm font-bold md:font-semibold text-muted-foreground">{t("featured.per_hour")}</span>
                 </p>
               </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section id="how" className="py-20 md:py-28">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-5xl md:text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">{t("how.title")}</h2>
+          </div>
+          <div className="mt-16 grid gap-8 md:gap-6 md:grid-cols-3">
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="group relative overflow-hidden rounded-3xl md:rounded-sm border border-border/80 bg-card/95 p-10 md:p-8 shadow-[0_10px_24px_rgba(4,19,68,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--brand-teal)]/45 hover:shadow-brand"
+              >
+                <div className="relative mb-8 md:mb-6 flex h-16 w-16 md:h-14 md:w-14 items-center justify-center rounded-2xl md:rounded-md bg-brand-gradient text-3xl md:text-2xl font-black text-white shadow-teal" aria-hidden="true">
+                  {n}
+                </div>
+                <h3 className="text-3xl md:text-xl font-black md:font-bold text-foreground">{t(`how.step${n}_title`)}</h3>
+                <p className="mt-4 md:mt-3 text-lg md:text-sm leading-relaxed text-muted-foreground font-medium md:font-normal">{t(`how.step${n}_desc`)}</p>
+              </div>
             ))}
           </div>
         </div>
