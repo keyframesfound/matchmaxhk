@@ -54,11 +54,11 @@ export function SiteHeader() {
 
         <Link
           to="/"
-          className="shrink-0 overflow-hidden"
+          className="flex shrink-0 items-center justify-center overflow-hidden rounded-full"
           onClick={blurActive}
           aria-label="MatchMax home"
         >
-          <Logo className="max-w-[120px]" />
+          <Logo className="h-10 w-10 sm:h-11 sm:w-11" />
         </Link>
 
         {/* -------------------------------------------------- */}
@@ -304,14 +304,14 @@ export function SiteHeader() {
           <div className="flex h-[76px] shrink-0 items-center justify-between border-b border-[#041344]/10 px-5 sm:px-8">
             <Link
               to="/"
-              className="shrink-0 overflow-hidden"
+              className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
               onClick={() => {
                 closeMobile();
                 blurActive();
               }}
               aria-label="MatchMax home"
             >
-              <Logo className="max-w-[120px]" />
+              <Logo className="h-8 w-8" />
             </Link>
 
             <button
