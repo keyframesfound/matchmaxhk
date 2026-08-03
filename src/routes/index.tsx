@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { 
-  ArrowRight, BadgeCheck, Globe, MapPin, MessageCircle, Search
+  ArrowRight, BadgeCheck, BookOpen, Clock3, MessageCircle, Search
 } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -25,7 +25,7 @@ import {
   fetchLandingStats,
   fetchTutorByCode,
   getTutorGenderLabel,
-  getTutorLocationLabel,
+  getTutorLessonModeLabel,
   HK_DISTRICTS,
   matchesDistrictFilter,
   matchesLessonModeFilter,
@@ -62,6 +62,15 @@ const HOME_GENDER_OPTIONS = [
   { value: "female", label: "Female" },
   { value: "male", label: "Male" },
 ];
+
+function formatTutorCode(code?: string | null) {
+  const normalized = (code ?? "").trim().toUpperCase();
+  if (!normalized) return "MM-XXXX";
+  if (/^MM-\d{4}$/.test(normalized)) return normalized;
+  if (/^\d{4}$/.test(normalized)) return `MM-${normalized}`;
+  if (/^MM-/.test(normalized)) return normalized;
+  return normalized;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -320,7 +329,7 @@ function Landing() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-xl md:text-sm font-black md:font-bold text-foreground break-words">{heroTutor.tutor_code}{getTutorGenderLabel(heroTutor.gender) ? ` · ${getTutorGenderLabel(heroTutor.gender)}` : ""}</p>
+                        <p className="text-xl md:text-sm font-black md:font-bold text-foreground break-words">{formatTutorCode(heroTutor.tutor_code)}{getTutorGenderLabel(heroTutor.gender) ? ` · ${getTutorGenderLabel(heroTutor.gender)}` : ""}</p>
                         <p className="text-sm md:text-xs leading-relaxed text-muted-foreground break-words whitespace-pre-line">
                           {heroTutor.headline ?? heroTutor.subjects.slice(0, 3).join(" · ")}
                         </p>
@@ -330,7 +339,7 @@ function Landing() {
                     
                     <div className="mt-8 md:mt-5 grid grid-cols-3 gap-3 rounded-xl md:rounded-md border border-border/70 bg-muted/50 p-5 md:p-4 text-center text-xs">
                       <div>
-                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">{heroTutor.tutor_code}</p>
+                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">{formatTutorCode(heroTutor.tutor_code)}</p>
                         <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">Code</p>
                       </div>
                       <div>
@@ -461,76 +470,84 @@ function Landing() {
                       key={tut.id}
                       className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
                     >
-                      <Link
-                        to="/tutors/$tutorCode"
-                        params={{ tutorCode: tut.tutor_code }}
-                        className="block rounded-sm border border-border/80 bg-card p-6 shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)]/30 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]"
-                        onClick={() => blurActive()}
-                      >
-                        <div className="flex items-center gap-4">
-                          {tut.photo_url ? (
-                            <img
-                              src={tut.photo_url}
-                              alt="Tutor"
-                              loading="lazy"
-                              className="h-14 w-14 shrink-0 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-base font-semibold text-[color:var(--brand-teal)]">
-                              {tut.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-base font-bold text-foreground break-words">
-                              {tut.tutor_code}
-                              {getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}
-                            </p>
-                            <p className="mt-1 text-sm text-muted-foreground break-words whitespace-pre-line">
-                              {tut.headline ?? tut.subjects.slice(0, 2).join(" · ")}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {tut.subjects.slice(0, 2).map((subject) => (
-                            <span
-                              key={subject}
-                              className="rounded-sm bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground"
-                            >
-                              {subject}
-                            </span>
-                          ))}
-                          {tut.subjects.length > 2 && (
-                            <span className="rounded-sm bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
-                              +{tut.subjects.length - 2} more
-                            </span>
-                          )}
-                        </div>
-
-                        {tut.badge && (
-                          <div className="mt-4 flex items-center gap-2">
-                            <span className="inline-flex items-center gap-1 rounded-sm bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] font-bold text-[color:var(--brand-teal)]">
-                              <BadgeCheck className="h-3 w-3" /> {tut.badge}
-                            </span>
-                          </div>
-                        )}
-
-                        <div className="mt-4 flex items-center justify-between border-t border-border pt-4 text-sm">
-                          <span className="inline-flex items-center gap-1 text-muted-foreground">
-                            {tut.lesson_mode === "online" ? (
-                              <Globe className="h-4 w-4" aria-hidden="true" />
+                      <article className="overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]">
+                        <div className="bg-[color:var(--brand-teal)]/8 p-4">
+                          <div className="flex items-center gap-3">
+                            {tut.photo_url ? (
+                              <img
+                                src={tut.photo_url}
+                                alt="Tutor"
+                                loading="lazy"
+                                className="h-16 w-16 shrink-0 rounded-full border-2 border-[color:var(--brand-teal)] object-cover"
+                              />
                             ) : (
-                              <MapPin className="h-4 w-4" aria-hidden="true" />
+                              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-[color:var(--brand-teal)] bg-white text-lg font-bold text-[color:var(--brand-teal)]">
+                                {tut.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
+                              </div>
                             )}
-                            {getTutorLocationLabel(tut)}
-                          </span>
+                            <div className="min-w-0">
+                              <p className="text-xl font-black text-[color:var(--brand-navy)]">
+                                {formatTutorCode(tut.tutor_code)}
+                                {getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}
+                              </p>
+                              <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                                <BadgeCheck className="h-4 w-4 text-[color:var(--brand-teal)]" />
+                                {tut.university ?? tut.highschool ?? "Education details"}
+                              </p>
+                            </div>
+                          </div>
                         </div>
 
-                        <p className="mt-3 text-2xl font-black text-[color:var(--brand-navy)]">
-                          HK${tut.hourly_rate}
-                          <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
-                        </p>
-                      </Link>
+                        <div className="space-y-4 p-4">
+                          <div className="flex flex-wrap gap-2">
+                            {tut.subjects.slice(0, 3).map((subject) => (
+                              <span
+                                key={subject}
+                                className="rounded-sm bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
+                              >
+                                {subject}
+                              </span>
+                            ))}
+                          </div>
+
+                          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                            {tut.headline ?? tut.bio ?? "Experienced tutor profile with subject-specific support."}
+                          </p>
+
+                          <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
+                            <div>
+                              <p className="text-xs uppercase tracking-wide text-muted-foreground">Lesson Mode</p>
+                              <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
+                                <BookOpen className="h-4 w-4 text-[color:var(--brand-teal)]" />
+                                {getTutorLessonModeLabel(tut.lesson_mode)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs uppercase tracking-wide text-muted-foreground">Tutoring Experience</p>
+                              <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
+                                <Clock3 className="h-4 w-4 text-[color:var(--brand-teal)]" />
+                                {tut.experience_years ? `${tut.experience_years} years` : "N/A"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between border-t border-border bg-white px-4 py-3">
+                          <p className="text-2xl font-black text-[color:var(--brand-navy)]">
+                            HK${tut.hourly_rate}
+                            <span className="ml-1 text-sm font-semibold text-muted-foreground">/ hour</span>
+                          </p>
+                          <Button asChild className="rounded-sm bg-[color:var(--brand-teal)] px-4 font-bold text-white hover:bg-[color:var(--brand-royal)]">
+                            <Link
+                              to="/tutors/$tutorCode"
+                              params={{ tutorCode: tut.tutor_code }}
+                              onClick={() => blurActive()}
+                            >
+                              View Tutor
+                            </Link>
+                          </Button>
+                        </div>
+                      </article>
                     </CarouselItem>
                   ))}
                 </CarouselContent>
