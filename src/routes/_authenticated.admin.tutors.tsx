@@ -46,6 +46,19 @@ const EDUCATION_LEVELS = [
   "Other",
 ];
 
+const TARGET_STUDENT_OPTIONS = [
+  "Primary",
+  "Junior Secondary",
+  "IBDP",
+  "IGCSE",
+  "HKDSE",
+  "A-Level",
+  "AP",
+  "SAT",
+  "University",
+  "Adult learners",
+];
+
 import { DEFAULT_SUBJECT_OPTIONS as SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 
 function PhotoUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
@@ -536,11 +549,55 @@ function AdminTutors() {
                     </Field>
 
                     <Field label="Target students" error={errors.target_students_csv}>
-                      <Input
-                        value={form.target_students_csv}
-                        onChange={(e) => setForm({ ...form, target_students_csv: e.target.value })}
-                        placeholder="IBDP, DSE, IGCSE, Primary, Secondary"
-                      />
+                      {(() => {
+                        const targetStudentsValue = form.target_students_csv ?? "";
+                        const targetStudentList = targetStudentsValue
+                          .split(",")
+                          .map((item) => item.trim())
+                          .filter(Boolean);
+
+                        return (
+                      <div className="space-y-2">
+                        {targetStudentList.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {targetStudentList.map((item) => (
+                              <span
+                                key={item}
+                                className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-navy)]"
+                              >
+                                {item}
+                                <button
+                                  type="button"
+                                  aria-label={`Remove ${item}`}
+                                  onClick={() => {
+                                    const next = targetStudentList.filter((value) => value !== item);
+                                    setForm({ ...form, target_students_csv: next.join(", ") });
+                                  }}
+                                  className="hover:text-destructive"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                        <SearchableSelect
+                          value=""
+                          onChange={(value) => {
+                            const val = value.trim();
+                            if (!val) return;
+                            const current = targetStudentList;
+                            if (current.includes(val)) return;
+                            setForm({ ...form, target_students_csv: [...current, val].join(", ") });
+                          }}
+                          options={TARGET_STUDENT_OPTIONS.filter((value) => !targetStudentList.includes(value))}
+                          placeholder="Add target students…"
+                          searchPlaceholder="Search target students…"
+                          allowCustom
+                        />
+                      </div>
+                        );
+                      })()}
                       <p className="mt-1 text-xs text-muted-foreground">
                         Separate multiple targets with commas.
                       </p>
