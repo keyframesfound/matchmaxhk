@@ -1,22 +1,60 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { 
   ArrowRight, BadgeCheck, MessageCircle, MapPin, 
-  Globe 
+  Globe, Search 
 } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { blurActive } from "@/lib/dom";
 import { 
   fetchTopWeeklyTutors, fetchLandingStats, fetchTutorByCode, 
-  getTutorGenderLabel, getTutorLessonModeLabel, getTutorLocationLabel, 
+  getTutorGenderLabel, getTutorLessonModeLabel, getTutorLocationLabel, HK_DISTRICTS,
   type Tutor 
 } from "@/features/tutors/queries";
+import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
 const OG_IMAGE = "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp";
+
+type HomeTutorSearchState = {
+  category?: string;
+  subject?: string;
+  mode?: string;
+  district?: string;
+  gender?: string;
+  q?: string;
+};
+
+const HOME_CATEGORY_OPTIONS = [
+  { value: "", label: "Any category" },
+  { value: "IB", label: "IB" },
+  { value: "DSE", label: "DSE" },
+  { value: "IGCSE", label: "IGCSE" },
+  { value: "AP", label: "AP" },
+  { value: "A-Level", label: "A-Level" },
+  { value: "Primary", label: "Primary" },
+  { value: "Secondary", label: "Secondary" },
+  { value: "International", label: "International" },
+];
+
+const HOME_MODE_OPTIONS = [
+  { value: "", label: "Any lesson mode" },
+  { value: "online", label: "Online" },
+  { value: "in_person", label: "In-person" },
+  { value: "either", label: "Open to discussion" },
+];
+
+const HOME_GENDER_OPTIONS = [
+  { value: "", label: "Any gender" },
+  { value: "female", label: "Female" },
+  { value: "male", label: "Male" },
+];
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -53,6 +91,20 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [homeSearch, setHomeSearch] = useState<HomeTutorSearchState>({});
+
+  const setHomeSearchParam = (patch: Partial<HomeTutorSearchState>) => {
+    setHomeSearch((prev) => {
+      const next = { ...prev, ...patch };
+      (Object.keys(next) as (keyof HomeTutorSearchState)[]).forEach((k) => {
+        if (!next[k]) delete next[k];
+      });
+      return next;
+    });
+  };
+
+  const showHomeDistrict = homeSearch.mode === "in_person";
 
   // Queries
   const { data: featuredTutors = [], isLoading: featuredLoading } = useQuery({
@@ -101,6 +153,40 @@ function Landing() {
   });
 
   const heroTutor: Tutor | null = pickedHeroTutor ?? featuredTutors[0] ?? null;
+
+  const { data: subjectOptions = DEFAULT_SUBJECT_OPTIONS } = useQuery({
+    queryKey: ["settings", "subject_options"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "subject_options")
+        .maybeSingle();
+      if (error) throw error;
+      const v = data?.value;
+      if (Array.isArray(v)) {
+        const arr = (v as unknown[]).filter(
+          (x): x is string => typeof x === "string" && x.trim().length > 0,
+        );
+        if (arr.length > 0) return arr;
+      }
+      return DEFAULT_SUBJECT_OPTIONS;
+    },
+  });
+
+  const tutorSearchParams = useMemo(() => {
+    const params: HomeTutorSearchState = {
+      category: homeSearch.category,
+      subject: homeSearch.subject,
+      mode: homeSearch.mode,
+      gender: homeSearch.gender,
+      q: homeSearch.q,
+    };
+    if (homeSearch.mode === "in_person") {
+      params.district = homeSearch.district;
+    }
+    return params;
+  }, [homeSearch]);
 
   // JSON-LD
   const structuredData = {
@@ -242,6 +328,78 @@ function Landing() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative -mt-10 pb-14 md:-mt-14 md:pb-16">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
+          <div className="rounded-3xl border border-border bg-card p-4 shadow-[0_12px_30px_rgba(4,19,68,0.08)] sm:p-5">
+            <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
+              <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">Find tutor</p>
+            </div>
+
+            <div className="mt-4 grid gap-3 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-11 rounded-xl pl-9"
+                  placeholder="Search tutor code, subject, keyword..."
+                  value={homeSearch.q ?? ""}
+                  onChange={(e) => setHomeSearchParam({ q: e.target.value })}
+                />
+              </div>
+              <SearchableSelect
+                value={homeSearch.category ?? ""}
+                onChange={(v) => setHomeSearchParam({ category: v || undefined })}
+                options={HOME_CATEGORY_OPTIONS}
+                placeholder="Category"
+                searchPlaceholder="Search category..."
+              />
+              <SearchableSelect
+                value={homeSearch.subject ?? ""}
+                onChange={(v) => setHomeSearchParam({ subject: v || undefined })}
+                options={[{ value: "", label: "Any subject" }, ...subjectOptions.map((s) => ({ value: s, label: s }))]}
+                placeholder="Subject"
+                searchPlaceholder="Search subject..."
+              />
+              <SearchableSelect
+                value={homeSearch.mode ?? ""}
+                onChange={(v) => {
+                  const nextMode = v || undefined;
+                  setHomeSearchParam({
+                    mode: nextMode,
+                    district: nextMode === "in_person" ? homeSearch.district : undefined,
+                  });
+                }}
+                options={HOME_MODE_OPTIONS}
+                placeholder="Lesson mode"
+              />
+              <SearchableSelect
+                value={homeSearch.gender ?? ""}
+                onChange={(v) => setHomeSearchParam({ gender: v || undefined })}
+                options={HOME_GENDER_OPTIONS}
+                placeholder="Gender"
+              />
+              <Button
+                className="h-11 rounded-xl bg-[color:var(--brand-navy)] px-6 font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                onClick={() => navigate({ to: "/tutors", search: tutorSearchParams })}
+              >
+                Search
+              </Button>
+            </div>
+
+            {showHomeDistrict && (
+              <div className="mt-3 grid gap-3 sm:grid-cols-1 md:max-w-sm">
+                <SearchableSelect
+                  value={homeSearch.district ?? ""}
+                  onChange={(v) => setHomeSearchParam({ district: v || undefined })}
+                  options={[{ value: "", label: "Any district" }, ...HK_DISTRICTS.map((d) => ({ value: d, label: d }))]}
+                  placeholder="District (for in-person)"
+                  searchPlaceholder="Search district..."
+                />
+              </div>
+            )}
           </div>
         </div>
       </section>

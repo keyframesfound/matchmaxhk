@@ -148,6 +148,58 @@ export function getTutorLocationLabel(tutor: Pick<Tutor, "district" | "lesson_mo
   return tutor.district ? `${tutor.district} · Online & in-person` : "Online & in-person";
 }
 
+const DISTRICT_GROUPS: Record<string, string[]> = {
+  "Within Hong Kong Island": [
+    "Central",
+    "Sheung Wan",
+    "Wan Chai",
+    "Causeway Bay",
+    "North Point",
+    "Quarry Bay",
+  ],
+  "Within Kowloon": [
+    "Tsim Sha Tsui",
+    "Mong Kok",
+    "Kowloon Tong",
+    "Kowloon Bay",
+    "Ho Man Tin",
+  ],
+  "Within New Territories": [
+    "Sha Tin",
+    "Tai Po",
+    "Tuen Mun",
+    "Yuen Long",
+    "Tseung Kwan O",
+    "Tung Chung",
+    "Discovery Bay",
+  ],
+};
+
+function isDistrictGroup(value: string): boolean {
+  return Object.prototype.hasOwnProperty.call(DISTRICT_GROUPS, value);
+}
+
+export function matchesLessonModeFilter(filterMode: string | undefined, tutorMode: Tutor["lesson_mode"]): boolean {
+  const mode = (filterMode ?? "").trim();
+  if (!mode || mode === "either") return true;
+  if (tutorMode === "either") return true;
+  return tutorMode === mode;
+}
+
+export function matchesDistrictFilter(filterDistrict: string | undefined, tutorDistrict: string | null | undefined): boolean {
+  const filter = (filterDistrict ?? "").trim();
+  const tutor = (tutorDistrict ?? "").trim();
+
+  if (!filter || filter === "Open to Discussion") return true;
+  if (!tutor || tutor === "Open to Discussion") return true;
+  if (filter === tutor) return true;
+
+  if (isDistrictGroup(filter) && DISTRICT_GROUPS[filter].includes(tutor)) return true;
+  if (isDistrictGroup(tutor) && DISTRICT_GROUPS[tutor].includes(filter)) return true;
+
+  return false;
+}
+
 export async function fetchLandingStats(): Promise<{ activeTutors: number; subjectsCovered: number }> {
   const { data, error } = await supabase.from("tutors").select("subjects").eq("is_published", true);
   if (error) throw error;

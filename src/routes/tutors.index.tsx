@@ -9,7 +9,16 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { fetchPublishedTutors, getTutorGenderLabel, getTutorLessonModeLabel, getTutorLocationLabel, HK_DISTRICTS, type Tutor } from "@/features/tutors/queries";
+import {
+  fetchPublishedTutors,
+  getTutorGenderLabel,
+  getTutorLessonModeLabel,
+  getTutorLocationLabel,
+  HK_DISTRICTS,
+  matchesDistrictFilter,
+  matchesLessonModeFilter,
+  type Tutor,
+} from "@/features/tutors/queries";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -43,7 +52,7 @@ const MODE_OPTIONS = [
   { value: "", label: "Any lesson mode" },
   { value: "online", label: "Online" },
   { value: "in_person", label: "In-person" },
-  { value: "either", label: "Online & in-person" },
+  { value: "either", label: "Open to discussion" },
 ];
 
 const GENDER_OPTIONS = [
@@ -108,7 +117,8 @@ function TutorsDirectory() {
   const districtFilter = search.district ?? "";
   const modeFilter = search.mode ?? "";
   const genderFilter = search.gender ?? "";
-  const showDistrictFilter = modeFilter === "in_person" || modeFilter === "either";
+  const showDistrictFilter = modeFilter === "in_person";
+  const effectiveDistrictFilter = showDistrictFilter ? districtFilter : "";
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -124,8 +134,8 @@ function TutorsDirectory() {
         if (!categorySource.includes(categoryFilter)) return false;
       }
       if (subjectFilter && !tut.subjects.some((s) => s.toLowerCase().includes(subjectFilter))) return false;
-      if (districtFilter && tut.district !== districtFilter) return false;
-      if (modeFilter && tut.lesson_mode !== modeFilter) return false;
+      if (!matchesLessonModeFilter(modeFilter, tut.lesson_mode)) return false;
+      if (!matchesDistrictFilter(effectiveDistrictFilter, tut.district)) return false;
       if (genderFilter) {
         const g = (tut as unknown as { gender?: string | null }).gender ?? "";
         if (g !== genderFilter) return false;
@@ -144,12 +154,12 @@ function TutorsDirectory() {
         a.hourly_rate - b.hourly_rate ||
         a.tutor_code.localeCompare(b.tutor_code),
     );
-  }, [tutors, categoryFilter, subjectFilter, districtFilter, modeFilter, genderFilter, q]);
+  }, [tutors, categoryFilter, subjectFilter, effectiveDistrictFilter, modeFilter, genderFilter, q]);
 
   const activeChips: { key: string; label: string; onClear: () => void }[] = [];
   if (search.category) activeChips.push({ key: "category", label: `Category: ${search.category}`, onClear: () => setParam({ category: undefined }) });
   if (search.subject) activeChips.push({ key: "subject", label: `Subject: ${search.subject}`, onClear: () => setParam({ subject: undefined }) });
-  if (search.district) activeChips.push({ key: "district", label: `District: ${search.district}`, onClear: () => setParam({ district: undefined }) });
+  if (showDistrictFilter && search.district) activeChips.push({ key: "district", label: `District: ${search.district}`, onClear: () => setParam({ district: undefined }) });
   if (search.mode) activeChips.push({ key: "mode", label: `Mode: ${MODE_OPTIONS.find((m) => m.value === search.mode)?.label ?? search.mode}`, onClear: () => setParam({ mode: undefined }) });
   if (search.gender) activeChips.push({ key: "gender", label: `Gender: ${GENDER_OPTIONS.find((g) => g.value === search.gender)?.label ?? search.gender}`, onClear: () => setParam({ gender: undefined }) });
 
@@ -204,7 +214,7 @@ function TutorsDirectory() {
                     const nextMode = v || undefined;
                     setParam({
                       mode: nextMode,
-                      district: nextMode === "in_person" || nextMode === "either" ? search.district : undefined,
+                      district: nextMode === "in_person" ? search.district : undefined,
                     });
                   }}
                   options={MODE_OPTIONS}
