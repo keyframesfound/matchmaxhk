@@ -92,19 +92,6 @@ function TutorsDirectory() {
     setDraft(search);
   }, [search]);
 
-  const setParam = (patch: Partial<SearchState>) => {
-    navigate({
-      search: (prev: SearchState) => {
-        const next: SearchState = { ...prev, ...patch };
-        (Object.keys(next) as (keyof SearchState)[]).forEach((k) => {
-          const v = next[k];
-          if (v === "" || v === undefined || (typeof v === "number" && Number.isNaN(v))) delete next[k];
-        });
-        return next;
-      },
-    });
-  };
-
   const setDraftParam = (patch: Partial<SearchState>) => {
     setDraft((prev) => {
       const next: SearchState = { ...prev, ...patch };
@@ -141,15 +128,15 @@ function TutorsDirectory() {
     },
   });
 
-  const categoryFilter = (search.category ?? "").toLowerCase();
-  const subjectFilter = (search.subject ?? "").toLowerCase();
-  const districtFilter = search.district ?? "";
-  const modeFilter = search.mode ?? "";
-  const genderFilter = search.gender ?? "";
+  const categoryFilter = (draft.category ?? "").toLowerCase();
+  const subjectFilter = (draft.subject ?? "").toLowerCase();
+  const districtFilter = draft.district ?? "";
+  const modeFilter = draft.mode ?? "";
+  const genderFilter = draft.gender ?? "";
   const effectiveDistrictFilter = modeFilter === "in_person" ? districtFilter : "";
 
   const filtered = useMemo(() => {
-    const query = (search.q ?? "").trim().toLowerCase();
+    const query = (draft.q ?? "").trim().toLowerCase();
     const list = tutors.filter((tut) => {
       if (categoryFilter) {
         const categorySource = [...tut.subjects, ...tut.target_students, tut.headline ?? ""]
@@ -182,38 +169,38 @@ function TutorsDirectory() {
         a.hourly_rate - b.hourly_rate ||
         a.tutor_code.localeCompare(b.tutor_code),
     );
-  }, [tutors, categoryFilter, subjectFilter, effectiveDistrictFilter, modeFilter, genderFilter, search.q]);
+  }, [tutors, categoryFilter, subjectFilter, effectiveDistrictFilter, modeFilter, genderFilter, draft.q]);
 
   const activeChips: { key: string; label: string; onClear: () => void }[] = [];
-  if (search.category)
+  if (draft.category)
     activeChips.push({
       key: "category",
-      label: `Category: ${search.category}`,
-      onClear: () => setParam({ category: undefined }),
+      label: `Category: ${draft.category}`,
+      onClear: () => setDraftParam({ category: undefined }),
     });
-  if (search.subject)
+  if (draft.subject)
     activeChips.push({
       key: "subject",
-      label: `Subject: ${search.subject}`,
-      onClear: () => setParam({ subject: undefined }),
+      label: `Subject: ${draft.subject}`,
+      onClear: () => setDraftParam({ subject: undefined }),
     });
-  if (modeFilter === "in_person" && search.district)
+  if (modeFilter === "in_person" && draft.district)
     activeChips.push({
       key: "district",
-      label: `District: ${search.district}`,
-      onClear: () => setParam({ district: undefined }),
+      label: `District: ${draft.district}`,
+      onClear: () => setDraftParam({ district: undefined }),
     });
-  if (search.mode)
+  if (draft.mode)
     activeChips.push({
       key: "mode",
-      label: `Mode: ${MODE_OPTIONS.find((m) => m.value === search.mode)?.label ?? search.mode}`,
-      onClear: () => setParam({ mode: undefined }),
+      label: `Mode: ${MODE_OPTIONS.find((m) => m.value === draft.mode)?.label ?? draft.mode}`,
+      onClear: () => setDraftParam({ mode: undefined, district: undefined }),
     });
-  if (search.gender)
+  if (draft.gender)
     activeChips.push({
       key: "gender",
-      label: `Gender: ${GENDER_OPTIONS.find((g) => g.value === search.gender)?.label ?? search.gender}`,
-      onClear: () => setParam({ gender: undefined }),
+      label: `Gender: ${GENDER_OPTIONS.find((g) => g.value === draft.gender)?.label ?? draft.gender}`,
+      onClear: () => setDraftParam({ gender: undefined }),
     });
 
   const clearAll = () => {
@@ -301,14 +288,14 @@ function TutorsDirectory() {
               </div>
             </div>
 
-            {(activeChips.length > 0 || search.q) && (
+            {(activeChips.length > 0 || draft.q) && (
               <div className="mt-5 flex flex-wrap items-center gap-2">
-                {search.q && (
+                {draft.q && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--brand-navy)]/5 px-3 py-1 text-xs font-semibold text-[color:var(--brand-navy)]">
-                    “{search.q}”
+                    “{draft.q}”
                     <button
                       aria-label="Clear search"
-                      onClick={() => setParam({ q: undefined })}
+                      onClick={() => setDraftParam({ q: undefined })}
                       className="rounded-full p-0.5 hover:bg-[color:var(--brand-navy)]/10"
                     >
                       <X className="h-3 w-3" />
