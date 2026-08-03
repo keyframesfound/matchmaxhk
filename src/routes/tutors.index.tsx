@@ -79,6 +79,7 @@ function TutorsDirectory() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/tutors/" });
   const [q, setQ] = useState(search.q ?? "");
+  const [subjectSearch, setSubjectSearch] = useState("");
   const [openPanel, setOpenPanel] = useState<PanelKey | null>(null);
   const [modePanelStep, setModePanelStep] = useState<"mode" | "district">("mode");
 
@@ -181,7 +182,16 @@ function TutorsDirectory() {
     if (panel === "mode") {
       setModePanelStep("mode");
     }
+    if (panel !== "subject") {
+      setSubjectSearch("");
+    }
   };
+
+  const filteredSubjectOptions = useMemo(() => {
+    const keyword = subjectSearch.trim().toLowerCase();
+    if (!keyword) return subjectOptions;
+    return subjectOptions.filter((item) => item.toLowerCase().includes(keyword));
+  }, [subjectOptions, subjectSearch]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -260,11 +270,11 @@ function TutorsDirectory() {
                 <div role="dialog" aria-modal="true" aria-label="Tutor filter options">
                   <button
                     type="button"
-                    className="fixed inset-0 z-30 bg-black/45"
+                    className="fixed inset-0 z-30 bg-transparent"
                     aria-label="Close filter panel"
                     onClick={() => setOpenPanel(null)}
                   />
-                  <div className="absolute left-0 right-0 top-full z-40 mt-2 rounded-2xl border border-border/80 bg-background p-5 shadow-2xl">
+                  <div className="absolute left-0 right-0 top-full z-40 mt-2 rounded-2xl border border-border/80 bg-white p-5 shadow-2xl">
                       {openPanel === "category" && (
                         <>
                           <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose category</p>
@@ -290,6 +300,14 @@ function TutorsDirectory() {
                       {openPanel === "subject" && (
                         <>
                           <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose subject</p>
+                          <div className="mt-4 max-w-md">
+                            <Input
+                              className="h-11 rounded-xl"
+                              value={subjectSearch}
+                              onChange={(e) => setSubjectSearch(e.target.value)}
+                              placeholder="Search subject"
+                            />
+                          </div>
                           <div className="mt-4 flex max-h-[60vh] flex-wrap gap-2 overflow-y-auto pr-1">
                             <Button
                               type="button"
@@ -302,7 +320,7 @@ function TutorsDirectory() {
                             >
                               Any subject
                             </Button>
-                            {subjectOptions.map((item) => (
+                            {filteredSubjectOptions.map((item) => (
                               <Button
                                 key={item}
                                 type="button"
@@ -316,6 +334,9 @@ function TutorsDirectory() {
                                 {item}
                               </Button>
                             ))}
+                            {filteredSubjectOptions.length === 0 && (
+                              <p className="w-full pt-2 text-sm text-muted-foreground">No subjects found.</p>
+                            )}
                           </div>
                         </>
                       )}
