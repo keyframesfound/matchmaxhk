@@ -274,7 +274,7 @@ function TutorsDirectory() {
                     aria-label="Close filter panel"
                     onClick={() => setOpenPanel(null)}
                   />
-                  <div className="absolute left-0 right-0 top-full z-40 mt-2 rounded-2xl border border-border/80 bg-white p-5 shadow-2xl">
+                  <div className="absolute left-0 right-0 top-full z-40 -mt-px rounded-b-2xl border border-t-0 border-border/80 bg-white p-5 shadow-2xl">
                       {openPanel === "category" && (
                         <>
                           <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose category</p>
