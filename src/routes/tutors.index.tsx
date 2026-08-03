@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -183,6 +183,15 @@ function TutorsDirectory() {
     }
   };
 
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (!openPanel) return;
+    document.body.classList.add("overflow-hidden");
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [openPanel]);
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
@@ -248,145 +257,60 @@ function TutorsDirectory() {
               </div>
 
               {openPanel && (
-                <div className="mt-4 rounded-2xl border border-border/80 bg-background p-5">
-                  {openPanel === "category" && (
-                    <>
-                      <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose category</p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {CATEGORY_OPTIONS.map((item) => (
-                          <Button
-                            key={item.value || "any"}
-                            type="button"
-                            variant={search.category === item.value ? "default" : "outline"}
-                            className={search.category === item.value ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                            onClick={() => {
-                              setParam({ category: item.value || undefined });
-                              setOpenPanel(null);
-                            }}
-                          >
-                            {item.label}
-                          </Button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-
-                  {openPanel === "subject" && (
-                    <>
-                      <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose subject</p>
-                      <div className="mt-4 flex max-h-72 flex-wrap gap-2 overflow-y-auto pr-1">
-                        <Button
-                          type="button"
-                          variant={!search.subject ? "default" : "outline"}
-                          className={!search.subject ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                          onClick={() => {
-                            setParam({ subject: undefined });
-                            setOpenPanel(null);
-                          }}
-                        >
-                          Any subject
-                        </Button>
-                        {subjectOptions.map((item) => (
-                          <Button
-                            key={item}
-                            type="button"
-                            variant={search.subject === item ? "default" : "outline"}
-                            className={search.subject === item ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                            onClick={() => {
-                              setParam({ subject: item });
-                              setOpenPanel(null);
-                            }}
-                          >
-                            {item}
-                          </Button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-
-                  {openPanel === "mode" && (
-                    <>
-                      {modePanelStep === "mode" ? (
+                <div className="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Tutor filter options">
+                  <button
+                    type="button"
+                    className="absolute inset-0 bg-black/45"
+                    aria-label="Close filter panel"
+                    onClick={() => setOpenPanel(null)}
+                  />
+                  <div className="absolute left-0 right-0 top-20 px-4 sm:top-24 sm:px-6">
+                    <div className="mx-auto max-w-7xl rounded-2xl border border-border/80 bg-background p-5 shadow-2xl">
+                      {openPanel === "category" && (
                         <>
-                          <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose lesson mode</p>
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            <Button
-                              type="button"
-                              variant={!search.mode ? "default" : "outline"}
-                              className={!search.mode ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                              onClick={() => {
-                                setParam({ mode: undefined, district: undefined });
-                                setOpenPanel(null);
-                              }}
-                            >
-                              Any lesson mode
-                            </Button>
-                            <Button
-                              type="button"
-                              variant={search.mode === "online" ? "default" : "outline"}
-                              className={search.mode === "online" ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                              onClick={() => {
-                                setParam({ mode: "online", district: undefined });
-                                setOpenPanel(null);
-                              }}
-                            >
-                              Online
-                            </Button>
-                            <Button
-                              type="button"
-                              variant={search.mode === "either" ? "default" : "outline"}
-                              className={search.mode === "either" ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                              onClick={() => {
-                                setParam({ mode: "either", district: undefined });
-                                setOpenPanel(null);
-                              }}
-                            >
-                              Open to discussion
-                            </Button>
-                            <Button
-                              type="button"
-                              variant={search.mode === "in_person" ? "default" : "outline"}
-                              className={search.mode === "in_person" ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                              onClick={() => setModePanelStep("district")}
-                            >
-                              In-person
-                            </Button>
+                          <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose category</p>
+                          <div className="mt-4 flex max-h-[60vh] flex-wrap gap-2 overflow-y-auto pr-1">
+                            {CATEGORY_OPTIONS.map((item) => (
+                              <Button
+                                key={item.value || "any"}
+                                type="button"
+                                variant={search.category === item.value ? "default" : "outline"}
+                                className={search.category === item.value ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                                onClick={() => {
+                                  setParam({ category: item.value || undefined });
+                                  setOpenPanel(null);
+                                }}
+                              >
+                                {item.label}
+                              </Button>
+                            ))}
                           </div>
                         </>
-                      ) : (
+                      )}
+
+                      {openPanel === "subject" && (
                         <>
-                          <div className="flex items-center gap-2">
+                          <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose subject</p>
+                          <div className="mt-4 flex max-h-[60vh] flex-wrap gap-2 overflow-y-auto pr-1">
                             <Button
                               type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => setModePanelStep("mode")}
-                            >
-                              <ChevronLeft className="h-4 w-4" />
-                            </Button>
-                            <p className="text-xl font-black text-[color:var(--brand-navy)]">Choose district</p>
-                          </div>
-                          <div className="mt-4 flex max-h-72 flex-wrap gap-2 overflow-y-auto pr-1">
-                            <Button
-                              type="button"
-                              variant={!search.district ? "default" : "outline"}
-                              className={!search.district ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                              variant={!search.subject ? "default" : "outline"}
+                              className={!search.subject ? "bg-[color:var(--brand-navy)] text-white" : ""}
                               onClick={() => {
-                                setParam({ mode: "in_person", district: undefined });
+                                setParam({ subject: undefined });
                                 setOpenPanel(null);
                               }}
                             >
-                              Any district
+                              Any subject
                             </Button>
-                            {HK_DISTRICTS.map((item) => (
+                            {subjectOptions.map((item) => (
                               <Button
                                 key={item}
                                 type="button"
-                                variant={search.district === item ? "default" : "outline"}
-                                className={search.district === item ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                                variant={search.subject === item ? "default" : "outline"}
+                                className={search.subject === item ? "bg-[color:var(--brand-navy)] text-white" : ""}
                                 onClick={() => {
-                                  setParam({ mode: "in_person", district: item });
+                                  setParam({ subject: item });
                                   setOpenPanel(null);
                                 }}
                               >
@@ -396,30 +320,125 @@ function TutorsDirectory() {
                           </div>
                         </>
                       )}
-                    </>
-                  )}
 
-                  {openPanel === "gender" && (
-                    <>
-                      <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose gender</p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {GENDER_OPTIONS.map((item) => (
-                          <Button
-                            key={item.value || "any"}
-                            type="button"
-                            variant={search.gender === item.value ? "default" : "outline"}
-                            className={search.gender === item.value ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                            onClick={() => {
-                              setParam({ gender: item.value || undefined });
-                              setOpenPanel(null);
-                            }}
-                          >
-                            {item.label}
-                          </Button>
-                        ))}
-                      </div>
-                    </>
-                  )}
+                      {openPanel === "mode" && (
+                        <>
+                          {modePanelStep === "mode" ? (
+                            <>
+                              <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose lesson mode</p>
+                              <div className="mt-4 flex max-h-[60vh] flex-wrap gap-2 overflow-y-auto pr-1">
+                                <Button
+                                  type="button"
+                                  variant={!search.mode ? "default" : "outline"}
+                                  className={!search.mode ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                                  onClick={() => {
+                                    setParam({ mode: undefined, district: undefined });
+                                    setOpenPanel(null);
+                                  }}
+                                >
+                                  Any lesson mode
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant={search.mode === "online" ? "default" : "outline"}
+                                  className={search.mode === "online" ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                                  onClick={() => {
+                                    setParam({ mode: "online", district: undefined });
+                                    setOpenPanel(null);
+                                  }}
+                                >
+                                  Online
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant={search.mode === "either" ? "default" : "outline"}
+                                  className={search.mode === "either" ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                                  onClick={() => {
+                                    setParam({ mode: "either", district: undefined });
+                                    setOpenPanel(null);
+                                  }}
+                                >
+                                  Open to discussion
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant={search.mode === "in_person" ? "default" : "outline"}
+                                  className={search.mode === "in_person" ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                                  onClick={() => setModePanelStep("district")}
+                                >
+                                  In-person
+                                </Button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => setModePanelStep("mode")}
+                                >
+                                  <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <p className="text-xl font-black text-[color:var(--brand-navy)]">Choose district</p>
+                              </div>
+                              <div className="mt-4 flex max-h-[60vh] flex-wrap gap-2 overflow-y-auto pr-1">
+                                <Button
+                                  type="button"
+                                  variant={!search.district ? "default" : "outline"}
+                                  className={!search.district ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                                  onClick={() => {
+                                    setParam({ mode: "in_person", district: undefined });
+                                    setOpenPanel(null);
+                                  }}
+                                >
+                                  Any district
+                                </Button>
+                                {HK_DISTRICTS.map((item) => (
+                                  <Button
+                                    key={item}
+                                    type="button"
+                                    variant={search.district === item ? "default" : "outline"}
+                                    className={search.district === item ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                                    onClick={() => {
+                                      setParam({ mode: "in_person", district: item });
+                                      setOpenPanel(null);
+                                    }}
+                                  >
+                                    {item}
+                                  </Button>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </>
+                      )}
+
+                      {openPanel === "gender" && (
+                        <>
+                          <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose gender</p>
+                          <div className="mt-4 flex max-h-[60vh] flex-wrap gap-2 overflow-y-auto pr-1">
+                            {GENDER_OPTIONS.map((item) => (
+                              <Button
+                                key={item.value || "any"}
+                                type="button"
+                                variant={search.gender === item.value ? "default" : "outline"}
+                                className={search.gender === item.value ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                                onClick={() => {
+                                  setParam({ gender: item.value || undefined });
+                                  setOpenPanel(null);
+                                }}
+                              >
+                                {item.label}
+                              </Button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
