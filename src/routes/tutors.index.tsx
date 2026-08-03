@@ -3,13 +3,11 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { BadgeCheck, MapPin, Search, Globe, X } from "lucide-react";
+import { BadgeCheck, MapPin, Search, Globe, X, ChevronDown, ChevronLeft } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SearchableSelect } from "@/components/ui/searchable-select";
-import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import {
   fetchPublishedTutors,
   getTutorGenderLabel,
@@ -74,11 +72,15 @@ const CATEGORY_OPTIONS = [
   { value: "International", label: "International" },
 ];
 
+type PanelKey = "category" | "subject" | "mode" | "gender";
+
 function TutorsDirectory() {
   const { t } = useTranslation();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/tutors/" });
   const [q, setQ] = useState(search.q ?? "");
+  const [openPanel, setOpenPanel] = useState<PanelKey | null>(null);
+  const [modePanelStep, setModePanelStep] = useState<"mode" | "district">("mode");
 
   const setParam = (patch: Partial<SearchState>) => {
     navigate({
@@ -165,7 +167,20 @@ function TutorsDirectory() {
 
   const clearAll = () => {
     setQ("");
+    setOpenPanel(null);
+    setModePanelStep("mode");
     navigate({ search: {} as SearchState });
+  };
+
+  const modeLabel = MODE_OPTIONS.find((item) => item.value === (search.mode ?? ""))?.label ?? "Lesson mode";
+  const categoryLabel = CATEGORY_OPTIONS.find((item) => item.value === (search.category ?? ""))?.label ?? "Category";
+  const genderLabel = GENDER_OPTIONS.find((item) => item.value === (search.gender ?? ""))?.label ?? "Gender";
+
+  const openFilterPanel = (panel: PanelKey) => {
+    setOpenPanel(panel);
+    if (panel === "mode") {
+      setModePanelStep("mode");
+    }
   };
 
   return (
@@ -194,39 +209,219 @@ function TutorsDirectory() {
                     onChange={(e) => setQ(e.target.value)}
                   />
                 </div>
-                <SearchableSelect
-                  value={search.category ?? ""}
-                  onChange={(v) => setParam({ category: v || undefined })}
-                  options={CATEGORY_OPTIONS}
-                  placeholder="Category"
-                  searchPlaceholder="Search category…"
-                />
-                <SearchableSelect
-                  value={search.subject ?? ""}
-                  onChange={(v) => setParam({ subject: v || undefined })}
-                  options={[{ value: "", label: "Any subject" }, ...subjectOptions.map((s) => ({ value: s, label: s }))]}
-                  placeholder="Subject"
-                  searchPlaceholder="Search subject…"
-                />
-                <LessonModeSelect
-                  mode={(search.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
-                  district={search.district}
-                  districts={HK_DISTRICTS}
-                  onChange={({ mode, district }) =>
-                    setParam({
-                      mode: mode || undefined,
-                      district: mode === "in_person" ? district : undefined,
-                    })
-                  }
-                  placeholder="Lesson mode"
-                />
-                <SearchableSelect
-                  value={search.gender ?? ""}
-                  onChange={(v) => setParam({ gender: v || undefined })}
-                  options={GENDER_OPTIONS}
-                  placeholder="Gender"
-                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 w-full justify-between font-normal"
+                  onClick={() => openFilterPanel("category")}
+                >
+                  <span className="truncate">{categoryLabel}</span>
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 w-full justify-between font-normal"
+                  onClick={() => openFilterPanel("subject")}
+                >
+                  <span className="truncate">{search.subject || "Subject"}</span>
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 w-full justify-between font-normal"
+                  onClick={() => openFilterPanel("mode")}
+                >
+                  <span className="truncate">{modeFilter === "in_person" && search.district ? `In-person · ${search.district}` : modeLabel}</span>
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 w-full justify-between font-normal"
+                  onClick={() => openFilterPanel("gender")}
+                >
+                  <span className="truncate">{genderLabel}</span>
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
+                </Button>
               </div>
+
+              {openPanel && (
+                <div className="mt-4 rounded-2xl border border-border/80 bg-background p-5">
+                  {openPanel === "category" && (
+                    <>
+                      <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose category</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {CATEGORY_OPTIONS.map((item) => (
+                          <Button
+                            key={item.value || "any"}
+                            type="button"
+                            variant={search.category === item.value ? "default" : "outline"}
+                            className={search.category === item.value ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                            onClick={() => {
+                              setParam({ category: item.value || undefined });
+                              setOpenPanel(null);
+                            }}
+                          >
+                            {item.label}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {openPanel === "subject" && (
+                    <>
+                      <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose subject</p>
+                      <div className="mt-4 flex max-h-72 flex-wrap gap-2 overflow-y-auto pr-1">
+                        <Button
+                          type="button"
+                          variant={!search.subject ? "default" : "outline"}
+                          className={!search.subject ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                          onClick={() => {
+                            setParam({ subject: undefined });
+                            setOpenPanel(null);
+                          }}
+                        >
+                          Any subject
+                        </Button>
+                        {subjectOptions.map((item) => (
+                          <Button
+                            key={item}
+                            type="button"
+                            variant={search.subject === item ? "default" : "outline"}
+                            className={search.subject === item ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                            onClick={() => {
+                              setParam({ subject: item });
+                              setOpenPanel(null);
+                            }}
+                          >
+                            {item}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {openPanel === "mode" && (
+                    <>
+                      {modePanelStep === "mode" ? (
+                        <>
+                          <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose lesson mode</p>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <Button
+                              type="button"
+                              variant={!search.mode ? "default" : "outline"}
+                              className={!search.mode ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                              onClick={() => {
+                                setParam({ mode: undefined, district: undefined });
+                                setOpenPanel(null);
+                              }}
+                            >
+                              Any lesson mode
+                            </Button>
+                            <Button
+                              type="button"
+                              variant={search.mode === "online" ? "default" : "outline"}
+                              className={search.mode === "online" ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                              onClick={() => {
+                                setParam({ mode: "online", district: undefined });
+                                setOpenPanel(null);
+                              }}
+                            >
+                              Online
+                            </Button>
+                            <Button
+                              type="button"
+                              variant={search.mode === "either" ? "default" : "outline"}
+                              className={search.mode === "either" ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                              onClick={() => {
+                                setParam({ mode: "either", district: undefined });
+                                setOpenPanel(null);
+                              }}
+                            >
+                              Open to discussion
+                            </Button>
+                            <Button
+                              type="button"
+                              variant={search.mode === "in_person" ? "default" : "outline"}
+                              className={search.mode === "in_person" ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                              onClick={() => setModePanelStep("district")}
+                            >
+                              In-person
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => setModePanelStep("mode")}
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <p className="text-xl font-black text-[color:var(--brand-navy)]">Choose district</p>
+                          </div>
+                          <div className="mt-4 flex max-h-72 flex-wrap gap-2 overflow-y-auto pr-1">
+                            <Button
+                              type="button"
+                              variant={!search.district ? "default" : "outline"}
+                              className={!search.district ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                              onClick={() => {
+                                setParam({ mode: "in_person", district: undefined });
+                                setOpenPanel(null);
+                              }}
+                            >
+                              Any district
+                            </Button>
+                            {HK_DISTRICTS.map((item) => (
+                              <Button
+                                key={item}
+                                type="button"
+                                variant={search.district === item ? "default" : "outline"}
+                                className={search.district === item ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                                onClick={() => {
+                                  setParam({ mode: "in_person", district: item });
+                                  setOpenPanel(null);
+                                }}
+                              >
+                                {item}
+                              </Button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+
+                  {openPanel === "gender" && (
+                    <>
+                      <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose gender</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {GENDER_OPTIONS.map((item) => (
+                          <Button
+                            key={item.value || "any"}
+                            type="button"
+                            variant={search.gender === item.value ? "default" : "outline"}
+                            className={search.gender === item.value ? "bg-[color:var(--brand-navy)] text-white" : ""}
+                            onClick={() => {
+                              setParam({ gender: item.value || undefined });
+                              setOpenPanel(null);
+                            }}
+                          >
+                            {item.label}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Active chips + result meta */}
