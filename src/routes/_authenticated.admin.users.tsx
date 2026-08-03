@@ -25,10 +25,10 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
     meta: [
       { title: "Users & roles — MatchMax admin" },
       { name: "description", content: "Grant or revoke MatchMax user roles — manage admins, staff, tutors, and parent accounts across the platform." },
-      { property: "og:url", content: "https://maxmatch.app/admin/users" },
+      { property: "og:url", content: "https://www.maxmatch.app/admin/users" },
       { name: "robots", content: "noindex" },
     ],
-    links: [{ rel: "canonical", href: "https://maxmatch.app/admin/users" }],
+    links: [{ rel: "canonical", href: "https://www.maxmatch.app/admin/users" }],
   }),
   component: AdminUsers,
 });

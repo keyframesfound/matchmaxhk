@@ -11,10 +11,10 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
     meta: [
       { title: "Dashboard — MatchMax" },
       { name: "description", content: "Your MatchMax dashboard — post a tutoring case, review matched leads, or manage your tutor profile in one place." },
-      { property: "og:url", content: "https://maxmatch.app/dashboard" },
+      { property: "og:url", content: "https://www.maxmatch.app/dashboard" },
       { name: "robots", content: "noindex" },
     ],
-    links: [{ rel: "canonical", href: "https://maxmatch.app/dashboard" }],
+    links: [{ rel: "canonical", href: "https://www.maxmatch.app/dashboard" }],
   }),
   component: Dashboard,
 });

@@ -21,10 +21,10 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
     meta: [
       { title: "Settings — MatchMax admin" },
       { name: "description", content: "Manage MatchMax site-wide settings — brand info, WhatsApp contact, featured tutor, subject options, and landing stats." },
-      { property: "og:url", content: "https://maxmatch.app/admin/settings" },
+      { property: "og:url", content: "https://www.maxmatch.app/admin/settings" },
       { name: "robots", content: "noindex" },
     ],
-    links: [{ rel: "canonical", href: "https://maxmatch.app/admin/settings" }],
+    links: [{ rel: "canonical", href: "https://www.maxmatch.app/admin/settings" }],
   }),
   component: AdminSettings,
 });

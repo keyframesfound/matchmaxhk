@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 
-const BASE_URL = "https://maxmatch.app";
+const BASE_URL = "https://www.maxmatch.app";
 
 interface SitemapEntry {
   path: string;

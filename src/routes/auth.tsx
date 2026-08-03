@@ -25,10 +25,10 @@ export const Route = createFileRoute("/auth")({
         content:
           "Access your MatchMax dashboard to post a tutoring case or manage your verified tutor profile.",
       },
-      { property: "og:url", content: "https://maxmatch.app/auth" },
+      { property: "og:url", content: "https://www.maxmatch.app/auth" },
       { name: "robots", content: "noindex" },
     ],
-    links: [{ rel: "canonical", href: "https://maxmatch.app/auth" }],
+    links: [{ rel: "canonical", href: "https://www.maxmatch.app/auth" }],
   }),
   component: AuthPage,
 });

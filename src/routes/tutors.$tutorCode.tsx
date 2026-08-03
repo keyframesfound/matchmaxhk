@@ -98,7 +98,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
     return { tutor };
   },
   head: ({ loaderData, params }) => {
-    const url = `https://maxmatch.app/tutors/${params.tutorCode}`;
+    const url = `https://www.maxmatch.app/tutors/${params.tutorCode}`;
     if (!loaderData) {
       return {
         meta: [{ title: "Tutor not found — MatchMax" }, { name: "robots", content: "noindex" }],
@@ -191,7 +191,7 @@ function TutorDetail() {
     "@context": "https://schema.org",
     "@type": "Person",
     name: t.tutor_code,
-    url: `https://maxmatch.app/tutors/${t.tutor_code}`,
+    url: `https://www.maxmatch.app/tutors/${t.tutor_code}`,
     description: tutorSeoSummary,
     ...(t.photo_url ? { image: t.photo_url } : {}),
     ...(t.district
