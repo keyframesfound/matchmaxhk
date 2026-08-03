@@ -148,6 +148,7 @@ const examSchema = z.object({
 const formSchema = z.object({
   headline: z.string().trim().min(1, "Headline is required").max(200),
   subjects: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one subject"),
+  target_students_csv: z.string().trim().max(300).optional().or(z.literal("")),
   university: z.string().trim().max(120).optional().or(z.literal("")),
   highschool: z.string().trim().max(120).optional().or(z.literal("")),
   qualifications_summary: z.string().trim().max(1200).optional().or(z.literal("")),
@@ -172,6 +173,7 @@ type FormValues = z.infer<typeof formSchema>;
 const empty: FormValues = {
   headline: "",
   subjects: [],
+  target_students_csv: "",
   university: "",
   highschool: "",
   qualifications_summary: "",
@@ -195,6 +197,7 @@ function tutorToForm(t: Tutor): FormValues {
   return {
     headline: t.headline ?? "",
     subjects: t.subjects ?? [],
+    target_students_csv: (t.target_students ?? []).join(", "),
     university: t.university ?? "",
     highschool: t.highschool ?? "",
     qualifications_summary: t.qualifications_summary ?? "",
@@ -243,6 +246,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
     }))
     .filter((r) => r.system && r.subjects.length > 0);
   const langs = (v.languages_csv || "").split(",").map((s) => s.trim()).filter(Boolean);
+  const targetStudents = (v.target_students_csv || "").split(",").map((s) => s.trim()).filter(Boolean);
   const base: Record<string, unknown> = {
     display_name: v.tutor_code.trim(),
     headline: v.headline.trim(),
@@ -250,6 +254,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
     highschool: v.highschool || null,
     qualifications_summary: v.qualifications_summary || null,
     subjects: v.subjects,
+    target_students: targetStudents,
     district: v.lesson_mode === "online" ? null : v.district || null,
     lesson_mode: v.lesson_mode,
     hourly_rate: v.hourly_rate,
@@ -448,7 +453,7 @@ function AdminTutors() {
                   <Plus className="mr-2 h-4 w-4" /> Add tutor
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+              <DialogContent className="max-h-[90vh] overflow-y-auto bg-background sm:max-w-3xl">
                 <DialogHeader>
                   <DialogTitle>{editing ? "Edit tutor" : "Add tutor"}</DialogTitle>
                 </DialogHeader>
@@ -528,6 +533,17 @@ function AdminTutors() {
                           allowCustom
                         />
                       </div>
+                    </Field>
+
+                    <Field label="Target students" error={errors.target_students_csv}>
+                      <Input
+                        value={form.target_students_csv}
+                        onChange={(e) => setForm({ ...form, target_students_csv: e.target.value })}
+                        placeholder="IBDP, DSE, IGCSE, Primary, Secondary"
+                      />
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Separate multiple targets with commas.
+                      </p>
                     </Field>
 
                   </Section>
