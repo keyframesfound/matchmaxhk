@@ -119,7 +119,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@type": "Organization",
           name: "MatchMax",
           url: "https://www.maxmatch.app",
-          logo: "https://www.maxmatch.app/favicon.png",
+          logo: "https://www.maxmatch.app/matchmax-logo.png",
           description:
             "Hong Kong tutoring marketplace matching parents and students with verified DSE, IB, IGCSE, and AP tutors.",
         }),
