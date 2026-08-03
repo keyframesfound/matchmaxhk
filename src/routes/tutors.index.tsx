@@ -9,6 +9,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import {
   fetchPublishedTutors,
   getTutorGenderLabel,
@@ -117,8 +118,7 @@ function TutorsDirectory() {
   const districtFilter = search.district ?? "";
   const modeFilter = search.mode ?? "";
   const genderFilter = search.gender ?? "";
-  const showDistrictFilter = modeFilter === "in_person";
-  const effectiveDistrictFilter = showDistrictFilter ? districtFilter : "";
+  const effectiveDistrictFilter = modeFilter === "in_person" ? districtFilter : "";
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -159,7 +159,7 @@ function TutorsDirectory() {
   const activeChips: { key: string; label: string; onClear: () => void }[] = [];
   if (search.category) activeChips.push({ key: "category", label: `Category: ${search.category}`, onClear: () => setParam({ category: undefined }) });
   if (search.subject) activeChips.push({ key: "subject", label: `Subject: ${search.subject}`, onClear: () => setParam({ subject: undefined }) });
-  if (showDistrictFilter && search.district) activeChips.push({ key: "district", label: `District: ${search.district}`, onClear: () => setParam({ district: undefined }) });
+  if (modeFilter === "in_person" && search.district) activeChips.push({ key: "district", label: `District: ${search.district}`, onClear: () => setParam({ district: undefined }) });
   if (search.mode) activeChips.push({ key: "mode", label: `Mode: ${MODE_OPTIONS.find((m) => m.value === search.mode)?.label ?? search.mode}`, onClear: () => setParam({ mode: undefined }) });
   if (search.gender) activeChips.push({ key: "gender", label: `Gender: ${GENDER_OPTIONS.find((g) => g.value === search.gender)?.label ?? search.gender}`, onClear: () => setParam({ gender: undefined }) });
 
@@ -208,16 +208,16 @@ function TutorsDirectory() {
                   placeholder="Subject"
                   searchPlaceholder="Search subject…"
                 />
-                <SearchableSelect
-                  value={search.mode ?? ""}
-                  onChange={(v) => {
-                    const nextMode = v || undefined;
+                <LessonModeSelect
+                  mode={(search.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
+                  district={search.district}
+                  districts={HK_DISTRICTS}
+                  onChange={({ mode, district }) =>
                     setParam({
-                      mode: nextMode,
-                      district: nextMode === "in_person" ? search.district : undefined,
-                    });
-                  }}
-                  options={MODE_OPTIONS}
+                      mode: mode || undefined,
+                      district: mode === "in_person" ? district : undefined,
+                    })
+                  }
                   placeholder="Lesson mode"
                 />
                 <SearchableSelect
@@ -227,18 +227,6 @@ function TutorsDirectory() {
                   placeholder="Gender"
                 />
               </div>
-
-              {showDistrictFilter && (
-                <div className="mt-3 grid gap-3 sm:grid-cols-1 md:max-w-sm">
-                  <SearchableSelect
-                    value={search.district ?? ""}
-                    onChange={(v) => setParam({ district: v || undefined })}
-                    options={[{ value: "", label: "Any district" }, ...HK_DISTRICTS.map((d) => ({ value: d, label: d }))]}
-                    placeholder="District (for in-person)"
-                    searchPlaceholder="Search district…"
-                  />
-                </div>
-              )}
             </div>
 
             {/* Active chips + result meta */}

@@ -11,6 +11,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import { blurActive } from "@/lib/dom";
 import { 
   fetchTopWeeklyTutors, fetchLandingStats, fetchTutorByCode, 
@@ -104,7 +105,6 @@ function Landing() {
     });
   };
 
-  const showHomeDistrict = homeSearch.mode === "in_person";
 
   // Queries
   const { data: featuredTutors = [], isLoading: featuredLoading } = useQuery({
@@ -363,16 +363,16 @@ function Landing() {
                 placeholder="Subject"
                 searchPlaceholder="Search subject..."
               />
-              <SearchableSelect
-                value={homeSearch.mode ?? ""}
-                onChange={(v) => {
-                  const nextMode = v || undefined;
+              <LessonModeSelect
+                mode={(homeSearch.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
+                district={homeSearch.district}
+                districts={HK_DISTRICTS}
+                onChange={({ mode, district }) =>
                   setHomeSearchParam({
-                    mode: nextMode,
-                    district: nextMode === "in_person" ? homeSearch.district : undefined,
-                  });
-                }}
-                options={HOME_MODE_OPTIONS}
+                    mode: mode || undefined,
+                    district: mode === "in_person" ? district : undefined,
+                  })
+                }
                 placeholder="Lesson mode"
               />
               <SearchableSelect
@@ -388,18 +388,6 @@ function Landing() {
                 Search
               </Button>
             </div>
-
-            {showHomeDistrict && (
-              <div className="mt-3 grid gap-3 sm:grid-cols-1 md:max-w-sm">
-                <SearchableSelect
-                  value={homeSearch.district ?? ""}
-                  onChange={(v) => setHomeSearchParam({ district: v || undefined })}
-                  options={[{ value: "", label: "Any district" }, ...HK_DISTRICTS.map((d) => ({ value: d, label: d }))]}
-                  placeholder="District (for in-person)"
-                  searchPlaceholder="Search district..."
-                />
-              </div>
-            )}
           </div>
         </div>
       </section>
