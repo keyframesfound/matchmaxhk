@@ -381,7 +381,7 @@ function Landing() {
 
       <section className="relative -mt-10 pb-14 md:-mt-14 md:pb-16">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-[0_12px_30px_rgba(4,19,68,0.08)] sm:p-5">
+          <div className="rounded-sm border border-border bg-card p-4 shadow-[0_12px_30px_rgba(4,19,68,0.08)] sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
               <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">Explore the tutors MatchMax offers</p>
             </div>
@@ -390,7 +390,7 @@ function Landing() {
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  className="h-11 rounded-xl pl-9"
+                  className="h-11 rounded-sm pl-9"
                   placeholder="Search tutor code, subject, keyword..."
                   value={homeSearch.q ?? ""}
                   onChange={(e) => setHomeSearchParam({ q: e.target.value })}
@@ -400,15 +400,17 @@ function Landing() {
                 value={homeSearch.category ?? ""}
                 onChange={(v) => setHomeSearchParam({ category: v || undefined })}
                 options={HOME_CATEGORY_OPTIONS}
-                placeholder="Category"
+                placeholder="Any category"
                 searchPlaceholder="Search category..."
+                className="h-11 rounded-sm"
               />
               <SearchableSelect
                 value={homeSearch.subject ?? ""}
                 onChange={(v) => setHomeSearchParam({ subject: v || undefined })}
                 options={[{ value: "", label: "Any subject" }, ...subjectOptions.map((s) => ({ value: s, label: s }))]}
-                placeholder="Subject"
+                placeholder="Any subject"
                 searchPlaceholder="Search subject..."
+                className="h-11 rounded-sm"
               />
               <LessonModeSelect
                 mode={(homeSearch.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
@@ -420,120 +422,122 @@ function Landing() {
                     district: mode === "in_person" ? district : undefined,
                   })
                 }
-                placeholder="Lesson mode"
+                placeholder="Any lesson mode"
+                className="h-11 rounded-sm"
               />
               <SearchableSelect
                 value={homeSearch.gender ?? ""}
                 onChange={(v) => setHomeSearchParam({ gender: v || undefined })}
                 options={HOME_GENDER_OPTIONS}
-                placeholder="Gender"
+                placeholder="Any gender"
+                className="h-11 rounded-sm"
               />
               <Button
-                className="h-11 rounded-xl bg-[color:var(--brand-navy)] px-6 font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                className="h-11 rounded-sm bg-[color:var(--brand-navy)] px-6 font-bold text-white hover:bg-[color:var(--brand-royal)]"
                 onClick={() => navigate({ to: "/tutors", search: tutorSearchParams })}
               >
                 Search
               </Button>
             </div>
+          </div>
 
-            <div className="mt-6">
-              {publishedTutorsLoading && (
-                <p className="text-sm text-muted-foreground">Loading tutors...</p>
-              )}
+          <div className="mt-6">
+            {publishedTutorsLoading && (
+              <p className="text-sm text-muted-foreground">Loading tutors...</p>
+            )}
 
-              {!publishedTutorsLoading && previewTutors.length === 0 && (
-                <p className="text-sm text-muted-foreground">No tutors match this search yet.</p>
-              )}
+            {!publishedTutorsLoading && previewTutors.length === 0 && (
+              <p className="text-sm text-muted-foreground">No tutors match this search yet.</p>
+            )}
 
-              {!publishedTutorsLoading && previewTutors.length > 0 && (
-                <Carousel
-                  opts={{ align: "start", loop: false }}
-                  className="mx-0"
-                >
-                  <CarouselContent>
-                    {previewTutors.map((tut) => (
-                      <CarouselItem
-                        key={tut.id}
-                        className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+            {!publishedTutorsLoading && previewTutors.length > 0 && (
+              <Carousel
+                opts={{ align: "start", loop: false }}
+                className="mx-0"
+              >
+                <CarouselContent>
+                  {previewTutors.map((tut) => (
+                    <CarouselItem
+                      key={tut.id}
+                      className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                    >
+                      <Link
+                        to="/tutors/$tutorCode"
+                        params={{ tutorCode: tut.tutor_code }}
+                        className="block rounded-sm border border-border/80 bg-card p-6 shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)]/30 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]"
+                        onClick={() => blurActive()}
                       >
-                        <Link
-                          to="/tutors/$tutorCode"
-                          params={{ tutorCode: tut.tutor_code }}
-                          className="block rounded-2xl border border-border/80 bg-card p-6 shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-teal)]/30 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]"
-                          onClick={() => blurActive()}
-                        >
-                          <div className="flex items-center gap-4">
-                            {tut.photo_url ? (
-                              <img
-                                src={tut.photo_url}
-                                alt="Tutor"
-                                loading="lazy"
-                                className="h-14 w-14 shrink-0 rounded-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-base font-semibold text-[color:var(--brand-teal)]">
-                                {tut.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
-                              </div>
-                            )}
-                            <div className="min-w-0">
-                              <p className="text-base font-bold text-foreground break-words">
-                                {tut.tutor_code}
-                                {getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}
-                              </p>
-                              <p className="mt-1 text-sm text-muted-foreground break-words whitespace-pre-line">
-                                {tut.headline ?? tut.subjects.slice(0, 2).join(" · ")}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            {tut.subjects.slice(0, 2).map((subject) => (
-                              <span
-                                key={subject}
-                                className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground"
-                              >
-                                {subject}
-                              </span>
-                            ))}
-                            {tut.subjects.length > 2 && (
-                              <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
-                                +{tut.subjects.length - 2} more
-                              </span>
-                            )}
-                          </div>
-
-                          {tut.badge && (
-                            <div className="mt-4 flex items-center gap-2">
-                              <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] font-bold text-[color:var(--brand-teal)]">
-                                <BadgeCheck className="h-3 w-3" /> {tut.badge}
-                              </span>
+                        <div className="flex items-center gap-4">
+                          {tut.photo_url ? (
+                            <img
+                              src={tut.photo_url}
+                              alt="Tutor"
+                              loading="lazy"
+                              className="h-14 w-14 shrink-0 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-base font-semibold text-[color:var(--brand-teal)]">
+                              {tut.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
                             </div>
                           )}
+                          <div className="min-w-0">
+                            <p className="text-base font-bold text-foreground break-words">
+                              {tut.tutor_code}
+                              {getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground break-words whitespace-pre-line">
+                              {tut.headline ?? tut.subjects.slice(0, 2).join(" · ")}
+                            </p>
+                          </div>
+                        </div>
 
-                          <div className="mt-4 flex items-center justify-between border-t border-border pt-4 text-sm">
-                            <span className="inline-flex items-center gap-1 text-muted-foreground">
-                              {tut.lesson_mode === "online" ? (
-                                <Globe className="h-4 w-4" aria-hidden="true" />
-                              ) : (
-                                <MapPin className="h-4 w-4" aria-hidden="true" />
-                              )}
-                              {getTutorLocationLabel(tut)}
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {tut.subjects.slice(0, 2).map((subject) => (
+                            <span
+                              key={subject}
+                              className="rounded-sm bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground"
+                            >
+                              {subject}
+                            </span>
+                          ))}
+                          {tut.subjects.length > 2 && (
+                            <span className="rounded-sm bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
+                              +{tut.subjects.length - 2} more
+                            </span>
+                          )}
+                        </div>
+
+                        {tut.badge && (
+                          <div className="mt-4 flex items-center gap-2">
+                            <span className="inline-flex items-center gap-1 rounded-sm bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] font-bold text-[color:var(--brand-teal)]">
+                              <BadgeCheck className="h-3 w-3" /> {tut.badge}
                             </span>
                           </div>
+                        )}
 
-                          <p className="mt-3 text-2xl font-black text-[color:var(--brand-navy)]">
-                            HK${tut.hourly_rate}
-                            <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
-                          </p>
-                        </Link>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 md:-left-4" />
-                  <CarouselNext className="right-2 top-1/2 -translate-y-1/2 md:-right-4" />
-                </Carousel>
-              )}
-            </div>
+                        <div className="mt-4 flex items-center justify-between border-t border-border pt-4 text-sm">
+                          <span className="inline-flex items-center gap-1 text-muted-foreground">
+                            {tut.lesson_mode === "online" ? (
+                              <Globe className="h-4 w-4" aria-hidden="true" />
+                            ) : (
+                              <MapPin className="h-4 w-4" aria-hidden="true" />
+                            )}
+                            {getTutorLocationLabel(tut)}
+                          </span>
+                        </div>
+
+                        <p className="mt-3 text-2xl font-black text-[color:var(--brand-navy)]">
+                          HK${tut.hourly_rate}
+                          <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
+                        </p>
+                      </Link>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 md:-left-4" />
+                <CarouselNext className="right-2 top-1/2 -translate-y-1/2 md:-right-4" />
+              </Carousel>
+            )}
           </div>
         </div>
       </section>
