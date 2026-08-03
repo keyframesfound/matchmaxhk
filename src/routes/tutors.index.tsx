@@ -379,7 +379,7 @@ function TutorsDirectory() {
                 {filtered.map((tut: Tutor) => (
                   <article
                     key={tut.id}
-                    className="overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card transition-all hover:shadow-brand"
+                    className="flex h-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card transition-all hover:shadow-brand"
                   >
                     <div className="bg-[color:var(--brand-teal)]/8 p-4">
                       <div className="flex items-center gap-3">
@@ -403,7 +403,7 @@ function TutorsDirectory() {
                       </div>
                     </div>
 
-                    <div className="space-y-4 p-4">
+                    <div className="flex flex-1 flex-col space-y-4 p-4">
                       <div className="flex flex-wrap gap-2">
                         {tut.subjects.slice(0, 3).map((subject) => (
                           <span key={subject} className="rounded-sm bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-semibold text-[color:var(--brand-navy)]">
@@ -434,7 +434,7 @@ function TutorsDirectory() {
                       </div>
 
                       {tut.target_students.length > 0 && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="mt-auto text-xs text-muted-foreground">
                           Target students: {tut.target_students.slice(0, 2).join(", ")}
                           {tut.target_students.length > 2 ? ` +${tut.target_students.length - 2} more` : ""}
                         </p>

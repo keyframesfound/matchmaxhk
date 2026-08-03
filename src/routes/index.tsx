@@ -468,9 +468,9 @@ function Landing() {
                   {previewTutors.map((tut) => (
                     <CarouselItem
                       key={tut.id}
-                      className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                      className="flex basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
                     >
-                      <article className="overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]">
+                      <article className="flex h-full w-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]">
                         <div className="bg-[color:var(--brand-teal)]/8 p-4">
                           <div className="flex items-center gap-3">
                             {tut.photo_url ? (
@@ -498,7 +498,7 @@ function Landing() {
                           </div>
                         </div>
 
-                        <div className="space-y-4 p-4">
+                        <div className="flex flex-1 flex-col space-y-4 p-4">
                           <div className="flex flex-wrap gap-2">
                             {tut.subjects.slice(0, 3).map((subject) => (
                               <span
