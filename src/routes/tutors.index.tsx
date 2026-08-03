@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -193,15 +193,6 @@ function TutorsDirectory() {
     return subjectOptions.filter((item) => item.toLowerCase().includes(keyword));
   }, [subjectOptions, subjectSearch]);
 
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    if (!openPanel) return;
-    document.body.classList.add("overflow-hidden");
-    return () => {
-      document.body.classList.remove("overflow-hidden");
-    };
-  }, [openPanel]);
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
@@ -213,7 +204,11 @@ function TutorsDirectory() {
               Browse tutors for IB, DSE, IGCSE, AP, A-Level, Mathematics, English, Science and more. Filter by district, lesson mode, price and language to find the right tutor quickly.
             </p>
 
-            <div className="relative mt-8 rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-5">
+            <div
+              className={`relative mt-8 border border-border bg-card p-4 shadow-sm sm:p-5 ${
+                openPanel ? "rounded-t-3xl rounded-b-none" : "rounded-3xl"
+              }`}
+            >
               <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
                 <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">Find tutor</p>
               </div>
@@ -268,13 +263,7 @@ function TutorsDirectory() {
 
               {openPanel && (
                 <div role="dialog" aria-modal="true" aria-label="Tutor filter options">
-                  <button
-                    type="button"
-                    className="fixed inset-0 z-30 bg-transparent"
-                    aria-label="Close filter panel"
-                    onClick={() => setOpenPanel(null)}
-                  />
-                  <div className="absolute left-0 right-0 top-full z-40 -mt-px rounded-b-2xl border border-t-0 border-border/80 bg-white p-5 shadow-2xl">
+                  <div className="mt-4 border-t border-border pt-5">
                       {openPanel === "category" && (
                         <>
                           <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose category</p>
