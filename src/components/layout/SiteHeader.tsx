@@ -46,74 +46,78 @@ export function SiteHeader() {
 
   return (
     <>
-    <header className="sticky top-0 z-50 w-full border-b border-[#041344]/10 bg-white/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-[76px] max-w-[1440px] items-center px-5 sm:px-8 lg:px-10">
-        {/* -------------------------------------------------- */}
-        {/* Logo */}
-        {/* -------------------------------------------------- */}
-
-        <Link
-          to="/"
-          className="flex shrink-0 items-center"
-          onClick={blurActive}
-          aria-label="MatchMax home"
-        >
-          <div className="flex items-center gap-2">
-            <img src="/matchmax-logo.png" alt="MatchMax logo" className="h-9 w-9 object-contain" />
-            <span className="text-xl font-bold tracking-tight text-brand-gradient">MatchMax</span>
-          </div>
-        </Link>
-
-        {/* -------------------------------------------------- */}
-        {/* Desktop Navigation */}
-        {/* -------------------------------------------------- */}
-
-        <nav className="ml-12 hidden items-center gap-9 lg:flex">
-          <a
-            href="/#how"
-            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
-          >
-            {t("About")}
-
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
-          </a>
+      <header className="sticky top-0 z-50 w-full border-b border-[#041344]/10 bg-white/95 backdrop-blur-sm">
+        <div className="mx-auto flex h-[76px] max-w-[1440px] items-center px-5 sm:px-8 lg:px-10">
+          {/* -------------------------------------------------- */}
+          {/* Logo */}
+          {/* -------------------------------------------------- */}
 
           <Link
-            to="/tutors"
-            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
+            to="/"
+            className="flex shrink-0 items-center"
+            onClick={blurActive}
+            aria-label="MatchMax home"
           >
-            {t("nav.find", { defaultValue: "Find" })}
-
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
+            <div className="flex items-center gap-2">
+              <img
+                src="/matchmax-logo.png"
+                alt="MatchMax logo"
+                className="h-9 w-9 object-contain"
+              />
+              <span className="text-xl font-bold tracking-tight text-brand-gradient">MatchMax</span>
+            </div>
           </Link>
 
-          <Link
-            to="/become-a-tutor"
-            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
-          >
-            {t("tutors_cta.cta")}
+          {/* -------------------------------------------------- */}
+          {/* Desktop Navigation */}
+          {/* -------------------------------------------------- */}
 
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
-          </Link>
-        </nav>
+          <nav className="ml-12 hidden items-center gap-9 lg:flex">
+            <a
+              href="/#how"
+              className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
+            >
+              {t("About")}
 
-        {/* -------------------------------------------------- */}
-        {/* Right Side */}
-        {/* -------------------------------------------------- */}
+              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
+            </a>
 
-        <div className="ml-auto flex items-center gap-2 sm:gap-4">
-          {/* Language */}
-          <div className="flex items-center">
-            <LanguageToggle />
-          </div>
+            <Link
+              to="/tutors"
+              className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
+            >
+              {t("nav.find", { defaultValue: "Find" })}
 
-          {/* User */}
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="
+              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
+            </Link>
+
+            <Link
+              to="/become-a-tutor"
+              className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
+            >
+              {t("tutors_cta.cta")}
+
+              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
+            </Link>
+          </nav>
+
+          {/* -------------------------------------------------- */}
+          {/* Right Side */}
+          {/* -------------------------------------------------- */}
+
+          <div className="ml-auto flex items-center gap-2 sm:gap-4">
+            {/* Language */}
+            <div className="flex items-center">
+              <LanguageToggle />
+            </div>
+
+            {/* User */}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="
                     h-10
                     gap-2
                     px-4
@@ -122,34 +126,32 @@ export function SiteHeader() {
                     hover:bg-transparent
                     hover:text-[#1FA8B6]
                   "
+                  >
+                    <span className="max-w-[120px] truncate">
+                      {user.email?.split("@")[0] ?? "Account"}
+                    </span>
+
+                    <ChevronDown className="h-4 w-4 opacity-60" />
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                  align="end"
+                  className="w-60 rounded-2xl border-[#041344]/10 bg-white p-2 shadow-xl"
                 >
-                  <span className="max-w-[120px] truncate">
-                    {user.email?.split("@")[0] ?? "Account"}
-                  </span>
+                  <DropdownMenuLabel className="px-3 py-2">
+                    <div className="text-xs font-medium text-[#041344]/50">Signed in as</div>
 
-                  <ChevronDown className="h-4 w-4 opacity-60" />
-                </Button>
-              </DropdownMenuTrigger>
+                    <div className="mt-1 truncate text-sm font-semibold text-[#041344]">
+                      {user.email}
+                    </div>
+                  </DropdownMenuLabel>
 
-              <DropdownMenuContent
-                align="end"
-                className="w-60 rounded-2xl border-[#041344]/10 bg-white p-2 shadow-xl"
-              >
-                <DropdownMenuLabel className="px-3 py-2">
-                  <div className="text-xs font-medium text-[#041344]/50">
-                    Signed in as
-                  </div>
+                  <DropdownMenuSeparator />
 
-                  <div className="mt-1 truncate text-sm font-semibold text-[#041344]">
-                    {user.email}
-                  </div>
-                </DropdownMenuLabel>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem
-                  asChild
-                  className="
+                  <DropdownMenuItem
+                    asChild
+                    className="
                     cursor-pointer
                     rounded-xl
                     px-3
@@ -159,19 +161,17 @@ export function SiteHeader() {
                     focus:bg-[#77E8EE]/20
                     focus:text-[#041344]
                   "
-                >
-                  <Link to="/dashboard">
-                    {t("nav.dashboard")}
-                  </Link>
-                </DropdownMenuItem>
+                  >
+                    <Link to="/dashboard">{t("nav.dashboard")}</Link>
+                  </DropdownMenuItem>
 
-                {isAdmin && (
-                  <>
-                    <DropdownMenuSeparator />
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
 
-                    <DropdownMenuItem
-                      asChild
-                      className="
+                      <DropdownMenuItem
+                        asChild
+                        className="
                         cursor-pointer
                         rounded-xl
                         px-3
@@ -180,15 +180,13 @@ export function SiteHeader() {
                         text-[#041344]
                         focus:bg-[#77E8EE]/20
                       "
-                    >
-                      <Link to="/admin/tutors">
-                        Manage tutors
-                      </Link>
-                    </DropdownMenuItem>
+                      >
+                        <Link to="/admin/tutors">Manage tutors</Link>
+                      </DropdownMenuItem>
 
-                    <DropdownMenuItem
-                      asChild
-                      className="
+                      <DropdownMenuItem
+                        asChild
+                        className="
                         cursor-pointer
                         rounded-xl
                         px-3
@@ -197,19 +195,17 @@ export function SiteHeader() {
                         text-[#041344]
                         focus:bg-[#77E8EE]/20
                       "
-                    >
-                      <Link to="/admin/users">
-                        {t("nav.admin")}
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
+                      >
+                        <Link to="/admin/users">{t("nav.admin")}</Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
 
-                <DropdownMenuSeparator />
+                  <DropdownMenuSeparator />
 
-                <DropdownMenuItem
-                  onSelect={() => void signOut()}
-                  className="
+                  <DropdownMenuItem
+                    onSelect={() => void signOut()}
+                    className="
                     cursor-pointer
                     rounded-xl
                     px-3
@@ -219,17 +215,17 @@ export function SiteHeader() {
                     focus:bg-red-50
                     focus:text-red-600
                   "
-                >
-                  {t("nav.sign_out")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <>
-              {/* Log in */}
-              <Link
-                to="/auth"
-                className="
+                  >
+                    {t("nav.sign_out")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                {/* Log in */}
+                <Link
+                  to="/auth"
+                  className="
                   hidden
                   text-[15px]
                   font-semibold
@@ -238,14 +234,14 @@ export function SiteHeader() {
                   hover:text-[#1FA8B6]
                   sm:inline
                 "
-              >
-                {t("nav.sign_in")}
-              </Link>
+                >
+                  {t("nav.sign_in")}
+                </Link>
 
-              {/* Sign up */}
-              <Link to="/auth" className="hidden sm:block">
-                <Button
-                  className="
+                {/* Sign up */}
+                <Link to="/auth" className="hidden sm:block">
+                  <Button
+                    className="
                     h-11
                     rounded-full
                     bg-[#0A245F]
@@ -259,17 +255,17 @@ export function SiteHeader() {
                     hover:bg-[#041344]
                     hover:shadow-md
                   "
-                >
-                  Sign up
-                </Button>
-              </Link>
-            </>
-          )}
+                  >
+                    Sign up
+                  </Button>
+                </Link>
+              </>
+            )}
 
-          {/* Mobile Menu Button */}
-          <button
-            type="button"
-            className="
+            {/* Mobile Menu Button */}
+            <button
+              type="button"
+              className="
               flex
               h-10
               w-10
@@ -283,19 +279,15 @@ export function SiteHeader() {
               hover:text-[#041344]
               lg:hidden
             "
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileOpen}
-          >
-            {mobileOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileOpen}
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
 
       {/* -------------------------------------------------- */}
       {/* Mobile Navigation — full-screen overlay              */}
@@ -315,8 +307,14 @@ export function SiteHeader() {
               aria-label="MatchMax home"
             >
               <div className="flex items-center gap-2">
-                <img src="/matchmax-logo.png" alt="MatchMax logo" className="h-8 w-8 object-contain" />
-                <span className="text-lg font-bold tracking-tight text-brand-gradient">MatchMax</span>
+                <img
+                  src="/matchmax-logo.png"
+                  alt="MatchMax logo"
+                  className="h-8 w-8 object-contain"
+                />
+                <span className="text-lg font-bold tracking-tight text-brand-gradient">
+                  MatchMax
+                </span>
               </div>
             </Link>
 

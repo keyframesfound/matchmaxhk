@@ -2,9 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  ArrowRight, BadgeCheck, BookOpen, Clock3, MessageCircle, Search
-} from "lucide-react";
+import { ArrowRight, BadgeCheck, BookOpen, Clock3, MessageCircle, Search } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -19,7 +17,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { blurActive } from "@/lib/dom";
-import { 
+import {
   fetchPublishedTutors,
   fetchTopWeeklyTutors,
   fetchLandingStats,
@@ -29,12 +27,13 @@ import {
   HK_DISTRICTS,
   matchesDistrictFilter,
   matchesLessonModeFilter,
-  type Tutor 
+  type Tutor,
 } from "@/features/tutors/queries";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
-const OG_IMAGE = "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp";
+const OG_IMAGE =
+  "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp";
 
 type HomeTutorSearchState = {
   category?: string;
@@ -76,10 +75,21 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Find Verified IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
-      { name: "description", content: "Find verified IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly." },
+      {
+        name: "description",
+        content:
+          "Find verified IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly.",
+      },
       { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Find Verified IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
-      { property: "og:description", content: "Find verified IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly." },
+      {
+        property: "og:title",
+        content: "Find Verified IB, DSE & IGCSE Tutors in Hong Kong | MatchMax",
+      },
+      {
+        property: "og:description",
+        content:
+          "Find verified IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly.",
+      },
       { property: "og:url", content: "https://www.maxmatch.app/" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "MatchMax" },
@@ -89,7 +99,11 @@ export const Route = createFileRoute("/")({
       { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
-      { name: "twitter:description", content: "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong." },
+      {
+        name: "twitter:description",
+        content:
+          "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
+      },
       { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
@@ -100,7 +114,7 @@ export const Route = createFileRoute("/")({
       { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/site.webmanifest" },
-    ]
+    ],
   }),
   component: Landing,
 });
@@ -125,12 +139,12 @@ function Landing() {
     queryKey: ["landing", "featured_tutors"],
     queryFn: () => fetchTopWeeklyTutors(3),
   });
-  
+
   const { data: liveStats } = useQuery({
     queryKey: ["landing", "stats"],
     queryFn: () => fetchLandingStats(),
   });
-  
+
   const { data: studentsMatchedSetting } = useQuery({
     queryKey: ["settings", "students_matched"],
     queryFn: async () => {
@@ -145,7 +159,7 @@ function Landing() {
       return Number.isFinite(n) ? n : 0;
     },
   });
-  
+
   const { data: heroTutorCode } = useQuery({
     queryKey: ["settings", "hero_tutor_code"],
     queryFn: async () => {
@@ -210,23 +224,20 @@ function Landing() {
   const previewTutors = useMemo(() => {
     const categoryFilter = (homeSearch.category ?? "").toLowerCase();
     const subjectFilter = (homeSearch.subject ?? "").toLowerCase();
-    const districtFilter = homeSearch.mode === "in_person" ? homeSearch.district ?? "" : "";
+    const districtFilter = homeSearch.mode === "in_person" ? (homeSearch.district ?? "") : "";
     const modeFilter = homeSearch.mode ?? "";
     const genderFilter = homeSearch.gender ?? "";
     const query = (homeSearch.q ?? "").trim().toLowerCase();
 
     return publishedTutors.filter((tut) => {
       if (categoryFilter) {
-        const categorySource = [
-          ...tut.subjects,
-          ...tut.target_students,
-          tut.headline ?? "",
-        ]
+        const categorySource = [...tut.subjects, ...tut.target_students, tut.headline ?? ""]
           .join(" ")
           .toLowerCase();
         if (!categorySource.includes(categoryFilter)) return false;
       }
-      if (subjectFilter && !tut.subjects.some((s) => s.toLowerCase().includes(subjectFilter))) return false;
+      if (subjectFilter && !tut.subjects.some((s) => s.toLowerCase().includes(subjectFilter)))
+        return false;
       if (!matchesLessonModeFilter(modeFilter, tut.lesson_mode)) return false;
       if (!matchesDistrictFilter(districtFilter, tut.district)) return false;
       if (genderFilter && (tut.gender ?? "") !== genderFilter) return false;
@@ -250,32 +261,42 @@ function Landing() {
     "@type": "EducationalOrganization",
     name: "MatchMax",
     url: "https://www.maxmatch.app/",
-    description: "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
+    description:
+      "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
     areaServed: {
       "@type": "City",
       name: "Hong Kong",
     },
   };
 
-  const tutorListStructuredData = featuredTutors.length > 0 ? {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListElement: featuredTutors.map((tut, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      item: {
-        "@type": "Person",
-        name: tut.tutor_code,
-        url: `https://www.maxmatch.app/tutors/${tut.tutor_code}`,
-      },
-    })),
-  } : null;
+  const tutorListStructuredData =
+    featuredTutors.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          itemListElement: featuredTutors.map((tut, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            item: {
+              "@type": "Person",
+              name: tut.tutor_code,
+              url: `https://www.maxmatch.app/tutors/${tut.tutor_code}`,
+            },
+          })),
+        }
+      : null;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {tutorListStructuredData && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(tutorListStructuredData) }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(tutorListStructuredData) }}
+        />
       )}
 
       <SiteHeader />
@@ -298,7 +319,11 @@ function Landing() {
               <span className="text-brand-gradient">{t("hero.title_b")}</span>
             </h1>
             <div className="mt-10 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="h-16 md:h-14 rounded-2xl md:rounded-md bg-[color:var(--brand-navy)] px-8 text-lg md:text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] w-full md:w-auto">
+              <Button
+                asChild
+                size="lg"
+                className="h-16 md:h-14 rounded-2xl md:rounded-md bg-[color:var(--brand-navy)] px-8 text-lg md:text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] w-full md:w-auto"
+              >
                 <Link to="/tutors" onClick={() => blurActive()}>
                   {t("hero.cta_primary")}
                   <ArrowRight className="ml-2 h-6 w-6 md:h-5 md:w-5" />
@@ -310,7 +335,10 @@ function Landing() {
           {/* HERO VISUAL CARD */}
           <div className="relative flex items-center justify-center">
             <div className="relative w-full max-w-md">
-              <div className="absolute inset-0 rounded-2xl md:rounded-sm border border-border/50 bg-muted/30" aria-hidden />
+              <div
+                className="absolute inset-0 rounded-2xl md:rounded-sm border border-border/50 bg-muted/30"
+                aria-hidden
+              />
               <div className="relative rounded-2xl md:rounded-sm border border-border/80 bg-card/95 p-8 md:p-6 shadow-[0_10px_30px_rgba(4,19,68,0.06)]">
                 {heroTutor ? (
                   <>
@@ -329,51 +357,81 @@ function Landing() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-xl md:text-sm font-black md:font-bold text-foreground break-words">{formatTutorCode(heroTutor.tutor_code)}{getTutorGenderLabel(heroTutor.gender) ? ` · ${getTutorGenderLabel(heroTutor.gender)}` : ""}</p>
+                        <p className="text-xl md:text-sm font-black md:font-bold text-foreground break-words">
+                          {formatTutorCode(heroTutor.tutor_code)}
+                          {getTutorGenderLabel(heroTutor.gender)
+                            ? ` · ${getTutorGenderLabel(heroTutor.gender)}`
+                            : ""}
+                        </p>
                         <p className="text-sm md:text-xs leading-relaxed text-muted-foreground break-words whitespace-pre-line">
                           {heroTutor.headline ?? heroTutor.subjects.slice(0, 3).join(" · ")}
                         </p>
                       </div>
-                      <span className="rounded-lg md:rounded-md border border-[color:var(--brand-teal)]/15 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] md:text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-teal)]">Featured</span>
+                      <span className="rounded-lg md:rounded-md border border-[color:var(--brand-teal)]/15 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] md:text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-teal)]">
+                        Featured
+                      </span>
                     </div>
-                    
+
                     <div className="mt-8 md:mt-5 grid grid-cols-3 gap-3 rounded-xl md:rounded-md border border-border/70 bg-muted/50 p-5 md:p-4 text-center text-xs">
                       <div>
-                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">{formatTutorCode(heroTutor.tutor_code)}</p>
-                        <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">Code</p>
+                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">
+                          {formatTutorCode(heroTutor.tutor_code)}
+                        </p>
+                        <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">
+                          Code
+                        </p>
                       </div>
                       <div>
-                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">${heroTutor.hourly_rate}</p>
-                        <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">/hr</p>
+                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">
+                          ${heroTutor.hourly_rate}
+                        </p>
+                        <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">
+                          /hr
+                        </p>
                       </div>
                       <div>
-                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">{heroTutor.experience_years ? `${heroTutor.experience_years}+ yrs` : "New"}</p>
-                        <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">Experience</p>
+                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">
+                          {heroTutor.experience_years
+                            ? `${heroTutor.experience_years}+ yrs`
+                            : "New"}
+                        </p>
+                        <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">
+                          Experience
+                        </p>
                       </div>
                     </div>
-                    
+
                     <div className="mt-5 rounded-xl md:rounded-md border border-border/70 bg-muted/40 p-5 md:p-4">
                       <div className="space-y-3 md:space-y-2">
                         {[
                           heroTutor.badge,
                           heroTutor.district,
-                          heroTutor.experience_years ? `${heroTutor.experience_years}+ years` : null,
+                          heroTutor.experience_years
+                            ? `${heroTutor.experience_years}+ years`
+                            : null,
                           heroTutor.subjects[0] ?? null,
                         ]
                           .filter((x): x is string => !!x)
                           .slice(0, 4)
                           .map((tag) => (
-                            <div key={tag} className="flex items-center gap-3 md:gap-2 text-sm md:text-xs text-muted-foreground font-medium md:font-normal">
+                            <div
+                              key={tag}
+                              className="flex items-center gap-3 md:gap-2 text-sm md:text-xs text-muted-foreground font-medium md:font-normal"
+                            >
                               <BadgeCheck className="h-5 w-5 md:h-3.5 md:w-3.5 text-[color:var(--brand-teal)]" />
                               {tag}
                             </div>
                           ))}
                       </div>
                     </div>
-                    
-                    <Button asChild className="mt-8 md:mt-6 w-full rounded-xl md:rounded-lg bg-[color:var(--brand-navy)] py-6 md:py-3 text-lg md:text-sm font-bold text-white hover:bg-[color:var(--brand-royal)]">
+
+                    <Button
+                      asChild
+                      className="mt-8 md:mt-6 w-full rounded-xl md:rounded-lg bg-[color:var(--brand-navy)] py-6 md:py-3 text-lg md:text-sm font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                    >
                       <Link to="/tutors/$tutorCode" params={{ tutorCode: heroTutor.tutor_code }}>
-                        <MessageCircle className="mr-2 inline h-5 w-5 md:h-4 md:w-4" /> View tutor profile
+                        <MessageCircle className="mr-2 inline h-5 w-5 md:h-4 md:w-4" /> View tutor
+                        profile
                       </Link>
                     </Button>
                   </>
@@ -392,7 +450,9 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="rounded-sm border border-border bg-card p-4 shadow-[0_12px_30px_rgba(4,19,68,0.08)] sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
-              <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">Explore the tutors MatchMax offers</p>
+              <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">
+                Explore the tutors MatchMax offers
+              </p>
             </div>
 
             <div className="mt-4 grid gap-3 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto]">
@@ -416,7 +476,10 @@ function Landing() {
               <SearchableSelect
                 value={homeSearch.subject ?? ""}
                 onChange={(v) => setHomeSearchParam({ subject: v || undefined })}
-                options={[{ value: "", label: "Any subject" }, ...subjectOptions.map((s) => ({ value: s, label: s }))]}
+                options={[
+                  { value: "", label: "Any subject" },
+                  ...subjectOptions.map((s) => ({ value: s, label: s })),
+                ]}
                 placeholder="Any subject"
                 searchPlaceholder="Search subject..."
                 className="h-11 rounded-sm"
@@ -460,10 +523,7 @@ function Landing() {
             )}
 
             {!publishedTutorsLoading && previewTutors.length > 0 && (
-              <Carousel
-                opts={{ align: "start", loop: false }}
-                className="mx-0"
-              >
+              <Carousel opts={{ align: "start", loop: false }} className="mx-0">
                 <CarouselContent>
                   {previewTutors.map((tut) => (
                     <CarouselItem
@@ -488,7 +548,9 @@ function Landing() {
                             <div className="min-w-0">
                               <p className="text-xl font-black text-[color:var(--brand-navy)]">
                                 {formatTutorCode(tut.tutor_code)}
-                                {getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}
+                                {getTutorGenderLabel(tut.gender)
+                                  ? ` · ${getTutorGenderLabel(tut.gender)}`
+                                  : ""}
                               </p>
                               <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
                                 <BadgeCheck className="h-4 w-4 text-[color:var(--brand-teal)]" />
@@ -511,19 +573,25 @@ function Landing() {
                           </div>
 
                           <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                            {tut.headline ?? tut.bio ?? "Experienced tutor profile with subject-specific support."}
+                            {tut.headline ??
+                              tut.bio ??
+                              "Experienced tutor profile with subject-specific support."}
                           </p>
 
                           <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
                             <div>
-                              <p className="text-xs uppercase tracking-wide text-muted-foreground">Lesson Mode</p>
+                              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                Lesson Mode
+                              </p>
                               <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
                                 <BookOpen className="h-4 w-4 text-[color:var(--brand-teal)]" />
                                 {getTutorLessonModeLabel(tut.lesson_mode)}
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs uppercase tracking-wide text-muted-foreground">Tutoring Experience</p>
+                              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                Tutoring Experience
+                              </p>
                               <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
                                 <Clock3 className="h-4 w-4 text-[color:var(--brand-teal)]" />
                                 {tut.experience_years ? `${tut.experience_years} years` : "N/A"}
@@ -535,9 +603,14 @@ function Landing() {
                         <div className="flex items-center justify-between border-t border-border bg-white px-4 py-3">
                           <p className="text-2xl font-black text-[color:var(--brand-navy)]">
                             HK${tut.hourly_rate}
-                            <span className="ml-1 text-sm font-semibold text-muted-foreground">/ hour</span>
+                            <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                              / hour
+                            </span>
                           </p>
-                          <Button asChild className="rounded-sm bg-[color:var(--brand-teal)] px-4 font-bold text-white hover:bg-[color:var(--brand-royal)]">
+                          <Button
+                            asChild
+                            className="rounded-sm bg-[color:var(--brand-teal)] px-4 font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                          >
                             <Link
                               to="/tutors/$tutorCode"
                               params={{ tutorCode: tut.tutor_code }}
@@ -563,7 +636,9 @@ function Landing() {
       <section id="how" className="py-20 md:py-28">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-5xl md:text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">{t("how.title")}</h2>
+            <h2 className="text-5xl md:text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
+              {t("how.title")}
+            </h2>
           </div>
           <div className="mt-16 grid gap-8 md:gap-6 md:grid-cols-3">
             {[1, 2, 3].map((n) => (
@@ -571,11 +646,18 @@ function Landing() {
                 key={n}
                 className="group relative overflow-hidden rounded-3xl md:rounded-sm border border-border/80 bg-card/95 p-10 md:p-8 shadow-[0_10px_24px_rgba(4,19,68,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--brand-teal)]/45 hover:shadow-brand"
               >
-                <div className="relative mb-8 md:mb-6 flex h-16 w-16 md:h-14 md:w-14 items-center justify-center rounded-2xl md:rounded-md bg-brand-gradient text-3xl md:text-2xl font-black text-white shadow-teal" aria-hidden="true">
+                <div
+                  className="relative mb-8 md:mb-6 flex h-16 w-16 md:h-14 md:w-14 items-center justify-center rounded-2xl md:rounded-md bg-brand-gradient text-3xl md:text-2xl font-black text-white shadow-teal"
+                  aria-hidden="true"
+                >
                   {n}
                 </div>
-                <h3 className="text-3xl md:text-xl font-black md:font-bold text-foreground">{t(`how.step${n}_title`)}</h3>
-                <p className="mt-4 md:mt-3 text-lg md:text-sm leading-relaxed text-muted-foreground font-medium md:font-normal">{t(`how.step${n}_desc`)}</p>
+                <h3 className="text-3xl md:text-xl font-black md:font-bold text-foreground">
+                  {t(`how.step${n}_title`)}
+                </h3>
+                <p className="mt-4 md:mt-3 text-lg md:text-sm leading-relaxed text-muted-foreground font-medium md:font-normal">
+                  {t(`how.step${n}_desc`)}
+                </p>
               </div>
             ))}
           </div>
@@ -589,14 +671,24 @@ function Landing() {
             <div
               aria-hidden
               className="absolute inset-0 opacity-40"
-              style={{ background: "radial-gradient(ellipse at top right, #2ED5DE 0%, transparent 60%)" }}
+              style={{
+                background: "radial-gradient(ellipse at top right, #2ED5DE 0%, transparent 60%)",
+              }}
             />
             <div className="relative flex flex-col items-start justify-between gap-8 md:gap-6 sm:flex-row sm:items-center">
               <div className="max-w-xl">
-                <h3 className="text-4xl md:text-3xl font-black text-white sm:text-4xl">{t("tutors_cta.title")}</h3>
-                <p className="mt-4 md:mt-3 text-lg md:text-base font-medium md:font-normal text-white/80">{t("tutors_cta.subtitle")}</p>
+                <h3 className="text-4xl md:text-3xl font-black text-white sm:text-4xl">
+                  {t("tutors_cta.title")}
+                </h3>
+                <p className="mt-4 md:mt-3 text-lg md:text-base font-medium md:font-normal text-white/80">
+                  {t("tutors_cta.subtitle")}
+                </p>
               </div>
-              <Button asChild size="lg" className="h-16 md:h-14 w-full md:w-auto rounded-2xl md:rounded-md bg-white px-8 text-lg md:text-base font-bold text-[color:var(--brand-navy)] hover:bg-white/90">
+              <Button
+                asChild
+                size="lg"
+                className="h-16 md:h-14 w-full md:w-auto rounded-2xl md:rounded-md bg-white px-8 text-lg md:text-base font-bold text-[color:var(--brand-navy)] hover:bg-white/90"
+              >
                 <Link to="/become-a-tutor">
                   {t("tutors_cta.cta")}
                   <ArrowRight className="ml-2 h-6 w-6 md:h-5 md:w-5" />
