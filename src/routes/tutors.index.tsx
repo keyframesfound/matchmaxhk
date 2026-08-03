@@ -1,13 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { BadgeCheck, MapPin, Search, Globe, X, ChevronDown, ChevronLeft } from "lucide-react";
+import { BadgeCheck, Globe, MapPin, Search, X } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import {
   fetchPublishedTutors,
   getTutorGenderLabel,
@@ -36,10 +38,18 @@ export const Route = createFileRoute("/tutors/")({
   head: () => ({
     meta: [
       { title: "Find Verified Tutors in Hong Kong | MatchMax" },
-      { name: "description", content: "Browse verified tutors in Hong Kong by subject, district, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more." },
+      {
+        name: "description",
+        content:
+          "Browse verified tutors in Hong Kong by subject, district, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
+      },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Find Verified Tutors in Hong Kong | MatchMax" },
-      { property: "og:description", content: "Browse verified tutors in Hong Kong by subject, district, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more." },
+      {
+        property: "og:description",
+        content:
+          "Browse verified tutors in Hong Kong by subject, district, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
+      },
       { property: "og:url", content: "https://www.maxmatch.app/tutors" },
     ],
     links: [{ rel: "canonical", href: "https://www.maxmatch.app/tutors" }],
@@ -72,16 +82,15 @@ const CATEGORY_OPTIONS = [
   { value: "International", label: "International" },
 ];
 
-type PanelKey = "category" | "subject" | "mode" | "gender";
-
 function TutorsDirectory() {
   const { t } = useTranslation();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/tutors/" });
-  const [q, setQ] = useState(search.q ?? "");
-  const [subjectSearch, setSubjectSearch] = useState("");
-  const [openPanel, setOpenPanel] = useState<PanelKey | null>(null);
-  const [modePanelStep, setModePanelStep] = useState<"mode" | "district">("mode");
+  const [draft, setDraft] = useState<SearchState>(search);
+
+  useEffect(() => {
+    setDraft(search);
+  }, [search]);
 
   const setParam = (patch: Partial<SearchState>) => {
     navigate({
@@ -96,6 +105,17 @@ function TutorsDirectory() {
     });
   };
 
+  const setDraftParam = (patch: Partial<SearchState>) => {
+    setDraft((prev) => {
+      const next: SearchState = { ...prev, ...patch };
+      (Object.keys(next) as (keyof SearchState)[]).forEach((k) => {
+        const v = next[k];
+        if (v === "" || v === undefined || (typeof v === "number" && Number.isNaN(v))) delete next[k];
+      });
+      return next;
+    });
+  };
+
   const { data: tutors = [], isLoading } = useQuery({
     queryKey: ["tutors", "published"],
     queryFn: fetchPublishedTutors,
@@ -105,11 +125,16 @@ function TutorsDirectory() {
     queryKey: ["settings", "subject_options"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("app_settings").select("value").eq("key", "subject_options").maybeSingle();
+        .from("app_settings")
+        .select("value")
+        .eq("key", "subject_options")
+        .maybeSingle();
       if (error) throw error;
       const v = data?.value;
       if (Array.isArray(v)) {
-        const arr = (v as unknown[]).filter((x): x is string => typeof x === "string" && x.trim().length > 0);
+        const arr = (v as unknown[]).filter(
+          (x): x is string => typeof x === "string" && x.trim().length > 0,
+        );
         if (arr.length > 0) return arr;
       }
       return DEFAULT_SUBJECT_OPTIONS;
@@ -124,14 +149,10 @@ function TutorsDirectory() {
   const effectiveDistrictFilter = modeFilter === "in_person" ? districtFilter : "";
 
   const filtered = useMemo(() => {
-    const query = q.trim().toLowerCase();
+    const query = (search.q ?? "").trim().toLowerCase();
     const list = tutors.filter((tut) => {
       if (categoryFilter) {
-        const categorySource = [
-          ...tut.subjects,
-          ...tut.target_students,
-          tut.headline ?? "",
-        ]
+        const categorySource = [...tut.subjects, ...tut.target_students, tut.headline ?? ""]
           .join(" ")
           .toLowerCase();
         if (!categorySource.includes(categoryFilter)) return false;
@@ -143,11 +164,15 @@ function TutorsDirectory() {
         const g = (tut as unknown as { gender?: string | null }).gender ?? "";
         if (g !== genderFilter) return false;
       }
-      if (query && !(
-        tut.tutor_code.toLowerCase().includes(query) ||
-        tut.subjects.some((s) => s.toLowerCase().includes(query)) ||
-        (tut.headline ?? "").toLowerCase().includes(query)
-      )) return false;
+      if (
+        query &&
+        !(
+          tut.tutor_code.toLowerCase().includes(query) ||
+          tut.subjects.some((s) => s.toLowerCase().includes(query)) ||
+          (tut.headline ?? "").toLowerCase().includes(query)
+        )
+      )
+        return false;
       return true;
     });
 
@@ -157,41 +182,44 @@ function TutorsDirectory() {
         a.hourly_rate - b.hourly_rate ||
         a.tutor_code.localeCompare(b.tutor_code),
     );
-  }, [tutors, categoryFilter, subjectFilter, effectiveDistrictFilter, modeFilter, genderFilter, q]);
+  }, [tutors, categoryFilter, subjectFilter, effectiveDistrictFilter, modeFilter, genderFilter, search.q]);
 
   const activeChips: { key: string; label: string; onClear: () => void }[] = [];
-  if (search.category) activeChips.push({ key: "category", label: `Category: ${search.category}`, onClear: () => setParam({ category: undefined }) });
-  if (search.subject) activeChips.push({ key: "subject", label: `Subject: ${search.subject}`, onClear: () => setParam({ subject: undefined }) });
-  if (modeFilter === "in_person" && search.district) activeChips.push({ key: "district", label: `District: ${search.district}`, onClear: () => setParam({ district: undefined }) });
-  if (search.mode) activeChips.push({ key: "mode", label: `Mode: ${MODE_OPTIONS.find((m) => m.value === search.mode)?.label ?? search.mode}`, onClear: () => setParam({ mode: undefined }) });
-  if (search.gender) activeChips.push({ key: "gender", label: `Gender: ${GENDER_OPTIONS.find((g) => g.value === search.gender)?.label ?? search.gender}`, onClear: () => setParam({ gender: undefined }) });
+  if (search.category)
+    activeChips.push({
+      key: "category",
+      label: `Category: ${search.category}`,
+      onClear: () => setParam({ category: undefined }),
+    });
+  if (search.subject)
+    activeChips.push({
+      key: "subject",
+      label: `Subject: ${search.subject}`,
+      onClear: () => setParam({ subject: undefined }),
+    });
+  if (modeFilter === "in_person" && search.district)
+    activeChips.push({
+      key: "district",
+      label: `District: ${search.district}`,
+      onClear: () => setParam({ district: undefined }),
+    });
+  if (search.mode)
+    activeChips.push({
+      key: "mode",
+      label: `Mode: ${MODE_OPTIONS.find((m) => m.value === search.mode)?.label ?? search.mode}`,
+      onClear: () => setParam({ mode: undefined }),
+    });
+  if (search.gender)
+    activeChips.push({
+      key: "gender",
+      label: `Gender: ${GENDER_OPTIONS.find((g) => g.value === search.gender)?.label ?? search.gender}`,
+      onClear: () => setParam({ gender: undefined }),
+    });
 
   const clearAll = () => {
-    setQ("");
-    setOpenPanel(null);
-    setModePanelStep("mode");
+    setDraft({});
     navigate({ search: {} as SearchState });
   };
-
-  const modeLabel = MODE_OPTIONS.find((item) => item.value === (search.mode ?? ""))?.label ?? "Lesson mode";
-  const categoryLabel = CATEGORY_OPTIONS.find((item) => item.value === (search.category ?? ""))?.label ?? "Category";
-  const genderLabel = GENDER_OPTIONS.find((item) => item.value === (search.gender ?? ""))?.label ?? "Gender";
-
-  const openFilterPanel = (panel: PanelKey) => {
-    setOpenPanel(panel);
-    if (panel === "mode") {
-      setModePanelStep("mode");
-    }
-    if (panel !== "subject") {
-      setSubjectSearch("");
-    }
-  };
-
-  const filteredSubjectOptions = useMemo(() => {
-    const keyword = subjectSearch.trim().toLowerCase();
-    if (!keyword) return subjectOptions;
-    return subjectOptions.filter((item) => item.toLowerCase().includes(keyword));
-  }, [subjectOptions, subjectSearch]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -199,278 +227,115 @@ function TutorsDirectory() {
       <main className="flex-1">
         <section className="border-b border-border bg-muted/30 py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">Find verified tutors in Hong Kong</h1>
+            <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
+              Find verified tutors in Hong Kong
+            </h1>
             <p className="mt-3 max-w-3xl text-lg text-muted-foreground">
               Browse tutors for IB, DSE, IGCSE, AP, A-Level, Mathematics, English, Science and more. Filter by district, lesson mode, price and language to find the right tutor quickly.
             </p>
 
-            <div
-              className={`relative mt-8 border border-border bg-card p-4 shadow-sm sm:p-5 ${
-                openPanel ? "rounded-t-3xl rounded-b-none" : "rounded-3xl"
-              }`}
-            >
+            <div className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
               <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
                 <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">Find tutor</p>
               </div>
 
-              <div className="mt-4 grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
+              <div className="mt-4 grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    className="h-11 rounded-xl pl-9"
+                    className="h-11 rounded-sm pl-9"
                     placeholder="Search tutor code, subject, keyword…"
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
+                    value={draft.q ?? ""}
+                    onChange={(e) => setDraftParam({ q: e.target.value })}
                   />
                 </div>
+                <SearchableSelect
+                  value={draft.category ?? ""}
+                  onChange={(v) => setDraftParam({ category: v || undefined })}
+                  options={CATEGORY_OPTIONS}
+                  placeholder="Any category"
+                  searchPlaceholder="Search category..."
+                  className="h-11 rounded-sm"
+                />
+                <SearchableSelect
+                  value={draft.subject ?? ""}
+                  onChange={(v) => setDraftParam({ subject: v || undefined })}
+                  options={[{ value: "", label: "Any subject" }, ...subjectOptions.map((s) => ({ value: s, label: s }))]}
+                  placeholder="Any subject"
+                  searchPlaceholder="Search subject..."
+                  className="h-11 rounded-sm"
+                />
+                <LessonModeSelect
+                  mode={(draft.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
+                  district={draft.district}
+                  districts={HK_DISTRICTS}
+                  onChange={({ mode, district }) =>
+                    setDraftParam({
+                      mode: mode || undefined,
+                      district: mode === "in_person" ? district : undefined,
+                    })
+                  }
+                  placeholder="Any lesson mode"
+                  className="h-11 rounded-sm"
+                />
+                <SearchableSelect
+                  value={draft.gender ?? ""}
+                  onChange={(v) => setDraftParam({ gender: v || undefined })}
+                  options={GENDER_OPTIONS}
+                  placeholder="Any gender"
+                  className="h-11 rounded-sm"
+                />
                 <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 w-full justify-between font-normal"
-                  onClick={() => openFilterPanel("category")}
+                  className="h-11 rounded-sm bg-[color:var(--brand-navy)] px-6 font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                  onClick={() =>
+                    navigate({
+                      search: {
+                        ...draft,
+                        district: draft.mode === "in_person" ? draft.district : undefined,
+                      },
+                    })
+                  }
                 >
-                  <span className="truncate">{categoryLabel}</span>
-                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 w-full justify-between font-normal"
-                  onClick={() => openFilterPanel("subject")}
-                >
-                  <span className="truncate">{search.subject || "Subject"}</span>
-                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 w-full justify-between font-normal"
-                  onClick={() => openFilterPanel("mode")}
-                >
-                  <span className="truncate">{modeFilter === "in_person" && search.district ? `In-person · ${search.district}` : modeLabel}</span>
-                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 w-full justify-between font-normal"
-                  onClick={() => openFilterPanel("gender")}
-                >
-                  <span className="truncate">{genderLabel}</span>
-                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-60" />
+                  Search
                 </Button>
               </div>
-
-              {openPanel && (
-                <div role="dialog" aria-modal="true" aria-label="Tutor filter options">
-                  <div className="mt-4 border-t border-border pt-5">
-                      {openPanel === "category" && (
-                        <>
-                          <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose category</p>
-                          <div className="mt-4 flex max-h-[60vh] flex-wrap gap-2 overflow-y-auto pr-1">
-                            {CATEGORY_OPTIONS.map((item) => (
-                              <Button
-                                key={item.value || "any"}
-                                type="button"
-                                variant={search.category === item.value ? "default" : "outline"}
-                                className={search.category === item.value ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                                onClick={() => {
-                                  setParam({ category: item.value || undefined });
-                                  setOpenPanel(null);
-                                }}
-                              >
-                                {item.label}
-                              </Button>
-                            ))}
-                          </div>
-                        </>
-                      )}
-
-                      {openPanel === "subject" && (
-                        <>
-                          <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose subject</p>
-                          <div className="mt-4 max-w-md">
-                            <Input
-                              className="h-11 rounded-xl"
-                              value={subjectSearch}
-                              onChange={(e) => setSubjectSearch(e.target.value)}
-                              placeholder="Search subject"
-                            />
-                          </div>
-                          <div className="mt-4 flex max-h-[60vh] flex-wrap gap-2 overflow-y-auto pr-1">
-                            <Button
-                              type="button"
-                              variant={!search.subject ? "default" : "outline"}
-                              className={!search.subject ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                              onClick={() => {
-                                setParam({ subject: undefined });
-                                setOpenPanel(null);
-                              }}
-                            >
-                              Any subject
-                            </Button>
-                            {filteredSubjectOptions.map((item) => (
-                              <Button
-                                key={item}
-                                type="button"
-                                variant={search.subject === item ? "default" : "outline"}
-                                className={search.subject === item ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                                onClick={() => {
-                                  setParam({ subject: item });
-                                  setOpenPanel(null);
-                                }}
-                              >
-                                {item}
-                              </Button>
-                            ))}
-                            {filteredSubjectOptions.length === 0 && (
-                              <p className="w-full pt-2 text-sm text-muted-foreground">No subjects found.</p>
-                            )}
-                          </div>
-                        </>
-                      )}
-
-                      {openPanel === "mode" && (
-                        <>
-                          {modePanelStep === "mode" ? (
-                            <>
-                              <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose lesson mode</p>
-                              <div className="mt-4 flex max-h-[60vh] flex-wrap gap-2 overflow-y-auto pr-1">
-                                <Button
-                                  type="button"
-                                  variant={!search.mode ? "default" : "outline"}
-                                  className={!search.mode ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                                  onClick={() => {
-                                    setParam({ mode: undefined, district: undefined });
-                                    setOpenPanel(null);
-                                  }}
-                                >
-                                  Any lesson mode
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant={search.mode === "online" ? "default" : "outline"}
-                                  className={search.mode === "online" ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                                  onClick={() => {
-                                    setParam({ mode: "online", district: undefined });
-                                    setOpenPanel(null);
-                                  }}
-                                >
-                                  Online
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant={search.mode === "either" ? "default" : "outline"}
-                                  className={search.mode === "either" ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                                  onClick={() => {
-                                    setParam({ mode: "either", district: undefined });
-                                    setOpenPanel(null);
-                                  }}
-                                >
-                                  Open to discussion
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant={search.mode === "in_person" ? "default" : "outline"}
-                                  className={search.mode === "in_person" ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                                  onClick={() => setModePanelStep("district")}
-                                >
-                                  In-person
-                                </Button>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={() => setModePanelStep("mode")}
-                                >
-                                  <ChevronLeft className="h-4 w-4" />
-                                </Button>
-                                <p className="text-xl font-black text-[color:var(--brand-navy)]">Choose district</p>
-                              </div>
-                              <div className="mt-4 flex max-h-[60vh] flex-wrap gap-2 overflow-y-auto pr-1">
-                                <Button
-                                  type="button"
-                                  variant={!search.district ? "default" : "outline"}
-                                  className={!search.district ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                                  onClick={() => {
-                                    setParam({ mode: "in_person", district: undefined });
-                                    setOpenPanel(null);
-                                  }}
-                                >
-                                  Any district
-                                </Button>
-                                {HK_DISTRICTS.map((item) => (
-                                  <Button
-                                    key={item}
-                                    type="button"
-                                    variant={search.district === item ? "default" : "outline"}
-                                    className={search.district === item ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                                    onClick={() => {
-                                      setParam({ mode: "in_person", district: item });
-                                      setOpenPanel(null);
-                                    }}
-                                  >
-                                    {item}
-                                  </Button>
-                                ))}
-                              </div>
-                            </>
-                          )}
-                        </>
-                      )}
-
-                      {openPanel === "gender" && (
-                        <>
-                          <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose gender</p>
-                          <div className="mt-4 flex max-h-[60vh] flex-wrap gap-2 overflow-y-auto pr-1">
-                            {GENDER_OPTIONS.map((item) => (
-                              <Button
-                                key={item.value || "any"}
-                                type="button"
-                                variant={search.gender === item.value ? "default" : "outline"}
-                                className={search.gender === item.value ? "bg-[color:var(--brand-navy)] text-white" : ""}
-                                onClick={() => {
-                                  setParam({ gender: item.value || undefined });
-                                  setOpenPanel(null);
-                                }}
-                              >
-                                {item.label}
-                              </Button>
-                            ))}
-                          </div>
-                        </>
-                      )}
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Active chips + result meta */}
-            {(activeChips.length > 0 || q) && (
+            {(activeChips.length > 0 || search.q) && (
               <div className="mt-5 flex flex-wrap items-center gap-2">
-                {q && (
+                {search.q && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--brand-navy)]/5 px-3 py-1 text-xs font-semibold text-[color:var(--brand-navy)]">
-                    “{q}”
-                    <button aria-label="Clear search" onClick={() => setQ("")} className="rounded-full p-0.5 hover:bg-[color:var(--brand-navy)]/10">
+                    “{search.q}”
+                    <button
+                      aria-label="Clear search"
+                      onClick={() => setParam({ q: undefined })}
+                      className="rounded-full p-0.5 hover:bg-[color:var(--brand-navy)]/10"
+                    >
                       <X className="h-3 w-3" />
                     </button>
                   </span>
                 )}
                 {activeChips.map((c) => (
-                  <span key={c.key} className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--brand-teal)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--brand-teal)]">
+                  <span
+                    key={c.key}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--brand-teal)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--brand-teal)]"
+                  >
                     {c.label}
-                    <button aria-label={`Clear ${c.key}`} onClick={c.onClear} className="rounded-full p-0.5 hover:bg-[color:var(--brand-teal)]/20">
+                    <button
+                      aria-label={`Clear ${c.key}`}
+                      onClick={c.onClear}
+                      className="rounded-full p-0.5 hover:bg-[color:var(--brand-teal)]/20"
+                    >
                       <X className="h-3 w-3" />
                     </button>
                   </span>
                 ))}
-                <Button variant="ghost" size="sm" onClick={clearAll} className="ml-auto h-7 text-xs font-semibold text-muted-foreground hover:text-foreground">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAll}
+                  className="ml-auto h-7 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                >
                   Clear all
                 </Button>
               </div>
@@ -482,8 +347,13 @@ function TutorsDirectory() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="mb-6 flex items-baseline justify-between">
               <p className="text-sm text-muted-foreground">
-                {isLoading ? "Loading…" : (
-                  <><span className="font-bold text-foreground">{filtered.length}</span> {filtered.length === 1 ? "tutor" : "tutors"} found</>
+                {isLoading ? (
+                  "Loading…"
+                ) : (
+                  <>
+                    <span className="font-bold text-foreground">{filtered.length}</span>{" "}
+                    {filtered.length === 1 ? "tutor" : "tutors"} found
+                  </>
                 )}
               </p>
             </div>
@@ -528,7 +398,8 @@ function TutorsDirectory() {
                       )}
                       <div className="min-w-0">
                         <p className="text-base font-bold text-foreground break-words">
-                          {tut.tutor_code}{getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}
+                          {tut.tutor_code}
+                          {getTutorGenderLabel(tut.gender) ? ` · ${getTutorGenderLabel(tut.gender)}` : ""}
                         </p>
                         <p className="text-sm leading-relaxed text-muted-foreground break-words whitespace-pre-line">
                           {tut.headline ?? ([tut.university, tut.highschool].filter(Boolean).join(" | ") || getTutorLessonModeLabel(tut.lesson_mode))}
@@ -556,7 +427,8 @@ function TutorsDirectory() {
                     )}
                     {tut.target_students.length > 0 && (
                       <p className="mt-3 text-xs text-muted-foreground">
-                        Target students: {tut.target_students.slice(0, 2).join(", ")}{tut.target_students.length > 2 ? ` +${tut.target_students.length - 2} more` : ""}
+                        Target students: {tut.target_students.slice(0, 2).join(", ")}
+                        {tut.target_students.length > 2 ? ` +${tut.target_students.length - 2} more` : ""}
                       </p>
                     )}
                     <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
