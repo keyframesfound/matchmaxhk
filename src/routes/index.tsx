@@ -336,7 +336,7 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="rounded-3xl border border-border bg-card p-4 shadow-[0_12px_30px_rgba(4,19,68,0.08)] sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
-              <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">Find tutor</p>
+              <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">Explore the tutors MatchMax offers</p>
             </div>
 
             <div className="mt-4 grid gap-3 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto]">
