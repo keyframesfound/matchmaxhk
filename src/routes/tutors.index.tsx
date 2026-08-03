@@ -203,7 +203,7 @@ function TutorsDirectory() {
               Browse tutors for IB, DSE, IGCSE, AP, A-Level, Mathematics, English, Science and more. Filter by district, lesson mode, price and language to find the right tutor quickly.
             </p>
 
-            <div className="mt-8 rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-5">
+            <div className="relative mt-8 rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-5">
               <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
                 <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">Find tutor</p>
               </div>
@@ -257,15 +257,14 @@ function TutorsDirectory() {
               </div>
 
               {openPanel && (
-                <div className="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Tutor filter options">
+                <div role="dialog" aria-modal="true" aria-label="Tutor filter options">
                   <button
                     type="button"
-                    className="absolute inset-0 bg-black/45"
+                    className="fixed inset-0 z-30 bg-black/45"
                     aria-label="Close filter panel"
                     onClick={() => setOpenPanel(null)}
                   />
-                  <div className="absolute left-0 right-0 top-20 px-4 sm:top-24 sm:px-6">
-                    <div className="mx-auto max-w-7xl rounded-2xl border border-border/80 bg-background p-5 shadow-2xl">
+                  <div className="absolute left-0 right-0 top-full z-40 mt-2 rounded-2xl border border-border/80 bg-background p-5 shadow-2xl">
                       {openPanel === "category" && (
                         <>
                           <p className="text-2xl font-black text-[color:var(--brand-navy)]">Choose category</p>
@@ -437,7 +436,6 @@ function TutorsDirectory() {
                           </div>
                         </>
                       )}
-                    </div>
                   </div>
                 </div>
               )}
