@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { BadgeCheck, MapPin, Search, Globe, X, SlidersHorizontal } from "lucide-react";
+import { BadgeCheck, MapPin, Search, Globe, X } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
@@ -14,12 +14,11 @@ import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({
+  category: z.string().optional(),
   subject: z.string().optional(),
   district: z.string().optional(),
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
-  maxPrice: z.coerce.number().optional(),
-  sort: z.string().optional(), // price_asc | price_desc | experience
   q: z.string().optional(),
 });
 type SearchState = z.infer<typeof searchSchema>;
@@ -53,16 +52,22 @@ const GENDER_OPTIONS = [
   { value: "male", label: "Male" },
 ];
 
-const SORT_OPTIONS = [
-  { value: "experience", label: "Most experienced" },
-  { value: "price_asc", label: "Price: low to high" },
-  { value: "price_desc", label: "Price: high to low" },
+const CATEGORY_OPTIONS = [
+  { value: "", label: "Any category" },
+  { value: "IB", label: "IB" },
+  { value: "DSE", label: "DSE" },
+  { value: "IGCSE", label: "IGCSE" },
+  { value: "AP", label: "AP" },
+  { value: "A-Level", label: "A-Level" },
+  { value: "Primary", label: "Primary" },
+  { value: "Secondary", label: "Secondary" },
+  { value: "International", label: "International" },
 ];
 
 function TutorsDirectory() {
   const { t } = useTranslation();
   const search = Route.useSearch();
-  const navigate = useNavigate({ from: "/tutors" });
+  const navigate = useNavigate({ from: "/tutors/" });
   const [q, setQ] = useState(search.q ?? "");
 
   const setParam = (patch: Partial<SearchState>) => {
@@ -98,29 +103,26 @@ function TutorsDirectory() {
     },
   });
 
-  // Derived: unique languages across published tutors
-  const languageOptions = useMemo(() => {
-    const set = new Set<string>();
-    for (const t of tutors) for (const l of t.languages ?? []) {
-      const v = (l ?? "").trim();
-      if (v) set.add(v);
-    }
-    return Array.from(set).sort();
-  }, [tutors]);
-
-  const [languageFilter, setLanguageFilter] = useState<string>("");
-  const priceCaps = [300, 500, 800, 1200, 2000];
-
+  const categoryFilter = (search.category ?? "").toLowerCase();
   const subjectFilter = (search.subject ?? "").toLowerCase();
   const districtFilter = search.district ?? "";
   const modeFilter = search.mode ?? "";
   const genderFilter = search.gender ?? "";
-  const maxPrice = search.maxPrice;
-  const sort = search.sort ?? "experience";
+  const showDistrictFilter = modeFilter === "in_person" || modeFilter === "either";
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
     const list = tutors.filter((tut) => {
+      if (categoryFilter) {
+        const categorySource = [
+          ...tut.subjects,
+          ...tut.target_students,
+          tut.headline ?? "",
+        ]
+          .join(" ")
+          .toLowerCase();
+        if (!categorySource.includes(categoryFilter)) return false;
+      }
       if (subjectFilter && !tut.subjects.some((s) => s.toLowerCase().includes(subjectFilter))) return false;
       if (districtFilter && tut.district !== districtFilter) return false;
       if (modeFilter && tut.lesson_mode !== modeFilter) return false;
@@ -128,8 +130,6 @@ function TutorsDirectory() {
         const g = (tut as unknown as { gender?: string | null }).gender ?? "";
         if (g !== genderFilter) return false;
       }
-      if (maxPrice && tut.hourly_rate > maxPrice) return false;
-      if (languageFilter && !(tut.languages ?? []).some((l) => l.toLowerCase() === languageFilter.toLowerCase())) return false;
       if (query && !(
         tut.tutor_code.toLowerCase().includes(query) ||
         tut.subjects.some((s) => s.toLowerCase().includes(query)) ||
@@ -138,27 +138,23 @@ function TutorsDirectory() {
       return true;
     });
 
-    const sorted = [...list];
-    switch (sort) {
-      case "price_asc": sorted.sort((a, b) => a.hourly_rate - b.hourly_rate); break;
-      case "price_desc": sorted.sort((a, b) => b.hourly_rate - a.hourly_rate); break;
-      case "experience":
-      default: sorted.sort((a, b) => (b.experience_years ?? 0) - (a.experience_years ?? 0) || a.hourly_rate - b.hourly_rate || a.tutor_code.localeCompare(b.tutor_code));
-    }
-    return sorted;
-  }, [tutors, subjectFilter, districtFilter, modeFilter, genderFilter, maxPrice, languageFilter, q, sort]);
+    return [...list].sort(
+      (a, b) =>
+        (b.experience_years ?? 0) - (a.experience_years ?? 0) ||
+        a.hourly_rate - b.hourly_rate ||
+        a.tutor_code.localeCompare(b.tutor_code),
+    );
+  }, [tutors, categoryFilter, subjectFilter, districtFilter, modeFilter, genderFilter, q]);
 
   const activeChips: { key: string; label: string; onClear: () => void }[] = [];
+  if (search.category) activeChips.push({ key: "category", label: `Category: ${search.category}`, onClear: () => setParam({ category: undefined }) });
   if (search.subject) activeChips.push({ key: "subject", label: `Subject: ${search.subject}`, onClear: () => setParam({ subject: undefined }) });
   if (search.district) activeChips.push({ key: "district", label: `District: ${search.district}`, onClear: () => setParam({ district: undefined }) });
   if (search.mode) activeChips.push({ key: "mode", label: `Mode: ${MODE_OPTIONS.find((m) => m.value === search.mode)?.label ?? search.mode}`, onClear: () => setParam({ mode: undefined }) });
   if (search.gender) activeChips.push({ key: "gender", label: `Gender: ${GENDER_OPTIONS.find((g) => g.value === search.gender)?.label ?? search.gender}`, onClear: () => setParam({ gender: undefined }) });
-  if (maxPrice) activeChips.push({ key: "price", label: `≤ HK$${maxPrice}/hr`, onClear: () => setParam({ maxPrice: undefined }) });
-  if (languageFilter) activeChips.push({ key: "lang", label: `Language: ${languageFilter}`, onClear: () => setLanguageFilter("") });
 
   const clearAll = () => {
     setQ("");
-    setLanguageFilter("");
     navigate({ search: {} as SearchState });
   };
 
@@ -173,75 +169,71 @@ function TutorsDirectory() {
               Browse tutors for IB, DSE, IGCSE, AP, A-Level, Mathematics, English, Science and more. Filter by district, lesson mode, price and language to find the right tutor quickly.
             </p>
 
-            {/* Primary row: search + subject + district */}
-            <div className="mt-8 grid gap-3 sm:grid-cols-[1fr_220px_220px]">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  className="pl-9"
-                  placeholder="Search tutor code, subject, keyword…"
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
+            <div className="mt-8 rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-5">
+              <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
+                <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">Find tutor</p>
+              </div>
+
+              <div className="mt-4 grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    className="h-11 rounded-xl pl-9"
+                    placeholder="Search tutor code, subject, keyword…"
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                  />
+                </div>
+                <SearchableSelect
+                  value={search.category ?? ""}
+                  onChange={(v) => setParam({ category: v || undefined })}
+                  options={CATEGORY_OPTIONS}
+                  placeholder="Category"
+                  searchPlaceholder="Search category…"
+                />
+                <SearchableSelect
+                  value={search.subject ?? ""}
+                  onChange={(v) => setParam({ subject: v || undefined })}
+                  options={[{ value: "", label: "Any subject" }, ...subjectOptions.map((s) => ({ value: s, label: s }))]}
+                  placeholder="Subject"
+                  searchPlaceholder="Search subject…"
+                />
+                <SearchableSelect
+                  value={search.mode ?? ""}
+                  onChange={(v) => {
+                    const nextMode = v || undefined;
+                    setParam({
+                      mode: nextMode,
+                      district: nextMode === "in_person" || nextMode === "either" ? search.district : undefined,
+                    });
+                  }}
+                  options={MODE_OPTIONS}
+                  placeholder="Lesson mode"
+                />
+                <SearchableSelect
+                  value={search.gender ?? ""}
+                  onChange={(v) => setParam({ gender: v || undefined })}
+                  options={GENDER_OPTIONS}
+                  placeholder="Gender"
                 />
               </div>
-              <SearchableSelect
-                value={search.subject ?? ""}
-                onChange={(v) => setParam({ subject: v || undefined })}
-                options={[{ value: "", label: "Any subject" }, ...subjectOptions.map((s) => ({ value: s, label: s }))]}
-                placeholder="Any subject"
-                searchPlaceholder="Search subject…"
-              />
-              <SearchableSelect
-                value={search.district ?? ""}
-                onChange={(v) => setParam({ district: v || undefined })}
-                options={[{ value: "", label: "Any district" }, ...HK_DISTRICTS.map((d) => ({ value: d, label: d }))]}
-                placeholder="Any district"
-                searchPlaceholder="Search district…"
-              />
-            </div>
 
-            {/* Secondary row: mode, gender, language, price, sort */}
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-              <SearchableSelect
-                value={search.mode ?? ""}
-                onChange={(v) => setParam({ mode: v || undefined })}
-                options={MODE_OPTIONS}
-                placeholder="Any lesson mode"
-              />
-              <SearchableSelect
-                value={search.gender ?? ""}
-                onChange={(v) => setParam({ gender: v || undefined })}
-                options={GENDER_OPTIONS}
-                placeholder="Any gender"
-              />
-              <SearchableSelect
-                value={languageFilter}
-                onChange={(v) => setLanguageFilter(v)}
-                options={[{ value: "", label: "Any language" }, ...languageOptions.map((l) => ({ value: l, label: l }))]}
-                placeholder="Any language"
-                searchPlaceholder="Search language…"
-              />
-              <SearchableSelect
-                value={maxPrice ? String(maxPrice) : ""}
-                onChange={(v) => setParam({ maxPrice: v ? Number(v) : undefined })}
-                options={[
-                  { value: "", label: "Any price" },
-                  ...priceCaps.map((p) => ({ value: String(p), label: `Up to HK$${p}/hr` })),
-                ]}
-                placeholder="Any price"
-              />
-              <SearchableSelect
-                value={sort}
-                onChange={(v) => setParam({ sort: v || undefined })}
-                options={SORT_OPTIONS}
-                placeholder="Sort by"
-              />
+              {showDistrictFilter && (
+                <div className="mt-3 grid gap-3 sm:grid-cols-1 md:max-w-sm">
+                  <SearchableSelect
+                    value={search.district ?? ""}
+                    onChange={(v) => setParam({ district: v || undefined })}
+                    options={[{ value: "", label: "Any district" }, ...HK_DISTRICTS.map((d) => ({ value: d, label: d }))]}
+                    placeholder="District (for in-person)"
+                    searchPlaceholder="Search district…"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Active chips + result meta */}
             {(activeChips.length > 0 || q) && (
               <div className="mt-5 flex flex-wrap items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
                 {q && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--brand-navy)]/5 px-3 py-1 text-xs font-semibold text-[color:var(--brand-navy)]">
                     “{q}”
