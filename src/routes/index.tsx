@@ -332,9 +332,10 @@ function Landing() {
         </div>
       </section>
 
-      <section className="relative -mt-10 pb-14 md:-mt-14 md:pb-16">
+      {/* FEATURED TUTORS */}
+      <section id="tutors" className="py-20 md:py-28 bg-muted/10">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-[0_12px_30px_rgba(4,19,68,0.08)] sm:p-5">
+          <div className="mb-10 rounded-3xl border border-border bg-card p-4 shadow-[0_12px_30px_rgba(4,19,68,0.08)] sm:p-5 md:mb-12">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
               <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">Explore the tutors MatchMax offers</p>
             </div>
@@ -389,12 +390,7 @@ function Landing() {
               </Button>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* FEATURED TUTORS */}
-      <section id="tutors" className="py-20 md:py-28 bg-muted/10">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="text-5xl md:text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">{t("featured.title")}</h2>
