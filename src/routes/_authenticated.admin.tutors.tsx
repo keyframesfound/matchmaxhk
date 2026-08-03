@@ -449,9 +449,9 @@ function AdminTutors() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-white">
       <SiteHeader />
-      <main className="flex-1">
+      <main className="flex-1 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -466,7 +466,7 @@ function AdminTutors() {
                   <Plus className="mr-2 h-4 w-4" /> Add tutor
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-h-[90vh] overflow-y-auto bg-background sm:max-w-3xl">
+              <DialogContent className="max-h-[90vh] overflow-y-auto bg-white sm:max-w-3xl">
                 <DialogHeader>
                   <DialogTitle>{editing ? "Edit tutor" : "Add tutor"}</DialogTitle>
                 </DialogHeader>
