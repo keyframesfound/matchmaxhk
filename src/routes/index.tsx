@@ -661,7 +661,7 @@ function Landing() {
                               rel="noreferrer"
                               onClick={() => blurActive()}
                             >
-                              Request this tutor
+                              Request tutor
                             </a>
                           </Button>
                         </div>
