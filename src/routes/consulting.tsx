@@ -175,7 +175,7 @@ function ConsultingPage() {
                     ))}
                   </ul>
                   <Button
-                        asChild
+                    asChild
                     className={`mt-auto h-11 rounded-xl text-base font-medium ${tier.featured ? "bg-[color:var(--brand-navy)] text-white hover:bg-[color:var(--brand-royal)]" : "border border-[#cfd3dd] bg-white text-[color:var(--brand-navy)] hover:bg-slate-100"}`}
                     variant={tier.featured ? "default" : "outline"}
                       >
@@ -213,3 +213,4 @@ function ConsultingPage() {
     </div>
   );
 }
+
