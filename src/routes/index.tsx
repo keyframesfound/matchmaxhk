@@ -683,67 +683,97 @@ function Landing() {
             Plan for later
           </p>
 
-          <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1.85fr)_minmax(320px,1fr)]">
-            <article className="consulting-reserve-card rounded-3xl p-7 md:rounded-sm md:p-10">
-              <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,1.12fr)_minmax(260px,1fr)]">
-                <div>
-                  <h2 className="text-[2.35rem] font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] md:text-[2.7rem]">
-                    Get your IAs, EEs, and TOK reviewed by 43+ IB Top Scorers.
-                  </h2>
-                  <p className="mt-5 text-base leading-relaxed text-[color:var(--brand-navy)]/80">
-                    Stop paying ~HK$800/hr just to have someone read your draft live. Our mentors
-                    review offline and leave line-by-line comments with exact amendments, logical
-                    fixes, and formatting corrections.
-                  </p>
-
-                  <div className="mt-7 grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-xl bg-white px-4 py-3 md:rounded-sm">
-                      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                        Service starts from
-                      </p>
-                      <p className="mt-1 text-2xl font-black text-[color:var(--brand-navy)]">HK$499</p>
+          <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
+            <article className="consulting-reserve-card overflow-hidden rounded-3xl md:rounded-sm">
+              <div className="grid min-h-[520px] gap-0 lg:grid-cols-[minmax(0,1.1fr)_minmax(340px,0.9fr)]">
+                <div className="flex flex-col justify-between gap-6 p-7 md:p-10 lg:pr-8">
+                  <div>
+                    <div className="inline-flex rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand-navy)]">
+                      IB consulting, offline review
                     </div>
-                    <div className="rounded-xl bg-white px-4 py-3 md:rounded-sm">
-                      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                        Mentors available
-                      </p>
-                      <p className="mt-1 text-2xl font-black text-[color:var(--brand-navy)]">43+</p>
+                    <h2 className="mt-5 max-w-xl text-[2.1rem] font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] md:text-[2.75rem]">
+                      Get your IAs, EEs, and TOK reviewed by 43+ IB Top Scorers.
+                    </h2>
+                    <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-[1.04rem]">
+                      Stop paying ~HK$800/hr for tutors to sit there reading your draft during a live
+                      lesson. You do not need someone watching you write. You need to know exactly
+                      what to amend and where.
+                    </p>
+
+                    <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
+                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                          Review format
+                        </p>
+                        <p className="mt-1 text-lg font-black text-[color:var(--brand-navy)]">
+                          Offline line-by-line comments
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
+                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                          1-month mentorship
+                        </p>
+                        <p className="mt-1 text-lg font-black text-[color:var(--brand-navy)]">
+                          WhatsApp + draft support
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  <Button
-                    asChild
-                    size="lg"
-                    className="mt-7 h-14 w-full rounded-2xl bg-black px-8 text-lg font-bold text-white hover:bg-black/90 md:h-12 md:w-auto md:rounded-sm md:text-base"
-                  >
-                    <Link to="/consulting">Explore consulting plans</Link>
-                  </Button>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <Button
+                      asChild
+                      size="lg"
+                      className="h-14 w-full rounded-2xl bg-[color:var(--brand-navy)] px-8 text-lg font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-12 md:w-auto md:rounded-sm md:text-base"
+                    >
+                      <Link to="/consulting">Explore consulting plans</Link>
+                    </Button>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-[color:var(--brand-navy)]/80">
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/15 bg-[color:var(--brand-teal)]/10 text-[color:var(--brand-teal)]">
+                        ✨
+                      </span>
+                      Secure a slot with a HK$499 deposit
+                    </div>
+                  </div>
                 </div>
 
-                <div className="consulting-reserve-visual hidden h-full min-h-[300px] rounded-2xl lg:block" />
+                <div className="p-4 pt-0 lg:p-6 lg:pl-0">
+                  <div className="consulting-reserve-visual min-h-[260px] rounded-2xl md:min-h-[340px]" />
+                </div>
               </div>
             </article>
 
-            <aside className="rounded-3xl border border-border bg-card p-6 md:rounded-sm md:p-7">
-              <h3 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-3xl">
+            <aside className="rounded-3xl border border-border bg-card p-6 shadow-[0_10px_24px_rgba(4,19,68,0.04)] md:rounded-sm md:p-7">
+              <h3 className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
                 Benefits
               </h3>
-              <div className="mt-5 divide-y divide-border">
+              <div className="mt-5 divide-y divide-border/80">
                 {[
-                  "Choose your exact feedback track and timeline in advance.",
-                  "Extra review cycles included in mentorship packages.",
-                  "No wasted live class time reading drafts line-by-line.",
-                ].map((item) => (
-                  <div key={item} className="flex gap-3 py-4 first:pt-0 last:pb-0">
-                    <span className="mt-0.5 text-lg leading-none">✦</span>
-                    <p className="text-lg leading-relaxed text-foreground md:text-base">{item}</p>
+                  {
+                    icon: BadgeCheck,
+                    text: "Choose your exact review track and timeline in advance.",
+                  },
+                  {
+                    icon: Clock3,
+                    text: "Extra wait time included to follow up on your draft.",
+                  },
+                  {
+                    icon: BookOpen,
+                    text: "No live lesson time wasted reading drafts line-by-line.",
+                  },
+                ].map(({ icon: Icon, text }) => (
+                  <div key={text} className="flex gap-3 py-4 first:pt-0 last:pb-0 md:py-5">
+                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color:var(--brand-navy)]/6 text-[color:var(--brand-navy)]">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <p className="text-base leading-relaxed text-foreground md:text-[1.05rem]">{text}</p>
                   </div>
                 ))}
               </div>
 
               <div className="mt-6 rounded-xl border border-[color:var(--brand-navy)]/10 bg-[color:var(--brand-navy)]/5 p-4 md:rounded-sm">
                 <p className="text-sm font-semibold text-[color:var(--brand-navy)]">
-                  Proven Results: 6 students achieved Grade A in TOK, and 5 students achieved
+                  Proven results: 6 students achieved Grade A in TOK, and 5 students achieved
                   Grade 7 in Bio/Chem IAs.
                 </p>
               </div>

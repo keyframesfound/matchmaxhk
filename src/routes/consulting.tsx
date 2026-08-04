@@ -64,29 +64,32 @@ function ConsultingPage() {
       <main className="flex-1">
         <section className="hero-startup-bg border-b border-border py-14 sm:py-18">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <p className="text-sm font-bold uppercase tracking-wide text-[color:var(--brand-teal)]">
-              IB Consulting
-            </p>
-            <h1 className="mt-4 max-w-5xl text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
-              Get your IAs, EEs, and TOK reviewed by 43+ IB top scorers at an affordable price.
-            </h1>
-            <p className="mt-5 max-w-4xl text-lg leading-relaxed text-muted-foreground">
-              Stop paying around HK$800/hr for tutors to read your draft during live lessons. You do
-              not need someone watching you write. You need exact amendments and clear action steps.
-            </p>
-            <p className="mt-4 max-w-4xl text-base leading-relaxed text-muted-foreground">
-              Our mentors review your draft offline and leave in-document, line-by-line comments
-              covering logical gaps, formatting issues, and step-by-step corrections. Zero live time
-              wasted.
-            </p>
+            <div className="max-w-5xl rounded-3xl border border-border bg-card/95 p-7 shadow-brand sm:p-10">
+              <p className="text-sm font-bold uppercase tracking-wide text-[color:var(--brand-teal)]">
+                IB Consulting
+              </p>
+              <h1 className="mt-4 text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
+                Get your IAs, EEs, and TOK reviewed by 43+ IB top scorers at an affordable price.
+              </h1>
+              <p className="mt-5 max-w-4xl text-lg leading-relaxed text-muted-foreground">
+                Stop paying around HK$800/hr for tutors to read your draft during live lessons. You
+                do not need someone watching you write. You need exact amendments and clear action
+                steps.
+              </p>
+              <p className="mt-4 max-w-4xl text-base leading-relaxed text-muted-foreground">
+                Our mentors review your draft offline and leave in-document, line-by-line comments
+                covering logical gaps, formatting issues, and step-by-step corrections. Zero live
+                time wasted.
+              </p>
+            </div>
           </div>
         </section>
 
         <section className="py-12">
           <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:grid-cols-2 sm:px-6">
-            <div className="rounded-sm border border-border bg-card p-6">
+            <div className="rounded-3xl border border-[color:var(--brand-teal)]/15 bg-card p-6 shadow-[0_10px_24px_rgba(4,19,68,0.04)]">
               <div className="flex items-center gap-2 text-[color:var(--brand-navy)]">
-                <Trophy className="h-5 w-5" />
+                <Trophy className="h-5 w-5 text-[color:var(--brand-teal)]" />
                 <h2 className="text-2xl font-black tracking-tight">Proven Results</h2>
               </div>
               <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
@@ -101,9 +104,9 @@ function ConsultingPage() {
               </ul>
             </div>
 
-            <div className="rounded-sm border border-border bg-card p-6">
+            <div className="rounded-3xl border border-[color:var(--brand-teal)]/15 bg-card p-6 shadow-[0_10px_24px_rgba(4,19,68,0.04)]">
               <div className="flex items-center gap-2 text-[color:var(--brand-navy)]">
-                <FlaskConical className="h-5 w-5" />
+                <FlaskConical className="h-5 w-5 text-[color:var(--brand-teal)]" />
                 <h2 className="text-2xl font-black tracking-tight">Elite Tutor Guarantee</h2>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
@@ -123,15 +126,20 @@ function ConsultingPage() {
 
             <div className="mt-7 grid gap-5 lg:grid-cols-2">
               {tiers.map((tier) => (
-                <article key={tier.title} className="rounded-sm border border-border bg-card p-6">
+                <article
+                  key={tier.title}
+                  className="rounded-3xl border border-border bg-card p-6 shadow-[0_10px_24px_rgba(4,19,68,0.04)]"
+                >
                   <h3 className="text-xl font-black text-[color:var(--brand-navy)]">{tier.title}</h3>
                   <p className="mt-3 text-sm text-muted-foreground">
                     <span className="font-semibold text-foreground">Best for:</span> {tier.bestFor}
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">{tier.details}</p>
-                  <p className="mt-4 text-sm font-semibold text-[color:var(--brand-navy)]">{tier.pricing}</p>
+                  <p className="mt-4 text-sm font-semibold text-[color:var(--brand-navy)]">
+                    {tier.pricing}
+                  </p>
                   {tier.note ? (
-                    <p className="mt-3 rounded-sm border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--brand-navy)]">
+                    <p className="mt-3 rounded-xl border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--brand-navy)]">
                       {tier.note}
                     </p>
                   ) : null}
@@ -140,7 +148,10 @@ function ConsultingPage() {
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]">
+              <Button
+                asChild
+                className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+              >
                 <Link to="/auth">
                   Start with MatchMax
                   <ArrowRight className="ml-2 h-4 w-4" />
