@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, FlaskConical, Trophy } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/consulting")({
   head: () => ({
@@ -83,7 +85,33 @@ const tiers = [
   },
 ];
 
+function buildTierWhatsAppUrl(
+  whatsappNumber: string | undefined,
+  tierTitle: string,
+  planName: string,
+) {
+  const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
+  if (!digits) return "";
+
+  const message = `Hi MatchMax, I am interested in ${tierTitle} (${planName}) from the consulting page. Could you share the next steps?`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
+
 function ConsultingPage() {
+  const { data: whatsappNumber = "" } = useQuery({
+    queryKey: ["settings", "whatsapp_number"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "whatsapp_number")
+        .maybeSingle();
+      if (error) throw error;
+      const v = data?.value;
+      return typeof v === "string" ? v : "";
+    },
+  });
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
@@ -112,7 +140,7 @@ function ConsultingPage() {
 
         <section className="py-12">
           <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:grid-cols-2 sm:px-6">
-            <div className="rounded-3xl border border-[color:var(--brand-teal)]/15 bg-card p-6 shadow-[0_10px_24px_rgba(4,19,68,0.04)]">
+            <div className="rounded-sm border border-[color:var(--brand-teal)]/20 bg-card p-6 shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]">
               <div className="flex items-center gap-2 text-[color:var(--brand-navy)]">
                 <Trophy className="h-5 w-5 text-[color:var(--brand-teal)]" />
                 <h2 className="text-2xl font-black tracking-tight">Proven Results</h2>
@@ -129,7 +157,7 @@ function ConsultingPage() {
               </ul>
             </div>
 
-            <div className="rounded-3xl border border-[color:var(--brand-teal)]/15 bg-card p-6 shadow-[0_10px_24px_rgba(4,19,68,0.04)]">
+            <div className="rounded-sm border border-[color:var(--brand-teal)]/20 bg-card p-6 shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]">
               <div className="flex items-center gap-2 text-[color:var(--brand-navy)]">
                 <FlaskConical className="h-5 w-5 text-[color:var(--brand-teal)]" />
                 <h2 className="text-2xl font-black tracking-tight">Elite Tutor Guarantee</h2>
@@ -151,44 +179,77 @@ function ConsultingPage() {
 
             <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {tiers.map((tier) => (
-                <article
-                  key={tier.title}
-                  className="flex h-full flex-col rounded-2xl border border-[#d6d9e2] bg-white p-5 shadow-[0_8px_18px_rgba(4,19,68,0.06)]"
-                >
-                  <h3 className="text-3xl font-black leading-none text-[color:var(--brand-navy)]">
-                    {tier.title}
-                  </h3>
-                  <p className="mt-1.5 text-lg font-semibold text-foreground">{tier.planName}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{tier.subtitle}</p>
+                (() => {
+                  const whatsappUrl = buildTierWhatsAppUrl(
+                    whatsappNumber,
+                    tier.title,
+                    tier.planName,
+                  );
 
-                  <div className="mt-5 flex items-end gap-1.5 text-[color:var(--brand-navy)]">
-                    <span className="text-5xl font-black leading-none">{tier.price}</span>
-                    <span className="pb-1 text-lg font-medium text-muted-foreground">{tier.cadence}</span>
-                  </div>
+                  return (
+                    <article
+                      key={tier.title}
+                      className="group flex h-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]"
+                    >
+                      <div className="bg-[color:var(--brand-teal)]/8 p-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[color:var(--brand-teal)]">
+                              {tier.title}
+                            </p>
+                            <h3 className="mt-1 text-2xl font-black leading-none text-[color:var(--brand-navy)]">
+                              {tier.planName}
+                            </h3>
+                          </div>
+                          {tier.featured ? (
+                            <span className="rounded-full bg-[color:var(--brand-navy)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                              Popular
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="mt-2 text-sm text-muted-foreground">{tier.subtitle}</p>
+                      </div>
 
-                  <ul className="mt-5 space-y-2.5 text-sm text-foreground">
-                    {tier.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2">
-                        <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#6c7078]" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    asChild
-                    className={`mt-auto h-11 rounded-xl text-base font-medium ${tier.featured ? "bg-[color:var(--brand-navy)] text-white hover:bg-[color:var(--brand-royal)]" : "border border-[#cfd3dd] bg-white text-[color:var(--brand-navy)] hover:bg-slate-100"}`}
-                    variant={tier.featured ? "default" : "outline"}
-                      >
-                        <a
-                          href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(event) => event.stopPropagation()}
-                        >
-                          Contact MatchMax
-                        </a>
-                  </Button>
-                </article>
+                      <div className="flex flex-1 flex-col p-5">
+                        <div className="flex items-end gap-1.5 text-[color:var(--brand-navy)]">
+                          <span className="text-5xl font-black leading-none">{tier.price}</span>
+                          <span className="pb-1 text-lg font-medium text-muted-foreground">{tier.cadence}</span>
+                        </div>
+
+                        <ul className="mt-5 space-y-2.5 text-sm text-foreground">
+                          {tier.features.map((feature) => (
+                            <li key={feature} className="flex items-start gap-2">
+                              <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-teal)]" />
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="border-t border-border bg-[color:var(--brand-teal)]/5 px-4 py-3">
+                        {whatsappUrl ? (
+                          <Button
+                            asChild
+                            className={`h-11 w-full rounded-sm text-base font-medium ${tier.featured ? "bg-[color:var(--brand-navy)] text-white hover:bg-[color:var(--brand-royal)]" : "border border-[color:var(--brand-teal)]/20 bg-white text-[color:var(--brand-navy)] hover:bg-slate-100"}`}
+                            variant={tier.featured ? "default" : "outline"}
+                          >
+                            <a href={whatsappUrl} target="_blank" rel="noreferrer">
+                              Contact WhatsApp
+                            </a>
+                          </Button>
+                        ) : (
+                          <Button
+                            disabled
+                            className="h-11 w-full rounded-sm text-base font-medium"
+                            variant="outline"
+                          >
+                            WhatsApp unavailable
+                          </Button>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })()
               ))}
             </div>
 

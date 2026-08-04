@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, BookOpen, Clock3, MessageCircle, Search } from "lucide-react";
+import { ArrowRight, BadgeCheck, BookOpen, Clock3, MapPin, MessageCircle, Search } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -564,7 +564,7 @@ function Landing() {
                       className="flex basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
                     >
                       <article
-                        className="flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]"
+                        className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-[color:var(--brand-teal)]/18 bg-white shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(4,19,68,0.12)]"
                         role="link"
                         tabIndex={0}
                         onClick={() => openTutorDetail(tut.tutor_code)}
@@ -575,48 +575,59 @@ function Landing() {
                           }
                         }}
                       >
-                        <div className="bg-[color:var(--brand-teal)]/8 p-4">
-                          <div className="flex items-center gap-3">
+                        <div className="border-b border-[color:var(--brand-teal)]/12 bg-[linear-gradient(145deg,rgba(46,213,222,0.16),rgba(46,213,222,0.06))] px-4 py-4">
+                          <div className="flex items-center gap-3.5">
                             {tut.photo_url ? (
                               <img
                                 src={tut.photo_url}
                                 alt="Tutor"
                                 loading="lazy"
-                                className="h-16 w-16 shrink-0 rounded-full border-2 border-[color:var(--brand-teal)] object-cover"
+                                className="h-14 w-14 shrink-0 rounded-full border-2 border-white object-cover shadow-sm"
                               />
                             ) : (
-                              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-[color:var(--brand-teal)] bg-white text-lg font-bold text-[color:var(--brand-teal)]">
+                              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-white text-base font-bold text-[color:var(--brand-teal)] shadow-sm">
                                 {tut.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
                               </div>
                             )}
-                            <div className="min-w-0">
-                              <p className="text-xl font-black text-[color:var(--brand-navy)]">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-lg font-black text-[color:var(--brand-navy)]">
                                 {formatTutorCode(tut.tutor_code)}
                                 {getTutorGenderLabel(tut.gender)
                                   ? ` · ${getTutorGenderLabel(tut.gender)}`
                                   : ""}
                               </p>
-                              <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <p className="mt-1 inline-flex max-w-full items-center gap-1.5 truncate text-xs text-muted-foreground">
                                 <BadgeCheck className="h-4 w-4 text-[color:var(--brand-teal)]" />
                                 {tut.university ?? tut.highschool ?? "Education details"}
                               </p>
                             </div>
                           </div>
+
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--brand-teal)]/25 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-[color:var(--brand-navy)]">
+                              <BookOpen className="h-3.5 w-3.5 text-[color:var(--brand-teal)]" />
+                              {getTutorLessonModeLabel(tut.lesson_mode)}
+                            </span>
+                            <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--brand-teal)]/25 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-[color:var(--brand-navy)]">
+                              <MapPin className="h-3.5 w-3.5 text-[color:var(--brand-teal)]" />
+                              {tut.district || "Hong Kong"}
+                            </span>
+                          </div>
                         </div>
 
                         <div className="flex flex-1 flex-col space-y-4 p-4">
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-1.5">
                             {tut.subjects.slice(0, 3).map((subject) => (
                               <span
                                 key={subject}
-                                className="rounded-sm bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
+                                className="rounded-full bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] font-semibold text-[color:var(--brand-navy)]"
                               >
                                 {subject}
                               </span>
                             ))}
                           </div>
 
-                          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                          <p className="line-clamp-3 min-h-[3.9rem] text-sm leading-relaxed text-muted-foreground">
                             {tut.headline ??
                               tut.bio ??
                               "Experienced tutor profile with subject-specific support."}
@@ -624,44 +635,48 @@ function Landing() {
 
                           <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
                             <div>
-                              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                                Lesson Mode
-                              </p>
-                              <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
-                                <BookOpen className="h-4 w-4 text-[color:var(--brand-teal)]" />
-                                {getTutorLessonModeLabel(tut.lesson_mode)}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                                Tutoring Experience
+                              <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                                Experience
                               </p>
                               <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
                                 <Clock3 className="h-4 w-4 text-[color:var(--brand-teal)]" />
                                 {tut.experience_years ? `${tut.experience_years} years` : "N/A"}
                               </p>
                             </div>
+                            <div>
+                              <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                                Format
+                              </p>
+                              <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
+                                <BookOpen className="h-4 w-4 text-[color:var(--brand-teal)]" />
+                                1-to-1 support
+                              </p>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between border-t border-border bg-white px-4 py-3">
-                          <p className="text-2xl font-black text-[color:var(--brand-navy)]">
+                        <div className="flex items-center justify-between border-t border-border/90 bg-[color:var(--brand-navy)]/[0.02] px-4 py-3.5">
+                          <p className="text-xl font-black text-[color:var(--brand-navy)]">
                             HK${tut.hourly_rate}
-                            <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                            <span className="ml-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                               / hour
                             </span>
                           </p>
                           <Button
                             asChild
-                            className="rounded-sm bg-[color:var(--brand-teal)] px-4 font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                            className="h-9 rounded-full bg-[color:var(--brand-teal)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)]"
                           >
                             <a
                               href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
                               target="_blank"
                               rel="noreferrer"
-                              onClick={() => blurActive()}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                blurActive();
+                              }}
                             >
-                              Request tutor
+                              <MessageCircle className="mr-1.5 h-4 w-4" />
+                              WhatsApp
                             </a>
                           </Button>
                         </div>
