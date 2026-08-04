@@ -285,3 +285,59 @@
 @utility shadow-teal {
   box-shadow: var(--shadow-teal);
 }
+
+@layer utilities {
+  .landing-tutor-visual {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .landing-tutor-visual::before,
+  .landing-tutor-visual::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .landing-tutor-visual--dots {
+    background-color: #eceef0;
+    background-image:
+      radial-gradient(circle at 22% 32%, rgba(143, 210, 198, 0.62) 0 1.25px, transparent 1.4px),
+      radial-gradient(circle at 76% 26%, rgba(131, 204, 191, 0.66) 0 1.1px, transparent 1.35px),
+      radial-gradient(circle at 45% 74%, rgba(137, 208, 195, 0.6) 0 1.15px, transparent 1.35px),
+      linear-gradient(150deg, rgba(255, 255, 255, 0.5) 18%, rgba(235, 239, 240, 0.82) 52%, rgba(231, 236, 238, 0.94) 100%);
+    background-size: 7px 7px, 8px 8px, 9px 9px, 100% 100%;
+    background-position: 0 0, 2px 5px, 4px 2px, 0 0;
+  }
+
+  .landing-tutor-visual--dots::after {
+    background:
+      linear-gradient(140deg, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0) 38%),
+      radial-gradient(circle at 72% 24%, rgba(128, 201, 188, 0.22), transparent 46%);
+    mix-blend-mode: soft-light;
+  }
+
+  .landing-tutor-visual--aurora {
+    background:
+      radial-gradient(130% 95% at 6% 14%, rgba(244, 167, 219, 0.9) 0%, rgba(244, 167, 219, 0) 36%),
+      radial-gradient(96% 82% at 94% 14%, rgba(161, 231, 218, 0.88) 0%, rgba(161, 231, 218, 0) 52%),
+      radial-gradient(108% 94% at 18% 88%, rgba(2, 143, 104, 0.88) 0%, rgba(2, 143, 104, 0.08) 55%),
+      linear-gradient(142deg, #f6f7f5 0%, #d5dfda 56%, #cfd6cf 100%);
+  }
+
+  .landing-tutor-visual--aurora::after {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.22) 0.7px, transparent 1px);
+    background-size: 2.5px 2.5px;
+    opacity: 0.85;
+  }
+
+  @media (min-width: 768px) {
+    .landing-tutor-visual {
+      border-radius: 0.75rem;
+    }
+  }
+}

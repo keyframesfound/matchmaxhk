@@ -26,8 +26,9 @@
   "how": {
     "title": "點樣使用 MatchMax",
     "subtitle": "三個簡單步驟，輕鬆開始補習",
-    "step1_title": "揀導師",
-    "step1_desc": "瀏覽導師資料，按科目同程度搵到最適合你嘅導師",
+    "step1_title": "想搵導師？",
+    "step1_desc": "由 HKDSE 到 IBDP，MatchMax 都幫到你。我哋集合全港高分導師，按科目、授課模式等條件，快速揀到合適導師。",
+    "cta_find": "搵導師",
     "step2_title": "聯絡我哋",
     "step2_desc": "將導師編號經 WhatsApp 發俾我哋，其餘安排交俾我哋跟進",
     "step3_title": "開始上堂",
@@ -76,9 +77,9 @@
     "view_all": "瀏覽全部科目"
   },
   "tutors_cta": {
-    "title": "想成為補習導師？",
-    "subtitle": "加入 MatchMax，自由設定收費，獲得真實可靠嘅補習配對",
-    "cta": "立即加入導師"
+    "title": "你專心教學，我哋負責配對。",
+    "subtitle": "MatchMax 為導師提供高質素平台搵學生。你專注教學，我哋幫你持續配對合適學生。",
+    "cta": "加入成為導師"
   },
   "testimonials": {
     "title": "香港家長一致推薦",

@@ -677,67 +677,47 @@ function Landing() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section id="how" className="py-20 md:py-28">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-5xl md:text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
-              {t("how.title")}
-            </h2>
-          </div>
-          <div className="mt-16 grid gap-8 md:gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((n) => (
-              <div
-                key={n}
-                className="group relative overflow-hidden rounded-3xl md:rounded-sm border border-border/80 bg-card/95 p-10 md:p-8 shadow-[0_10px_24px_rgba(4,19,68,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--brand-teal)]/45 hover:shadow-brand"
-              >
-                <div
-                  className="relative mb-8 md:mb-6 flex h-16 w-16 md:h-14 md:w-14 items-center justify-center rounded-2xl md:rounded-md bg-brand-gradient text-3xl md:text-2xl font-black text-white shadow-teal"
-                  aria-hidden="true"
-                >
-                  {n}
-                </div>
-                <h3 className="text-3xl md:text-xl font-black md:font-bold text-foreground">
-                  {t(`how.step${n}_title`)}
-                </h3>
-                <p className="mt-4 md:mt-3 text-lg md:text-sm leading-relaxed text-muted-foreground font-medium md:font-normal">
-                  {t(`how.step${n}_desc`)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA BANNER */}
-      <section className="pb-20 md:pb-28 pt-10 md:pt-0">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="relative overflow-hidden rounded-3xl md:rounded-sm bg-[color:var(--brand-navy)] p-10 sm:p-14">
-            <div
-              aria-hidden
-              className="absolute inset-0 opacity-40"
-              style={{
-                background: "radial-gradient(ellipse at top right, #2ED5DE 0%, transparent 60%)",
-              }}
-            />
-            <div className="relative flex flex-col items-start justify-between gap-8 md:gap-6 sm:flex-row sm:items-center">
-              <div className="max-w-xl">
-                <h3 className="text-4xl md:text-3xl font-black text-white sm:text-4xl">
-                  {t("tutors_cta.title")}
-                </h3>
-                <p className="mt-4 md:mt-3 text-lg md:text-base font-medium md:font-normal text-white/80">
-                  {t("tutors_cta.subtitle")}
-                </p>
-              </div>
+      {/* FINDING A TUTOR / TUTOR CTA */}
+      <section id="how" className="py-18 md:py-24">
+        <div className="mx-auto max-w-7xl space-y-14 px-6 md:space-y-12 md:px-6">
+          <div className="grid items-center gap-10 md:gap-12 lg:grid-cols-2">
+            <div className="order-2 lg:order-1">
+              <h2 className="text-5xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
+                {t("how.step1_title")}
+              </h2>
+              <p className="mt-4 max-w-xl text-2xl font-medium leading-relaxed text-muted-foreground md:text-lg md:font-normal">
+                {t("how.step1_desc")}
+              </p>
               <Button
                 asChild
                 size="lg"
-                className="h-16 md:h-14 w-full md:w-auto rounded-2xl md:rounded-md bg-white px-8 text-lg md:text-base font-bold text-[color:var(--brand-navy)] hover:bg-white/90"
+                className="mt-8 h-16 w-full rounded-2xl bg-[color:var(--brand-navy)] px-8 text-xl font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-12 md:w-auto md:rounded-md md:text-base"
               >
-                <Link to="/become-a-tutor">
-                  {t("tutors_cta.cta")}
-                  <ArrowRight className="ml-2 h-6 w-6 md:h-5 md:w-5" />
-                </Link>
+                <Link to="/tutors">{t("how.cta_find")}</Link>
+              </Button>
+            </div>
+            <div className="order-1 lg:order-2">
+              <div className="landing-tutor-visual landing-tutor-visual--dots" aria-hidden="true" />
+            </div>
+          </div>
+
+          <div className="grid items-center gap-10 md:gap-12 lg:grid-cols-2">
+            <div>
+              <div className="landing-tutor-visual landing-tutor-visual--aurora" aria-hidden="true" />
+            </div>
+            <div>
+              <h3 className="text-5xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
+                {t("tutors_cta.title")}
+              </h3>
+              <p className="mt-4 max-w-xl text-2xl font-medium leading-relaxed text-muted-foreground md:text-lg md:font-normal">
+                {t("tutors_cta.subtitle")}
+              </p>
+              <Button
+                asChild
+                size="lg"
+                className="mt-8 h-16 w-full rounded-2xl bg-[color:var(--brand-navy)] px-8 text-xl font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-12 md:w-auto md:rounded-md md:text-base"
+              >
+                <Link to="/become-a-tutor">{t("tutors_cta.cta")}</Link>
               </Button>
             </div>
           </div>
