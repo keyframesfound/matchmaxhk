@@ -680,7 +680,7 @@ function Landing() {
       <section className="pb-18 md:pb-22">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <p className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
-            Plan for later
+            Book for later
           </p>
 
           <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
