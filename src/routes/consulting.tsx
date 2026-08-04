@@ -29,33 +29,54 @@ export const Route = createFileRoute("/consulting")({
 
 const tiers = [
   {
-    title: "Tier 1: Core Review (1-Time Deep Audit)",
-    bestFor: "Quick final sanity check on full or partial drafts.",
-    details:
-      "Line-by-line audit + predicted rubric scorecard + post-marking WhatsApp Q&A.",
-    pricing: "IA/TOK: HK$499 (~US$64) | EE: HK$599 (~US$77)",
+    title: "Tier 1",
+    subtitle: "For quick final draft checks",
+    planName: "Core Review",
+    price: "HK$499",
+    cadence: "starting price",
+    features: [
+      "IA/TOK: HK$499 (~US$64)",
+      "EE: HK$599 (~US$77)",
+      "Line-by-line audit + rubric scorecard",
+      "Post-marking WhatsApp Q&A",
+    ],
   },
   {
-    title: "Tier 2: Consult Lesson",
-    bestFor: "Fixing RQs, outlines, or specific section roadblocks.",
-    details: "Offline pre-read + 1-hour interactive Zoom call.",
-    pricing: "IA/TOK: HK$499 (~US$64) | EE: HK$599 (~US$77)",
+    title: "Tier 2",
+    subtitle: "For section-level roadblocks",
+    planName: "Consult Lesson",
+    price: "HK$499",
+    cadence: "starting price",
+    features: [
+      "IA/TOK: HK$499 (~US$64)",
+      "EE: HK$599 (~US$77)",
+      "Offline pre-read",
+      "1-hour interactive Zoom call",
+    ],
+    featured: true,
   },
   {
-    title: "Tier 3: Progress Review & Mentorship (1 Month)",
-    bestFor: "Step-by-step guidance as you write over 30 days.",
-    details:
-      "1 month of section-by-section reviews + ongoing WhatsApp text and voice access.",
-    pricing: "IA/TOK: HK$1,799/mo (~US$230) | EE: HK$2,399/mo (~US$307)",
-  },
-  {
-    title: "Tier 4: Full-Cycle Package (Blank Page to Submission)",
-    bestFor: "Complete end-to-end guidance from topic choice to final draft.",
-    details: "2x Consult Lessons + 1 Month Mentorship + 1x Final Core Review.",
-    pricing: "IA/TOK: HK$2,499 (~US$320) | EE: HK$2,999 (~US$384)",
-    note: "Secure your spot with a HK$499 (~US$64) deposit upfront.",
+    title: "Tier 3",
+    subtitle: "For guided 30-day progress",
+    planName: "Progress Review & Mentorship",
+    price: "HK$1,799",
+    cadence: "/ month",
+    features: [
+      "IA/TOK: HK$1,799/mo (~US$230)",
+      "EE: HK$2,399/mo (~US$307)",
+      "Section-by-section reviews",
+      "WhatsApp text + voice support",
+    ],
   },
 ];
+
+const fullCycleTier = {
+  title: "Tier 4: Full-Cycle Package (Blank Page to Submission)",
+  bestFor: "Complete end-to-end guidance from topic choice to final draft.",
+  details: "2x Consult Lessons + 1 Month Mentorship + 1x Final Core Review.",
+  pricing: "IA/TOK: HK$2,499 (~US$320) | EE: HK$2,999 (~US$384)",
+  note: "Secure your spot with a HK$499 (~US$64) deposit upfront.",
+};
 
 function ConsultingPage() {
   return (
@@ -74,8 +95,8 @@ function ConsultingPage() {
                     Get your IAs, EEs, and TOK reviewed by 43+ IB top scorers at an affordable price.
                   </h1>
                   <p className="mt-4 max-w-4xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                    Stop paying around HK$800/hr for tutors to read your draft during live lessons.
-                    You do not need someone watching you write. You need exact amendments and clear
+                    Stop overpaying for tutors to read your draft during lesson time.
+                    You don't need someone watching you write. You need exact amendments and clear
                     action steps.
                   </p>
                 </div>
@@ -123,28 +144,58 @@ function ConsultingPage() {
               Service Tiers and Pricing
             </h2>
 
-            <div className="mt-7 grid gap-5 lg:grid-cols-2">
-              {tiers.map((tier) => (
-                <article
-                  key={tier.title}
-                  className="rounded-3xl border border-border bg-card p-6 shadow-[0_10px_24px_rgba(4,19,68,0.04)]"
-                >
-                  <h3 className="text-xl font-black text-[color:var(--brand-navy)]">{tier.title}</h3>
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    <span className="font-semibold text-foreground">Best for:</span> {tier.bestFor}
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">{tier.details}</p>
-                  <p className="mt-4 text-sm font-semibold text-[color:var(--brand-navy)]">
-                    {tier.pricing}
-                  </p>
-                  {tier.note ? (
-                    <p className="mt-3 rounded-xl border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--brand-navy)]">
-                      {tier.note}
-                    </p>
-                  ) : null}
-                </article>
-              ))}
+            <div className="mt-7 rounded-3xl bg-[#161616] p-4 sm:p-5">
+              <div className="grid gap-4 lg:grid-cols-3">
+                {tiers.map((tier) => (
+                  <article
+                    key={tier.title}
+                    className="flex h-full flex-col rounded-3xl border border-[#d6d9e2] bg-white p-6 shadow-[0_10px_24px_rgba(4,19,68,0.08)]"
+                  >
+                    <h3 className="text-4xl font-black leading-none text-[color:var(--brand-navy)]">
+                      {tier.title}
+                    </h3>
+                    <p className="mt-2 text-xl font-semibold text-foreground">{tier.planName}</p>
+                    <p className="mt-1 text-base text-muted-foreground">{tier.subtitle}</p>
+
+                    <div className="mt-7 flex items-end gap-2 text-[color:var(--brand-navy)]">
+                      <span className="text-6xl font-black leading-none">{tier.price}</span>
+                      <span className="pb-1 text-2xl font-medium text-muted-foreground">{tier.cadence}</span>
+                    </div>
+
+                    <ul className="mt-8 space-y-3 text-lg text-foreground">
+                      {tier.features.map((feature) => (
+                        <li key={feature} className="flex items-start gap-2">
+                          <BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#6c7078]" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Button
+                      asChild
+                      className={`mt-auto h-14 rounded-2xl text-2xl font-medium ${tier.featured ? "bg-[color:var(--brand-navy)] text-white hover:bg-[color:var(--brand-royal)]" : "border border-[#cfd3dd] bg-white text-[color:var(--brand-navy)] hover:bg-slate-100"}`}
+                      variant={tier.featured ? "default" : "outline"}
+                    >
+                      <Link to="/auth">Contact MatchMax</Link>
+                    </Button>
+                  </article>
+                ))}
+              </div>
             </div>
+
+            <article className="mt-6 rounded-3xl border border-border bg-card p-6 shadow-[0_10px_24px_rgba(4,19,68,0.04)]">
+              <h3 className="text-xl font-black text-[color:var(--brand-navy)]">{fullCycleTier.title}</h3>
+              <p className="mt-3 text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">Best for:</span> {fullCycleTier.bestFor}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">{fullCycleTier.details}</p>
+              <p className="mt-4 text-sm font-semibold text-[color:var(--brand-navy)]">
+                {fullCycleTier.pricing}
+              </p>
+              <p className="mt-3 rounded-xl border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--brand-navy)]">
+                {fullCycleTier.note}
+              </p>
+            </article>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
