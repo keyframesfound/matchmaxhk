@@ -252,21 +252,6 @@ function ConsultingPage() {
                 })()
               ))}
             </div>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button
-                asChild
-                className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
-              >
-                <Link to="/auth">
-                  Start with MatchMax
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="font-bold">
-                <Link to="/tutors">Browse tutors</Link>
-              </Button>
-            </div>
           </div>
         </section>
       </main>
