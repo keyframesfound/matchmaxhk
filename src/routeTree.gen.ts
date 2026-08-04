@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
+import { Route as ConsultingRouteImport } from './routes/consulting'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedMyCasesRouteImport } from './routes/_authenticated.my-cases'
@@ -47,6 +48,11 @@ const AuthRoute = AuthRouteImport.update({
 const BecomeATutorRoute = BecomeATutorRouteImport.update({
   id: '/become-a-tutor',
   path: '/become-a-tutor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsultingRoute = ConsultingRouteImport.update({
+  id: '/consulting',
+  path: '/consulting',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
+  '/consulting': typeof ConsultingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-cases': typeof AuthenticatedMyCasesRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
+  '/consulting': typeof ConsultingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-cases': typeof AuthenticatedMyCasesRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
+  '/consulting': typeof ConsultingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/my-cases': typeof AuthenticatedMyCasesRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/become-a-tutor'
+    | '/consulting'
     | '/sitemap.xml'
     | '/dashboard'
     | '/my-cases'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/become-a-tutor'
+    | '/consulting'
     | '/sitemap.xml'
     | '/dashboard'
     | '/my-cases'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/become-a-tutor'
+    | '/consulting'
     | '/sitemap.xml'
     | '/_authenticated/dashboard'
     | '/_authenticated/my-cases'
@@ -272,6 +284,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
+  ConsultingRoute: typeof ConsultingRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
@@ -308,6 +321,13 @@ declare module '@tanstack/react-router' {
       path: '/become-a-tutor'
       fullPath: '/become-a-tutor'
       preLoaderRoute: typeof BecomeATutorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consulting': {
+      id: '/consulting'
+      path: '/consulting'
+      fullPath: '/consulting'
+      preLoaderRoute: typeof ConsultingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -472,6 +492,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
+  ConsultingRoute: ConsultingRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
   TutorsIndexRoute: TutorsIndexRoute,

@@ -677,6 +677,88 @@ function Landing() {
         </div>
       </section>
 
+      <section className="pb-18 md:pb-22">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
+          <p className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
+            Plan for later
+          </p>
+
+          <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1.85fr)_minmax(320px,1fr)]">
+            <article className="consulting-reserve-card rounded-3xl p-7 md:rounded-sm md:p-10">
+              <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,1.12fr)_minmax(260px,1fr)]">
+                <div>
+                  <h2 className="text-[2.35rem] font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] md:text-[2.7rem]">
+                    Get your IAs, EEs, and TOK reviewed by 43+ IB Top Scorers.
+                  </h2>
+                  <p className="mt-5 text-base leading-relaxed text-[color:var(--brand-navy)]/80">
+                    Stop paying ~HK$800/hr just to have someone read your draft live. Our mentors
+                    review offline and leave line-by-line comments with exact amendments, logical
+                    fixes, and formatting corrections.
+                  </p>
+
+                  <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl bg-white px-4 py-3 md:rounded-sm">
+                      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                        Service starts from
+                      </p>
+                      <p className="mt-1 text-2xl font-black text-[color:var(--brand-navy)]">HK$499</p>
+                    </div>
+                    <div className="rounded-xl bg-white px-4 py-3 md:rounded-sm">
+                      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                        Mentors available
+                      </p>
+                      <p className="mt-1 text-2xl font-black text-[color:var(--brand-navy)]">43+</p>
+                    </div>
+                  </div>
+
+                  <Button
+                    asChild
+                    size="lg"
+                    className="mt-7 h-14 w-full rounded-2xl bg-black px-8 text-lg font-bold text-white hover:bg-black/90 md:h-12 md:w-auto md:rounded-sm md:text-base"
+                  >
+                    <Link to="/consulting">Explore consulting plans</Link>
+                  </Button>
+                </div>
+
+                <div className="consulting-reserve-visual hidden h-full min-h-[300px] rounded-2xl lg:block" />
+              </div>
+            </article>
+
+            <aside className="rounded-3xl border border-border bg-card p-6 md:rounded-sm md:p-7">
+              <h3 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-3xl">
+                Benefits
+              </h3>
+              <div className="mt-5 divide-y divide-border">
+                {[
+                  "Choose your exact feedback track and timeline in advance.",
+                  "Extra review cycles included in mentorship packages.",
+                  "No wasted live class time reading drafts line-by-line.",
+                ].map((item) => (
+                  <div key={item} className="flex gap-3 py-4 first:pt-0 last:pb-0">
+                    <span className="mt-0.5 text-lg leading-none">✦</span>
+                    <p className="text-lg leading-relaxed text-foreground md:text-base">{item}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 rounded-xl border border-[color:var(--brand-navy)]/10 bg-[color:var(--brand-navy)]/5 p-4 md:rounded-sm">
+                <p className="text-sm font-semibold text-[color:var(--brand-navy)]">
+                  Proven Results: 6 students achieved Grade A in TOK, and 5 students achieved
+                  Grade 7 in Bio/Chem IAs.
+                </p>
+              </div>
+
+              <Link
+                to="/consulting"
+                className="mt-5 inline-flex text-base font-semibold text-[color:var(--brand-navy)] underline decoration-dotted underline-offset-4"
+              >
+                See full tier details
+              </Link>
+            </aside>
+          </div>
+        </div>
+      </section>
+
       {/* FINDING A TUTOR / TUTOR CTA */}
       <section id="how" className="py-18 md:py-24">
         <div className="mx-auto max-w-7xl space-y-14 px-6 md:space-y-12 md:px-6">
