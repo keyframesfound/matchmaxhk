@@ -48,7 +48,7 @@ const tiers = [
     subtitle: "For section-level roadblocks",
     planName: "Consult",
     price: "HK$499",
-    cadence: "Per",
+    cadence: "+",
     features: [
       "IA/TOK: HK$499 (~US$64)",
       "EE: HK$599 (~US$77)",
@@ -62,7 +62,7 @@ const tiers = [
     subtitle: "For guided 30-day progress",
     planName: "Review & Mentorship",
     price: "HK$1,799",
-    cadence: "/ mo",
+    cadence: "+",
     features: [
       "IA/TOK: HK$1,799/mo (~US$230)",
       "EE: HK$2,399/mo (~US$307)",
@@ -75,7 +75,7 @@ const tiers = [
     subtitle: "For full start-to-submit support",
     planName: "Full-Cycle Package",
     price: "HK$2,499",
-    cadence: "",
+    cadence: "+",
     features: [
       "IA/TOK: HK$2,499 (~US$320)",
       "EE: HK$2,999 (~US$384)",

@@ -338,20 +338,8 @@ function TutorsDirectory() {
               </div>
             </div>
 
-            {(activeChips.length > 0 || draft.q) && (
+            {activeChips.length > 0 && (
               <div className="mt-5 flex flex-wrap items-center gap-2">
-                {draft.q && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--brand-navy)]/5 px-3 py-1 text-xs font-semibold text-[color:var(--brand-navy)]">
-                    “{draft.q}”
-                    <button
-                      aria-label="Clear search"
-                      onClick={() => setDraftParam({ q: undefined })}
-                      className="rounded-full p-0.5 hover:bg-[color:var(--brand-navy)]/10"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                )}
                 {activeChips.map((c) => (
                   <span
                     key={c.key}
