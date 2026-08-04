@@ -68,15 +68,20 @@ const tiers = [
       "WhatsApp text + voice support",
     ],
   },
+  {
+    title: "Tier 4",
+    subtitle: "For full start-to-submit support",
+    planName: "Full-Cycle Package",
+    price: "HK$2,499",
+    cadence: "starting price",
+    features: [
+      "IA/TOK: HK$2,499 (~US$320)",
+      "EE: HK$2,999 (~US$384)",
+      "2x Consult Lessons + 1-Month Mentorship",
+      "Deposit: HK$499 (~US$64)",
+    ],
+  },
 ];
-
-const fullCycleTier = {
-  title: "Tier 4: Full-Cycle Package (Blank Page to Submission)",
-  bestFor: "Complete end-to-end guidance from topic choice to final draft.",
-  details: "2x Consult Lessons + 1 Month Mentorship + 1x Final Core Review.",
-  pricing: "IA/TOK: HK$2,499 (~US$320) | EE: HK$2,999 (~US$384)",
-  note: "Secure your spot with a HK$499 (~US$64) deposit upfront.",
-};
 
 function ConsultingPage() {
   return (
@@ -144,58 +149,42 @@ function ConsultingPage() {
               Service Tiers and Pricing
             </h2>
 
-            <div className="mt-7 rounded-3xl bg-[#161616] p-4 sm:p-5">
-              <div className="grid gap-4 lg:grid-cols-3">
-                {tiers.map((tier) => (
-                  <article
-                    key={tier.title}
-                    className="flex h-full flex-col rounded-3xl border border-[#d6d9e2] bg-white p-6 shadow-[0_10px_24px_rgba(4,19,68,0.08)]"
+            <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {tiers.map((tier) => (
+                <article
+                  key={tier.title}
+                  className="flex h-full flex-col rounded-2xl border border-[#d6d9e2] bg-white p-5 shadow-[0_8px_18px_rgba(4,19,68,0.06)]"
+                >
+                  <h3 className="text-3xl font-black leading-none text-[color:var(--brand-navy)]">
+                    {tier.title}
+                  </h3>
+                  <p className="mt-1.5 text-lg font-semibold text-foreground">{tier.planName}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{tier.subtitle}</p>
+
+                  <div className="mt-5 flex items-end gap-1.5 text-[color:var(--brand-navy)]">
+                    <span className="text-5xl font-black leading-none">{tier.price}</span>
+                    <span className="pb-1 text-lg font-medium text-muted-foreground">{tier.cadence}</span>
+                  </div>
+
+                  <ul className="mt-5 space-y-2.5 text-sm text-foreground">
+                    {tier.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2">
+                        <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#6c7078]" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    asChild
+                    className={`mt-auto h-11 rounded-xl text-base font-medium ${tier.featured ? "bg-[color:var(--brand-navy)] text-white hover:bg-[color:var(--brand-royal)]" : "border border-[#cfd3dd] bg-white text-[color:var(--brand-navy)] hover:bg-slate-100"}`}
+                    variant={tier.featured ? "default" : "outline"}
                   >
-                    <h3 className="text-4xl font-black leading-none text-[color:var(--brand-navy)]">
-                      {tier.title}
-                    </h3>
-                    <p className="mt-2 text-xl font-semibold text-foreground">{tier.planName}</p>
-                    <p className="mt-1 text-base text-muted-foreground">{tier.subtitle}</p>
-
-                    <div className="mt-7 flex items-end gap-2 text-[color:var(--brand-navy)]">
-                      <span className="text-6xl font-black leading-none">{tier.price}</span>
-                      <span className="pb-1 text-2xl font-medium text-muted-foreground">{tier.cadence}</span>
-                    </div>
-
-                    <ul className="mt-8 space-y-3 text-lg text-foreground">
-                      {tier.features.map((feature) => (
-                        <li key={feature} className="flex items-start gap-2">
-                          <BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#6c7078]" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <Button
-                      asChild
-                      className={`mt-auto h-14 rounded-2xl text-2xl font-medium ${tier.featured ? "bg-[color:var(--brand-navy)] text-white hover:bg-[color:var(--brand-royal)]" : "border border-[#cfd3dd] bg-white text-[color:var(--brand-navy)] hover:bg-slate-100"}`}
-                      variant={tier.featured ? "default" : "outline"}
-                    >
-                      <Link to="/auth">Contact MatchMax</Link>
-                    </Button>
-                  </article>
-                ))}
-              </div>
+                    <Link to="/auth">Contact MatchMax</Link>
+                  </Button>
+                </article>
+              ))}
             </div>
-
-            <article className="mt-6 rounded-3xl border border-border bg-card p-6 shadow-[0_10px_24px_rgba(4,19,68,0.04)]">
-              <h3 className="text-xl font-black text-[color:var(--brand-navy)]">{fullCycleTier.title}</h3>
-              <p className="mt-3 text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">Best for:</span> {fullCycleTier.bestFor}
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">{fullCycleTier.details}</p>
-              <p className="mt-4 text-sm font-semibold text-[color:var(--brand-navy)]">
-                {fullCycleTier.pricing}
-              </p>
-              <p className="mt-3 rounded-xl border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 px-3 py-2 text-xs font-semibold text-[color:var(--brand-navy)]">
-                {fullCycleTier.note}
-              </p>
-            </article>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
