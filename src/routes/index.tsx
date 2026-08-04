@@ -75,7 +75,7 @@ function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorCode: st
   const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
   if (!digits) return "";
 
-  const message = `Hello! I would like to request the tutor ${formatTutorCode(tutorCode)}.`;
+  const message = `Hi MatchMax! I'd like to request tutor ${formatTutorCode(tutorCode)}.`;
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
@@ -702,9 +702,13 @@ function Landing() {
                       Get your IA/EE/TOK reviewed by 43+ IB Top Scorers.
                     </h2>
                     <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-[1.04rem]">
-                      Stop paying for expensive tutors just to sit there reading your draft during lesson.
-                      You do not need someone watching you write. You need to know exactly
-                      what to amend and where.
+                      Stop paying for expensive tutors just to read your draft during lesson time.
+                      You do not need someone watching you write. You need clear, line-by-line guidance
+                      that shows exactly what to amend, why it matters, and how to improve your final score.
+                    </p>
+                    <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground md:text-[1.04rem]">
+                      Each plan is built for a different stage: quick final polish, section-level problem solving,
+                      or guided month-long progress. Pick the support level you need now, then scale only if needed.
                     </p>
 
                     <div className="mt-7 grid gap-3 sm:grid-cols-2">
@@ -715,6 +719,9 @@ function Landing() {
                         <p className="mt-1 text-lg font-black text-[color:var(--brand-navy)]">
                           Offline line-by-line comments
                         </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Rubric-linked notes with direct edits you can apply immediately.
+                        </p>
                       </div>
                       <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
                         <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -722,6 +729,9 @@ function Landing() {
                         </p>
                         <p className="mt-1 text-lg font-black text-[color:var(--brand-navy)]">
                           WhatsApp + draft support
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Follow-up clarifications so revisions stay focused and efficient.
                         </p>
                       </div>
                     </div>
@@ -735,6 +745,27 @@ function Landing() {
                     >
                       <Link to="/consulting">Explore consulting plans</Link>
                     </Button>
+                  </div>
+                </div>
+
+                <div className="border-t border-border/70 bg-white/65 p-7 md:p-10 lg:border-t-0 lg:border-l lg:border-border/70 lg:p-8">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand-teal)]">
+                    What you get
+                  </p>
+                  <h3 className="mt-3 text-2xl font-black leading-tight text-[color:var(--brand-navy)]">
+                    Feedback that turns into action, not just comments.
+                  </h3>
+                  <div className="mt-5 space-y-4">
+                    {[
+                      "Annotated edits tied to IB criteria, so every revision has a clear scoring purpose.",
+                      "Priority roadmap showing what to fix first to avoid wasting time on low-impact changes.",
+                      "Follow-up support matched to your selected timeline, from one-off reviews to full-cycle guidance.",
+                    ].map((item) => (
+                      <div key={item} className="flex items-start gap-2.5">
+                        <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-teal)]" />
+                        <p className="text-sm leading-relaxed text-foreground">{item}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

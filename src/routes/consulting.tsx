@@ -234,7 +234,7 @@ function ConsultingPage() {
                             variant={tier.featured ? "default" : "outline"}
                           >
                             <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                              Contact WhatsApp
+                              Contact MatchMax
                             </a>
                           </Button>
                         ) : (

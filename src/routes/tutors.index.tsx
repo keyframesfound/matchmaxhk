@@ -94,7 +94,7 @@ function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorCode: st
   const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
   if (!digits) return "";
 
-  const message = `Hello! I would like to request the tutor ${formatTutorCode(tutorCode)}.`;
+  const message = `Hi MatchMax! I'd like to request tutor ${formatTutorCode(tutorCode)}.`;
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
