@@ -699,7 +699,7 @@ function Landing() {
                 <div className="flex flex-col justify-between gap-6 p-7 md:p-10">
                   <div>
                     <h2 className="mt-5 max-w-xl text-[2.1rem] font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] md:text-[2.75rem]">
-                      Get your IA/EE/TOK reviewed by 43+ IB Top Scorers.
+                      Get your IA/EE/TOK reviewed by IB Top Scorers
                     </h2>
                     <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-[1.04rem]">
                       Stop paying for expensive tutors just to read your drafts during lessons.
