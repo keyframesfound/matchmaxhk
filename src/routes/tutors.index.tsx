@@ -248,6 +248,10 @@ function TutorsDirectory() {
     navigate({ search: {} as SearchState });
   };
 
+  const openTutorDetail = (tutorCode: string) => {
+    navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
@@ -429,7 +433,16 @@ function TutorsDirectory() {
                 {filtered.map((tut: Tutor) => (
                   <article
                     key={tut.id}
-                    className="flex h-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card transition-all hover:shadow-brand"
+                    className="flex h-full cursor-pointer flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card transition-all hover:shadow-brand"
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => openTutorDetail(tut.tutor_code)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openTutorDetail(tut.tutor_code);
+                      }
+                    }}
                   >
                     <div className="bg-[color:var(--brand-teal)]/8 p-4">
                       <div className="flex items-center gap-3">
@@ -523,6 +536,7 @@ function TutorsDirectory() {
                           href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
                           target="_blank"
                           rel="noreferrer"
+                          onClick={(event) => event.stopPropagation()}
                         >
                           Request this tutor
                         </a>

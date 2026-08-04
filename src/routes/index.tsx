@@ -213,6 +213,10 @@ function Landing() {
     return defaultHeroTutor;
   }, [defaultHeroTutor]);
 
+  const openTutorDetail = (tutorCode: string) => {
+    navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
+  };
+
   const { data: subjectOptions = DEFAULT_SUBJECT_OPTIONS } = useQuery({
     queryKey: ["settings", "subject_options"],
     queryFn: async () => {
@@ -350,7 +354,10 @@ function Landing() {
                 size="lg"
                 className="h-16 md:h-14 rounded-2xl md:rounded-md bg-[color:var(--brand-navy)] px-8 text-lg md:text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] w-full md:w-auto"
               >
-                <Link to="/tutors" onClick={() => blurActive()}>
+                <Link to="/tutors" onClick={(event) => {
+                                event.stopPropagation();
+                                blurActive();
+                              }}>
                   {t("hero.cta_primary")}
                   <ArrowRight className="ml-2 h-6 w-6 md:h-5 md:w-5" />
                 </Link>
@@ -556,7 +563,18 @@ function Landing() {
                       key={tut.id}
                       className="flex basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
                     >
-                      <article className="flex h-full w-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]">
+                      <article
+                        className="flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card shadow-[0_8px_24px_rgba(4,19,68,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(4,19,68,0.08)]"
+                        role="link"
+                        tabIndex={0}
+                        onClick={() => openTutorDetail(tut.tutor_code)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            openTutorDetail(tut.tutor_code);
+                          }
+                        }}
+                      >
                         <div className="bg-[color:var(--brand-teal)]/8 p-4">
                           <div className="flex items-center gap-3">
                             {tut.photo_url ? (
