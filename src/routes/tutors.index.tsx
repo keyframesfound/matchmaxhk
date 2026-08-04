@@ -538,7 +538,7 @@ function TutorsDirectory() {
                           rel="noreferrer"
                           onClick={(event) => event.stopPropagation()}
                         >
-                          Request this tutor
+                          Request tutor
                         </a>
                       </Button>
                     </div>
