@@ -695,8 +695,8 @@ function Landing() {
 
           <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
             <article className="consulting-reserve-card overflow-hidden rounded-3xl md:rounded-sm">
-              <div className="grid min-h-[520px] gap-0 lg:grid-cols-[minmax(0,1.1fr)_minmax(340px,0.9fr)]">
-                <div className="flex flex-col justify-between gap-6 p-7 md:p-10 lg:pr-8">
+              <div className="grid min-h-[520px] gap-0">
+                <div className="flex flex-col justify-between gap-6 p-7 md:p-10">
                   <div>
                     <h2 className="mt-5 max-w-xl text-[2.1rem] font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] md:text-[2.75rem]">
                       Get your IA/EE/TOK reviewed by 43+ IB Top Scorers.
@@ -748,26 +748,6 @@ function Landing() {
                   </div>
                 </div>
 
-                <div className="border-t border-border/70 bg-white/65 p-7 md:p-10 lg:border-t-0 lg:border-l lg:border-border/70 lg:p-8">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand-teal)]">
-                    What you get
-                  </p>
-                  <h3 className="mt-3 text-2xl font-black leading-tight text-[color:var(--brand-navy)]">
-                    Feedback that turns into action, not just comments.
-                  </h3>
-                  <div className="mt-5 space-y-4">
-                    {[
-                      "Annotated edits tied to IB criteria, so every revision has a clear scoring purpose.",
-                      "Priority roadmap showing what to fix first to avoid wasting time on low-impact changes.",
-                      "Follow-up support matched to your selected timeline, from one-off reviews to full-cycle guidance.",
-                    ].map((item) => (
-                      <div key={item} className="flex items-start gap-2.5">
-                        <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-teal)]" />
-                        <p className="text-sm leading-relaxed text-foreground">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </article>
 
