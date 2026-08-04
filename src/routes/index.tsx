@@ -702,9 +702,8 @@ function Landing() {
                       Get your IA/EE/TOK reviewed by 43+ IB Top Scorers.
                     </h2>
                     <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-[1.04rem]">
-                      Stop paying for expensive tutors just to read your draft during lesson time.
-                      You do not need someone watching you write. You need clear, line-by-line guidance
-                      that shows exactly what to amend, why it matters, and how to improve your final score.
+                      Stop paying for expensive tutors just to read your drafts during lessons.
+                      You do not need someone watching you write. You need clear, line-by-line guidance and planning.
                     </p>
 
                     <div className="mt-7 grid gap-3 sm:grid-cols-2">
@@ -774,13 +773,6 @@ function Landing() {
                   </div>
                 ))}
               </div>
-
-              <Link
-                to="/consulting"
-                className="mt-5 inline-flex text-base font-semibold text-[color:var(--brand-navy)] underline decoration-dotted underline-offset-4"
-              >
-                See full tier details
-              </Link>
             </aside>
           </div>
         </div>
