@@ -706,10 +706,6 @@ function Landing() {
                       You do not need someone watching you write. You need clear, line-by-line guidance
                       that shows exactly what to amend, why it matters, and how to improve your final score.
                     </p>
-                    <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground md:text-[1.04rem]">
-                      Each plan is built for a different stage: quick final polish, section-level problem solving,
-                      or guided month-long progress. Pick the support level you need now, then scale only if needed.
-                    </p>
 
                     <div className="mt-7 grid gap-3 sm:grid-cols-2">
                       <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
