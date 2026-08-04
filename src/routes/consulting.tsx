@@ -64,7 +64,10 @@ function ConsultingPage() {
       <main className="flex-1">
         <section className="hero-startup-bg border-b border-border py-14 sm:py-18">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="consulting-hero-visual overflow-hidden rounded-3xl border border-border shadow-brand">
+            <div
+              className="consulting-hero-visual overflow-hidden rounded-3xl border border-border shadow-brand"
+              style={{ backgroundImage: "url('/consulting-placeholder.svg')" }}
+            >
               <div className="relative flex min-h-[360px] flex-col justify-end p-7 sm:min-h-[420px] sm:p-10">
                 <div className="max-w-3xl rounded-3xl border border-white/30 bg-white/80 p-6 backdrop-blur-sm sm:p-8">
                   <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
