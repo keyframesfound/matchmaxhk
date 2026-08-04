@@ -90,6 +90,14 @@ function formatTutorCode(code?: string | null) {
   return normalized;
 }
 
+function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorCode: string) {
+  const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
+  if (!digits) return "";
+
+  const message = `I would like to request the tutor ${formatTutorCode(tutorCode)}`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
+
 function TutorsDirectory() {
   const { t } = useTranslation();
   const search = Route.useSearch();
@@ -115,6 +123,20 @@ function TutorsDirectory() {
   const { data: tutors = [], isLoading } = useQuery({
     queryKey: ["tutors", "published"],
     queryFn: fetchPublishedTutors,
+  });
+
+  const { data: whatsappNumber = "" } = useQuery({
+    queryKey: ["settings", "whatsapp_number"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "whatsapp_number")
+        .maybeSingle();
+      if (error) throw error;
+      const value = data?.value;
+      return typeof value === "string" ? value : "";
+    },
   });
 
   const { data: subjectOptions = DEFAULT_SUBJECT_OPTIONS } = useQuery({
@@ -497,9 +519,13 @@ function TutorsDirectory() {
                         asChild
                         className="rounded-sm bg-[color:var(--brand-teal)] px-4 font-bold text-white hover:bg-[color:var(--brand-royal)]"
                       >
-                        <Link to="/tutors/$tutorCode" params={{ tutorCode: tut.tutor_code }}>
-                          View Tutor
-                        </Link>
+                        <a
+                          href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Request this tutor
+                        </a>
                       </Button>
                     </div>
                   </article>

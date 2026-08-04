@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, BookOpen, Clock3, MessageCircle, Search } from "lucide-react";
@@ -71,16 +71,12 @@ function formatTutorCode(code?: string | null) {
   return normalized;
 }
 
-function pickRandomTutorId(tutors: Tutor[], currentTutorId?: string | null) {
-  if (tutors.length === 0) return null;
-  if (tutors.length === 1) return tutors[0]?.id ?? null;
+function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorCode: string) {
+  const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
+  if (!digits) return "";
 
-  let nextTutorId = currentTutorId ?? null;
-  while (nextTutorId === currentTutorId) {
-    nextTutorId = tutors[Math.floor(Math.random() * tutors.length)]?.id ?? null;
-  }
-
-  return nextTutorId;
+  const message = `I would like to request the tutor ${formatTutorCode(tutorCode)}`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
 export const Route = createFileRoute("/")({
@@ -135,7 +131,6 @@ function Landing() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [homeSearch, setHomeSearch] = useState<HomeTutorSearchState>({});
-  const [activeHeroTutorId, setActiveHeroTutorId] = useState<string | null>(null);
 
   const setHomeSearchParam = (patch: Partial<HomeTutorSearchState>) => {
     setHomeSearch((prev) => {
@@ -198,32 +193,25 @@ function Landing() {
     queryFn: fetchPublishedTutors,
   });
 
+  const { data: whatsappNumber = "" } = useQuery({
+    queryKey: ["settings", "whatsapp_number"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "whatsapp_number")
+        .maybeSingle();
+      if (error) throw error;
+      const value = data?.value;
+      return typeof value === "string" ? value : "";
+    },
+  });
+
   const defaultHeroTutor = pickedHeroTutor ?? featuredTutors[0] ?? publishedTutors[0] ?? null;
 
-  useEffect(() => {
-    if (publishedTutors.length === 0) return;
-
-    setActiveHeroTutorId((currentTutorId) => {
-      if (currentTutorId && publishedTutors.some((tut) => tut.id === currentTutorId)) {
-        return currentTutorId;
-      }
-      if (defaultHeroTutor && publishedTutors.some((tut) => tut.id === defaultHeroTutor.id)) {
-        return defaultHeroTutor.id;
-      }
-      return pickRandomTutorId(publishedTutors);
-    });
-
-    const intervalId = window.setInterval(() => {
-      setActiveHeroTutorId((currentTutorId) => pickRandomTutorId(publishedTutors, currentTutorId));
-    }, 2500);
-
-    return () => window.clearInterval(intervalId);
-  }, [defaultHeroTutor, publishedTutors]);
-
   const heroTutor = useMemo(() => {
-    if (publishedTutors.length === 0) return defaultHeroTutor;
-    return publishedTutors.find((tut) => tut.id === activeHeroTutorId) ?? defaultHeroTutor;
-  }, [activeHeroTutorId, defaultHeroTutor, publishedTutors]);
+    return defaultHeroTutor;
+  }, [defaultHeroTutor]);
 
   const { data: subjectOptions = DEFAULT_SUBJECT_OPTIONS } = useQuery({
     queryKey: ["settings", "subject_options"],
@@ -379,7 +367,7 @@ function Landing() {
               />
               <div className="relative rounded-2xl md:rounded-sm border border-border/80 bg-card/95 p-8 md:p-6 shadow-[0_10px_30px_rgba(4,19,68,0.06)]">
                 {heroTutor ? (
-                  <div key={heroTutor.id} className="animate-in fade-in-0 duration-500">
+                  <div>
                     <div className="flex items-center gap-4 md:gap-3">
                       {heroTutor.photo_url ? (
                         <img
@@ -649,13 +637,14 @@ function Landing() {
                             asChild
                             className="rounded-sm bg-[color:var(--brand-teal)] px-4 font-bold text-white hover:bg-[color:var(--brand-royal)]"
                           >
-                            <Link
-                              to="/tutors/$tutorCode"
-                              params={{ tutorCode: tut.tutor_code }}
+                            <a
+                              href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                              target="_blank"
+                              rel="noreferrer"
                               onClick={() => blurActive()}
                             >
-                              View Tutor
-                            </Link>
+                              Request this tutor
+                            </a>
                           </Button>
                         </div>
                       </article>
