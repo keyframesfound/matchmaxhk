@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, BookOpen, Clock3, MessageCircle, Search } from "lucide-react";
@@ -71,6 +71,18 @@ function formatTutorCode(code?: string | null) {
   return normalized;
 }
 
+function pickRandomTutorId(tutors: Tutor[], currentTutorId?: string | null) {
+  if (tutors.length === 0) return null;
+  if (tutors.length === 1) return tutors[0]?.id ?? null;
+
+  let nextTutorId = currentTutorId ?? null;
+  while (nextTutorId === currentTutorId) {
+    nextTutorId = tutors[Math.floor(Math.random() * tutors.length)]?.id ?? null;
+  }
+
+  return nextTutorId;
+}
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -123,6 +135,7 @@ function Landing() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [homeSearch, setHomeSearch] = useState<HomeTutorSearchState>({});
+  const [activeHeroTutorId, setActiveHeroTutorId] = useState<string | null>(null);
 
   const setHomeSearchParam = (patch: Partial<HomeTutorSearchState>) => {
     setHomeSearch((prev) => {
@@ -180,12 +193,37 @@ function Landing() {
     enabled: !!heroTutorCode,
   });
 
-  const heroTutor: Tutor | null = pickedHeroTutor ?? featuredTutors[0] ?? null;
-
   const { data: publishedTutors = [], isLoading: publishedTutorsLoading } = useQuery({
     queryKey: ["landing", "published_tutors"],
     queryFn: fetchPublishedTutors,
   });
+
+  const defaultHeroTutor = pickedHeroTutor ?? featuredTutors[0] ?? publishedTutors[0] ?? null;
+
+  useEffect(() => {
+    if (publishedTutors.length === 0) return;
+
+    setActiveHeroTutorId((currentTutorId) => {
+      if (currentTutorId && publishedTutors.some((tut) => tut.id === currentTutorId)) {
+        return currentTutorId;
+      }
+      if (defaultHeroTutor && publishedTutors.some((tut) => tut.id === defaultHeroTutor.id)) {
+        return defaultHeroTutor.id;
+      }
+      return pickRandomTutorId(publishedTutors);
+    });
+
+    const intervalId = window.setInterval(() => {
+      setActiveHeroTutorId((currentTutorId) => pickRandomTutorId(publishedTutors, currentTutorId));
+    }, 2500);
+
+    return () => window.clearInterval(intervalId);
+  }, [defaultHeroTutor, publishedTutors]);
+
+  const heroTutor = useMemo(() => {
+    if (publishedTutors.length === 0) return defaultHeroTutor;
+    return publishedTutors.find((tut) => tut.id === activeHeroTutorId) ?? defaultHeroTutor;
+  }, [activeHeroTutorId, defaultHeroTutor, publishedTutors]);
 
   const { data: subjectOptions = DEFAULT_SUBJECT_OPTIONS } = useQuery({
     queryKey: ["settings", "subject_options"],
@@ -341,7 +379,7 @@ function Landing() {
               />
               <div className="relative rounded-2xl md:rounded-sm border border-border/80 bg-card/95 p-8 md:p-6 shadow-[0_10px_30px_rgba(4,19,68,0.06)]">
                 {heroTutor ? (
-                  <>
+                  <div key={heroTutor.id} className="animate-in fade-in-0 duration-500">
                     <div className="flex items-center gap-4 md:gap-3">
                       {heroTutor.photo_url ? (
                         <img
@@ -434,7 +472,7 @@ function Landing() {
                         profile
                       </Link>
                     </Button>
-                  </>
+                  </div>
                 ) : (
                   <div className="py-16 text-center text-sm text-muted-foreground">
                     {featuredLoading ? "Loading featured tutor…" : "No featured tutor yet."}
