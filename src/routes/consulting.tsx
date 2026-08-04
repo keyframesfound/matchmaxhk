@@ -35,7 +35,7 @@ const tiers = [
     subtitle: "For quick final draft checks",
     planName: "Core Review",
     price: "HK$499",
-    cadence: "Per",
+    cadence: "+",
     features: [
       "IA/TOK: HK$499 (~US$64)",
       "EE: HK$599 (~US$77)",
