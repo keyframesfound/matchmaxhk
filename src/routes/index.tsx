@@ -727,10 +727,6 @@ function Landing() {
                     </Button>
                   </div>
                 </div>
-
-                <div className="p-4 pt-0 lg:p-6 lg:pl-0">
-                  <div className="consulting-reserve-visual min-h-[260px] rounded-2xl md:min-h-[340px]" />
-                </div>
               </div>
             </article>
 
