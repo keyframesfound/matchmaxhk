@@ -33,7 +33,7 @@ const tiers = [
     subtitle: "For quick final draft checks",
     planName: "Core Review",
     price: "HK$499",
-    cadence: "starting price",
+    cadence: "+",
     features: [
       "IA/TOK: HK$499 (~US$64)",
       "EE: HK$599 (~US$77)",
@@ -46,7 +46,7 @@ const tiers = [
     subtitle: "For section-level roadblocks",
     planName: "Consult Lesson",
     price: "HK$499",
-    cadence: "starting price",
+    cadence: "+",
     features: [
       "IA/TOK: HK$499 (~US$64)",
       "EE: HK$599 (~US$77)",
@@ -58,7 +58,7 @@ const tiers = [
   {
     title: "Tier 3",
     subtitle: "For guided 30-day progress",
-    planName: "Progress Review & Mentorship",
+    planName: "Review & Mentorship",
     price: "HK$1,799",
     cadence: "/ month",
     features: [
@@ -73,7 +73,7 @@ const tiers = [
     subtitle: "For full start-to-submit support",
     planName: "Full-Cycle Package",
     price: "HK$2,499",
-    cadence: "starting price",
+    cadence: "+",
     features: [
       "IA/TOK: HK$2,499 (~US$320)",
       "EE: HK$2,999 (~US$384)",
@@ -174,13 +174,19 @@ function ConsultingPage() {
                       </li>
                     ))}
                   </ul>
-
                   <Button
-                    asChild
+                        asChild
                     className={`mt-auto h-11 rounded-xl text-base font-medium ${tier.featured ? "bg-[color:var(--brand-navy)] text-white hover:bg-[color:var(--brand-royal)]" : "border border-[#cfd3dd] bg-white text-[color:var(--brand-navy)] hover:bg-slate-100"}`}
                     variant={tier.featured ? "default" : "outline"}
-                  >
-                    <Link to="/auth">Contact MatchMax</Link>
+                      >
+                        <a
+                          href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          Contact MatchMax
+                        </a>
                   </Button>
                 </article>
               ))}
