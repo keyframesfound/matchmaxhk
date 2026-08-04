@@ -762,13 +762,6 @@ function Landing() {
                 ))}
               </div>
 
-              <div className="mt-6 rounded-xl border border-[color:var(--brand-navy)]/10 bg-[color:var(--brand-navy)]/5 p-4 md:rounded-sm">
-                <p className="text-sm font-semibold text-[color:var(--brand-navy)]">
-                  Proven results: 6 students achieved Grade A in TOK, and 5 students achieved
-                  Grade 7 in Bio/Chem IAs.
-                </p>
-              </div>
-
               <Link
                 to="/consulting"
                 className="mt-5 inline-flex text-base font-semibold text-[color:var(--brand-navy)] underline decoration-dotted underline-offset-4"
