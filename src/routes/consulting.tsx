@@ -64,23 +64,19 @@ function ConsultingPage() {
       <main className="flex-1">
         <section className="hero-startup-bg border-b border-border py-14 sm:py-18">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="max-w-5xl rounded-3xl border border-border bg-card/95 p-7 shadow-brand sm:p-10">
-              <p className="text-sm font-bold uppercase tracking-wide text-[color:var(--brand-teal)]">
-                IB Consulting
-              </p>
-              <h1 className="mt-4 text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
-                Get your IAs, EEs, and TOK reviewed by 43+ IB top scorers at an affordable price.
-              </h1>
-              <p className="mt-5 max-w-4xl text-lg leading-relaxed text-muted-foreground">
-                Stop paying around HK$800/hr for tutors to read your draft during live lessons. You
-                do not need someone watching you write. You need exact amendments and clear action
-                steps.
-              </p>
-              <p className="mt-4 max-w-4xl text-base leading-relaxed text-muted-foreground">
-                Our mentors review your draft offline and leave in-document, line-by-line comments
-                covering logical gaps, formatting issues, and step-by-step corrections. Zero live
-                time wasted.
-              </p>
+            <div className="consulting-hero-visual overflow-hidden rounded-3xl border border-border shadow-brand">
+              <div className="relative flex min-h-[360px] flex-col justify-end p-7 sm:min-h-[420px] sm:p-10">
+                <div className="max-w-3xl rounded-3xl border border-white/30 bg-white/80 p-6 backdrop-blur-sm sm:p-8">
+                  <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
+                    Get your IAs, EEs, and TOK reviewed by 43+ IB top scorers at an affordable price.
+                  </h1>
+                  <p className="mt-4 max-w-4xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                    Stop paying around HK$800/hr for tutors to read your draft during live lessons.
+                    You do not need someone watching you write. You need exact amendments and clear
+                    action steps.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </section>

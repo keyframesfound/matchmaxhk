@@ -91,9 +91,14 @@ export function SiteHeader() {
               <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
             </Link>
 
-            <Button asChild className="h-10 rounded-full bg-[#0A245F] px-5 text-[15px] font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#041344] hover:shadow-md">
-              <Link to="/consulting">Consult</Link>
-            </Button>
+            <Link
+              to="/consulting"
+              className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
+            >
+              Consult
+
+              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
+            </Link>
 
             <Link
               to="/become-a-tutor"

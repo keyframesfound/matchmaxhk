@@ -688,9 +688,6 @@ function Landing() {
               <div className="grid min-h-[520px] gap-0 lg:grid-cols-[minmax(0,1.1fr)_minmax(340px,0.9fr)]">
                 <div className="flex flex-col justify-between gap-6 p-7 md:p-10 lg:pr-8">
                   <div>
-                    <div className="inline-flex rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand-navy)]">
-                      IB consulting, offline review
-                    </div>
                     <h2 className="mt-5 max-w-xl text-[2.1rem] font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] md:text-[2.75rem]">
                       Get your IAs, EEs, and TOK reviewed by 43+ IB Top Scorers.
                     </h2>
@@ -728,12 +725,6 @@ function Landing() {
                     >
                       <Link to="/consulting">Explore consulting plans</Link>
                     </Button>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-[color:var(--brand-navy)]/80">
-                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/15 bg-[color:var(--brand-teal)]/10 text-[color:var(--brand-teal)]">
-                        ✨
-                      </span>
-                      Secure a slot with a HK$499 deposit
-                    </div>
                   </div>
                 </div>
 

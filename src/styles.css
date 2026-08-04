@@ -347,6 +347,15 @@
       linear-gradient(135deg, #fbfcfd 0%, #f3f8f9 100%);
   }
 
+  .consulting-hero-visual {
+    background-image:
+      linear-gradient(180deg, rgba(4, 19, 68, 0.05), rgba(4, 19, 68, 0.28)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%2377E8EE'/%3E%3Cstop offset='100%25' stop-color='%23041B58'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23g)'/%3E%3Ccircle cx='400' cy='220' r='220' fill='%231FA8B6' fill-opacity='0.26'/%3E%3Ccircle cx='1230' cy='170' r='280' fill='%230A245F' fill-opacity='0.22'/%3E%3Ccircle cx='1080' cy='620' r='310' fill='%23FFFFFF' fill-opacity='0.22'/%3E%3Cpath d='M-50 720 C 250 560, 460 840, 780 680 S 1260 540, 1680 720 L 1680 980 L -50 980 Z' fill='%23FFFFFF' fill-opacity='0.14'/%3E%3C/svg%3E");
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+
   .consulting-reserve-visual {
     position: relative;
     overflow: hidden;
