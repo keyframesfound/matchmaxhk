@@ -46,7 +46,7 @@ const tiers = [
   {
     title: "Tier 2",
     subtitle: "For section-level roadblocks",
-    planName: "Consult Lesson",
+    planName: "Consult",
     price: "HK$499",
     cadence: "+",
     features: [
