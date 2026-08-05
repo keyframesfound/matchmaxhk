@@ -758,7 +758,7 @@ function Landing() {
                   },
                   {
                     icon: Clock3,
-                    text: "Extra wait time included to follow up on your draft.",
+                    text: "Follow up on your draft.",
                   },
                   {
                     icon: BookOpen,
