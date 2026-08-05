@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { BadgeCheck, BookOpen, Clock3, Search, X } from "lucide-react";
+import { BadgeCheck, BookOpen, Clock3, Search } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
@@ -211,38 +211,6 @@ function TutorsDirectory() {
     draft.q,
   ]);
 
-  const activeChips: { key: string; label: string; onClear: () => void }[] = [];
-  if (draft.category)
-    activeChips.push({
-      key: "category",
-      label: `Category: ${draft.category}`,
-      onClear: () => setDraftParam({ category: undefined }),
-    });
-  if (draft.subject)
-    activeChips.push({
-      key: "subject",
-      label: `Subject: ${draft.subject}`,
-      onClear: () => setDraftParam({ subject: undefined }),
-    });
-  if (modeFilter === "in_person" && draft.district)
-    activeChips.push({
-      key: "district",
-      label: `District: ${draft.district}`,
-      onClear: () => setDraftParam({ district: undefined }),
-    });
-  if (draft.mode)
-    activeChips.push({
-      key: "mode",
-      label: `Mode: ${MODE_OPTIONS.find((m) => m.value === draft.mode)?.label ?? draft.mode}`,
-      onClear: () => setDraftParam({ mode: undefined, district: undefined }),
-    });
-  if (draft.gender)
-    activeChips.push({
-      key: "gender",
-      label: `Gender: ${GENDER_OPTIONS.find((g) => g.value === draft.gender)?.label ?? draft.gender}`,
-      onClear: () => setDraftParam({ gender: undefined }),
-    });
-
   const clearAll = () => {
     setDraft({});
     navigate({ search: {} as SearchState });
@@ -338,33 +306,6 @@ function TutorsDirectory() {
               </div>
             </div>
 
-            {activeChips.length > 0 && (
-              <div className="mt-5 flex flex-wrap items-center gap-2">
-                {activeChips.map((c) => (
-                  <span
-                    key={c.key}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--brand-teal)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--brand-teal)]"
-                  >
-                    {c.label}
-                    <button
-                      aria-label={`Clear ${c.key}`}
-                      onClick={c.onClear}
-                      className="rounded-full p-0.5 hover:bg-[color:var(--brand-teal)]/20"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAll}
-                  className="ml-auto h-7 text-xs font-semibold text-muted-foreground hover:text-foreground"
-                >
-                  Clear all
-                </Button>
-              </div>
-            )}
           </div>
         </section>
 
