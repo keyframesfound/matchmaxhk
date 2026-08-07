@@ -369,113 +369,114 @@ function Landing() {
 
           {/* HERO VISUAL CARD */}
           <div className="relative flex items-center justify-center">
-            <div className="relative w-full max-w-md">
-              <div
-                className="absolute inset-0 rounded-2xl md:rounded-sm border border-border/50 bg-muted/30"
-                aria-hidden
-              />
-              <div className="relative rounded-2xl md:rounded-sm border border-border/80 bg-card/95 p-8 md:p-6 shadow-[0_10px_30px_rgba(4,19,68,0.06)]">
-                {heroTutor ? (
-                  <div>
-                    <div className="flex items-center gap-4 md:gap-3">
+            <div className="w-full max-w-md">
+              {heroTutor ? (
+                <article className="flex h-full w-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card shadow-brand">
+                  <div className="bg-[color:var(--brand-teal)]/8 p-4">
+                    <div className="flex items-center gap-3">
                       {heroTutor.photo_url ? (
                         <img
                           src={heroTutor.photo_url}
-                          alt="Featured Tutor"
-                          width={56}
-                          height={56}
-                          className="h-16 w-16 md:h-11 md:w-11 shrink-0 rounded-full object-cover"
+                          alt={heroTutor.tutor_code}
+                          className="h-16 w-16 shrink-0 rounded-full border-2 border-[color:var(--brand-teal)] object-cover"
                         />
                       ) : (
-                        <div className="flex h-16 w-16 md:h-11 md:w-11 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-xl md:text-sm font-bold md:font-semibold text-[color:var(--brand-teal)]">
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-[color:var(--brand-teal)] bg-white text-lg font-bold text-[color:var(--brand-teal)]">
                           {heroTutor.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
                         </div>
                       )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xl md:text-sm font-black md:font-bold text-foreground break-words">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xl font-black text-[color:var(--brand-navy)]">
                           {formatTutorCode(heroTutor.tutor_code)}
                           {getTutorGenderLabel(heroTutor.gender)
                             ? ` · ${getTutorGenderLabel(heroTutor.gender)}`
                             : ""}
                         </p>
-                        <p className="text-sm md:text-xs leading-relaxed text-muted-foreground break-words whitespace-pre-line">
-                          {heroTutor.headline ?? heroTutor.subjects.slice(0, 3).join(" · ")}
+                        <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <BadgeCheck className="h-4 w-4 text-[color:var(--brand-teal)]" />
+                          {heroTutor.university ?? heroTutor.highschool ?? "Education details"}
                         </p>
                       </div>
-                      <span className="rounded-lg md:rounded-md border border-[color:var(--brand-teal)]/15 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] md:text-[10px] font-bold uppercase tracking-wider text-[color:var(--brand-teal)]">
+                      <span className="rounded-sm bg-[color:var(--brand-teal)] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
                         Featured
                       </span>
                     </div>
+                  </div>
 
-                    <div className="mt-8 md:mt-5 grid grid-cols-3 gap-3 rounded-xl md:rounded-md border border-border/70 bg-muted/50 p-5 md:p-4 text-center text-xs">
+                  <div className="flex flex-1 flex-col space-y-4 p-4">
+                    <div className="flex flex-wrap gap-2">
+                      {heroTutor.subjects.slice(0, 3).map((subject) => (
+                        <span
+                          key={subject}
+                          className="rounded-sm bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
+                        >
+                          {subject}
+                        </span>
+                      ))}
+                    </div>
+
+                    <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                      {heroTutor.headline ??
+                        heroTutor.bio ??
+                        "Experienced tutor profile with subject-specific support."}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
                       <div>
-                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">
-                          {formatTutorCode(heroTutor.tutor_code)}
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                          Lesson Mode
                         </p>
-                        <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">
-                          Code
+                        <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
+                          <BookOpen className="h-4 w-4 text-[color:var(--brand-teal)]" />
+                          {getTutorLessonModeLabel(heroTutor.lesson_mode)}
                         </p>
                       </div>
                       <div>
-                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">
-                          ${heroTutor.hourly_rate}
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                          Tutoring Experience
                         </p>
-                        <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">
-                          /hr
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-black md:font-bold text-2xl md:text-lg text-[color:var(--brand-navy)]">
+                        <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
+                          <Clock3 className="h-4 w-4 text-[color:var(--brand-teal)]" />
                           {heroTutor.experience_years
-                            ? `${heroTutor.experience_years}+ yrs`
-                            : "New"}
-                        </p>
-                        <p className="text-[11px] md:text-[10px] font-bold md:font-normal uppercase tracking-wider text-muted-foreground">
-                          Experience
+                            ? `${heroTutor.experience_years} years`
+                            : "N/A"}
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-5 rounded-xl md:rounded-md border border-border/70 bg-muted/40 p-5 md:p-4">
-                      <div className="space-y-3 md:space-y-2">
-                        {[
-                          heroTutor.badge,
-                          heroTutor.district,
-                          heroTutor.experience_years
-                            ? `${heroTutor.experience_years}+ years`
-                            : null,
-                          heroTutor.subjects[0] ?? null,
-                        ]
-                          .filter((x): x is string => !!x)
-                          .slice(0, 4)
-                          .map((tag) => (
-                            <div
-                              key={tag}
-                              className="flex items-center gap-3 md:gap-2 text-sm md:text-xs text-muted-foreground font-medium md:font-normal"
-                            >
-                              <BadgeCheck className="h-5 w-5 md:h-3.5 md:w-3.5 text-[color:var(--brand-teal)]" />
-                              {tag}
-                            </div>
-                          ))}
-                      </div>
-                    </div>
+                    {heroTutor.target_students.length > 0 && (
+                      <p className="mt-auto text-xs text-muted-foreground">
+                        Target students: {heroTutor.target_students.slice(0, 2).join(", ")}
+                        {heroTutor.target_students.length > 2
+                          ? ` +${heroTutor.target_students.length - 2} more`
+                          : ""}
+                      </p>
+                    )}
+                  </div>
 
+                  <div className="flex items-center justify-between border-t border-border bg-white px-4 py-3">
+                    <p className="text-2xl font-black text-[color:var(--brand-navy)]">
+                      HK${heroTutor.hourly_rate}
+                      <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                        {t("featured.per_hour")}
+                      </span>
+                    </p>
                     <Button
                       asChild
-                      className="mt-8 md:mt-6 w-full rounded-xl md:rounded-lg bg-[color:var(--brand-navy)] py-6 md:py-3 text-lg md:text-sm font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                      className="rounded-sm bg-[color:var(--brand-teal)] px-4 font-bold text-white hover:bg-[color:var(--brand-royal)]"
                     >
                       <Link to="/tutors/$tutorCode" params={{ tutorCode: heroTutor.tutor_code }}>
-                        <MessageCircle className="mr-2 inline h-5 w-5 md:h-4 md:w-4" /> View tutor
-                        profile
+                        <MessageCircle className="mr-2 inline h-4 w-4" />
+                        View profile
                       </Link>
                     </Button>
                   </div>
-                ) : (
-                  <div className="py-16 text-center text-sm text-muted-foreground">
-                    {featuredLoading ? "Loading featured tutor…" : "No featured tutor yet."}
-                  </div>
-                )}
-              </div>
+                </article>
+              ) : (
+                <div className="rounded-sm border border-border bg-card py-16 text-center text-sm text-muted-foreground">
+                  {featuredLoading ? "Loading featured tutor…" : "No featured tutor yet."}
+                </div>
+              )}
             </div>
           </div>
         </div>
