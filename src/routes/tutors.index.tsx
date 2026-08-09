@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { BookOpen, Search, User } from "lucide-react";
+import { BookOpen, Clock3, Search } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,6 @@ import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import {
   fetchPublishedTutors,
   getTutorGenderLabel,
-  getTutorLessonModeLabel,
   HK_DISTRICTS,
   matchesDistrictFilter,
   matchesLessonModeFilter,
@@ -102,6 +101,48 @@ function getTutorInitials(tutorCode?: string | null) {
   const normalized = (tutorCode ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
   if (!normalized) return "MM";
   return normalized.slice(0, 2);
+}
+
+function normalizeSubjectKey(value: string) {
+  return value.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function gradeLabel(grade: string) {
+  const trimmed = grade.trim();
+  if (!trimmed) return "Grade -";
+  return /^grade\s+/i.test(trimmed) ? trimmed : `Grade ${trimmed}`;
+}
+
+function getTutorSubjectChips(tutor: Tutor) {
+  const gradeLookup = new Map<string, string>();
+  for (const result of tutor.exam_results ?? []) {
+    for (const entry of result.subjects ?? []) {
+      const subject = (entry.subject ?? "").trim();
+      const grade = (entry.grade ?? "").trim();
+      if (!subject || !grade) continue;
+      const key = normalizeSubjectKey(subject);
+      if (!gradeLookup.has(key)) gradeLookup.set(key, grade);
+    }
+  }
+
+  return tutor.subjects.slice(0, 3).map((subject) => {
+    const key = normalizeSubjectKey(subject);
+    let grade = gradeLookup.get(key);
+
+    if (!grade) {
+      for (const [candidateKey, candidateGrade] of gradeLookup.entries()) {
+        if (candidateKey.includes(key) || key.includes(candidateKey)) {
+          grade = candidateGrade;
+          break;
+        }
+      }
+    }
+
+    return {
+      subject,
+      grade: gradeLabel(grade ?? ""),
+    };
+  });
 }
 
 function TutorsDirectory() {
@@ -408,12 +449,12 @@ function TutorsDirectory() {
                         Subject Taught
                       </h3>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {tut.subjects.slice(0, 3).map((subject) => (
+                        {getTutorSubjectChips(tut).map(({ subject, grade }) => (
                           <span
                             key={subject}
                             className="rounded-full bg-[color:var(--brand-teal)]/16 px-3 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
                           >
-                            {subject}
+                            {subject} : {grade}
                           </span>
                         ))}
                       </div>
@@ -437,15 +478,10 @@ function TutorsDirectory() {
                             Gender
                           </p>
                           <p className="mt-1.5 inline-flex items-center gap-1.5 text-base font-bold leading-tight text-[color:var(--brand-navy)]">
-                            <User className="h-4 w-4 text-[color:var(--brand-navy)]" />
+                            <Clock3 className="h-4 w-4 text-[color:var(--brand-navy)]" />
                             {getTutorGenderLabel(tut.gender) || "Not specified"}
                           </p>
                         </div>
-                      </div>
-
-                      <div className="mt-3 text-xs text-muted-foreground">
-                        {getTutorLessonModeLabel(tut.lesson_mode)}
-                        {tut.experience_years ? ` • ${tut.experience_years} years experience` : ""}
                       </div>
                     </div>
 
