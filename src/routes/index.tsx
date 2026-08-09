@@ -339,7 +339,6 @@ function Landing() {
                   priceSuffix={t("featured.per_hour")}
                   badgeLabel="Featured"
                   onOpen={openTutorDetail}
-                  className="shadow-brand"
                   footerAction={
                     <Button
                       asChild

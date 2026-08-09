@@ -106,7 +106,7 @@ export function PublicTutorCard({
   return (
     <article
       className={cn(
-        "flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/35 bg-white transition-all hover:-translate-y-0.5 hover:shadow-brand md:min-h-[25rem]",
+        "flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-sm border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md md:min-h-[25rem]",
         interactive && "cursor-pointer",
         className,
       )}
@@ -124,7 +124,7 @@ export function PublicTutorCard({
           : undefined
       }
     >
-      <div className="bg-[#0A245F] px-3 pb-2.5 pt-2.5 md:px-4 md:pb-4 md:pt-4">
+      <div className="bg-[color:var(--brand-navy)] px-3 pb-2.5 pt-2.5 md:px-4 md:pb-4 md:pt-4">
         <div className="flex items-center gap-2.5 md:gap-4">
           {tutor.photo_url ? (
             <img
@@ -133,7 +133,7 @@ export function PublicTutorCard({
               className="h-11 w-11 shrink-0 rounded-full border-[3px] border-[color:var(--brand-teal)] object-cover md:h-14 md:w-14"
             />
           ) : (
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-white text-sm font-bold text-[color:var(--brand-teal)] md:h-14 md:w-14 md:text-lg">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-white text-sm font-bold text-[color:var(--brand-navy)] md:h-14 md:w-14 md:text-lg">
               {getTutorInitials(tutor.tutor_code)}
             </div>
           )}
@@ -154,19 +154,19 @@ export function PublicTutorCard({
       </div>
 
       <div className="flex flex-1 flex-col px-3 pt-2.5 pb-3.5 md:px-4 md:pt-3 md:pb-5">
-        <h3 className="text-[11px] font-bold tracking-tight text-[#0A245F] md:text-[13px]">Subject Taught</h3>
+        <h3 className="text-[11px] font-bold tracking-tight text-[color:var(--brand-navy)] md:text-[13px]">Subject Taught</h3>
         <div className="mt-1.5 flex min-h-[3.25rem] flex-wrap content-start gap-1.5 md:min-h-[4.25rem] md:gap-2">
           {chips.map(({ subject, grade }) => (
             <span
               key={subject}
-              className="rounded-full bg-[color:var(--brand-teal)]/16 px-2 py-0.5 text-[10px] font-semibold text-[#0A245F] md:px-3 md:py-1 md:text-[12px]"
+              className="rounded-full bg-[color:var(--brand-teal)]/12 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--brand-navy)] md:px-3 md:py-1 md:text-[12px]"
             >
               {(() => {
                 const { prefix, value } = splitGradeLabel(grade);
                 return (
                   <>
                     {subject} : {prefix}
-                    <span className="inline-block text-[11px] font-black leading-none tracking-tight text-[#0A245F] md:text-[13px]">
+                    <span className="inline-block text-[11px] font-black leading-none tracking-tight text-[color:var(--brand-navy)] md:text-[13px]">
                       {value}
                     </span>
                   </>
@@ -175,13 +175,13 @@ export function PublicTutorCard({
             </span>
           ))}
           {extraCount > 0 ? (
-            <span className="rounded-full bg-[color:var(--brand-teal)]/16 px-2 py-0.5 text-[10px] font-semibold text-[#0A245F] md:px-3 md:py-1 md:text-[12px]">
+            <span className="rounded-full bg-[color:var(--brand-teal)]/12 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--brand-navy)] md:px-3 md:py-1 md:text-[12px]">
               +{extraCount}
             </span>
           ) : null}
         </div>
 
-        <h3 className="mt-2 min-h-[3rem] line-clamp-3 text-[12px] font-bold leading-snug tracking-tight text-[#0A245F] md:mt-3 md:min-h-[3.75rem] md:text-[14px]">
+        <h3 className="mt-2 min-h-[3rem] line-clamp-3 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--brand-navy)] md:mt-3 md:min-h-[3.75rem] md:text-[14px]">
           {tutor.headline ?? "Headline Here"}
         </h3>
 
@@ -190,8 +190,8 @@ export function PublicTutorCard({
             <p className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground md:text-[11px]">
               Target Student
             </p>
-            <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold leading-tight text-[#0A245F] md:text-[13px]">
-              <BookOpen className="h-3 w-3 text-[#0A245F] md:h-4 md:w-4" />
+            <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold leading-tight text-[color:var(--brand-navy)] md:text-[13px]">
+              <BookOpen className="h-3 w-3 text-[color:var(--brand-navy)] md:h-4 md:w-4" />
               {tutor.target_students[0] ?? "IB, Senior Secondary"}
             </p>
           </div>
@@ -199,16 +199,16 @@ export function PublicTutorCard({
             <p className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground md:text-[11px]">
               Gender
             </p>
-            <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold leading-tight text-[#0A245F] md:text-[13px]">
-              <UserRound className="h-3 w-3 text-[#0A245F] md:h-4 md:w-4" />
+            <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold leading-tight text-[color:var(--brand-navy)] md:text-[13px]">
+              <UserRound className="h-3 w-3 text-[color:var(--brand-navy)] md:h-4 md:w-4" />
               {getTutorGenderLabel(tutor.gender) || "Not specified"}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 border-t border-border bg-white px-3 py-1.5 md:gap-3 md:px-4 md:py-2.5">
-        <p className="text-xl font-black leading-none tracking-tight text-[#0A245F] md:text-3xl">
+      <div className="flex items-center justify-between gap-2 border-t border-border bg-background/70 px-3 py-1.5 md:gap-3 md:px-4 md:py-2.5">
+        <p className="text-xl font-black leading-none tracking-tight text-[color:var(--brand-navy)] md:text-3xl">
           HK${tutor.hourly_rate}
           <span className="ml-1 text-[10px] font-semibold text-muted-foreground md:text-[13px]">
             {priceSuffix}
