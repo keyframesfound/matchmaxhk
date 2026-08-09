@@ -332,7 +332,7 @@ function Landing() {
         </div>
       </section>
 
-      <section className="relative -mt-10 pb-14 md:-mt-14 md:pb-16">
+      <section className="relative -mt-4 pb-14 md:-mt-7 md:pb-16">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="relative rounded-sm border border-border bg-card p-2.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-2.5 sm:pb-4">
