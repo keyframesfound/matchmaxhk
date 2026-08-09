@@ -165,7 +165,9 @@ export function PublicTutorCard({
                 return (
                   <>
                     {subject} : {prefix}
-                    <span className="font-black text-[#0A245F]">{value}</span>
+                    <span className="inline-block text-[13px] font-black leading-none tracking-tight text-[#0A245F]">
+                      {value}
+                    </span>
                   </>
                 );
               })()}
