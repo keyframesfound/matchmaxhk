@@ -230,6 +230,14 @@
     font-weight: 500;
   }
 
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  a[href]:not([aria-disabled="true"]),
+  summary,
+  [data-slot="button"] {
+    cursor: pointer;
+  }
+
   .font-black,
   .font-extrabold {
     font-weight: 700 !important;
