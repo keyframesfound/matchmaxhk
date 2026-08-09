@@ -449,7 +449,7 @@ function TutorsDirectory() {
                       </div>
                     </div>
 
-                    <div className="flex flex-1 flex-col px-4 py-3">
+                    <div className="flex flex-1 flex-col px-4 pt-3 pb-5">
                       <h3 className="text-[13px] font-bold tracking-tight text-[#0A245F]">
                         Subject Taught
                       </h3>
