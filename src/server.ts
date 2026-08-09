@@ -5,7 +5,7 @@ import { renderErrorPage } from "./lib/error-page";
 
 const CANONICAL_ORIGIN = "https://matchmax.hk";
 const CANONICAL_HOST = new URL(CANONICAL_ORIGIN).hostname;
-const CANONICAL_BYPASS_HOST_SUFFIXES = [".vercel.app", ".localhost"];
+const CANONICAL_BYPASS_HOST_SUFFIXES = [".vercel.app", ".localhost", ".local"];
 const CANONICAL_BYPASS_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
 
 type ServerEntry = {
@@ -52,7 +52,30 @@ function isH3SwallowedErrorBody(body: string): boolean {
 function shouldBypassCanonicalRedirect(hostname: string): boolean {
   const host = hostname.toLowerCase();
   if (CANONICAL_BYPASS_HOSTS.has(host)) return true;
+  if (isPrivateOrLoopbackIpHost(host)) return true;
   return CANONICAL_BYPASS_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix));
+}
+
+function isPrivateOrLoopbackIpHost(host: string): boolean {
+  if (host.includes(":")) {
+    return host === "::1";
+  }
+
+  const parts = host.split(".");
+  if (parts.length !== 4) return false;
+  if (parts.some((part) => !/^\d+$/.test(part))) return false;
+
+  const octets = parts.map((part) => Number(part));
+  if (octets.some((n) => Number.isNaN(n) || n < 0 || n > 255)) return false;
+
+  const [a, b] = octets;
+  if (a === 10) return true;
+  if (a === 127) return true;
+  if (a === 192 && b === 168) return true;
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 169 && b === 254) return true;
+
+  return false;
 }
 
 function getCanonicalRedirect(request: Request): Response | null {
