@@ -133,7 +133,7 @@ export function PublicTutorCard({
               className="h-11 w-11 shrink-0 rounded-full border-[3px] border-[color:var(--brand-teal)] object-cover shadow-sm md:h-14 md:w-14"
             />
           ) : (
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-[color:var(--brand-teal)]/10 text-sm font-bold text-[color:var(--brand-navy)] shadow-sm md:h-14 md:w-14 md:text-lg">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-[color:var(--brand-teal)]/10 text-sm font-bold text-[color:var(--brand-teal)] shadow-sm md:h-14 md:w-14 md:text-lg">
               {getTutorInitials(tutor.tutor_code)}
             </div>
           )}
