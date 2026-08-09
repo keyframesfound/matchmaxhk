@@ -113,7 +113,7 @@ function gradeLabel(grade: string) {
   return /^grade\s+/i.test(trimmed) ? trimmed : `Grade ${trimmed}`;
 }
 
-function getTutorSubjectChips(tutor: Tutor) {
+function getTutorSubjectChips(tutor: Tutor, limit = 3) {
   const gradeLookup = new Map<string, string>();
   for (const result of tutor.exam_results ?? []) {
     for (const entry of result.subjects ?? []) {
@@ -125,7 +125,7 @@ function getTutorSubjectChips(tutor: Tutor) {
     }
   }
 
-  return tutor.subjects.slice(0, 3).map((subject) => {
+  const chips = tutor.subjects.slice(0, limit).map((subject) => {
     const key = normalizeSubjectKey(subject);
     let grade = gradeLookup.get(key);
 
@@ -143,6 +143,11 @@ function getTutorSubjectChips(tutor: Tutor) {
       grade: gradeLabel(grade ?? ""),
     };
   });
+
+  return {
+    chips,
+    extraCount: Math.max(0, tutor.subjects.length - limit),
+  };
 }
 
 function TutorsDirectory() {
@@ -420,16 +425,16 @@ function TutorsDirectory() {
                       }
                     }}
                   >
-                    <div className="bg-[color:var(--brand-navy)] px-5 pb-5 pt-5">
+                    <div className="bg-[#0A245F] px-4 pb-4 pt-4">
                       <div className="flex items-center gap-4">
                         {tut.photo_url ? (
                           <img
                             src={tut.photo_url}
                             alt={tut.tutor_code}
-                            className="h-16 w-16 shrink-0 rounded-full border-[3px] border-[color:var(--brand-teal)] object-cover"
+                            className="h-14 w-14 shrink-0 rounded-full border-[3px] border-[color:var(--brand-teal)] object-cover"
                           />
                         ) : (
-                          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-white text-xl font-bold text-[color:var(--brand-teal)]">
+                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-white text-lg font-bold text-[color:var(--brand-teal)]">
                             {getTutorInitials(tut.tutor_code)}
                           </div>
                         )}
@@ -437,39 +442,51 @@ function TutorsDirectory() {
                           <p className="text-2xl font-black tracking-tight text-white">
                             {formatTutorCode(tut.tutor_code)}
                           </p>
-                          <p className="mt-1 line-clamp-2 text-[13px] font-semibold leading-tight text-white/95">
+                          <p className="mt-0.5 line-clamp-1 text-[12px] font-semibold leading-tight text-white/95">
                             {tut.headline ?? "Headline Here"}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-1 flex-col px-5 py-4">
-                      <h3 className="text-[13px] font-bold tracking-tight text-[color:var(--brand-navy)]">
+                    <div className="flex flex-1 flex-col px-4 py-3">
+                      <h3 className="text-[13px] font-bold tracking-tight text-[#0A245F]">
                         Subject Taught
                       </h3>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {getTutorSubjectChips(tut).map(({ subject, grade }) => (
-                          <span
-                            key={subject}
-                            className="rounded-full bg-[color:var(--brand-teal)]/16 px-3 py-1 text-[12px] font-semibold text-[color:var(--brand-navy)]"
-                          >
-                            {subject} : {grade}
-                          </span>
-                        ))}
+                        {(() => {
+                          const { chips, extraCount } = getTutorSubjectChips(tut);
+                          return (
+                            <>
+                              {chips.map(({ subject, grade }) => (
+                                <span
+                                  key={subject}
+                                  className="rounded-full bg-[color:var(--brand-teal)]/16 px-3 py-1 text-[12px] font-semibold text-[#0A245F]"
+                                >
+                                  {subject} : {grade}
+                                </span>
+                              ))}
+                              {extraCount > 0 && (
+                                <span className="rounded-full bg-[color:var(--brand-teal)]/16 px-3 py-1 text-[12px] font-semibold text-[#0A245F]">
+                                  +{extraCount}
+                                </span>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
 
-                      <h3 className="mt-5 text-[13px] font-bold tracking-tight text-[color:var(--brand-navy)]">
+                      <h3 className="mt-4 text-[13px] font-bold tracking-tight text-[#0A245F]">
                         {tut.university ?? tut.highschool ?? "University - From Database"}
                       </h3>
 
-                      <div className="mt-3 grid grid-cols-2 gap-3 border-t border-border pt-4">
+                      <div className="mt-2.5 grid grid-cols-2 gap-3 border-t border-border pt-3">
                         <div>
                           <p className="text-[12px] uppercase tracking-[0.08em] text-muted-foreground">
                             Target Student
                           </p>
-                          <p className="mt-1.5 inline-flex items-center gap-1.5 text-[13px] font-semibold leading-tight text-[color:var(--brand-navy)]">
-                            <BookOpen className="h-4 w-4 text-[color:var(--brand-navy)]" />
+                          <p className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-semibold leading-tight text-[#0A245F]">
+                            <BookOpen className="h-4 w-4 text-[#0A245F]" />
                             {tut.target_students[0] ?? "IB, Senior Secondary"}
                           </p>
                         </div>
@@ -477,16 +494,16 @@ function TutorsDirectory() {
                           <p className="text-[12px] uppercase tracking-[0.08em] text-muted-foreground">
                             Gender
                           </p>
-                          <p className="mt-1.5 inline-flex items-center gap-1.5 text-[13px] font-semibold leading-tight text-[color:var(--brand-navy)]">
-                            <Clock3 className="h-4 w-4 text-[color:var(--brand-navy)]" />
+                          <p className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-semibold leading-tight text-[#0A245F]">
+                            <Clock3 className="h-4 w-4 text-[#0A245F]" />
                             {getTutorGenderLabel(tut.gender) || "Not specified"}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-border bg-white px-5 py-3">
-                      <p className="text-3xl font-black leading-none tracking-tight text-[color:var(--brand-navy)]">
+                    <div className="flex items-center justify-between border-t border-border bg-white px-4 py-2.5">
+                      <p className="text-3xl font-black leading-none tracking-tight text-[#0A245F]">
                         HK${tut.hourly_rate}
                         <span className="ml-1 text-[13px] font-semibold text-muted-foreground">
                           {t("featured.per_hour")}
@@ -494,7 +511,7 @@ function TutorsDirectory() {
                       </p>
                       <Button
                         asChild
-                        className="h-10 rounded-sm bg-[color:var(--brand-navy)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                        className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
                       >
                         <a
                           href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
