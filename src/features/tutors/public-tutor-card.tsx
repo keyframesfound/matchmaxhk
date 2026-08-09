@@ -141,7 +141,7 @@ export function PublicTutorCard({
               {formatTutorCode(tutor.tutor_code)}
             </p>
             <p className="mt-0.5 line-clamp-2 min-h-[2rem] text-[12px] font-semibold leading-tight text-white/95">
-              {tutor.headline ?? "Headline Here"}
+              {tutor.university ?? tutor.highschool ?? "University - From Database"}
             </p>
           </div>
           {badgeLabel ? (
@@ -181,7 +181,7 @@ export function PublicTutorCard({
         </div>
 
         <h3 className="mt-4 line-clamp-2 min-h-[2.5rem] text-[14px] font-bold tracking-tight text-[#0A245F]">
-          {tutor.university ?? tutor.highschool ?? "University - From Database"}
+          {tutor.headline ?? "Headline Here"}
         </h3>
 
         <div className="h-4" />
