@@ -364,11 +364,11 @@ function TutorsDirectory() {
             )}
 
             {!isLoading && filtered.length > 0 && (
-              <div className="mx-auto grid max-w-5xl gap-8">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filtered.map((tut: Tutor) => (
                   <article
                     key={tut.id}
-                    className="flex h-full cursor-pointer flex-col overflow-hidden rounded-[18px] border border-[color:var(--brand-teal)]/35 bg-white transition-all hover:-translate-y-0.5 hover:shadow-brand"
+                    className="flex h-full cursor-pointer flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/35 bg-white transition-all hover:-translate-y-0.5 hover:shadow-brand"
                     role="link"
                     tabIndex={0}
                     onClick={() => openTutorDetail(tut.tutor_code)}
@@ -379,86 +379,86 @@ function TutorsDirectory() {
                       }
                     }}
                   >
-                    <div className="bg-[color:var(--brand-navy)] px-8 pb-8 pt-7">
-                      <div className="flex items-center gap-6">
+                    <div className="bg-[color:var(--brand-navy)] px-5 pb-5 pt-5">
+                      <div className="flex items-center gap-4">
                         {tut.photo_url ? (
                           <img
                             src={tut.photo_url}
                             alt={tut.tutor_code}
-                            className="h-24 w-24 shrink-0 rounded-full border-[4px] border-[color:var(--brand-teal)] object-cover sm:h-[6.5rem] sm:w-[6.5rem]"
+                            className="h-16 w-16 shrink-0 rounded-full border-[3px] border-[color:var(--brand-teal)] object-cover"
                           />
                         ) : (
-                          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border-[4px] border-[color:var(--brand-teal)] bg-white text-2xl font-bold text-[color:var(--brand-teal)] sm:h-[6.5rem] sm:w-[6.5rem] sm:text-[2.2rem]">
+                          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-white text-xl font-bold text-[color:var(--brand-teal)]">
                             {getTutorInitials(tut.tutor_code)}
                           </div>
                         )}
                         <div className="min-w-0">
-                          <p className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+                          <p className="text-2xl font-black tracking-tight text-white">
                             {formatTutorCode(tut.tutor_code)}
                           </p>
-                          <p className="mt-2 line-clamp-2 text-xl font-bold leading-tight text-white/95 sm:mt-3 sm:text-2xl">
+                          <p className="mt-1 line-clamp-2 text-base font-bold leading-tight text-white/95">
                             {tut.headline ?? "Headline Here"}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-1 flex-col px-8 py-6">
-                      <h3 className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-[2.1rem]">
+                    <div className="flex flex-1 flex-col px-5 py-4">
+                      <h3 className="text-xl font-black tracking-tight text-[color:var(--brand-navy)]">
                         Subject Taught
                       </h3>
-                      <div className="mt-3 flex flex-wrap gap-3">
+                      <div className="mt-2 flex flex-wrap gap-2">
                         {tut.subjects.slice(0, 3).map((subject) => (
                           <span
                             key={subject}
-                            className="rounded-full bg-[color:var(--brand-teal)]/16 px-4 py-1.5 text-base font-semibold text-[color:var(--brand-navy)] sm:text-lg"
+                            className="rounded-full bg-[color:var(--brand-teal)]/16 px-3 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
                           >
                             {subject}
                           </span>
                         ))}
                       </div>
 
-                      <h3 className="mt-8 text-2xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-[2.1rem]">
+                      <h3 className="mt-5 text-xl font-black tracking-tight text-[color:var(--brand-navy)]">
                         {tut.university ?? tut.highschool ?? "University - From Database"}
                       </h3>
 
-                      <div className="mt-5 grid grid-cols-1 gap-5 border-t border-border pt-6 sm:grid-cols-2">
+                      <div className="mt-3 grid grid-cols-2 gap-3 border-t border-border pt-4">
                         <div>
-                          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground sm:text-sm">
+                          <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                             Target Student
                           </p>
-                          <p className="mt-2 inline-flex items-center gap-2 text-xl font-bold leading-tight text-[color:var(--brand-navy)] sm:text-2xl">
-                            <BookOpen className="h-6 w-6 text-[color:var(--brand-navy)]" />
+                          <p className="mt-1.5 inline-flex items-center gap-1.5 text-base font-bold leading-tight text-[color:var(--brand-navy)]">
+                            <BookOpen className="h-4 w-4 text-[color:var(--brand-navy)]" />
                             {tut.target_students[0] ?? "IB, Senior Secondary"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground sm:text-sm">
+                          <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                             Gender
                           </p>
-                          <p className="mt-2 inline-flex items-center gap-2 text-xl font-bold leading-tight text-[color:var(--brand-navy)] sm:text-2xl">
-                            <User className="h-6 w-6 text-[color:var(--brand-navy)]" />
+                          <p className="mt-1.5 inline-flex items-center gap-1.5 text-base font-bold leading-tight text-[color:var(--brand-navy)]">
+                            <User className="h-4 w-4 text-[color:var(--brand-navy)]" />
                             {getTutorGenderLabel(tut.gender) || "Not specified"}
                           </p>
                         </div>
                       </div>
 
-                      <div className="mt-4 text-sm text-muted-foreground">
+                      <div className="mt-3 text-xs text-muted-foreground">
                         {getTutorLessonModeLabel(tut.lesson_mode)}
                         {tut.experience_years ? ` • ${tut.experience_years} years experience` : ""}
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border bg-white px-8 py-5">
-                      <p className="text-4xl font-black leading-none tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
+                    <div className="flex items-center justify-between border-t border-border bg-white px-5 py-3">
+                      <p className="text-3xl font-black leading-none tracking-tight text-[color:var(--brand-navy)]">
                         HK${tut.hourly_rate}
-                        <span className="ml-2 text-2xl font-semibold text-muted-foreground sm:text-3xl">
+                        <span className="ml-1 text-sm font-semibold text-muted-foreground">
                           {t("featured.per_hour")}
                         </span>
                       </p>
                       <Button
                         asChild
-                        className="h-14 rounded-2xl bg-[color:var(--brand-navy)] px-6 text-base font-bold text-white hover:bg-[color:var(--brand-royal)] sm:h-16 sm:px-8 sm:text-lg"
+                        className="h-10 rounded-sm bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)]"
                       >
                         <a
                           href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
