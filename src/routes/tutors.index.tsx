@@ -480,6 +480,8 @@ function TutorsDirectory() {
                         {tut.university ?? tut.highschool ?? "University - From Database"}
                       </h3>
 
+                      <div className="h-3" />
+
                       <div className="mt-auto grid grid-cols-2 gap-3 border-t border-border pt-10">
                         <div>
                           <p className="text-[12px] uppercase tracking-[0.08em] text-muted-foreground">
