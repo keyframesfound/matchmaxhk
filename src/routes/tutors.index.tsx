@@ -476,11 +476,11 @@ function TutorsDirectory() {
                         })()}
                       </div>
 
-                      <h3 className="mt-4 text-[13px] font-bold tracking-tight text-[#0A245F]">
+                      <h3 className="mt-4 text-[14px] font-bold tracking-tight text-[#0A245F]">
                         {tut.university ?? tut.highschool ?? "University - From Database"}
                       </h3>
 
-                      <div className="mt-2.5 grid grid-cols-2 gap-3 border-t border-border pt-3">
+                      <div className="mt-auto grid grid-cols-2 gap-3 border-t border-border pt-3">
                         <div>
                           <p className="text-[12px] uppercase tracking-[0.08em] text-muted-foreground">
                             Target Student
