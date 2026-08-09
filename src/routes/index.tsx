@@ -329,34 +329,6 @@ function Landing() {
               </Button>
             </div>
           </div>
-
-          {/* HERO VISUAL CARD */}
-          <div className="relative hidden items-center justify-center md:flex">
-            <div className="w-full max-w-[24rem] md:max-w-[28rem] lg:max-w-[30rem] xl:max-w-[32rem]">
-              {heroTutor ? (
-                <PublicTutorCard
-                  tutor={heroTutor}
-                  priceSuffix={t("featured.per_hour")}
-                  badgeLabel="Featured"
-                  onOpen={openTutorDetail}
-                  footerAction={
-                    <Button
-                      asChild
-                      className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
-                    >
-                      <Link to="/tutors/$tutorCode" params={{ tutorCode: heroTutor.tutor_code }}>
-                        View profile
-                      </Link>
-                    </Button>
-                  }
-                />
-              ) : (
-                <div className="rounded-sm border border-border bg-card py-16 text-center text-sm text-muted-foreground">
-                  {featuredLoading ? "Loading featured tutor…" : "No featured tutor yet."}
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </section>
 
