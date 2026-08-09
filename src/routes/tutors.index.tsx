@@ -480,23 +480,23 @@ function TutorsDirectory() {
                         {tut.university ?? tut.highschool ?? "University - From Database"}
                       </h3>
 
-                      <div className="h-10" />
+                      <div className="h-4" />
 
-                      <div className="mt-auto grid grid-cols-2 gap-3 border-t border-border pt-10">
+                      <div className="mt-auto grid grid-cols-2 gap-2 border-t border-border pt-4">
                         <div>
-                          <p className="text-[12px] uppercase tracking-[0.08em] text-muted-foreground">
+                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                             Target Student
                           </p>
-                          <p className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-semibold leading-tight text-[#0A245F]">
+                          <p className="mt-0.5 inline-flex items-center gap-1 text-[13px] font-semibold leading-tight text-[#0A245F]">
                             <BookOpen className="h-4 w-4 text-[#0A245F]" />
                             {tut.target_students[0] ?? "IB, Senior Secondary"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[12px] uppercase tracking-[0.08em] text-muted-foreground">
+                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                             Gender
                           </p>
-                          <p className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-semibold leading-tight text-[#0A245F]">
+                          <p className="mt-0.5 inline-flex items-center gap-1 text-[13px] font-semibold leading-tight text-[#0A245F]">
                             <Clock3 className="h-4 w-4 text-[#0A245F]" />
                             {getTutorGenderLabel(tut.gender) || "Not specified"}
                           </p>
