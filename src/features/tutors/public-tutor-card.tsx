@@ -107,6 +107,7 @@ export function PublicTutorCard({
     <article
       className={cn(
         "flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/35 bg-white transition-all hover:-translate-y-0.5 hover:shadow-brand md:min-h-[25rem]",
+        interactive && "cursor-pointer",
         className,
       )}
       role={interactive ? "link" : undefined}
