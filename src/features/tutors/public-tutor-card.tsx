@@ -106,7 +106,7 @@ export function PublicTutorCard({
   return (
     <article
       className={cn(
-        "flex h-full w-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/35 bg-white transition-all hover:-translate-y-0.5 hover:shadow-brand",
+        "flex h-full min-h-[25rem] w-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/35 bg-white transition-all hover:-translate-y-0.5 hover:shadow-brand",
         className,
       )}
       role={interactive ? "link" : undefined}
@@ -140,7 +140,7 @@ export function PublicTutorCard({
             <p className="text-2xl font-black tracking-tight text-white">
               {formatTutorCode(tutor.tutor_code)}
             </p>
-            <p className="mt-0.5 line-clamp-1 text-[12px] font-semibold leading-tight text-white/95">
+            <p className="mt-0.5 line-clamp-2 min-h-[2rem] text-[12px] font-semibold leading-tight text-white/95">
               {tutor.headline ?? "Headline Here"}
             </p>
           </div>
@@ -154,7 +154,7 @@ export function PublicTutorCard({
 
       <div className="flex flex-1 flex-col px-4 pt-3 pb-5">
         <h3 className="text-[13px] font-bold tracking-tight text-[#0A245F]">Subject Taught</h3>
-        <div className="mt-2 flex flex-wrap gap-2">
+        <div className="mt-2 flex min-h-[4.25rem] flex-wrap content-start gap-2">
           {chips.map(({ subject, grade }) => (
             <span
               key={subject}
@@ -178,7 +178,7 @@ export function PublicTutorCard({
           ) : null}
         </div>
 
-        <h3 className="mt-4 text-[14px] font-bold tracking-tight text-[#0A245F]">
+        <h3 className="mt-4 line-clamp-2 min-h-[2.5rem] text-[14px] font-bold tracking-tight text-[#0A245F]">
           {tutor.university ?? tutor.highschool ?? "University - From Database"}
         </h3>
 
