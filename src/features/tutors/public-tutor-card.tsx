@@ -184,7 +184,7 @@ export function PublicTutorCard({
           {tutor.headline ?? "Headline Here"}
         </h3>
 
-        <div className="h-4" />
+        <div className="h-2" />
 
         <div className="mt-auto grid grid-cols-2 gap-2 border-t border-border pt-4">
           <div>
