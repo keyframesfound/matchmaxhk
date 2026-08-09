@@ -38,19 +38,36 @@ const CommandDialog = ({ children, ...props }: DialogProps) => {
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-    <CommandPrimitive.Input
-      ref={ref}
-      className={cn(
-        "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
-        className,
-      )}
-      {...props}
-    />
-  </div>
-));
+>(({ className, onChange, onValueChange, ...props }, ref) => {
+  const resetListScroll = React.useCallback((input: HTMLInputElement | null) => {
+    const list = input?.closest("[cmdk-root]")?.querySelector<HTMLElement>("[cmdk-list]");
+    if (list) {
+      list.scrollTop = 0;
+    }
+  }, []);
+
+  return (
+    <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
+      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+      <CommandPrimitive.Input
+        ref={ref}
+        className={cn(
+          "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+          className,
+        )}
+        onChange={(event) => {
+          resetListScroll(event.currentTarget);
+          onChange?.(event);
+        }}
+        onValueChange={(value) => {
+          resetListScroll(document.activeElement instanceof HTMLInputElement ? document.activeElement : null);
+          onValueChange?.(value);
+        }}
+        {...props}
+      />
+    </div>
+  );
+});
 
 CommandInput.displayName = CommandPrimitive.Input.displayName;
 
