@@ -9,13 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import { PublicTutorCard, buildTutorWhatsAppUrl } from "@/features/tutors/public-tutor-card";
 import { blurActive } from "@/lib/dom";
 import {
@@ -447,48 +440,67 @@ function Landing() {
           </div>
 
           <div className="mt-6">
+            <div className="mb-6 flex items-baseline justify-between">
+              <p className="text-sm text-muted-foreground">
+                {publishedTutorsLoading ? (
+                  "Loading…"
+                ) : (
+                  <>
+                    <span className="font-bold text-foreground">{previewTutors.length}</span>{" "}
+                    {previewTutors.length === 1 ? "tutor" : "tutors"} found
+                  </>
+                )}
+              </p>
+            </div>
+
             {publishedTutorsLoading && (
-              <p className="text-sm text-muted-foreground">Loading tutors...</p>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-64 animate-pulse rounded-sm border border-border bg-muted/40"
+                  />
+                ))}
+              </div>
             )}
 
             {!publishedTutorsLoading && previewTutors.length === 0 && (
-              <p className="text-sm text-muted-foreground">No tutors match this search yet.</p>
+              <div className="rounded-sm border border-dashed border-border bg-card p-12 text-center">
+                <p className="text-lg font-bold text-[color:var(--brand-navy)]">
+                  No tutors match your filters yet
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Try widening your search, then tap Search to view all matching tutors.
+                </p>
+              </div>
             )}
 
             {!publishedTutorsLoading && previewTutors.length > 0 && (
-              <Carousel opts={{ align: "start", loop: false }} className="mx-0">
-                <CarouselContent>
-                  {previewTutors.map((tut) => (
-                    <CarouselItem
-                      key={tut.id}
-                      className="flex basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/3"
-                    >
-                      <PublicTutorCard
-                        tutor={tut}
-                        priceSuffix={t("featured.per_hour")}
-                        onOpen={openTutorDetail}
-                        footerAction={
-                          <Button
-                            asChild
-                            className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
-                          >
-                            <a
-                              href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(event) => event.stopPropagation()}
-                            >
-                              Request tutor
-                            </a>
-                          </Button>
-                        }
-                      />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 md:-left-4" />
-                <CarouselNext className="right-2 top-1/2 -translate-y-1/2 md:-right-4" />
-              </Carousel>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {previewTutors.map((tut) => (
+                  <PublicTutorCard
+                    key={tut.id}
+                    tutor={tut}
+                    priceSuffix={t("featured.per_hour")}
+                    onOpen={openTutorDetail}
+                    footerAction={
+                      <Button
+                        asChild
+                        className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
+                      >
+                        <a
+                          href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          Request tutor
+                        </a>
+                      </Button>
+                    }
+                  />
+                ))}
+              </div>
             )}
           </div>
         </div>
