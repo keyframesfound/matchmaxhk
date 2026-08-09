@@ -6,6 +6,13 @@ import { ArrowRight, BadgeCheck, BookOpen, Clock3, MapPin, Search } from "lucide
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
@@ -240,7 +247,7 @@ function Landing() {
       }
       return true;
       })
-      .slice(0, 3);
+        .slice(0, 6);
   }, [homeSearch, publishedTutors]);
 
   // JSON-LD
@@ -325,7 +332,7 @@ function Landing() {
 
           {/* HERO VISUAL CARD */}
           <div className="relative hidden items-center justify-center md:flex">
-            <div className="w-full max-w-[20rem] sm:max-w-md md:max-w-lg">
+            <div className="w-full max-w-[24rem] md:max-w-[28rem] lg:max-w-[30rem] xl:max-w-[32rem]">
               {heroTutor ? (
                 <PublicTutorCard
                   tutor={heroTutor}
@@ -436,7 +443,7 @@ function Landing() {
             </div>
 
             {publishedTutorsLoading && (
-                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2 lg:gap-6 xl:grid-cols-3">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div
                     key={i}
@@ -458,31 +465,66 @@ function Landing() {
             )}
 
             {!publishedTutorsLoading && previewTutors.length > 0 && (
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {previewTutors.map((tut) => (
-                  <PublicTutorCard
-                    key={tut.id}
-                    tutor={tut}
-                    priceSuffix={t("featured.per_hour")}
-                    onOpen={openTutorDetail}
-                    footerAction={
-                      <Button
-                        asChild
-                        className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
-                      >
-                        <a
-                          href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(event) => event.stopPropagation()}
+              <>
+                <div className="grid gap-4 md:grid-cols-2 lg:hidden">
+                  {previewTutors.map((tut) => (
+                    <PublicTutorCard
+                      key={tut.id}
+                      tutor={tut}
+                      priceSuffix={t("featured.per_hour")}
+                      onOpen={openTutorDetail}
+                      footerAction={
+                        <Button
+                          asChild
+                          className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
                         >
-                          Request tutor
-                        </a>
-                      </Button>
-                    }
-                  />
-                ))}
-              </div>
+                          <a
+                            href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            Request tutor
+                          </a>
+                        </Button>
+                      }
+                    />
+                  ))}
+                </div>
+
+                <div className="hidden lg:block">
+                  <Carousel className="px-14" opts={{ align: "start" }}>
+                    <CarouselContent>
+                      {previewTutors.map((tut) => (
+                        <CarouselItem key={tut.id} className="lg:basis-1/2 xl:basis-1/3">
+                          <PublicTutorCard
+                            tutor={tut}
+                            priceSuffix={t("featured.per_hour")}
+                            onOpen={openTutorDetail}
+                            footerAction={
+                              <Button
+                                asChild
+                                className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
+                              >
+                                <a
+                                  href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  Request tutor
+                                </a>
+                              </Button>
+                            }
+                          />
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-0 hidden h-11 w-11 border-[color:var(--brand-teal)]/30 bg-white text-[color:var(--brand-navy)] shadow-sm hover:bg-white lg:flex" />
+                    <CarouselNext className="right-0 hidden h-11 w-11 border-[color:var(--brand-teal)]/30 bg-white text-[color:var(--brand-navy)] shadow-sm hover:bg-white lg:flex" />
+                  </Carousel>
+                </div>
+              </>
             )}
           </div>
         </div>

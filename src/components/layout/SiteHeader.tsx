@@ -26,6 +26,7 @@ export function SiteHeader() {
   const isAdmin = hasAnyRole(["admin", "super_admin"]);
 
   const closeMobile = () => setMobileOpen(false);
+  const brandLabelClassName = "text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
 
   const blurActive = () => {
     if (document.activeElement instanceof HTMLElement) {
@@ -59,12 +60,8 @@ export function SiteHeader() {
             aria-label="MatchMax home"
           >
             <div className="flex items-center gap-2">
-              <img
-                src="/matchmax-logo.png"
-                alt="MatchMax logo"
-                className="h-8 w-8 object-contain"
-              />
-              <span className="text-lg font-bold tracking-tight text-brand-gradient sm:text-xl">MatchMax</span>
+              <Logo className="shrink-0" />
+              <span className={brandLabelClassName}>MatchMax</span>
             </div>
           </Link>
 
@@ -305,7 +302,7 @@ export function SiteHeader() {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex flex-col bg-white lg:hidden">
           {/* Top bar — mirrors the main header, brand colours kept */}
-          <div className="flex h-14 shrink-0 items-center justify-between border-b border-[#041344]/10 px-3 sm:px-8">
+          <div className="flex h-[64px] shrink-0 items-center justify-between border-b border-[#041344]/10 px-4 sm:px-8">
             <Link
               to="/"
               className="flex shrink-0 items-center"
@@ -316,14 +313,8 @@ export function SiteHeader() {
               aria-label="MatchMax home"
             >
               <div className="flex items-center gap-2">
-                <img
-                  src="/matchmax-logo.png"
-                  alt="MatchMax logo"
-                  className="h-6 w-6 object-contain"
-                />
-                <span className="text-sm font-bold tracking-tight text-brand-gradient sm:text-lg">
-                  MatchMax
-                </span>
+                <Logo className="shrink-0" />
+                <span className={brandLabelClassName}>MatchMax</span>
               </div>
             </Link>
 

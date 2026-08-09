@@ -4,7 +4,7 @@ export function Logo({ className = "" }: { className?: string }) {
       <img
         src="/matchmax-logo.png"
         alt="MatchMax logo"
-        className="h-7 w-7 shrink-0 object-contain sm:h-8 sm:w-8"
+        className="h-8 w-8 shrink-0 object-contain"
       />
     </div>
   );

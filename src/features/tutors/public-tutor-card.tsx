@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BookOpen, Clock3 } from "lucide-react";
+import { BookOpen, UserRound } from "lucide-react";
 import { getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
 import { cn } from "@/lib/utils";
 
@@ -200,7 +200,7 @@ export function PublicTutorCard({
               Gender
             </p>
             <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold leading-tight text-[#0A245F] md:text-[13px]">
-              <Clock3 className="h-3 w-3 text-[#0A245F] md:h-4 md:w-4" />
+              <UserRound className="h-3 w-3 text-[#0A245F] md:h-4 md:w-4" />
               {getTutorGenderLabel(tutor.gender) || "Not specified"}
             </p>
           </div>
