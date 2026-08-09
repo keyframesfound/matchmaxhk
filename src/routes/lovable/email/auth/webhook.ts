@@ -12,8 +12,8 @@ import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 // Configuration
 const SITE_NAME = "matchmaxhk"
-const ROOT_DOMAIN = "maxmatch.app"
-const FROM_DOMAIN = "maxmatch.app"
+const ROOT_DOMAIN = "matchmax.hk"
+const FROM_DOMAIN = "matchmax.hk"
 const SITE_URL = `https://${ROOT_DOMAIN}`
 
 // Lazy singleton — see send-email.ts for why this can't be constructed eagerly

@@ -118,8 +118,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@context": "https://schema.org",
           "@type": "Organization",
           name: "MatchMax",
-          url: "https://www.maxmatch.app",
-          logo: "https://www.maxmatch.app/matchmax-logo.png",
+          url: "https://matchmax.hk",
+          logo: "https://matchmax.hk/matchmax-logo.png",
           description:
             "Hong Kong tutoring marketplace matching parents and students with verified DSE, IB, IGCSE, and AP tutors.",
         }),
@@ -130,10 +130,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@context": "https://schema.org",
           "@type": "WebSite",
           name: "MatchMax",
-          url: "https://www.maxmatch.app",
+          url: "https://matchmax.hk",
           potentialAction: {
             "@type": "SearchAction",
-            target: "https://www.maxmatch.app/tutors?q={search_term_string}",
+            target: "https://matchmax.hk/tutors?q={search_term_string}",
             "query-input": "required name=search_term_string",
           },
         }),

@@ -22,9 +22,9 @@ export const Route = createFileRoute("/consulting")({
         content:
           "Choose from Core Review, Consult Lesson, 1-Month Mentorship, or Full-Cycle Package for IA, EE and TOK support.",
       },
-      { property: "og:url", content: "https://www.maxmatch.app/consulting" },
+      { property: "og:url", content: "https://matchmax.hk/consulting" },
     ],
-    links: [{ rel: "canonical", href: "https://www.maxmatch.app/consulting" }],
+    links: [{ rel: "canonical", href: "https://matchmax.hk/consulting" }],
   }),
   component: ConsultingPage,
 });

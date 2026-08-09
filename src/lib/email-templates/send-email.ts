@@ -9,7 +9,7 @@ import { TEMPLATES } from './registry'
 const SITE_NAME = "matchmaxhk"
 // FROM_DOMAIN is the domain shown in the From: header. Must be a domain you've
 // verified in your Resend account (Resend -> Domains).
-const FROM_DOMAIN = "maxmatch.app"
+const FROM_DOMAIN = "matchmax.hk"
 
 // Lazy singleton — mirrors the supabaseAdmin Proxy pattern in client.server.ts.
 // Constructing Resend eagerly at module scope means a missing RESEND_API_KEY

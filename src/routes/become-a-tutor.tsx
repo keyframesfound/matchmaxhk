@@ -14,9 +14,9 @@ export const Route = createFileRoute("/become-a-tutor")({
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Become a Tutor in Hong Kong | MatchMax" },
       { property: "og:description", content: "Join MatchMax as a tutor in Hong Kong. Get verified, build your profile and receive quality case leads from parents for IB, DSE, IGCSE and more." },
-      { property: "og:url", content: "https://www.maxmatch.app/become-a-tutor" },
+      { property: "og:url", content: "https://matchmax.hk/become-a-tutor" },
     ],
-    links: [{ rel: "canonical", href: "https://www.maxmatch.app/become-a-tutor" }],
+    links: [{ rel: "canonical", href: "https://matchmax.hk/become-a-tutor" }],
   }),
   component: BecomeATutor,
 });

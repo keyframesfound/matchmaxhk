@@ -48,9 +48,9 @@ export const Route = createFileRoute("/tutors/")({
         content:
           "Browse verified tutors in Hong Kong by subject, district, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
       },
-      { property: "og:url", content: "https://www.maxmatch.app/tutors" },
+      { property: "og:url", content: "https://matchmax.hk/tutors" },
     ],
-    links: [{ rel: "canonical", href: "https://www.maxmatch.app/tutors" }],
+    links: [{ rel: "canonical", href: "https://matchmax.hk/tutors" }],
   }),
   component: TutorsDirectory,
 });

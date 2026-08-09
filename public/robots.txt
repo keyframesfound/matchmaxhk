@@ -1,4 +1,4 @@
-# https://www.maxmatch.app/robots.txt
+# https://matchmax.hk/robots.txt
 
 User-agent: *
 Allow: /
@@ -11,4 +11,4 @@ Disallow: /post-case
 Disallow: /cases
 Disallow: /lovable/
 
-Sitemap: https://www.maxmatch.app/sitemap.xml
+Sitemap: https://matchmax.hk/sitemap.xml

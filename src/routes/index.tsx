@@ -79,7 +79,7 @@ export const Route = createFileRoute("/")({
         content:
           "Find verified IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly.",
       },
-      { property: "og:url", content: "https://www.maxmatch.app/" },
+      { property: "og:url", content: "https://matchmax.hk/" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "MatchMax" },
       { property: "og:locale", content: "en_HK" },
@@ -96,7 +96,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
-      { rel: "canonical", href: "https://www.maxmatch.app/" },
+      { rel: "canonical", href: "https://matchmax.hk/" },
       { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
       { rel: "shortcut icon", href: "/favicon.ico" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
@@ -255,7 +255,7 @@ function Landing() {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
     name: "MatchMax",
-    url: "https://www.maxmatch.app/",
+    url: "https://matchmax.hk/",
     description:
       "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
     areaServed: {
@@ -275,7 +275,7 @@ function Landing() {
             item: {
               "@type": "Person",
               name: tut.tutor_code,
-              url: `https://www.maxmatch.app/tutors/${tut.tutor_code}`,
+              url: `https://matchmax.hk/tutors/${tut.tutor_code}`,
             },
           })),
         }

@@ -3,7 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
-const CANONICAL_ORIGIN = "https://www.maxmatch.app";
+const CANONICAL_ORIGIN = "https://matchmax.hk";
 const CANONICAL_HOST = new URL(CANONICAL_ORIGIN).hostname;
 const CANONICAL_BYPASS_HOST_SUFFIXES = [".vercel.app", ".localhost"];
 const CANONICAL_BYPASS_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
