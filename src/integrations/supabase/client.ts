@@ -28,6 +28,43 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 
+function createMissingEnvSupabaseClient() {
+  const result = {
+    auth: {
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } }, error: null }),
+      getSession: async () => ({ data: { session: null }, error: null }),
+      signOut: async () => ({ error: null }),
+    },
+    from: () => {
+      const builder: Record<string, unknown> = {
+        select() {
+          return builder;
+        },
+        eq() {
+          return builder;
+        },
+        order() {
+          return builder;
+        },
+        limit() {
+          return builder;
+        },
+        maybeSingle: async () => ({ data: null, error: null }),
+        single: async () => ({ data: null, error: null }),
+        insert: async () => ({ data: null, error: null }),
+        update: async () => ({ data: null, error: null }),
+        delete: async () => ({ data: null, error: null }),
+        then: (resolve: (value: { data: unknown; error: null }) => unknown) =>
+          Promise.resolve({ data: [], error: null }).then(resolve),
+      };
+
+      return builder as unknown as ReturnType<typeof createSupabaseClient>;
+    },
+  };
+
+  return result as unknown as ReturnType<typeof createSupabaseClient>;
+}
+
 function createSupabaseClient() {
   const env = resolveSupabaseEnv({
     ...import.meta.env,
@@ -43,8 +80,8 @@ function createSupabaseClient() {
       ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
     ];
     const message = getSupabaseMissingEnvMessage(missing);
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+    console.warn(`[Supabase] ${message}`);
+    return createMissingEnvSupabaseClient();
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {

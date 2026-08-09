@@ -106,7 +106,7 @@ export function PublicTutorCard({
   return (
     <article
       className={cn(
-        "flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-sm border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md md:min-h-[25rem]",
+        "flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-white shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[25rem]",
         interactive && "cursor-pointer",
         className,
       )}
@@ -130,10 +130,10 @@ export function PublicTutorCard({
             <img
               src={tutor.photo_url}
               alt={tutor.tutor_code}
-              className="h-11 w-11 shrink-0 rounded-full border-[3px] border-[color:var(--brand-teal)] object-cover md:h-14 md:w-14"
+              className="h-11 w-11 shrink-0 rounded-full border-[3px] border-[color:var(--brand-teal)] object-cover shadow-sm md:h-14 md:w-14"
             />
           ) : (
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-white text-sm font-bold text-[color:var(--brand-navy)] md:h-14 md:w-14 md:text-lg">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-[color:var(--brand-teal)]/10 text-sm font-bold text-[color:var(--brand-navy)] shadow-sm md:h-14 md:w-14 md:text-lg">
               {getTutorInitials(tutor.tutor_code)}
             </div>
           )}
@@ -182,10 +182,10 @@ export function PublicTutorCard({
         </div>
 
         <h3 className="mt-2 min-h-[3rem] line-clamp-3 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--brand-navy)] md:mt-3 md:min-h-[3.75rem] md:text-[14px]">
-          {tutor.headline ?? "Headline Here"}
+          {tutor.headline ?? "Experienced tutor matching students with tailored support"}
         </h3>
 
-        <div className="mt-auto grid grid-cols-2 gap-2 border-t border-border pt-2.5 md:pt-4">
+        <div className="mt-auto grid grid-cols-2 gap-2 border-t border-[color:var(--brand-teal)]/20 pt-2.5 md:pt-4">
           <div>
             <p className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground md:text-[11px]">
               Target Student
@@ -207,7 +207,7 @@ export function PublicTutorCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 border-t border-border bg-background/70 px-3 py-1.5 md:gap-3 md:px-4 md:py-2.5">
+      <div className="flex items-center justify-between gap-2 border-t border-[color:var(--brand-teal)]/20 bg-white px-3 py-1.5 md:gap-3 md:px-4 md:py-2.5">
         <p className="text-xl font-black leading-none tracking-tight text-[color:var(--brand-navy)] md:text-3xl">
           HK${tutor.hourly_rate}
           <span className="ml-1 text-[10px] font-semibold text-muted-foreground md:text-[13px]">
