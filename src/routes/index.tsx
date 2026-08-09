@@ -342,7 +342,7 @@ function Landing() {
           </div>
 
           {/* HERO VISUAL CARD */}
-          <div className="relative flex items-center justify-center">
+          <div className="relative hidden items-center justify-center md:flex">
             <div className="w-full max-w-[20rem] sm:max-w-md md:max-w-lg">
               {heroTutor ? (
                 <PublicTutorCard

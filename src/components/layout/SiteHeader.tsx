@@ -359,10 +359,10 @@ export function SiteHeader() {
                   justify-between
                   border-b
                   border-[#041344]/10
-                  py-3.5
-                  text-xl
+                  py-4
+                  text-[1.35rem]
                   sm:py-6
-                  sm:text-[28px]
+                  sm:text-[1.8rem]
                   font-bold
                   leading-none
                   tracking-tight
@@ -383,10 +383,10 @@ export function SiteHeader() {
                   justify-between
                   border-b
                   border-[#041344]/10
-                  py-3.5
-                  text-xl
+                  py-4
+                  text-[1.35rem]
                   sm:py-6
-                  sm:text-[28px]
+                  sm:text-[1.8rem]
                   font-bold
                   leading-none
                   tracking-tight
