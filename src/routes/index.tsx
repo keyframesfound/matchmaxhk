@@ -20,7 +20,7 @@ import {
   matchesDistrictFilter,
   matchesLessonModeFilter,
 } from "@/features/tutors/queries";
-import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
+import { DEFAULT_SUBJECT_OPTIONS, matchesSubjectQuery } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
 const OG_IMAGE =
@@ -191,25 +191,7 @@ function Landing() {
     navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
   };
 
-  const { data: subjectOptions = DEFAULT_SUBJECT_OPTIONS } = useQuery({
-    queryKey: ["settings", "subject_options"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "subject_options")
-        .maybeSingle();
-      if (error) throw error;
-      const v = data?.value;
-      if (Array.isArray(v)) {
-        const arr = (v as unknown[]).filter(
-          (x): x is string => typeof x === "string" && x.trim().length > 0,
-        );
-        if (arr.length > 0) return arr;
-      }
-      return DEFAULT_SUBJECT_OPTIONS;
-    },
-  });
+  const subjectOptions = DEFAULT_SUBJECT_OPTIONS;
 
   const tutorSearchParams = useMemo(() => {
     const params: HomeTutorSearchState = {
@@ -241,7 +223,7 @@ function Landing() {
           .toLowerCase();
         if (!categorySource.includes(categoryFilter)) return false;
       }
-      if (subjectFilter && !tut.subjects.some((s) => s.toLowerCase().includes(subjectFilter)))
+      if (subjectFilter && !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter)))
         return false;
       if (!matchesLessonModeFilter(modeFilter, tut.lesson_mode)) return false;
       if (!matchesDistrictFilter(districtFilter, tut.district)) return false;
@@ -250,7 +232,7 @@ function Landing() {
         query &&
         !(
           tut.tutor_code.toLowerCase().includes(query) ||
-          tut.subjects.some((s) => s.toLowerCase().includes(query)) ||
+          tut.subjects.some((s) => matchesSubjectQuery(s, query)) ||
           (tut.headline ?? "").toLowerCase().includes(query)
         )
       ) {

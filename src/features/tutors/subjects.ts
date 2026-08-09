@@ -11,3 +11,33 @@ export const DEFAULT_SUBJECT_OPTIONS: string[] = (() => {
   ]) set.add(s);
   return Array.from(set).sort((a, b) => a.localeCompare(b));
 })();
+
+export function getSubjectMatchVariants(input: string): string[] {
+  const normalized = input.trim().toLowerCase();
+  if (!normalized) return [];
+
+  const variants = new Set<string>([normalized]);
+
+  const levelMatch = normalized.match(/^(.*?)(?:\s+|\b)(hl|sl)\s*$/);
+  if (levelMatch) {
+    const base = levelMatch[1].trim();
+    if (base) {
+      variants.add(base);
+      variants.add(`${base} hl`);
+      variants.add(`${base} sl`);
+    }
+  } else if (normalized === "sl" || normalized === "hl") {
+    variants.add(normalized === "sl" ? "hl" : "sl");
+  }
+
+  return Array.from(variants);
+}
+
+export function matchesSubjectQuery(subject: string, query: string): boolean {
+  const normalizedSubject = subject.trim().toLowerCase();
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) return true;
+
+  return getSubjectMatchVariants(normalizedQuery).some((variant) => normalizedSubject.includes(variant));
+}
