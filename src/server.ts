@@ -3,6 +3,11 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
+const CANONICAL_ORIGIN = "https://www.maxmatch.app";
+const CANONICAL_HOST = new URL(CANONICAL_ORIGIN).hostname;
+const CANONICAL_BYPASS_HOST_SUFFIXES = [".vercel.app", ".localhost"];
+const CANONICAL_BYPASS_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
+
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
@@ -44,9 +49,35 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+function shouldBypassCanonicalRedirect(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  if (CANONICAL_BYPASS_HOSTS.has(host)) return true;
+  return CANONICAL_BYPASS_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix));
+}
+
+function getCanonicalRedirect(request: Request): Response | null {
+  const url = new URL(request.url);
+  const host = url.hostname.toLowerCase();
+
+  if (host === CANONICAL_HOST || shouldBypassCanonicalRedirect(host)) {
+    return null;
+  }
+
+  url.protocol = "https:";
+  url.hostname = CANONICAL_HOST;
+  url.port = "";
+
+  return Response.redirect(url.toString(), 308);
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const canonicalRedirect = getCanonicalRedirect(request);
+      if (canonicalRedirect) {
+        return canonicalRedirect;
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
