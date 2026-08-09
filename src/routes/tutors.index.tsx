@@ -437,7 +437,7 @@ function TutorsDirectory() {
                           <p className="text-2xl font-black tracking-tight text-white">
                             {formatTutorCode(tut.tutor_code)}
                           </p>
-                          <p className="mt-1 line-clamp-2 text-base font-bold leading-tight text-white/95">
+                          <p className="mt-1 line-clamp-2 text-[13px] font-semibold leading-tight text-white/95">
                             {tut.headline ?? "Headline Here"}
                           </p>
                         </div>
@@ -445,39 +445,39 @@ function TutorsDirectory() {
                     </div>
 
                     <div className="flex flex-1 flex-col px-5 py-4">
-                      <h3 className="text-xl font-black tracking-tight text-[color:var(--brand-navy)]">
+                      <h3 className="text-[13px] font-bold tracking-tight text-[color:var(--brand-navy)]">
                         Subject Taught
                       </h3>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {getTutorSubjectChips(tut).map(({ subject, grade }) => (
                           <span
                             key={subject}
-                            className="rounded-full bg-[color:var(--brand-teal)]/16 px-3 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
+                            className="rounded-full bg-[color:var(--brand-teal)]/16 px-3 py-1 text-[12px] font-semibold text-[color:var(--brand-navy)]"
                           >
                             {subject} : {grade}
                           </span>
                         ))}
                       </div>
 
-                      <h3 className="mt-5 text-xl font-black tracking-tight text-[color:var(--brand-navy)]">
+                      <h3 className="mt-5 text-[13px] font-bold tracking-tight text-[color:var(--brand-navy)]">
                         {tut.university ?? tut.highschool ?? "University - From Database"}
                       </h3>
 
                       <div className="mt-3 grid grid-cols-2 gap-3 border-t border-border pt-4">
                         <div>
-                          <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                          <p className="text-[12px] uppercase tracking-[0.08em] text-muted-foreground">
                             Target Student
                           </p>
-                          <p className="mt-1.5 inline-flex items-center gap-1.5 text-base font-bold leading-tight text-[color:var(--brand-navy)]">
+                          <p className="mt-1.5 inline-flex items-center gap-1.5 text-[13px] font-semibold leading-tight text-[color:var(--brand-navy)]">
                             <BookOpen className="h-4 w-4 text-[color:var(--brand-navy)]" />
                             {tut.target_students[0] ?? "IB, Senior Secondary"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                          <p className="text-[12px] uppercase tracking-[0.08em] text-muted-foreground">
                             Gender
                           </p>
-                          <p className="mt-1.5 inline-flex items-center gap-1.5 text-base font-bold leading-tight text-[color:var(--brand-navy)]">
+                          <p className="mt-1.5 inline-flex items-center gap-1.5 text-[13px] font-semibold leading-tight text-[color:var(--brand-navy)]">
                             <Clock3 className="h-4 w-4 text-[color:var(--brand-navy)]" />
                             {getTutorGenderLabel(tut.gender) || "Not specified"}
                           </p>
@@ -488,13 +488,13 @@ function TutorsDirectory() {
                     <div className="flex items-center justify-between border-t border-border bg-white px-5 py-3">
                       <p className="text-3xl font-black leading-none tracking-tight text-[color:var(--brand-navy)]">
                         HK${tut.hourly_rate}
-                        <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                        <span className="ml-1 text-[13px] font-semibold text-muted-foreground">
                           {t("featured.per_hour")}
                         </span>
                       </p>
                       <Button
                         asChild
-                        className="h-10 rounded-sm bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                        className="h-10 rounded-sm bg-[color:var(--brand-navy)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--brand-royal)]"
                       >
                         <a
                           href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
