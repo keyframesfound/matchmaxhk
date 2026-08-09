@@ -180,7 +180,7 @@ export function PublicTutorCard({
           ) : null}
         </div>
 
-        <h3 className="mt-4 line-clamp-2 min-h-[2.5rem] text-[14px] font-bold tracking-tight text-[#0A245F]">
+        <h3 className="mt-3 min-h-[3.75rem] line-clamp-3 text-[14px] font-bold leading-snug tracking-tight text-[#0A245F]">
           {tutor.headline ?? "Headline Here"}
         </h3>
 
