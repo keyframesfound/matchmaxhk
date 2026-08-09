@@ -47,7 +47,7 @@ export function SiteHeader() {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-[#041344]/10 bg-white/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-[76px] max-w-[1440px] items-center px-5 sm:px-8 lg:px-10">
+        <div className="mx-auto flex h-[68px] max-w-[1440px] items-center px-4 sm:px-8 lg:px-10">
           {/* -------------------------------------------------- */}
           {/* Logo */}
           {/* -------------------------------------------------- */}
@@ -62,9 +62,9 @@ export function SiteHeader() {
               <img
                 src="/matchmax-logo.png"
                 alt="MatchMax logo"
-                className="h-9 w-9 object-contain"
+                className="h-8 w-8 object-contain"
               />
-              <span className="text-xl font-bold tracking-tight text-brand-gradient">MatchMax</span>
+              <span className="text-lg font-bold tracking-tight text-brand-gradient sm:text-xl">MatchMax</span>
             </div>
           </Link>
 
@@ -127,7 +127,7 @@ export function SiteHeader() {
                   <Button
                     variant="ghost"
                     className="
-                    h-10
+                    h-9
                     gap-2
                     px-4
                     font-semibold
@@ -276,8 +276,8 @@ export function SiteHeader() {
               type="button"
               className="
               flex
-              h-10
-              w-10
+              h-9
+              w-9
               rounded-xl
               items-center
               justify-center
@@ -305,7 +305,7 @@ export function SiteHeader() {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex flex-col bg-white lg:hidden">
           {/* Top bar — mirrors the main header, brand colours kept */}
-          <div className="flex h-[76px] shrink-0 items-center justify-between border-b border-[#041344]/10 px-5 sm:px-8">
+          <div className="flex h-16 shrink-0 items-center justify-between border-b border-[#041344]/10 px-4 sm:px-8">
             <Link
               to="/"
               className="flex shrink-0 items-center"
@@ -319,9 +319,9 @@ export function SiteHeader() {
                 <img
                   src="/matchmax-logo.png"
                   alt="MatchMax logo"
-                  className="h-8 w-8 object-contain"
+                  className="h-7 w-7 object-contain"
                 />
-                <span className="text-lg font-bold tracking-tight text-brand-gradient">
+                <span className="text-base font-bold tracking-tight text-brand-gradient sm:text-lg">
                   MatchMax
                 </span>
               </div>
@@ -333,8 +333,8 @@ export function SiteHeader() {
               aria-label="Close menu"
               className="
                 flex
-                h-10
-                w-10
+                h-9
+                w-9
                 items-center
                 justify-center
                 rounded-full
@@ -359,8 +359,10 @@ export function SiteHeader() {
                   justify-between
                   border-b
                   border-[#041344]/10
-                  py-6
-                  text-[28px]
+                  py-4
+                  text-2xl
+                  sm:py-6
+                  sm:text-[28px]
                   font-bold
                   leading-none
                   tracking-tight
@@ -381,8 +383,10 @@ export function SiteHeader() {
                   justify-between
                   border-b
                   border-[#041344]/10
-                  py-6
-                  text-[28px]
+                  py-4
+                  text-2xl
+                  sm:py-6
+                  sm:text-[28px]
                   font-bold
                   leading-none
                   tracking-tight
@@ -403,8 +407,10 @@ export function SiteHeader() {
                   justify-between
                   border-b
                   border-[#041344]/10
-                  py-6
-                  text-[28px]
+                  py-4
+                  text-2xl
+                  sm:py-6
+                  sm:text-[28px]
                   font-bold
                   leading-none
                   tracking-tight
@@ -425,8 +431,10 @@ export function SiteHeader() {
                   justify-between
                   border-b
                   border-[#041344]/10
-                  py-6
-                  text-[28px]
+                  py-4
+                  text-2xl
+                  sm:py-6
+                  sm:text-[28px]
                   font-bold
                   leading-none
                   tracking-tight
@@ -448,8 +456,10 @@ export function SiteHeader() {
                     justify-between
                     border-b
                     border-[#041344]/10
-                    py-6
-                    text-[28px]
+                    py-4
+                    text-2xl
+                    sm:py-6
+                    sm:text-[28px]
                     font-bold
                     leading-none
                     tracking-tight
@@ -473,8 +483,10 @@ export function SiteHeader() {
                       justify-between
                       border-b
                       border-[#041344]/10
-                      py-6
-                      text-[28px]
+                      py-4
+                      text-2xl
+                      sm:py-6
+                      sm:text-[28px]
                       font-bold
                       leading-none
                       tracking-tight
@@ -495,8 +507,10 @@ export function SiteHeader() {
                       justify-between
                       border-b
                       border-[#041344]/10
-                      py-6
-                      text-[28px]
+                      py-4
+                      text-2xl
+                      sm:py-6
+                      sm:text-[28px]
                       font-bold
                       leading-none
                       tracking-tight
@@ -519,11 +533,11 @@ export function SiteHeader() {
                     <Button
                       variant="outline"
                       className="
-                        h-12
+                        h-11
                         w-full
                         rounded-full
                         border-[#041344]/15
-                        text-[15px]
+                        text-sm
                         font-semibold
                         text-[#041344]
                         hover:bg-[#77E8EE]/20
@@ -537,11 +551,11 @@ export function SiteHeader() {
                   <Link to="/auth" onClick={closeMobile}>
                     <Button
                       className="
-                        h-12
+                        h-11
                         w-full
                         rounded-full
                         bg-[#0A245F]
-                        text-[15px]
+                        text-sm
                         font-semibold
                         text-white
                         shadow-sm
@@ -563,12 +577,12 @@ export function SiteHeader() {
                     closeMobile();
                   }}
                   className="
-                    h-12
+                    h-11
                     w-full
                     rounded-full
                     border
                     border-[#041344]/15
-                    text-[15px]
+                    text-sm
                     font-semibold
                     text-[#041344]
                     transition-colors

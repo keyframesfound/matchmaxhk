@@ -106,7 +106,7 @@ export function PublicTutorCard({
   return (
     <article
       className={cn(
-        "flex h-full min-h-[25rem] w-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/35 bg-white transition-all hover:-translate-y-0.5 hover:shadow-brand",
+        "flex h-full min-h-[22rem] w-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/35 bg-white transition-all hover:-translate-y-0.5 hover:shadow-brand md:min-h-[25rem]",
         className,
       )}
       role={interactive ? "link" : undefined}
@@ -123,49 +123,49 @@ export function PublicTutorCard({
           : undefined
       }
     >
-      <div className="bg-[#0A245F] px-4 pb-4 pt-4">
-        <div className="flex items-center gap-4">
+      <div className="bg-[#0A245F] px-3 pb-3 pt-3 md:px-4 md:pb-4 md:pt-4">
+        <div className="flex items-center gap-3 md:gap-4">
           {tutor.photo_url ? (
             <img
               src={tutor.photo_url}
               alt={tutor.tutor_code}
-              className="h-14 w-14 shrink-0 rounded-full border-[3px] border-[color:var(--brand-teal)] object-cover"
+              className="h-12 w-12 shrink-0 rounded-full border-[3px] border-[color:var(--brand-teal)] object-cover md:h-14 md:w-14"
             />
           ) : (
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-white text-lg font-bold text-[color:var(--brand-teal)]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-white text-base font-bold text-[color:var(--brand-teal)] md:h-14 md:w-14 md:text-lg">
               {getTutorInitials(tutor.tutor_code)}
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="text-2xl font-black tracking-tight text-white">
+            <p className="text-xl font-black tracking-tight text-white md:text-2xl">
               {formatTutorCode(tutor.tutor_code)}
             </p>
-            <p className="mt-0.5 line-clamp-2 min-h-[2rem] text-[12px] font-semibold leading-tight text-white/95">
+            <p className="mt-0.5 line-clamp-2 min-h-[1.75rem] text-[11px] font-semibold leading-tight text-white/95 md:min-h-[2rem] md:text-[12px]">
               {tutor.university ?? tutor.highschool ?? "University - From Database"}
             </p>
           </div>
           {badgeLabel ? (
-            <span className="rounded-sm border border-white/20 bg-white/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+            <span className="rounded-sm border border-white/20 bg-white/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white md:text-[10px]">
               {badgeLabel}
             </span>
           ) : null}
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col px-4 pt-3 pb-5">
-        <h3 className="text-[13px] font-bold tracking-tight text-[#0A245F]">Subject Taught</h3>
-        <div className="mt-2 flex min-h-[4.25rem] flex-wrap content-start gap-2">
+      <div className="flex flex-1 flex-col px-3 pt-3 pb-4 md:px-4 md:pt-3 md:pb-5">
+        <h3 className="text-[12px] font-bold tracking-tight text-[#0A245F] md:text-[13px]">Subject Taught</h3>
+        <div className="mt-2 flex min-h-[3.75rem] flex-wrap content-start gap-1.5 md:min-h-[4.25rem] md:gap-2">
           {chips.map(({ subject, grade }) => (
             <span
               key={subject}
-              className="rounded-full bg-[color:var(--brand-teal)]/16 px-3 py-1 text-[12px] font-semibold text-[#0A245F]"
+              className="rounded-full bg-[color:var(--brand-teal)]/16 px-2.5 py-1 text-[11px] font-semibold text-[#0A245F] md:px-3 md:text-[12px]"
             >
               {(() => {
                 const { prefix, value } = splitGradeLabel(grade);
                 return (
                   <>
                     {subject} : {prefix}
-                    <span className="inline-block text-[13px] font-black leading-none tracking-tight text-[#0A245F]">
+                    <span className="inline-block text-[12px] font-black leading-none tracking-tight text-[#0A245F] md:text-[13px]">
                       {value}
                     </span>
                   </>
@@ -174,42 +174,42 @@ export function PublicTutorCard({
             </span>
           ))}
           {extraCount > 0 ? (
-            <span className="rounded-full bg-[color:var(--brand-teal)]/16 px-3 py-1 text-[12px] font-semibold text-[#0A245F]">
+            <span className="rounded-full bg-[color:var(--brand-teal)]/16 px-2.5 py-1 text-[11px] font-semibold text-[#0A245F] md:px-3 md:text-[12px]">
               +{extraCount}
             </span>
           ) : null}
         </div>
 
-        <h3 className="mt-3 min-h-[3.75rem] line-clamp-3 text-[14px] font-bold leading-snug tracking-tight text-[#0A245F]">
+        <h3 className="mt-2 min-h-[3.25rem] line-clamp-3 text-[13px] font-bold leading-snug tracking-tight text-[#0A245F] md:mt-3 md:min-h-[3.75rem] md:text-[14px]">
           {tutor.headline ?? "Headline Here"}
         </h3>
 
-        <div className="mt-auto grid grid-cols-2 gap-2 border-t border-border pt-4">
+        <div className="mt-auto grid grid-cols-2 gap-2 border-t border-border pt-3 md:pt-4">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground md:text-[11px]">
               Target Student
             </p>
-            <p className="mt-0.5 inline-flex items-center gap-1 text-[13px] font-semibold leading-tight text-[#0A245F]">
-              <BookOpen className="h-4 w-4 text-[#0A245F]" />
+            <p className="mt-0.5 inline-flex items-center gap-1 text-[12px] font-semibold leading-tight text-[#0A245F] md:text-[13px]">
+              <BookOpen className="h-3.5 w-3.5 text-[#0A245F] md:h-4 md:w-4" />
               {tutor.target_students[0] ?? "IB, Senior Secondary"}
             </p>
           </div>
           <div>
-            <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground md:text-[11px]">
               Gender
             </p>
-            <p className="mt-0.5 inline-flex items-center gap-1 text-[13px] font-semibold leading-tight text-[#0A245F]">
-              <Clock3 className="h-4 w-4 text-[#0A245F]" />
+            <p className="mt-0.5 inline-flex items-center gap-1 text-[12px] font-semibold leading-tight text-[#0A245F] md:text-[13px]">
+              <Clock3 className="h-3.5 w-3.5 text-[#0A245F] md:h-4 md:w-4" />
               {getTutorGenderLabel(tutor.gender) || "Not specified"}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-border bg-white px-4 py-2.5">
-        <p className="text-3xl font-black leading-none tracking-tight text-[#0A245F]">
+      <div className="flex items-center justify-between gap-2 border-t border-border bg-white px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
+        <p className="text-2xl font-black leading-none tracking-tight text-[#0A245F] md:text-3xl">
           HK${tutor.hourly_rate}
-          <span className="ml-1 text-[13px] font-semibold text-muted-foreground">
+          <span className="ml-1 text-[11px] font-semibold text-muted-foreground md:text-[13px]">
             {priceSuffix}
           </span>
         </p>

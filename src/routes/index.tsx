@@ -317,18 +317,18 @@ function Landing() {
               "radial-gradient(ellipse at top right, color-mix(in oklab, #2ED5DE 25%, transparent) 0%, transparent 55%), radial-gradient(ellipse at bottom left, color-mix(in oklab, #041344 15%, transparent) 0%, transparent 50%)",
           }}
         />
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-4 pt-10 pb-20 md:px-6 lg:grid-cols-2 lg:gap-16 md:pt-24 md:pb-28">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pt-6 pb-14 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col justify-center">
-            <h1 className="mt-6 text-6xl md:text-5xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-6xl lg:text-7xl">
+            <h1 className="mt-4 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-5xl md:text-5xl lg:text-7xl">
               {t("hero.title_a")}
               <br />
               <span className="text-brand-gradient">{t("hero.title_b")}</span>
             </h1>
-            <div className="mt-10 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-wrap gap-3 md:mt-10">
               <Button
                 asChild
                 size="lg"
-                className="h-16 md:h-14 rounded-2xl md:rounded-md bg-[color:var(--brand-navy)] px-8 text-lg md:text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] w-full md:w-auto"
+                className="h-12 w-full rounded-xl bg-[color:var(--brand-navy)] px-5 text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
               >
                 <Link to="/tutors" onClick={(event) => {
                                 event.stopPropagation();
@@ -343,7 +343,7 @@ function Landing() {
 
           {/* HERO VISUAL CARD */}
           <div className="relative flex items-center justify-center">
-            <div className="w-full max-w-md">
+            <div className="w-full max-w-sm md:max-w-md">
               {heroTutor ? (
                 <PublicTutorCard
                   tutor={heroTutor}
@@ -374,18 +374,18 @@ function Landing() {
 
       <section className="relative -mt-10 pb-14 md:-mt-14 md:pb-16">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="relative rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
-            <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
+          <div className="relative rounded-sm border border-border bg-card p-3 shadow-sm sm:p-5">
+            <div className="flex items-center justify-between gap-2 border-b border-border pb-3 sm:pb-4">
               <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">
                 Find tutor
               </p>
             </div>
 
-            <div className="mt-4 grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
+            <div className="mt-3 grid gap-2 sm:gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  className="h-11 rounded-sm pl-9"
+                  className="h-10 rounded-sm pl-9 text-sm md:h-11"
                   placeholder="Search tutor code, subject, keyword…"
                   value={homeSearch.q ?? ""}
                   onChange={(e) => setHomeSearchParam({ q: e.target.value })}
@@ -397,7 +397,7 @@ function Landing() {
                 options={HOME_CATEGORY_OPTIONS}
                 placeholder="Any category"
                 searchPlaceholder="Search category..."
-                className="h-11 rounded-sm"
+                className="h-10 rounded-sm text-sm md:h-11"
               />
               <SearchableSelect
                 value={homeSearch.subject ?? ""}
@@ -408,7 +408,7 @@ function Landing() {
                 ]}
                 placeholder="Any subject"
                 searchPlaceholder="Search subject..."
-                className="h-11 rounded-sm"
+                className="h-10 rounded-sm text-sm md:h-11"
               />
               <LessonModeSelect
                 mode={(homeSearch.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
@@ -421,17 +421,17 @@ function Landing() {
                   })
                 }
                 placeholder="Any lesson mode"
-                className="h-11 rounded-sm"
+                  className="h-10 rounded-sm text-sm md:h-11"
               />
               <SearchableSelect
                 value={homeSearch.gender ?? ""}
                 onChange={(v) => setHomeSearchParam({ gender: v || undefined })}
                 options={HOME_GENDER_OPTIONS}
                 placeholder="Any gender"
-                className="h-11 rounded-sm"
+                  className="h-10 rounded-sm text-sm md:h-11"
               />
               <Button
-                className="h-11 rounded-sm bg-[color:var(--brand-navy)] px-6 font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                  className="h-10 rounded-sm bg-[color:var(--brand-navy)] px-5 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-11 md:px-6 md:text-base"
                 onClick={() => navigate({ to: "/tutors", search: tutorSearchParams })}
               >
                 Search
@@ -454,11 +454,11 @@ function Landing() {
             </div>
 
             {publishedTutorsLoading && (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-64 animate-pulse rounded-sm border border-border bg-muted/40"
+                      className="h-56 animate-pulse rounded-sm border border-border bg-muted/40"
                   />
                 ))}
               </div>
@@ -476,7 +476,7 @@ function Landing() {
             )}
 
             {!publishedTutorsLoading && previewTutors.length > 0 && (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {previewTutors.map((tut) => (
                   <PublicTutorCard
                     key={tut.id}
@@ -506,34 +506,34 @@ function Landing() {
         </div>
       </section>
 
-      <section className="pb-18 md:pb-22">
+      <section className="pb-14 md:pb-22">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <p className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
+          <p className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
             Book for later
           </p>
 
-          <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
+          <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
             <article className="consulting-reserve-card overflow-hidden rounded-3xl md:rounded-sm">
-              <div className="grid min-h-[520px] gap-0">
-                <div className="flex flex-col justify-between gap-6 p-7 md:p-10">
+              <div className="grid min-h-[460px] gap-0 md:min-h-[520px]">
+                <div className="flex flex-col justify-between gap-5 p-5 sm:p-6 md:p-10">
                   <div>
-                    <h2 className="mt-5 max-w-xl text-[2.1rem] font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] md:text-[2.75rem]">
+                    <h2 className="mt-3 max-w-xl text-2xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-3xl md:mt-5 md:text-[2.75rem]">
                       Get your IA/EE/TOK reviewed by IB Top Scorers
                     </h2>
-                    <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-[1.04rem]">
+                    <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base md:mt-5 md:text-[1.04rem]">
                       Stop paying for expensive tutors just to read your drafts during lessons.
                       You do not need someone watching you write. You need clear, line-by-line guidance and planning.
                     </p>
 
-                    <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                    <div className="mt-5 grid gap-3 sm:mt-6 sm:grid-cols-2">
                       <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
                         <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                           Review format
                         </p>
-                        <p className="mt-1 text-lg font-black text-[color:var(--brand-navy)]">
+                        <p className="mt-1 text-base font-black text-[color:var(--brand-navy)] sm:text-lg">
                           Offline line-by-line comments
                         </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
                           Rubric-linked notes with direct edits you can apply immediately.
                         </p>
                       </div>
@@ -541,10 +541,10 @@ function Landing() {
                         <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                           1-month mentorship
                         </p>
-                        <p className="mt-1 text-lg font-black text-[color:var(--brand-navy)]">
+                        <p className="mt-1 text-base font-black text-[color:var(--brand-navy)] sm:text-lg">
                           WhatsApp + draft support
                         </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
                           Follow-up clarifications so revisions stay focused and efficient.
                         </p>
                       </div>
@@ -555,7 +555,7 @@ function Landing() {
                     <Button
                       asChild
                       size="lg"
-                      className="h-14 w-full rounded-2xl bg-[color:var(--brand-navy)] px-8 text-lg font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-12 md:w-auto md:rounded-sm md:text-base"
+                      className="h-12 w-full rounded-xl bg-[color:var(--brand-navy)] px-5 text-base font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-12 md:w-auto md:rounded-sm md:px-8 md:text-base"
                     >
                       <Link to="/consulting">Explore consulting plans</Link>
                     </Button>
@@ -565,11 +565,11 @@ function Landing() {
               </div>
             </article>
 
-            <aside className="rounded-3xl border border-border bg-card p-6 shadow-[0_10px_24px_rgba(4,19,68,0.04)] md:rounded-sm md:p-7">
-              <h3 className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
+            <aside className="rounded-3xl border border-border bg-card p-5 shadow-[0_10px_24px_rgba(4,19,68,0.04)] md:rounded-sm md:p-7">
+              <h3 className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
                 Benefits
               </h3>
-              <div className="mt-5 divide-y divide-border/80">
+              <div className="mt-4 divide-y divide-border/80 md:mt-5">
                 {[
                   {
                     icon: BadgeCheck,
@@ -584,11 +584,11 @@ function Landing() {
                     text: "No live lesson time wasted reading drafts line-by-line.",
                   },
                 ].map(({ icon: Icon, text }) => (
-                  <div key={text} className="flex gap-3 py-4 first:pt-0 last:pb-0 md:py-5">
+                  <div key={text} className="flex gap-3 py-3 first:pt-0 last:pb-0 md:py-5">
                     <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color:var(--brand-navy)]/6 text-[color:var(--brand-navy)]">
                       <Icon className="h-4 w-4" />
                     </span>
-                    <p className="text-base leading-relaxed text-foreground md:text-[1.05rem]">{text}</p>
+                    <p className="text-sm leading-relaxed text-foreground sm:text-base md:text-[1.05rem]">{text}</p>
                   </div>
                 ))}
               </div>
@@ -598,20 +598,20 @@ function Landing() {
       </section>
 
       {/* FINDING A TUTOR / TUTOR CTA */}
-      <section id="how" className="py-18 md:py-24">
-        <div className="mx-auto max-w-7xl space-y-14 px-6 md:space-y-12 md:px-6">
-          <div className="grid items-center gap-10 md:gap-12 lg:grid-cols-2">
+      <section id="how" className="py-14 md:py-24">
+        <div className="mx-auto max-w-7xl space-y-10 px-4 md:space-y-12 md:px-6">
+          <div className="grid items-center gap-8 md:gap-12 lg:grid-cols-2">
             <div className="order-2 lg:order-1">
-              <h2 className="text-5xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
+              <h2 className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
                 {t("how.step1_title")}
               </h2>
-              <p className="mt-4 max-w-xl text-2xl font-medium leading-relaxed text-muted-foreground md:text-lg md:font-normal">
+              <p className="mt-3 max-w-xl text-base font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
                 {t("how.step1_desc")}
               </p>
               <Button
                 asChild
                 size="lg"
-                className="mt-8 h-16 w-full rounded-2xl bg-[color:var(--brand-navy)] px-8 text-xl font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-12 md:w-auto md:rounded-md md:text-base"
+                className="mt-6 h-12 w-full rounded-xl bg-[color:var(--brand-navy)] px-5 text-base font-bold text-white hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
                 <Link to="/tutors">{t("how.cta_find")}</Link>
               </Button>
@@ -621,21 +621,21 @@ function Landing() {
             </div>
           </div>
 
-          <div className="grid items-center gap-10 md:gap-12 lg:grid-cols-2">
+          <div className="grid items-center gap-8 md:gap-12 lg:grid-cols-2">
             <div>
               <div className="landing-tutor-visual landing-tutor-visual--aurora" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-5xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
+              <h3 className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
                 {t("tutors_cta.title")}
               </h3>
-              <p className="mt-4 max-w-xl text-2xl font-medium leading-relaxed text-muted-foreground md:text-lg md:font-normal">
+              <p className="mt-3 max-w-xl text-base font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
                 {t("tutors_cta.subtitle")}
               </p>
               <Button
                 asChild
                 size="lg"
-                className="mt-8 h-16 w-full rounded-2xl bg-[color:var(--brand-navy)] px-8 text-xl font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-12 md:w-auto md:rounded-md md:text-base"
+                className="mt-6 h-12 w-full rounded-xl bg-[color:var(--brand-navy)] px-5 text-base font-bold text-white hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
                 <Link to="/become-a-tutor">{t("tutors_cta.cta")}</Link>
               </Button>
