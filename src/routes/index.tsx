@@ -317,9 +317,9 @@ function Landing() {
               "radial-gradient(ellipse at top right, color-mix(in oklab, #2ED5DE 25%, transparent) 0%, transparent 55%), radial-gradient(ellipse at bottom left, color-mix(in oklab, #041344 15%, transparent) 0%, transparent 50%)",
           }}
         />
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-7 px-4 pt-5 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col justify-center">
-            <h1 className="mt-3 text-3xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-4xl md:text-5xl lg:text-7xl">
+            <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-5xl md:text-6xl lg:text-7xl">
               {t("hero.title_a")}
               <br />
               <span className="text-brand-gradient">{t("hero.title_b")}</span>
@@ -328,7 +328,7 @@ function Landing() {
               <Button
                 asChild
                 size="lg"
-                className="h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
+                className="h-12 w-full rounded-xl bg-[color:var(--brand-navy)] px-5 text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
               >
                 <Link to="/tutors" onClick={(event) => {
                                 event.stopPropagation();
@@ -343,7 +343,7 @@ function Landing() {
 
           {/* HERO VISUAL CARD */}
           <div className="relative flex items-center justify-center">
-            <div className="w-full max-w-[18rem] sm:max-w-sm md:max-w-md">
+            <div className="w-full max-w-[20rem] sm:max-w-md md:max-w-lg">
               {heroTutor ? (
                 <PublicTutorCard
                   tutor={heroTutor}
