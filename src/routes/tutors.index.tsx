@@ -3,16 +3,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { BookOpen, Clock3, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
+import { PublicTutorCard, buildTutorWhatsAppUrl } from "@/features/tutors/public-tutor-card";
 import {
   fetchPublishedTutors,
-  getTutorGenderLabel,
   HK_DISTRICTS,
   matchesDistrictFilter,
   matchesLessonModeFilter,
@@ -79,76 +79,6 @@ const CATEGORY_OPTIONS = [
   { value: "Secondary", label: "Secondary" },
   { value: "International", label: "International" },
 ];
-
-function formatTutorCode(code?: string | null) {
-  const normalized = (code ?? "").trim().toUpperCase();
-  if (!normalized) return "MM-XXXX";
-  if (/^MM-\d{4}$/.test(normalized)) return normalized;
-  if (/^\d{4}$/.test(normalized)) return `MM-${normalized}`;
-  if (/^MM-/.test(normalized)) return normalized;
-  return normalized;
-}
-
-function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorCode: string) {
-  const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
-  if (!digits) return "";
-
-  const message = `Hi MatchMax! I'd like to request tutor ${formatTutorCode(tutorCode)}.`;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
-}
-
-function getTutorInitials(tutorCode?: string | null) {
-  const normalized = (tutorCode ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-  if (!normalized) return "MM";
-  return normalized.slice(0, 2);
-}
-
-function normalizeSubjectKey(value: string) {
-  return value.toLowerCase().replace(/\s+/g, " ").trim();
-}
-
-function gradeLabel(grade: string) {
-  const trimmed = grade.trim();
-  if (!trimmed) return "Grade -";
-  return /^grade\s+/i.test(trimmed) ? trimmed : `Grade ${trimmed}`;
-}
-
-function getTutorSubjectChips(tutor: Tutor, limit = 3) {
-  const gradeLookup = new Map<string, string>();
-  for (const result of tutor.exam_results ?? []) {
-    for (const entry of result.subjects ?? []) {
-      const subject = (entry.subject ?? "").trim();
-      const grade = (entry.grade ?? "").trim();
-      if (!subject || !grade) continue;
-      const key = normalizeSubjectKey(subject);
-      if (!gradeLookup.has(key)) gradeLookup.set(key, grade);
-    }
-  }
-
-  const chips = tutor.subjects.slice(0, limit).map((subject) => {
-    const key = normalizeSubjectKey(subject);
-    let grade = gradeLookup.get(key);
-
-    if (!grade) {
-      for (const [candidateKey, candidateGrade] of gradeLookup.entries()) {
-        if (candidateKey.includes(key) || key.includes(candidateKey)) {
-          grade = candidateGrade;
-          break;
-        }
-      }
-    }
-
-    return {
-      subject,
-      grade: gradeLabel(grade ?? ""),
-    };
-  });
-
-  return {
-    chips,
-    extraCount: Math.max(0, tutor.subjects.length - limit),
-  };
-}
 
 function TutorsDirectory() {
   const { t } = useTranslation();
@@ -412,105 +342,12 @@ function TutorsDirectory() {
             {!isLoading && filtered.length > 0 && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filtered.map((tut: Tutor) => (
-                  <article
+                  <PublicTutorCard
                     key={tut.id}
-                    className="flex h-full cursor-pointer flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/35 bg-white transition-all hover:-translate-y-0.5 hover:shadow-brand"
-                    role="link"
-                    tabIndex={0}
-                    onClick={() => openTutorDetail(tut.tutor_code)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        openTutorDetail(tut.tutor_code);
-                      }
-                    }}
-                  >
-                    <div className="bg-[#0A245F] px-4 pb-4 pt-4">
-                      <div className="flex items-center gap-4">
-                        {tut.photo_url ? (
-                          <img
-                            src={tut.photo_url}
-                            alt={tut.tutor_code}
-                            className="h-14 w-14 shrink-0 rounded-full border-[3px] border-[color:var(--brand-teal)] object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-white text-lg font-bold text-[color:var(--brand-teal)]">
-                            {getTutorInitials(tut.tutor_code)}
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                          <p className="text-2xl font-black tracking-tight text-white">
-                            {formatTutorCode(tut.tutor_code)}
-                          </p>
-                          <p className="mt-0.5 line-clamp-1 text-[12px] font-semibold leading-tight text-white/95">
-                            {tut.headline ?? "Headline Here"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-1 flex-col px-4 pt-3 pb-5">
-                      <h3 className="text-[13px] font-bold tracking-tight text-[#0A245F]">
-                        Subject Taught
-                      </h3>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {(() => {
-                          const { chips, extraCount } = getTutorSubjectChips(tut);
-                          return (
-                            <>
-                              {chips.map(({ subject, grade }) => (
-                                <span
-                                  key={subject}
-                                  className="rounded-full bg-[color:var(--brand-teal)]/16 px-3 py-1 text-[12px] font-semibold text-[#0A245F]"
-                                >
-                                  {subject} : {grade}
-                                </span>
-                              ))}
-                              {extraCount > 0 && (
-                                <span className="rounded-full bg-[color:var(--brand-teal)]/16 px-3 py-1 text-[12px] font-semibold text-[#0A245F]">
-                                  +{extraCount}
-                                </span>
-                              )}
-                            </>
-                          );
-                        })()}
-                      </div>
-
-                      <h3 className="mt-4 text-[14px] font-bold tracking-tight text-[#0A245F]">
-                        {tut.university ?? tut.highschool ?? "University - From Database"}
-                      </h3>
-
-                      <div className="h-4" />
-
-                      <div className="mt-auto grid grid-cols-2 gap-2 border-t border-border pt-4">
-                        <div>
-                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-                            Target Student
-                          </p>
-                          <p className="mt-0.5 inline-flex items-center gap-1 text-[13px] font-semibold leading-tight text-[#0A245F]">
-                            <BookOpen className="h-4 w-4 text-[#0A245F]" />
-                            {tut.target_students[0] ?? "IB, Senior Secondary"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-                            Gender
-                          </p>
-                          <p className="mt-0.5 inline-flex items-center gap-1 text-[13px] font-semibold leading-tight text-[#0A245F]">
-                            <Clock3 className="h-4 w-4 text-[#0A245F]" />
-                            {getTutorGenderLabel(tut.gender) || "Not specified"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between border-t border-border bg-white px-4 py-2.5">
-                      <p className="text-3xl font-black leading-none tracking-tight text-[#0A245F]">
-                        HK${tut.hourly_rate}
-                        <span className="ml-1 text-[13px] font-semibold text-muted-foreground">
-                          {t("featured.per_hour")}
-                        </span>
-                      </p>
+                    tutor={tut}
+                    priceSuffix={t("featured.per_hour")}
+                    onOpen={openTutorDetail}
+                    footerAction={
                       <Button
                         asChild
                         className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
@@ -524,8 +361,8 @@ function TutorsDirectory() {
                           Request tutor
                         </a>
                       </Button>
-                    </div>
-                  </article>
+                    }
+                  />
                 ))}
               </div>
             )}

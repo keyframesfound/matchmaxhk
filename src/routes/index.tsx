@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, BookOpen, Clock3, MapPin, MessageCircle, Search } from "lucide-react";
+import { ArrowRight, BadgeCheck, BookOpen, Clock3, MapPin, Search } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -16,18 +16,16 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { PublicTutorCard, buildTutorWhatsAppUrl } from "@/features/tutors/public-tutor-card";
 import { blurActive } from "@/lib/dom";
 import {
   fetchPublishedTutors,
   fetchTopWeeklyTutors,
   fetchLandingStats,
   fetchTutorByCode,
-  getTutorGenderLabel,
-  getTutorLessonModeLabel,
   HK_DISTRICTS,
   matchesDistrictFilter,
   matchesLessonModeFilter,
-  type Tutor,
 } from "@/features/tutors/queries";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,23 +59,6 @@ const HOME_GENDER_OPTIONS = [
   { value: "female", label: "Female" },
   { value: "male", label: "Male" },
 ];
-
-function formatTutorCode(code?: string | null) {
-  const normalized = (code ?? "").trim().toUpperCase();
-  if (!normalized) return "MM-XXXX";
-  if (/^MM-\d{4}$/.test(normalized)) return normalized;
-  if (/^\d{4}$/.test(normalized)) return `MM-${normalized}`;
-  if (/^MM-/.test(normalized)) return normalized;
-  return normalized;
-}
-
-function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorCode: string) {
-  const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
-  if (!digits) return "";
-
-  const message = `Hi MatchMax! I'd like to request tutor ${formatTutorCode(tutorCode)}.`;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
-}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -371,107 +352,23 @@ function Landing() {
           <div className="relative flex items-center justify-center">
             <div className="w-full max-w-md">
               {heroTutor ? (
-                <article className="flex h-full w-full flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card shadow-brand">
-                  <div className="bg-[color:var(--brand-teal)]/8 p-4">
-                    <div className="flex items-center gap-3">
-                      {heroTutor.photo_url ? (
-                        <img
-                          src={heroTutor.photo_url}
-                          alt={heroTutor.tutor_code}
-                          className="h-16 w-16 shrink-0 rounded-full border-2 border-[color:var(--brand-teal)] object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-[color:var(--brand-teal)] bg-white text-lg font-bold text-[color:var(--brand-teal)]">
-                          {heroTutor.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xl font-black text-[color:var(--brand-navy)]">
-                          {formatTutorCode(heroTutor.tutor_code)}
-                          {getTutorGenderLabel(heroTutor.gender)
-                            ? ` · ${getTutorGenderLabel(heroTutor.gender)}`
-                            : ""}
-                        </p>
-                        <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <BadgeCheck className="h-4 w-4 text-[color:var(--brand-teal)]" />
-                          {heroTutor.university ?? heroTutor.highschool ?? "Education details"}
-                        </p>
-                      </div>
-                      <span className="rounded-sm bg-[color:var(--brand-teal)] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
-                        Featured
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-1 flex-col space-y-4 p-4">
-                    <div className="flex flex-wrap gap-2">
-                      {heroTutor.subjects.slice(0, 3).map((subject) => (
-                        <span
-                          key={subject}
-                          className="rounded-sm bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
-                        >
-                          {subject}
-                        </span>
-                      ))}
-                    </div>
-
-                    <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                      {heroTutor.headline ??
-                        heroTutor.bio ??
-                        "Experienced tutor profile with subject-specific support."}
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
-                      <div>
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                          Lesson Mode
-                        </p>
-                        <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
-                          <BookOpen className="h-4 w-4 text-[color:var(--brand-teal)]" />
-                          {getTutorLessonModeLabel(heroTutor.lesson_mode)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                          Tutoring Experience
-                        </p>
-                        <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
-                          <Clock3 className="h-4 w-4 text-[color:var(--brand-teal)]" />
-                          {heroTutor.experience_years
-                            ? `${heroTutor.experience_years} years`
-                            : "N/A"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {heroTutor.target_students.length > 0 && (
-                      <p className="mt-auto text-xs text-muted-foreground">
-                        Target students: {heroTutor.target_students.slice(0, 2).join(", ")}
-                        {heroTutor.target_students.length > 2
-                          ? ` +${heroTutor.target_students.length - 2} more`
-                          : ""}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between border-t border-border bg-white px-4 py-3">
-                    <p className="text-2xl font-black text-[color:var(--brand-navy)]">
-                      HK${heroTutor.hourly_rate}
-                      <span className="ml-1 text-sm font-semibold text-muted-foreground">
-                        {t("featured.per_hour")}
-                      </span>
-                    </p>
+                <PublicTutorCard
+                  tutor={heroTutor}
+                  priceSuffix={t("featured.per_hour")}
+                  badgeLabel="Featured"
+                  onOpen={openTutorDetail}
+                  className="shadow-brand"
+                  footerAction={
                     <Button
                       asChild
-                      className="rounded-sm bg-[color:var(--brand-teal)] px-4 font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                      className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
                     >
                       <Link to="/tutors/$tutorCode" params={{ tutorCode: heroTutor.tutor_code }}>
-                        <MessageCircle className="mr-2 inline h-4 w-4" />
                         View profile
                       </Link>
                     </Button>
-                  </div>
-                </article>
+                  }
+                />
               ) : (
                 <div className="rounded-sm border border-border bg-card py-16 text-center text-sm text-muted-foreground">
                   {featuredLoading ? "Loading featured tutor…" : "No featured tutor yet."}
@@ -484,19 +381,19 @@ function Landing() {
 
       <section className="relative -mt-10 pb-14 md:-mt-14 md:pb-16">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="rounded-sm border border-border bg-card p-4 shadow-[0_12px_30px_rgba(4,19,68,0.08)] sm:p-5">
+          <div className="relative rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
               <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-teal)]">
-                Explore the tutors MatchMax offers
+                Find tutor
               </p>
             </div>
 
-            <div className="mt-4 grid gap-3 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto]">
+            <div className="mt-4 grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   className="h-11 rounded-sm pl-9"
-                  placeholder="Search tutor code, subject, keyword..."
+                  placeholder="Search tutor code, subject, keyword…"
                   value={homeSearch.q ?? ""}
                   onChange={(e) => setHomeSearchParam({ q: e.target.value })}
                 />
@@ -566,105 +463,14 @@ function Landing() {
                       key={tut.id}
                       className="flex basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/3"
                     >
-                      <article
-                        className="flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card transition-all hover:shadow-brand"
-                        role="link"
-                        tabIndex={0}
-                        onClick={() => openTutorDetail(tut.tutor_code)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            openTutorDetail(tut.tutor_code);
-                          }
-                        }}
-                      >
-                        <div className="bg-[color:var(--brand-teal)]/8 p-4">
-                          <div className="flex items-center gap-3">
-                            {tut.photo_url ? (
-                              <img
-                                src={tut.photo_url}
-                                alt={tut.tutor_code}
-                                className="h-16 w-16 shrink-0 rounded-full border-2 border-[color:var(--brand-teal)] object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-[color:var(--brand-teal)] bg-white text-lg font-bold text-[color:var(--brand-teal)]">
-                                {tut.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
-                              </div>
-                            )}
-                            <div className="min-w-0">
-                              <p className="text-xl font-black text-[color:var(--brand-navy)]">
-                                {formatTutorCode(tut.tutor_code)}
-                                {getTutorGenderLabel(tut.gender)
-                                  ? ` · ${getTutorGenderLabel(tut.gender)}`
-                                  : ""}
-                              </p>
-                              <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                                <BadgeCheck className="h-4 w-4 text-[color:var(--brand-teal)]" />
-                                {tut.university ?? tut.highschool ?? "Education details"}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-1 flex-col space-y-4 p-4">
-                          <div className="flex flex-wrap gap-2">
-                            {tut.subjects.slice(0, 3).map((subject) => (
-                              <span
-                                key={subject}
-                                className="rounded-sm bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
-                              >
-                                {subject}
-                              </span>
-                            ))}
-                          </div>
-
-                          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                            {tut.headline ??
-                              tut.bio ??
-                              "Experienced tutor profile with subject-specific support."}
-                          </p>
-
-                          <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
-                            <div>
-                              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                                Lesson Mode
-                              </p>
-                              <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
-                                <BookOpen className="h-4 w-4 text-[color:var(--brand-teal)]" />
-                                {getTutorLessonModeLabel(tut.lesson_mode)}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                                Tutoring Experience
-                              </p>
-                              <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
-                                <Clock3 className="h-4 w-4 text-[color:var(--brand-teal)]" />
-                                {tut.experience_years ? `${tut.experience_years} years` : "N/A"}
-                              </p>
-                            </div>
-                          </div>
-
-                          {tut.target_students.length > 0 && (
-                            <p className="mt-auto text-xs text-muted-foreground">
-                              Target students: {tut.target_students.slice(0, 2).join(", ")}
-                              {tut.target_students.length > 2
-                                ? ` +${tut.target_students.length - 2} more`
-                                : ""}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex items-center justify-between border-t border-border bg-white px-4 py-3">
-                          <p className="text-2xl font-black text-[color:var(--brand-navy)]">
-                            HK${tut.hourly_rate}
-                            <span className="ml-1 text-sm font-semibold text-muted-foreground">
-                              / hour
-                            </span>
-                          </p>
+                      <PublicTutorCard
+                        tutor={tut}
+                        priceSuffix={t("featured.per_hour")}
+                        onOpen={openTutorDetail}
+                        footerAction={
                           <Button
                             asChild
-                            className="rounded-sm bg-[color:var(--brand-teal)] px-4 font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                            className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
                           >
                             <a
                               href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
@@ -675,8 +481,8 @@ function Landing() {
                               Request tutor
                             </a>
                           </Button>
-                        </div>
-                      </article>
+                        }
+                      />
                     </CarouselItem>
                   ))}
                 </CarouselContent>
