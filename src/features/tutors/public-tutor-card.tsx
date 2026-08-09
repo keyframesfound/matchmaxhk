@@ -36,6 +36,16 @@ function gradeLabel(grade: string) {
   return /^grade\s+/i.test(trimmed) ? trimmed : `Grade ${trimmed}`;
 }
 
+function splitGradeLabel(grade: string) {
+  const label = gradeLabel(grade);
+  const match = label.match(/^(Grade\s+)(.+)$/i);
+  if (!match) {
+    return { prefix: "", value: label };
+  }
+
+  return { prefix: match[1], value: match[2] };
+}
+
 function getTutorSubjectChips(tutor: Tutor, limit = 3) {
   const gradeLookup = new Map<string, string>();
   for (const result of tutor.exam_results ?? []) {
@@ -150,7 +160,15 @@ export function PublicTutorCard({
               key={subject}
               className="rounded-full bg-[color:var(--brand-teal)]/16 px-3 py-1 text-[12px] font-semibold text-[#0A245F]"
             >
-              {subject} : {grade}
+              {(() => {
+                const { prefix, value } = splitGradeLabel(grade);
+                return (
+                  <>
+                    {subject} : {prefix}
+                    <span className="font-black text-[#0A245F]">{value}</span>
+                  </>
+                );
+              })()}
             </span>
           ))}
           {extraCount > 0 ? (
