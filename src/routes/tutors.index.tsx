@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { BadgeCheck, BookOpen, Clock3, Search } from "lucide-react";
+import { BookOpen, Search, User } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
@@ -96,6 +96,12 @@ function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorCode: st
 
   const message = `Hi MatchMax! I'd like to request tutor ${formatTutorCode(tutorCode)}.`;
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
+
+function getTutorInitials(tutorCode?: string | null) {
+  const normalized = (tutorCode ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  if (!normalized) return "MM";
+  return normalized.slice(0, 2);
 }
 
 function TutorsDirectory() {
@@ -362,7 +368,7 @@ function TutorsDirectory() {
                 {filtered.map((tut: Tutor) => (
                   <article
                     key={tut.id}
-                    className="flex h-full cursor-pointer flex-col overflow-hidden rounded-sm border border-[color:var(--brand-teal)]/20 bg-card transition-all hover:shadow-brand"
+                    className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-[color:var(--brand-teal)]/35 bg-white transition-all hover:-translate-y-0.5 hover:shadow-brand"
                     role="link"
                     tabIndex={0}
                     onClick={() => openTutorDetail(tut.tutor_code)}
@@ -373,85 +379,78 @@ function TutorsDirectory() {
                       }
                     }}
                   >
-                    <div className="bg-[color:var(--brand-teal)]/8 p-4">
-                      <div className="flex items-center gap-3">
+                    <div className="bg-[color:var(--brand-navy)] px-5 pb-5 pt-6">
+                      <div className="flex items-center gap-4">
                         {tut.photo_url ? (
                           <img
                             src={tut.photo_url}
                             alt={tut.tutor_code}
-                            className="h-16 w-16 shrink-0 rounded-full border-2 border-[color:var(--brand-teal)] object-cover"
+                            className="h-24 w-24 shrink-0 rounded-full border-[3px] border-[color:var(--brand-teal)] object-cover"
                           />
                         ) : (
-                          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-[color:var(--brand-teal)] bg-white text-lg font-bold text-[color:var(--brand-teal)]">
-                            {tut.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
+                          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-white text-2xl font-bold text-[color:var(--brand-teal)]">
+                            {getTutorInitials(tut.tutor_code)}
                           </div>
                         )}
                         <div className="min-w-0">
-                          <p className="text-xl font-black text-[color:var(--brand-navy)]">
+                          <p className="text-4xl font-black tracking-tight text-white">
                             {formatTutorCode(tut.tutor_code)}
-                            {getTutorGenderLabel(tut.gender)
-                              ? ` · ${getTutorGenderLabel(tut.gender)}`
-                              : ""}
                           </p>
-                          <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <BadgeCheck className="h-4 w-4 text-[color:var(--brand-teal)]" />
-                            {tut.university ?? tut.highschool ?? "Education details"}
+                          <p className="mt-2 line-clamp-2 text-xl font-bold leading-snug text-white/95">
+                            {tut.headline ?? "Headline Here"}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-1 flex-col space-y-4 p-4">
-                      <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-1 flex-col px-5 py-4">
+                      <h3 className="text-[2rem] font-black tracking-tight text-[color:var(--brand-navy)]">
+                        Subject Taught
+                      </h3>
+                      <div className="mt-3 flex flex-wrap gap-2.5">
                         {tut.subjects.slice(0, 3).map((subject) => (
                           <span
                             key={subject}
-                            className="rounded-sm bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
+                            className="rounded-full bg-[color:var(--brand-teal)]/18 px-3.5 py-1.5 text-sm font-semibold text-[color:var(--brand-navy)]"
                           >
                             {subject}
                           </span>
                         ))}
                       </div>
 
-                      <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                        {tut.headline ??
-                          tut.bio ??
-                          "Experienced tutor profile with subject-specific support."}
-                      </p>
+                      <h3 className="mt-6 text-[2rem] font-black tracking-tight text-[color:var(--brand-navy)]">
+                        {tut.university ?? tut.highschool ?? "University - From Database"}
+                      </h3>
 
-                      <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
+                      <div className="mt-4 grid grid-cols-2 gap-4 border-t border-border pt-5 text-sm">
                         <div>
-                          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                            Lesson Mode
+                          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                            Target Student
                           </p>
-                          <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
-                            <BookOpen className="h-4 w-4 text-[color:var(--brand-teal)]" />
-                            {getTutorLessonModeLabel(tut.lesson_mode)}
+                          <p className="mt-2 inline-flex items-center gap-2 text-2xl font-bold text-[color:var(--brand-navy)]">
+                            <BookOpen className="h-6 w-6 text-[color:var(--brand-navy)]" />
+                            {tut.target_students[0] ?? "IB, Senior Secondary"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                            Tutoring Experience
+                          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                            Gender
                           </p>
-                          <p className="mt-1 inline-flex items-center gap-1.5 font-semibold text-foreground">
-                            <Clock3 className="h-4 w-4 text-[color:var(--brand-teal)]" />
-                            {tut.experience_years ? `${tut.experience_years} years` : "N/A"}
+                          <p className="mt-2 inline-flex items-center gap-2 text-2xl font-bold text-[color:var(--brand-navy)]">
+                            <User className="h-6 w-6 text-[color:var(--brand-navy)]" />
+                            {getTutorGenderLabel(tut.gender) || "Not specified"}
                           </p>
                         </div>
                       </div>
 
-                      {tut.target_students.length > 0 && (
-                        <p className="mt-auto text-xs text-muted-foreground">
-                          Target students: {tut.target_students.slice(0, 2).join(", ")}
-                          {tut.target_students.length > 2
-                            ? ` +${tut.target_students.length - 2} more`
-                            : ""}
-                        </p>
-                      )}
+                      <div className="mt-4 text-xs text-muted-foreground">
+                        {getTutorLessonModeLabel(tut.lesson_mode)}
+                        {tut.experience_years ? ` • ${tut.experience_years} years experience` : ""}
+                      </div>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-border bg-white px-4 py-3">
-                      <p className="text-2xl font-black text-[color:var(--brand-navy)]">
+                    <div className="flex items-center justify-between border-t border-border bg-white px-5 py-4">
+                      <p className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)]">
                         HK${tut.hourly_rate}
                         <span className="ml-1 text-sm font-semibold text-muted-foreground">
                           {t("featured.per_hour")}
@@ -459,7 +458,7 @@ function TutorsDirectory() {
                       </p>
                       <Button
                         asChild
-                        className="rounded-sm bg-[color:var(--brand-teal)] px-4 font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                        className="rounded-2xl bg-[color:var(--brand-navy)] px-5 py-2.5 text-lg font-bold text-white hover:bg-[color:var(--brand-royal)]"
                       >
                         <a
                           href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
