@@ -62,42 +62,19 @@ const TARGET_STUDENT_OPTIONS = [
 import { DEFAULT_SUBJECT_OPTIONS as SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 
 function PhotoUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
-  const [uploading, setUploading] = useState(false);
-  const inputId = "tutor-photo-upload";
+  const [inputValue, setInputValue] = useState(value);
 
-  const handleFile = async (file: File) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please pick an image file.");
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
+  const handleBlur = () => {
+    const trimmed = inputValue.trim();
+    if (trimmed && !trimmed.match(/^https?:\/\/(i\.)?imgur\.com\//)) {
+      toast.error("Please enter a valid Imgur link (e.g. https://i.imgur.com/abc123.png)");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be under 5 MB.");
-      return;
-    }
-    setUploading(true);
-    try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("tutor-photos").upload(path, file, {
-        cacheControl: "31536000",
-        upsert: false,
-        contentType: file.type,
-      });
-      if (upErr) throw upErr;
-      // 100-year signed URL so displays work everywhere without extra plumbing.
-      const { data, error: signErr } = await supabase.storage
-        .from("tutor-photos")
-        .createSignedUrl(path, 60 * 60 * 24 * 365 * 100);
-      if (signErr || !data?.signedUrl) throw signErr ?? new Error("Could not sign URL");
-      onChange(data.signedUrl);
-      toast.success("Photo uploaded.");
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Upload failed.";
-      toast.error(msg);
-    } finally {
-      setUploading(false);
-    }
+    onChange(trimmed);
   };
 
   return (
@@ -108,34 +85,21 @@ function PhotoUpload({ value, onChange }: { value: string; onChange: (url: strin
         <div className="h-16 w-16 rounded-md bg-muted ring-1 ring-border" />
       )}
       <div className="flex-1 space-y-2">
-        <input
-          id={inputId}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void handleFile(f);
-            e.target.value = "";
-          }}
+        <Input
+          placeholder="https://i.imgur.com/abc123.png"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleBlur(); } }}
         />
         <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={uploading}
-            onClick={() => document.getElementById(inputId)?.click()}
-          >
-            {uploading ? "Uploading…" : value ? "Replace photo" : "Upload photo"}
-          </Button>
           {value ? (
-            <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>
+            <Button type="button" variant="ghost" size="sm" onClick={() => { onChange(""); setInputValue(""); }}>
               Remove
             </Button>
           ) : null}
         </div>
-        <p className="text-xs text-muted-foreground">JPG or PNG, up to 5 MB.</p>
+        <p className="text-xs text-muted-foreground">Paste an Imgur image link.</p>
       </div>
     </div>
   );
