@@ -20,22 +20,44 @@ export type R2TutorImage = {
   lastModified: string | null;
 };
 
-function requireEnv(name: string): string {
-  const value = process.env[name]?.trim();
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
+function getEnvValue(keys: string[]): string | undefined {
+  const processEnv =
+    typeof process !== "undefined" && process.env
+      ? (process.env as Record<string, unknown>)
+      : {};
+  const metaEnv = (import.meta.env ?? {}) as Record<string, unknown>;
+  const mergedEnv = { ...metaEnv, ...processEnv };
+
+  for (const key of keys) {
+    const value = mergedEnv[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
   }
-  return value;
+
+  return undefined;
 }
 
 function getR2Config(): R2Config {
-  const prefixRaw = process.env.R2_TUTOR_IMAGE_PREFIX?.trim() || DEFAULT_PREFIX;
+  const accountId = getEnvValue(["R2_ACCOUNT_ID", "VITE_R2_ACCOUNT_ID"]);
+  const bucketName = getEnvValue(["R2_BUCKET_NAME", "VITE_R2_BUCKET_NAME"]);
+  const apiToken = getEnvValue(["R2_API_TOKEN"]);
+  const publicBaseUrl = getEnvValue(["R2_PUBLIC_BASE_URL", "VITE_R2_PUBLIC_BASE_URL"]);
+  const missing = [
+    ...(!accountId ? ["R2_ACCOUNT_ID"] : []),
+    ...(!bucketName ? ["R2_BUCKET_NAME"] : []),
+    ...(!apiToken ? ["R2_API_TOKEN"] : []),
+    ...(!publicBaseUrl ? ["R2_PUBLIC_BASE_URL"] : []),
+  ];
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variable(s): ${missing.join(", ")}`);
+  }
+
+  const prefixRaw = getEnvValue(["R2_TUTOR_IMAGE_PREFIX", "VITE_R2_TUTOR_IMAGE_PREFIX"]) || DEFAULT_PREFIX;
   const normalizedPrefix = prefixRaw.endsWith("/") ? prefixRaw : `${prefixRaw}/`;
   return {
-    accountId: requireEnv("R2_ACCOUNT_ID"),
-    bucketName: requireEnv("R2_BUCKET_NAME"),
-    apiToken: requireEnv("R2_API_TOKEN"),
-    publicBaseUrl: requireEnv("R2_PUBLIC_BASE_URL").replace(/\/+$/, ""),
+    accountId,
+    bucketName,
+    apiToken,
+    publicBaseUrl: publicBaseUrl.replace(/\/+$/, ""),
     keyPrefix: normalizedPrefix,
   };
 }
