@@ -91,6 +91,33 @@ async function parseCloudflareError(response: Response): Promise<string> {
   } catch {
     return `Cloudflare R2 error: ${raw}`;
   }
+
+  type R2ObjectEntry = { key?: string; size?: number; uploaded?: string };
+
+  async function listR2Objects(config: R2Config, limit: number, prefix?: string): Promise<R2ObjectEntry[]> {
+    const listUrl = new URL(`${buildR2ApiBaseUrl(config)}/objects`);
+    listUrl.searchParams.set("limit", String(limit));
+    if (prefix) {
+      listUrl.searchParams.set("prefix", prefix);
+    }
+
+    const response = await fetch(listUrl.toString(), {
+      method: "GET",
+      headers: buildR2ApiHeaders(config),
+    });
+    if (!response.ok) throw new Error(await parseCloudflareError(response));
+
+    const payload = (await response.json()) as {
+      success?: boolean;
+      result?: { objects?: R2ObjectEntry[] };
+      errors?: Array<{ message?: string }>;
+    };
+    if (!payload.success) {
+      throw new Error(payload.errors?.[0]?.message || "Failed to list R2 images");
+    }
+
+    return payload.result?.objects ?? [];
+  }
 }
 
 function buildPublicUrl(publicBaseUrl: string, key: string): string {
@@ -167,26 +194,13 @@ export const listTutorProfileImages = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     const config = getR2Config();
-    const listUrl = new URL(`${buildR2ApiBaseUrl(config)}/objects`);
-    listUrl.searchParams.set("prefix", config.keyPrefix);
-    listUrl.searchParams.set("limit", String(data.limit ?? 60));
-
-    const response = await fetch(listUrl.toString(), {
-      method: "GET",
-      headers: buildR2ApiHeaders(config),
-    });
-    if (!response.ok) throw new Error(await parseCloudflareError(response));
-
-    const payload = (await response.json()) as {
-      success?: boolean;
-      result?: { objects?: Array<{ key?: string; size?: number; uploaded?: string }> };
-      errors?: Array<{ message?: string }>;
-    };
-    if (!payload.success) {
-      throw new Error(payload.errors?.[0]?.message || "Failed to list R2 images");
+    const limit = data.limit ?? 60;
+    let objects = await listR2Objects(config, limit, config.keyPrefix);
+    if (objects.length === 0) {
+      objects = await listR2Objects(config, limit);
     }
 
-    const entries = (payload.result?.objects ?? [])
+    const entries = objects
       .filter((item) => !!item.key && !item.key.endsWith("/"))
       .map((item) => ({
         key: item.key as string,
@@ -239,10 +253,6 @@ export const deleteTutorProfileImage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     const config = getR2Config();
-
-    if (!data.key.startsWith(config.keyPrefix)) {
-      throw new Error("Invalid image key");
-    }
 
     const response = await fetch(buildR2ObjectApiPath(config, data.key), {
       method: "DELETE",

@@ -100,6 +100,8 @@ function PhotoUpload({ value, onChange }: { value: string; onChange: (url: strin
   const {
     data: library = [],
     isLoading: isLibraryLoading,
+    isError: isLibraryError,
+    error: libraryError,
     refetch: refetchLibrary,
   } = useQuery({
     queryKey: ["admin", "r2", "tutor-images"],
@@ -210,6 +212,10 @@ function PhotoUpload({ value, onChange }: { value: string; onChange: (url: strin
         {isLibraryLoading ? (
           <div className="flex h-20 items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground">
             Loading images…
+          </div>
+        ) : isLibraryError ? (
+          <div className="flex min-h-20 items-center justify-center rounded-md border border-destructive/30 px-3 py-2 text-xs text-destructive">
+            {(libraryError as Error)?.message || "Failed to load R2 library."}
           </div>
         ) : library.length === 0 ? (
           <div className="flex h-20 items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground">
