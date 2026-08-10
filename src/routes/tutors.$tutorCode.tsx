@@ -360,7 +360,7 @@ function TutorDetail() {
                     <span className="font-semibold text-foreground">Format:</span> {getTutorLessonModeLabel(t.lesson_mode)}
                   </li>
                   <li className="rounded-xl border border-border/70 bg-background/70 p-3">
-                    <span className="font-semibold text-foreground">Location:</span> {t.district ?? "Hong Kong"}
+                    <span className="font-semibold text-foreground">Where tutor is located:</span> {t.district ?? "Hong Kong"}
                   </li>
                   {t.lesson_mode === "either" ? (
                     <li className="rounded-xl border border-border/70 bg-background/70 p-3">
