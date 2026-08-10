@@ -21,6 +21,7 @@ import { Route as AuthenticatedPostCaseRouteImport } from './routes/_authenticat
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
 import { Route as AuthenticatedAdminCasesRouteImport } from './routes/_authenticated.admin.cases'
+import { Route as AuthenticatedAdminR2RouteImport } from './routes/_authenticated.admin.r2'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
 import { Route as AuthenticatedAdminTutorsRouteImport } from './routes/_authenticated.admin.tutors'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
@@ -90,6 +91,11 @@ const AuthenticatedAdminCasesRoute = AuthenticatedAdminCasesRouteImport.update({
   path: '/admin/cases',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminR2Route = AuthenticatedAdminR2RouteImport.update({
+  id: '/admin/r2',
+  path: '/admin/r2',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: '/admin/settings',
@@ -153,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
+  '/admin/r2': typeof AuthenticatedAdminR2Route
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors': typeof TutorsIndexRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
+  '/admin/r2': typeof AuthenticatedAdminR2Route
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
   '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
+  '/_authenticated/admin/r2': typeof AuthenticatedAdminR2Route
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -223,6 +232,7 @@ export interface FileRouteTypes {
     | '/tutors/$tutorCode'
     | '/tutors/'
     | '/admin/cases'
+    | '/admin/r2'
     | '/admin/settings'
     | '/admin/tutors'
     | '/admin/users'
@@ -245,6 +255,7 @@ export interface FileRouteTypes {
     | '/tutors/$tutorCode'
     | '/tutors'
     | '/admin/cases'
+    | '/admin/r2'
     | '/admin/settings'
     | '/admin/tutors'
     | '/admin/users'
@@ -268,6 +279,7 @@ export interface FileRouteTypes {
     | '/tutors/$tutorCode'
     | '/tutors/'
     | '/_authenticated/admin/cases'
+    | '/_authenticated/admin/r2'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/tutors'
     | '/_authenticated/admin/users'
@@ -379,6 +391,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCasesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/r2': {
+      id: '/_authenticated/admin/r2'
+      path: '/admin/r2'
+      fullPath: '/admin/r2'
+      preLoaderRoute: typeof AuthenticatedAdminR2RouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/settings': {
       id: '/_authenticated/admin/settings'
       path: '/admin/settings'
@@ -464,6 +483,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMyCasesRoute: typeof AuthenticatedMyCasesRoute
   AuthenticatedPostCaseRoute: typeof AuthenticatedPostCaseRouteWithChildren
   AuthenticatedAdminCasesRoute: typeof AuthenticatedAdminCasesRoute
+  AuthenticatedAdminR2Route: typeof AuthenticatedAdminR2Route
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTutorsRoute: typeof AuthenticatedAdminTutorsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
@@ -476,6 +496,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMyCasesRoute: AuthenticatedMyCasesRoute,
   AuthenticatedPostCaseRoute: AuthenticatedPostCaseRouteWithChildren,
   AuthenticatedAdminCasesRoute: AuthenticatedAdminCasesRoute,
+  AuthenticatedAdminR2Route: AuthenticatedAdminR2Route,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTutorsRoute: AuthenticatedAdminTutorsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,

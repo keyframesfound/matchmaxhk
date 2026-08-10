@@ -93,7 +93,6 @@ export function SiteHeader() {
               className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
             >
               Consult
-
               <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
             </Link>
 
@@ -188,6 +187,21 @@ export function SiteHeader() {
                       "
                       >
                         <Link to="/admin/tutors">Manage tutors</Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem
+                        asChild
+                        className="
+                        cursor-pointer
+                        rounded-xl
+                        px-3
+                        py-2.5
+                        font-medium
+                        text-[#041344]
+                        focus:bg-[#77E8EE]/20
+                      "
+                      >
+                        <Link to="/admin/r2">R2 images</Link>
                       </DropdownMenuItem>
 
                       <DropdownMenuItem
@@ -511,6 +525,30 @@ export function SiteHeader() {
                     "
                   >
                     {t("nav.admin")}
+                  </Link>
+
+                  <Link
+                    to="/admin/r2"
+                    onClick={closeMobile}
+                    className="
+                      flex
+                      items-center
+                      justify-between
+                      border-b
+                      border-[#041344]/10
+                      py-3.5
+                      text-xl
+                      sm:py-6
+                      sm:text-[28px]
+                      font-bold
+                      leading-none
+                      tracking-tight
+                      text-[#041344]
+                      transition-colors
+                      active:text-[#1FA8B6]
+                    "
+                  >
+                    R2 images
                   </Link>
                 </>
               )}

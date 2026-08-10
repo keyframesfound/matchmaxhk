@@ -4,10 +4,17 @@ MatchMax is a Hong Kong based Education-Tutor Startup aiming at IBDP , IGCSE, DS
 
 ## Built with Students in Mind
 
-
-
 ## Development
 
+### Cloudflare R2 (tutor profile images)
+
+Admin tutor photo uploads/picking now use Cloudflare R2. Set these server env vars:
+
+- `R2_ACCOUNT_ID`
+- `R2_BUCKET_NAME`
+- `R2_API_TOKEN` (Cloudflare API token with R2 bucket read/write scope)
+- `R2_PUBLIC_BASE_URL` (public base URL or custom domain root for served objects)
+- `R2_TUTOR_IMAGE_PREFIX` (optional, defaults to `tutor-profile-images/`)
 
 ## Built with
 

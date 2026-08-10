@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { z } from "zod";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -15,15 +16,41 @@ import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
-import { fetchAllTutors, getTutorGenderLabel, HK_DISTRICTS, type Tutor, type Education } from "@/features/tutors/queries";
-import { EXAM_SYSTEMS, getSystem, getGradesForSelection, type ExamResult, type ExamResultEntry } from "@/features/tutors/examSystems";
+import {
+  fetchAllTutors,
+  getTutorGenderLabel,
+  HK_DISTRICTS,
+  type Tutor,
+  type Education,
+} from "@/features/tutors/queries";
+import {
+  EXAM_SYSTEMS,
+  getSystem,
+  getGradesForSelection,
+  type ExamResult,
+  type ExamResultEntry,
+} from "@/features/tutors/examSystems";
+import {
+  listTutorProfileImages,
+  uploadTutorProfileImage,
+  type R2TutorImage,
+} from "@/features/tutors/r2.functions";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 
 export const Route = createFileRoute("/_authenticated/admin/tutors")({
@@ -62,44 +89,155 @@ const TARGET_STUDENT_OPTIONS = [
 import { DEFAULT_SUBJECT_OPTIONS as SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 
 function PhotoUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const listImagesFn = useServerFn(listTutorProfileImages);
+  const uploadImageFn = useServerFn(uploadTutorProfileImage);
   const [inputValue, setInputValue] = useState(value);
 
   useEffect(() => {
     setInputValue(value);
   }, [value]);
 
+  const {
+    data: library = [],
+    isLoading: isLibraryLoading,
+    refetch: refetchLibrary,
+  } = useQuery({
+    queryKey: ["admin", "r2", "tutor-images"],
+    queryFn: () => listImagesFn({ data: { limit: 40 } }) as Promise<R2TutorImage[]>,
+  });
+
+  const upload = useMutation({
+    mutationFn: async (file: File) => {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      let binary = "";
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.slice(i, i + chunkSize));
+      }
+      const base64Data = btoa(binary);
+      return uploadImageFn({
+        data: {
+          fileName: file.name,
+          contentType: file.type || "image/jpeg",
+          base64Data,
+        },
+      }) as Promise<{ key: string; url: string }>;
+    },
+    onSuccess: async (result) => {
+      onChange(result.url);
+      setInputValue(result.url);
+      toast.success("Image uploaded");
+      await refetchLibrary();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
   const handleBlur = () => {
     const trimmed = inputValue.trim();
-    if (trimmed && !trimmed.match(/^https?:\/\/(i\.)?imgur\.com\//)) {
-      toast.error("Please enter a valid Imgur link (e.g. https://i.imgur.com/abc123.png)");
+    if (trimmed && !trimmed.match(/^https?:\/\/.+/)) {
+      toast.error("Please enter a valid image URL.");
       return;
     }
     onChange(trimmed);
   };
 
+  const onFilePick: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    const file = event.target.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    upload.mutate(file);
+  };
+
   return (
-    <div className="flex items-center gap-3">
-      {value ? (
-        <img src={value} alt="" className="h-16 w-16 rounded-md object-cover ring-1 ring-border" />
-      ) : (
-        <div className="h-16 w-16 rounded-md bg-muted ring-1 ring-border" />
-      )}
-      <div className="flex-1 space-y-2">
-        <Input
-          placeholder="https://i.imgur.com/abc123.png"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onBlur={handleBlur}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleBlur(); } }}
-        />
-        <div className="flex flex-wrap gap-2">
-          {value ? (
-            <Button type="button" variant="ghost" size="sm" onClick={() => { onChange(""); setInputValue(""); }}>
-              Remove
-            </Button>
-          ) : null}
+    <div className="space-y-3">
+      <div className="flex items-center gap-3">
+        {value ? (
+          <img
+            src={value}
+            alt=""
+            className="h-16 w-16 rounded-md object-cover ring-1 ring-border"
+          />
+        ) : (
+          <div className="h-16 w-16 rounded-md bg-muted ring-1 ring-border" />
+        )}
+        <div className="flex-1 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-muted">
+              {upload.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              Upload to R2
+              <input type="file" accept="image/*" className="hidden" onChange={onFilePick} />
+            </label>
+            {value ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  onChange("");
+                  setInputValue("");
+                }}
+              >
+                Remove
+              </Button>
+            ) : null}
+          </div>
+          <Input
+            placeholder="Or paste direct image URL"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onBlur={handleBlur}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleBlur();
+              }
+            }}
+          />
         </div>
-        <p className="text-xs text-muted-foreground">Paste an Imgur image link.</p>
+      </div>
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground">R2 library (click to select)</p>
+        {isLibraryLoading ? (
+          <div className="flex h-20 items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground">
+            Loading images…
+          </div>
+        ) : library.length === 0 ? (
+          <div className="flex h-20 items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground">
+            No R2 images yet. Upload one above.
+          </div>
+        ) : (
+          <div className="grid max-h-40 grid-cols-5 gap-2 overflow-y-auto rounded-md border border-border p-2">
+            {library.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className={`overflow-hidden rounded-md ring-2 ring-offset-1 transition ${value === item.url ? "ring-[color:var(--brand-teal)]" : "ring-transparent hover:ring-border"}`}
+                onClick={() => {
+                  onChange(item.url);
+                  setInputValue(item.url);
+                }}
+                title={item.key}
+              >
+                <img src={item.url} alt="" className="h-14 w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => void refetchLibrary()}>
+            Refresh library
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -135,7 +273,12 @@ const formSchema = z.object({
   badge: z.string().trim().max(80).optional().or(z.literal("")),
   bio: z.string().trim().max(2000).optional().or(z.literal("")),
   photo_url: z.string().trim().max(1000).optional().or(z.literal("")),
-  tutor_code: z.string().trim().min(2).max(20).regex(/^[A-Za-z0-9-]+$/, "Letters, numbers, dashes only"),
+  tutor_code: z
+    .string()
+    .trim()
+    .min(2)
+    .max(20)
+    .regex(/^[A-Za-z0-9-]+$/, "Letters, numbers, dashes only"),
   is_published: z.boolean(),
   languages_csv: z.string().trim().max(200).optional().or(z.literal("")),
   gender: z.enum(["male", "female", "other"]),
@@ -187,9 +330,11 @@ function tutorToForm(t: Tutor): FormValues {
     tutor_code: t.tutor_code,
     is_published: t.is_published,
     languages_csv: (t.languages ?? []).join(", "),
-    gender: (["male", "female", "other"].includes((t as unknown as { gender?: string | null }).gender ?? "")
-      ? ((t as unknown as { gender: "male" | "female" | "other" }).gender)
-      : "female"),
+    gender: ["male", "female", "other"].includes(
+      (t as unknown as { gender?: string | null }).gender ?? "",
+    )
+      ? (t as unknown as { gender: "male" | "female" | "other" }).gender
+      : "female",
     experience_years: t.experience_years ?? "",
     teaching_since: t.teaching_since ?? "",
     education: (t.education ?? []).map((e) => ({
@@ -222,8 +367,14 @@ function formToPayload(v: FormValues, isNew: boolean) {
         .filter((s) => s.subject && s.grade),
     }))
     .filter((r) => r.system && r.subjects.length > 0);
-  const langs = (v.languages_csv || "").split(",").map((s) => s.trim()).filter(Boolean);
-  const targetStudents = (v.target_students_csv || "").split(",").map((s) => s.trim()).filter(Boolean);
+  const langs = (v.languages_csv || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const targetStudents = (v.target_students_csv || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const base: Record<string, unknown> = {
     display_name: v.tutor_code.trim(),
     headline: v.headline.trim(),
@@ -274,10 +425,11 @@ function AdminTutors() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return tutors;
-    return tutors.filter((r) =>
-      r.display_name.toLowerCase().includes(q) ||
-      r.tutor_code.toLowerCase().includes(q) ||
-      (r.subjects ?? []).some((s) => s.toLowerCase().includes(q)),
+    return tutors.filter(
+      (r) =>
+        r.display_name.toLowerCase().includes(q) ||
+        r.tutor_code.toLowerCase().includes(q) ||
+        (r.subjects ?? []).some((s) => s.toLowerCase().includes(q)),
     );
   }, [tutors, search]);
 
@@ -285,10 +437,15 @@ function AdminTutors() {
     mutationFn: async (payload: Record<string, unknown> & { id?: string }) => {
       if (payload.id) {
         const { id, ...rest } = payload;
-        const { error } = await supabase.from("tutors").update(rest as never).eq("id", id as string);
+        const { error } = await supabase
+          .from("tutors")
+          .update(rest as never)
+          .eq("id", id as string);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("tutors").insert({ ...payload, created_by: user?.id ?? null } as never);
+        const { error } = await supabase
+          .from("tutors")
+          .insert({ ...payload, created_by: user?.id ?? null } as never);
         if (error) throw error;
       }
     },
@@ -345,8 +502,13 @@ function AdminTutors() {
       if (!(parsed.data.university ?? "").trim() && !(parsed.data.highschool ?? "").trim()) {
         publishErrors.university = "Add at least university or highschool before publishing.";
       }
-      if (!(parsed.data.qualifications_summary ?? "").trim() && parsed.data.education.length === 0 && parsed.data.experience_years === "") {
-        publishErrors.qualifications_summary = "Add qualifications summary, education, or experience before publishing.";
+      if (
+        !(parsed.data.qualifications_summary ?? "").trim() &&
+        parsed.data.education.length === 0 &&
+        parsed.data.experience_years === ""
+      ) {
+        publishErrors.qualifications_summary =
+          "Add qualifications summary, education, or experience before publishing.";
       }
       if (parsed.data.lesson_mode !== "online" && !(parsed.data.district ?? "").trim()) {
         publishErrors.district = "District is required for in-person or hybrid tutoring.";
@@ -356,11 +518,17 @@ function AdminTutors() {
       setErrors(publishErrors);
       return;
     }
-    save.mutate({ ...formToPayload(parsed.data, !editing), ...(editing ? { id: editing.id } : {}) });
+    save.mutate({
+      ...formToPayload(parsed.data, !editing),
+      ...(editing ? { id: editing.id } : {}),
+    });
   }
 
   function addEdu() {
-    setForm({ ...form, education: [...form.education, { institution: "", qualification: "", year: "", level: "" }] });
+    setForm({
+      ...form,
+      education: [...form.education, { institution: "", qualification: "", year: "", level: "" }],
+    });
   }
   function updateEdu(i: number, patch: Partial<Education & { year: number | "" | null }>) {
     const next = form.education.slice();
@@ -374,7 +542,10 @@ function AdminTutors() {
   function addExam() {
     setForm({
       ...form,
-      exam_results: [...form.exam_results, { system: "ib", subjects: [{ subject: "", grade: "" }] }],
+      exam_results: [
+        ...form.exam_results,
+        { system: "ib", subjects: [{ subject: "", grade: "" }] },
+      ],
     });
   }
   function updateExamSystem(i: number, system: string) {
@@ -422,11 +593,16 @@ function AdminTutors() {
               <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
                 Tutors
               </h1>
-              <p className="mt-2 text-muted-foreground">Add, edit or remove tutors shown on MatchMax.</p>
+              <p className="mt-2 text-muted-foreground">
+                Add, edit or remove tutors shown on MatchMax.
+              </p>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button onClick={openAdd} className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]">
+                <Button
+                  onClick={openAdd}
+                  className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                >
                   <Plus className="mr-2 h-4 w-4" /> Add tutor
                 </Button>
               </DialogTrigger>
@@ -438,13 +614,22 @@ function AdminTutors() {
                   <Section title="Tutor identity">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Field label="Tutor code (unique)" error={errors.tutor_code}>
-                        <Input value={form.tutor_code} onChange={(e) => setForm({ ...form, tutor_code: e.target.value })} placeholder="MM-1042" />
+                        <Input
+                          value={form.tutor_code}
+                          onChange={(e) => setForm({ ...form, tutor_code: e.target.value })}
+                          placeholder="MM-1042"
+                        />
                       </Field>
                       <Field label="Gender" error={errors.gender}>
                         <select
                           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                           value={form.gender}
-                          onChange={(e) => setForm({ ...form, gender: e.target.value as "male" | "female" | "other" })}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              gender: e.target.value as "male" | "female" | "other",
+                            })
+                          }
                         >
                           <option value="female">Female</option>
                           <option value="male">Male</option>
@@ -453,14 +638,26 @@ function AdminTutors() {
                       </Field>
                     </div>
                     <Field label="Headline" error={errors.headline}>
-                      <Input value={form.headline} onChange={(e) => setForm({ ...form, headline: e.target.value })} placeholder="IB Biology tutor focused on exam strategy" />
+                      <Input
+                        value={form.headline}
+                        onChange={(e) => setForm({ ...form, headline: e.target.value })}
+                        placeholder="IB Biology tutor focused on exam strategy"
+                      />
                     </Field>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Field label="University" error={errors.university}>
-                        <Input value={form.university} onChange={(e) => setForm({ ...form, university: e.target.value })} placeholder="Chinese University of Hong Kong" />
+                        <Input
+                          value={form.university}
+                          onChange={(e) => setForm({ ...form, university: e.target.value })}
+                          placeholder="Chinese University of Hong Kong"
+                        />
                       </Field>
                       <Field label="Highschool" error={errors.highschool}>
-                        <Input value={form.highschool} onChange={(e) => setForm({ ...form, highschool: e.target.value })} placeholder="Diocesan Boys' School" />
+                        <Input
+                          value={form.highschool}
+                          onChange={(e) => setForm({ ...form, highschool: e.target.value })}
+                          placeholder="Diocesan Boys' School"
+                        />
                       </Field>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -471,7 +668,11 @@ function AdminTutors() {
                         />
                       </Field>
                       <Field label="Badge (optional)" error={errors.badge}>
-                        <Input value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} placeholder="CUHK MBChB Year 2" />
+                        <Input
+                          value={form.badge}
+                          onChange={(e) => setForm({ ...form, badge: e.target.value })}
+                          placeholder="CUHK MBChB Year 2"
+                        />
                       </Field>
                     </div>
                   </Section>
@@ -482,12 +683,20 @@ function AdminTutors() {
                         {form.subjects.length > 0 && (
                           <div className="flex flex-wrap gap-1.5">
                             {form.subjects.map((s) => (
-                              <span key={s} className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-navy)]">
+                              <span
+                                key={s}
+                                className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-navy)]"
+                              >
                                 {s}
                                 <button
                                   type="button"
                                   aria-label={`Remove ${s}`}
-                                  onClick={() => setForm({ ...form, subjects: form.subjects.filter((x) => x !== s) })}
+                                  onClick={() =>
+                                    setForm({
+                                      ...form,
+                                      subjects: form.subjects.filter((x) => x !== s),
+                                    })
+                                  }
                                   className="hover:text-destructive"
                                 >
                                   <X className="h-3 w-3" />
@@ -521,80 +730,114 @@ function AdminTutors() {
                           .filter(Boolean);
 
                         return (
-                      <div className="space-y-2">
-                        {targetStudentList.length > 0 ? (
-                          <div className="flex flex-wrap gap-1.5">
-                            {targetStudentList.map((item) => (
-                              <span
-                                key={item}
-                                className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-navy)]"
-                              >
-                                {item}
-                                <button
-                                  type="button"
-                                  aria-label={`Remove ${item}`}
-                                  onClick={() => {
-                                    const next = targetStudentList.filter((value) => value !== item);
-                                    setForm({ ...form, target_students_csv: next.join(", ") });
-                                  }}
-                                  className="hover:text-destructive"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </span>
-                            ))}
+                          <div className="space-y-2">
+                            {targetStudentList.length > 0 ? (
+                              <div className="flex flex-wrap gap-1.5">
+                                {targetStudentList.map((item) => (
+                                  <span
+                                    key={item}
+                                    className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-navy)]"
+                                  >
+                                    {item}
+                                    <button
+                                      type="button"
+                                      aria-label={`Remove ${item}`}
+                                      onClick={() => {
+                                        const next = targetStudentList.filter(
+                                          (value) => value !== item,
+                                        );
+                                        setForm({ ...form, target_students_csv: next.join(", ") });
+                                      }}
+                                      className="hover:text-destructive"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
+                            <SearchableSelect
+                              value=""
+                              onChange={(value) => {
+                                const val = value.trim();
+                                if (!val) return;
+                                const current = targetStudentList;
+                                if (current.includes(val)) return;
+                                setForm({
+                                  ...form,
+                                  target_students_csv: [...current, val].join(", "),
+                                });
+                              }}
+                              options={TARGET_STUDENT_OPTIONS.filter(
+                                (value) => !targetStudentList.includes(value),
+                              )}
+                              placeholder="Add target students…"
+                              searchPlaceholder="Search target students…"
+                              allowCustom
+                            />
                           </div>
-                        ) : null}
-                        <SearchableSelect
-                          value=""
-                          onChange={(value) => {
-                            const val = value.trim();
-                            if (!val) return;
-                            const current = targetStudentList;
-                            if (current.includes(val)) return;
-                            setForm({ ...form, target_students_csv: [...current, val].join(", ") });
-                          }}
-                          options={TARGET_STUDENT_OPTIONS.filter((value) => !targetStudentList.includes(value))}
-                          placeholder="Add target students…"
-                          searchPlaceholder="Search target students…"
-                          allowCustom
-                        />
-                      </div>
                         );
                       })()}
                       <p className="mt-1 text-xs text-muted-foreground">
                         Separate multiple targets with commas.
                       </p>
                     </Field>
-
                   </Section>
 
                   <Section title="Academic Excellence">
                     <div className="space-y-3">
                       {form.education.length === 0 && (
-                        <p className="text-sm text-muted-foreground">No qualifications yet. Add one below.</p>
+                        <p className="text-sm text-muted-foreground">
+                          No qualifications yet. Add one below.
+                        </p>
                       )}
                       {form.education.map((row, i) => (
-                        <div key={i} className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[160px_1fr_1fr_100px_auto]">
+                        <div
+                          key={i}
+                          className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[160px_1fr_1fr_100px_auto]"
+                        >
                           <Select
                             value={row.level || "__none"}
                             onValueChange={(v) => updateEdu(i, { level: v === "__none" ? "" : v })}
                           >
-                            <SelectTrigger><SelectValue placeholder="Level" /></SelectTrigger>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Level" />
+                            </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="__none">Level…</SelectItem>
-                              {EDUCATION_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                              {EDUCATION_LEVELS.map((l) => (
+                                <SelectItem key={l} value={l}>
+                                  {l}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
-                          <Input placeholder="Institution (e.g. DBS, HKU)" value={row.institution} onChange={(e) => updateEdu(i, { institution: e.target.value })} />
-                          <Input placeholder="Qualification (e.g. HKDSE, BSc Maths)" value={row.qualification} onChange={(e) => updateEdu(i, { qualification: e.target.value })} />
+                          <Input
+                            placeholder="Institution (e.g. DBS, HKU)"
+                            value={row.institution}
+                            onChange={(e) => updateEdu(i, { institution: e.target.value })}
+                          />
+                          <Input
+                            placeholder="Qualification (e.g. HKDSE, BSc Maths)"
+                            value={row.qualification}
+                            onChange={(e) => updateEdu(i, { qualification: e.target.value })}
+                          />
                           <Input
                             type="number"
                             placeholder="Year"
                             value={row.year ?? ""}
-                            onChange={(e) => updateEdu(i, { year: e.target.value === "" ? null : Number(e.target.value) })}
+                            onChange={(e) =>
+                              updateEdu(i, {
+                                year: e.target.value === "" ? null : Number(e.target.value),
+                              })
+                            }
                           />
-                          <Button type="button" variant="outline" size="icon" onClick={() => removeEdu(i)}>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => removeEdu(i)}
+                          >
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
@@ -605,11 +848,14 @@ function AdminTutors() {
                     </div>
 
                     <p className="text-xs text-muted-foreground">
-                      Pick an exam system, then add each subject with its grade. Lists are searchable and match the chosen system.
+                      Pick an exam system, then add each subject with its grade. Lists are
+                      searchable and match the chosen system.
                     </p>
                     <div className="space-y-4">
                       {form.exam_results.length === 0 && (
-                        <p className="text-sm text-muted-foreground">No scores yet. Add an exam system below.</p>
+                        <p className="text-sm text-muted-foreground">
+                          No scores yet. Add an exam system below.
+                        </p>
                       )}
                       {form.exam_results.map((row, i) => {
                         const sys = getSystem(row.system);
@@ -621,21 +867,38 @@ function AdminTutors() {
                                 <SearchableSelect
                                   value={row.system}
                                   onChange={(v) => updateExamSystem(i, v)}
-                                  options={EXAM_SYSTEMS.map((s) => ({ value: s.id, label: s.label }))}
+                                  options={EXAM_SYSTEMS.map((s) => ({
+                                    value: s.id,
+                                    label: s.label,
+                                  }))}
                                   placeholder="Exam system"
                                   searchPlaceholder="Search systems…"
                                 />
                               </div>
-                              <Button type="button" variant="outline" size="sm" onClick={() => addSubjectRow(i)}>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => addSubjectRow(i)}
+                              >
                                 <Plus className="mr-1 h-3.5 w-3.5" /> Subject
                               </Button>
-                              <Button type="button" variant="outline" size="icon" onClick={() => removeExam(i)} aria-label="Remove exam system">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => removeExam(i)}
+                                aria-label="Remove exam system"
+                              >
                                 <X className="h-4 w-4" />
                               </Button>
                             </div>
                             <div className="mt-3 space-y-2">
                               {row.subjects.map((entry, j) => {
-                                const gradeOptions = getGradesForSelection(row.system, entry.subject);
+                                const gradeOptions = getGradesForSelection(
+                                  row.system,
+                                  entry.subject,
+                                );
                                 return (
                                   <div
                                     key={j}
@@ -654,7 +917,9 @@ function AdminTutors() {
                                       value={entry.grade}
                                       onChange={(v) => updateSubjectRow(i, j, { grade: v })}
                                       options={gradeOptions}
-                                      placeholder={gradeOptions.length === 0 ? "Type a grade" : "Grade"}
+                                      placeholder={
+                                        gradeOptions.length === 0 ? "Type a grade" : "Grade"
+                                      }
                                       searchPlaceholder="Search grades…"
                                       allowCustom={gradeOptions.length === 0}
                                       disabled={!entry.subject}
@@ -682,17 +947,26 @@ function AdminTutors() {
                   </Section>
 
                   <Section title="3. 🎓 Qualifications and Experience">
-                    <Field label="Qualifications & teaching profile" error={errors.qualifications_summary}>
+                    <Field
+                      label="Qualifications & teaching profile"
+                      error={errors.qualifications_summary}
+                    >
                       <Textarea
                         rows={4}
                         value={form.qualifications_summary}
-                        onChange={(e) => setForm({ ...form, qualifications_summary: e.target.value })}
+                        onChange={(e) =>
+                          setForm({ ...form, qualifications_summary: e.target.value })
+                        }
                         placeholder="Private tutoring focused on medical-track sciences since 2024"
                       />
                     </Field>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Field label="Languages (comma separated)" error={errors.languages_csv}>
-                        <Input value={form.languages_csv} onChange={(e) => setForm({ ...form, languages_csv: e.target.value })} placeholder="English, Cantonese" />
+                        <Input
+                          value={form.languages_csv}
+                          onChange={(e) => setForm({ ...form, languages_csv: e.target.value })}
+                          placeholder="English, Cantonese"
+                        />
                       </Field>
                       <Field label="Experience (years)" error={errors.experience_years}>
                         <Input
@@ -704,7 +978,11 @@ function AdminTutors() {
                               setForm({ ...form, experience_years: "", teaching_since: "" });
                             } else {
                               const years = Number(raw);
-                              setForm({ ...form, experience_years: years, teaching_since: new Date().getFullYear() - years });
+                              setForm({
+                                ...form,
+                                experience_years: years,
+                                teaching_since: new Date().getFullYear() - years,
+                              });
                             }
                           }}
                         />
@@ -720,7 +998,11 @@ function AdminTutors() {
                             setForm({ ...form, teaching_since: "", experience_years: "" });
                           } else {
                             const year = Number(raw);
-                            setForm({ ...form, teaching_since: year, experience_years: Math.max(0, new Date().getFullYear() - year) });
+                            setForm({
+                              ...form,
+                              teaching_since: year,
+                              experience_years: Math.max(0, new Date().getFullYear() - year),
+                            });
                           }
                         }}
                         placeholder="2015"
@@ -744,19 +1026,36 @@ function AdminTutors() {
                         }}
                         className="grid w-full grid-cols-3 gap-2"
                       >
-                        <ToggleGroupItem value="online" className="w-full">Online</ToggleGroupItem>
-                        <ToggleGroupItem value="in_person" className="w-full">In person</ToggleGroupItem>
-                        <ToggleGroupItem value="either" className="w-full">Hybrid</ToggleGroupItem>
+                        <ToggleGroupItem value="online" className="w-full">
+                          Online
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="in_person" className="w-full">
+                          In person
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="either" className="w-full">
+                          Hybrid
+                        </ToggleGroupItem>
                       </ToggleGroup>
                     </Field>
                     <div className="grid gap-4 sm:grid-cols-2">
                       {form.lesson_mode !== "online" ? (
                         <Field label="District" error={errors.district}>
-                          <Select value={form.district || "__none"} onValueChange={(v) => setForm({ ...form, district: v === "__none" ? "" : v })}>
-                            <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                          <Select
+                            value={form.district || "__none"}
+                            onValueChange={(v) =>
+                              setForm({ ...form, district: v === "__none" ? "" : v })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select…" />
+                            </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="__none">—</SelectItem>
-                              {HK_DISTRICTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                              {HK_DISTRICTS.map((d) => (
+                                <SelectItem key={d} value={d}>
+                                  {d}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </Field>
@@ -766,23 +1065,36 @@ function AdminTutors() {
                         </div>
                       )}
                       <Field label="Hourly rate (HKD)" error={errors.hourly_rate}>
-                        <Input type="number" value={form.hourly_rate} onChange={(e) => setForm({ ...form, hourly_rate: Number(e.target.value) })} />
+                        <Input
+                          type="number"
+                          value={form.hourly_rate}
+                          onChange={(e) =>
+                            setForm({ ...form, hourly_rate: Number(e.target.value) })
+                          }
+                        />
                       </Field>
                     </div>
                   </Section>
 
-
-
-
                   <div className="flex items-center gap-3 pt-2">
-                      <Switch id="pub" checked={form.is_published} onCheckedChange={(v) => setForm({ ...form, is_published: v })} />
-                      <Label htmlFor="pub">Published (visible to visitors)</Label>
-                    </div>
+                    <Switch
+                      id="pub"
+                      checked={form.is_published}
+                      onCheckedChange={(v) => setForm({ ...form, is_published: v })}
+                    />
+                    <Label htmlFor="pub">Published (visible to visitors)</Label>
+                  </div>
 
                   <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-                    <Button type="submit" disabled={save.isPending} className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]">
-                      {save.isPending ? "Saving…" : (editing ? "Save changes" : "Add tutor")}
+                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={save.isPending}
+                      className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                    >
+                      {save.isPending ? "Saving…" : editing ? "Save changes" : "Add tutor"}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -791,7 +1103,12 @@ function AdminTutors() {
           </div>
 
           <div className="mt-8">
-            <Input placeholder="Search by name, code, or subject…" value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-md" />
+            <Input
+              placeholder="Search by name, code, or subject…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="max-w-md"
+            />
           </div>
 
           <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card">
@@ -808,31 +1125,58 @@ function AdminTutors() {
               </thead>
               <tbody>
                 {isLoading && (
-                  <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                      Loading…
+                    </td>
+                  </tr>
                 )}
                 {!isLoading && filtered.length === 0 && (
-                  <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No tutors yet. Click “Add tutor” to create one.</td></tr>
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                      No tutors yet. Click “Add tutor” to create one.
+                    </td>
+                  </tr>
                 )}
                 {filtered.map((row) => (
                   <tr key={row.id} className="border-t border-border">
                     <td className="px-4 py-3">
-                      <Link to="/tutors/$tutorCode" params={{ tutorCode: row.tutor_code }} className="font-semibold text-foreground hover:underline">
-                        {row.tutor_code}{getTutorGenderLabel(row.gender) ? ` · ${getTutorGenderLabel(row.gender)}` : ""}
+                      <Link
+                        to="/tutors/$tutorCode"
+                        params={{ tutorCode: row.tutor_code }}
+                        className="font-semibold text-foreground hover:underline"
+                      >
+                        {row.tutor_code}
+                        {getTutorGenderLabel(row.gender)
+                          ? ` · ${getTutorGenderLabel(row.gender)}`
+                          : ""}
                       </Link>
-                      <p className="text-xs leading-relaxed text-muted-foreground break-words whitespace-pre-line">{row.headline ?? "No headline yet"}</p>
+                      <p className="text-xs leading-relaxed text-muted-foreground break-words whitespace-pre-line">
+                        {row.headline ?? "No headline yet"}
+                      </p>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{(row.subjects ?? []).join(", ")}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {(row.subjects ?? []).join(", ")}
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground">{row.district ?? "—"}</td>
                     <td className="px-4 py-3">HK${row.hourly_rate}</td>
                     <td className="px-4 py-3">
-                      <span className={row.is_published ? "text-[color:var(--brand-teal)]" : "text-muted-foreground"}>
+                      <span
+                        className={
+                          row.is_published
+                            ? "text-[color:var(--brand-teal)]"
+                            : "text-muted-foreground"
+                        }
+                      >
                         {row.is_published ? "Published" : "Hidden"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
                         <Button size="sm" variant="outline" asChild>
-                          <Link to="/tutors/$tutorCode" params={{ tutorCode: row.tutor_code }}>View profile</Link>
+                          <Link to="/tutors/$tutorCode" params={{ tutorCode: row.tutor_code }}>
+                            View profile
+                          </Link>
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => openEdit(row)}>
                           <Pencil className="h-3.5 w-3.5" />
@@ -863,13 +1207,23 @@ function AdminTutors() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
-      <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted-foreground">{title}</h3>
+      <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+        {title}
+      </h3>
       <div className="space-y-3">{children}</div>
     </div>
   );
 }
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1.5">
       <Label className="text-xs font-semibold">{label}</Label>
