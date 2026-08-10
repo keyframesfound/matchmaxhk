@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const DEFAULT_PREFIX = "tutor-profile-images/";
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
@@ -106,12 +107,10 @@ function decodeBase64ToBytes(base64Payload: string): Uint8Array {
 }
 
 const ListInput = z.object({
-  adminToken: z.string().trim().min(1).max(200),
   limit: z.number().int().min(1).max(200).optional(),
 });
 
 const UploadInput = z.object({
-  adminToken: z.string().trim().min(1).max(200),
   fileName: z.string().trim().min(1).max(200),
   contentType: z
     .string()
@@ -121,21 +120,30 @@ const UploadInput = z.object({
 });
 
 const DeleteInput = z.object({
-  adminToken: z.string().trim().min(1).max(200),
   key: z.string().trim().min(1).max(500),
 });
 
-function verifyAdminToken(inputToken: string): void {
-  const expected = requireEnv("R2_ADMIN_TOKEN");
-  if (inputToken !== expected) {
-    throw new Error("Unauthorized: invalid R2 admin token");
+async function assertAdmin(supabase: unknown, userId: string) {
+  const roles: Array<"admin" | "super_admin"> = ["admin", "super_admin"];
+  const client = supabase as {
+    rpc: (
+      fn: string,
+      args: Record<string, unknown>,
+    ) => Promise<{ data: unknown; error?: { message?: string } }>;
+  };
+  for (const role of roles) {
+    const { data, error } = await client.rpc("has_role", { _user_id: userId, _role: role });
+    if (error) throw new Error(error.message || "Failed to verify admin role");
+    if (data === true) return;
   }
+  throw new Error("Forbidden");
 }
 
 export const listTutorProfileImages = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => ListInput.parse(data ?? {}))
-  .handler(async ({ data }) => {
-    verifyAdminToken(data.adminToken);
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
     const config = getR2Config();
     const listUrl = new URL(`${buildR2ApiBaseUrl(config)}/objects`);
     listUrl.searchParams.set("prefix", config.keyPrefix);
@@ -173,9 +181,10 @@ export const listTutorProfileImages = createServerFn({ method: "POST" })
   });
 
 export const uploadTutorProfileImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => UploadInput.parse(data))
-  .handler(async ({ data }) => {
-    verifyAdminToken(data.adminToken);
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
     const config = getR2Config();
 
     const payload = extractBase64Payload(data.base64Data);
@@ -203,9 +212,10 @@ export const uploadTutorProfileImage = createServerFn({ method: "POST" })
   });
 
 export const deleteTutorProfileImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => DeleteInput.parse(data))
-  .handler(async ({ data }) => {
-    verifyAdminToken(data.adminToken);
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
     const config = getR2Config();
 
     if (!data.key.startsWith(config.keyPrefix)) {
