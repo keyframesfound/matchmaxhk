@@ -12,6 +12,17 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
+function hydrateProcessEnvFromBindings(env: unknown): void {
+  if (typeof process === "undefined" || !process.env) return;
+  if (!env || typeof env !== "object") return;
+
+  for (const [key, value] of Object.entries(env as Record<string, unknown>)) {
+    if (typeof value !== "string" || !value.trim()) continue;
+    if (typeof process.env[key] === "string" && process.env[key]!.trim()) continue;
+    process.env[key] = value;
+  }
+}
+
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 async function getServerEntry(): Promise<ServerEntry> {
@@ -96,6 +107,8 @@ function getCanonicalRedirect(request: Request): Response | null {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      hydrateProcessEnvFromBindings(env);
+
       const canonicalRedirect = getCanonicalRedirect(request);
       if (canonicalRedirect) {
         return canonicalRedirect;
