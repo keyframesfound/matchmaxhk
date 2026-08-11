@@ -42,7 +42,7 @@ const SECTIONS = [
     icon: UserCog,
     title: "Access to Personal Data",
     description: "You have the right to opt out of any communication from us. We will only maintain your personal data if legally permitted to do so, after you have instructed us not to send information and communications to you. You have the right to request access to and correction of your personal data as provided in the Personal Data (Privacy) Ordinance. Your right of access includes the right to obtain a copy of your personal data and the right to correct any of the data that is inaccurate.",
-    footer: "Requests for access to and/or correction of your personal data relating to your application should be sent to:\n\nExecutive Director\nMatchMax",
+    footer: "Requests for access to and/or correction of your personal data relating to your application should be sent to: Whatsapp Number +852 \n\nExecutive Director\nMatchMax",
     points: []
   },
 ];
