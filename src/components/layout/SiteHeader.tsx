@@ -104,6 +104,15 @@ export function SiteHeader() {
 
               <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
             </Link>
+
+            <Link
+              to="/faq"
+              className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
+            >
+              Help Centre
+
+              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
+            </Link>
           </nav>
 
           {/* -------------------------------------------------- */}
@@ -449,6 +458,30 @@ export function SiteHeader() {
                 "
               >
                 {t("tutors_cta.cta")}
+              </Link>
+
+              <Link
+                to="/faq"
+                onClick={closeMobile}
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  border-b
+                  border-[#041344]/10
+                  py-3.5
+                  text-xl
+                  sm:py-6
+                  sm:text-[28px]
+                  font-bold
+                  leading-none
+                  tracking-tight
+                  text-[#041344]
+                  transition-colors
+                  active:text-[#1FA8B6]
+                "
+              >
+                Help Centre
               </Link>
 
               {user && (
