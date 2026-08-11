@@ -618,7 +618,14 @@ function Landing() {
 
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div>
-              <div className="landing-tutor-visual landing-tutor-visual--aurora" aria-hidden="true" />
+              <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
+                <img
+                  src="/tutor-matching-network.jpeg"
+                  alt="Tutor and student matching network"
+                  className="h-auto w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
             </div>
             <div>
               <h3 className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">

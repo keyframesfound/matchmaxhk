@@ -21,7 +21,7 @@ export function SiteFooter() {
             </h4>
             <ul className="space-y-3 text-sm font-semibold">
               <li>
-                <a href="/#how" className="hover:text-[color:var(--brand-teal)]">
+                <a href="/how-it-works" className="hover:text-[color:var(--brand-teal)]">
                   {t("About")}
                 </a>
               </li>
@@ -53,12 +53,12 @@ export function SiteFooter() {
                 </a>
               </li>
               <li>
-                <a href="/#how" className="hover:text-[color:var(--brand-teal)]">
+                <a href="/faq" className="hover:text-[color:var(--brand-teal)]">
                   {t("footer.help")}
                 </a>
               </li>
               <li>
-                <a href="/#" className="hover:text-[color:var(--brand-teal)]">
+                <a href="/privacy-policy" className="hover:text-[color:var(--brand-teal)]">
                   {t("footer.privacy")}
                 </a>
               </li>

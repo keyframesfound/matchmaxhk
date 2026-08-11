@@ -71,7 +71,7 @@ export function SiteHeader() {
 
           <nav className="ml-12 hidden items-center gap-9 lg:flex">
             <a
-              href="/#how"
+              href="/how-it-works"
               className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
             >
               {t("About")}
@@ -356,7 +356,7 @@ export function SiteHeader() {
           <div className="flex flex-1 flex-col overflow-y-auto px-5 sm:px-8">
             <nav className="flex flex-col">
               <a
-                href="/#how"
+                href="/how-it-works"
                 onClick={closeMobile}
                 className="
                   flex

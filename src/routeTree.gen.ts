@@ -14,6 +14,9 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
 import { Route as ConsultingRouteImport } from './routes/consulting'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedMyCasesRouteImport } from './routes/_authenticated.my-cases'
@@ -54,6 +57,21 @@ const BecomeATutorRoute = BecomeATutorRouteImport.update({
 const ConsultingRoute = ConsultingRouteImport.update({
   id: '/consulting',
   path: '/consulting',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -152,6 +170,9 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/consulting': typeof ConsultingRoute
+  '/faq': typeof FaqRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-cases': typeof AuthenticatedMyCasesRoute
@@ -175,6 +196,9 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/consulting': typeof ConsultingRoute
+  '/faq': typeof FaqRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-cases': typeof AuthenticatedMyCasesRoute
@@ -200,6 +224,9 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/consulting': typeof ConsultingRoute
+  '/faq': typeof FaqRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/my-cases': typeof AuthenticatedMyCasesRoute
@@ -225,6 +252,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/consulting'
+    | '/faq'
+    | '/how-it-works'
+    | '/privacy-policy'
     | '/sitemap.xml'
     | '/dashboard'
     | '/my-cases'
@@ -248,6 +278,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/consulting'
+    | '/faq'
+    | '/how-it-works'
+    | '/privacy-policy'
     | '/sitemap.xml'
     | '/dashboard'
     | '/my-cases'
@@ -272,6 +305,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/consulting'
+    | '/faq'
+    | '/how-it-works'
+    | '/privacy-policy'
     | '/sitemap.xml'
     | '/_authenticated/dashboard'
     | '/_authenticated/my-cases'
@@ -297,6 +333,9 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
   ConsultingRoute: typeof ConsultingRoute
+  FaqRoute: typeof FaqRoute
+  HowItWorksRoute: typeof HowItWorksRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
@@ -340,6 +379,27 @@ declare module '@tanstack/react-router' {
       path: '/consulting'
       fullPath: '/consulting'
       preLoaderRoute: typeof ConsultingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -514,6 +574,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
   ConsultingRoute: ConsultingRoute,
+  FaqRoute: FaqRoute,
+  HowItWorksRoute: HowItWorksRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
   TutorsIndexRoute: TutorsIndexRoute,
