@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Shield, MessageSquareText, Siren, UserCog, FileText, Lock } from "lucide-react";
+import { UserCog, FileText, Lock } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
@@ -49,34 +49,73 @@ const SECTIONS = [
 
 function PrivacyPolicyPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-black">
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <SiteHeader />
-      <main className="flex-1">
-        <section className="border-b border-border py-14 sm:py-18">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <h1 className="text-4xl font-black tracking-tight text-black sm:text-5xl">Privacy Policy</h1>
-            <p className="mt-4 max-w-3xl text-base leading-relaxed text-black">
+      <main className="flex-1 pb-16">
+        
+        {/* Hero Section */}
+        <section className="bg-[#041344] py-16 sm:py-24">
+          <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
+            <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">
+              Privacy Policy
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-[#77E8EE]">
               We are committed to a safe, transparent, and trustworthy experience for both parents and tutors.
             </p>
           </div>
         </section>
 
-        <section className="py-10 sm:py-14">
-          <div className="mx-auto max-w-5xl space-y-6 px-4 sm:px-6">
+        {/* Content Section */}
+        <section className="mx-auto max-w-4xl px-4 pt-12 sm:px-6">
+          
+          {/* Intro Box */}
+          <div className="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <p className="text-base font-medium leading-relaxed text-[#0A245F]">
+              {INTRO_TEXT}
+            </p>
+          </div>
+
+          {/* Policy Sections */}
+          <div className="space-y-8">
             {SECTIONS.map((section) => (
-              <article key={section.title} className="rounded-2xl border border-border bg-white p-6">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 rounded-lg bg-slate-100 p-2 text-[color:var(--brand-navy)]">
-                    <section.icon className="h-5 w-5" />
+              <article 
+                key={section.title} 
+                className="rounded-2xl border border-slate-200 border-l-4 border-l-[#1FA8B6] bg-white p-6 shadow-sm transition-shadow hover:shadow-md sm:p-8"
+              >
+                <div className="flex flex-col items-start gap-6 sm:flex-row">
+                  
+                  {/* Icon Container */}
+                  <div className="rounded-xl bg-[#77E8EE]/20 p-4 text-[#0A245F]">
+                    <section.icon className="h-7 w-7" strokeWidth={2.5} />
                   </div>
-                  <div className="space-y-3">
-                    <h2 className="text-2xl font-black text-black">{section.title}</h2>
-                    <ul className="list-disc space-y-1 pl-5 text-sm text-black">
-                      {section.points.map((point) => (
-                        <li key={point}>{point}</li>
-                      ))}
-                    </ul>
+                  
+                  {/* Content Container */}
+                  <div className="flex-1 space-y-4">
+                    <h2 className="text-2xl font-black text-[#041344]">
+                      {section.title}
+                    </h2>
+                    
+                    {section.description && (
+                      <p className="text-slate-600 leading-relaxed">
+                        {section.description}
+                      </p>
+                    )}
+                    
+                    {section.points && section.points.length > 0 && (
+                      <ul className="space-y-2 pl-6 text-slate-600 marker:text-[#2ED5DE]">
+                        {section.points.map((point) => (
+                          <li key={point} className="list-disc pl-1">{point}</li>
+                        ))}
+                      </ul>
+                    )}
+                    
+                    {section.footer && (
+                      <div className="mt-6 whitespace-pre-wrap rounded-xl bg-slate-50 p-5 text-sm leading-relaxed text-slate-700 border border-slate-100">
+                        {section.footer}
+                      </div>
+                    )}
                   </div>
+
                 </div>
               </article>
             ))}
