@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Shield, MessageSquareText, Siren } from "lucide-react";
+import { Shield, MessageSquareText, Siren, UserCog, FileText, Lock } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
@@ -17,36 +17,33 @@ export const Route = createFileRoute("/privacy-policy")({
   component: PrivacyPolicyPage,
 });
 
+export const INTRO_TEXT = "At MatchMax, ('MatchMax', 'we' or 'us'), we respect your legal rights to privacy when collecting, storing, using and transmitting personal data. This statement explains our personal data practices in compliance with the requirements of the Personal Data (Privacy) Ordinance (Cap. 486) of the Laws of the Hong Kong Special Administrative Region.";
+
 const SECTIONS = [
   {
-    icon: Shield,
-    title: "Verified Tutor Profiles",
+    icon: FileText,
+    title: "Purpose of Collection",
+    description: "We will only use personal data collected from you for one or more of the following purposes:",
     points: [
-      "Identity verification checks.",
-      "Credential and educational background review.",
-      "Profile checks for quality and reliability.",
-      "Ongoing moderation based on platform reports.",
+      "To establish and maintain a record of your involvement in any MatchMax activities;",
+      "To provide services you have requested from us;",
+      "To answer your inquiry;",
+      "To keep you informed of new developments or programmes we believe may be of interest to you."
     ],
+    footer: "We will not use or disclose your personal data for any other purpose without first seeking your written consent, unless authorised or required by law. We will not publish or make known publicly to others any and all personal data provided to us such as health information, Hong Kong ID card, address or contact details in newsletters, email or phone inquiries, or bulletins without the written consent by you."
   },
   {
-    icon: MessageSquareText,
-    title: "Pre-Booking Chat & Contact Details",
-    points: [
-      "Parents and tutors can discuss details before booking.",
-      "Certain contact details may be partially hidden before confirmation.",
-      "This reduces scam risk and keeps communication safe.",
-      "Confirmed lessons can proceed with proper coordination details.",
-    ],
+    icon: Lock,
+    title: "Data Security",
+    description: "We will take reasonable measures to keep secure the personal data which we hold and to protect it from any and all unauthorised disclosure and misuse.",
+    points: []
   },
   {
-    icon: Siren,
-    title: "Reporting & Moderation",
-    points: [
-      "Users can report suspicious behavior or safety concerns.",
-      "Our team reviews reports and takes action where needed.",
-      "Serious violations may lead to suspension or account removal.",
-      "We work to keep the platform safe for families and tutors.",
-    ],
+    icon: UserCog,
+    title: "Access to Personal Data",
+    description: "You have the right to opt out of any communication from us. We will only maintain your personal data if legally permitted to do so, after you have instructed us not to send information and communications to you. You have the right to request access to and correction of your personal data as provided in the Personal Data (Privacy) Ordinance. Your right of access includes the right to obtain a copy of your personal data and the right to correct any of the data that is inaccurate.",
+    footer: "Requests for access to and/or correction of your personal data relating to your application should be sent to:\n\nExecutive Director\nMatchMax",
+    points: []
   },
 ];
 
