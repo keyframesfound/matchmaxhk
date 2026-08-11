@@ -39,16 +39,16 @@ const FAQ_ITEMS = [
 
 function FAQPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-black">
+    <div className="flex min-h-screen flex-col bg-background text-[color:var(--brand-navy)]">
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-border py-14 sm:py-18">
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
-            <p className="text-center text-xs font-bold uppercase tracking-[0.24em] text-black">FAQs</p>
-            <h1 className="mt-3 text-center text-4xl font-black tracking-tight text-black sm:text-5xl">
+            <p className="text-center text-xs font-bold uppercase tracking-[0.24em] text-[color:var(--brand-navy)]">FAQs</p>
+            <h1 className="mt-3 text-center text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
               Ask us anything
             </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-center text-base text-black">
+            <p className="mx-auto mt-4 max-w-2xl text-center text-base text-[color:var(--brand-navy)]">
               Have any questions? We&apos;re here to assist you.
             </p>
           </div>
@@ -60,7 +60,7 @@ function FAQPage() {
               <Accordion type="single" collapsible className="w-full">
                 {FAQ_ITEMS.map((item, index) => (
                   <AccordionItem key={item.q} value={`faq-${index}`} className="border-border">
-                    <AccordionTrigger className="py-6 text-left text-xl font-extrabold text-black hover:no-underline">
+                    <AccordionTrigger className="py-6 text-left text-xl font-extrabold text-[color:var(--brand-navy)] hover:no-underline">
                       {item.q}
                     </AccordionTrigger>
                     <AccordionContent className="pb-6 text-base leading-relaxed text-black">
