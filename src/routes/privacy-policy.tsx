@@ -80,7 +80,7 @@ function PrivacyPolicyPage() {
             {SECTIONS.map((section) => (
               <article 
                 key={section.title} 
-                className="rounded-2xl border border-slate-200 border-l-4 border-l-[#1FA8B6] bg-white p-6 shadow-sm transition-shadow hover:shadow-md sm:p-8"
+                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md sm:p-8"
               >
                 <div className="flex flex-col items-start gap-6 sm:flex-row">
                   
