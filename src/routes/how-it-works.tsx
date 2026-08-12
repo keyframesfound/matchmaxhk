@@ -1,6 +1,6 @@
 import React from 'react';
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, BadgeCheck } from "lucide-react"; // Kept in case you re-add buttons!
+import { ArrowRight, BadgeCheck, Info } from "lucide-react"; // Kept in case you re-add buttons!
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -8,18 +8,18 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "How It Works | MatchMax" },
+      { title: "About | MatchMax" },
       {
         name: "description",
-        content: "Learn how MatchMax works for tutors, from application and verification to student requests.",
+        content: "Learn more about MatchMax, our mission, and how we help tutors and students connect.",
       },
       { name: "robots", content: "index, follow" },
     ],
   }),
-  component: HowItWorksPage,
+  component: AboutPage,
 });
 
-function HowItWorksPage() {
+function AboutPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-black">
       <SiteHeader />
