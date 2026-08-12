@@ -385,7 +385,7 @@ export function SiteHeader() {
                   active:text-[#1FA8B6]
                 "
               >
-                {t("About")}
+                {t("How it works")}
               </a>
 
               <Link
