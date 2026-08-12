@@ -618,7 +618,7 @@ function Landing() {
 
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div>
-              <div className="overflow-hidden rounded-2xl border border-border bg-white">
+              <div className="overflow-hidden rounded-2xl bg-white">
                 <img
                   src="/tutor-matching-network.jpeg"
                   alt="Tutor and student matching network"
