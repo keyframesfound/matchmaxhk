@@ -68,7 +68,7 @@ function PrivacyPolicyPage() {
         <section className="border-b border-border bg-white py-16 sm:py-24">
           <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
             <h1 className="mt-3 text-4xl font-black tracking-tight text-[#041344] sm:text-5xl">
-              Trust &amp; Safety
+              Privacy Policy
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
               We&apos;re committed to creating a safe, transparent, and trustworthy marketplace for both parents
