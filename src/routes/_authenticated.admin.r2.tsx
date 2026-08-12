@@ -12,6 +12,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import {
   deleteTutorProfileImage,
   listTutorProfileImages,
+  setDefaultTutorProfileImage,
   uploadTutorProfileImage,
   type R2TutorImage,
 } from "@/features/tutors/r2.functions";
@@ -51,6 +52,7 @@ function AdminR2Images() {
   const listFn = useServerFn(listTutorProfileImages);
   const uploadFn = useServerFn(uploadTutorProfileImage);
   const deleteFn = useServerFn(deleteTutorProfileImage);
+  const setDefaultFn = useServerFn(setDefaultTutorProfileImage);
 
   useEffect(() => {
     if (!loading && !hasAnyRole(["admin", "super_admin"])) {
@@ -95,6 +97,21 @@ function AdminR2Images() {
     onSuccess: async () => {
       toast.success("Image deleted");
       await queryClient.invalidateQueries({ queryKey: ["admin", "r2", "tutor-images"] });
+      await refetch();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const setDefault = useMutation({
+    mutationFn: async ({ key, gender }: { key: string; gender: "male" | "female" }) => {
+      return setDefaultFn({ data: { key, gender } });
+    },
+    onSuccess: async (_, { gender }) => {
+      toast.success(
+        gender === "male" ? "Default male profile image updated" : "Default female profile image updated",
+      );
+      await queryClient.invalidateQueries({ queryKey: ["admin", "r2", "tutor-images"] });
+      await queryClient.invalidateQueries({ queryKey: ["tutors"] });
       await refetch();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -206,6 +223,26 @@ function AdminR2Images() {
                             <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
                             Open
                           </a>
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          className="h-8"
+                          disabled={setDefault.isPending}
+                          onClick={() => setDefault.mutate({ key: item.key, gender: "male" })}
+                        >
+                          Male default
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          className="h-8"
+                          disabled={setDefault.isPending}
+                          onClick={() => setDefault.mutate({ key: item.key, gender: "female" })}
+                        >
+                          Female default
                         </Button>
                         <Button
                           type="button"

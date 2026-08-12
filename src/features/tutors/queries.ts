@@ -34,6 +34,13 @@ export type Tutor = {
   exam_results: ExamResult[];
 };
 
+export type TutorPhotoDefaults = {
+  male: string | null;
+  female: string | null;
+};
+
+const TUTOR_PROFILE_DEFAULT_KEYS = ["default_tutor_profile_photo_male", "default_tutor_profile_photo_female"] as const;
+
 const SELECT_COLS =
   "id, display_name, headline, university, highschool, target_students, academic_summary, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, exam_results, gender";
 
@@ -63,14 +70,56 @@ async function withTutorSelectFallback<T>(
   return (second.data ?? ([] as unknown as T));
 }
 
-function normalize(row: Record<string, unknown>): Tutor {
+async function fetchTutorPhotoDefaults(): Promise<TutorPhotoDefaults> {
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("key, value")
+    .in("key", TUTOR_PROFILE_DEFAULT_KEYS as unknown as string[]);
+
+  if (error) throw error;
+
+  const defaults: TutorPhotoDefaults = { male: null, female: null };
+  for (const row of data ?? []) {
+    const value = row.value;
+    if (typeof value === "string" && value.trim()) {
+      if (row.key === "default_tutor_profile_photo_male") defaults.male = value.trim();
+      if (row.key === "default_tutor_profile_photo_female") defaults.female = value.trim();
+    }
+  }
+  return defaults;
+}
+
+function resolveTutorPhotoUrl(
+  row: Pick<Tutor, "photo_url" | "gender">,
+  defaults: TutorPhotoDefaults,
+): string | null {
+  const photoUrl = typeof row.photo_url === "string" ? row.photo_url.trim() : "";
+  if (photoUrl) return photoUrl;
+
+  const gender = (row.gender ?? "").toLowerCase();
+  if (gender === "male") return defaults.male;
+  if (gender === "female") return defaults.female;
+  return null;
+}
+
+function normalize(row: Record<string, unknown>, defaults: TutorPhotoDefaults = { male: null, female: null }): Tutor {
   const edu = Array.isArray(row.education) ? (row.education as Education[]) : [];
   const exams = normalizeExamResults(row.exam_results);
   const targetStudents = Array.isArray(row.target_students)
     ? (row.target_students as unknown[]).filter((value): value is string => typeof value === "string" && value.trim().length > 0)
     : [];
+
+  const resolvedPhotoUrl = resolveTutorPhotoUrl(
+    {
+      photo_url: typeof row.photo_url === "string" ? row.photo_url : null,
+      gender: typeof row.gender === "string" ? row.gender : null,
+    },
+    defaults,
+  );
+
   return {
     ...(row as unknown as Tutor),
+    photo_url: resolvedPhotoUrl,
     university: typeof row.university === "string" ? row.university : null,
     highschool: typeof row.highschool === "string" ? row.highschool : null,
     academic_summary: typeof row.academic_summary === "string" ? row.academic_summary : null,
@@ -90,6 +139,7 @@ export function getTutorGenderLabel(gender: string | null | undefined): string {
 }
 
 export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
+  const defaults = await fetchTutorPhotoDefaults();
   const data = await withTutorSelectFallback<Record<string, unknown>[]>((selectCols) =>
     supabase
       .from("tutors")
@@ -98,10 +148,11 @@ export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
       .order("created_at", { ascending: false })
       .limit(limit),
   );
-  return (data ?? []).map(normalize);
+  return (data ?? []).map((row) => normalize(row, defaults));
 }
 
 export async function fetchPublishedTutors(): Promise<Tutor[]> {
+  const defaults = await fetchTutorPhotoDefaults();
   const data = await withTutorSelectFallback<Record<string, unknown>[]>((selectCols) =>
     supabase
       .from("tutors")
@@ -109,17 +160,19 @@ export async function fetchPublishedTutors(): Promise<Tutor[]> {
       .eq("is_published", true)
       .order("created_at", { ascending: false }),
   );
-  return (data ?? []).map(normalize);
+  return (data ?? []).map((row) => normalize(row, defaults));
 }
 
 export async function fetchAllTutors(): Promise<Tutor[]> {
+  const defaults = await fetchTutorPhotoDefaults();
   const data = await withTutorSelectFallback<Record<string, unknown>[]>((selectCols) =>
     supabase.from("tutors").select(selectCols).order("created_at", { ascending: false }),
   );
-  return (data ?? []).map(normalize);
+  return (data ?? []).map((row) => normalize(row, defaults));
 }
 
 export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
+  const defaults = await fetchTutorPhotoDefaults();
   const data = await withTutorSelectFallback<Record<string, unknown> | null>((selectCols) =>
     supabase
       .from("tutors")
@@ -128,7 +181,7 @@ export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
       .eq("is_published", true)
       .maybeSingle(),
   );
-  return data ? normalize(data as Record<string, unknown>) : null;
+  return data ? normalize(data as Record<string, unknown>, defaults) : null;
 }
 
 export function getTutorLessonModeLabel(mode: Tutor["lesson_mode"]): string {

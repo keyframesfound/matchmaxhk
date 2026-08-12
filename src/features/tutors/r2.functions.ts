@@ -202,6 +202,11 @@ const DeleteInput = z.object({
   key: z.string().trim().min(1).max(500),
 });
 
+const SetDefaultTutorProfileImageInput = z.object({
+  key: z.string().trim().min(1).max(500),
+  gender: z.enum(["male", "female"]),
+});
+
 async function assertAdmin(supabase: unknown, userId: string) {
   const roles: Array<"admin" | "super_admin"> = ["admin", "super_admin"];
   const client = supabase as {
@@ -316,4 +321,22 @@ export const deleteTutorProfileImage = createServerFn({ method: "POST" })
     if (!response.ok) throw new Error(await parseCloudflareError(response));
 
     return { ok: true };
+  });
+
+export const setDefaultTutorProfileImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => SetDefaultTutorProfileImageInput.parse(data))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+
+    const config = getR2Config();
+    const url = buildPublicUrl(config.publicBaseUrl, data.key);
+    const settingKey = data.gender === "male" ? "default_tutor_profile_photo_male" : "default_tutor_profile_photo_female";
+    const { error } = await context.supabase
+      .from("app_settings")
+      .upsert([{ key: settingKey, value: url }], { onConflict: "key" });
+
+    if (error) throw new Error(error.message || "Failed to update default profile image");
+
+    return { ok: true, key: settingKey, url };
   });
