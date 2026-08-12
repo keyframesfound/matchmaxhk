@@ -191,12 +191,8 @@ function TutorsDirectory() {
         <section className="hero-startup-bg border-b border-border py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
-              Find verified tutors in Hong Kong
+              Find verified tutors
             </h1>
-            <p className="mt-3 max-w-3xl text-lg text-muted-foreground">
-              Browse tutors for IB, DSE, IGCSE, AP, A-Level, Mathematics, English, Science and more.
-              Filter by district, lesson mode, price and language to find the right tutor quickly.
-            </p>
 
             <div className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
               <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
