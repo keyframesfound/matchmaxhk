@@ -47,6 +47,7 @@ import {
   type ExamResultEntry,
 } from "@/features/tutors/examSystems";
 import {
+  deleteTutorProfileImage,
   listTutorProfileImages,
   uploadTutorProfileImage,
   type R2TutorImage,
@@ -91,6 +92,7 @@ import { DEFAULT_SUBJECT_OPTIONS as SUBJECT_OPTIONS } from "@/features/tutors/su
 function PhotoUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
   const listImagesFn = useServerFn(listTutorProfileImages);
   const uploadImageFn = useServerFn(uploadTutorProfileImage);
+  const deleteImageFn = useServerFn(deleteTutorProfileImage);
   const [inputValue, setInputValue] = useState(value);
 
   useEffect(() => {
@@ -136,6 +138,28 @@ function PhotoUpload({ value, onChange }: { value: string; onChange: (url: strin
     },
   });
 
+  const removeFromR2 = useMutation({
+    mutationFn: async (item: Pick<R2TutorImage, "key" | "url">) => {
+      return deleteImageFn({ data: { key: item.key } });
+    },
+    onSuccess: async (_, item) => {
+      if (value === item.url) {
+        onChange("");
+        setInputValue("");
+      }
+      toast.success("Image removed from R2");
+      await refetchLibrary();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const selectedLibraryItem = useMemo(
+    () => library.find((item) => item.url === value) ?? null,
+    [library, value],
+  );
+
   const handleBlur = () => {
     const trimmed = inputValue.trim();
     if (trimmed && !trimmed.match(/^https?:\/\/.+/)) {
@@ -154,6 +178,21 @@ function PhotoUpload({ value, onChange }: { value: string; onChange: (url: strin
       return;
     }
     upload.mutate(file);
+  };
+
+  const handleRemoveCurrent = () => {
+    if (!value) return;
+
+    if (!selectedLibraryItem) {
+      onChange("");
+      setInputValue("");
+      return;
+    }
+
+    if (!confirm("Remove this image from R2 storage? This cannot be undone.")) {
+      return;
+    }
+    removeFromR2.mutate({ key: selectedLibraryItem.key, url: selectedLibraryItem.url });
   };
 
   return (
@@ -184,12 +223,10 @@ function PhotoUpload({ value, onChange }: { value: string; onChange: (url: strin
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  onChange("");
-                  setInputValue("");
-                }}
+                disabled={removeFromR2.isPending}
+                onClick={handleRemoveCurrent}
               >
-                Remove
+                {selectedLibraryItem ? "Remove from R2" : "Remove"}
               </Button>
             ) : null}
           </div>
@@ -224,18 +261,36 @@ function PhotoUpload({ value, onChange }: { value: string; onChange: (url: strin
         ) : (
           <div className="grid max-h-40 grid-cols-5 gap-2 overflow-y-auto rounded-md border border-border p-2">
             {library.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                className={`overflow-hidden rounded-md ring-2 ring-offset-1 transition ${value === item.url ? "ring-[color:var(--brand-teal)]" : "ring-transparent hover:ring-border"}`}
-                onClick={() => {
-                  onChange(item.url);
-                  setInputValue(item.url);
-                }}
-                title={item.key}
-              >
-                <img src={item.url} alt="" className="h-14 w-full object-cover" />
-              </button>
+              <div key={item.key} className="relative">
+                <button
+                  type="button"
+                  className={`overflow-hidden rounded-md ring-2 ring-offset-1 transition ${value === item.url ? "ring-[color:var(--brand-teal)]" : "ring-transparent hover:ring-border"}`}
+                  onClick={() => {
+                    onChange(item.url);
+                    setInputValue(item.url);
+                  }}
+                  title={item.key}
+                >
+                  <img src={item.url} alt="" className="h-14 w-full object-cover" />
+                </button>
+                <button
+                  type="button"
+                  className="absolute right-1 top-1 rounded-full bg-background/90 p-1 text-destructive shadow-sm ring-1 ring-border hover:bg-background"
+                  title="Remove image from R2"
+                  aria-label="Remove image from R2"
+                  disabled={removeFromR2.isPending}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (!confirm("Remove this image from R2 storage? This cannot be undone.")) {
+                      return;
+                    }
+                    removeFromR2.mutate({ key: item.key, url: item.url });
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             ))}
           </div>
         )}

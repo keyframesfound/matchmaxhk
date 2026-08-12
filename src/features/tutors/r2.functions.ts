@@ -91,33 +91,33 @@ async function parseCloudflareError(response: Response): Promise<string> {
   } catch {
     return `Cloudflare R2 error: ${raw}`;
   }
+}
 
-  type R2ObjectEntry = { key?: string; size?: number; uploaded?: string };
+type R2ObjectEntry = { key?: string; size?: number; uploaded?: string };
 
-  async function listR2Objects(config: R2Config, limit: number, prefix?: string): Promise<R2ObjectEntry[]> {
-    const listUrl = new URL(`${buildR2ApiBaseUrl(config)}/objects`);
-    listUrl.searchParams.set("limit", String(limit));
-    if (prefix) {
-      listUrl.searchParams.set("prefix", prefix);
-    }
-
-    const response = await fetch(listUrl.toString(), {
-      method: "GET",
-      headers: buildR2ApiHeaders(config),
-    });
-    if (!response.ok) throw new Error(await parseCloudflareError(response));
-
-    const payload = (await response.json()) as {
-      success?: boolean;
-      result?: { objects?: R2ObjectEntry[] };
-      errors?: Array<{ message?: string }>;
-    };
-    if (!payload.success) {
-      throw new Error(payload.errors?.[0]?.message || "Failed to list R2 images");
-    }
-
-    return payload.result?.objects ?? [];
+async function listR2Objects(config: R2Config, limit: number, prefix?: string): Promise<R2ObjectEntry[]> {
+  const listUrl = new URL(`${buildR2ApiBaseUrl(config)}/objects`);
+  listUrl.searchParams.set("limit", String(limit));
+  if (prefix) {
+    listUrl.searchParams.set("prefix", prefix);
   }
+
+  const response = await fetch(listUrl.toString(), {
+    method: "GET",
+    headers: buildR2ApiHeaders(config),
+  });
+  if (!response.ok) throw new Error(await parseCloudflareError(response));
+
+  const payload = (await response.json()) as {
+    success?: boolean;
+    result?: { objects?: R2ObjectEntry[] };
+    errors?: Array<{ message?: string }>;
+  };
+  if (!payload.success) {
+    throw new Error(payload.errors?.[0]?.message || "Failed to list R2 images");
+  }
+
+  return payload.result?.objects ?? [];
 }
 
 function buildPublicUrl(publicBaseUrl: string, key: string): string {
