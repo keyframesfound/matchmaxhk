@@ -1,7 +1,7 @@
 {
   "brand": "MatchMax",
   "nav": {
-    "how": "About",
+    "how": "How it works",
     "find": "Find",
     "sign_in": "Log in",
     "sign_out": "Sign out",
@@ -67,7 +67,7 @@
     "tagline": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them—through tailored 1-on-1 tutoring.",
     "quick_links": "Quick links",
     "support": "Support",
-    "about": "About us",
+    "how": "How it works",
     "verification": "Tutor verification",
     "districts": "District guides",
     "help": "Help center",

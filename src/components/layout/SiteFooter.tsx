@@ -22,7 +22,7 @@ export function SiteFooter() {
             <ul className="space-y-3 text-sm font-semibold">
               <li>
                 <a href="/how-it-works" className="hover:text-[color:var(--brand-teal)]">
-                  {t("About")}
+                  {t("How it works")}
                 </a>
               </li>
               <li>
