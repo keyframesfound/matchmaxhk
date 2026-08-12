@@ -62,14 +62,15 @@ const SECTIONS = [
 
 function PrivacyPolicyPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+    <div className="flex min-h-screen flex-col bg-white text-slate-900">
       <SiteHeader />
       <main className="flex-1 pb-16">
-        <section className="border-b border-border bg-[#041344] py-16 sm:py-24">
+        <section className="border-b border-border bg-white py-16 sm:py-24">
           <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#77E8EE]">Trust &amp; Safety</p>
-            <h1 className="mt-3 text-4xl font-black tracking-tight text-white sm:text-5xl">Ask us anything</h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-[#D7F8FA]">
+            <h1 className="mt-3 text-4xl font-black tracking-tight text-[#041344] sm:text-5xl">
+              Trust &amp; Safety
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
               We&apos;re committed to creating a safe, transparent, and trustworthy marketplace for both parents
               and tutors.
             </p>
@@ -84,14 +85,14 @@ function PrivacyPolicyPage() {
                 className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md sm:p-8"
               >
                 <div className="flex flex-col items-start gap-6 sm:flex-row">
-                  <div className="rounded-xl bg-[#77E8EE]/20 p-4 text-[#0A245F]">
+                  <div className="rounded-xl bg-[#041344]/10 p-4 text-[#041344]">
                     <section.icon className="h-7 w-7" strokeWidth={2.5} />
                   </div>
 
                   <div className="flex-1 space-y-4">
                     <h2 className="text-2xl font-black text-[#041344]">{section.title}</h2>
                     <p className="text-sm leading-relaxed text-slate-600">{section.intro}</p>
-                    <ul className="space-y-2 pl-6 text-slate-600 marker:text-[#2ED5DE]">
+                    <ul className="space-y-2 pl-6 text-slate-600 marker:text-[#041344]">
                       {section.points.map((point) => (
                         <li key={point} className="list-disc pl-1">
                           {point}
@@ -104,9 +105,9 @@ function PrivacyPolicyPage() {
               </article>
             ))}
 
-            <article className="rounded-2xl border border-[#D1F0F2] bg-[#EAFBFC] p-6 shadow-sm sm:p-8">
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex items-start gap-4">
-                <div className="rounded-xl bg-white p-4 text-[#0A245F]">
+                <div className="rounded-xl bg-[#041344]/10 p-4 text-[#041344]">
                   <Info className="h-7 w-7" strokeWidth={2.5} />
                 </div>
                 <div className="space-y-3">
