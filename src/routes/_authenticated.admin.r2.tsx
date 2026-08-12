@@ -61,6 +61,8 @@ function AdminR2Images() {
   const {
     data: images = [],
     isLoading,
+    isError,
+    error,
     refetch,
   } = useQuery({
     queryKey: ["admin", "r2", "tutor-images", "dashboard"],
@@ -158,6 +160,10 @@ function AdminR2Images() {
             {isLoading ? (
               <div className="rounded-xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
                 Loading images…
+              </div>
+            ) : isError ? (
+              <div className="rounded-xl border border-destructive/30 bg-card p-10 text-center text-sm text-destructive">
+                {(error as Error)?.message || "Failed to load images from R2."}
               </div>
             ) : images.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">

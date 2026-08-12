@@ -22,9 +22,7 @@ export type R2TutorImage = {
 
 function getEnvValue(keys: string[]): string | undefined {
   const processEnv =
-    typeof process !== "undefined" && process.env
-      ? (process.env as Record<string, unknown>)
-      : {};
+    typeof process !== "undefined" && process.env ? (process.env as Record<string, unknown>) : {};
   const metaEnv = (import.meta.env ?? {}) as Record<string, unknown>;
   const mergedEnv = { ...metaEnv, ...processEnv };
 
@@ -51,7 +49,8 @@ function getR2Config(): R2Config {
     throw new Error(`Missing required environment variable(s): ${missing.join(", ")}`);
   }
 
-  const prefixRaw = getEnvValue(["R2_TUTOR_IMAGE_PREFIX", "VITE_R2_TUTOR_IMAGE_PREFIX"]) || DEFAULT_PREFIX;
+  const prefixRaw =
+    getEnvValue(["R2_TUTOR_IMAGE_PREFIX", "VITE_R2_TUTOR_IMAGE_PREFIX"]) || DEFAULT_PREFIX;
   const normalizedPrefix = prefixRaw.endsWith("/") ? prefixRaw : `${prefixRaw}/`;
   return {
     accountId,
@@ -93,9 +92,40 @@ async function parseCloudflareError(response: Response): Promise<string> {
   }
 }
 
-type R2ObjectEntry = { key?: string; size?: number; uploaded?: string };
+type R2ObjectEntry = {
+  key?: string;
+  name?: string;
+  size?: number;
+  uploaded?: string;
+  last_modified?: string;
+};
 
-async function listR2Objects(config: R2Config, limit: number, prefix?: string): Promise<R2ObjectEntry[]> {
+function normalizeListObjects(payload: {
+  result?: unknown;
+  errors?: Array<{ message?: string }>;
+}): R2ObjectEntry[] {
+  const result = payload.result;
+  if (Array.isArray(result)) return result as R2ObjectEntry[];
+  if (!result || typeof result !== "object") return [];
+
+  const resultObj = result as Record<string, unknown>;
+  if (Array.isArray(resultObj.objects)) return resultObj.objects as R2ObjectEntry[];
+  if (Array.isArray(resultObj.items)) return resultObj.items as R2ObjectEntry[];
+  return [];
+}
+
+function getObjectKey(item: R2ObjectEntry): string | null {
+  const value = item.key ?? item.name;
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+async function listR2Objects(
+  config: R2Config,
+  limit: number,
+  prefix?: string,
+): Promise<R2ObjectEntry[]> {
   const listUrl = new URL(`${buildR2ApiBaseUrl(config)}/objects`);
   listUrl.searchParams.set("limit", String(limit));
   if (prefix) {
@@ -110,14 +140,14 @@ async function listR2Objects(config: R2Config, limit: number, prefix?: string): 
 
   const payload = (await response.json()) as {
     success?: boolean;
-    result?: { objects?: R2ObjectEntry[] };
+    result?: unknown;
     errors?: Array<{ message?: string }>;
   };
   if (!payload.success) {
     throw new Error(payload.errors?.[0]?.message || "Failed to list R2 images");
   }
 
-  return payload.result?.objects ?? [];
+  return normalizeListObjects(payload);
 }
 
 function buildPublicUrl(publicBaseUrl: string, key: string): string {
@@ -201,12 +231,37 @@ export const listTutorProfileImages = createServerFn({ method: "POST" })
     }
 
     const entries = objects
-      .filter((item) => !!item.key && !item.key.endsWith("/"))
+      .map((item) => {
+        const key = getObjectKey(item);
+        return {
+          key,
+          url: key ? buildPublicUrl(config.publicBaseUrl, key) : null,
+          size: typeof item.size === "number" ? item.size : null,
+          lastModified:
+            typeof item.uploaded === "string"
+              ? item.uploaded
+              : typeof item.last_modified === "string"
+                ? item.last_modified
+                : null,
+        };
+      })
+      .filter(
+        (
+          item,
+        ): item is {
+          key: string;
+          url: string;
+          size: number | null;
+          lastModified: string | null;
+        } => {
+          return !!item.key && !!item.url && !item.key.endsWith("/");
+        },
+      )
       .map((item) => ({
-        key: item.key as string,
-        url: buildPublicUrl(config.publicBaseUrl, item.key as string),
+        key: item.key,
+        url: item.url,
         size: typeof item.size === "number" ? item.size : null,
-        lastModified: typeof item.uploaded === "string" ? item.uploaded : null,
+        lastModified: item.lastModified,
       }))
       .sort((a, b) => {
         const aTime = a.lastModified ? new Date(a.lastModified).getTime() : 0;
