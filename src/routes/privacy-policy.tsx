@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Info, MessageSquareText, Shield, Siren } from "lucide-react";
+import { Info, UserCog, FileText, Lock } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
@@ -17,46 +17,40 @@ export const Route = createFileRoute("/privacy-policy")({
   component: PrivacyPolicyPage,
 });
 
+export const INTRO_TEXT =
+  "At MatchMax, ('MatchMax', 'we' or 'us'), we respect your legal rights to privacy when collecting, storing, using and transmitting personal data. This statement explains our personal data practices in compliance with the requirements of the Personal Data (Privacy) Ordinance (Cap. 486) of the Laws of the Hong Kong Special Administrative Region.";
+
 const SECTIONS = [
   {
-    icon: Shield,
-    title: "Verified Tutor Profiles",
+    icon: FileText,
+    title: "Purpose of Collection",
     intro:
-      "Every tutor on our platform goes through a verification process to ensure quality and reliability. We collect and verify:",
+      "We will only use personal data collected from you for one or more of the following purposes:",
     points: [
-      "Identity verification",
-      "Educational qualifications and credentials",
-      "Teaching experience and background",
-      "References and reviews from previous students",
+      "To establish and maintain a record of your involvement in any MatchMax activities;",
+      "To provide services you have requested from us;",
+      "To answer your inquiry;",
+      "To keep you informed of new developments or programmes we believe may be of interest to you.",
     ],
     closing:
-      "This helps parents make informed decisions and protects both students and tutors from fraud or misrepresentation.",
+      "We will not use or disclose your personal data for any other purpose without first seeking your written consent, unless authorised or required by law. We will not publish or make known publicly to others any and all personal data provided to us such as health information, Hong Kong ID card, address or contact details in newsletters, email or phone inquiries, or bulletins without the written consent by you.",
   },
   {
-    icon: MessageSquareText,
-    title: "Pre-Booking Chat & Contact Details",
+    icon: Lock,
+    title: "Data Security",
     intro:
-      "Parents and tutors can chat before booking to discuss details, ask questions, and ensure compatibility.",
-    points: [
-      "Contact details may be partially hidden until a booking is confirmed",
-      "This helps reduce the risk of scams or fraudulent contact",
-      "It also prevents tutors from being contacted outside the platform to avoid commission issues",
-    ],
-    closing: "Once a lesson is booked and confirmed, full contact details are shared for lesson coordination.",
+      "We will take reasonable measures to keep secure the personal data which we hold and to protect it from any and all unauthorised disclosure and misuse.",
+    points: [],
+    closing: "",
   },
   {
-    icon: Siren,
-    title: "Reporting & Moderation",
+    icon: UserCog,
+    title: "Access to Personal Data",
     intro:
-      "If you encounter suspicious behavior, fraud, or safety concerns, please report it immediately:",
-    points: [
-      "Use the report button on any profile or message",
-      "Contact our support team directly with details",
-      "We investigate all reports thoroughly and take appropriate action",
-      "Serious violations may result in account suspension or permanent removal",
-    ],
+      "You have the right to opt out of any communication from us. We will only maintain your personal data if legally permitted to do so, after you have instructed us not to send information and communications to you. You have the right to request access to and correction of your personal data as provided in the Personal Data (Privacy) Ordinance. Your right of access includes the right to obtain a copy of your personal data and the right to correct any of the data that is inaccurate.",
+    points: [],
     closing:
-      "Our moderation team works 24/7 to ensure the platform remains safe and trustworthy for all users.",
+      "Requests for access to and/or correction of your personal data relating to your application should be sent to:\n\nExecutive Director\nMatchMax",
   },
 ];
 
@@ -79,6 +73,15 @@ function PrivacyPolicyPage() {
 
         <section className="mx-auto max-w-4xl px-4 pt-12 sm:px-6">
           <div className="space-y-8">
+            
+            {/* Intro Content Box */}
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <p className="text-sm leading-relaxed text-slate-600 sm:text-base">
+                {INTRO_TEXT}
+              </p>
+            </article>
+
+            {/* Policy Sections */}
             {SECTIONS.map((section) => (
               <article
                 key={section.title}
@@ -91,30 +94,42 @@ function PrivacyPolicyPage() {
 
                   <div className="flex-1 space-y-4">
                     <h2 className="text-2xl font-black text-[#041344]">{section.title}</h2>
-                    <p className="text-sm leading-relaxed text-slate-600">{section.intro}</p>
-                    <ul className="space-y-2 pl-6 text-slate-600 marker:text-[#041344]">
-                      {section.points.map((point) => (
-                        <li key={point} className="list-disc pl-1">
-                          {point}
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="text-sm leading-relaxed text-slate-600">{section.closing}</p>
+                    
+                    {section.intro && (
+                      <p className="text-sm leading-relaxed text-slate-600">{section.intro}</p>
+                    )}
+                    
+                    {section.points && section.points.length > 0 && (
+                      <ul className="space-y-2 pl-6 text-sm text-slate-600 marker:text-[#041344]">
+                        {section.points.map((point) => (
+                          <li key={point} className="list-disc pl-1">
+                            {point}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    
+                    {section.closing && (
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+                        {section.closing}
+                      </p>
+                    )}
                   </div>
                 </div>
               </article>
             ))}
 
+            {/* Support / Contact Block */}
             <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex items-start gap-4">
                 <div className="rounded-xl bg-[#041344]/10 p-4 text-[#041344]">
                   <Info className="h-7 w-7" strokeWidth={2.5} />
                 </div>
                 <div className="space-y-3">
-                  <h2 className="text-2xl font-black text-[#041344]">Have Safety Concerns?</h2>
+                  <h2 className="text-2xl font-black text-[#041344]">Privacy Questions?</h2>
                   <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
-                    Our support team is here to help. If you have any questions about safety, encounter suspicious
-                    activity, or need assistance, please don&apos;t hesitate to reach out.
+                    Our support team is here to help. If you have any questions about how we handle your data, 
+                    or need to submit a data request, please don&apos;t hesitate to reach out.
                   </p>
                   <a
                     href="/faq"
@@ -125,6 +140,7 @@ function PrivacyPolicyPage() {
                 </div>
               </div>
             </article>
+            
           </div>
         </section>
       </main>
