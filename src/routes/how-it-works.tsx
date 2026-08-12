@@ -1,6 +1,14 @@
 import React from 'react';
+import { createFileRoute } from '@tanstack/react-router';
 
-export const AboutMatchMax: React.FC = () => {
+// 1. Define and export the Route, attaching your component
+export const Route = createFileRoute('/about')({
+  component: AboutMatchMax,
+});
+
+// 2. Your component (you can remove the 'export' here since the Route handles it, 
+// unless you need to import this specific component elsewhere)
+function AboutMatchMax() {
   return (
     <div
       style={{
@@ -306,131 +314,4 @@ export const AboutMatchMax: React.FC = () => {
             fontFamily: 'Inter',
             fontWeight: 700,
             lineHeight: '62.40px',
-            wordWrap: 'break-word',
-          }}
-        >
-          “We are a bunch of students working for students”
-        </div>
-        <div
-          style={{
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-            gap: 16,
-            display: 'inline-flex',
-          }}
-        >
-          <img
-            style={{ width: 64, height: 64, borderRadius: 8 }}
-            src="https://matchmax.hk/apple-touch-icon.png"
-            alt="Founder Avatar"
-          />
-          <div
-            style={{
-              flexDirection: 'column',
-              justifyContent: 'flex-start',
-              alignItems: 'flex-start',
-              gap: 4,
-              display: 'inline-flex',
-            }}
-          >
-            <div
-              style={{
-                color: 'black',
-                fontSize: 24,
-                fontFamily: 'Inter',
-                fontWeight: 600,
-                lineHeight: '33.60px',
-                wordWrap: 'break-word',
-              }}
-            >
-              Full name
-            </div>
-            <div
-              style={{
-                justifyContent: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                color: 'rgba(0, 0, 0, 0.55)',
-                fontSize: 18,
-                fontFamily: 'Inter',
-                fontWeight: 500,
-                lineHeight: '26.10px',
-                wordWrap: 'break-word',
-              }}
-            >
-              Founder of MatchMax
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        style={{
-          alignSelf: 'stretch',
-          height: 399,
-          paddingTop: 80,
-          paddingBottom: 120,
-          paddingLeft: 240,
-          paddingRight: 240,
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          display: 'inline-flex',
-        }}
-      >
-        <div
-          style={{
-            flex: '1 1 0',
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            gap: 16,
-            display: 'inline-flex',
-          }}
-        >
-          <div
-            style={{
-              alignSelf: 'stretch',
-              justifyContent: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              color: 'var(--Deep-Navy, #041344)',
-              fontSize: 24,
-              fontFamily: 'Inter',
-              fontWeight: 600,
-              lineHeight: '28.80px',
-              wordWrap: 'break-word',
-            }}
-          >
-            Join Our MatchMax Network
-          </div>
-          <div
-            style={{
-              alignSelf: 'stretch',
-              justifyContent: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              color: 'black',
-              fontSize: 18,
-              fontFamily: 'Inter',
-              fontWeight: 500,
-              lineHeight: '26.10px',
-              wordWrap: 'break-word',
-            }}
-          >
-            MatchMax is Hong Kong's fast-growing academic matching platform, built
-            to help tutors grow their teaching careers without the hassle of
-            finding students. We take care of marketing, client acquisition, and
-            student matching, allowing you to focus on what you do best—teaching.
-            Every tutor also receives free personal branding through a
-            professionally designed profile featured on our website and Instagram,
-            helping you stand out to prospective families. With an average matching
-            turnaround of around 1.5 weeks and a transparent commission structure
-            that applies only to the 1st and 11th lesson of each student contract,
-            you keep 100% of your earnings from every other lesson. It's a
-            simpler, fairer way to build your tutoring business.
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+            wordWrap: '
