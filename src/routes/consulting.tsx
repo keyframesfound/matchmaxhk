@@ -120,7 +120,13 @@ function ConsultingPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div
               className="consulting-hero-visual overflow-hidden rounded-3xl border border-border shadow-brand"
-              style={{ backgroundImage: "url('/consulting-placeholder.jpeg')" }}
+              style={{
+                backgroundImage:
+                  "linear-gradient(120deg, rgba(245, 249, 250, 0.8), rgba(244, 248, 250, 0.35)), url('/finding-tutor-visual.jpeg')",
+                backgroundPosition: "center",
+                backgroundSize: "cover",
+                backgroundRepeat: "no-repeat",
+              }}
             >
               <div className="relative flex min-h-[360px] flex-col justify-end p-7 sm:min-h-[420px] sm:p-10">
                 <div className="max-w-3xl rounded-3xl border border-white/30 bg-white/80 p-6 backdrop-blur-sm sm:p-8">
