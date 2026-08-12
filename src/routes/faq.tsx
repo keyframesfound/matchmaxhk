@@ -17,23 +17,27 @@ export const Route = createFileRoute("/faq")({
 const FAQ_ITEMS = [
   {
     q: "How do I get paid?",
-    a: "After a lesson is confirmed, payment is handled through the agreed MatchMax process. You keep your lesson earnings according to the current commission structure.",
+    a: "Parents pay you directly for your lessons via your preferred payment method. After parents pay you, you pay MatchMax our agency commission for the 1st and 11th lesson of that student contract. All earnings for all other lessons are 100% yours.",
   },
   {
     q: "How many days does it usually take to find students?",
-    a: "Matching speed depends on subject demand, your profile quality, and availability. Many tutors receive relevant requests within around 1 to 2 weeks.",
+    a: "Matching speed depends on subject demand, your profile quality, and availability. Many tutors receive relevant student matching requests within 1 to 2 weeks.",
   },
   {
     q: "What are typical tutoring rates?",
-    a: "Rates vary by subject, level, and tutor experience. You can set your own hourly rate and adjust it based on demand and outcomes.",
+    a: "Usual market rates typically range between HK$300 to HK$600 per hour. However, rates vary depending on lesson mode (online vs. in-person), duration, level, subject complexity, and your academic background. Tutors can discuss and negotiate rates directly with parents to agree on a fair fee.",
   },
   {
     q: "Do I need teaching experience to join?",
-    a: "Experience helps, but strong academic results, communication skills, and a complete profile are also important for approval and matching.",
+    a: "Prior experience helps, but strong academic results, clear communication skills, and a complete profile are equally important for verification and student matching.",
   },
   {
     q: "Can I teach both online and in person?",
-    a: "Yes. You can set your lesson mode preferences in your profile and update them anytime based on your schedule.",
+    a: "Yes. You can set your preferred lesson modes and target locations in your profile and update them anytime as your schedule changes.",
+  },
+  {
+    q: "What happens if a parent doesn't pay me?",
+    a: "While payment arrangements are made directly between you and the parent, MatchMax takes payment protection seriously. If a parent fails to pay for completed lessons, we will intervene, follow up directly with the parent, and use all appropriate lawful methods to help you recover your unpaid fees.",
   },
 ];
 
