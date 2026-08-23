@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
@@ -316,6 +316,24 @@ function JoinPage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [isStepperPinned, setIsStepperPinned] = useState(false);
+
+  useEffect(() => {
+    const updateStickyState = () => {
+      const progress = document.querySelector(".join-stepper-progress");
+      const isMobile = window.matchMedia("(max-width: 639px)").matches;
+      const isPinned = Boolean(isMobile && progress && progress.getBoundingClientRect().top <= 64);
+      setIsStepperPinned(isPinned);
+    };
+
+    updateStickyState();
+    window.addEventListener("scroll", updateStickyState, { passive: true });
+    window.addEventListener("resize", updateStickyState);
+    return () => {
+      window.removeEventListener("scroll", updateStickyState);
+      window.removeEventListener("resize", updateStickyState);
+    };
+  }, []);
 
   const set = (key: keyof FormState) => (value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -433,7 +451,7 @@ function JoinPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
+      <SiteHeader className={cn("join-site-header", isStepperPinned && "join-site-header--hidden")} />
       <main className="flex-1">
         <section className="pt-8 sm:pt-12">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
@@ -460,7 +478,7 @@ function JoinPage() {
               }}
             >
               <Stepper
-                className="join-stepper"
+                className={cn("join-stepper", isStepperPinned && "join-stepper--pinned")}
                 stepContainerClassName="join-stepper-progress"
                 footerClassName="join-stepper-mobile-footer"
                 currentStep={currentStep}
