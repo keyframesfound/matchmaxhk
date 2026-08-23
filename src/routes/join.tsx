@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
@@ -248,44 +248,6 @@ function SampleProfile() {
   );
 }
 
-function MobileScrollProgress() {
-  const [pct, setPct] = useState(0);
-
-  useEffect(() => {
-    const update = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setPct(max > 0 ? Math.min(100, Math.max(0, (window.scrollY / max) * 100)) : 0);
-    };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-    };
-  }, []);
-
-  return (
-    <>
-      <div
-        className="fixed left-0 right-0 top-[64px] z-50 h-[3px] w-full bg-border/60 lg:hidden"
-        role="progressbar"
-        aria-label="Page scroll progress"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(pct)}
-      >
-        <div
-          className="h-full bg-gradient-to-r from-[color:var(--brand-teal)] to-[color:var(--brand-navy)] transition-[width] duration-75"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <div className="h-[3px] lg:hidden" aria-hidden="true" />
-    </>
-  );
-
-}
-
 function StepHeading({
   step,
   title,
@@ -472,7 +434,6 @@ function JoinPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
-      <MobileScrollProgress />
       <main className="flex-1">
         <section className="pt-8 sm:pt-12">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
@@ -499,6 +460,9 @@ function JoinPage() {
               }}
             >
               <Stepper
+                className="join-stepper"
+                stepContainerClassName="join-stepper-progress"
+                footerClassName="join-stepper-mobile-footer"
                 currentStep={currentStep}
                 initialStep={1}
                 onStepChange={handleStepChange}
