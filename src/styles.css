@@ -160,11 +160,14 @@
   }
 
   html, body, #root {
-    width: 100vw;
-    overflow-x: hidden;
     min-height: 100%;
     font-family: var(--font-sans);
   }
+
+  body {
+    overflow-x: clip;
+  }
+
 
   .hero-startup-bg {
     position: relative;
