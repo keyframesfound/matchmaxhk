@@ -117,16 +117,18 @@ function Field({
   required,
   hint,
   error,
+  className,
   children,
 }: {
   label: string;
   required?: boolean;
   hint?: string;
   error?: string;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-2">
+    <div className={cn("grid gap-2", className)}>
       <Label className="text-sm font-semibold text-foreground">
         {label}
         {required ? <span className="ml-1 text-destructive">*</span> : null}
