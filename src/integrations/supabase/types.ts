@@ -261,7 +261,6 @@ export type Database = {
       }
       tutors: {
         Row: {
-          academic_summary: string | null
           badge: string | null
           bio: string | null
           created_at: string
@@ -273,7 +272,6 @@ export type Database = {
           experience_years: number | null
           gender: string | null
           headline: string | null
-          highschool: string | null
           hourly_rate: number
           id: string
           intro_video_url: string | null
@@ -281,20 +279,16 @@ export type Database = {
           languages: string[]
           lesson_mode: Database["public"]["Enums"]["case_mode"]
           photo_url: string | null
-          qualifications_summary: string | null
           rating: number
           review_count: number
           subjects: string[]
-          target_students: string[]
           teaching_since: number | null
           tutor_code: string
           updated_at: string
-          university: string | null
           weekly_rating: number
           weekly_score: number
         }
         Insert: {
-          academic_summary?: string | null
           badge?: string | null
           bio?: string | null
           created_at?: string
@@ -306,7 +300,6 @@ export type Database = {
           experience_years?: number | null
           gender?: string | null
           headline?: string | null
-          highschool?: string | null
           hourly_rate?: number
           id?: string
           intro_video_url?: string | null
@@ -314,20 +307,16 @@ export type Database = {
           languages?: string[]
           lesson_mode?: Database["public"]["Enums"]["case_mode"]
           photo_url?: string | null
-          qualifications_summary?: string | null
           rating?: number
           review_count?: number
           subjects?: string[]
-          target_students?: string[]
           teaching_since?: number | null
           tutor_code: string
           updated_at?: string
-          university?: string | null
           weekly_rating?: number
           weekly_score?: number
         }
         Update: {
-          academic_summary?: string | null
           badge?: string | null
           bio?: string | null
           created_at?: string
@@ -339,7 +328,6 @@ export type Database = {
           experience_years?: number | null
           gender?: string | null
           headline?: string | null
-          highschool?: string | null
           hourly_rate?: number
           id?: string
           intro_video_url?: string | null
@@ -347,15 +335,12 @@ export type Database = {
           languages?: string[]
           lesson_mode?: Database["public"]["Enums"]["case_mode"]
           photo_url?: string | null
-          qualifications_summary?: string | null
           rating?: number
           review_count?: number
           subjects?: string[]
-          target_students?: string[]
           teaching_since?: number | null
           tutor_code?: string
           updated_at?: string
-          university?: string | null
           weekly_rating?: number
           weekly_score?: number
         }
