@@ -4,11 +4,15 @@ A new public page that reproduces the MatchMax Google Form, submitting by email 
 
 ## Fix the failing build first
 
-Three type errors currently break the build and must be cleared before the new page ships:
+Typechecking is currently broken, mostly cascading from the generated Supabase client losing its types. Clear these before the new page ships:
 
-- `src/lib/email-templates/send-email.ts` — Resend's option is `replyTo`, not `reply_to`.
-- `src/routes/_authenticated.admin.settings.tsx` line 80 — annotate the `row` callback parameter.
-- `src/routes/_authenticated.admin.users.tsx` line 76 — annotate the `p` callback parameter.
+- `src/integrations/supabase/client.ts` — both factory functions infer `any` circularly (TS7023). Everything below is downstream of this, so fix it first by giving the exported client an explicit `SupabaseClient<Database>` type.
+- `src/routes/_authenticated.admin.settings.tsx:80` and `src/routes/_authenticated.admin.users.tsx:76` — annotate the `row` / `p` callback parameters.
+- `src/features/auth/useAuth.tsx:25,39,62` — annotate the role, auth-event, session and destructured `data` parameters.
+- `src/components/ui/command.tsx:41,58` — the cmdk input wrapper passes `onChange`; drop it from the forwarded props and type the handler.
+- `src/features/tutors/r2.functions.ts:56-59` — guard the R2 env vars (throw when missing) instead of assigning `string | undefined`; line 300 — wrap the `Uint8Array` body in a `Blob` before passing it to `fetch`.
+- `src/lib/email-templates/send-email.ts:87` — Resend's option is `replyTo`, not `reply_to`.
+
 
 ## The page
 
