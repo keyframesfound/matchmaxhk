@@ -472,6 +472,7 @@ function JoinPage() {
             </div>
 
             <form
+              className="join-stepper-form"
               onSubmit={(event) => {
                 event.preventDefault();
                 void submitApplication();

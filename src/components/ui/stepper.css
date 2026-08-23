@@ -262,3 +262,34 @@
     transition: none;
   }
 }
+
+@media (max-width: 639px) {
+  .join-stepper-form {
+    width: calc(100% + 2rem);
+    margin-right: -1rem;
+    margin-left: -1rem;
+  }
+
+  .join-stepper,
+  .join-stepper .stepper-outer-container,
+  .join-stepper .stepper-circle-container {
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .join-stepper .stepper-circle-container {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .join-stepper .join-stepper-progress {
+    width: 100%;
+    border-radius: 0;
+  }
+
+  .join-stepper .stepper-step-default {
+    min-height: calc(100vh - 9.5rem - env(safe-area-inset-bottom));
+    padding: 1.75rem 1rem;
+  }
+}
