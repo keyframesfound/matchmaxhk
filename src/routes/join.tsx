@@ -246,20 +246,24 @@ function MobileScrollProgress() {
   }, []);
 
   return (
-    <div
-      className="sticky top-[64px] z-40 h-[3px] w-full bg-border/60 lg:hidden"
-      role="progressbar"
-      aria-label="Page scroll progress"
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={Math.round(pct)}
-    >
+    <>
       <div
-        className="h-full bg-gradient-to-r from-[color:var(--brand-teal)] to-[color:var(--brand-navy)] transition-[width] duration-75"
-        style={{ width: `${pct}%` }}
-      />
-    </div>
+        className="fixed left-0 right-0 top-[64px] z-50 h-[3px] w-full bg-border/60 lg:hidden"
+        role="progressbar"
+        aria-label="Page scroll progress"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(pct)}
+      >
+        <div
+          className="h-full bg-gradient-to-r from-[color:var(--brand-teal)] to-[color:var(--brand-navy)] transition-[width] duration-75"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="h-[3px] lg:hidden" aria-hidden="true" />
+    </>
   );
+
 }
 
 function JoinPage() {
