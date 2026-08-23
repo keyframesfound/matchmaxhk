@@ -103,7 +103,7 @@ function HowItWorksPage() {
 
             <div className="mt-10 flex flex-wrap items-center gap-3">
               <Button asChild className="font-bold">
-                <Link to="/become-a-tutor">
+                <Link to="/join">
                   Apply as a Tutor <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
