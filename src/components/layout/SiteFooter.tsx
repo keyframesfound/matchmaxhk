@@ -1,80 +1,87 @@
+import { Link } from "@tanstack/react-router";
+import { Instagram, Linkedin, Mail } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
+import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/Logo";
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
+
+const footerPages = [
+  { name: "Home", to: "/" },
+  { name: "How it works", to: "/how-it-works" },
+  { name: "Find tutors", to: "/tutors" },
+  { name: "FAQ", to: "/faq" },
+  { name: "Consulting", to: "/consulting" },
+  { name: "Privacy", to: "/privacy-policy" },
+] as const;
 
 export function SiteFooter() {
   const { t } = useTranslation();
   const year = new Date().getFullYear();
+
   return (
-    <footer className="border-t border-border bg-muted/40 pt-16 pb-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="grid gap-10 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <Logo />
-            <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
-              {t("footer.tagline")}
-            </p>
+    <footer className="border-t border-border bg-background">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12">
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-start">
+            <div>
+              <Logo />
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+                {t("footer.tagline")}
+              </p>
+
+              <div className="mt-5 flex items-center gap-3">
+                <a
+                  href="https://www.linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="MatchMax on LinkedIn"
+                  className="rounded-full border border-border p-2 text-muted-foreground transition hover:scale-110 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)] active:scale-90"
+                >
+                  <Linkedin className="h-5 w-5" aria-hidden="true" />
+                </a>
+                <a
+                  href="https://www.instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="MatchMax on Instagram"
+                  className="rounded-full border border-border p-2 text-muted-foreground transition hover:scale-110 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)] active:scale-90"
+                >
+                  <Instagram className="h-5 w-5" aria-hidden="true" />
+                </a>
+                <a
+                  href="mailto:hello@matchmax.hk"
+                  aria-label="Email MatchMax"
+                  className="rounded-full border border-border p-2 text-muted-foreground transition hover:scale-110 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)] active:scale-90"
+                >
+                  <Mail className="h-5 w-5" aria-hidden="true" />
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Explore pages
+              </h4>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {footerPages.map((page) => (
+                  <Button
+                    key={page.to}
+                    asChild
+                    variant="outline"
+                    className="justify-start border-border bg-background text-foreground hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-navy)]"
+                  >
+                    <Link to={page.to}>{page.name}</Link>
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
-          <div>
-            <h4 className="mb-4 text-xs font-bold tracking-widest text-muted-foreground uppercase">
-              {t("footer.quick_links")}
-            </h4>
-            <ul className="space-y-3 text-sm font-semibold">
-              <li>
-                <a href="/how-it-works" className="hover:text-[color:var(--brand-teal)]">
-                  {t("How it works")}
-                </a>
-              </li>
-              <li>
-                <a href="/tutors" className="hover:text-[color:var(--brand-teal)]">
-                  {t("nav.find", { defaultValue: "Find" })}
-                </a>
-              </li>
-              <li>
-                <a href="/join" className="hover:text-[color:var(--brand-teal)]">
-                  {t("tutors_cta.cta")}
-                </a>
-              </li>
-              <li>
-                <a href="/auth" className="hover:text-[color:var(--brand-teal)]">
-                  {t("nav.sign_in")}
-                </a>
-              </li>
-            </ul>
+
+          <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row">
+            <p>© {year} MatchMax. {t("footer.rights")}</p>
+            <LanguageToggle />
           </div>
-          <div>
-            <h4 className="mb-4 text-xs font-bold tracking-widest text-muted-foreground uppercase">
-              {t("footer.support")}
-            </h4>
-            <ul className="space-y-3 text-sm font-semibold">
-              <li>
-                <a href="/join" className="hover:text-[color:var(--brand-teal)]">
-                  {t("footer.contact")}
-                </a>
-              </li>
-              <li>
-                <a href="/faq" className="hover:text-[color:var(--brand-teal)]">
-                  {t("footer.help")}
-                </a>
-              </li>
-              <li>
-                <a href="/privacy-policy" className="hover:text-[color:var(--brand-teal)]">
-                  {t("footer.privacy")}
-                </a>
-              </li>
-              <li>
-                <a href="/#" className="hover:text-[color:var(--brand-teal)]">
-                  {t("footer.terms")}
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row">
-          <p>
-            © {year} MatchMax. {t("footer.rights")}
-          </p>
-          <LanguageToggle />
         </div>
       </div>
     </footer>
