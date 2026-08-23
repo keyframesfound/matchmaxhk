@@ -17,7 +17,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      "flex h-full w-full flex-col overflow-hidden rounded-xl bg-popover text-popover-foreground",
+      "flex h-full w-full flex-col overflow-hidden rounded-lg bg-popover text-popover-foreground",
       className,
     )}
     {...props}
@@ -62,7 +62,7 @@ const CommandInput = React.forwardRef<
 
     return (
       <div
-        className="m-2 flex items-center rounded-lg border border-[#041344]/10 bg-[#F7FBFC] px-3 transition-[border-color,box-shadow,background-color] focus-within:border-[#1FA8B6] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#77E8EE]/25"
+        className="m-2 flex items-center rounded-md border border-[#041344]/10 bg-[#F7FBFC] px-3 transition-[border-color,box-shadow,background-color] focus-within:border-[#1FA8B6] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#77E8EE]/25"
         cmdk-input-wrapper=""
       >
         <Search className="mr-2 h-4 w-4 shrink-0 text-[#041344]/45" />
@@ -148,7 +148,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex min-h-10 cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#041344] outline-none transition-colors data-[disabled=true]:pointer-events-none data-[selected=true]:bg-[#77E8EE]/25 data-[selected=true]:text-[#041344] data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+      "relative flex min-h-10 cursor-default items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-[#041344] outline-none transition-colors data-[disabled=true]:pointer-events-none data-[selected=true]:bg-[#77E8EE]/25 data-[selected=true]:text-[#041344] data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       className,
     )}
     {...props}

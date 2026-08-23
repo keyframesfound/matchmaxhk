@@ -1,6 +1,7 @@
-/** MatchMax selector system: the lesson-mode flow shares the searchable dropdown surface and selection language. */
+/** MatchMax selector system: the lesson-mode flow shares the reference dropdown’s spring and selection animation language. */
 import { useMemo, useState } from "react";
 import { Check, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,30 @@ const MODE_LABELS: Record<LessonMode, string> = {
   either: "Open to discussion",
 };
 
+function AnimatedCheck({ selected }: { selected: boolean }) {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <AnimatePresence initial={false}>
+      {selected ? (
+        <motion.span
+          className="ml-auto grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#0A245F] text-white"
+          initial={shouldReduceMotion ? {} : { scale: 0 }}
+          animate={shouldReduceMotion ? {} : { scale: 1 }}
+          exit={shouldReduceMotion ? {} : { scale: 0 }}
+          transition={
+            shouldReduceMotion
+              ? { duration: 0 }
+              : { type: "spring", stiffness: 400, damping: 25, mass: 0.5, duration: 0.2 }
+          }
+        >
+          <Check className="h-3 w-3" strokeWidth={3} />
+        </motion.span>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
 export function LessonModeSelect({
   mode,
   district,
@@ -43,6 +68,7 @@ export function LessonModeSelect({
 }: Props) {
   const [open, setOpen] = useState(false);
   const [submenu, setSubmenu] = useState<"mode" | "district">("mode");
+  const shouldReduceMotion = useReducedMotion();
 
   const triggerLabel = useMemo(() => {
     if (mode === "in_person" && district) return `In-person · ${district}`;
@@ -76,99 +102,167 @@ export function LessonModeSelect({
           disabled={disabled}
           className={cn(
             className,
-            "group h-11 w-full justify-between rounded-xl border-[#041344]/15 bg-white/95 px-3.5 text-left font-semibold text-[#041344] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[#0A245F]/35 hover:bg-white focus-visible:border-[#1FA8B6] focus-visible:ring-4 focus-visible:ring-[#77E8EE]/35",
+            "group h-11 w-full justify-between rounded-lg border-[#041344]/15 bg-white/95 px-4 text-left font-semibold text-[#041344] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[#0A245F]/35 hover:bg-white focus-visible:border-[#1FA8B6] focus-visible:ring-4 focus-visible:ring-[#77E8EE]/35",
             !mode && "text-[#041344]/50",
           )}
         >
           <span className="truncate">{triggerLabel}</span>
-          <ChevronDown
-            className={cn(
-              "ml-2 h-4 w-4 shrink-0 text-[#041344]/55 transition-transform duration-200",
-              open && "rotate-180 text-[#0A245F]",
-            )}
-          />
+          <motion.span
+            className="ml-2 shrink-0 text-[#041344]/55"
+            animate={{ rotate: open ? 180 : 0 }}
+            transition={
+              shouldReduceMotion
+                ? { duration: 0 }
+                : { type: "spring", stiffness: 400, damping: 25, duration: 0.2 }
+            }
+          >
+            <ChevronDown className="h-4 w-4" />
+          </motion.span>
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[--radix-popover-trigger-width] overflow-hidden rounded-xl border border-[#041344]/10 bg-white/[0.96] p-0 text-[#041344] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.28)] backdrop-blur-xl data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1"
+        className="w-[--radix-popover-trigger-width] overflow-hidden rounded-lg border border-[#041344]/10 bg-white/[0.96] p-0 text-[#041344] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.28)] backdrop-blur-xl data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1"
         align="start"
         sideOffset={6}
         collisionPadding={8}
       >
-        {submenu === "mode" ? (
-          <Command shouldFilter={false} className="bg-transparent text-[#041344]">
-            <CommandList>
-              <CommandGroup>
-                <CommandItem onSelect={() => commit("", undefined)}>
-                  <Check
-                    className={cn("mr-2 h-4 w-4", mode === "" ? "opacity-100" : "opacity-0")}
-                  />
-                  {MODE_LABELS[""]}
-                </CommandItem>
-                <CommandItem onSelect={() => commit("online", undefined)}>
-                  <Check
-                    className={cn("mr-2 h-4 w-4", mode === "online" ? "opacity-100" : "opacity-0")}
-                  />
-                  {MODE_LABELS.online}
-                </CommandItem>
-                <CommandItem onSelect={() => commit("either", undefined)}>
-                  <Check
-                    className={cn("mr-2 h-4 w-4", mode === "either" ? "opacity-100" : "opacity-0")}
-                  />
-                  {MODE_LABELS.either}
-                </CommandItem>
-                <CommandItem onSelect={openDistrictSubmenu}>
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      mode === "in_person" ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                  <span className="flex flex-1 items-center justify-between">
-                    {MODE_LABELS.in_person}
-                    <ChevronRight className="h-4 w-4 opacity-60" />
-                  </span>
-                </CommandItem>
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : (
-          <Command shouldFilter className="bg-transparent text-[#041344]">
-            <div className="flex items-center gap-1 border-b border-[#041344]/10 px-2.5 py-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-lg text-[#041344] hover:bg-[#77E8EE]/25"
-                onClick={() => setSubmenu("mode")}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-sm font-bold text-[#041344]">Choose district</span>
-            </div>
-            <CommandInput placeholder="Search district..." />
-            <CommandList className="max-h-64 overflow-y-auto p-1.5">
-              <CommandEmpty>No district found.</CommandEmpty>
-              <CommandGroup>
-                <CommandItem onSelect={() => commit("in_person", undefined)}>
-                  <Check className={cn("mr-2 h-4 w-4", !district ? "opacity-100" : "opacity-0")} />
-                  Any district
-                </CommandItem>
-                {districts.map((item) => (
-                  <CommandItem key={item} value={item} onSelect={() => commit("in_person", item)}>
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        district === item ? "opacity-100" : "opacity-0",
-                      )}
-                    />
-                    {item}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={submenu}
+            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scaleY: 0.88, y: -6 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scaleY: 1, y: 0 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scaleY: 0.88, y: -6 }}
+            transition={
+              shouldReduceMotion
+                ? { duration: 0 }
+                : { type: "spring", stiffness: 400, damping: 30, mass: 0.8, duration: 0.22 }
+            }
+          >
+            {submenu === "mode" ? (
+              <Command shouldFilter={false} className="bg-transparent text-[#041344]">
+                <CommandList>
+                  <CommandGroup>
+                    {[
+                      { key: "", label: MODE_LABELS[""] },
+                      { key: "online", label: MODE_LABELS.online },
+                      { key: "either", label: MODE_LABELS.either },
+                    ].map((option, index) => (
+                      <motion.div
+                        key={option.key}
+                        initial={
+                          shouldReduceMotion
+                            ? { opacity: 1 }
+                            : { opacity: 0, filter: "blur(4px)", x: -10 }
+                        }
+                        animate={
+                          shouldReduceMotion
+                            ? { opacity: 1 }
+                            : { opacity: 1, filter: "blur(0px)", x: 0 }
+                        }
+                        transition={
+                          shouldReduceMotion
+                            ? { duration: 0 }
+                            : {
+                                type: "spring",
+                                stiffness: 400,
+                                damping: 28,
+                                mass: 0.6,
+                                delay: index * 0.02,
+                              }
+                        }
+                      >
+                        <CommandItem onSelect={() => commit(option.key as LessonMode, undefined)}>
+                          {option.label}
+                          <AnimatedCheck selected={mode === option.key} />
+                        </CommandItem>
+                      </motion.div>
+                    ))}
+                    <motion.div
+                      initial={
+                        shouldReduceMotion
+                          ? { opacity: 1 }
+                          : { opacity: 0, filter: "blur(4px)", x: -10 }
+                      }
+                      animate={
+                        shouldReduceMotion
+                          ? { opacity: 1 }
+                          : { opacity: 1, filter: "blur(0px)", x: 0 }
+                      }
+                      transition={
+                        shouldReduceMotion
+                          ? { duration: 0 }
+                          : { type: "spring", stiffness: 400, damping: 28, mass: 0.6, delay: 0.06 }
+                      }
+                    >
+                      <CommandItem onSelect={openDistrictSubmenu}>
+                        <span className="flex flex-1 items-center justify-between">
+                          {MODE_LABELS.in_person}
+                          <ChevronRight className="h-4 w-4 opacity-60" />
+                        </span>
+                        <AnimatedCheck selected={mode === "in_person"} />
+                      </CommandItem>
+                    </motion.div>
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            ) : (
+              <Command shouldFilter className="bg-transparent text-[#041344]">
+                <div className="flex items-center gap-1 border-b border-[#041344]/10 px-2.5 py-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-md text-[#041344] hover:bg-[#77E8EE]/25"
+                    onClick={() => setSubmenu("mode")}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm font-bold text-[#041344]">Choose district</span>
+                </div>
+                <CommandInput placeholder="Search district..." />
+                <CommandList className="max-h-64 overflow-y-auto p-1.5">
+                  <CommandEmpty>No district found.</CommandEmpty>
+                  <CommandGroup>
+                    {["", ...districts].map((item, index) => (
+                      <motion.div
+                        key={item || "all"}
+                        initial={
+                          shouldReduceMotion
+                            ? { opacity: 1 }
+                            : { opacity: 0, filter: "blur(4px)", x: -10 }
+                        }
+                        animate={
+                          shouldReduceMotion
+                            ? { opacity: 1 }
+                            : { opacity: 1, filter: "blur(0px)", x: 0 }
+                        }
+                        transition={
+                          shouldReduceMotion
+                            ? { duration: 0 }
+                            : {
+                                type: "spring",
+                                stiffness: 400,
+                                damping: 28,
+                                mass: 0.6,
+                                delay: index * 0.02,
+                              }
+                        }
+                      >
+                        <CommandItem
+                          value={item || "Any district"}
+                          onSelect={() => commit("in_person", item || undefined)}
+                        >
+                          {item || "Any district"}
+                          <AnimatedCheck selected={district === item} />
+                        </CommandItem>
+                      </motion.div>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </PopoverContent>
     </Popover>
   );
