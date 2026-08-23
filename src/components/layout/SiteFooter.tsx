@@ -12,17 +12,13 @@ const productLinks = [
 ] as const;
 
 const companyLinks = [
-  { name: "Home", to: "/" },
   { name: "FAQ", to: "/faq" },
   { name: "Privacy policy", to: "/privacy-policy" },
-  { name: "Sign in", to: "/auth" },
 ] as const;
 
 const supportLinks = [
-  { name: "Contact us", to: "/join" },
+  { name: "Home", to: "/" },
   { name: "Help center", to: "/faq" },
-  { name: "Browse tutors", to: "/tutors" },
-  { name: "Start matching", to: "/consulting" },
 ] as const;
 
 export function SiteFooter() {
