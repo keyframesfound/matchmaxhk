@@ -20,7 +20,11 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
   head: () => ({
     meta: [
       { title: "Settings — MatchMax admin" },
-      { name: "description", content: "Manage MatchMax site-wide settings — brand info, WhatsApp contact, featured tutor, subject options, and landing stats." },
+      {
+        name: "description",
+        content:
+          "Manage MatchMax site-wide settings — brand info, WhatsApp contact, featured tutor, subject options, and landing stats.",
+      },
       { property: "og:url", content: "https://matchmax.hk/admin/settings" },
       { name: "robots", content: "noindex" },
     ],
@@ -28,7 +32,6 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
   }),
   component: AdminSettings,
 });
-
 
 type Settings = {
   brand_name: string;
@@ -41,13 +44,27 @@ type Settings = {
   popular_subjects: string[];
 };
 
-const STRING_KEYS = ["brand_name", "contact_email", "whatsapp_number", "whatsapp_template", "students_matched", "hero_tutor_code"] as const;
+const STRING_KEYS = [
+  "brand_name",
+  "contact_email",
+  "whatsapp_number",
+  "whatsapp_template",
+  "students_matched",
+  "hero_tutor_code",
+] as const;
 const ARRAY_KEYS = ["subject_options", "popular_subjects"] as const;
 const ALL_KEYS = [...STRING_KEYS, ...ARRAY_KEYS] as const;
 
 const DEFAULT_POPULAR_SUBJECTS = [
-  "Mathematics", "English", "Chinese", "Physics", "Chemistry",
-  "Biology", "Economics", "DSE", "IB",
+  "Mathematics",
+  "English",
+  "Chinese",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "Economics",
+  "DSE",
+  "IB",
 ];
 
 function AdminSettings() {
@@ -65,7 +82,10 @@ function AdminSettings() {
   const { data } = useQuery({
     queryKey: ["admin", "settings"],
     queryFn: async (): Promise<Settings> => {
-      const { data, error } = await supabase.from("app_settings").select("key, value").in("key", ALL_KEYS as unknown as string[]);
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("key, value")
+        .in("key", ALL_KEYS as unknown as string[]);
       if (error) throw error;
       const map: Settings = {
         brand_name: "MatchMax",
@@ -81,7 +101,9 @@ function AdminSettings() {
         const v = row.value as unknown;
         if ((ARRAY_KEYS as readonly string[]).includes(row.key)) {
           if (Array.isArray(v)) {
-            const arr = (v as unknown[]).filter((x): x is string => typeof x === "string" && x.trim().length > 0);
+            const arr = (v as unknown[]).filter(
+              (x): x is string => typeof x === "string" && x.trim().length > 0,
+            );
             if (arr.length > 0) (map as unknown as Record<string, string[]>)[row.key] = arr;
           }
         } else if ((STRING_KEYS as readonly string[]).includes(row.key)) {
@@ -98,11 +120,17 @@ function AdminSettings() {
   });
 
   const [form, setForm] = useState<Settings | null>(null);
-  useEffect(() => { if (data) setForm(data); }, [data]);
+  useEffect(() => {
+    if (data) setForm(data);
+  }, [data]);
   const [subjectDraft, setSubjectDraft] = useState("");
 
   const tutorOptions = useMemo(
-    () => tutors.map((tut) => ({ value: tut.tutor_code, label: `${tut.display_name} — ${tut.tutor_code}` })),
+    () =>
+      tutors.map((tut) => ({
+        value: tut.tutor_code,
+        label: `${tut.display_name} — ${tut.tutor_code}`,
+      })),
     [tutors],
   );
 
@@ -152,24 +180,44 @@ function AdminSettings() {
           {form && (
             <form
               className="mt-8 space-y-6 rounded-3xl border border-border bg-card p-8"
-              onSubmit={(e) => { e.preventDefault(); save.mutate(form); }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                save.mutate(form);
+              }}
             >
               <div className="space-y-2">
                 <Label>{t("admin.brand_name")}</Label>
-                <Input value={form.brand_name} onChange={(e) => setForm({ ...form, brand_name: e.target.value })} />
+                <Input
+                  value={form.brand_name}
+                  onChange={(e) => setForm({ ...form, brand_name: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("admin.contact_email")}</Label>
-                <Input type="email" value={form.contact_email} onChange={(e) => setForm({ ...form, contact_email: e.target.value })} />
+                <Input
+                  type="email"
+                  value={form.contact_email}
+                  onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("admin.whatsapp_number")}</Label>
-                <Input placeholder="+852 5555 1234" value={form.whatsapp_number} onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })} />
+                <Input
+                  placeholder="+852 5555 1234"
+                  value={form.whatsapp_number}
+                  onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("admin.whatsapp_template")}</Label>
-                <Textarea rows={4} value={form.whatsapp_template} onChange={(e) => setForm({ ...form, whatsapp_template: e.target.value })} />
-                <p className="text-xs text-muted-foreground">Use <code>{"{tutor_code}"}</code> as a placeholder.</p>
+                <Textarea
+                  rows={4}
+                  value={form.whatsapp_template}
+                  onChange={(e) => setForm({ ...form, whatsapp_template: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Use <code>{"{tutor_code}"}</code> as a placeholder.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label>Students matched (landing page stat)</Label>
@@ -191,11 +239,11 @@ function AdminSettings() {
                   options={tutorOptions}
                   placeholder="Auto (top-rated this week)"
                   searchPlaceholder="Search tutors…"
-                  
                 />
                 <div className="flex items-center gap-3">
                   <p className="text-xs text-muted-foreground">
-                    Featured in the hero card on the homepage. Leave blank to auto-pick the top weekly tutor.
+                    Featured in the hero card on the homepage. Leave blank to auto-pick the top
+                    weekly tutor.
                   </p>
                   {form.hero_tutor_code && (
                     <button
@@ -239,12 +287,12 @@ function AdminSettings() {
                     <SearchableSelect
                       value=""
                       onChange={(v) => addSubject(v)}
-                      options={DEFAULT_SUBJECT_OPTIONS
-                        .filter((s) => !form.subject_options.some((x) => x.toLowerCase() === s.toLowerCase()))
-                        .map((s) => ({ value: s, label: s }))}
+                      options={DEFAULT_SUBJECT_OPTIONS.filter(
+                        (s) =>
+                          !form.subject_options.some((x) => x.toLowerCase() === s.toLowerCase()),
+                      ).map((s) => ({ value: s, label: s }))}
                       placeholder="Add from suggested subjects…"
                       searchPlaceholder="Search subjects…"
-                      
                     />
                   </div>
                   <div className="flex gap-2">
@@ -253,10 +301,19 @@ function AdminSettings() {
                       onChange={(e) => setSubjectDraft(e.target.value)}
                       placeholder="Add custom subject"
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") { e.preventDefault(); addSubject(subjectDraft); }
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addSubject(subjectDraft);
+                        }
                       }}
                     />
-                    <Button type="button" variant="outline" onClick={() => addSubject(subjectDraft)}>Add</Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => addSubject(subjectDraft)}
+                    >
+                      Add
+                    </Button>
                   </div>
                 </div>
                 <div className="flex gap-3 pt-1">
@@ -280,7 +337,8 @@ function AdminSettings() {
               <div className="space-y-2">
                 <Label>Landing page "Popular subjects"</Label>
                 <p className="text-xs text-muted-foreground">
-                  Quick-link chips shown in the Popular subjects section of the homepage. Each links to /tutors filtered by that subject.
+                  Quick-link chips shown in the Popular subjects section of the homepage. Each links
+                  to /tutors filtered by that subject.
                 </p>
                 {form.popular_subjects.length > 0 && (
                   <div className="flex flex-wrap gap-2 rounded-md border border-border bg-background p-2">
@@ -292,7 +350,12 @@ function AdminSettings() {
                         {s}
                         <button
                           type="button"
-                          onClick={() => setForm({ ...form, popular_subjects: form.popular_subjects.filter((x) => x !== s) })}
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              popular_subjects: form.popular_subjects.filter((x) => x !== s),
+                            })
+                          }
                           className="rounded-full p-0.5 hover:bg-black/10"
                           aria-label={`Remove ${s}`}
                         >
@@ -308,11 +371,15 @@ function AdminSettings() {
                     onChange={(v) => {
                       const val = v.trim();
                       if (!val) return;
-                      if (form.popular_subjects.some((x) => x.toLowerCase() === val.toLowerCase())) return;
+                      if (form.popular_subjects.some((x) => x.toLowerCase() === val.toLowerCase()))
+                        return;
                       setForm({ ...form, popular_subjects: [...form.popular_subjects, val] });
                     }}
                     options={form.subject_options
-                      .filter((s) => !form.popular_subjects.some((x) => x.toLowerCase() === s.toLowerCase()))
+                      .filter(
+                        (s) =>
+                          !form.popular_subjects.some((x) => x.toLowerCase() === s.toLowerCase()),
+                      )
                       .map((s) => ({ value: s, label: s }))}
                     placeholder="Add a popular subject…"
                     searchPlaceholder="Search subjects…"
@@ -338,10 +405,10 @@ function AdminSettings() {
 
               <Button
                 type="submit"
-                disabled={save.isPending}
+                loading={save.isPending}
                 className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
               >
-                {save.isPending ? t("common.loading") : t("admin.save")}
+                {t("admin.save")}
               </Button>
             </form>
           )}

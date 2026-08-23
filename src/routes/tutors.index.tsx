@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import { PublicTutorCard, buildTutorWhatsAppUrl } from "@/features/tutors/public-tutor-card";
@@ -265,32 +266,26 @@ function TutorsDirectory() {
                 </Button>
               </div>
             </div>
-
           </div>
         </section>
 
         <section className="py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="mb-6 flex items-baseline justify-between">
-              <p className="text-sm text-muted-foreground">
-                {isLoading ? (
-                  "Loading…"
-                ) : (
-                  <>
-                    <span className="font-bold text-foreground">{filtered.length}</span>{" "}
-                    {filtered.length === 1 ? "tutor" : "tutors"} found
-                  </>
-                )}
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-4 w-28" />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-bold text-foreground">{filtered.length}</span>{" "}
+                  {filtered.length === 1 ? "tutor" : "tutors"} found
+                </p>
+              )}
             </div>
 
             {isLoading && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-64 animate-pulse rounded-sm border border-border bg-muted/40"
-                  />
+                  <Skeleton key={i} className="h-64 rounded-sm border border-border" />
                 ))}
               </div>
             )}

@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/features/auth/useAuth";
+import { PageSkeleton } from "@/components/layout/PageSkeleton";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -16,11 +17,7 @@ function AuthedLayout() {
   }, [loading, user, navigate]);
 
   if (loading || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[color:var(--brand-teal)] border-t-transparent" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
   return <Outlet />;
 }

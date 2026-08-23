@@ -6,6 +6,7 @@ import { ArrowRight, BadgeCheck, BookOpen, Clock3, MapPin, Search } from "lucide
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Carousel,
   CarouselContent,
@@ -224,30 +225,30 @@ function Landing() {
 
     return publishedTutors
       .filter((tut) => {
-      if (categoryFilter) {
-        const categorySource = [...tut.subjects, ...tut.target_students, tut.headline ?? ""]
-          .join(" ")
-          .toLowerCase();
-        if (!categorySource.includes(categoryFilter)) return false;
-      }
-      if (subjectFilter && !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter)))
-        return false;
-      if (!matchesLessonModeFilter(modeFilter, tut.lesson_mode)) return false;
-      if (!matchesDistrictFilter(districtFilter, tut.district)) return false;
-      if (genderFilter && (tut.gender ?? "") !== genderFilter) return false;
-      if (
-        query &&
-        !(
-          tut.tutor_code.toLowerCase().includes(query) ||
-          tut.subjects.some((s) => matchesSubjectQuery(s, query)) ||
-          (tut.headline ?? "").toLowerCase().includes(query)
-        )
-      ) {
-        return false;
-      }
-      return true;
+        if (categoryFilter) {
+          const categorySource = [...tut.subjects, ...tut.target_students, tut.headline ?? ""]
+            .join(" ")
+            .toLowerCase();
+          if (!categorySource.includes(categoryFilter)) return false;
+        }
+        if (subjectFilter && !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter)))
+          return false;
+        if (!matchesLessonModeFilter(modeFilter, tut.lesson_mode)) return false;
+        if (!matchesDistrictFilter(districtFilter, tut.district)) return false;
+        if (genderFilter && (tut.gender ?? "") !== genderFilter) return false;
+        if (
+          query &&
+          !(
+            tut.tutor_code.toLowerCase().includes(query) ||
+            tut.subjects.some((s) => matchesSubjectQuery(s, query)) ||
+            (tut.headline ?? "").toLowerCase().includes(query)
+          )
+        ) {
+          return false;
+        }
+        return true;
       })
-        .slice(0, 6);
+      .slice(0, 6);
   }, [homeSearch, publishedTutors]);
 
   // JSON-LD
@@ -319,10 +320,13 @@ function Landing() {
                 size="lg"
                 className="h-12 w-full rounded-xl bg-[color:var(--brand-navy)] px-5 text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
               >
-                <Link to="/tutors" onClick={(event) => {
-                                event.stopPropagation();
-                                blurActive();
-                              }}>
+                <Link
+                  to="/tutors"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    blurActive();
+                  }}
+                >
                   {t("hero.cta_primary")}
                   <ArrowRight className="ml-2 h-6 w-6 md:h-5 md:w-5" />
                 </Link>
@@ -381,17 +385,17 @@ function Landing() {
                   })
                 }
                 placeholder="Any lesson mode"
-                    className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+                className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
               />
               <SearchableSelect
                 value={homeSearch.gender ?? ""}
                 onChange={(v) => setHomeSearchParam({ gender: v || undefined })}
                 options={HOME_GENDER_OPTIONS}
                 placeholder="Any gender"
-                  className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+                className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
               />
               <Button
-                  className="h-9 rounded-sm bg-[color:var(--brand-navy)] px-4 text-xs font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-11 md:px-6 md:text-base"
+                className="h-9 rounded-sm bg-[color:var(--brand-navy)] px-4 text-xs font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-11 md:px-6 md:text-base"
                 onClick={() => navigate({ to: "/tutors", search: tutorSearchParams })}
               >
                 Search
@@ -401,25 +405,20 @@ function Landing() {
 
           <div className="mt-6">
             <div className="mb-6 flex items-baseline justify-between">
-              <p className="text-sm text-muted-foreground">
-                {publishedTutorsLoading ? (
-                  "Loading…"
-                ) : (
-                  <>
-                    <span className="font-bold text-foreground">{previewTutors.length}</span>{" "}
-                    {previewTutors.length === 1 ? "tutor" : "tutors"} found
-                  </>
-                )}
-              </p>
+              {publishedTutorsLoading ? (
+                <Skeleton className="h-4 w-28" />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-bold text-foreground">{previewTutors.length}</span>{" "}
+                  {previewTutors.length === 1 ? "tutor" : "tutors"} found
+                </p>
+              )}
             </div>
 
             {publishedTutorsLoading && (
-                <div className="grid gap-4 md:grid-cols-2 lg:gap-6 xl:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:gap-6 xl:grid-cols-3">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div
-                    key={i}
-                      className="h-56 animate-pulse rounded-sm border border-border bg-muted/40"
-                  />
+                  <Skeleton key={i} className="h-56 rounded-sm border border-border" />
                 ))}
               </div>
             )}
@@ -516,8 +515,9 @@ function Landing() {
                       Get your IA/EE/TOK reviewed by IB Top Scorers
                     </h2>
                     <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm md:mt-5 md:text-[1.04rem]">
-                      Stop paying for expensive tutors just to read your drafts during lessons.
-                      You do not need someone watching you write. You need clear, line-by-line guidance and planning.
+                      Stop paying for expensive tutors just to read your drafts during lessons. You
+                      do not need someone watching you write. You need clear, line-by-line guidance
+                      and planning.
                     </p>
 
                     <div className="mt-4 grid gap-2.5 sm:mt-6 sm:grid-cols-2">
@@ -556,7 +556,6 @@ function Landing() {
                     </Button>
                   </div>
                 </div>
-
               </div>
             </article>
 
@@ -583,7 +582,9 @@ function Landing() {
                     <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[color:var(--brand-navy)]/6 text-[color:var(--brand-navy)]">
                       <Icon className="h-3.5 w-3.5" />
                     </span>
-                    <p className="text-xs leading-relaxed text-foreground sm:text-sm md:text-[1.05rem]">{text}</p>
+                    <p className="text-xs leading-relaxed text-foreground sm:text-sm md:text-[1.05rem]">
+                      {text}
+                    </p>
                   </div>
                 ))}
               </div>

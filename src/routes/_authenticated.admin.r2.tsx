@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/features/auth/useAuth";
 import {
   deleteTutorProfileImage,
@@ -108,7 +109,9 @@ function AdminR2Images() {
     },
     onSuccess: async (_, { gender }) => {
       toast.success(
-        gender === "male" ? "Default male profile image updated" : "Default female profile image updated",
+        gender === "male"
+          ? "Default male profile image updated"
+          : "Default female profile image updated",
       );
       await queryClient.invalidateQueries({ queryKey: ["admin", "r2", "tutor-images"] });
       await queryClient.invalidateQueries({ queryKey: ["tutors"] });
@@ -175,8 +178,20 @@ function AdminR2Images() {
 
           <div className="mt-8">
             {isLoading ? (
-              <div className="rounded-xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
-                Loading images…
+              <div aria-label="Loading images" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="overflow-hidden rounded-xl border border-border bg-card"
+                  >
+                    <Skeleton className="h-44 w-full rounded-none" />
+                    <div className="space-y-2 p-3">
+                      <Skeleton className="h-4 w-4/5" />
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-8 w-full" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : isError ? (
               <div className="rounded-xl border border-destructive/30 bg-card p-10 text-center text-sm text-destructive">

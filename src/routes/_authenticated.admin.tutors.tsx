@@ -8,6 +8,7 @@ import { z } from "zod";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -247,8 +248,13 @@ function PhotoUpload({ value, onChange }: { value: string; onChange: (url: strin
       <div className="space-y-2">
         <p className="text-xs text-muted-foreground">R2 library (click to select)</p>
         {isLibraryLoading ? (
-          <div className="flex h-20 items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground">
-            Loading images…
+          <div
+            aria-label="Loading image library"
+            className="grid grid-cols-5 gap-2 rounded-md border border-border p-2"
+          >
+            {Array.from({ length: 10 }).map((_, index) => (
+              <Skeleton key={index} className="h-14 w-full rounded-md" />
+            ))}
           </div>
         ) : isLibraryError ? (
           <div className="flex min-h-20 items-center justify-center rounded-md border border-destructive/30 px-3 py-2 text-xs text-destructive">
@@ -1187,13 +1193,30 @@ function AdminTutors() {
                 </tr>
               </thead>
               <tbody>
-                {isLoading && (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                      Loading…
-                    </td>
-                  </tr>
-                )}
+                {isLoading &&
+                  Array.from({ length: 6 }).map((_, index) => (
+                    <tr key={index} className="border-t border-border">
+                      <td className="px-4 py-4">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="mt-2 h-3 w-40" />
+                      </td>
+                      <td className="px-4 py-4">
+                        <Skeleton className="h-5 w-24 rounded-full" />
+                      </td>
+                      <td className="px-4 py-4">
+                        <Skeleton className="h-4 w-20" />
+                      </td>
+                      <td className="px-4 py-4">
+                        <Skeleton className="h-4 w-16" />
+                      </td>
+                      <td className="px-4 py-4">
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                      </td>
+                      <td className="px-4 py-4">
+                        <Skeleton className="ml-auto h-8 w-24" />
+                      </td>
+                    </tr>
+                  ))}
                 {!isLoading && filtered.length === 0 && (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
