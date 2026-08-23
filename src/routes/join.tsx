@@ -228,7 +228,42 @@ function SampleProfile() {
   );
 }
 
+function MobileScrollProgress() {
+  const [pct, setPct] = useState(0);
+
+  useEffect(() => {
+    const update = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setPct(max > 0 ? Math.min(100, Math.max(0, (window.scrollY / max) * 100)) : 0);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  return (
+    <div
+      className="sticky top-[64px] z-40 h-[3px] w-full bg-border/60 lg:hidden"
+      role="progressbar"
+      aria-label="Page scroll progress"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(pct)}
+    >
+      <div
+        className="h-full bg-gradient-to-r from-[color:var(--brand-teal)] to-[color:var(--brand-navy)] transition-[width] duration-75"
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
 function JoinPage() {
+
   const { t } = useTranslation();
   const submit = useServerFn(submitTutorApplication);
   const [form, setForm] = useState<FormState>(initialState);
