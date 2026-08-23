@@ -47,7 +47,9 @@ Fields, in the form's order (\* = required):
 23. Commission acknowledgement checkbox \* — "MatchMax will take the 1st and 11th lesson as commission…"
 24. Privacy notice (PDPO Cap. 486) checkbox \*
 
-Styling follows the existing MatchMax design system (site header/footer, card sections, same inputs as the post-case form). Bilingual labels via the existing i18n files (EN + zh-HK).
+Every text, number, and date input carries a light grey placeholder showing an example answer for that question — e.g. Name: "Jayden Lau"; WhatsApp: "+852 9123 4567"; High school and graduation year: "Diocesan Boys' School, 2023"; Overall score: "IB 43/45"; Subjects and levels: "History HL, Economics HL, Business Management HL, Chemistry SL"; Hourly rate: "450"; Medium of instruction: "English / Cantonese". Choice, checkbox, and file fields get a short grey helper line instead.
+
+Styling follows the existing MatchMax design system (site header/footer, card sections, same inputs as the post-case form). Bilingual labels and placeholders via the existing i18n files (EN + zh-HK).
 
 On success the page swaps to a confirmation panel with a "back to home" link; errors show inline with the values preserved.
 
