@@ -31,7 +31,7 @@ export function SiteFooter() {
                 </a>
               </li>
               <li>
-                <a href="/become-a-tutor" className="hover:text-[color:var(--brand-teal)]">
+                <a href="/join" className="hover:text-[color:var(--brand-teal)]">
                   {t("tutors_cta.cta")}
                 </a>
               </li>
@@ -48,7 +48,7 @@ export function SiteFooter() {
             </h4>
             <ul className="space-y-3 text-sm font-semibold">
               <li>
-                <a href="/become-a-tutor" className="hover:text-[color:var(--brand-teal)]">
+                <a href="/join" className="hover:text-[color:var(--brand-teal)]">
                   {t("footer.contact")}
                 </a>
               </li>

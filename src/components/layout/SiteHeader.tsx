@@ -97,7 +97,7 @@ export function SiteHeader() {
             </Link>
 
             <Link
-              to="/become-a-tutor"
+              to="/join"
               className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]"
             >
               {t("tutors_cta.cta")}
@@ -437,7 +437,7 @@ export function SiteHeader() {
               </Link>
 
               <Link
-                to="/become-a-tutor"
+                to="/join"
                 onClick={closeMobile}
                 className="
                   flex

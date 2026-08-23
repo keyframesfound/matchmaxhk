@@ -106,7 +106,7 @@ function CaseDetail() {
         <p className="mt-1 text-sm text-muted-foreground">Select which of your tutor profiles is a match. The MatchMax team reviews interest and releases parent contact info.</p>
         {myTutors.length === 0 ? (
           <div className="mt-4 rounded-2xl bg-muted/50 p-4 text-sm">
-            No tutor profile yet. <Link to="/become-a-tutor" className="font-semibold text-[color:var(--brand-teal)] underline">Apply to be a tutor</Link> first.
+            No tutor profile yet. <Link to="/join" className="font-semibold text-[color:var(--brand-teal)] underline">Apply to be a tutor</Link> first.
           </div>
         ) : (
           <div className="mt-4 space-y-4">

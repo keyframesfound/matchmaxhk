@@ -639,7 +639,7 @@ function Landing() {
                 size="lg"
                 className="mt-5 h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
-                <Link to="/become-a-tutor">{t("tutors_cta.cta")}</Link>
+                <Link to="/join">{t("tutors_cta.cta")}</Link>
               </Button>
             </div>
           </div>
