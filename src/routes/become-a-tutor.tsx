@@ -89,6 +89,17 @@ function BecomeATutor() {
               )}
             </div>
 
+            <div className="mt-6 rounded-sm border border-border bg-card p-8">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Step 2</p>
+              <h2 className="mt-2 text-2xl font-black text-[color:var(--brand-navy)]">Send us your application</h2>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Fill in the tutor application form with your results, experience and rate, and attach your transcript. Our team reviews every application.
+              </p>
+              <Button asChild size="lg" className="mt-6 h-14 bg-[color:var(--brand-navy)] px-8 text-base font-bold text-white hover:bg-[color:var(--brand-royal)]">
+                <Link to="/join">Apply to be a tutor <ArrowRight className="ml-2 h-5 w-5" /></Link>
+              </Button>
+            </div>
+
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               {[
                 { t: "Verified profile", d: "We check credentials and teaching background." },
