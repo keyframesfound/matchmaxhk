@@ -16,6 +16,7 @@ import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
 import { Route as ConsultingRouteImport } from './routes/consulting'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as JoinRouteImport } from './routes/join'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
@@ -67,6 +68,11 @@ const FaqRoute = FaqRouteImport.update({
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinRoute = JoinRouteImport.update({
+  id: '/join',
+  path: '/join',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
@@ -172,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/consulting': typeof ConsultingRoute
   '/faq': typeof FaqRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/join': typeof JoinRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByTo {
   '/consulting': typeof ConsultingRoute
   '/faq': typeof FaqRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/join': typeof JoinRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   '/consulting': typeof ConsultingRoute
   '/faq': typeof FaqRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/join': typeof JoinRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -254,6 +263,7 @@ export interface FileRouteTypes {
     | '/consulting'
     | '/faq'
     | '/how-it-works'
+    | '/join'
     | '/privacy-policy'
     | '/sitemap.xml'
     | '/dashboard'
@@ -280,6 +290,7 @@ export interface FileRouteTypes {
     | '/consulting'
     | '/faq'
     | '/how-it-works'
+    | '/join'
     | '/privacy-policy'
     | '/sitemap.xml'
     | '/dashboard'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/consulting'
     | '/faq'
     | '/how-it-works'
+    | '/join'
     | '/privacy-policy'
     | '/sitemap.xml'
     | '/_authenticated/dashboard'
@@ -335,6 +347,7 @@ export interface RootRouteChildren {
   ConsultingRoute: typeof ConsultingRoute
   FaqRoute: typeof FaqRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  JoinRoute: typeof JoinRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
@@ -393,6 +406,13 @@ declare module '@tanstack/react-router' {
       path: '/how-it-works'
       fullPath: '/how-it-works'
       preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join': {
+      id: '/join'
+      path: '/join'
+      fullPath: '/join'
+      preLoaderRoute: typeof JoinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy-policy': {
@@ -576,6 +596,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConsultingRoute: ConsultingRoute,
   FaqRoute: FaqRoute,
   HowItWorksRoute: HowItWorksRoute,
+  JoinRoute: JoinRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
