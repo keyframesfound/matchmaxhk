@@ -32,7 +32,7 @@ export function SiteFooter() {
 
               <div className="mt-5 flex items-center gap-3">
                 <a
-                  href="https://www.linkedin.com"
+                  href="https://www.linkedin.com/company/matchmax/"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="MatchMax on LinkedIn"
@@ -41,7 +41,7 @@ export function SiteFooter() {
                   <Linkedin className="h-5 w-5" aria-hidden="true" />
                 </a>
                 <a
-                  href="https://www.instagram.com"
+                  href="https://www.instagram.com/match_max/"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="MatchMax on Instagram"
@@ -50,7 +50,7 @@ export function SiteFooter() {
                   <Instagram className="h-5 w-5" aria-hidden="true" />
                 </a>
                 <a
-                  href="mailto:hello@matchmax.hk"
+                  href="mailto:matchmaxedu@gmail.com"
                   aria-label="Email MatchMax"
                   className="rounded-full border border-border p-2 text-muted-foreground transition hover:scale-110 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)] active:scale-90"
                 >
