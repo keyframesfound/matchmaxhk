@@ -45,7 +45,7 @@ function getR2Config(): R2Config {
     ...(!apiToken ? ["R2_API_TOKEN"] : []),
     ...(!publicBaseUrl ? ["R2_PUBLIC_BASE_URL"] : []),
   ];
-  if (missing.length > 0) {
+  if (missing.length > 0 || !accountId || !bucketName || !apiToken || !publicBaseUrl) {
     throw new Error(`Missing required environment variable(s): ${missing.join(", ")}`);
   }
 
@@ -297,7 +297,7 @@ export const uploadTutorProfileImage = createServerFn({ method: "POST" })
     const response = await fetch(buildR2ObjectApiPath(config, key), {
       method: "PUT",
       headers: buildR2ApiHeaders(config, data.contentType),
-      body: bytes,
+      body: new Blob([bytes as unknown as BlobPart]),
     });
     if (!response.ok) throw new Error(await parseCloudflareError(response));
 

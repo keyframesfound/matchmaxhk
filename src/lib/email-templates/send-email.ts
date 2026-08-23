@@ -84,7 +84,7 @@ export async function sendTemplateEmail(
     subject,
     html,
     text,
-    reply_to: options.replyTo,
+    replyTo: options.replyTo,
     headers: options.idempotencyKey
       ? { 'Idempotency-Key': options.idempotencyKey }
       : undefined,

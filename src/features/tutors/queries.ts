@@ -56,10 +56,10 @@ function hasMissingProfileColumns(error: unknown): boolean {
 }
 
 async function withTutorSelectFallback<T>(
-  run: (selectCols: string) => Promise<{ data: T | null; error: unknown }>,
+  run: (selectCols: string) => PromiseLike<{ data: unknown; error: unknown }>,
 ): Promise<T> {
   const first = await run(SELECT_COLS);
-  if (!first.error) return (first.data ?? ([] as unknown as T));
+  if (!first.error) return ((first.data ?? []) as T);
 
   if (!hasMissingProfileColumns(first.error)) {
     throw first.error;
@@ -67,7 +67,7 @@ async function withTutorSelectFallback<T>(
 
   const second = await run(LEGACY_SELECT_COLS);
   if (second.error) throw second.error;
-  return (second.data ?? ([] as unknown as T));
+  return ((second.data ?? []) as T);
 }
 
 async function fetchTutorPhotoDefaults(): Promise<TutorPhotoDefaults> {

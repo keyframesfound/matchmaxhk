@@ -91,6 +91,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/", lastmod: today, changefreq: "weekly", priority: "1.0" },
           { path: "/tutors", lastmod: today, changefreq: "daily", priority: "0.9" },
           { path: "/become-a-tutor", lastmod: today, changefreq: "monthly", priority: "0.7" },
+          { path: "/join", lastmod: today, changefreq: "monthly", priority: "0.7" },
         ];
 
         try {
