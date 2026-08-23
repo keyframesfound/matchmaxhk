@@ -627,7 +627,7 @@ function JoinPage() {
                     />
                   </Field>
                   <Field
-                    label="Anything else, or who referred you?"
+                    label="Anything else?"
                     error={errors["notes"]}
                     className="sm:col-span-2 lg:col-span-3"
                   >
@@ -635,7 +635,7 @@ function JoinPage() {
                       rows={3}
                       value={form.notes}
                       onChange={(e) => set("notes")(e.target.value)}
-                      placeholder="Referred by Michelle Ho; available weekday evenings only"
+                      placeholder="Available weekday evenings only? ; Can only take students in certain districts? ; Prefer to teach certain subjects?"
                     />
                   </Field>
                 </div>
