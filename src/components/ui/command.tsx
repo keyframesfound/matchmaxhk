@@ -1,5 +1,7 @@
 "use client";
 
+/** MatchMax selector system: compact search and result rows tuned for tactile dropdown overlays. */
+
 import * as React from "react";
 import { type DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
@@ -15,7 +17,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
+      "flex h-full w-full flex-col overflow-hidden rounded-xl bg-popover text-popover-foreground",
       className,
     )}
     {...props}
@@ -38,38 +40,54 @@ const CommandDialog = ({ children, ...props }: DialogProps) => {
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, onValueChange, ...props }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & { onChange?: React.ChangeEventHandler<HTMLInputElement> }, ref) => {
-  const onChange = (props as { onChange?: React.ChangeEventHandler<HTMLInputElement> }).onChange;
-  delete (props as { onChange?: unknown }).onChange;
-  const resetListScroll = React.useCallback((input: HTMLInputElement | null) => {
-    const list = input?.closest("[cmdk-root]")?.querySelector<HTMLElement>("[cmdk-list]");
-    if (list) {
-      list.scrollTop = 0;
-    }
-  }, []);
+>(
+  (
+    {
+      className,
+      onValueChange,
+      ...props
+    }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
+      onChange?: React.ChangeEventHandler<HTMLInputElement>;
+    },
+    ref,
+  ) => {
+    const onChange = (props as { onChange?: React.ChangeEventHandler<HTMLInputElement> }).onChange;
+    delete (props as { onChange?: unknown }).onChange;
+    const resetListScroll = React.useCallback((input: HTMLInputElement | null) => {
+      const list = input?.closest("[cmdk-root]")?.querySelector<HTMLElement>("[cmdk-list]");
+      if (list) {
+        list.scrollTop = 0;
+      }
+    }, []);
 
-  return (
-    <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-      <CommandPrimitive.Input
-        ref={ref}
-        className={cn(
-          "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
-          className,
-        )}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          resetListScroll(event.currentTarget);
-          (onChange as ((e: React.ChangeEvent<HTMLInputElement>) => void) | undefined)?.(event);
-        }}
-        onValueChange={(value) => {
-          resetListScroll(document.activeElement instanceof HTMLInputElement ? document.activeElement : null);
-          onValueChange?.(value);
-        }}
-        {...props}
-      />
-    </div>
-  );
-});
+    return (
+      <div
+        className="m-2 flex items-center rounded-lg border border-[#041344]/10 bg-[#F7FBFC] px-3 transition-[border-color,box-shadow,background-color] focus-within:border-[#1FA8B6] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#77E8EE]/25"
+        cmdk-input-wrapper=""
+      >
+        <Search className="mr-2 h-4 w-4 shrink-0 text-[#041344]/45" />
+        <CommandPrimitive.Input
+          ref={ref}
+          className={cn(
+            "flex h-10 w-full rounded-md bg-transparent py-3 text-sm font-medium text-[#041344] outline-none placeholder:text-[#041344]/45 disabled:cursor-not-allowed disabled:opacity-50",
+            className,
+          )}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            resetListScroll(event.currentTarget);
+            (onChange as ((e: React.ChangeEvent<HTMLInputElement>) => void) | undefined)?.(event);
+          }}
+          onValueChange={(value) => {
+            resetListScroll(
+              document.activeElement instanceof HTMLInputElement ? document.activeElement : null,
+            );
+            onValueChange?.(value);
+          }}
+          {...props}
+        />
+      </div>
+    );
+  },
+);
 
 CommandInput.displayName = CommandPrimitive.Input.displayName;
 
@@ -102,7 +120,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
+      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted-foreground",
       className,
     )}
     {...props}
@@ -130,7 +148,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+      "relative flex min-h-10 cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#041344] outline-none transition-colors data-[disabled=true]:pointer-events-none data-[selected=true]:bg-[#77E8EE]/25 data-[selected=true]:text-[#041344] data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       className,
     )}
     {...props}

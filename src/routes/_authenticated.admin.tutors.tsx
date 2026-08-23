@@ -682,20 +682,22 @@ function AdminTutors() {
                         />
                       </Field>
                       <Field label="Gender" error={errors.gender}>
-                        <select
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        <SearchableSelect
                           value={form.gender}
-                          onChange={(e) =>
+                          onChange={(gender) =>
                             setForm({
                               ...form,
-                              gender: e.target.value as "male" | "female" | "other",
+                              gender: gender as "male" | "female" | "other",
                             })
                           }
-                        >
-                          <option value="female">Female</option>
-                          <option value="male">Male</option>
-                          <option value="other">Other</option>
-                        </select>
+                          options={[
+                            { value: "female", label: "Female" },
+                            { value: "male", label: "Male" },
+                            { value: "other", label: "Other" },
+                          ]}
+                          placeholder="Select gender"
+                          searchPlaceholder="Search gender…"
+                        />
                       </Field>
                     </div>
                     <Field label="Headline" error={errors.headline}>
