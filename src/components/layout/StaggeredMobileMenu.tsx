@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { gsap } from "gsap";
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 import "./StaggeredMobileMenu.css";
 
@@ -160,12 +161,6 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
 
   return (
     <div className="staggered-mobile-menu lg:hidden" data-open={open || undefined}>
-      <div ref={layersRef} className="smm-prelayers" aria-hidden="true">
-        {LAYER_COLORS.map((color) => (
-          <div key={color} className="smm-prelayer" style={{ backgroundColor: color }} />
-        ))}
-      </div>
-
       <button
         ref={toggleRef}
         className="smm-toggle"
@@ -182,51 +177,63 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
         </span>
       </button>
 
-      <aside id={panelId} ref={panelRef} className="smm-panel" aria-hidden={!open}>
-        <div className="smm-panel-header">
-          <Link to="/" className="smm-brand" aria-label="MatchMax home" onClick={() => closeMenu()}>
-            <img src="/matchmax-logo.png" alt="" width={32} height={32} />
-            <span>MatchMax</span>
-          </Link>
-        </div>
-
-        <div className="smm-panel-content">
-          <nav aria-label="Mobile navigation">
-            <ol className="smm-menu-list">
-              {items.map((item) => (
-                <li key={item.to} className="smm-menu-item">
-                  <Link to={item.to} aria-label={item.ariaLabel} onClick={() => closeMenu()}>
-                    <span className="smm-item-label">{item.label}</span>
-                  </Link>
-                </li>
+      {typeof document !== "undefined" &&
+        createPortal(
+          <>
+            <div ref={layersRef} className="smm-prelayers" aria-hidden="true">
+              {LAYER_COLORS.map((color) => (
+                <div key={color} className="smm-prelayer" style={{ backgroundColor: color }} />
               ))}
-            </ol>
-          </nav>
+            </div>
 
-          <div className="smm-footer-controls">{renderFooter?.(() => closeMenu())}</div>
+            <aside id={panelId} ref={panelRef} className="smm-panel" aria-hidden={!open}>
+              <div className="smm-panel-header">
+                <Link to="/" className="smm-brand" aria-label="MatchMax home" onClick={() => closeMenu()}>
+                  <img src="/matchmax-logo.png" alt="" width={32} height={32} />
+                  <span>MatchMax</span>
+                </Link>
+              </div>
 
-          <div className="smm-socials" aria-label="MatchMax social links">
-            <h2 className="smm-socials-title">Connect</h2>
-            <ul>
-              {socialItems.map((item) => {
-                const isExternal = item.link.startsWith("http");
-                return (
-                  <li key={item.link}>
-                    <a
-                      className="smm-social-link"
-                      href={item.link}
-                      target={isExternal ? "_blank" : undefined}
-                      rel={isExternal ? "noopener noreferrer" : undefined}
-                    >
-                      {item.label}
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </div>
-      </aside>
+              <div className="smm-panel-content">
+                <nav aria-label="Mobile navigation">
+                  <ol className="smm-menu-list">
+                    {items.map((item) => (
+                      <li key={item.to} className="smm-menu-item">
+                        <Link to={item.to} aria-label={item.ariaLabel} onClick={() => closeMenu()}>
+                          <span className="smm-item-label">{item.label}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
+
+                <div className="smm-footer-controls">{renderFooter?.(() => closeMenu())}</div>
+
+                <div className="smm-socials" aria-label="MatchMax social links">
+                  <h2 className="smm-socials-title">Connect</h2>
+                  <ul>
+                    {socialItems.map((item) => {
+                      const isExternal = item.link.startsWith("http");
+                      return (
+                        <li key={item.link}>
+                          <a
+                            className="smm-social-link"
+                            href={item.link}
+                            target={isExternal ? "_blank" : undefined}
+                            rel={isExternal ? "noopener noreferrer" : undefined}
+                          >
+                            {item.label}
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </div>
+            </aside>
+          </>,
+          document.body,
+        )}
     </div>
   );
 }
