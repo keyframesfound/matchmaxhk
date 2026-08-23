@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, Loader2, Paperclip } from "lucide-react";
+import { CheckCircle2, Loader2, Paperclip, ArrowLeft } from "lucide-react";
 
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
+import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -114,32 +114,23 @@ function toBase64(file: File): Promise<string> {
   });
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
-      <h2 className="text-sm font-black uppercase tracking-wider text-[color:var(--brand-navy)]">
-        {title}
-      </h2>
-      <div className="mt-5 grid gap-5">{children}</div>
-    </section>
-  );
-}
-
 function Field({
   label,
   required,
   hint,
   error,
+  className,
   children,
 }: {
   label: string;
   required?: boolean;
   hint?: string;
   error?: string;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-2">
+    <div className={cn("grid gap-2", className)}>
       <Label className="text-sm font-semibold text-foreground">
         {label}
         {required ? <span className="ml-1 text-destructive">*</span> : null}
@@ -279,351 +270,354 @@ function JoinPage() {
     }
   }
 
-  return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
-      <main className="flex-1">
-        <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-          {done ? (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-              <CheckCircle2 className="mx-auto h-10 w-10 text-[color:var(--brand-teal)]" />
-              <h1 className="mt-4 text-2xl font-black tracking-tight text-[color:var(--brand-navy)]">
-                Application received
-              </h1>
-              <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-                Thanks for applying to MatchMax. Our team reviews every application and will
-                contact you by email or WhatsApp if there is a suitable case.
-              </p>
-              <div className="mt-6 flex justify-center gap-3">
-                <Button asChild className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]">
-                  <Link to="/">Back to home</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/tutors">Browse tutors</Link>
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <header className="mb-8">
-                <p className="text-xs font-bold uppercase tracking-widest text-[color:var(--brand-teal)]">
-                  Tutor recruitment
-                </p>
-                <h1 className="mt-2 text-3xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-4xl">
-                  MatchMax tutor application
-                </h1>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  Tell us about your academic background, teaching experience and availability.
-                  The more detail you give, the faster we can match you with the right students.
-                  Your information is used for tutor recruitment and matching only.
-                </p>
-                <details className="mt-4 rounded-xl border border-border bg-muted/40 p-4 text-sm">
-                  <summary className="cursor-pointer font-semibold text-[color:var(--brand-navy)]">
-                    Sample tutor profile
-                  </summary>
-                  <div className="mt-3 space-y-1 text-muted-foreground">
-                    <p>Jayden Lau — HKU, BBA (Law) Year 2</p>
-                    <p>Diocesan Boys&apos; School, 2023 — IBDP 43/45</p>
-                    <p>
-                      Teaches: History HL (7), Economics HL (7), Business Management HL (7),
-                      Chemistry SL (7)
-                    </p>
-                    <p>2 years of tutoring, HKD 450/hour, face to face or online, English &amp; Cantonese</p>
-                  </div>
-                </details>
-              </header>
-
-              <form onSubmit={handleSubmit} className="grid gap-6">
-                <Section title="About you">
-                  <Field label="Name" required error={errors["name"]}>
-                    <Input
-                      value={form.name}
-                      onChange={(e) => set("name")(e.target.value)}
-                      placeholder="Jayden Lau"
-                    />
-                  </Field>
-                  <Field label="Contact number / WhatsApp" required error={errors["phone"]}>
-                    <Input
-                      value={form.phone}
-                      onChange={(e) => set("phone")(e.target.value)}
-                      placeholder="+852 9123 4567"
-                    />
-                  </Field>
-                  <Field label="Email address" required error={errors["email"]}>
-                    <Input
-                      type="email"
-                      value={form.email}
-                      onChange={(e) => set("email")(e.target.value)}
-                      placeholder="jayden.lau@example.com"
-                    />
-                  </Field>
-                  <Field label="Earliest start date" error={errors["startDate"]}>
-                    <Input
-                      type="date"
-                      value={form.startDate}
-                      onChange={(e) => set("startDate")(e.target.value)}
-                      placeholder="2026-09-01"
-                    />
-                  </Field>
-                  <Field
-                    label="Current status"
-                    required
-                    hint="Choose the option that best describes you right now."
-                    error={errors["status"]}
-                  >
-                    <RadioGroupField
-                      name="status"
-                      options={STATUS_OPTIONS}
-                      value={form.status}
-                      onChange={set("status")}
-                    />
-                    {form.status === "Other" ? (
-                      <Input
-                        className="mt-2"
-                        value={form.statusOther}
-                        onChange={(e) => set("statusOther")(e.target.value)}
-                        placeholder="Gap year, working full-time in finance"
-                      />
-                    ) : null}
-                  </Field>
-                </Section>
-
-                <Section title="Education">
-                  <Field label="Current university / institution" error={errors["university"]}>
-                    <Input
-                      value={form.university}
-                      onChange={(e) => set("university")(e.target.value)}
-                      placeholder="The University of Hong Kong"
-                    />
-                  </Field>
-                  <Field label="Degree / programme" error={errors["programme"]}>
-                    <Input
-                      value={form.programme}
-                      onChange={(e) => set("programme")(e.target.value)}
-                      placeholder="BBA (Law), Year 2"
-                    />
-                  </Field>
-                  <Field label="High school and graduation year" required error={errors["highSchool"]}>
-                    <Input
-                      value={form.highSchool}
-                      onChange={(e) => set("highSchool")(e.target.value)}
-                      placeholder="Diocesan Boys' School, 2023"
-                    />
-                  </Field>
-                  <Field label="Curriculum completed" required error={errors["curriculum"]}>
-                    <RadioGroupField
-                      name="curriculum"
-                      options={CURRICULUM_OPTIONS}
-                      value={form.curriculum}
-                      onChange={set("curriculum")}
-                    />
-                    {form.curriculum === "Other" ? (
-                      <Input
-                        className="mt-2"
-                        value={form.curriculumOther}
-                        onChange={(e) => set("curriculumOther")(e.target.value)}
-                        placeholder="HKDSE / GCSE / IGCSE"
-                      />
-                    ) : null}
-                  </Field>
-                  <Field
-                    label="Overall achieved score in your high school qualification"
-                    required
-                    error={errors["overallScore"]}
-                  >
-                    <Input
-                      value={form.overallScore}
-                      onChange={(e) => set("overallScore")(e.target.value)}
-                      placeholder="IB 43/45"
-                    />
-                  </Field>
-                </Section>
-
-                <Section title="Teaching">
-                  <Field
-                    label="Subjects and levels you are confident teaching"
-                    required
-                    error={errors["subjectsConfident"]}
-                  >
-                    <Textarea
-                      rows={3}
-                      value={form.subjectsConfident}
-                      onChange={(e) => set("subjectsConfident")(e.target.value)}
-                      placeholder="History HL, Economics HL, Business Management HL, Chemistry SL"
-                    />
-                  </Field>
-                  <Field
-                    label="Relevant subject results / academic strengths"
-                    required
-                    error={errors["subjectResults"]}
-                  >
-                    <Textarea
-                      rows={3}
-                      value={form.subjectResults}
-                      onChange={(e) => set("subjectResults")(e.target.value)}
-                      placeholder="History HL 7, Economics HL 7, EE in History grade A"
-                    />
-                  </Field>
-                  <Field label="Awards, scholarships or notable achievements" error={errors["awards"]}>
-                    <Textarea
-                      rows={3}
-                      value={form.awards}
-                      onChange={(e) => set("awards")(e.target.value)}
-                      placeholder="HKU Foundation Entrance Scholarship 2023; HK Economics Olympiad gold"
-                    />
-                  </Field>
-                  <Field label="Teaching / tutoring experience" required error={errors["experience"]}>
-                    <Textarea
-                      rows={4}
-                      value={form.experience}
-                      onChange={(e) => set("experience")(e.target.value)}
-                      placeholder="2 years of 1-on-1 IB tutoring (6 students); 1 year of small-group DSE English"
-                    />
-                  </Field>
-                  <Field label="Normal hourly rate (HKD)" required error={errors["hourlyRate"]}>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={form.hourlyRate}
-                      onChange={(e) => set("hourlyRate")(e.target.value)}
-                      placeholder="450"
-                    />
-                  </Field>
-                  <Field
-                    label="Do you have your own teaching materials or resources?"
-                    required
-                    error={errors["materials"]}
-                  >
-                    <RadioGroupField
-                      name="materials"
-                      options={MATERIALS_OPTIONS}
-                      value={form.materials}
-                      onChange={set("materials")}
-                    />
-                  </Field>
-                  <Field label="Preferred tutoring format" required error={errors["format"]}>
-                    <RadioGroupField
-                      name="format"
-                      options={FORMAT_OPTIONS}
-                      value={form.format}
-                      onChange={set("format")}
-                    />
-                  </Field>
-                  <Field label="Maximum number of students you can take" error={errors["maxStudents"]}>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={form.maxStudents}
-                      onChange={(e) => set("maxStudents")(e.target.value)}
-                      placeholder="4"
-                    />
-                  </Field>
-                  <Field label="Preferred teaching location(s) if in-person" error={errors["locations"]}>
-                    <Input
-                      value={form.locations}
-                      onChange={(e) => set("locations")(e.target.value)}
-                      placeholder="Causeway Bay, Wan Chai, Kowloon Tong"
-                    />
-                  </Field>
-                  <Field label="Preferred medium of instruction" required error={errors["medium"]}>
-                    <Input
-                      value={form.medium}
-                      onChange={(e) => set("medium")(e.target.value)}
-                      placeholder="English / Cantonese"
-                    />
-                  </Field>
-                  <Field label="Anything else, or who referred you?" error={errors["notes"]}>
-                    <Textarea
-                      rows={3}
-                      value={form.notes}
-                      onChange={(e) => set("notes")(e.target.value)}
-                      placeholder="Referred by Michelle Ho; available weekday evenings only"
-                    />
-                  </Field>
-                </Section>
-
-                <Section title="Proof of results">
-                  <Field
-                    label="Academic transcript / proof of results"
-                    required
-                    hint={`Up to ${MAX_FILES} files, 10 MB each (PDF, JPG, PNG, DOC or DOCX).`}
-                    error={errors["attachments"]}
-                  >
-                    <Input
-                      type="file"
-                      multiple
-                      accept={ACCEPT_ATTRIBUTE}
-                      onChange={(e) => handleFiles(e.target.files)}
-                    />
-                    {files.length > 0 ? (
-                      <ul className="mt-2 grid gap-1 text-xs text-muted-foreground">
-                        {files.map((file) => (
-                          <li key={file.name} className="flex items-center gap-2">
-                            <Paperclip className="h-3 w-3" />
-                            {file.name} ({Math.round(file.size / 1024)} KB)
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </Field>
-                </Section>
-
-                <Section title="Acknowledgements">
-                  <label className="flex items-start gap-3 text-sm leading-relaxed text-muted-foreground">
-                    <Checkbox
-                      checked={commissionAck}
-                      onCheckedChange={(checked) => setCommissionAck(checked === true)}
-                      className="mt-0.5"
-                    />
-                    <span>{COMMISSION_TEXT}</span>
-                  </label>
-                  {errors["commissionAck"] ? (
-                    <p className="text-xs font-medium text-destructive">
-                      Please accept the commission terms.
-                    </p>
-                  ) : null}
-                  <label className="flex items-start gap-3 text-sm leading-relaxed text-muted-foreground">
-                    <Checkbox
-                      checked={privacyAck}
-                      onCheckedChange={(checked) => setPrivacyAck(checked === true)}
-                      className="mt-0.5"
-                    />
-                    <span>{PRIVACY_TEXT}</span>
-                  </label>
-                  {errors["privacyAck"] ? (
-                    <p className="text-xs font-medium text-destructive">
-                      Please accept the privacy notice.
-                    </p>
-                  ) : null}
-                </Section>
-
-                {formError ? (
-                  <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
-                    {formError}
-                  </p>
-                ) : null}
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={submitting}
-                  className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending…
-                    </>
-                  ) : (
-                    "Submit application"
-                  )}
-                </Button>
-              </form>
-            </>
-          )}
+  if (done) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="w-full max-w-md text-center">
+          <CheckCircle2 className="mx-auto h-12 w-12 text-[color:var(--brand-teal)]" />
+          <h1 className="mt-4 text-2xl font-black tracking-tight text-[color:var(--brand-navy)]">
+            Application received
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Thanks for applying to MatchMax. Our team reviews every application and will contact
+            you by email or WhatsApp if there is a suitable case.
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Button asChild className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]">
+              <Link to="/">Back to home</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/tutors">Browse tutors</Link>
+            </Button>
+          </div>
         </div>
-      </main>
-      <SiteFooter />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex h-14 max-w-5xl items-center px-4">
+          <Button asChild variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+            <Link to="/">
+              <ArrowLeft className="h-4 w-4" />
+              Back to MatchMax
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+        <form onSubmit={handleSubmit} className="grid gap-8">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <Field label="Name" required error={errors["name"]}>
+              <Input
+                value={form.name}
+                onChange={(e) => set("name")(e.target.value)}
+                placeholder="Jayden Lau"
+              />
+            </Field>
+            <Field label="Contact number / WhatsApp" required error={errors["phone"]}>
+              <Input
+                value={form.phone}
+                onChange={(e) => set("phone")(e.target.value)}
+                placeholder="+852 9123 4567"
+              />
+            </Field>
+            <Field label="Email address" required error={errors["email"]}>
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) => set("email")(e.target.value)}
+                placeholder="jayden.lau@example.com"
+              />
+            </Field>
+            <Field label="Earliest start date" error={errors["startDate"]}>
+              <Input
+                type="date"
+                value={form.startDate}
+                onChange={(e) => set("startDate")(e.target.value)}
+              />
+            </Field>
+            <Field
+              label="Current status"
+              required
+              hint="Choose the option that best describes you right now."
+              error={errors["status"]}
+              className="sm:col-span-2"
+            >
+              <RadioGroupField
+                name="status"
+                options={STATUS_OPTIONS}
+                value={form.status}
+                onChange={set("status")}
+              />
+              {form.status === "Other" ? (
+                <Input
+                  className="mt-2"
+                  value={form.statusOther}
+                  onChange={(e) => set("statusOther")(e.target.value)}
+                  placeholder="Gap year, working full-time in finance"
+                />
+              ) : null}
+            </Field>
+          </div>
+
+          <hr className="border-border" />
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <Field label="Current university / institution" error={errors["university"]}>
+              <Input
+                value={form.university}
+                onChange={(e) => set("university")(e.target.value)}
+                placeholder="The University of Hong Kong"
+              />
+            </Field>
+            <Field label="Degree / programme" error={errors["programme"]}>
+              <Input
+                value={form.programme}
+                onChange={(e) => set("programme")(e.target.value)}
+                placeholder="BBA (Law), Year 2"
+              />
+            </Field>
+            <Field label="High school and graduation year" required error={errors["highSchool"]}>
+              <Input
+                value={form.highSchool}
+                onChange={(e) => set("highSchool")(e.target.value)}
+                placeholder="Diocesan Boys' School, 2023"
+              />
+            </Field>
+            <Field label="Curriculum completed" required error={errors["curriculum"]}>
+              <RadioGroupField
+                name="curriculum"
+                options={CURRICULUM_OPTIONS}
+                value={form.curriculum}
+                onChange={set("curriculum")}
+              />
+              {form.curriculum === "Other" ? (
+                <Input
+                  className="mt-2"
+                  value={form.curriculumOther}
+                  onChange={(e) => set("curriculumOther")(e.target.value)}
+                  placeholder="HKDSE / GCSE / IGCSE"
+                />
+              ) : null}
+            </Field>
+            <Field
+              label="Overall achieved score in your high school qualification"
+              required
+              error={errors["overallScore"]}
+              className="sm:col-span-2"
+            >
+              <Input
+                value={form.overallScore}
+                onChange={(e) => set("overallScore")(e.target.value)}
+                placeholder="IB 43/45"
+              />
+            </Field>
+          </div>
+
+          <hr className="border-border" />
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <Field
+              label="Subjects and levels you are confident teaching"
+              required
+              error={errors["subjectsConfident"]}
+              className="sm:col-span-2"
+            >
+              <Textarea
+                rows={3}
+                value={form.subjectsConfident}
+                onChange={(e) => set("subjectsConfident")(e.target.value)}
+                placeholder="History HL, Economics HL, Business Management HL, Chemistry SL"
+              />
+            </Field>
+            <Field
+              label="Relevant subject results / academic strengths"
+              required
+              error={errors["subjectResults"]}
+              className="sm:col-span-2"
+            >
+              <Textarea
+                rows={3}
+                value={form.subjectResults}
+                onChange={(e) => set("subjectResults")(e.target.value)}
+                placeholder="History HL 7, Economics HL 7, EE in History grade A"
+              />
+            </Field>
+            <Field
+              label="Awards, scholarships or notable achievements"
+              error={errors["awards"]}
+              className="sm:col-span-2"
+            >
+              <Textarea
+                rows={3}
+                value={form.awards}
+                onChange={(e) => set("awards")(e.target.value)}
+                placeholder="HKU Foundation Entrance Scholarship 2023; HK Economics Olympiad gold"
+              />
+            </Field>
+            <Field
+              label="Teaching / tutoring experience"
+              required
+              error={errors["experience"]}
+              className="sm:col-span-2 lg:col-span-3"
+            >
+              <Textarea
+                rows={4}
+                value={form.experience}
+                onChange={(e) => set("experience")(e.target.value)}
+                placeholder="2 years of 1-on-1 IB tutoring (6 students); 1 year of small-group DSE English"
+              />
+            </Field>
+            <Field label="Normal hourly rate (HKD)" required error={errors["hourlyRate"]}>
+              <Input
+                type="number"
+                min={0}
+                value={form.hourlyRate}
+                onChange={(e) => set("hourlyRate")(e.target.value)}
+                placeholder="450"
+              />
+            </Field>
+            <Field
+              label="Do you have your own teaching materials or resources?"
+              required
+              error={errors["materials"]}
+            >
+              <RadioGroupField
+                name="materials"
+                options={MATERIALS_OPTIONS}
+                value={form.materials}
+                onChange={set("materials")}
+              />
+            </Field>
+            <Field label="Preferred tutoring format" required error={errors["format"]}>
+              <RadioGroupField
+                name="format"
+                options={FORMAT_OPTIONS}
+                value={form.format}
+                onChange={set("format")}
+              />
+            </Field>
+            <Field label="Maximum number of students you can take" error={errors["maxStudents"]}>
+              <Input
+                type="number"
+                min={0}
+                value={form.maxStudents}
+                onChange={(e) => set("maxStudents")(e.target.value)}
+                placeholder="4"
+              />
+            </Field>
+            <Field label="Preferred teaching location(s) if in-person" error={errors["locations"]}>
+              <Input
+                value={form.locations}
+                onChange={(e) => set("locations")(e.target.value)}
+                placeholder="Causeway Bay, Wan Chai, Kowloon Tong"
+              />
+            </Field>
+            <Field label="Preferred medium of instruction" required error={errors["medium"]}>
+              <Input
+                value={form.medium}
+                onChange={(e) => set("medium")(e.target.value)}
+                placeholder="English / Cantonese"
+              />
+            </Field>
+            <Field
+              label="Anything else, or who referred you?"
+              error={errors["notes"]}
+              className="sm:col-span-2 lg:col-span-3"
+            >
+              <Textarea
+                rows={3}
+                value={form.notes}
+                onChange={(e) => set("notes")(e.target.value)}
+                placeholder="Referred by Michelle Ho; available weekday evenings only"
+              />
+            </Field>
+          </div>
+
+          <hr className="border-border" />
+
+          <div className="grid gap-6 sm:grid-cols-2">
+            <Field
+              label="Academic transcript / proof of results"
+              required
+              hint={`Up to ${MAX_FILES} files, 10 MB each (PDF, JPG, PNG, DOC or DOCX).`}
+              error={errors["attachments"]}
+            >
+              <Input
+                type="file"
+                multiple
+                accept={ACCEPT_ATTRIBUTE}
+                onChange={(e) => handleFiles(e.target.files)}
+              />
+              {files.length > 0 ? (
+                <ul className="mt-2 grid gap-1 text-xs text-muted-foreground">
+                  {files.map((file) => (
+                    <li key={file.name} className="flex items-center gap-2">
+                      <Paperclip className="h-3 w-3" />
+                      {file.name} ({Math.round(file.size / 1024)} KB)
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </Field>
+
+            <div className="grid gap-4">
+              <label className="flex items-start gap-3 text-sm leading-relaxed text-muted-foreground">
+                <Checkbox
+                  checked={commissionAck}
+                  onCheckedChange={(checked) => setCommissionAck(checked === true)}
+                  className="mt-0.5"
+                />
+                <span>{COMMISSION_TEXT}</span>
+              </label>
+              {errors["commissionAck"] ? (
+                <p className="text-xs font-medium text-destructive">
+                  Please accept the commission terms.
+                </p>
+              ) : null}
+              <label className="flex items-start gap-3 text-sm leading-relaxed text-muted-foreground">
+                <Checkbox
+                  checked={privacyAck}
+                  onCheckedChange={(checked) => setPrivacyAck(checked === true)}
+                  className="mt-0.5"
+                />
+                <span>{PRIVACY_TEXT}</span>
+              </label>
+              {errors["privacyAck"] ? (
+                <p className="text-xs font-medium text-destructive">
+                  Please accept the privacy notice.
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          {formError ? (
+            <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
+              {formError}
+            </p>
+          ) : null}
+
+          <Button
+            type="submit"
+            size="lg"
+            disabled={submitting}
+            className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending…
+              </>
+            ) : (
+              "Submit application"
+            )}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
