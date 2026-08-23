@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 // Custom SVG since Lucide doesn't include brand icons
@@ -16,6 +17,7 @@ function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export function WhatsAppFloatButton() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { data: whatsappNumber = "" } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
     queryFn: async () => {
@@ -33,7 +35,7 @@ export function WhatsAppFloatButton() {
   });
 
   const digits = whatsappNumber.replace(/[^\d]/g, "");
-  if (!digits) return null;
+  if (pathname === "/join" || !digits) return null;
 
   const message = "Hi MatchMax, I need support.";
   const href = `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
