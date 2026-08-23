@@ -107,10 +107,10 @@ const initialState: FormState = {
 };
 
 const STEP_TITLES = [
-  "Contact details",
-  "Academic profile",
-  "Teaching profile",
-  "Availability & consent",
+  "Contact",
+  "Academic",
+  "Teaching",
+  "Consent",
 ] as const;
 
 const STEP_FIELD_KEYS: ReadonlyArray<readonly string[]> = [
