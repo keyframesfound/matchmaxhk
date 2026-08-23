@@ -386,16 +386,17 @@ function JoinPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
+      <MobileScrollProgress />
       <main className="flex-1">
-        <section className="bg-[color:var(--brand-navy)] py-14 text-white sm:py-20">
+        <section className="pt-8 sm:pt-12">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <h1 className="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
+            <h1 className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-4xl lg:text-5xl">
               {t("join.title")}
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/80 sm:text-lg">
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
               {t("join.subtitle")}
             </p>
-            <p className="mt-4 max-w-2xl text-sm text-white/70">{t("join.consent")}</p>
+            <p className="mt-4 max-w-2xl text-sm text-muted-foreground">{t("join.consent")}</p>
           </div>
         </section>
 
