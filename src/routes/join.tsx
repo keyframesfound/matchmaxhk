@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
@@ -317,6 +317,7 @@ function JoinPage() {
   const [done, setDone] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isStepperPinned, setIsStepperPinned] = useState(false);
+  const previousStepRef = useRef(currentStep);
 
   useEffect(() => {
     const updateStickyState = () => {
@@ -334,6 +335,34 @@ function JoinPage() {
       window.removeEventListener("resize", updateStickyState);
     };
   }, []);
+
+  useEffect(() => {
+    if (previousStepRef.current === currentStep) return;
+    previousStepRef.current = currentStep;
+
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        const content = document.querySelector(".join-stepper-content");
+        if (!content) return;
+
+        const isMobile = window.matchMedia("(max-width: 639px)").matches;
+        const stickyProgress = document.querySelector(".join-stepper-progress");
+        const siteHeader = document.querySelector(".join-site-header");
+        const offset = isMobile
+          ? (stickyProgress?.getBoundingClientRect().height ?? 0) + 16
+          : (siteHeader?.getBoundingClientRect().height ?? 0) + 24;
+        const nextTop = content.getBoundingClientRect().top + window.scrollY - offset;
+
+        window.scrollTo({ top: Math.max(0, nextTop), behavior: "smooth" });
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      if (secondFrame) window.cancelAnimationFrame(secondFrame);
+    };
+  }, [currentStep]);
 
   const set = (key: keyof FormState) => (value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -482,6 +511,7 @@ function JoinPage() {
                 className={cn("join-stepper", isStepperPinned && "join-stepper--pinned")}
                 stepContainerClassName="join-stepper-progress"
                 footerClassName="join-stepper-mobile-footer"
+                contentClassName="join-stepper-content"
                 currentStep={currentStep}
                 initialStep={1}
                 onStepChange={handleStepChange}
