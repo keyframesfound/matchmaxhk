@@ -154,12 +154,14 @@ export function PublicTutorCard({
       </div>
 
       <div className="flex flex-1 flex-col px-3 pt-2.5 pb-3.5 md:px-4 md:pt-3 md:pb-5">
-        <h3 className="text-[11px] font-bold tracking-tight text-[color:var(--brand-navy)] md:text-[13px]">Subject Taught</h3>
+        <h3 className="text-[11px] font-bold tracking-tight text-[color:var(--brand-navy)] md:text-[13px]">
+          Subject Taught
+        </h3>
         <div className="mt-1.5 flex min-h-[3.25rem] flex-wrap content-start gap-1.5 md:min-h-[4.25rem] md:gap-2">
           {chips.map(({ subject, grade }) => (
             <span
               key={subject}
-              className="rounded-full bg-[color:var(--brand-teal)]/12 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--brand-navy)] md:px-3 md:py-1 md:text-[12px]"
+              className="rounded-[2px] bg-[color:var(--brand-teal)]/12 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--brand-navy)] md:px-3 md:py-1 md:text-[12px]"
             >
               {(() => {
                 const { prefix, value } = splitGradeLabel(grade);
@@ -175,7 +177,7 @@ export function PublicTutorCard({
             </span>
           ))}
           {extraCount > 0 ? (
-            <span className="rounded-full bg-[color:var(--brand-teal)]/12 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--brand-navy)] md:px-3 md:py-1 md:text-[12px]">
+            <span className="rounded-[2px] bg-[color:var(--brand-teal)]/12 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--brand-navy)] md:px-3 md:py-1 md:text-[12px]">
               +{extraCount}
             </span>
           ) : null}
