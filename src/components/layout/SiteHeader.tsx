@@ -51,25 +51,25 @@ export function SiteHeader({ className }: { className?: string }) {
         </Link>
 
         <nav className="ml-12 hidden items-center gap-9 lg:flex">
-          <a href="/how-it-works" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]">
+          <a href="/how-it-works" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]">
             {t("How it works")}
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
           </a>
-          <Link to="/tutors" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]">
+          <Link to="/tutors" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]">
             {t("nav.find", { defaultValue: "Find" })}
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
           </Link>
-          <Link to="/consulting" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]">
+          <Link to="/consulting" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]">
             IB IA/EE/TOK Consult
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
           </Link>
-          <Link to="/join" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]">
+          <Link to="/join" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]">
             {t("tutors_cta.cta")}
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
           </Link>
-          <Link to="/faq" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#1FA8B6]">
+          <Link to="/faq" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]">
             Help Centre
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#1FA8B6] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
           </Link>
         </nav>
 
