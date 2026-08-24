@@ -299,9 +299,17 @@ function Landing() {
 
       {/* HERO SECTION */}
       <section className="hero-startup-bg relative overflow-hidden">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pt-10 pb-14 md:px-6 md:pt-20 md:pb-20 lg:grid-cols-2 lg:gap-16">
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(ellipse at top right, color-mix(in oklab, #2ED5DE 25%, transparent) 0%, transparent 55%), radial-gradient(ellipse at bottom left, color-mix(in oklab, #041344 15%, transparent) 0%, transparent 50%)",
+          }}
+        />
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col justify-center">
-            <h1 className="max-w-2xl text-4xl font-bold leading-[1.08] tracking-tight text-[color:var(--brand-navy)] sm:text-5xl md:text-6xl lg:text-6xl">
+            <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-5xl md:text-6xl lg:text-7xl">
               {t("hero.title_a")}
               <br />
               <span className="text-brand-gradient">{t("hero.title_b")}</span>
@@ -310,7 +318,7 @@ function Landing() {
               <Button
                 asChild
                 size="lg"
-                className="h-12 w-full rounded-md bg-[color:var(--brand-navy)] px-5 text-base font-semibold text-white transition-colors hover:bg-[color:var(--brand-royal)] focus-visible:ring-2 focus-visible:ring-[color:var(--brand-navy)] focus-visible:ring-offset-2 md:w-auto md:px-7"
+                className="h-12 w-full rounded-xl bg-[color:var(--brand-navy)] px-5 text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
               >
                 <Link
                   to="/tutors"
@@ -332,7 +340,9 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="relative rounded-sm border border-border bg-card p-2.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-2.5 sm:pb-4">
-              <p className="text-sm font-semibold text-[color:var(--brand-navy)]">Find a tutor</p>
+              <p className="text-xs font-black uppercase tracking-wide text-[color:var(--brand-teal)] sm:text-sm">
+                Find tutor
+              </p>
             </div>
 
             <div className="mt-2.5 grid gap-2 sm:gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
@@ -444,7 +454,7 @@ function Landing() {
                             rel="noreferrer"
                             onClick={(event) => event.stopPropagation()}
                           >
-                            Enquire
+                            Request tutor
                           </a>
                         </Button>
                       }
@@ -472,7 +482,7 @@ function Landing() {
                                   rel="noreferrer"
                                   onClick={(event) => event.stopPropagation()}
                                 >
-                                  Enquire
+                                  Request tutor
                                 </a>
                               </Button>
                             }
@@ -493,24 +503,25 @@ function Landing() {
       <section className="pb-12 md:pb-22">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <p className="text-xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
-            Plan your next step
+            Book for later
           </p>
 
           <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
-            <article className="consulting-reserve-card overflow-hidden rounded-md">
+            <article className="consulting-reserve-card overflow-hidden rounded-3xl md:rounded-sm">
               <div className="grid min-h-[430px] gap-0 md:min-h-[520px]">
                 <div className="flex flex-col justify-between gap-4 p-4 sm:p-6 md:p-10">
                   <div>
                     <h2 className="mt-2 max-w-xl text-xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-2xl md:mt-5 md:text-[2.75rem]">
-                      Get clear feedback on your IA, EE, or TOK draft
+                      Get your IA/EE/TOK reviewed by IB Top Scorers
                     </h2>
                     <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm md:mt-5 md:text-[1.04rem]">
-                      Choose detailed, offline comments on your draft, then use focused follow-up
-                      support to plan the next revision with confidence.
+                      Stop paying for expensive tutors just to read your drafts during lessons. You
+                      do not need someone watching you write. You need clear, line-by-line guidance
+                      and planning.
                     </p>
 
                     <div className="mt-4 grid gap-2.5 sm:mt-6 sm:grid-cols-2">
-                      <div className="rounded-md border border-border bg-white px-4 py-3">
+                      <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
                         <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                           Review format
                         </p>
@@ -521,7 +532,7 @@ function Landing() {
                           Rubric-linked notes with direct edits you can apply immediately.
                         </p>
                       </div>
-                      <div className="rounded-md border border-border bg-white px-4 py-3">
+                      <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
                         <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                           1-month mentorship
                         </p>
@@ -539,18 +550,18 @@ function Landing() {
                     <Button
                       asChild
                       size="lg"
-                      className="h-11 w-full rounded-md bg-[color:var(--brand-navy)] px-4 text-sm font-semibold text-white transition-colors hover:bg-[color:var(--brand-royal)] md:h-12 md:w-auto md:px-7"
+                      className="h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-12 md:w-auto md:rounded-sm md:px-8 md:text-base"
                     >
-                      <Link to="/consulting">View review options</Link>
+                      <Link to="/consulting">Explore consulting plans</Link>
                     </Button>
                   </div>
                 </div>
               </div>
             </article>
 
-            <aside className="rounded-md border border-border bg-card p-4 md:p-7">
+            <aside className="rounded-3xl border border-border bg-card p-4 shadow-[0_10px_24px_rgba(4,19,68,0.04)] md:rounded-sm md:p-7">
               <h3 className="text-xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
-                What is included
+                Benefits
               </h3>
               <div className="mt-3 divide-y divide-border/80 md:mt-5">
                 {[
@@ -560,7 +571,7 @@ function Landing() {
                   },
                   {
                     icon: Clock3,
-                    text: "Clarify comments and plan the next revision.",
+                    text: "Follow up on your draft.",
                   },
                   {
                     icon: BookOpen,
@@ -596,7 +607,7 @@ function Landing() {
               <Button
                 asChild
                 size="lg"
-                className="mt-5 h-11 w-full rounded-md bg-[color:var(--brand-navy)] px-4 text-sm font-semibold text-white transition-colors hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:px-7"
+                className="mt-5 h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
                 <Link to="/tutors">{t("how.cta_find")}</Link>
               </Button>
@@ -608,11 +619,11 @@ function Landing() {
 
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div>
-              <div className="overflow-hidden rounded-md border border-border bg-white">
+              <div className="overflow-hidden rounded-2xl bg-white">
                 <img
                   src="/tutor-matching-network.jpeg"
                   alt="Tutor and student matching network"
-                  className="h-auto w-full object-cover saturate-[.82]"
+                  className="h-auto w-full object-cover"
                   loading="lazy"
                 />
               </div>
@@ -627,7 +638,7 @@ function Landing() {
               <Button
                 asChild
                 size="lg"
-                className="mt-5 h-11 w-full rounded-md bg-[color:var(--brand-navy)] px-4 text-sm font-semibold text-white transition-colors hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:px-7"
+                className="mt-5 h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
                 <Link to="/join">{t("tutors_cta.cta")}</Link>
               </Button>

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { BookOpen, Monitor } from "lucide-react";
-import { getTutorLessonModeLabel, type Tutor } from "@/features/tutors/queries";
+import { BookOpen, UserRound } from "lucide-react";
+import { getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
 import { cn } from "@/lib/utils";
 
 export function formatTutorCode(code?: string | null) {
@@ -106,7 +106,7 @@ export function PublicTutorCard({
   return (
     <article
       className={cn(
-        "flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-md border border-[color:var(--brand-navy)]/12 bg-white shadow-sm transition-[border-color,box-shadow] duration-150 hover:border-[color:var(--brand-navy)]/30 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--brand-navy)] md:min-h-[25rem]",
+        "flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-white shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[25rem]",
         interactive && "cursor-pointer",
         className,
       )}
@@ -124,29 +124,29 @@ export function PublicTutorCard({
           : undefined
       }
     >
-      <div className="border-b border-[color:var(--brand-navy)]/10 bg-[#f4f7f9] px-3 pb-2.5 pt-2.5 md:px-4 md:pb-4 md:pt-4">
+      <div className="bg-[color:var(--brand-navy)] px-3 pb-2.5 pt-2.5 md:px-4 md:pb-4 md:pt-4">
         <div className="flex items-center gap-2.5 md:gap-4">
           {tutor.photo_url ? (
             <img
               src={tutor.photo_url}
               alt={tutor.tutor_code}
-              className="h-11 w-11 shrink-0 rounded-full border-2 border-white object-cover shadow-sm md:h-14 md:w-14"
+              className="h-11 w-11 shrink-0 rounded-full border-[3px] border-[color:var(--brand-teal)] object-cover shadow-sm md:h-14 md:w-14"
             />
           ) : (
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-white bg-[color:var(--brand-navy)] text-sm font-semibold text-white shadow-sm md:h-14 md:w-14 md:text-lg">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[3px] border-[color:var(--brand-teal)] bg-[color:var(--brand-teal)]/10 text-sm font-bold text-[color:var(--brand-teal)] shadow-sm md:h-14 md:w-14 md:text-lg">
               {getTutorInitials(tutor.tutor_code)}
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="text-lg font-bold tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
+            <p className="text-lg font-black tracking-tight text-white md:text-2xl">
               {formatTutorCode(tutor.tutor_code)}
             </p>
-            <p className="mt-0.5 line-clamp-2 min-h-[1.5rem] text-[10px] font-medium leading-tight text-muted-foreground md:min-h-[2rem] md:text-[12px]">
-              {tutor.university ?? tutor.highschool ?? "Education details on profile"}
+            <p className="mt-0.5 line-clamp-2 min-h-[1.5rem] text-[10px] font-semibold leading-tight text-white/95 md:min-h-[2rem] md:text-[12px]">
+              {tutor.university ?? tutor.highschool ?? "University - From Database"}
             </p>
           </div>
           {badgeLabel ? (
-            <span className="rounded-sm border border-[color:var(--brand-navy)]/15 bg-white px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wide text-[color:var(--brand-navy)] md:py-1 md:text-[10px]">
+            <span className="rounded-sm border border-white/20 bg-white/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white md:py-1 md:text-[10px]">
               {badgeLabel}
             </span>
           ) : null}
@@ -154,14 +154,12 @@ export function PublicTutorCard({
       </div>
 
       <div className="flex flex-1 flex-col px-3 pt-2.5 pb-3.5 md:px-4 md:pt-3 md:pb-5">
-        <h3 className="text-[11px] font-semibold tracking-tight text-[color:var(--brand-navy)] md:text-[13px]">
-          Subjects and results
-        </h3>
+        <h3 className="text-[11px] font-bold tracking-tight text-[color:var(--brand-navy)] md:text-[13px]">Subject Taught</h3>
         <div className="mt-1.5 flex min-h-[3.25rem] flex-wrap content-start gap-1.5 md:min-h-[4.25rem] md:gap-2">
           {chips.map(({ subject, grade }) => (
             <span
               key={subject}
-              className="rounded-sm border border-[color:var(--brand-teal)]/18 bg-[color:var(--brand-teal)]/8 px-2 py-0.5 text-[10px] font-medium text-[color:var(--brand-navy)] md:px-3 md:py-1 md:text-[12px]"
+              className="rounded-full bg-[color:var(--brand-teal)]/12 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--brand-navy)] md:px-3 md:py-1 md:text-[12px]"
             >
               {(() => {
                 const { prefix, value } = splitGradeLabel(grade);
@@ -183,14 +181,14 @@ export function PublicTutorCard({
           ) : null}
         </div>
 
-        <h3 className="mt-2 min-h-[3rem] line-clamp-3 text-[12px] font-semibold leading-snug tracking-tight text-[color:var(--brand-navy)] md:mt-3 md:min-h-[3.75rem] md:text-[14px]">
-          {tutor.headline ?? "Profile details are being updated."}
+        <h3 className="mt-2 min-h-[3rem] line-clamp-3 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--brand-navy)] md:mt-3 md:min-h-[3.75rem] md:text-[14px]">
+          {tutor.headline ?? "Experienced tutor matching students with tailored support"}
         </h3>
 
         <div className="mt-auto grid grid-cols-2 gap-2 border-t border-[color:var(--brand-teal)]/20 pt-2.5 md:pt-4">
           <div>
             <p className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground md:text-[11px]">
-              Best for
+              Target Student
             </p>
             <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold leading-tight text-[color:var(--brand-navy)] md:text-[13px]">
               <BookOpen className="h-3 w-3 text-[color:var(--brand-navy)] md:h-4 md:w-4" />
@@ -199,18 +197,18 @@ export function PublicTutorCard({
           </div>
           <div>
             <p className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground md:text-[11px]">
-              Lesson format
+              Gender
             </p>
             <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold leading-tight text-[color:var(--brand-navy)] md:text-[13px]">
-              <Monitor className="h-3 w-3 text-[color:var(--brand-navy)] md:h-4 md:w-4" />
-              {getTutorLessonModeLabel(tutor.lesson_mode)}
+              <UserRound className="h-3 w-3 text-[color:var(--brand-navy)] md:h-4 md:w-4" />
+              {getTutorGenderLabel(tutor.gender) || "Not specified"}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 border-t border-[color:var(--brand-navy)]/10 bg-[#fbfcfd] px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
-        <p className="text-xl font-bold leading-none tracking-tight text-[color:var(--brand-navy)] md:text-3xl">
+      <div className="flex items-center justify-between gap-2 border-t border-[color:var(--brand-teal)]/20 bg-white px-3 py-1.5 md:gap-3 md:px-4 md:py-2.5">
+        <p className="text-xl font-black leading-none tracking-tight text-[color:var(--brand-navy)] md:text-3xl">
           HK${tutor.hourly_rate}
           <span className="ml-1 text-[10px] font-semibold text-muted-foreground md:text-[13px]">
             {priceSuffix}
