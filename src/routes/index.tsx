@@ -340,7 +340,7 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="relative rounded-sm border border-border bg-card p-2.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-2.5 sm:pb-4">
-              <p className="text-xs font-black uppercase tracking-wide text-[color:var(--brand-teal)] sm:text-sm">
+              <p className="text-xs font-black uppercase tracking-wide text-[color:var(--brand-navy)] sm:text-sm">
                 Find tutor
               </p>
             </div>
