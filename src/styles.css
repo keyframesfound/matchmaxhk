@@ -70,31 +70,37 @@
 :root {
   --radius: 0.7rem;
   /* Uber Move is Uber's proprietary typeface; DM Sans is the web fallback. */
-  --font-sans: "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-heading: "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-body: "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans:
+    "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-heading:
+    "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-body:
+    "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
 
   /* Brand raw */
   --brand-navy: #041344;
-  --brand-royal: #0D47A1;
-  --brand-teal: #90CAF9;
-  --brand-cyan: #E3F2FD;
-  --brand-aqua: #77E8EE;
+  --brand-royal: #0d47a1;
+  --brand-teal: #90caf9;
+  --brand-cyan: #e3f2fd;
+  --brand-aqua: #77e8ee;
 
   /* Semantic — light theme */
   --background: oklch(1 0 0);
-  --foreground: oklch(0.16 0.09 265);           /* Deep navy */
+  --foreground: oklch(0.16 0.09 265); /* Deep navy */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.16 0.09 265);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.16 0.09 265);
-  --primary: oklch(0.16 0.09 265);              /* Deep navy */
+  --primary: oklch(0.16 0.09 265); /* Deep navy */
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.66 0.11 197);            /* Teal */
+  --secondary: oklch(0.66 0.11 197); /* Teal */
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.97 0.005 250);
   --muted-foreground: oklch(0.45 0.03 260);
-  --accent: oklch(0.78 0.13 195);               /* Cyan */
+  --accent: oklch(0.78 0.13 195); /* Cyan */
   --accent-foreground: oklch(0.16 0.09 265);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
@@ -118,10 +124,10 @@
   --sidebar-ring: oklch(0.66 0.11 197);
 
   /* Gradients & shadows */
-  --gradient-brand: linear-gradient(135deg, #041344 0%, #0A245F 45%, #1FA8B6 100%);
-  --gradient-brand-soft: linear-gradient(135deg, #F5FBFC 0%, #E8F8FA 100%);
+  --gradient-brand: linear-gradient(135deg, #041344 0%, #0a245f 45%, #1fa8b6 100%);
+  --gradient-brand-soft: linear-gradient(135deg, #f5fbfc 0%, #e8f8fa 100%);
   --shadow-brand: 0 10px 30px -18px color-mix(in oklab, #041344 24%, transparent);
-  --shadow-teal: 0 12px 24px -16px color-mix(in oklab, #1FA8B6 28%, transparent);
+  --shadow-teal: 0 12px 24px -16px color-mix(in oklab, #1fa8b6 28%, transparent);
 }
 
 .dark {
@@ -160,7 +166,9 @@
     font-family: inherit;
   }
 
-  html, body, #root {
+  html,
+  body,
+  #root {
     min-height: 100%;
     font-family: var(--font-sans);
   }
@@ -168,7 +176,6 @@
   body {
     overflow-x: clip;
   }
-
 
   .hero-startup-bg {
     position: relative;
@@ -181,7 +188,7 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background-image: url('/education-pattern.png');
+    background-image: url("/education-pattern.png");
     background-repeat: no-repeat;
     background-position: center center;
     background-color: var(--color-background);
@@ -201,7 +208,12 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-heading);
     font-weight: 700;
     line-height: 1.15;
@@ -226,11 +238,26 @@
     font-weight: 600;
   }
 
-  p, li, label, button, input, textarea, select, small, a, span, div, td, th {
+  p,
+  li,
+  label,
+  button,
+  input,
+  textarea,
+  select,
+  small,
+  a,
+  span,
+  div,
+  td,
+  th {
     font-family: var(--font-body);
   }
 
-  button, input, textarea, select {
+  button,
+  input,
+  textarea,
+  select {
     font-weight: 500;
   }
 
@@ -273,7 +300,6 @@
     background-attachment: scroll !important;
   }
 }
-
 
 @utility bg-brand-gradient {
   background-image: var(--gradient-brand);
@@ -363,15 +389,16 @@
   .consulting-reserve-visual {
     position: relative;
     overflow: hidden;
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.98) 18%, rgba(245, 250, 251, 0.94) 100%);
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.98) 18%,
+      rgba(245, 250, 251, 0.94) 100%
+    );
     box-shadow:
       inset 0 0 0 1px rgba(10, 36, 95, 0.06),
       0 14px 28px -24px rgba(4, 19, 68, 0.35);
   }
-
 }
-
 
 @layer utilities {
   .join-stepper-shell {
@@ -429,7 +456,10 @@
     border-radius: 9999px;
     background: color-mix(in oklab, var(--brand-navy) 4%, white);
     color: var(--color-muted-foreground);
-    transition: transform 180ms ease, background-color 180ms ease, color 180ms ease;
+    transition:
+      transform 180ms ease,
+      background-color 180ms ease,
+      color 180ms ease;
   }
 
   .join-stepper-indicator:hover .join-stepper-circle,
@@ -556,6 +586,66 @@
     .join-stepper-connector span,
     .join-stepper-content {
       transition: none;
+      animation: none;
+    }
+  }
+}
+
+@layer utilities {
+  .blur-highlight-text {
+    opacity: var(--blur-highlight-opacity, 0.42);
+    filter: blur(var(--blur-highlight-amount, 7px));
+    transform: translateY(0.12em);
+    transition:
+      opacity 560ms ease-out,
+      filter 560ms ease-out,
+      transform 560ms ease-out;
+  }
+
+  .blur-highlight-text.is-active {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+
+  .blur-highlight-mark {
+    margin: 0 -0.06em;
+    padding: 0 0.06em;
+    color: inherit;
+    background-color: transparent;
+    background-image: linear-gradient(
+      90deg,
+      var(--blur-highlight-color, color-mix(in oklab, var(--brand-aqua) 70%, transparent)),
+      var(--blur-highlight-color, color-mix(in oklab, var(--brand-aqua) 70%, transparent))
+    );
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size: 0% 100%;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  .blur-highlight-text.is-active .blur-highlight-mark {
+    animation: blur-highlight-sweep 720ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(180ms + var(--blur-highlight-index, 0) * 130ms);
+  }
+
+  @keyframes blur-highlight-sweep {
+    to {
+      background-size: 100% 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .blur-highlight-text {
+      opacity: 1;
+      filter: none;
+      transform: none;
+      transition: none;
+    }
+
+    .blur-highlight-mark {
+      background-size: 100% 100%;
       animation: none;
     }
   }

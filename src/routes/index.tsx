@@ -2,9 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, BookOpen, Clock3, MapPin, Search } from "lucide-react";
+import { ArrowRight, BadgeCheck, BookOpen, Clock3, Search, UserPlus } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { BlurHighlightText } from "@/components/ui/blur-highlight-text";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -398,6 +399,7 @@ function Landing() {
                 className="h-9 rounded-sm bg-[color:var(--brand-navy)] px-4 text-xs font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-11 md:px-6 md:text-base"
                 onClick={() => navigate({ to: "/tutors", search: tutorSearchParams })}
               >
+                <Search className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4" />
                 Search
               </Button>
             </div>
@@ -599,7 +601,7 @@ function Landing() {
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div className="order-2 lg:order-1">
               <h2 className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
-                {t("how.step1_title")}
+                <BlurHighlightText highlights={["tutor"]}>{t("how.step1_title")}</BlurHighlightText>
               </h2>
               <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
                 {t("how.step1_desc")}
@@ -609,7 +611,10 @@ function Landing() {
                 size="lg"
                 className="mt-5 h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
-                <Link to="/tutors">{t("how.cta_find")}</Link>
+                <Link to="/tutors">
+                  <Search className="mr-2 h-4 w-4" />
+                  {t("how.cta_find")}
+                </Link>
               </Button>
             </div>
             <div className="order-1 lg:order-2">
@@ -630,7 +635,9 @@ function Landing() {
             </div>
             <div>
               <h3 className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
-                {t("tutors_cta.title")}
+                <BlurHighlightText highlights={["You do the teaching", "matching"]}>
+                  {t("tutors_cta.title")}
+                </BlurHighlightText>
               </h3>
               <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
                 {t("tutors_cta.subtitle")}
@@ -640,7 +647,10 @@ function Landing() {
                 size="lg"
                 className="mt-5 h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
-                <Link to="/join">{t("tutors_cta.cta")}</Link>
+                <Link to="/join">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  {t("tutors_cta.cta")}
+                </Link>
               </Button>
             </div>
           </div>

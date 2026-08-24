@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, BadgeCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, Search, UserPlus } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { BlurHighlightText } from "@/components/ui/blur-highlight-text";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/how-it-works")({
@@ -10,7 +11,8 @@ export const Route = createFileRoute("/how-it-works")({
       { title: "How It Works | MatchMax" },
       {
         name: "description",
-        content: "Learn how MatchMax works for tutors, from application and verification to student requests.",
+        content:
+          "Learn how MatchMax works for tutors, from application and verification to student requests.",
       },
       { name: "robots", content: "index, follow" },
     ],
@@ -46,10 +48,22 @@ const STEPS = [
 ];
 
 const BENEFITS = [
-  { title: "Steady Student Flow", text: "We focus on marketing and matching so you receive relevant requests." },
-  { title: "Grow Your Income", text: "Set your own rate and increase as your profile and results grow." },
-  { title: "Professional Platform", text: "Build trust with a verified profile and consistent case management." },
-  { title: "Flexible & Independent", text: "Control your availability, schedule, and lesson mode preferences." },
+  {
+    title: "Steady Student Flow",
+    text: "We focus on marketing and matching so you receive relevant requests.",
+  },
+  {
+    title: "Grow Your Income",
+    text: "Set your own rate and increase as your profile and results grow.",
+  },
+  {
+    title: "Professional Platform",
+    text: "Build trust with a verified profile and consistent case management.",
+  },
+  {
+    title: "Flexible & Independent",
+    text: "Control your availability, schedule, and lesson mode preferences.",
+  },
 ];
 
 function HowItWorksPage() {
@@ -59,9 +73,16 @@ function HowItWorksPage() {
       <main className="flex-1">
         <section className="border-b border-border py-14 sm:py-18">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <h1 className="text-4xl font-black tracking-tight text-black sm:text-5xl">How It Works for Tutors</h1>
+            <h1 className="text-4xl font-black tracking-tight text-black sm:text-5xl">
+              <BlurHighlightText highlights={["How It Works", "Tutors"]}>
+                How It Works for Tutors
+              </BlurHighlightText>
+            </h1>
             <p className="mt-4 max-w-2xl text-base text-black">
-              Join our community of verified tutors and grow your tutoring business with a steady stream of qualified students.
+              <BlurHighlightText highlights={["verified tutors", "qualified students"]}>
+                Join our community of verified tutors and grow your tutoring business with a steady
+                stream of qualified students.
+              </BlurHighlightText>
             </p>
           </div>
         </section>
@@ -76,7 +97,19 @@ function HowItWorksPage() {
                       {index + 1}
                     </div>
                     <div className="space-y-2">
-                      <h2 className="text-2xl font-black text-black">{step.title}</h2>
+                      <h2 className="text-2xl font-black text-black">
+                        <BlurHighlightText
+                          highlights={
+                            step.title === "Get Verified"
+                              ? ["Verified"]
+                              : step.title === "Receive Student Requests"
+                                ? ["Student Requests"]
+                                : ["Join"]
+                          }
+                        >
+                          {step.title}
+                        </BlurHighlightText>
+                      </h2>
                       <ul className="space-y-1.5 text-sm text-black">
                         {step.points.map((point) => (
                           <li key={point} className="flex items-start gap-2">
@@ -91,7 +124,9 @@ function HowItWorksPage() {
               ))}
             </div>
 
-            <h3 className="mt-12 text-center text-3xl font-black tracking-tight text-black">Why Join Us?</h3>
+            <h3 className="mt-12 text-center text-3xl font-black tracking-tight text-black">
+              <BlurHighlightText highlights={["Join"]}>Why Join Us?</BlurHighlightText>
+            </h3>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               {BENEFITS.map((item) => (
                 <article key={item.title} className="rounded-xl border border-border bg-white p-5">
@@ -104,11 +139,15 @@ function HowItWorksPage() {
             <div className="mt-10 flex flex-wrap items-center gap-3">
               <Button asChild className="font-bold">
                 <Link to="/join">
+                  <UserPlus className="mr-2 h-4 w-4" />
                   Apply as a Tutor <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" className="font-bold">
-                <Link to="/tutors">Browse Tutors</Link>
+                <Link to="/tutors">
+                  <Search className="mr-2 h-4 w-4" />
+                  Browse Tutors
+                </Link>
               </Button>
             </div>
           </div>
