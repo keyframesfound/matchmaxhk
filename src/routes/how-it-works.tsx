@@ -137,7 +137,10 @@ function HowItWorksPage() {
             </div>
 
             <div className="mt-10 flex flex-wrap items-center gap-3">
-              <Button asChild className="font-bold">
+              <Button
+                asChild
+                className="bg-[color:var(--brand-navy)] font-bold text-white shadow-brand transition-colors hover:bg-[color:var(--brand-teal)]/18 hover:text-[color:var(--brand-navy)]"
+              >
                 <Link to="/join">
                   <UserPlus className="mr-2 h-4 w-4" />
                   Apply as a Tutor <ArrowRight className="ml-2 h-4 w-4" />
