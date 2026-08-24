@@ -78,8 +78,8 @@
   --brand-navy: #041344;
   --brand-royal: #0D47A1;
   --brand-teal: #90CAF9;
-  --brand-cyan: #90CAF9;
-  --brand-aqua: #90CAF9;
+  --brand-cyan: #E3F2FD;
+  --brand-aqua: #77E8EE;
 
   /* Semantic — light theme */
   --background: oklch(1 0 0);
