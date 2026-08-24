@@ -9,8 +9,8 @@
     "admin": "Admin"
   },
   "hero": {
-    "title_a": "Match with your",
-    "title_b": "perfect tutor",
+    "title_a": "Find a tutor",
+    "title_b": "who fits your goals",
     "cta_primary": "Browse tutors"
   },
   "trust": {
@@ -20,25 +20,25 @@
     "districts": "Districts served"
   },
   "how": {
-    "title": "Search for the right tutor",
-    "step1_title": "Finding a tutor?",
-    "step1_desc": "From HKDSE to IBDP MatchMax has you covered, we've got top scoring students from across Hong Kong. Explore subject teachers, lesson modes and more in our list of tutors.",
-    "cta_find": "Find a tutor",
+    "title": "Find a tutor with the details you need",
+    "step1_title": "Looking for a tutor?",
+    "step1_desc": "Browse tutors by subject, curriculum, lesson format, and rate. Read each profile before you enquire.",
+    "cta_find": "Browse tutors",
     "step2_title": "Get matched",
     "step2_desc": "Share your Tutor Code with our team and we'll connect you with your tutor.",
     "step3_title": "Start learning",
     "step3_desc": "Connect with your tutor and get started with your lessons."
   },
   "featured": {
-    "title": "Explore the tutors MatchMax offers",
-    "subtitle": "Top scorering tutors across Hong Kong",
+    "title": "Browse tutor profiles",
+    "subtitle": "Compare subjects, results, lesson formats, and hourly rates.",
     "view_all": "View all tutors",
     "per_hour": "/hr"
   },
   "landing_search": {
-    "eyebrow": "Quick tutor search",
-    "title": "Find your tutor in seconds",
-    "subtitle": "Use filters to shortlist verified tutors fast, then open full results with one click.",
+    "eyebrow": "Tutor search",
+    "title": "Start with the details that matter",
+    "subtitle": "Filter by subject, curriculum, lesson format, and availability preferences.",
     "search": "Search",
     "clear": "Clear filters",
     "category": "Category",
@@ -59,12 +59,12 @@
     "preset_in_person": "In-person lessons"
   },
   "tutors_cta": {
-    "title": "You do the teaching. We do the matching.",
-    "subtitle": "MatchMax provides an excellent platform for tutors to find students. While you focus on teaching, we help you find the students.",
-    "cta": "Join"
+    "title": "Teach your subjects. Meet the right students.",
+    "subtitle": "Create a clear tutor profile and connect with families who are looking for your subject expertise.",
+    "cta": "Become a tutor"
   },
   "footer": {
-    "tagline": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them—through tailored 1-on-1 tutoring.",
+    "tagline": "MatchMax helps families compare tutor profiles and make informed enquiries for one-to-one support.",
     "quick_links": "Quick links",
     "support": "Support",
     "how": "How it works",
