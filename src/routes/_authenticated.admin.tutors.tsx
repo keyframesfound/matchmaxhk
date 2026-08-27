@@ -632,20 +632,8 @@ function AdminTutors() {
     });
   }
 
-  function addEdu() {
-    setForm({
-      ...form,
-      education: [...form.education, { institution: "", qualification: "", year: "", level: "" }],
-    });
-  }
-  function updateEdu(i: number, patch: Partial<Education & { year: number | "" | null }>) {
-    const next = form.education.slice();
-    next[i] = { ...next[i], ...patch };
-    setForm({ ...form, education: next });
-  }
-  function removeEdu(i: number) {
-    setForm({ ...form, education: form.education.filter((_, idx) => idx !== i) });
-  }
+
+
 
   function addExam() {
     if (form.exam_results.length >= 2) return;
