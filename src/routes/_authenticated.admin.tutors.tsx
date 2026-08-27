@@ -317,17 +317,17 @@ function PhotoUpload({ value, onChange }: { value: string; onChange: (url: strin
   );
 }
 
-const eduSchema = z.object({
-  institution: z.string().trim().min(1).max(120),
-  qualification: z.string().trim().min(1).max(120),
-  year: z.union([z.coerce.number().int().min(1900).max(2100), z.literal(""), z.null()]).optional(),
-  level: z.string().trim().max(60).optional().or(z.literal("")).nullable(),
+const paperSchema = z.object({
+  label: z.string().trim().max(40),
+  score: z.string().trim().max(40),
 });
 
 const examEntrySchema = z.object({
   subject: z.string().trim().max(120),
   grade: z.string().trim().max(40),
+  papers: z.array(paperSchema).optional(),
 });
+
 
 const examSchema = z.object({
   system: z.string().trim(),
