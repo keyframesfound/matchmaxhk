@@ -152,25 +152,36 @@ function AcademicQualification({ result }: { result: ExamResult }) {
         {label}
       </p>
       <ul className="space-y-1.5">
-        {subjects.map((entry, subjectIndex) => (
-          <li
-            key={`${entry.subject}-${subjectIndex}`}
-            className="flex items-baseline gap-2 border-l-2 border-[color:var(--brand-teal)]/40 pl-3"
-          >
-            <span className="text-sm font-bold text-[color:var(--brand-navy)]">
-              {entry.subject}
-            </span>
-            {entry.grade.trim() ? (
-              <span className="text-sm font-bold text-[color:var(--brand-teal)]">
-                – Grade {entry.grade.replace(/^grade\s+/i, "")}
-              </span>
-            ) : null}
-          </li>
-        ))}
+        {subjects.map((entry, subjectIndex) => {
+          const papers = (entry.papers ?? []).filter((p) => p.label.trim() && p.score.trim());
+          return (
+            <li
+              key={`${entry.subject}-${subjectIndex}`}
+              className="border-l-2 border-[color:var(--brand-teal)]/40 pl-3"
+            >
+              <div className="flex items-baseline gap-2">
+                <span className="text-sm font-bold text-[color:var(--brand-navy)]">
+                  {entry.subject}
+                </span>
+                {entry.grade.trim() ? (
+                  <span className="text-sm font-bold text-[color:var(--brand-teal)]">
+                    – Grade {entry.grade.replace(/^grade\s+/i, "")}
+                  </span>
+                ) : null}
+              </div>
+              {papers.length > 0 ? (
+                <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
+                  {papers.map((p) => `${p.label}: ${p.score}`).join(" · ")}
+                </p>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
 }
+
 
 
 
