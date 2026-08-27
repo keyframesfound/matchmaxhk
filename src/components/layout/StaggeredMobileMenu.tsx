@@ -41,17 +41,21 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
   }, []);
 
   useLayoutEffect(() => {
+    if (!mounted) return;
+
     const context = gsap.context(() => {
       const panel = panelRef.current;
       const layers = layersRef.current?.querySelectorAll<HTMLElement>(".smm-prelayer");
       if (!panel || !layers) return;
 
-      gsap.set([panel, ...layers], { xPercent: 100, opacity: 1 });
-      gsap.set(iconRef.current, { rotate: 0, transformOrigin: "50% 50%" });
+      if (!openRef.current) {
+        gsap.set([panel, ...layers], { xPercent: 100, opacity: 1 });
+      }
+      gsap.set(iconRef.current, { rotate: openRef.current ? 225 : 0, transformOrigin: "50% 50%" });
     });
 
     return () => context.revert();
-  }, []);
+  }, [mounted]);
 
   const playOpen = useCallback(() => {
     const panel = panelRef.current;
