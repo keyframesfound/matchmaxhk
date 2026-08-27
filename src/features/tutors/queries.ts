@@ -61,35 +61,43 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 const SELECT_COLS =
   "id, display_name, headline, university, highschool, target_students, academic_summary, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
 
-const LEGACY_SELECT_COLS =
-  "id, display_name, headline, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
+const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
-function hasMissingProfileColumns(error: unknown): boolean {
-  if (!error || typeof error !== "object") return false;
+function extractMissingColumn(error: unknown): string | null {
+  if (!error || typeof error !== "object") return null;
   const maybe = error as { code?: unknown; message?: unknown };
   const code = typeof maybe.code === "string" ? maybe.code : "";
   const message = typeof maybe.message === "string" ? maybe.message : "";
-  return (
-    code === "42703" ||
-    /column\s+"?(university|highschool|target_students|academic_summary|qualifications_summary|achievements|ia_ee_tok_support|ia_ee_tok_notes)"?\s+does\s+not\s+exist/i.test(
-      message,
-    )
-  );
+  if (code !== "42703" && !MISSING_COLUMN_RE.test(message)) return null;
+  const match = MISSING_COLUMN_RE.exec(message);
+  return match?.[1].toLowerCase() ?? null;
+}
+
+function removeSelectColumn(selectCols: string, column: string): string {
+  const trimmed = column.toLowerCase();
+  return selectCols
+    .split(",")
+    .map((c) => c.trim())
+    .filter((c) => c.toLowerCase() !== trimmed)
+    .join(", ");
 }
 
 async function withTutorSelectFallback<T>(
   run: (selectCols: string) => PromiseLike<{ data: unknown; error: unknown }>,
 ): Promise<T> {
-  const first = await run(SELECT_COLS);
-  if (!first.error) return (first.data ?? []) as T;
+  let selectCols = SELECT_COLS;
+  for (let i = 0; i < 20; i++) {
+    const result = await run(selectCols);
+    if (!result.error) return (result.data ?? []) as T;
 
-  if (!hasMissingProfileColumns(first.error)) {
-    throw first.error;
+    const missing = extractMissingColumn(result.error);
+    if (!missing) throw result.error;
+
+    const nextCols = removeSelectColumn(selectCols, missing);
+    if (nextCols === selectCols) throw result.error;
+    selectCols = nextCols;
   }
-
-  const second = await run(LEGACY_SELECT_COLS);
-  if (second.error) throw second.error;
-  return (second.data ?? []) as T;
+  throw new Error("Too many missing tutor columns");
 }
 
 async function fetchTutorPhotoDefaults(): Promise<TutorPhotoDefaults> {

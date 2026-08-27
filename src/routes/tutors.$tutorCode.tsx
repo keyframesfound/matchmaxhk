@@ -26,8 +26,8 @@ import {
 } from "@/features/tutors/queries";
 import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
 import {
-  formatTaughtSubjectLabel,
   getTutorSubjectChips,
+  getTutorSubjectSentence,
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
 
@@ -132,8 +132,8 @@ function ProfileSection({
   return (
     <section className="border-b border-border/70 px-5 py-5 last:border-b-0 sm:px-6">
       <div className="flex items-center gap-2.5">
-        <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/10">
-          <Icon className="h-4 w-4 text-[color:var(--brand-teal)]" strokeWidth={2.1} />
+        <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--brand-navy)]/15 bg-[color:var(--brand-navy)]/8">
+          <Icon className="h-4 w-4 text-[color:var(--brand-navy)]" strokeWidth={2.1} />
         </span>
         <h2 className="text-base font-black tracking-tight text-[color:var(--brand-navy)] sm:text-lg">
           {title}
@@ -404,7 +404,7 @@ function TutorDetail() {
         </section>
 
         <section className="py-12">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <div>
               {examResults.length > 0 ? (
                 <ProfileSection icon={LineChart} title="Core Academic Breakdown">
@@ -422,7 +422,7 @@ function TutorDetail() {
                     {t.achievements.map((achievement, index) => (
                       <li key={`${achievement.short_text}-${index}`} className="flex gap-2.5">
                         <Award
-                          className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-navy)]/70"
+                          className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-navy)]"
                           strokeWidth={2.1}
                         />
                         <div className="min-w-0">
@@ -443,44 +443,34 @@ function TutorDetail() {
 
               {subjectChips.length > 0 || t.ia_ee_tok_support.length > 0 ? (
                 <ProfileSection icon={Layers} title="Subjects Taught">
-                  <ul className="space-y-2">
-                    {subjectChips.map((chip, index) => (
-                      <li
-                        key={`${chip.subject}-${index}`}
-                        className="flex items-baseline gap-2 text-sm"
-                      >
-                        <span className="font-bold text-[color:var(--brand-navy)]">
-                          {formatTaughtSubjectLabel(chip.subject, t)}
-                        </span>
-                        {chip.grade ? (
-                          <span className="text-muted-foreground">{chip.grade}</span>
-                        ) : null}
-                      </li>
-                    ))}
-                    {t.ia_ee_tok_support.length > 0 ? (
-                      <li className="flex flex-wrap items-baseline gap-x-2 text-sm">
-                        <span className="font-bold text-[color:var(--brand-navy)]">Mentorship:</span>
-                        <span className="text-muted-foreground">
-                          {t.ia_ee_tok_support.join(", ")}
-                          {t.ia_ee_tok_notes ? ` — ${t.ia_ee_tok_notes}` : ""}
-                        </span>
-                      </li>
+                  <div className="text-left text-sm">
+                    {subjectChips.length > 0 ? (
+                      <p className="font-bold leading-relaxed text-[color:var(--brand-navy)]">
+                        {getTutorSubjectSentence(t)}
+                      </p>
                     ) : null}
-                  </ul>
+                    {t.ia_ee_tok_support.length > 0 ? (
+                      <p className="mt-1 text-muted-foreground">
+                        <span className="font-bold text-[color:var(--brand-navy)]">Mentorship:</span>{" "}
+                        {t.ia_ee_tok_support.join(", ")}
+                        {t.ia_ee_tok_notes ? ` — ${t.ia_ee_tok_notes}` : ""}
+                      </p>
+                    ) : null}
+                  </div>
                 </ProfileSection>
               ) : null}
 
               <ProfileSection icon={MapPin} title="Lesson Format & Details">
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-baseline gap-2">
-                    <Globe className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-teal)]" />
+                    <Globe className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-navy)]" />
                     <span className="font-bold text-[color:var(--brand-navy)]">Format:</span>
                     <span className="text-muted-foreground">
                       {getTutorLessonModeLabel(t.lesson_mode)}
                     </span>
                   </li>
                   <li className="flex items-baseline gap-2">
-                    <MapPin className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-teal)]" />
+                    <MapPin className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-navy)]" />
                     <span className="font-bold text-[color:var(--brand-navy)]">Location:</span>
                     <span className="text-muted-foreground">
                       Hong Kong{t.district ? ` – ${t.district}` : ""}
@@ -488,7 +478,7 @@ function TutorDetail() {
                   </li>
                   {t.languages.length > 0 ? (
                     <li className="flex items-baseline gap-2">
-                      <Languages className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-teal)]" />
+                      <Languages className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-navy)]" />
                       <span className="font-bold text-[color:var(--brand-navy)]">Languages:</span>
                       <span className="text-muted-foreground">{t.languages.join(", ")}</span>
                     </li>

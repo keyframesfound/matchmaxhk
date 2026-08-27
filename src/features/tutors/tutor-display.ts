@@ -79,9 +79,110 @@ export function getExamSystemShortLabel(systemId: string): string {
   return SYSTEM_SHORT_LABELS[systemId] ?? "";
 }
 
+type TaughtSubjectGroup = {
+  base: string;
+  systemId: string;
+  levels: Set<string>;
+};
+
+function findExamSystemForSubject(
+  subjectBase: string,
+  examResults: Tutor["exam_results"],
+): string {
+  const baseKey = normalizeSubjectKey(subjectBase);
+  for (const result of examResults ?? []) {
+    for (const entry of result.subjects ?? []) {
+      const entryKey = normalizeSubjectKey(
+        (entry.subject ?? "").replace(/\b(HL|SL)\b\s*$/i, ""),
+      );
+      if (!entryKey) continue;
+      if (
+        entryKey === baseKey ||
+        entryKey.includes(baseKey) ||
+        baseKey.includes(entryKey)
+      ) {
+        return String(result.system);
+      }
+    }
+  }
+  return "";
+}
+
+function collectLevelsFromExamResults(
+  subjectBase: string,
+  examResults: Tutor["exam_results"],
+): string[] {
+  const baseKey = normalizeSubjectKey(subjectBase);
+  const levels = new Set<string>();
+  for (const result of examResults ?? []) {
+    for (const entry of result.subjects ?? []) {
+      const raw = (entry.subject ?? "").trim();
+      const entryKey = normalizeSubjectKey(raw.replace(/\b(HL|SL)\b\s*$/i, ""));
+      if (!entryKey) continue;
+      if (
+        entryKey === baseKey ||
+        entryKey.includes(baseKey) ||
+        baseKey.includes(entryKey)
+      ) {
+        const match = raw.match(/\b(HL|SL)\b/i);
+        if (match) levels.add(match[1].toUpperCase());
+      }
+    }
+  }
+  return [...levels].sort();
+}
+
 /**
- * Formats "IBDP: Geography (HL)" — the level suffix only shows for HL.
- * Falls back to the plain subject when no exam system matches.
+ * Returns a single readable sentence for the subjects the tutor teaches,
+ * e.g. "IBDP: Geography (HL / SL), Chinese A (SL)".
+ */
+export function getTutorSubjectSentence(
+  tutor: Pick<Tutor, "subjects" | "exam_results">,
+): string {
+  const groups: TaughtSubjectGroup[] = [];
+
+  for (const raw of tutor.subjects ?? []) {
+    const trimmed = raw.trim();
+    if (!trimmed) continue;
+
+    const levelMatch = trimmed.match(/\b(HL|SL)\b\s*$/i);
+    const level = levelMatch ? levelMatch[1].toUpperCase() : null;
+    const base = levelMatch ? trimmed.slice(0, levelMatch.index).trim() : trimmed;
+    const baseKey = normalizeSubjectKey(base);
+
+    const systemId = findExamSystemForSubject(base, tutor.exam_results);
+
+    let group = groups.find(
+      (g) => normalizeSubjectKey(g.base) === baseKey && g.systemId === systemId,
+    );
+    if (!group) {
+      group = { base, systemId, levels: new Set<string>() };
+      groups.push(group);
+    }
+    if (level) group.levels.add(level);
+
+    for (const examLevel of collectLevelsFromExamResults(base, tutor.exam_results)) {
+      group.levels.add(examLevel);
+    }
+  }
+
+  const parts = groups.map((g) => {
+    const prefix = getExamSystemShortLabel(g.systemId);
+    const levels = [...g.levels].sort();
+    let suffix = "";
+    if (levels.length === 2) {
+      suffix = " (HL / SL)";
+    } else if (levels.length === 1) {
+      suffix = ` (${levels[0]})`;
+    }
+    return `${prefix ? `${prefix}: ` : ""}${g.base}${suffix}`;
+  });
+
+  return parts.join(", ");
+}
+
+/**
+ * Legacy single-label formatter. Kept for hero chips and other call sites.
  */
 export function formatTaughtSubjectLabel(
   subject: string,
@@ -93,23 +194,9 @@ export function formatTaughtSubjectLabel(
   const levelMatch = raw.match(/\b(HL|SL)\b\s*$/i);
   const level = levelMatch ? levelMatch[1].toUpperCase() : null;
   const base = levelMatch ? raw.slice(0, levelMatch.index).trim() : raw;
-  const baseKey = normalizeSubjectKey(base);
-
-  let systemId = "";
-  for (const result of tutor.exam_results ?? []) {
-    for (const entry of result.subjects ?? []) {
-      const entryKey = normalizeSubjectKey((entry.subject ?? "").replace(/\b(HL|SL)\b\s*$/i, ""));
-      if (!entryKey) continue;
-      if (entryKey === baseKey || entryKey.includes(baseKey) || baseKey.includes(entryKey)) {
-        systemId = String(result.system);
-        break;
-      }
-    }
-    if (systemId) break;
-  }
-
+  const systemId = findExamSystemForSubject(base, tutor.exam_results);
   const prefix = getExamSystemShortLabel(systemId);
-  const suffix = level === "HL" ? " (HL)" : "";
+  const suffix = level ? ` (${level})` : "";
   return `${prefix ? `${prefix}: ` : ""}${base}${suffix}`;
 }
 
