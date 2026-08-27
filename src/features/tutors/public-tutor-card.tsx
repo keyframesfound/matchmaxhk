@@ -34,8 +34,8 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
   const grade = splitGradeLabel(chip.grade);
 
   return (
-    <span className="inline-flex min-w-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/55 bg-[color:var(--brand-teal)]/10 px-1.5 py-1 text-center text-[9px] font-bold leading-tight text-[color:var(--brand-navy)] md:px-2 md:py-1.5 md:text-[10px]">
-      <span className="min-w-0 truncate">{chip.subject}</span>
+    <span className="inline-flex max-w-full items-center rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[9px] font-bold leading-tight text-[color:var(--brand-navy)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[10px]">
+      <span className="max-w-[8.5rem] truncate">{chip.subject}</span>
       {grade ? (
         <>
           <span className="mx-1 text-[color:var(--brand-teal)]">:</span>
@@ -193,7 +193,7 @@ export function PublicTutorCard({
                   <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
               ) : null}
-              <div className="grid min-w-0 grid-cols-3 content-start gap-1.5 overflow-hidden md:gap-2">
+              <div className="flex min-w-0 flex-wrap content-start items-start gap-1.5 overflow-hidden md:gap-2">
                 {visibleAcademicChips.map((chip, index) => (
                   <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
                 ))}
