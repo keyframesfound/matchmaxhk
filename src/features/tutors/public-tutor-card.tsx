@@ -1,5 +1,5 @@
-import { type ReactNode } from "react";
-import { Award, UserRound } from "lucide-react";
+import { type MouseEvent, type ReactNode, useState } from "react";
+import { Award, ChevronDown, ChevronUp, UserRound } from "lucide-react";
 import { getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
 import {
   formatTutorCode,
@@ -7,6 +7,8 @@ import {
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
 import { cn } from "@/lib/utils";
+
+const ACADEMIC_CHIPS_PER_PREVIEW = 6;
 
 function getTutorInitials(tutorCode?: string | null) {
   const normalized = (tutorCode ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
@@ -66,6 +68,11 @@ export function PublicTutorCard({
 }: PublicTutorCardProps) {
   const interactive = typeof onOpen === "function";
   const academicChips = getTutorSubjectChips(tutor);
+  const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
+  const hasMoreAcademicChips = academicChips.length > ACADEMIC_CHIPS_PER_PREVIEW;
+  const visibleAcademicChips = areAcademicChipsExpanded
+    ? academicChips
+    : academicChips.slice(0, ACADEMIC_CHIPS_PER_PREVIEW);
   const genderLabel = getTutorGenderLabel(tutor.gender);
   const primaryCredential = removeEmoji(
     tutor.university ?? tutor.academic_summary ?? "Academic profile verified",
@@ -74,6 +81,11 @@ export function PublicTutorCard({
     .map((value) => (value ? removeEmoji(value) : ""))
     .filter((value) => value && value !== primaryCredential)
     .slice(0, 2);
+
+  const toggleAcademicChips = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setAreAcademicChipsExpanded((expanded) => !expanded);
+  };
 
   return (
     <article
@@ -148,11 +160,33 @@ export function PublicTutorCard({
       <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
         {academicChips.length > 0 ? (
           <section className="border-b border-[color:var(--brand-teal)]/20 pb-2.5 md:pb-3">
-            <h3 className="text-[13px] font-black tracking-tight text-[color:var(--brand-navy)] md:text-[15px]">
-              Academic achievements
-            </h3>
-            <div className="mt-2 flex flex-wrap items-start gap-2">
-              {academicChips.map((chip, index) => (
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-[13px] font-black tracking-tight text-[color:var(--brand-navy)] md:text-[15px]">
+                Academic achievements
+              </h3>
+              {hasMoreAcademicChips ? (
+                <button
+                  type="button"
+                  aria-expanded={areAcademicChipsExpanded}
+                  aria-controls={`academic-achievements-${tutor.tutor_code}`}
+                  onClick={toggleAcademicChips}
+                  onKeyDown={(event) => event.stopPropagation()}
+                  className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[color:var(--brand-teal)]/45 bg-white px-2 py-1 text-[9px] font-bold text-[color:var(--brand-navy)] transition-colors hover:bg-[color:var(--brand-teal)]/10 md:px-2.5 md:text-[10px]"
+                >
+                  {areAcademicChipsExpanded ? "Less" : "More"}
+                  {areAcademicChipsExpanded ? (
+                    <ChevronUp className="h-3 w-3" aria-hidden="true" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3" aria-hidden="true" />
+                  )}
+                </button>
+              ) : null}
+            </div>
+            <div
+              id={`academic-achievements-${tutor.tutor_code}`}
+              className="mt-2 grid grid-cols-3 content-start items-start justify-items-start gap-2"
+            >
+              {visibleAcademicChips.map((chip, index) => (
                 <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
               ))}
             </div>
