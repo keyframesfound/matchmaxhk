@@ -343,7 +343,7 @@ function TutorDetail() {
                   </p>
                 ) : null}
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 rounded-[2px] border border-border bg-muted px-2.5 py-1 text-xs text-muted-foreground">
                     {t.lesson_mode === "online" ? (
                       <Globe className="h-3 w-3" />
                     ) : (
@@ -352,7 +352,7 @@ function TutorDetail() {
                     {getTutorLocationLabel(t)}
                   </span>
                   {t.badge ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-3 py-1 text-xs font-bold text-[color:var(--brand-teal)]">
+                    <span className="inline-flex items-center gap-1 rounded-[2px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-bold text-[color:var(--brand-teal)]">
                       <BadgeCheck className="h-3 w-3" /> {t.badge}
                     </span>
                   ) : null}
