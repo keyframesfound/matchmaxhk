@@ -351,7 +351,7 @@ function TutorDetail() {
       />
       <SiteHeader />
       <main className="flex-1">
-        <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
+        <section className="border-b border-border bg-[#e3eef9] py-8 sm:py-10">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
               {t.photo_url ? (
