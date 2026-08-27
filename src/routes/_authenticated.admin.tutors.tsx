@@ -612,11 +612,10 @@ function AdminTutors() {
       }
       if (
         !(parsed.data.qualifications_summary ?? "").trim() &&
-        parsed.data.education.length === 0 &&
         parsed.data.experience_years === ""
       ) {
         publishErrors.qualifications_summary =
-          "Add qualifications summary, education, or experience before publishing.";
+          "Add qualifications summary or experience before publishing.";
       }
       if (parsed.data.lesson_mode !== "online" && !(parsed.data.district ?? "").trim()) {
         publishErrors.district = "District is required for in-person or hybrid tutoring.";
