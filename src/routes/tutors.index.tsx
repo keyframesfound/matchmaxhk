@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
-import { PublicTutorCard, buildTutorWhatsAppUrl } from "@/features/tutors/public-tutor-card";
+import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
+import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 import {
   fetchPublishedTutors,
   HK_DISTRICTS,

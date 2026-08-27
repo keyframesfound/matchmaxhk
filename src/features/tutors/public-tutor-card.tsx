@@ -1,24 +1,16 @@
-import type { ReactNode } from "react";
-import { BookOpen, UserRound } from "lucide-react";
+import { type MouseEvent, type ReactNode, useState } from "react";
+import { Award, BookOpen, ChevronLeft, ChevronRight, UserRound } from "lucide-react";
+import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
 import { getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
+import {
+  formatTutorCode,
+  formatTutorGradeLabel,
+  getTutorSubjectChips,
+  type TutorSubjectChip,
+} from "@/features/tutors/tutor-display";
 import { cn } from "@/lib/utils";
 
-export function formatTutorCode(code?: string | null) {
-  const normalized = (code ?? "").trim().toUpperCase();
-  if (!normalized) return "MM-XXXX";
-  if (/^MM-\d{4}$/.test(normalized)) return normalized;
-  if (/^\d{4}$/.test(normalized)) return `MM-${normalized}`;
-  if (/^MM-/.test(normalized)) return normalized;
-  return normalized;
-}
-
-export function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorCode: string) {
-  const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
-  if (!digits) return "";
-
-  const message = `Hi MatchMax! I'd like to request tutor ${formatTutorCode(tutorCode)}.`;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
-}
+const SUBJECTS_PER_PAGE = 3;
 
 function getTutorInitials(tutorCode?: string | null) {
   const normalized = (tutorCode ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
@@ -26,61 +18,73 @@ function getTutorInitials(tutorCode?: string | null) {
   return normalized.slice(0, 2);
 }
 
-function normalizeSubjectKey(value: string) {
-  return value.toLowerCase().replace(/\s+/g, " ").trim();
-}
-
-function gradeLabel(grade: string) {
-  const trimmed = grade.trim();
-  if (!trimmed) return "Grade -";
-  return /^grade\s+/i.test(trimmed) ? trimmed : `Grade ${trimmed}`;
-}
-
-function splitGradeLabel(grade: string) {
-  const label = gradeLabel(grade);
-  const match = label.match(/^(Grade\s+)(.+)$/i);
-  if (!match) {
-    return { prefix: "", value: label };
-  }
-
+function splitGradeLabel(grade: string | null) {
+  if (!grade) return null;
+  const match = grade.match(/^(Grade\s+)(.+)$/i);
+  if (!match) return { prefix: "", value: grade };
   return { prefix: match[1], value: match[2] };
 }
 
-function getTutorSubjectChips(tutor: Tutor, limit = 3) {
-  const gradeLookup = new Map<string, string>();
-  for (const result of tutor.exam_results ?? []) {
-    for (const entry of result.subjects ?? []) {
-      const subject = (entry.subject ?? "").trim();
-      const grade = (entry.grade ?? "").trim();
-      if (!subject || !grade) continue;
-      const key = normalizeSubjectKey(subject);
-      if (!gradeLookup.has(key)) gradeLookup.set(key, grade);
-    }
-  }
+function SubjectGradeChip({
+  chip,
+  compact = false,
+}: {
+  chip: TutorSubjectChip;
+  compact?: boolean;
+}) {
+  const grade = splitGradeLabel(chip.grade);
 
-  const chips = tutor.subjects.slice(0, limit).map((subject) => {
-    const key = normalizeSubjectKey(subject);
-    let grade = gradeLookup.get(key);
+  return (
+    <span
+      className={cn(
+        "rounded-[2px] bg-[color:var(--brand-teal)]/12 font-semibold text-[color:var(--brand-navy)]",
+        compact
+          ? "px-1.5 py-0.5 text-[9px]"
+          : "px-2 py-0.5 text-[10px] md:px-3 md:py-1 md:text-[12px]",
+      )}
+    >
+      {chip.subject}
+      {grade ? (
+        <>
+          {" : "}
+          {grade.prefix}
+          <span
+            className={cn(
+              "inline-block font-black leading-none tracking-tight text-[color:var(--brand-navy)]",
+              compact ? "text-[10px]" : "text-[11px] md:text-[13px]",
+            )}
+          >
+            {grade.value}
+          </span>
+        </>
+      ) : null}
+    </span>
+  );
+}
 
-    if (!grade) {
-      for (const [candidateKey, candidateGrade] of gradeLookup.entries()) {
-        if (candidateKey.includes(key) || key.includes(candidateKey)) {
-          grade = candidateGrade;
-          break;
-        }
-      }
-    }
+function CompactQualification({ result }: { result: ExamResult }) {
+  const systemLabel = getSystem(result.system)?.label ?? result.system.toUpperCase();
+  const chips = result.subjects
+    .map((entry) => ({
+      subject: entry.subject.trim(),
+      grade: formatTutorGradeLabel(entry.grade),
+    }))
+    .filter((entry) => entry.subject);
 
-    return {
-      subject,
-      grade: gradeLabel(grade ?? ""),
-    };
-  });
+  if (chips.length === 0) return null;
 
-  return {
-    chips,
-    extraCount: Math.max(0, tutor.subjects.length - limit),
-  };
+  return (
+    <div className="rounded-xl border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/6 px-2 py-1.5 md:px-2.5">
+      <p className="text-[8px] font-bold uppercase tracking-[0.08em] text-muted-foreground md:text-[9px]">
+        {systemLabel}
+      </p>
+      <div className="mt-1 flex flex-wrap gap-1">
+        {chips.map((chip, index) => (
+          <SubjectGradeChip key={`${chip.subject}-${index}`} chip={chip} compact />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 type PublicTutorCardProps = {
@@ -101,12 +105,30 @@ export function PublicTutorCard({
   className,
 }: PublicTutorCardProps) {
   const interactive = typeof onOpen === "function";
-  const { chips, extraCount } = getTutorSubjectChips(tutor);
+  const chips = getTutorSubjectChips(tutor);
+  const examResults = (tutor.exam_results ?? []).filter((result) =>
+    result.subjects.some((entry) => entry.subject.trim()),
+  );
+  const [subjectPage, setSubjectPage] = useState(0);
+  const maxSubjectPage = Math.max(0, Math.ceil(chips.length / SUBJECTS_PER_PAGE) - 1);
+  const visibleSubjectPage = Math.min(subjectPage, maxSubjectPage);
+  const visibleChips = chips.slice(
+    visibleSubjectPage * SUBJECTS_PER_PAGE,
+    visibleSubjectPage * SUBJECTS_PER_PAGE + SUBJECTS_PER_PAGE,
+  );
+  const hasSubjectPager = chips.length > SUBJECTS_PER_PAGE;
+  const primaryExam = examResults[0];
+  const secondaryExam = examResults[1];
+
+  const changeSubjectPage = (event: MouseEvent<HTMLButtonElement>, direction: -1 | 1) => {
+    event.stopPropagation();
+    setSubjectPage((current) => Math.max(0, Math.min(maxSubjectPage, current + direction)));
+  };
 
   return (
     <article
       className={cn(
-        "flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-white shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[25rem]",
+        "flex h-full min-h-[24rem] w-full flex-col overflow-hidden rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-white shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[30rem]",
         interactive && "cursor-pointer",
         className,
       )}
@@ -153,37 +175,78 @@ export function PublicTutorCard({
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col px-3 pt-2.5 pb-3.5 md:px-4 md:pt-3 md:pb-5">
+      <div className="flex flex-1 flex-col px-3 pb-3.5 pt-2.5 md:px-4 md:pb-5 md:pt-3">
         <h3 className="text-[11px] font-bold tracking-tight text-[color:var(--brand-navy)] md:text-[13px]">
           Subject Taught
         </h3>
-        <div className="mt-1.5 flex min-h-[3.25rem] flex-wrap content-start gap-1.5 md:min-h-[4.25rem] md:gap-2">
-          {chips.map(({ subject, grade }) => (
-            <span
-              key={subject}
-              className="rounded-[2px] bg-[color:var(--brand-teal)]/12 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--brand-navy)] md:px-3 md:py-1 md:text-[12px]"
+        <div className="mt-1.5 flex min-h-[2.25rem] items-center gap-1.5 md:min-h-[2.75rem] md:gap-2">
+          {hasSubjectPager ? (
+            <button
+              type="button"
+              aria-label="Previous subjects"
+              disabled={visibleSubjectPage === 0}
+              onClick={(event) => changeSubjectPage(event, -1)}
+              onKeyDown={(event) => event.stopPropagation()}
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/40 bg-[color:var(--brand-teal)]/12 text-[color:var(--brand-navy)] transition-colors hover:bg-[color:var(--brand-teal)]/20 disabled:cursor-not-allowed disabled:border-border disabled:bg-muted disabled:text-muted-foreground md:h-7 md:w-7"
             >
-              {(() => {
-                const { prefix, value } = splitGradeLabel(grade);
-                return (
-                  <>
-                    {subject} : {prefix}
-                    <span className="inline-block text-[11px] font-black leading-none tracking-tight text-[color:var(--brand-navy)] md:text-[13px]">
-                      {value}
-                    </span>
-                  </>
-                );
-              })()}
-            </span>
-          ))}
-          {extraCount > 0 ? (
-            <span className="rounded-[2px] bg-[color:var(--brand-teal)]/12 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--brand-navy)] md:px-3 md:py-1 md:text-[12px]">
-              +{extraCount}
-            </span>
+              <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          ) : null}
+          <div className="flex min-w-0 flex-1 flex-nowrap items-start gap-1.5 overflow-hidden md:gap-2">
+            {visibleChips.map((chip, index) => (
+              <SubjectGradeChip key={`${chip.subject}-${index}`} chip={chip} />
+            ))}
+          </div>
+          {hasSubjectPager ? (
+            <button
+              type="button"
+              aria-label="Next subjects"
+              disabled={visibleSubjectPage === maxSubjectPage}
+              onClick={(event) => changeSubjectPage(event, 1)}
+              onKeyDown={(event) => event.stopPropagation()}
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/40 bg-[color:var(--brand-teal)]/12 text-[color:var(--brand-navy)] transition-colors hover:bg-[color:var(--brand-teal)]/20 disabled:cursor-not-allowed disabled:border-border disabled:bg-muted disabled:text-muted-foreground md:h-7 md:w-7"
+            >
+              <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
           ) : null}
         </div>
 
-        <h3 className="mt-2 min-h-[3rem] line-clamp-3 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--brand-navy)] md:mt-3 md:min-h-[3.75rem] md:text-[14px]">
+        {primaryExam ? (
+          <div className="mt-2.5">
+            <h3 className="text-[10px] font-bold tracking-tight text-[color:var(--brand-navy)] md:text-[11px]">
+              Academic Excellence
+            </h3>
+            <div className={cn("mt-1.5 grid gap-1.5", secondaryExam && "md:grid-cols-2")}>
+              <CompactQualification result={primaryExam} />
+              {secondaryExam ? <CompactQualification result={secondaryExam} /> : null}
+            </div>
+          </div>
+        ) : null}
+
+        {tutor.achievements.length > 0 ? (
+          <div className="mt-2.5">
+            <h3 className="flex items-center gap-1 text-[10px] font-bold tracking-tight text-[color:var(--brand-navy)] md:text-[11px]">
+              <Award className="h-3.5 w-3.5 text-[color:var(--brand-teal)]" aria-hidden="true" />
+              Achievements and Experiences
+            </h3>
+            <ul className="mt-1 space-y-1">
+              {tutor.achievements.slice(0, 3).map((achievement, index) => (
+                <li
+                  key={`${achievement.short_text}-${index}`}
+                  className="flex gap-1.5 text-[10px] font-medium leading-snug text-[color:var(--brand-navy)] md:text-[11px]"
+                >
+                  <Award
+                    className="mt-0.5 h-3 w-3 shrink-0 text-[color:var(--brand-teal)]"
+                    aria-hidden="true"
+                  />
+                  <span className="line-clamp-1">{achievement.short_text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        <h3 className="mt-2.5 line-clamp-3 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--brand-navy)] md:mt-3 md:text-[14px]">
           {tutor.headline ?? "Experienced tutor matching students with tailored support"}
         </h3>
 

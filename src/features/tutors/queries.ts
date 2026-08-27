@@ -8,6 +8,17 @@ export type Education = {
   level?: string | null;
 };
 
+export const MAX_TUTOR_ACHIEVEMENTS = 3;
+export const TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT = 60;
+export const IA_EE_TOK_SUPPORT_OPTIONS = ["IA", "EE", "TOK"] as const;
+
+export type TutorAchievement = {
+  short_text: string;
+  detail_text?: string;
+};
+
+export type IaEeTokSupport = (typeof IA_EE_TOK_SUPPORT_OPTIONS)[number];
+
 export type Tutor = {
   id: string;
   display_name: string;
@@ -32,6 +43,9 @@ export type Tutor = {
   teaching_since: number | null;
   languages: string[];
   exam_results: ExamResult[];
+  achievements: TutorAchievement[];
+  ia_ee_tok_support: IaEeTokSupport[];
+  ia_ee_tok_notes: string | null;
 };
 
 export type TutorPhotoDefaults = {
@@ -39,27 +53,35 @@ export type TutorPhotoDefaults = {
   female: string | null;
 };
 
-const TUTOR_PROFILE_DEFAULT_KEYS = ["default_tutor_profile_photo_male", "default_tutor_profile_photo_female"] as const;
+const TUTOR_PROFILE_DEFAULT_KEYS = [
+  "default_tutor_profile_photo_male",
+  "default_tutor_profile_photo_female",
+] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, university, highschool, target_students, academic_summary, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, exam_results, gender";
+  "id, display_name, headline, university, highschool, target_students, academic_summary, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
 
 const LEGACY_SELECT_COLS =
-  "id, display_name, headline, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, exam_results, gender";
+  "id, display_name, headline, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
 
 function hasMissingProfileColumns(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const maybe = error as { code?: unknown; message?: unknown };
   const code = typeof maybe.code === "string" ? maybe.code : "";
   const message = typeof maybe.message === "string" ? maybe.message : "";
-  return code === "42703" || /column\s+"?(university|highschool|target_students|academic_summary|qualifications_summary)"?\s+does\s+not\s+exist/i.test(message);
+  return (
+    code === "42703" ||
+    /column\s+"?(university|highschool|target_students|academic_summary|qualifications_summary|achievements|ia_ee_tok_support|ia_ee_tok_notes)"?\s+does\s+not\s+exist/i.test(
+      message,
+    )
+  );
 }
 
 async function withTutorSelectFallback<T>(
   run: (selectCols: string) => PromiseLike<{ data: unknown; error: unknown }>,
 ): Promise<T> {
   const first = await run(SELECT_COLS);
-  if (!first.error) return ((first.data ?? []) as T);
+  if (!first.error) return (first.data ?? []) as T;
 
   if (!hasMissingProfileColumns(first.error)) {
     throw first.error;
@@ -67,7 +89,7 @@ async function withTutorSelectFallback<T>(
 
   const second = await run(LEGACY_SELECT_COLS);
   if (second.error) throw second.error;
-  return ((second.data ?? []) as T);
+  return (second.data ?? []) as T;
 }
 
 async function fetchTutorPhotoDefaults(): Promise<TutorPhotoDefaults> {
@@ -102,11 +124,44 @@ function resolveTutorPhotoUrl(
   return null;
 }
 
-function normalize(row: Record<string, unknown>, defaults: TutorPhotoDefaults = { male: null, female: null }): Tutor {
+function normalizeAchievements(raw: unknown): TutorAchievement[] {
+  if (!Array.isArray(raw)) return [];
+
+  return raw.slice(0, MAX_TUTOR_ACHIEVEMENTS).flatMap((value) => {
+    if (!value || typeof value !== "object") return [];
+    const entry = value as Record<string, unknown>;
+    const shortText = typeof entry.short_text === "string" ? entry.short_text.trim() : "";
+    const detailText = typeof entry.detail_text === "string" ? entry.detail_text.trim() : "";
+    if (!shortText) return [];
+    return [
+      {
+        short_text: shortText.slice(0, TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT),
+        ...(detailText ? { detail_text: detailText } : {}),
+      },
+    ];
+  });
+}
+
+function normalizeIaEeTokSupport(raw: unknown): IaEeTokSupport[] {
+  if (!Array.isArray(raw)) return [];
+  const supported = new Set<string>(IA_EE_TOK_SUPPORT_OPTIONS);
+  return Array.from(
+    new Set(
+      raw.filter((value): value is string => typeof value === "string" && supported.has(value)),
+    ),
+  ) as IaEeTokSupport[];
+}
+
+function normalize(
+  row: Record<string, unknown>,
+  defaults: TutorPhotoDefaults = { male: null, female: null },
+): Tutor {
   const edu = Array.isArray(row.education) ? (row.education as Education[]) : [];
   const exams = normalizeExamResults(row.exam_results);
   const targetStudents = Array.isArray(row.target_students)
-    ? (row.target_students as unknown[]).filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    ? (row.target_students as unknown[]).filter(
+        (value): value is string => typeof value === "string" && value.trim().length > 0,
+      )
     : [];
 
   const resolvedPhotoUrl = resolveTutorPhotoUrl(
@@ -123,9 +178,13 @@ function normalize(row: Record<string, unknown>, defaults: TutorPhotoDefaults = 
     university: typeof row.university === "string" ? row.university : null,
     highschool: typeof row.highschool === "string" ? row.highschool : null,
     academic_summary: typeof row.academic_summary === "string" ? row.academic_summary : null,
-    qualifications_summary: typeof row.qualifications_summary === "string" ? row.qualifications_summary : null,
+    qualifications_summary:
+      typeof row.qualifications_summary === "string" ? row.qualifications_summary : null,
     education: edu,
     exam_results: exams,
+    achievements: normalizeAchievements(row.achievements),
+    ia_ee_tok_support: normalizeIaEeTokSupport(row.ia_ee_tok_support),
+    ia_ee_tok_notes: typeof row.ia_ee_tok_notes === "string" ? row.ia_ee_tok_notes : null,
     target_students: targetStudents,
   };
 }
@@ -210,13 +269,7 @@ const DISTRICT_GROUPS: Record<string, string[]> = {
     "North Point",
     "Quarry Bay",
   ],
-  "Within Kowloon": [
-    "Tsim Sha Tsui",
-    "Mong Kok",
-    "Kowloon Tong",
-    "Kowloon Bay",
-    "Ho Man Tin",
-  ],
+  "Within Kowloon": ["Tsim Sha Tsui", "Mong Kok", "Kowloon Tong", "Kowloon Bay", "Ho Man Tin"],
   "Within New Territories": [
     "Sha Tin",
     "Tai Po",
@@ -232,14 +285,20 @@ function isDistrictGroup(value: string): boolean {
   return Object.prototype.hasOwnProperty.call(DISTRICT_GROUPS, value);
 }
 
-export function matchesLessonModeFilter(filterMode: string | undefined, tutorMode: Tutor["lesson_mode"]): boolean {
+export function matchesLessonModeFilter(
+  filterMode: string | undefined,
+  tutorMode: Tutor["lesson_mode"],
+): boolean {
   const mode = (filterMode ?? "").trim();
   if (!mode || mode === "either") return true;
   if (tutorMode === "either") return true;
   return tutorMode === mode;
 }
 
-export function matchesDistrictFilter(filterDistrict: string | undefined, tutorDistrict: string | null | undefined): boolean {
+export function matchesDistrictFilter(
+  filterDistrict: string | undefined,
+  tutorDistrict: string | null | undefined,
+): boolean {
   const filter = (filterDistrict ?? "").trim();
   const tutor = (tutorDistrict ?? "").trim();
 
@@ -253,7 +312,10 @@ export function matchesDistrictFilter(filterDistrict: string | undefined, tutorD
   return false;
 }
 
-export async function fetchLandingStats(): Promise<{ activeTutors: number; subjectsCovered: number }> {
+export async function fetchLandingStats(): Promise<{
+  activeTutors: number;
+  subjectsCovered: number;
+}> {
   const { data, error } = await supabase.from("tutors").select("subjects").eq("is_published", true);
   if (error) throw error;
   const rows = (data ?? []) as { subjects: string[] | null }[];

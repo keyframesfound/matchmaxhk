@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
@@ -37,8 +38,13 @@ import {
   fetchAllTutors,
   getTutorGenderLabel,
   HK_DISTRICTS,
+  IA_EE_TOK_SUPPORT_OPTIONS,
+  MAX_TUTOR_ACHIEVEMENTS,
+  TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT,
   type Tutor,
   type Education,
+  type IaEeTokSupport,
+  type TutorAchievement,
 } from "@/features/tutors/queries";
 import {
   EXAM_SYSTEMS,
@@ -54,6 +60,7 @@ import {
   type R2TutorImage,
 } from "@/features/tutors/r2.functions";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 
 export const Route = createFileRoute("/_authenticated/admin/tutors")({
   head: () => ({
@@ -327,6 +334,15 @@ const examSchema = z.object({
   subjects: z.array(examEntrySchema),
 });
 
+const achievementSchema = z.object({
+  short_text: z
+    .string()
+    .trim()
+    .min(1, "A short achievement line is required")
+    .max(TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT),
+  detail_text: z.string().trim().max(1000).optional().or(z.literal("")),
+});
+
 const formSchema = z.object({
   headline: z.string().trim().min(1, "Headline is required").max(200),
   subjects: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one subject"),
@@ -352,7 +368,12 @@ const formSchema = z.object({
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
   teaching_since: z.union([z.coerce.number().int().min(1950).max(2100), z.literal("")]).optional(),
   education: z.array(eduSchema),
-  exam_results: z.array(examSchema),
+  exam_results: z.array(examSchema).max(2, "Add no more than two exam systems"),
+  achievements: z
+    .array(achievementSchema)
+    .max(MAX_TUTOR_ACHIEVEMENTS, "Add no more than three achievements"),
+  ia_ee_tok_support: z.array(z.enum(IA_EE_TOK_SUPPORT_OPTIONS)),
+  ia_ee_tok_notes: z.string().trim().max(1000).optional().or(z.literal("")),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -378,6 +399,9 @@ const empty: FormValues = {
   teaching_since: "",
   education: [],
   exam_results: [],
+  achievements: [],
+  ia_ee_tok_support: [],
+  ia_ee_tok_notes: "",
 };
 
 function tutorToForm(t: Tutor): FormValues {
@@ -410,10 +434,16 @@ function tutorToForm(t: Tutor): FormValues {
       year: e.year ?? "",
       level: e.level ?? "",
     })),
-    exam_results: (t.exam_results ?? []).map((r) => ({
+    exam_results: (t.exam_results ?? []).slice(0, 2).map((r) => ({
       system: r.system ?? "",
       subjects: (r.subjects ?? []).map((s) => ({ subject: s.subject ?? "", grade: s.grade ?? "" })),
     })),
+    achievements: (t.achievements ?? []).slice(0, MAX_TUTOR_ACHIEVEMENTS).map((achievement) => ({
+      short_text: achievement.short_text ?? "",
+      detail_text: achievement.detail_text ?? "",
+    })),
+    ia_ee_tok_support: t.ia_ee_tok_support ?? [],
+    ia_ee_tok_notes: t.ia_ee_tok_notes ?? "",
   };
 }
 
@@ -431,9 +461,17 @@ function formToPayload(v: FormValues, isNew: boolean) {
       system: r.system,
       subjects: (r.subjects ?? [])
         .map((s) => ({ subject: s.subject.trim(), grade: s.grade.trim() }))
-        .filter((s) => s.subject && s.grade),
+        .filter((s) => s.subject),
     }))
-    .filter((r) => r.system && r.subjects.length > 0);
+    .filter((r) => r.system && r.subjects.length > 0)
+    .slice(0, 2);
+  const cleanAchievements: TutorAchievement[] = v.achievements
+    .map((achievement) => ({
+      short_text: achievement.short_text.trim(),
+      detail_text: achievement.detail_text?.trim() || undefined,
+    }))
+    .filter((achievement) => achievement.short_text)
+    .slice(0, MAX_TUTOR_ACHIEVEMENTS);
   const langs = (v.languages_csv || "")
     .split(",")
     .map((s) => s.trim())
@@ -464,6 +502,9 @@ function formToPayload(v: FormValues, isNew: boolean) {
     teaching_since: v.teaching_since === "" ? null : Number(v.teaching_since),
     education: cleanEdu,
     exam_results: cleanExams,
+    achievements: cleanAchievements,
+    ia_ee_tok_support: v.ia_ee_tok_support,
+    ia_ee_tok_notes: v.ia_ee_tok_notes?.trim() || null,
   };
   return base;
 }
@@ -607,6 +648,7 @@ function AdminTutors() {
   }
 
   function addExam() {
+    if (form.exam_results.length >= 2) return;
     setForm({
       ...form,
       exam_results: [
@@ -649,6 +691,79 @@ function AdminTutors() {
   function removeExam(i: number) {
     setForm({ ...form, exam_results: form.exam_results.filter((_, idx) => idx !== i) });
   }
+  function addAchievement() {
+    if (form.achievements.length >= MAX_TUTOR_ACHIEVEMENTS) return;
+    setForm({ ...form, achievements: [...form.achievements, { short_text: "", detail_text: "" }] });
+  }
+  function updateAchievement(i: number, patch: Partial<TutorAchievement>) {
+    const next = form.achievements.slice();
+    next[i] = { ...next[i], ...patch };
+    setForm({ ...form, achievements: next });
+  }
+  function removeAchievement(i: number) {
+    setForm({ ...form, achievements: form.achievements.filter((_, idx) => idx !== i) });
+  }
+  function toggleIaEeTokSupport(item: IaEeTokSupport, checked: boolean) {
+    const next = checked
+      ? Array.from(new Set([...form.ia_ee_tok_support, item]))
+      : form.ia_ee_tok_support.filter((value) => value !== item);
+    setForm({ ...form, ia_ee_tok_support: next });
+  }
+
+  const previewTutor = useMemo<Tutor>(
+    () => ({
+      id: editing?.id ?? "preview-tutor",
+      display_name: form.tutor_code.trim() || "MM-PREVIEW",
+      headline: form.headline.trim() || null,
+      university: (form.university ?? "").trim() || null,
+      highschool: (form.highschool ?? "").trim() || null,
+      target_students: (form.target_students_csv ?? "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean),
+      academic_summary: null,
+      qualifications_summary: (form.qualifications_summary ?? "").trim() || null,
+      subjects: form.subjects,
+      district: form.lesson_mode === "online" ? null : (form.district ?? "").trim() || null,
+      gender: form.gender,
+      lesson_mode: form.lesson_mode,
+      hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
+      badge: (form.badge ?? "").trim() || null,
+      bio: (form.bio ?? "").trim() || null,
+      photo_url: (form.photo_url ?? "").trim() || null,
+      tutor_code: form.tutor_code.trim() || "MM-PREVIEW",
+      is_published: form.is_published,
+      education: form.education.map((education) => ({
+        institution: education.institution,
+        qualification: education.qualification,
+        year: education.year === "" ? null : education.year,
+        level: education.level ?? null,
+      })),
+      experience_years: form.experience_years === "" ? null : Number(form.experience_years),
+      teaching_since: form.teaching_since === "" ? null : Number(form.teaching_since),
+      languages: (form.languages_csv ?? "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean),
+      exam_results: form.exam_results
+        .map((result) => ({
+          system: result.system,
+          subjects: result.subjects
+            .map((subject) => ({ subject: subject.subject.trim(), grade: subject.grade.trim() }))
+            .filter((subject) => subject.subject),
+        }))
+        .filter((result) => result.system && result.subjects.length > 0),
+      achievements: form.achievements
+        .map((achievement) => ({
+          short_text: achievement.short_text.trim(),
+          detail_text: achievement.detail_text?.trim() || undefined,
+        }))
+        .filter((achievement) => achievement.short_text),
+      ia_ee_tok_support: form.ia_ee_tok_support,
+      ia_ee_tok_notes: (form.ia_ee_tok_notes ?? "").trim() || null,
+    }),
+    [editing?.id, form],
+  );
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -673,150 +788,101 @@ function AdminTutors() {
                   <Plus className="mr-2 h-4 w-4" /> Add tutor
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-h-[90vh] overflow-y-auto bg-white sm:max-w-3xl">
+              <DialogContent className="max-h-[94vh] overflow-y-auto bg-white sm:max-w-[min(96vw,88rem)]">
                 <DialogHeader>
                   <DialogTitle>{editing ? "Edit tutor" : "Add tutor"}</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={onSubmit} className="space-y-6">
-                  <Section title="Tutor identity">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <Field label="Tutor code (unique)" error={errors.tutor_code}>
-                        <Input
-                          value={form.tutor_code}
-                          onChange={(e) => setForm({ ...form, tutor_code: e.target.value })}
-                          placeholder="MM-1042"
-                        />
-                      </Field>
-                      <Field label="Gender" error={errors.gender}>
-                        <SearchableSelect
-                          value={form.gender}
-                          onChange={(gender) =>
-                            setForm({
-                              ...form,
-                              gender: gender as "male" | "female" | "other",
-                            })
-                          }
-                          options={[
-                            { value: "female", label: "Female" },
-                            { value: "male", label: "Male" },
-                            { value: "other", label: "Other" },
-                          ]}
-                          placeholder="Select gender"
-                          searchPlaceholder="Search gender…"
-                        />
-                      </Field>
-                    </div>
-                    <Field label="Headline" error={errors.headline}>
-                      <Input
-                        value={form.headline}
-                        onChange={(e) => setForm({ ...form, headline: e.target.value })}
-                        placeholder="IB Biology tutor focused on exam strategy"
-                      />
-                    </Field>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <Field label="University" error={errors.university}>
-                        <Input
-                          value={form.university}
-                          onChange={(e) => setForm({ ...form, university: e.target.value })}
-                          placeholder="Chinese University of Hong Kong"
-                        />
-                      </Field>
-                      <Field label="Highschool" error={errors.highschool}>
-                        <Input
-                          value={form.highschool}
-                          onChange={(e) => setForm({ ...form, highschool: e.target.value })}
-                          placeholder="Diocesan Boys' School"
-                        />
-                      </Field>
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <Field label="Photo (optional)" error={errors.photo_url}>
-                        <PhotoUpload
-                          value={form.photo_url ?? ""}
-                          onChange={(url) => setForm({ ...form, photo_url: url })}
-                        />
-                      </Field>
-                      <Field label="Badge (optional)" error={errors.badge}>
-                        <Input
-                          value={form.badge}
-                          onChange={(e) => setForm({ ...form, badge: e.target.value })}
-                          placeholder="CUHK MBChB Year 2"
-                        />
-                      </Field>
-                    </div>
-                  </Section>
+                <form onSubmit={onSubmit} className="py-1">
+                  <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start">
+                    <div className="space-y-6">
+                      <Section title="Tutor identity">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <Field label="Tutor code (unique)" error={errors.tutor_code}>
+                            <Input
+                              value={form.tutor_code}
+                              onChange={(e) => setForm({ ...form, tutor_code: e.target.value })}
+                              placeholder="MM-1042"
+                            />
+                          </Field>
+                          <Field label="Gender" error={errors.gender}>
+                            <SearchableSelect
+                              value={form.gender}
+                              onChange={(gender) =>
+                                setForm({
+                                  ...form,
+                                  gender: gender as "male" | "female" | "other",
+                                })
+                              }
+                              options={[
+                                { value: "female", label: "Female" },
+                                { value: "male", label: "Male" },
+                                { value: "other", label: "Other" },
+                              ]}
+                              placeholder="Select gender"
+                              searchPlaceholder="Search gender…"
+                            />
+                          </Field>
+                        </div>
+                        <Field label="Headline" error={errors.headline}>
+                          <Input
+                            value={form.headline}
+                            onChange={(e) => setForm({ ...form, headline: e.target.value })}
+                            placeholder="IB Biology tutor focused on exam strategy"
+                          />
+                        </Field>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <Field label="University" error={errors.university}>
+                            <Input
+                              value={form.university}
+                              onChange={(e) => setForm({ ...form, university: e.target.value })}
+                              placeholder="Chinese University of Hong Kong"
+                            />
+                          </Field>
+                          <Field label="Highschool" error={errors.highschool}>
+                            <Input
+                              value={form.highschool}
+                              onChange={(e) => setForm({ ...form, highschool: e.target.value })}
+                              placeholder="Diocesan Boys' School"
+                            />
+                          </Field>
+                        </div>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <Field label="Photo (optional)" error={errors.photo_url}>
+                            <PhotoUpload
+                              value={form.photo_url ?? ""}
+                              onChange={(url) => setForm({ ...form, photo_url: url })}
+                            />
+                          </Field>
+                          <Field label="Badge (optional)" error={errors.badge}>
+                            <Input
+                              value={form.badge}
+                              onChange={(e) => setForm({ ...form, badge: e.target.value })}
+                              placeholder="CUHK MBChB Year 2"
+                            />
+                          </Field>
+                        </div>
+                      </Section>
 
-                  <Section title="Subjects">
-                    <Field label="Subjects" error={errors.subjects}>
-                      <div className="space-y-2">
-                        {form.subjects.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5">
-                            {form.subjects.map((s) => (
-                              <span
-                                key={s}
-                                className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-navy)]"
-                              >
-                                {s}
-                                <button
-                                  type="button"
-                                  aria-label={`Remove ${s}`}
-                                  onClick={() =>
-                                    setForm({
-                                      ...form,
-                                      subjects: form.subjects.filter((x) => x !== s),
-                                    })
-                                  }
-                                  className="hover:text-destructive"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        <SearchableSelect
-                          value=""
-                          onChange={(v) => {
-                            const val = v.trim();
-                            if (!val) return;
-                            if (form.subjects.includes(val)) return;
-                            setForm({ ...form, subjects: [...form.subjects, val] });
-                          }}
-                          options={SUBJECT_OPTIONS.filter((s) => !form.subjects.includes(s))}
-                          placeholder="Add a subject…"
-                          searchPlaceholder="Search or type a subject…"
-                          allowCustom
-                        />
-                      </div>
-                    </Field>
-
-                    <Field label="Target students" error={errors.target_students_csv}>
-                      {(() => {
-                        const targetStudentsValue = form.target_students_csv ?? "";
-                        const targetStudentList = targetStudentsValue
-                          .split(",")
-                          .map((item) => item.trim())
-                          .filter(Boolean);
-
-                        return (
+                      <Section title="Subjects">
+                        <Field label="Subjects" error={errors.subjects}>
                           <div className="space-y-2">
-                            {targetStudentList.length > 0 ? (
+                            {form.subjects.length > 0 && (
                               <div className="flex flex-wrap gap-1.5">
-                                {targetStudentList.map((item) => (
+                                {form.subjects.map((s) => (
                                   <span
-                                    key={item}
+                                    key={s}
                                     className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-navy)]"
                                   >
-                                    {item}
+                                    {s}
                                     <button
                                       type="button"
-                                      aria-label={`Remove ${item}`}
-                                      onClick={() => {
-                                        const next = targetStudentList.filter(
-                                          (value) => value !== item,
-                                        );
-                                        setForm({ ...form, target_students_csv: next.join(", ") });
-                                      }}
+                                      aria-label={`Remove ${s}`}
+                                      onClick={() =>
+                                        setForm({
+                                          ...form,
+                                          subjects: form.subjects.filter((x) => x !== s),
+                                        })
+                                      }
                                       className="hover:text-destructive"
                                     >
                                       <X className="h-3 w-3" />
@@ -824,348 +890,552 @@ function AdminTutors() {
                                   </span>
                                 ))}
                               </div>
-                            ) : null}
+                            )}
                             <SearchableSelect
                               value=""
-                              onChange={(value) => {
-                                const val = value.trim();
+                              onChange={(v) => {
+                                const val = v.trim();
                                 if (!val) return;
-                                const current = targetStudentList;
-                                if (current.includes(val)) return;
-                                setForm({
-                                  ...form,
-                                  target_students_csv: [...current, val].join(", "),
-                                });
+                                if (form.subjects.includes(val)) return;
+                                setForm({ ...form, subjects: [...form.subjects, val] });
                               }}
-                              options={TARGET_STUDENT_OPTIONS.filter(
-                                (value) => !targetStudentList.includes(value),
-                              )}
-                              placeholder="Add target students…"
-                              searchPlaceholder="Search target students…"
+                              options={SUBJECT_OPTIONS.filter((s) => !form.subjects.includes(s))}
+                              placeholder="Add a subject…"
+                              searchPlaceholder="Search or type a subject…"
                               allowCustom
                             />
                           </div>
-                        );
-                      })()}
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Separate multiple targets with commas.
-                      </p>
-                    </Field>
-                  </Section>
+                        </Field>
 
-                  <Section title="Academic Excellence">
-                    <div className="space-y-3">
-                      {form.education.length === 0 && (
-                        <p className="text-sm text-muted-foreground">
-                          No qualifications yet. Add one below.
-                        </p>
-                      )}
-                      {form.education.map((row, i) => (
-                        <div
-                          key={i}
-                          className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[160px_1fr_1fr_100px_auto]"
-                        >
-                          <Select
-                            value={row.level || "__none"}
-                            onValueChange={(v) => updateEdu(i, { level: v === "__none" ? "" : v })}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Level" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__none">Level…</SelectItem>
-                              {EDUCATION_LEVELS.map((l) => (
-                                <SelectItem key={l} value={l}>
-                                  {l}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Input
-                            placeholder="Institution (e.g. DBS, HKU)"
-                            value={row.institution}
-                            onChange={(e) => updateEdu(i, { institution: e.target.value })}
-                          />
-                          <Input
-                            placeholder="Qualification (e.g. HKDSE, BSc Maths)"
-                            value={row.qualification}
-                            onChange={(e) => updateEdu(i, { qualification: e.target.value })}
-                          />
-                          <Input
-                            type="number"
-                            placeholder="Year"
-                            value={row.year ?? ""}
-                            onChange={(e) =>
-                              updateEdu(i, {
-                                year: e.target.value === "" ? null : Number(e.target.value),
-                              })
-                            }
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={() => removeEdu(i)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                      <Button type="button" variant="outline" onClick={addEdu}>
-                        <Plus className="mr-2 h-4 w-4" /> Add qualification
-                      </Button>
-                    </div>
+                        <Field label="Target students" error={errors.target_students_csv}>
+                          {(() => {
+                            const targetStudentsValue = form.target_students_csv ?? "";
+                            const targetStudentList = targetStudentsValue
+                              .split(",")
+                              .map((item) => item.trim())
+                              .filter(Boolean);
 
-                    <p className="text-xs text-muted-foreground">
-                      Pick an exam system, then add each subject with its grade. Lists are
-                      searchable and match the chosen system.
-                    </p>
-                    <div className="space-y-4">
-                      {form.exam_results.length === 0 && (
-                        <p className="text-sm text-muted-foreground">
-                          No scores yet. Add an exam system below.
-                        </p>
-                      )}
-                      {form.exam_results.map((row, i) => {
-                        const sys = getSystem(row.system);
-                        const subjectOptions = sys?.subjects ?? [];
-                        return (
-                          <div key={i} className="rounded-xl border border-border bg-muted/30 p-3">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <div className="min-w-[180px] flex-1">
+                            return (
+                              <div className="space-y-2">
+                                {targetStudentList.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {targetStudentList.map((item) => (
+                                      <span
+                                        key={item}
+                                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-navy)]"
+                                      >
+                                        {item}
+                                        <button
+                                          type="button"
+                                          aria-label={`Remove ${item}`}
+                                          onClick={() => {
+                                            const next = targetStudentList.filter(
+                                              (value) => value !== item,
+                                            );
+                                            setForm({
+                                              ...form,
+                                              target_students_csv: next.join(", "),
+                                            });
+                                          }}
+                                          className="hover:text-destructive"
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </button>
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : null}
                                 <SearchableSelect
-                                  value={row.system}
-                                  onChange={(v) => updateExamSystem(i, v)}
-                                  options={EXAM_SYSTEMS.map((s) => ({
-                                    value: s.id,
-                                    label: s.label,
-                                  }))}
-                                  placeholder="Exam system"
-                                  searchPlaceholder="Search systems…"
+                                  value=""
+                                  onChange={(value) => {
+                                    const val = value.trim();
+                                    if (!val) return;
+                                    const current = targetStudentList;
+                                    if (current.includes(val)) return;
+                                    setForm({
+                                      ...form,
+                                      target_students_csv: [...current, val].join(", "),
+                                    });
+                                  }}
+                                  options={TARGET_STUDENT_OPTIONS.filter(
+                                    (value) => !targetStudentList.includes(value),
+                                  )}
+                                  placeholder="Add target students…"
+                                  searchPlaceholder="Search target students…"
+                                  allowCustom
                                 />
                               </div>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => addSubjectRow(i)}
+                            );
+                          })()}
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Separate multiple targets with commas.
+                          </p>
+                        </Field>
+                      </Section>
+
+                      <Section title="Academic Excellence">
+                        <div className="space-y-3">
+                          {form.education.length === 0 && (
+                            <p className="text-sm text-muted-foreground">
+                              No qualifications yet. Add one below.
+                            </p>
+                          )}
+                          {form.education.map((row, i) => (
+                            <div
+                              key={i}
+                              className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[160px_1fr_1fr_100px_auto]"
+                            >
+                              <Select
+                                value={row.level || "__none"}
+                                onValueChange={(v) =>
+                                  updateEdu(i, { level: v === "__none" ? "" : v })
+                                }
                               >
-                                <Plus className="mr-1 h-3.5 w-3.5" /> Subject
-                              </Button>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Level" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="__none">Level…</SelectItem>
+                                  {EDUCATION_LEVELS.map((l) => (
+                                    <SelectItem key={l} value={l}>
+                                      {l}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Input
+                                placeholder="Institution (e.g. DBS, HKU)"
+                                value={row.institution}
+                                onChange={(e) => updateEdu(i, { institution: e.target.value })}
+                              />
+                              <Input
+                                placeholder="Qualification (e.g. HKDSE, BSc Maths)"
+                                value={row.qualification}
+                                onChange={(e) => updateEdu(i, { qualification: e.target.value })}
+                              />
+                              <Input
+                                type="number"
+                                placeholder="Year"
+                                value={row.year ?? ""}
+                                onChange={(e) =>
+                                  updateEdu(i, {
+                                    year: e.target.value === "" ? null : Number(e.target.value),
+                                  })
+                                }
+                              />
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                onClick={() => removeExam(i)}
-                                aria-label="Remove exam system"
+                                onClick={() => removeEdu(i)}
                               >
                                 <X className="h-4 w-4" />
                               </Button>
                             </div>
-                            <div className="mt-3 space-y-2">
-                              {row.subjects.map((entry, j) => {
-                                const gradeOptions = getGradesForSelection(
-                                  row.system,
-                                  entry.subject,
-                                );
-                                return (
-                                  <div
-                                    key={j}
-                                    className="grid grid-cols-[minmax(0,1fr)_minmax(0,140px)_auto] gap-2"
-                                  >
-                                    <SearchableSelect
-                                      value={entry.subject}
-                                      onChange={(v) => updateSubjectRow(i, j, { subject: v })}
-                                      options={subjectOptions}
-                                      placeholder={sys?.freeSubject ? "Type a subject" : "Subject"}
-                                      searchPlaceholder="Search subjects…"
-                                      allowCustom={sys?.freeSubject ?? false}
-                                      disabled={!row.system}
-                                    />
-                                    <SearchableSelect
-                                      value={entry.grade}
-                                      onChange={(v) => updateSubjectRow(i, j, { grade: v })}
-                                      options={gradeOptions}
-                                      placeholder={
-                                        gradeOptions.length === 0 ? "Type a grade" : "Grade"
-                                      }
-                                      searchPlaceholder="Search grades…"
-                                      allowCustom={gradeOptions.length === 0}
-                                      disabled={!entry.subject}
-                                    />
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => removeSubjectRow(i, j)}
-                                      aria-label="Remove subject"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      <Button type="button" variant="outline" onClick={addExam}>
-                        <Plus className="mr-2 h-4 w-4" /> Add exam system
-                      </Button>
-                    </div>
-                  </Section>
+                          ))}
+                          <Button type="button" variant="outline" onClick={addEdu}>
+                            <Plus className="mr-2 h-4 w-4" /> Add qualification
+                          </Button>
+                        </div>
 
-                  <Section title="3. 🎓 Qualifications and Experience">
-                    <Field
-                      label="Qualifications & teaching profile"
-                      error={errors.qualifications_summary}
-                    >
-                      <Textarea
-                        rows={4}
-                        value={form.qualifications_summary}
-                        onChange={(e) =>
-                          setForm({ ...form, qualifications_summary: e.target.value })
-                        }
-                        placeholder="Private tutoring focused on medical-track sciences since 2024"
-                      />
-                    </Field>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <Field label="Languages (comma separated)" error={errors.languages_csv}>
-                        <Input
-                          value={form.languages_csv}
-                          onChange={(e) => setForm({ ...form, languages_csv: e.target.value })}
-                          placeholder="English, Cantonese"
-                        />
-                      </Field>
-                      <Field label="Experience (years)" error={errors.experience_years}>
-                        <Input
-                          type="number"
-                          value={form.experience_years}
-                          onChange={(e) => {
-                            const raw = e.target.value;
-                            if (raw === "") {
-                              setForm({ ...form, experience_years: "", teaching_since: "" });
-                            } else {
-                              const years = Number(raw);
+                        <p className="text-xs text-muted-foreground">
+                          Pick an exam system, then add each subject with its grade. The first
+                          system is the primary qualification shown publicly; the optional second
+                          system is displayed alongside it. Lists are searchable and match the
+                          chosen system.
+                        </p>
+                        <div className="space-y-4">
+                          {form.exam_results.length === 0 && (
+                            <p className="text-sm text-muted-foreground">
+                              No scores yet. Add an exam system below.
+                            </p>
+                          )}
+                          {form.exam_results.map((row, i) => {
+                            const sys = getSystem(row.system);
+                            const subjectOptions = sys?.subjects ?? [];
+                            return (
+                              <div
+                                key={i}
+                                className="rounded-xl border border-border bg-muted/30 p-3"
+                              >
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <div className="min-w-[180px] flex-1">
+                                    <SearchableSelect
+                                      value={row.system}
+                                      onChange={(v) => updateExamSystem(i, v)}
+                                      options={EXAM_SYSTEMS.map((s) => ({
+                                        value: s.id,
+                                        label: s.label,
+                                      }))}
+                                      placeholder="Exam system"
+                                      searchPlaceholder="Search systems…"
+                                    />
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addSubjectRow(i)}
+                                  >
+                                    <Plus className="mr-1 h-3.5 w-3.5" /> Subject
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => removeExam(i)}
+                                    aria-label="Remove exam system"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <div className="mt-3 space-y-2">
+                                  {row.subjects.map((entry, j) => {
+                                    const gradeOptions = getGradesForSelection(
+                                      row.system,
+                                      entry.subject,
+                                    );
+                                    return (
+                                      <div
+                                        key={j}
+                                        className="grid grid-cols-[minmax(0,1fr)_minmax(0,140px)_auto] gap-2"
+                                      >
+                                        <SearchableSelect
+                                          value={entry.subject}
+                                          onChange={(v) => updateSubjectRow(i, j, { subject: v })}
+                                          options={subjectOptions}
+                                          placeholder={
+                                            sys?.freeSubject ? "Type a subject" : "Subject"
+                                          }
+                                          searchPlaceholder="Search subjects…"
+                                          allowCustom={sys?.freeSubject ?? false}
+                                          disabled={!row.system}
+                                        />
+                                        <SearchableSelect
+                                          value={entry.grade}
+                                          onChange={(v) => updateSubjectRow(i, j, { grade: v })}
+                                          options={gradeOptions}
+                                          placeholder={
+                                            gradeOptions.length === 0 ? "Type a grade" : "Grade"
+                                          }
+                                          searchPlaceholder="Search grades…"
+                                          allowCustom={gradeOptions.length === 0}
+                                          disabled={!entry.subject}
+                                        />
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => removeSubjectRow(i, j)}
+                                          aria-label="Remove subject"
+                                        >
+                                          <X className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={addExam}
+                            disabled={form.exam_results.length >= 2}
+                          >
+                            <Plus className="mr-2 h-4 w-4" /> Add exam system
+                          </Button>
+                        </div>
+                      </Section>
+
+                      <Section title="Achievements and Experiences">
+                        <p className="text-xs text-muted-foreground">
+                          Add up to {MAX_TUTOR_ACHIEVEMENTS} highlights. The short line appears on
+                          the public card; the optional detail appears on the tutor profile.
+                        </p>
+                        <div className="space-y-3">
+                          {form.achievements.map((achievement, index) => (
+                            <div
+                              key={index}
+                              className="rounded-xl border border-border bg-muted/30 p-3"
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="text-xs font-semibold text-[color:var(--brand-navy)]">
+                                  Highlight {index + 1}
+                                </p>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeAchievement(index)}
+                                  aria-label={`Remove highlight ${index + 1}`}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="mt-2 space-y-3">
+                                <Field
+                                  label={`Short card line (${achievement.short_text.length}/${TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT} characters)`}
+                                  error={errors[`achievements.${index}.short_text`]}
+                                >
+                                  <Input
+                                    value={achievement.short_text}
+                                    maxLength={TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT}
+                                    onChange={(event) =>
+                                      updateAchievement(index, { short_text: event.target.value })
+                                    }
+                                    placeholder="e.g. Award-winning debate coach"
+                                  />
+                                </Field>
+                                <Field
+                                  label="Profile detail (optional)"
+                                  error={errors[`achievements.${index}.detail_text`]}
+                                >
+                                  <Textarea
+                                    rows={3}
+                                    value={achievement.detail_text ?? ""}
+                                    maxLength={1000}
+                                    onChange={(event) =>
+                                      updateAchievement(index, { detail_text: event.target.value })
+                                    }
+                                    placeholder="Add context that prospective students can read on the full profile."
+                                  />
+                                </Field>
+                              </div>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={addAchievement}
+                            disabled={form.achievements.length >= MAX_TUTOR_ACHIEVEMENTS}
+                          >
+                            <Plus className="mr-2 h-4 w-4" /> Add achievement
+                          </Button>
+                        </div>
+                      </Section>
+
+                      <Section title="IA / EE / TOK Support">
+                        <p className="text-xs text-muted-foreground">
+                          Select the mentoring support this tutor offers. This section is only shown
+                          on public profiles when at least one option is selected.
+                        </p>
+                        <div
+                          className="flex flex-wrap gap-3"
+                          role="group"
+                          aria-label="IA, EE, and TOK support"
+                        >
+                          {IA_EE_TOK_SUPPORT_OPTIONS.map((item) => (
+                            <label
+                              key={item}
+                              className="flex cursor-pointer items-center gap-2 rounded-sm border border-border bg-background px-3 py-2 text-sm font-medium text-[color:var(--brand-navy)]"
+                            >
+                              <Checkbox
+                                checked={form.ia_ee_tok_support.includes(item)}
+                                onCheckedChange={(checked) =>
+                                  toggleIaEeTokSupport(item, checked === true)
+                                }
+                              />
+                              {item}
+                            </label>
+                          ))}
+                        </div>
+                        <Field label="Support notes (optional)" error={errors.ia_ee_tok_notes}>
+                          <Textarea
+                            rows={3}
+                            value={form.ia_ee_tok_notes}
+                            maxLength={1000}
+                            onChange={(event) =>
+                              setForm({ ...form, ia_ee_tok_notes: event.target.value })
+                            }
+                            placeholder="e.g. Topic selection, outline review, and structural framework support."
+                          />
+                        </Field>
+                      </Section>
+
+                      <Section title="Qualifications and Experience">
+                        <Field
+                          label="Qualifications & teaching profile"
+                          error={errors.qualifications_summary}
+                        >
+                          <Textarea
+                            rows={4}
+                            value={form.qualifications_summary}
+                            onChange={(e) =>
+                              setForm({ ...form, qualifications_summary: e.target.value })
+                            }
+                            placeholder="Private tutoring focused on medical-track sciences since 2024"
+                          />
+                        </Field>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <Field label="Languages (comma separated)" error={errors.languages_csv}>
+                            <Input
+                              value={form.languages_csv}
+                              onChange={(e) => setForm({ ...form, languages_csv: e.target.value })}
+                              placeholder="English, Cantonese"
+                            />
+                          </Field>
+                          <Field label="Experience (years)" error={errors.experience_years}>
+                            <Input
+                              type="number"
+                              value={form.experience_years}
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                if (raw === "") {
+                                  setForm({ ...form, experience_years: "", teaching_since: "" });
+                                } else {
+                                  const years = Number(raw);
+                                  setForm({
+                                    ...form,
+                                    experience_years: years,
+                                    teaching_since: new Date().getFullYear() - years,
+                                  });
+                                }
+                              }}
+                            />
+                          </Field>
+                        </div>
+                        <Field label="Teaching since (year)" error={errors.teaching_since}>
+                          <Input
+                            type="number"
+                            value={form.teaching_since}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw === "") {
+                                setForm({ ...form, teaching_since: "", experience_years: "" });
+                              } else {
+                                const year = Number(raw);
+                                setForm({
+                                  ...form,
+                                  teaching_since: year,
+                                  experience_years: Math.max(0, new Date().getFullYear() - year),
+                                });
+                              }
+                            }}
+                            placeholder="2015"
+                          />
+                        </Field>
+                      </Section>
+
+                      <Section title="Lesson Format">
+                        <Field label="Lesson mode" error={errors.lesson_mode}>
+                          <ToggleGroup
+                            type="single"
+                            variant="outline"
+                            value={form.lesson_mode}
+                            onValueChange={(value) => {
+                              if (!value) return;
                               setForm({
                                 ...form,
-                                experience_years: years,
-                                teaching_since: new Date().getFullYear() - years,
+                                lesson_mode: value as FormValues["lesson_mode"],
+                                district: value === "online" ? "" : form.district,
                               });
-                            }
-                          }}
-                        />
-                      </Field>
-                    </div>
-                    <Field label="Teaching since (year)" error={errors.teaching_since}>
-                      <Input
-                        type="number"
-                        value={form.teaching_since}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          if (raw === "") {
-                            setForm({ ...form, teaching_since: "", experience_years: "" });
-                          } else {
-                            const year = Number(raw);
-                            setForm({
-                              ...form,
-                              teaching_since: year,
-                              experience_years: Math.max(0, new Date().getFullYear() - year),
-                            });
-                          }
-                        }}
-                        placeholder="2015"
-                      />
-                    </Field>
-                  </Section>
-
-                  <Section title="Lesson Format">
-                    <Field label="Lesson mode" error={errors.lesson_mode}>
-                      <ToggleGroup
-                        type="single"
-                        variant="outline"
-                        value={form.lesson_mode}
-                        onValueChange={(value) => {
-                          if (!value) return;
-                          setForm({
-                            ...form,
-                            lesson_mode: value as FormValues["lesson_mode"],
-                            district: value === "online" ? "" : form.district,
-                          });
-                        }}
-                        className="grid w-full grid-cols-3 gap-2"
-                      >
-                        <ToggleGroupItem value="online" className="w-full">
-                          Online
-                        </ToggleGroupItem>
-                        <ToggleGroupItem value="in_person" className="w-full">
-                          In person
-                        </ToggleGroupItem>
-                        <ToggleGroupItem value="either" className="w-full">
-                          Hybrid
-                        </ToggleGroupItem>
-                      </ToggleGroup>
-                    </Field>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {form.lesson_mode !== "online" ? (
-                        <Field label="District" error={errors.district}>
-                          <Select
-                            value={form.district || "__none"}
-                            onValueChange={(v) =>
-                              setForm({ ...form, district: v === "__none" ? "" : v })
-                            }
+                            }}
+                            className="grid w-full grid-cols-3 gap-2"
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select…" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__none">—</SelectItem>
-                              {HK_DISTRICTS.map((d) => (
-                                <SelectItem key={d} value={d}>
-                                  {d}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            <ToggleGroupItem value="online" className="w-full">
+                              Online
+                            </ToggleGroupItem>
+                            <ToggleGroupItem value="in_person" className="w-full">
+                              In person
+                            </ToggleGroupItem>
+                            <ToggleGroupItem value="either" className="w-full">
+                              Hybrid
+                            </ToggleGroupItem>
+                          </ToggleGroup>
                         </Field>
-                      ) : (
-                        <div className="rounded-xl border border-dashed border-border bg-muted/30 px-3 py-4 text-xs text-muted-foreground sm:mt-6">
-                          Online lessons do not need a district.
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          {form.lesson_mode !== "online" ? (
+                            <Field label="District" error={errors.district}>
+                              <Select
+                                value={form.district || "__none"}
+                                onValueChange={(v) =>
+                                  setForm({ ...form, district: v === "__none" ? "" : v })
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select…" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="__none">—</SelectItem>
+                                  {HK_DISTRICTS.map((d) => (
+                                    <SelectItem key={d} value={d}>
+                                      {d}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </Field>
+                          ) : (
+                            <div className="rounded-xl border border-dashed border-border bg-muted/30 px-3 py-4 text-xs text-muted-foreground sm:mt-6">
+                              Online lessons do not need a district.
+                            </div>
+                          )}
+                          <Field label="Hourly rate (HKD)" error={errors.hourly_rate}>
+                            <Input
+                              type="number"
+                              value={form.hourly_rate}
+                              onChange={(e) =>
+                                setForm({ ...form, hourly_rate: Number(e.target.value) })
+                              }
+                            />
+                          </Field>
                         </div>
-                      )}
-                      <Field label="Hourly rate (HKD)" error={errors.hourly_rate}>
-                        <Input
-                          type="number"
-                          value={form.hourly_rate}
-                          onChange={(e) =>
-                            setForm({ ...form, hourly_rate: Number(e.target.value) })
-                          }
+                      </Section>
+
+                      <div className="flex items-center gap-3 pt-2">
+                        <Switch
+                          id="pub"
+                          checked={form.is_published}
+                          onCheckedChange={(v) => setForm({ ...form, is_published: v })}
                         />
-                      </Field>
+                        <Label htmlFor="pub">Published (visible to visitors)</Label>
+                      </div>
+
+                      <DialogFooter>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setDialogOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={save.isPending}
+                          className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                        >
+                          {save.isPending ? "Saving…" : editing ? "Save changes" : "Add tutor"}
+                        </Button>
+                      </DialogFooter>
                     </div>
-                  </Section>
 
-                  <div className="flex items-center gap-3 pt-2">
-                    <Switch
-                      id="pub"
-                      checked={form.is_published}
-                      onCheckedChange={(v) => setForm({ ...form, is_published: v })}
-                    />
-                    <Label htmlFor="pub">Published (visible to visitors)</Label>
+                    <aside className="rounded-2xl border border-border bg-muted/30 p-4 xl:sticky xl:top-0">
+                      <div className="mb-3">
+                        <h3 className="text-sm font-bold text-[color:var(--brand-navy)]">
+                          Live public-card preview
+                        </h3>
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                          This uses the same card that visitors see and updates as you edit.
+                        </p>
+                      </div>
+                      <PublicTutorCard
+                        tutor={previewTutor}
+                        priceSuffix="/hr"
+                        footerAction={
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled
+                            className="pointer-events-none text-xs"
+                          >
+                            Preview
+                          </Button>
+                        }
+                      />
+                    </aside>
                   </div>
-
-                  <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={save.isPending}
-                      className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
-                    >
-                      {save.isPending ? "Saving…" : editing ? "Save changes" : "Add tutor"}
-                    </Button>
-                  </DialogFooter>
                 </form>
               </DialogContent>
             </Dialog>

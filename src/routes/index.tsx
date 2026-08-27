@@ -18,7 +18,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
-import { PublicTutorCard, buildTutorWhatsAppUrl } from "@/features/tutors/public-tutor-card";
+import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
+import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 import { blurActive } from "@/lib/dom";
 import {
   fetchPublishedTutors,

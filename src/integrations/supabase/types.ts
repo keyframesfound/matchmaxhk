@@ -261,6 +261,8 @@ export type Database = {
       }
       tutors: {
         Row: {
+          academic_summary: string | null
+          achievements: Json
           badge: string | null
           bio: string | null
           created_at: string
@@ -272,23 +274,31 @@ export type Database = {
           experience_years: number | null
           gender: string | null
           headline: string | null
+          highschool: string | null
           hourly_rate: number
+          ia_ee_tok_notes: string | null
+          ia_ee_tok_support: string[]
           id: string
           intro_video_url: string | null
           is_published: boolean
           languages: string[]
           lesson_mode: Database["public"]["Enums"]["case_mode"]
           photo_url: string | null
+          qualifications_summary: string | null
           rating: number
           review_count: number
           subjects: string[]
+          target_students: string[]
           teaching_since: number | null
           tutor_code: string
+          university: string | null
           updated_at: string
           weekly_rating: number
           weekly_score: number
         }
         Insert: {
+          academic_summary?: string | null
+          achievements?: Json
           badge?: string | null
           bio?: string | null
           created_at?: string
@@ -300,23 +310,31 @@ export type Database = {
           experience_years?: number | null
           gender?: string | null
           headline?: string | null
+          highschool?: string | null
           hourly_rate?: number
+          ia_ee_tok_notes?: string | null
+          ia_ee_tok_support?: string[]
           id?: string
           intro_video_url?: string | null
           is_published?: boolean
           languages?: string[]
           lesson_mode?: Database["public"]["Enums"]["case_mode"]
           photo_url?: string | null
+          qualifications_summary?: string | null
           rating?: number
           review_count?: number
           subjects?: string[]
+          target_students?: string[]
           teaching_since?: number | null
           tutor_code: string
+          university?: string | null
           updated_at?: string
           weekly_rating?: number
           weekly_score?: number
         }
         Update: {
+          academic_summary?: string | null
+          achievements?: Json
           badge?: string | null
           bio?: string | null
           created_at?: string
@@ -328,18 +346,24 @@ export type Database = {
           experience_years?: number | null
           gender?: string | null
           headline?: string | null
+          highschool?: string | null
           hourly_rate?: number
+          ia_ee_tok_notes?: string | null
+          ia_ee_tok_support?: string[]
           id?: string
           intro_video_url?: string | null
           is_published?: boolean
           languages?: string[]
           lesson_mode?: Database["public"]["Enums"]["case_mode"]
           photo_url?: string | null
+          qualifications_summary?: string | null
           rating?: number
           review_count?: number
           subjects?: string[]
+          target_students?: string[]
           teaching_since?: number | null
           tutor_code?: string
+          university?: string | null
           updated_at?: string
           weekly_rating?: number
           weekly_score?: number

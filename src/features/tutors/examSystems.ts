@@ -231,12 +231,7 @@ const AP_SUBJECTS = [
   "Music Theory",
 ];
 
-const SAT_SUBJECTS = [
-  "SAT Total",
-  "SAT EBRW",
-  "SAT Math",
-  "SAT Essay (legacy)",
-];
+const SAT_SUBJECTS = ["SAT Total", "SAT EBRW", "SAT Math", "SAT Essay (legacy)"];
 
 const IB_GRADES = ["7", "6", "5", "4", "3", "2", "1"];
 const DSE_GRADES = ["5**", "5*", "5", "4", "3", "2", "1", "U"];
@@ -316,14 +311,13 @@ export function normalizeExamResults(raw: unknown): ExamResult[] {
       for (const s of item.subjects as Array<Record<string, unknown>>) {
         const subject = String(s?.subject ?? "").trim();
         const grade = String(s?.grade ?? "").trim();
-        if (subject && grade) bucket.push({ subject, grade });
+        if (subject) bucket.push({ subject, grade });
       }
-    } else if (item.subject && item.grade) {
-      bucket.push({ subject: String(item.subject).trim(), grade: String(item.grade).trim() });
+    } else if (item.subject) {
+      bucket.push({ subject: String(item.subject).trim(), grade: String(item.grade ?? "").trim() });
     }
   }
   return order
     .map((sys) => ({ system: sys, subjects: bySystem.get(sys) ?? [] }))
     .filter((r) => r.subjects.length > 0);
 }
-
