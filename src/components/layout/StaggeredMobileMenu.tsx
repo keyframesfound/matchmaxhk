@@ -26,6 +26,7 @@ const LAYER_COLORS = ["#041344", "#0A245F", "#1FA8B6"];
 
 export function StaggeredMobileMenu({ items, socialItems, renderFooter }: StaggeredMobileMenuProps) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const openRef = useRef(false);
   const panelRef = useRef<HTMLElement>(null);
   const layersRef = useRef<HTMLDivElement>(null);
@@ -34,6 +35,10 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
   const openTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const closeTweenRef = useRef<gsap.core.Tween | null>(null);
   const panelId = useId();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useLayoutEffect(() => {
     const context = gsap.context(() => {
