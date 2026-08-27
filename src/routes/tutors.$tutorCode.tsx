@@ -388,133 +388,110 @@ function TutorDetail() {
           </div>
         </section>
 
-        <section className="py-14">
-          <div className="mx-auto grid max-w-5xl gap-10 px-4 sm:px-6 min-h-0">
-            <div className="space-y-4 min-h-0">
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                  <BookOpen className="h-5 w-5 text-[color:var(--brand-teal)]" /> Subjects
-                </div>
-                {subjectChips.length > 0 ? (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {subjectChips.map((chip, index) => (
-                      <DetailSubjectChip key={`${chip.subject}-${index}`} chip={chip} />
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-
+        <section className="py-12">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6">
+            <div className="overflow-hidden rounded-[4px] border border-border bg-card">
               {examResults.length > 0 ? (
-                <div className="rounded-2xl border border-border bg-card p-5">
-                  <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                    <Award className="h-5 w-5 text-[color:var(--brand-teal)]" /> Academic Excellence
-                  </div>
-                  <div
-                    className={examResults.length > 1 ? "mt-4 grid gap-3 md:grid-cols-2" : "mt-4"}
-                  >
-                    {examResults.slice(0, 2).map((result, index) => (
+                <ProfileSection icon={LineChart} title="Core Academic Breakdown">
+                  <div className="space-y-4">
+                    {examResults.map((result, index) => (
                       <AcademicQualification key={`${result.system}-${index}`} result={result} />
                     ))}
                   </div>
-                </div>
+                </ProfileSection>
               ) : null}
 
               {t.achievements.length > 0 ? (
-                <div className="rounded-2xl border border-border bg-card p-5">
-                  <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                    <Award className="h-5 w-5 text-[color:var(--brand-teal)]" /> Achievements and
-                    Experiences
-                  </div>
-                  <div className="mt-4 space-y-3">
+                <ProfileSection icon={Sparkles} title="Achievements and Experiences">
+                  <ul className="space-y-2.5">
                     {t.achievements.map((achievement, index) => (
-                      <div
+                      <li
                         key={`${achievement.short_text}-${index}`}
-                        className="rounded-xl border border-border/70 bg-background/70 p-3"
+                        className="flex gap-2.5 border-l-2 border-[color:var(--brand-teal)]/40 pl-3"
                       >
-                        <p className="font-semibold text-foreground">{achievement.short_text}</p>
-                        {achievement.detail_text ? (
-                          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
-                            {achievement.detail_text}
+                        <Award
+                          className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-navy)]/70"
+                          strokeWidth={2.1}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-[color:var(--brand-navy)]">
+                            {achievement.short_text}
                           </p>
-                        ) : null}
-                      </div>
+                          {achievement.detail_text ? (
+                            <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
+                              {achievement.detail_text}
+                            </p>
+                          ) : null}
+                        </div>
+                      </li>
                     ))}
-                  </div>
-                </div>
+                  </ul>
+                </ProfileSection>
               ) : null}
 
-              {t.ia_ee_tok_support.length > 0 ? (
-                <div className="rounded-2xl border border-border bg-card p-5">
-                  <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                    <Compass className="h-5 w-5 text-[color:var(--brand-teal)]" /> IA / EE / TOK
-                    Support
-                  </div>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {t.ia_ee_tok_support.map((item) => (
-                      <span
-                        key={item}
-                        className="rounded-[2px] bg-[color:var(--brand-teal)]/12 px-2.5 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
+              {subjectChips.length > 0 || t.ia_ee_tok_support.length > 0 ? (
+                <ProfileSection icon={Layers} title="Subjects Taught">
+                  <ul className="space-y-2">
+                    {subjectChips.map((chip, index) => (
+                      <li
+                        key={`${chip.subject}-${index}`}
+                        className="flex items-baseline gap-2 border-l-2 border-border pl-3 text-sm"
                       >
-                        {item}
-                      </span>
+                        <span className="font-bold text-[color:var(--brand-navy)]">
+                          {chip.subject}
+                        </span>
+                        {chip.grade ? (
+                          <span className="text-muted-foreground">{chip.grade}</span>
+                        ) : null}
+                      </li>
                     ))}
-                  </div>
-                  {t.ia_ee_tok_notes ? (
-                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
-                      {t.ia_ee_tok_notes}
-                    </p>
-                  ) : null}
-                </div>
+                    {t.ia_ee_tok_support.length > 0 ? (
+                      <li className="flex flex-wrap items-baseline gap-x-2 border-l-2 border-border pl-3 text-sm">
+                        <span className="font-bold text-[color:var(--brand-navy)]">Mentorship:</span>
+                        <span className="text-muted-foreground">
+                          {t.ia_ee_tok_support.join(", ")}
+                          {t.ia_ee_tok_notes ? ` — ${t.ia_ee_tok_notes}` : ""}
+                        </span>
+                      </li>
+                    ) : null}
+                  </ul>
+                </ProfileSection>
               ) : null}
 
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                  <GraduationCap className="h-5 w-5 text-[color:var(--brand-teal)]" />{" "}
-                  Qualifications & Languages
-                </div>
-                <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+              <ProfileSection icon={MapPin} title="Lesson Format & Details">
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-baseline gap-2 border-l-2 border-border pl-3">
+                    <Globe className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-teal)]" />
+                    <span className="font-bold text-[color:var(--brand-navy)]">Format:</span>
+                    <span className="text-muted-foreground">
+                      {getTutorLessonModeLabel(t.lesson_mode)}
+                    </span>
+                  </li>
+                  <li className="flex items-baseline gap-2 border-l-2 border-border pl-3">
+                    <MapPin className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-teal)]" />
+                    <span className="font-bold text-[color:var(--brand-navy)]">Location:</span>
+                    <span className="text-muted-foreground">
+                      Hong Kong{t.district ? ` – ${t.district}` : ""}
+                    </span>
+                  </li>
+                  {t.languages.length > 0 ? (
+                    <li className="flex items-baseline gap-2 border-l-2 border-border pl-3">
+                      <Languages className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-teal)]" />
+                      <span className="font-bold text-[color:var(--brand-navy)]">Languages:</span>
+                      <span className="text-muted-foreground">{t.languages.join(", ")}</span>
+                    </li>
+                  ) : null}
                   {t.qualifications_summary ? (
-                    <li className="rounded-xl border border-border/70 bg-background/70 p-3 whitespace-pre-line">
+                    <li className="border-l-2 border-border pl-3 text-muted-foreground whitespace-pre-line">
                       {t.qualifications_summary}
                     </li>
                   ) : null}
-                  {t.languages.length > 0 ? (
-                    <li className="rounded-xl border border-border/70 bg-background/70 p-3">
-                      <span className="font-semibold text-foreground">Languages:</span>{" "}
-                      {t.languages.join(", ")}
-                    </li>
-                  ) : null}
                 </ul>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 text-base font-bold text-[color:var(--brand-navy)]">
-                  <MapPin className="h-5 w-5 text-[color:var(--brand-teal)]" /> Lesson Format
-                </div>
-                <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                  <li className="rounded-xl border border-border/70 bg-background/70 p-3">
-                    <span className="font-semibold text-foreground">Format:</span>{" "}
-                    {getTutorLessonModeLabel(t.lesson_mode)}
-                  </li>
-                  <li className="rounded-xl border border-border/70 bg-background/70 p-3">
-                    <span className="font-semibold text-foreground">Where tutor is located:</span>{" "}
-                    {t.district ?? "Hong Kong"}
-                  </li>
-                  {t.lesson_mode === "either" ? (
-                    <li className="rounded-xl border border-border/70 bg-background/70 p-3">
-                      Online and in-person sessions available.
-                    </li>
-                  ) : null}
-                  {t.lesson_mode === "in_person" ? (
-                    <li className="rounded-xl border border-border/70 bg-background/70 p-3">
-                      In-person teaching available at the listed location.
-                    </li>
-                  ) : null}
-                </ul>
-              </div>
+              </ProfileSection>
             </div>
           </div>
         </section>
+
       </main>
       <SiteFooter />
     </div>
