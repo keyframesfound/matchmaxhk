@@ -7,6 +7,7 @@ import {
   MessageCircle,
   Award,
   Globe,
+  Languages,
   Layers,
   LineChart,
   Sparkles,
@@ -123,16 +124,18 @@ function ProfileSection({
   icon: Icon,
   title,
   children,
+  iconClassName = "text-[color:var(--brand-navy)]",
 }: {
   icon: LucideIcon;
   title: string;
   children: React.ReactNode;
+  iconClassName?: string;
 }) {
   return (
     <section className="border-b border-border/70 px-5 py-5 last:border-b-0 sm:px-6">
       <div className="flex items-center gap-2.5">
         <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--brand-navy)]/15 bg-[color:var(--brand-navy)]/8">
-          <Icon className="h-4 w-4 text-[color:var(--brand-navy)]" strokeWidth={2.1} />
+          <Icon className={`h-4 w-4 ${iconClassName}`} strokeWidth={2.1} />
         </span>
         <h2 className="text-base font-black tracking-tight text-[color:var(--brand-navy)] sm:text-lg">
           {title}
@@ -140,6 +143,32 @@ function ProfileSection({
       </div>
       <div className="mt-3.5">{children}</div>
     </section>
+  );
+}
+
+function LessonDetailRow({
+  icon: Icon,
+  label,
+  value,
+  iconClassName,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  iconClassName: string;
+}) {
+  return (
+    <li className="flex items-start gap-3">
+      <Icon
+        aria-hidden="true"
+        className={`mt-0.5 h-5 w-5 shrink-0 ${iconClassName}`}
+        strokeWidth={2.35}
+      />
+      <p className="text-sm leading-relaxed sm:text-base">
+        <span className="font-black text-[color:var(--brand-navy)]">{label}:</span>{" "}
+        <span className="text-muted-foreground">{value}</span>
+      </p>
+    </li>
   );
 }
 
@@ -184,9 +213,6 @@ function AcademicQualification({ result }: { result: ExamResult }) {
     </div>
   );
 }
-
-
-
 
 export const Route = createFileRoute("/tutors/$tutorCode")({
   loader: async ({ params }) => {
@@ -283,6 +309,14 @@ function TutorDetail() {
   const subjectChips = getTutorSubjectChips(t);
   const examResults = (t.exam_results ?? []).filter((result) =>
     result.subjects.some((entry) => entry.subject.trim()),
+  );
+  const profileBio = t.qualifications_summary?.trim() ?? "";
+  const lessonLocation = t.district ? `Hong Kong — ${t.district}` : "Hong Kong";
+  const tutorLanguages = (t.languages ?? []).filter(Boolean);
+  const lessonLanguages = tutorLanguages.length > 0 ? tutorLanguages.join(", ") : "Not specified";
+  const lessonFormat = (getTutorLessonModeLabel(t.lesson_mode) ?? "To be confirmed").replace(
+    / tutoring$/,
+    "",
   );
   const {
     ref: headlineRef,
@@ -415,28 +449,37 @@ function TutorDetail() {
                 </ProfileSection>
               ) : null}
 
-              {t.achievements.length > 0 ? (
-                <ProfileSection icon={Sparkles} title="Achievements and Experiences">
-                  <ul className="space-y-2.5">
-                    {t.achievements.map((achievement, index) => (
-                      <li key={`${achievement.short_text}-${index}`} className="flex gap-2.5">
-                        <Award
-                          className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-navy)]"
-                          strokeWidth={2.1}
-                        />
-                        <div className="min-w-0">
-                          <p className="text-sm font-bold text-[color:var(--brand-navy)]">
-                            {achievement.short_text}
-                          </p>
-                          {achievement.detail_text ? (
-                            <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
-                              {achievement.detail_text}
-                            </p>
-                          ) : null}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+              {profileBio || t.achievements.length > 0 ? (
+                <ProfileSection icon={Award} title="Achievement & Experience">
+                  <div className="space-y-4">
+                    {profileBio ? (
+                      <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                        {profileBio}
+                      </p>
+                    ) : null}
+                    {t.achievements.length > 0 ? (
+                      <ul className="space-y-2.5">
+                        {t.achievements.map((achievement, index) => (
+                          <li key={`${achievement.short_text}-${index}`} className="flex gap-2.5">
+                            <Sparkles
+                              className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-teal)]"
+                              strokeWidth={2.1}
+                            />
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-[color:var(--brand-navy)]">
+                                {achievement.short_text}
+                              </p>
+                              {achievement.detail_text ? (
+                                <p className="mt-0.5 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                                  {achievement.detail_text}
+                                </p>
+                              ) : null}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
                 </ProfileSection>
               ) : null}
 
@@ -450,7 +493,9 @@ function TutorDetail() {
                     ) : null}
                     {t.ia_ee_tok_support.length > 0 ? (
                       <p className="mt-1 text-muted-foreground">
-                        <span className="font-bold text-[color:var(--brand-navy)]">Mentorship:</span>{" "}
+                        <span className="font-bold text-[color:var(--brand-navy)]">
+                          Mentorship:
+                        </span>{" "}
                         {t.ia_ee_tok_support.join(", ")}
                         {t.ia_ee_tok_notes ? ` — ${t.ia_ee_tok_notes}` : ""}
                       </p>
@@ -459,22 +504,35 @@ function TutorDetail() {
                 </ProfileSection>
               ) : null}
 
-              <ProfileSection icon={MapPin} title="Lesson Format & Details">
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-baseline gap-2">
-                    <Globe className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-navy)]" />
-                    <span className="font-bold text-[color:var(--brand-navy)]">Format:</span>
-                    <span className="text-muted-foreground">
-                      {getTutorLessonModeLabel(t.lesson_mode)}
-                    </span>
-                  </li>
+              <ProfileSection
+                icon={MapPin}
+                title="Lesson Format & Details"
+                iconClassName="text-rose-600"
+              >
+                <ul className="space-y-3.5">
+                  <LessonDetailRow
+                    icon={Globe}
+                    label="Format"
+                    value={lessonFormat}
+                    iconClassName="text-sky-600"
+                  />
+                  <LessonDetailRow
+                    icon={MapPin}
+                    label="Location"
+                    value={lessonLocation}
+                    iconClassName="text-rose-600"
+                  />
+                  <LessonDetailRow
+                    icon={Languages}
+                    label="Languages"
+                    value={lessonLanguages}
+                    iconClassName="text-emerald-600"
+                  />
                 </ul>
               </ProfileSection>
             </div>
           </div>
         </section>
-
-
       </main>
       <SiteFooter />
     </div>

@@ -319,7 +319,6 @@ const examEntrySchema = z.object({
   papers: z.array(paperSchema).optional(),
 });
 
-
 const examSchema = z.object({
   system: z.string().trim(),
   subjects: z.array(examEntrySchema),
@@ -492,7 +491,6 @@ function formToPayload(v: FormValues, isNew: boolean) {
   return base;
 }
 
-
 function AdminTutors() {
   const { hasAnyRole, loading, user } = useAuth();
   const navigate = useNavigate();
@@ -614,9 +612,6 @@ function AdminTutors() {
       ...(editing ? { id: editing.id } : {}),
     });
   }
-
-
-
 
   function addExam() {
     if (form.exam_results.length >= 2) return;
@@ -941,10 +936,6 @@ function AdminTutors() {
                       </Section>
 
                       <Section title="Academic Excellence">
-
-
-                        
-
                         <p className="text-xs text-muted-foreground">
                           Pick an exam system, then add each subject with its grade. The first
                           system is the primary qualification shown publicly; the optional second
@@ -1090,10 +1081,11 @@ function AdminTutors() {
                         </div>
                       </Section>
 
-                      <Section title="Achievements and Experiences">
+                      <Section title="Profile Highlights">
                         <p className="text-xs text-muted-foreground">
-                          Add up to {MAX_TUTOR_ACHIEVEMENTS} highlights. The short line appears on
-                          the public card; the optional detail appears on the tutor profile.
+                          Add up to {MAX_TUTOR_ACHIEVEMENTS} concise highlights. The short line
+                          appears on the public card and optional supporting context appears on the
+                          tutor profile.
                         </p>
                         <div className="space-y-3">
                           {form.achievements.map((achievement, index) => (
@@ -1130,7 +1122,7 @@ function AdminTutors() {
                                   />
                                 </Field>
                                 <Field
-                                  label="Profile detail (optional)"
+                                  label="Supporting detail (optional)"
                                   error={errors[`achievements.${index}.detail_text`]}
                                 >
                                   <Textarea
@@ -1140,7 +1132,7 @@ function AdminTutors() {
                                     onChange={(event) =>
                                       updateAchievement(index, { detail_text: event.target.value })
                                     }
-                                    placeholder="Add context that prospective students can read on the full profile."
+                                    placeholder="Add supporting context that prospective students can read on the full profile."
                                   />
                                 </Field>
                               </div>
@@ -1195,18 +1187,20 @@ function AdminTutors() {
                         </Field>
                       </Section>
 
-                      <Section title="Qualifications and Experience">
-                        <Field
-                          label="Qualifications & teaching profile"
-                          error={errors.qualifications_summary}
-                        >
+                      <Section title="Achievement & Experience">
+                        <p className="text-xs text-muted-foreground">
+                          Paste a detailed tutor biography, including qualifications, teaching
+                          experience, or achievements. This appears between Core Academic Breakdown
+                          and Subjects Taught on the public profile.
+                        </p>
+                        <Field label="Tutor biography" error={errors.qualifications_summary}>
                           <Textarea
                             rows={4}
                             value={form.qualifications_summary}
                             onChange={(e) =>
                               setForm({ ...form, qualifications_summary: e.target.value })
                             }
-                            placeholder="Private tutoring focused on medical-track sciences since 2024"
+                            placeholder="e.g. Private tutor with five years of experience supporting IB students in English and Economics."
                           />
                         </Field>
                         <div className="grid gap-4 sm:grid-cols-2">
