@@ -108,6 +108,30 @@ function findExamSystemForSubject(
   return "";
 }
 
+function collectLevelsFromExamResults(
+  subjectBase: string,
+  examResults: Tutor["exam_results"],
+): string[] {
+  const baseKey = normalizeSubjectKey(subjectBase);
+  const levels = new Set<string>();
+  for (const result of examResults ?? []) {
+    for (const entry of result.subjects ?? []) {
+      const raw = (entry.subject ?? "").trim();
+      const entryKey = normalizeSubjectKey(raw.replace(/\b(HL|SL)\b\s*$/i, ""));
+      if (!entryKey) continue;
+      if (
+        entryKey === baseKey ||
+        entryKey.includes(baseKey) ||
+        baseKey.includes(entryKey)
+      ) {
+        const match = raw.match(/\b(HL|SL)\b/i);
+        if (match) levels.add(match[1].toUpperCase());
+      }
+    }
+  }
+  return [...levels].sort();
+}
+
 /**
  * Returns a single readable sentence for the subjects the tutor teaches,
  * e.g. "IBDP: Geography (HL / SL), Chinese A (SL)".
@@ -127,15 +151,19 @@ export function getTutorSubjectSentence(
     const baseKey = normalizeSubjectKey(base);
 
     const systemId = findExamSystemForSubject(base, tutor.exam_results);
-    const prefix = getExamSystemShortLabel(systemId);
-    const groupKey = `${prefix}:${baseKey}`;
 
-    let group = groups.find((g) => normalizeSubjectKey(g.base) === baseKey && g.systemId === systemId);
+    let group = groups.find(
+      (g) => normalizeSubjectKey(g.base) === baseKey && g.systemId === systemId,
+    );
     if (!group) {
       group = { base, systemId, levels: new Set<string>() };
       groups.push(group);
     }
     if (level) group.levels.add(level);
+
+    for (const examLevel of collectLevelsFromExamResults(base, tutor.exam_results)) {
+      group.levels.add(examLevel);
+    }
   }
 
   const parts = groups.map((g) => {
