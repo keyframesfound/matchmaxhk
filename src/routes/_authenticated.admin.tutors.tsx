@@ -1012,41 +1012,75 @@ function AdminTutors() {
                                       entry.subject,
                                     );
                                     return (
-                                      <div
-                                        key={j}
-                                        className="grid grid-cols-[minmax(0,1fr)_minmax(0,140px)_auto] gap-2"
-                                      >
-                                        <SearchableSelect
-                                          value={entry.subject}
-                                          onChange={(v) => updateSubjectRow(i, j, { subject: v })}
-                                          options={subjectOptions}
-                                          placeholder={
-                                            sys?.freeSubject ? "Type a subject" : "Subject"
-                                          }
-                                          searchPlaceholder="Search subjects…"
-                                          allowCustom={sys?.freeSubject ?? false}
-                                          disabled={!row.system}
-                                        />
-                                        <SearchableSelect
-                                          value={entry.grade}
-                                          onChange={(v) => updateSubjectRow(i, j, { grade: v })}
-                                          options={gradeOptions}
-                                          placeholder={
-                                            gradeOptions.length === 0 ? "Type a grade" : "Grade"
-                                          }
-                                          searchPlaceholder="Search grades…"
-                                          allowCustom={gradeOptions.length === 0}
-                                          disabled={!entry.subject}
-                                        />
-                                        <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => removeSubjectRow(i, j)}
-                                          aria-label="Remove subject"
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
+                                      <div key={j} className="space-y-2">
+                                        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,140px)_auto] gap-2">
+                                          <SearchableSelect
+                                            value={entry.subject}
+                                            onChange={(v) => updateSubjectRow(i, j, { subject: v })}
+                                            options={subjectOptions}
+                                            placeholder={
+                                              sys?.freeSubject ? "Type a subject" : "Subject"
+                                            }
+                                            searchPlaceholder="Search subjects…"
+                                            allowCustom={sys?.freeSubject ?? false}
+                                            disabled={!row.system}
+                                          />
+                                          <SearchableSelect
+                                            value={entry.grade}
+                                            onChange={(v) => updateSubjectRow(i, j, { grade: v })}
+                                            options={gradeOptions}
+                                            placeholder={
+                                              gradeOptions.length === 0 ? "Type a grade" : "Grade"
+                                            }
+                                            searchPlaceholder="Search grades…"
+                                            allowCustom={gradeOptions.length === 0}
+                                            disabled={!entry.subject}
+                                          />
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => removeSubjectRow(i, j)}
+                                            aria-label="Remove subject"
+                                          >
+                                            <X className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                        {entry.subject ? (
+                                          <div className="grid grid-cols-1 gap-2 pl-1 sm:grid-cols-3">
+                                            {EXAM_PAPER_LABELS.map((label) => {
+                                              const current =
+                                                (entry.papers ?? []).find((p) => p.label === label)
+                                                  ?.score ?? "";
+                                              return (
+                                                <Input
+                                                  key={label}
+                                                  value={current}
+                                                  placeholder={`${label} (optional)`}
+                                                  onChange={(event) => {
+                                                    const score = event.target.value;
+                                                    const rest = (entry.papers ?? []).filter(
+                                                      (p) => p.label !== label,
+                                                    );
+                                                    const next = score.trim()
+                                                      ? [...rest, { label, score }]
+                                                      : rest;
+                                                    next.sort(
+                                                      (a, b) =>
+                                                        EXAM_PAPER_LABELS.indexOf(
+                                                          a.label as (typeof EXAM_PAPER_LABELS)[number],
+                                                        ) -
+                                                        EXAM_PAPER_LABELS.indexOf(
+                                                          b.label as (typeof EXAM_PAPER_LABELS)[number],
+                                                        ),
+                                                    );
+                                                    updateSubjectRow(i, j, { papers: next });
+                                                  }}
+                                                />
+                                              );
+                                            })}
+                                          </div>
+                                        ) : null}
                                       </div>
                                     );
                                   })}
