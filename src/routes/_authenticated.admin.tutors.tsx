@@ -428,15 +428,13 @@ function tutorToForm(t: Tutor): FormValues {
       : "female",
     experience_years: t.experience_years ?? "",
     teaching_since: t.teaching_since ?? "",
-    education: (t.education ?? []).map((e) => ({
-      institution: e.institution ?? "",
-      qualification: e.qualification ?? "",
-      year: e.year ?? "",
-      level: e.level ?? "",
-    })),
     exam_results: (t.exam_results ?? []).slice(0, 2).map((r) => ({
       system: r.system ?? "",
-      subjects: (r.subjects ?? []).map((s) => ({ subject: s.subject ?? "", grade: s.grade ?? "" })),
+      subjects: (r.subjects ?? []).map((s) => ({
+        subject: s.subject ?? "",
+        grade: s.grade ?? "",
+        papers: (s.papers ?? []).map((p) => ({ label: p.label, score: p.score })),
+      })),
     })),
     achievements: (t.achievements ?? []).slice(0, MAX_TUTOR_ACHIEVEMENTS).map((achievement) => ({
       short_text: achievement.short_text ?? "",
