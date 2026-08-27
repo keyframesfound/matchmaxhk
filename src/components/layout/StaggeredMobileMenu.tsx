@@ -182,7 +182,7 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
         </span>
       </button>
 
-      {typeof document !== "undefined" &&
+      {mounted &&
         createPortal(
           <>
             <div ref={layersRef} className="smm-prelayers" aria-hidden="true">
