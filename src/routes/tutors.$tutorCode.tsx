@@ -114,6 +114,30 @@ function DetailSubjectChip({ chip }: { chip: TutorSubjectChip }) {
   );
 }
 
+function ProfileSection({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="border-b border-border/70 px-5 py-5 last:border-b-0 sm:px-6">
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/10">
+          <Icon className="h-4 w-4 text-[color:var(--brand-teal)]" strokeWidth={2.1} />
+        </span>
+        <h2 className="text-base font-black tracking-tight text-[color:var(--brand-navy)] sm:text-lg">
+          {title}
+        </h2>
+      </div>
+      <div className="mt-3.5">{children}</div>
+    </section>
+  );
+}
+
 function AcademicQualification({ result }: { result: ExamResult }) {
   const label = getSystem(result.system)?.label ?? result.system.toUpperCase();
   const subjects = result.subjects.filter((entry) => entry.subject.trim());
@@ -121,34 +145,32 @@ function AcademicQualification({ result }: { result: ExamResult }) {
   if (subjects.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-border/70 bg-background/70 p-3">
-      <p className="font-semibold text-foreground">{label}</p>
-      <div className="mt-2 overflow-x-auto">
-        <div className="min-w-[220px]">
-          <div className="grid grid-cols-[1fr_auto] gap-x-3 border-b border-border/60 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            <span>Subject</span>
-            <span>Grade</span>
-          </div>
-          <div className="mt-1 space-y-1">
-            {subjects.map((entry, subjectIndex) => (
-              <div
-                key={`${entry.subject}-${subjectIndex}`}
-                className="grid grid-cols-[1fr_auto] gap-x-3 py-1"
-              >
-                <span className="text-foreground">{entry.subject}</span>
-                {entry.grade.trim() ? (
-                  <span className="font-semibold text-foreground">{entry.grade}</span>
-                ) : (
-                  <span />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+    <div className="space-y-2">
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+        {label}
+      </p>
+      <ul className="space-y-1.5">
+        {subjects.map((entry, subjectIndex) => (
+          <li
+            key={`${entry.subject}-${subjectIndex}`}
+            className="flex items-baseline gap-2 border-l-2 border-[color:var(--brand-teal)]/40 pl-3"
+          >
+            <span className="text-sm font-bold text-[color:var(--brand-navy)]">
+              {entry.subject}
+            </span>
+            {entry.grade.trim() ? (
+              <span className="text-sm font-bold text-[color:var(--brand-teal)]">
+                – Grade {entry.grade.replace(/^grade\s+/i, "")}
+              </span>
+            ) : null}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
+
+
 
 export const Route = createFileRoute("/tutors/$tutorCode")({
   loader: async ({ params }) => {
