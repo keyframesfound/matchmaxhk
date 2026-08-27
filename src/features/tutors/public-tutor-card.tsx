@@ -235,7 +235,7 @@ export function PublicTutorCard({
                       : "absolute inset-x-0 bottom-0 h-10 rounded-b-[10px] border-t border-white/60 bg-white/30 backdrop-blur-[2px] hover:bg-white/45",
                   )}
                 >
-                  {areAcademicChipsExpanded ? "Show less" : "Show more"}
+                  {areAcademicChipsExpanded ? "Hide" : "Show"}
                   {areAcademicChipsExpanded ? (
                     <ChevronUp className="h-3 w-3" aria-hidden="true" />
                   ) : (
