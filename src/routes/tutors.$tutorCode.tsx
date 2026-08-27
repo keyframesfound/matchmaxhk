@@ -10,7 +10,6 @@ import {
   Layers,
   LineChart,
   Sparkles,
-  Languages,
   type LucideIcon,
 } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
