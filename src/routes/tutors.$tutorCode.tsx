@@ -366,7 +366,7 @@ function TutorDetail() {
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <h1 className="text-3xl font-black text-[color:var(--brand-navy)] sm:text-4xl">
+                <h1 className="text-2xl font-black text-[color:var(--brand-navy)] sm:text-4xl">
                   {profileTitle}
                 </h1>
                 {t.headline ? (
@@ -390,8 +390,8 @@ function TutorDetail() {
                     {[t.university, t.highschool].filter(Boolean).join(" | ")}
                   </p>
                 ) : null}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-[2px] border border-border bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                <div className={`mt-4 flex-wrap gap-2 ${t.badge ? "flex" : "hidden sm:flex"}`}>
+                  <span className="hidden items-center gap-1 rounded-[2px] border border-border bg-muted px-2.5 py-1 text-xs text-muted-foreground sm:inline-flex">
                     {t.lesson_mode === "online" ? (
                       <Globe className="h-3 w-3" />
                     ) : (
@@ -405,7 +405,9 @@ function TutorDetail() {
                     </span>
                   ) : null}
                   {subjectChips.map((chip, index) => (
-                    <DetailSubjectChip key={`${chip.subject}-${index}`} chip={chip} />
+                    <span key={`${chip.subject}-${index}`} className="hidden sm:contents">
+                      <DetailSubjectChip chip={chip} />
+                    </span>
                   ))}
                 </div>
               </div>
