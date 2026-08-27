@@ -286,12 +286,28 @@ export function getGradesForSelection(systemId: string, subject: string): string
   return sys.grades;
 }
 
-export type ExamResultEntry = { subject: string; grade: string };
+export type ExamPaperScore = { label: string; score: string };
+
+export const EXAM_PAPER_LABELS = ["Paper 1", "Paper 2", "Paper 3"] as const;
+
+export type ExamResultEntry = { subject: string; grade: string; papers?: ExamPaperScore[] };
 
 export type ExamResult = {
   system: ExamSystemId | string;
   subjects: ExamResultEntry[];
 };
+
+function normalizePapers(raw: unknown): ExamPaperScore[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((value) => {
+    if (!value || typeof value !== "object") return [];
+    const entry = value as Record<string, unknown>;
+    const label = String(entry.label ?? "").trim();
+    const score = String(entry.score ?? "").trim();
+    if (!label || !score) return [];
+    return [{ label, score }];
+  });
+}
 
 /** Accepts both the new grouped shape and legacy flat rows. */
 export function normalizeExamResults(raw: unknown): ExamResult[] {
@@ -311,7 +327,8 @@ export function normalizeExamResults(raw: unknown): ExamResult[] {
       for (const s of item.subjects as Array<Record<string, unknown>>) {
         const subject = String(s?.subject ?? "").trim();
         const grade = String(s?.grade ?? "").trim();
-        if (subject) bucket.push({ subject, grade });
+        const papers = normalizePapers(s?.papers);
+        if (subject) bucket.push({ subject, grade, ...(papers.length ? { papers } : {}) });
       }
     } else if (item.subject) {
       bucket.push({ subject: String(item.subject).trim(), grade: String(item.grade ?? "").trim() });
@@ -321,3 +338,4 @@ export function normalizeExamResults(raw: unknown): ExamResult[] {
     .map((sys) => ({ system: sys, subjects: bySystem.get(sys) ?? [] }))
     .filter((r) => r.subjects.length > 0);
 }
+
