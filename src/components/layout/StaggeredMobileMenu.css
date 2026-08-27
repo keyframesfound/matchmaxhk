@@ -209,3 +209,9 @@
     padding: 2.25rem 2rem;
   }
 }
+@media (min-width: 1024px) {
+  .smm-prelayers,
+  .smm-panel {
+    display: none !important;
+  }
+}
