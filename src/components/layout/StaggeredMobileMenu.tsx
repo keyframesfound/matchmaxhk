@@ -49,7 +49,7 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
       if (!panel || !layers) return;
 
       if (!openRef.current) {
-        gsap.set([panel, ...layers], { xPercent: 100, opacity: 1 });
+        gsap.set([panel, ...layers], { x: 0, xPercent: 100, opacity: 1 });
       }
       gsap.set(iconRef.current, { rotate: openRef.current ? 225 : 0, transformOrigin: "50% 50%" });
     });
