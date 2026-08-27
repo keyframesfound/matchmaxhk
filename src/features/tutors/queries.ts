@@ -1,13 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeExamResults, type ExamResult } from "./examSystems";
 
-export type Education = {
-  institution: string;
-  qualification: string;
-  year?: number | null;
-  level?: string | null;
-};
-
 export const MAX_TUTOR_ACHIEVEMENTS = 3;
 export const TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT = 60;
 export const IA_EE_TOK_SUPPORT_OPTIONS = ["IA", "EE", "TOK"] as const;
@@ -26,7 +19,6 @@ export type Tutor = {
   university: string | null;
   highschool: string | null;
   target_students: string[];
-  academic_summary: string | null;
   qualifications_summary: string | null;
   subjects: string[];
   district: string | null;
@@ -34,13 +26,10 @@ export type Tutor = {
   lesson_mode: "online" | "in_person" | "either";
   hourly_rate: number;
   badge: string | null;
-  bio: string | null;
   photo_url: string | null;
   tutor_code: string;
   is_published: boolean;
-  education: Education[];
   experience_years: number | null;
-  teaching_since: number | null;
   languages: string[];
   exam_results: ExamResult[];
   achievements: TutorAchievement[];
@@ -59,7 +48,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, university, highschool, target_students, academic_summary, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, bio, photo_url, tutor_code, is_published, education, experience_years, teaching_since, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
+  "id, display_name, headline, university, highschool, target_students, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, photo_url, tutor_code, is_published, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -164,7 +153,6 @@ function normalize(
   row: Record<string, unknown>,
   defaults: TutorPhotoDefaults = { male: null, female: null },
 ): Tutor {
-  const edu = Array.isArray(row.education) ? (row.education as Education[]) : [];
   const exams = normalizeExamResults(row.exam_results);
   const targetStudents = Array.isArray(row.target_students)
     ? (row.target_students as unknown[]).filter(
@@ -185,10 +173,8 @@ function normalize(
     photo_url: resolvedPhotoUrl,
     university: typeof row.university === "string" ? row.university : null,
     highschool: typeof row.highschool === "string" ? row.highschool : null,
-    academic_summary: typeof row.academic_summary === "string" ? row.academic_summary : null,
     qualifications_summary:
       typeof row.qualifications_summary === "string" ? row.qualifications_summary : null,
-    education: edu,
     exam_results: exams,
     achievements: normalizeAchievements(row.achievements),
     ia_ee_tok_support: normalizeIaEeTokSupport(row.ia_ee_tok_support),

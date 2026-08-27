@@ -355,7 +355,6 @@ const formSchema = z.object({
   languages_csv: z.string().trim().max(200).optional().or(z.literal("")),
   gender: z.enum(["male", "female", "other"]),
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
-  teaching_since: z.union([z.coerce.number().int().min(1950).max(2100), z.literal("")]).optional(),
   exam_results: z.array(examSchema).max(2, "Add no more than two exam systems"),
   achievements: z
     .array(achievementSchema)
@@ -383,7 +382,6 @@ const empty: FormValues = {
   languages_csv: "",
   gender: "female",
   experience_years: "",
-  teaching_since: "",
   exam_results: [],
   achievements: [],
   ia_ee_tok_support: [],
@@ -412,7 +410,6 @@ function tutorToForm(t: Tutor): FormValues {
       ? (t as unknown as { gender: "male" | "female" | "other" }).gender
       : "female",
     experience_years: t.experience_years ?? "",
-    teaching_since: t.teaching_since ?? "",
     exam_results: (t.exam_results ?? []).slice(0, 2).map((r) => ({
       system: r.system ?? "",
       subjects: (r.subjects ?? []).map((s) => ({
@@ -482,7 +479,6 @@ function formToPayload(v: FormValues, isNew: boolean) {
     languages: langs,
     gender: v.gender,
     experience_years: v.experience_years === "" ? null : Number(v.experience_years),
-    teaching_since: v.teaching_since === "" ? null : Number(v.teaching_since),
     exam_results: cleanExams,
     achievements: cleanAchievements,
     ia_ee_tok_support: v.ia_ee_tok_support,
@@ -687,7 +683,6 @@ function AdminTutors() {
         .split(",")
         .map((value) => value.trim())
         .filter(Boolean),
-      academic_summary: null,
       qualifications_summary: (form.qualifications_summary ?? "").trim() || null,
       subjects: form.subjects,
       district: form.lesson_mode === "online" ? null : (form.district ?? "").trim() || null,
@@ -695,14 +690,10 @@ function AdminTutors() {
       lesson_mode: form.lesson_mode,
       hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
       badge: (form.badge ?? "").trim() || null,
-      bio: null,
       photo_url: (form.photo_url ?? "").trim() || null,
       tutor_code: form.tutor_code.trim() || "MM-PREVIEW",
       is_published: form.is_published,
-      education: [],
-
       experience_years: form.experience_years === "" ? null : Number(form.experience_years),
-      teaching_since: form.teaching_since === "" ? null : Number(form.teaching_since),
       languages: (form.languages_csv ?? "")
         .split(",")
         .map((value) => value.trim())
@@ -1217,40 +1208,14 @@ function AdminTutors() {
                               value={form.experience_years}
                               onChange={(e) => {
                                 const raw = e.target.value;
-                                if (raw === "") {
-                                  setForm({ ...form, experience_years: "", teaching_since: "" });
-                                } else {
-                                  const years = Number(raw);
-                                  setForm({
-                                    ...form,
-                                    experience_years: years,
-                                    teaching_since: new Date().getFullYear() - years,
-                                  });
-                                }
+                                setForm({
+                                  ...form,
+                                  experience_years: raw === "" ? "" : Number(raw),
+                                });
                               }}
                             />
                           </Field>
                         </div>
-                        <Field label="Teaching since (year)" error={errors.teaching_since}>
-                          <Input
-                            type="number"
-                            value={form.teaching_since}
-                            onChange={(e) => {
-                              const raw = e.target.value;
-                              if (raw === "") {
-                                setForm({ ...form, teaching_since: "", experience_years: "" });
-                              } else {
-                                const year = Number(raw);
-                                setForm({
-                                  ...form,
-                                  teaching_since: year,
-                                  experience_years: Math.max(0, new Date().getFullYear() - year),
-                                });
-                              }
-                            }}
-                            placeholder="2015"
-                          />
-                        </Field>
                       </Section>
 
                       <Section title="Lesson Format">

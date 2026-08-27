@@ -35,54 +35,6 @@ export type Database = {
         }
         Relationships: []
       }
-      case_interests: {
-        Row: {
-          case_id: string
-          created_at: string
-          id: string
-          note: string | null
-          status: Database["public"]["Enums"]["case_interest_status"]
-          submitted_by: string
-          tutor_id: string
-          updated_at: string
-        }
-        Insert: {
-          case_id: string
-          created_at?: string
-          id?: string
-          note?: string | null
-          status?: Database["public"]["Enums"]["case_interest_status"]
-          submitted_by: string
-          tutor_id: string
-          updated_at?: string
-        }
-        Update: {
-          case_id?: string
-          created_at?: string
-          id?: string
-          note?: string | null
-          status?: Database["public"]["Enums"]["case_interest_status"]
-          submitted_by?: string
-          tutor_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "case_interests_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "tutoring_cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_interests_tutor_id_fkey"
-            columns: ["tutor_id"]
-            isOneToOne: false
-            referencedRelation: "tutors"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -116,233 +68,87 @@ export type Database = {
         }
         Relationships: []
       }
-      tutor_reviews: {
-        Row: {
-          author_alias: string
-          author_user_id: string | null
-          comment: string | null
-          created_at: string
-          created_by: string | null
-          id: string
-          is_published: boolean
-          rating: number
-          tutor_id: string
-          updated_at: string
-        }
-        Insert: {
-          author_alias: string
-          author_user_id?: string | null
-          comment?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          is_published?: boolean
-          rating: number
-          tutor_id: string
-          updated_at?: string
-        }
-        Update: {
-          author_alias?: string
-          author_user_id?: string | null
-          comment?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          is_published?: boolean
-          rating?: number
-          tutor_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tutor_reviews_tutor_id_fkey"
-            columns: ["tutor_id"]
-            isOneToOne: false
-            referencedRelation: "tutors"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tutoring_cases: {
-        Row: {
-          admin_notes: string | null
-          budget_max: number | null
-          budget_min: number | null
-          contact_name: string
-          contact_phone: string
-          created_at: string
-          description: string | null
-          district: string | null
-          exam_system: string | null
-          id: string
-          is_public: boolean
-          language_of_instruction: string
-          mode: Database["public"]["Enums"]["case_mode"]
-          parent_id: string
-          preferred_gender: Database["public"]["Enums"]["case_gender_pref"]
-          preferred_tutor_type: string
-          schedule_note: string | null
-          session_length_minutes: number
-          sessions_per_week: number
-          start_date: string | null
-          status: Database["public"]["Enums"]["case_status"]
-          student_grade_current: string | null
-          student_level: string
-          student_school: string | null
-          subject: string
-          title: string
-          updated_at: string
-          urgency: Database["public"]["Enums"]["case_urgency"]
-          whatsapp_ok: boolean
-        }
-        Insert: {
-          admin_notes?: string | null
-          budget_max?: number | null
-          budget_min?: number | null
-          contact_name: string
-          contact_phone: string
-          created_at?: string
-          description?: string | null
-          district?: string | null
-          exam_system?: string | null
-          id?: string
-          is_public?: boolean
-          language_of_instruction?: string
-          mode?: Database["public"]["Enums"]["case_mode"]
-          parent_id: string
-          preferred_gender?: Database["public"]["Enums"]["case_gender_pref"]
-          preferred_tutor_type?: string
-          schedule_note?: string | null
-          session_length_minutes?: number
-          sessions_per_week?: number
-          start_date?: string | null
-          status?: Database["public"]["Enums"]["case_status"]
-          student_grade_current?: string | null
-          student_level: string
-          student_school?: string | null
-          subject: string
-          title: string
-          updated_at?: string
-          urgency?: Database["public"]["Enums"]["case_urgency"]
-          whatsapp_ok?: boolean
-        }
-        Update: {
-          admin_notes?: string | null
-          budget_max?: number | null
-          budget_min?: number | null
-          contact_name?: string
-          contact_phone?: string
-          created_at?: string
-          description?: string | null
-          district?: string | null
-          exam_system?: string | null
-          id?: string
-          is_public?: boolean
-          language_of_instruction?: string
-          mode?: Database["public"]["Enums"]["case_mode"]
-          parent_id?: string
-          preferred_gender?: Database["public"]["Enums"]["case_gender_pref"]
-          preferred_tutor_type?: string
-          schedule_note?: string | null
-          session_length_minutes?: number
-          sessions_per_week?: number
-          start_date?: string | null
-          status?: Database["public"]["Enums"]["case_status"]
-          student_grade_current?: string | null
-          student_level?: string
-          student_school?: string | null
-          subject?: string
-          title?: string
-          updated_at?: string
-          urgency?: Database["public"]["Enums"]["case_urgency"]
-          whatsapp_ok?: boolean
-        }
-        Relationships: []
-      }
       tutors: {
         Row: {
+          achievements: Json
           badge: string | null
-          bio: string | null
           created_at: string
           created_by: string | null
           display_name: string
           district: string | null
-          education: Json
           exam_results: Json
           experience_years: number | null
           gender: string | null
           headline: string | null
+          highschool: string | null
           hourly_rate: number
+          ia_ee_tok_notes: string | null
+          ia_ee_tok_support: string[]
           id: string
-          intro_video_url: string | null
           is_published: boolean
           languages: string[]
           lesson_mode: Database["public"]["Enums"]["case_mode"]
           photo_url: string | null
-          rating: number
-          review_count: number
+          qualifications_summary: string | null
           subjects: string[]
-          teaching_since: number | null
+          target_students: string[]
           tutor_code: string
+          university: string | null
           updated_at: string
-          weekly_rating: number
-          weekly_score: number
         }
         Insert: {
+          achievements?: Json
           badge?: string | null
-          bio?: string | null
           created_at?: string
           created_by?: string | null
           display_name: string
           district?: string | null
-          education?: Json
           exam_results?: Json
           experience_years?: number | null
           gender?: string | null
           headline?: string | null
+          highschool?: string | null
           hourly_rate?: number
+          ia_ee_tok_notes?: string | null
+          ia_ee_tok_support?: string[]
           id?: string
-          intro_video_url?: string | null
           is_published?: boolean
           languages?: string[]
           lesson_mode?: Database["public"]["Enums"]["case_mode"]
           photo_url?: string | null
-          rating?: number
-          review_count?: number
+          qualifications_summary?: string | null
           subjects?: string[]
-          teaching_since?: number | null
+          target_students?: string[]
           tutor_code: string
+          university?: string | null
           updated_at?: string
-          weekly_rating?: number
-          weekly_score?: number
         }
         Update: {
+          achievements?: Json
           badge?: string | null
-          bio?: string | null
           created_at?: string
           created_by?: string | null
           display_name?: string
           district?: string | null
-          education?: Json
           exam_results?: Json
           experience_years?: number | null
           gender?: string | null
           headline?: string | null
+          highschool?: string | null
           hourly_rate?: number
+          ia_ee_tok_notes?: string | null
+          ia_ee_tok_support?: string[]
           id?: string
-          intro_video_url?: string | null
           is_published?: boolean
           languages?: string[]
           lesson_mode?: Database["public"]["Enums"]["case_mode"]
           photo_url?: string | null
-          rating?: number
-          review_count?: number
+          qualifications_summary?: string | null
           subjects?: string[]
-          teaching_since?: number | null
+          target_students?: string[]
           tutor_code?: string
+          university?: string | null
           updated_at?: string
-          weekly_rating?: number
-          weekly_score?: number
         }
         Relationships: []
       }
@@ -503,7 +309,7 @@ export type Enums<
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
