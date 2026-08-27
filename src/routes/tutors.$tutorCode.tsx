@@ -504,29 +504,25 @@ function TutorDetail() {
                 </ProfileSection>
               ) : null}
 
-              <ProfileSection
-                icon={MapPin}
-                title="Lesson Format & Details"
-                iconClassName="text-rose-600"
-              >
+              <ProfileSection icon={MapPin} title="Lesson Format & Details">
                 <ul className="space-y-3.5">
                   <LessonDetailRow
                     icon={Globe}
                     label="Format"
                     value={lessonFormat}
-                    iconClassName="text-sky-600"
+                    iconClassName="text-[color:var(--brand-navy)]"
                   />
                   <LessonDetailRow
                     icon={MapPin}
                     label="Location"
                     value={lessonLocation}
-                    iconClassName="text-rose-600"
+                    iconClassName="text-[color:var(--brand-navy)]"
                   />
                   <LessonDetailRow
                     icon={Languages}
                     label="Languages"
                     value={lessonLanguages}
-                    iconClassName="text-emerald-600"
+                    iconClassName="text-[color:var(--brand-navy)]"
                   />
                 </ul>
               </ProfileSection>
