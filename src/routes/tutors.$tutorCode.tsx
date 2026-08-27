@@ -401,7 +401,7 @@ function TutorDetail() {
 
         <section className="py-12">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
-            <div className="overflow-hidden rounded-[4px] border border-border bg-card">
+            <div>
               {examResults.length > 0 ? (
                 <ProfileSection icon={LineChart} title="Core Academic Breakdown">
                   <div className="space-y-4">
@@ -416,10 +416,7 @@ function TutorDetail() {
                 <ProfileSection icon={Sparkles} title="Achievements and Experiences">
                   <ul className="space-y-2.5">
                     {t.achievements.map((achievement, index) => (
-                      <li
-                        key={`${achievement.short_text}-${index}`}
-                        className="flex gap-2.5 border-l-2 border-[color:var(--brand-teal)]/40 pl-3"
-                      >
+                      <li key={`${achievement.short_text}-${index}`} className="flex gap-2.5">
                         <Award
                           className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-navy)]/70"
                           strokeWidth={2.1}
@@ -446,10 +443,10 @@ function TutorDetail() {
                     {subjectChips.map((chip, index) => (
                       <li
                         key={`${chip.subject}-${index}`}
-                        className="flex items-baseline gap-2 border-l-2 border-border pl-3 text-sm"
+                        className="flex items-baseline gap-2 text-sm"
                       >
                         <span className="font-bold text-[color:var(--brand-navy)]">
-                          {chip.subject}
+                          {formatTaughtSubjectLabel(chip.subject, t)}
                         </span>
                         {chip.grade ? (
                           <span className="text-muted-foreground">{chip.grade}</span>
@@ -457,7 +454,7 @@ function TutorDetail() {
                       </li>
                     ))}
                     {t.ia_ee_tok_support.length > 0 ? (
-                      <li className="flex flex-wrap items-baseline gap-x-2 border-l-2 border-border pl-3 text-sm">
+                      <li className="flex flex-wrap items-baseline gap-x-2 text-sm">
                         <span className="font-bold text-[color:var(--brand-navy)]">Mentorship:</span>
                         <span className="text-muted-foreground">
                           {t.ia_ee_tok_support.join(", ")}
@@ -471,14 +468,14 @@ function TutorDetail() {
 
               <ProfileSection icon={MapPin} title="Lesson Format & Details">
                 <ul className="space-y-2 text-sm">
-                  <li className="flex items-baseline gap-2 border-l-2 border-border pl-3">
+                  <li className="flex items-baseline gap-2">
                     <Globe className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-teal)]" />
                     <span className="font-bold text-[color:var(--brand-navy)]">Format:</span>
                     <span className="text-muted-foreground">
                       {getTutorLessonModeLabel(t.lesson_mode)}
                     </span>
                   </li>
-                  <li className="flex items-baseline gap-2 border-l-2 border-border pl-3">
+                  <li className="flex items-baseline gap-2">
                     <MapPin className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-teal)]" />
                     <span className="font-bold text-[color:var(--brand-navy)]">Location:</span>
                     <span className="text-muted-foreground">
@@ -486,14 +483,14 @@ function TutorDetail() {
                     </span>
                   </li>
                   {t.languages.length > 0 ? (
-                    <li className="flex items-baseline gap-2 border-l-2 border-border pl-3">
+                    <li className="flex items-baseline gap-2">
                       <Languages className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-teal)]" />
                       <span className="font-bold text-[color:var(--brand-navy)]">Languages:</span>
                       <span className="text-muted-foreground">{t.languages.join(", ")}</span>
                     </li>
                   ) : null}
                   {t.qualifications_summary ? (
-                    <li className="border-l-2 border-border pl-3 text-muted-foreground whitespace-pre-line">
+                    <li className="text-muted-foreground whitespace-pre-line">
                       {t.qualifications_summary}
                     </li>
                   ) : null}
@@ -502,6 +499,7 @@ function TutorDetail() {
             </div>
           </div>
         </section>
+
 
       </main>
       <SiteFooter />
