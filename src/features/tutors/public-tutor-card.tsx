@@ -1,5 +1,5 @@
 import { type MouseEvent, type ReactNode, useState } from "react";
-import { Award, BookOpen, ChevronLeft, ChevronRight, UserRound } from "lucide-react";
+import { Award, ChevronLeft, ChevronRight, UserRound } from "lucide-react";
 import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
 import { getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
 import {
@@ -119,6 +119,7 @@ export function PublicTutorCard({
   const hasSubjectPager = chips.length > SUBJECTS_PER_PAGE;
   const primaryExam = examResults[0];
   const secondaryExam = examResults[1];
+  const genderLabel = getTutorGenderLabel(tutor.gender);
 
   const changeSubjectPage = (event: MouseEvent<HTMLButtonElement>, direction: -1 | 1) => {
     event.stopPropagation();
@@ -167,11 +168,19 @@ export function PublicTutorCard({
               {tutor.university ?? tutor.highschool ?? "University - From Database"}
             </p>
           </div>
-          {badgeLabel ? (
-            <span className="rounded-sm border border-white/20 bg-white/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white md:py-1 md:text-[10px]">
-              {badgeLabel}
-            </span>
-          ) : null}
+          <div className="flex shrink-0 items-center gap-1.5">
+            {genderLabel ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[9px] font-bold text-[color:var(--brand-navy)] shadow-sm md:px-2.5 md:text-[10px]">
+                <UserRound className="h-3 w-3 text-[color:var(--brand-teal)]" aria-hidden="true" />
+                {genderLabel}
+              </span>
+            ) : null}
+            {badgeLabel ? (
+              <span className="rounded-sm border border-white/20 bg-white/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white md:py-1 md:text-[10px]">
+                {badgeLabel}
+              </span>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -249,27 +258,6 @@ export function PublicTutorCard({
         <h3 className="mt-2.5 line-clamp-3 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--brand-navy)] md:mt-3 md:text-[14px]">
           {tutor.headline ?? "Experienced tutor matching students with tailored support"}
         </h3>
-
-        <div className="mt-auto grid grid-cols-2 gap-2 border-t border-[color:var(--brand-teal)]/20 pt-2.5 md:pt-4">
-          <div>
-            <p className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground md:text-[11px]">
-              Target Student
-            </p>
-            <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold leading-tight text-[color:var(--brand-navy)] md:text-[13px]">
-              <BookOpen className="h-3 w-3 text-[color:var(--brand-navy)] md:h-4 md:w-4" />
-              {tutor.target_students[0] ?? "IB, Senior Secondary"}
-            </p>
-          </div>
-          <div>
-            <p className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground md:text-[11px]">
-              Gender
-            </p>
-            <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold leading-tight text-[color:var(--brand-navy)] md:text-[13px]">
-              <UserRound className="h-3 w-3 text-[color:var(--brand-navy)] md:h-4 md:w-4" />
-              {getTutorGenderLabel(tutor.gender) || "Not specified"}
-            </p>
-          </div>
-        </div>
       </div>
 
       <div className="flex items-center justify-between gap-2 border-t border-[color:var(--brand-teal)]/20 bg-white px-3 py-1.5 md:gap-3 md:px-4 md:py-2.5">
