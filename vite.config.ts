@@ -28,6 +28,10 @@ export default defineConfig({
     viteReact(),
     tailwindcss(),
     tsConfigPaths(),
-    nitro(),
+    nitro({
+      prerender: {
+        routes: ["/"],
+      },
+    }),
   ],
 });
