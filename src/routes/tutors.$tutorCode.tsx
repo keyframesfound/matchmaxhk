@@ -189,14 +189,14 @@ function AcademicQualification({ result }: { result: ExamResult }) {
           return (
             <li
               key={`${entry.subject}-${subjectIndex}`}
-              className="border-l-2 border-[color:var(--brand-teal)]/40 pl-3"
+              className="border-l-2 border-[color:var(--brand-royal)]/80 pl-3"
             >
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-bold text-[color:var(--brand-navy)]">
                   {entry.subject}
                 </span>
                 {entry.grade.trim() ? (
-                  <span className="text-sm font-bold text-[color:var(--brand-teal)]">
+                  <span className="text-sm font-bold text-[color:var(--brand-royal)]">
                     – Grade {entry.grade.replace(/^grade\s+/i, "")}
                   </span>
                 ) : null}
@@ -351,7 +351,7 @@ function TutorDetail() {
       />
       <SiteHeader />
       <main className="flex-1">
-        <section className="border-b border-border bg-[#e3eef9] py-8 sm:py-10">
+        <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
               {t.photo_url ? (
