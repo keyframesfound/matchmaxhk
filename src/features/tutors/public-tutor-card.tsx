@@ -229,18 +229,25 @@ export function PublicTutorCard({
                   onClick={toggleAcademicChips}
                   onKeyDown={(event) => event.stopPropagation()}
                   className={cn(
-                    "flex w-full items-center justify-center gap-1 py-1.5 text-[9px] font-bold text-[color:var(--brand-navy)] transition-colors md:text-[10px]",
+                    "flex w-full items-center justify-center py-1.5 text-[10px] font-bold text-[color:var(--brand-navy)] transition-colors md:text-[11px]",
                     areAcademicChipsExpanded
                       ? "mt-1 bg-transparent hover:bg-[color:var(--brand-teal)]/8"
-                      : "absolute inset-x-0 bottom-0 h-10 rounded-b-[10px] border-t border-white/60 bg-white/30 hover:bg-white/45",
+                      : "absolute inset-x-0 bottom-0 h-10 rounded-b-[10px] bg-gradient-to-b from-white/75 via-white/95 to-white hover:from-white/85 hover:via-white hover:to-white",
                   )}
                 >
-                  {areAcademicChipsExpanded ? "Hide" : "Show"}
-                  {areAcademicChipsExpanded ? (
-                    <ChevronUp className="h-3 w-3" aria-hidden="true" />
-                  ) : (
-                    <ChevronDown className="h-3 w-3" aria-hidden="true" />
-                  )}
+                  <span
+                    className={cn(
+                      "flex items-center gap-1",
+                      !areAcademicChipsExpanded && "translate-y-0.5",
+                    )}
+                  >
+                    {areAcademicChipsExpanded ? "Hide" : "Show"}
+                    {areAcademicChipsExpanded ? (
+                      <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
+                    ) : (
+                      <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+                    )}
+                  </span>
                 </button>
               ) : null}
             </div>
