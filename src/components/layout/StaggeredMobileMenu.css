@@ -63,6 +63,8 @@
 .smm-prelayer {
   position: absolute;
   inset: 0;
+  /* Closed is the resting state: never visible before the animation script runs. */
+  transform: translateX(100%);
 }
 
 .smm-panel {
@@ -72,6 +74,11 @@
   overflow-y: auto;
   background: #ffffff;
   color: #041344;
+  transform: translateX(100%);
+}
+
+.smm-panel[aria-hidden="true"] {
+  pointer-events: none;
 }
 
 .smm-panel-header {
