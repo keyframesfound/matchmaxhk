@@ -351,17 +351,17 @@ function TutorDetail() {
       />
       <SiteHeader />
       <main className="flex-1">
-        <section className="border-b border-border bg-muted/30 py-14">
+        <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
               {t.photo_url ? (
                 <img
                   src={t.photo_url}
                   alt={t.tutor_code}
-                  className="h-24 w-24 shrink-0 rounded-full object-cover"
+                  className="h-16 w-16 shrink-0 rounded-full object-cover sm:h-20 sm:w-20"
                 />
               ) : (
-                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-2xl font-semibold text-[color:var(--brand-teal)]">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-xl font-semibold text-[color:var(--brand-teal)] sm:h-20 sm:w-20 sm:text-2xl">
                   {t.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
                 </div>
               )}
@@ -438,7 +438,7 @@ function TutorDetail() {
           </div>
         </section>
 
-        <section className="py-12">
+        <section className="py-8 sm:py-10">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <div>
               {examResults.length > 0 ? (
