@@ -975,68 +975,7 @@ function AdminTutors() {
 
                       <Section title="Academic Excellence">
                         <div className="space-y-3">
-                          {form.education.length === 0 && (
-                            <p className="text-sm text-muted-foreground">
-                              No qualifications yet. Add one below.
-                            </p>
-                          )}
-                          {form.education.map((row, i) => (
-                            <div
-                              key={i}
-                              className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[160px_1fr_1fr_100px_auto]"
-                            >
-                              <Select
-                                value={row.level || "__none"}
-                                onValueChange={(v) =>
-                                  updateEdu(i, { level: v === "__none" ? "" : v })
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Level" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="__none">Level…</SelectItem>
-                                  {EDUCATION_LEVELS.map((l) => (
-                                    <SelectItem key={l} value={l}>
-                                      {l}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <Input
-                                placeholder="Institution (e.g. DBS, HKU)"
-                                value={row.institution}
-                                onChange={(e) => updateEdu(i, { institution: e.target.value })}
-                              />
-                              <Input
-                                placeholder="Qualification (e.g. HKDSE, BSc Maths)"
-                                value={row.qualification}
-                                onChange={(e) => updateEdu(i, { qualification: e.target.value })}
-                              />
-                              <Input
-                                type="number"
-                                placeholder="Year"
-                                value={row.year ?? ""}
-                                onChange={(e) =>
-                                  updateEdu(i, {
-                                    year: e.target.value === "" ? null : Number(e.target.value),
-                                  })
-                                }
-                              />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                onClick={() => removeEdu(i)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                          <Button type="button" variant="outline" onClick={addEdu}>
-                            <Plus className="mr-2 h-4 w-4" /> Add qualification
-                          </Button>
-                        </div>
+                        
 
                         <p className="text-xs text-muted-foreground">
                           Pick an exam system, then add each subject with its grade. The first
