@@ -213,7 +213,7 @@ export function PublicTutorCard({
                 className="flex flex-wrap items-start gap-2 overflow-hidden"
                 style={
                   !areAcademicChipsExpanded && academicPreviewHeight
-                    ? { maxHeight: academicPreviewHeight }
+                    ? { maxHeight: academicPreviewHeight + 12 }
                     : undefined
                 }
               >
@@ -228,7 +228,7 @@ export function PublicTutorCard({
                   aria-controls={`academic-achievements-${tutor.tutor_code}`}
                   onClick={toggleAcademicChips}
                   onKeyDown={(event) => event.stopPropagation()}
-                  className="mt-1 flex w-full items-center justify-center gap-1 border-t border-[color:var(--brand-teal)]/15 bg-white/55 py-1 text-[9px] font-bold text-[color:var(--brand-navy)] backdrop-blur-sm transition-colors hover:bg-[color:var(--brand-teal)]/8 md:text-[10px]"
+                  className="relative -mt-3 flex w-full items-center justify-center gap-1 bg-white/70 py-1.5 text-[9px] font-bold text-[color:var(--brand-navy)] backdrop-blur-md transition-colors before:pointer-events-none before:absolute before:inset-x-0 before:-top-4 before:h-4 before:bg-gradient-to-t before:from-white/70 before:to-transparent hover:bg-white/85 md:text-[10px]"
                 >
                   {areAcademicChipsExpanded ? "Show less" : "Show more"}
                   {areAcademicChipsExpanded ? (
