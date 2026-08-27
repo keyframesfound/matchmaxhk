@@ -228,7 +228,12 @@ export function PublicTutorCard({
                   aria-controls={`academic-achievements-${tutor.tutor_code}`}
                   onClick={toggleAcademicChips}
                   onKeyDown={(event) => event.stopPropagation()}
-                  className="relative -mt-3 flex w-full items-center justify-center gap-1 bg-white/70 py-1.5 text-[9px] font-bold text-[color:var(--brand-navy)] backdrop-blur-md transition-colors before:pointer-events-none before:absolute before:inset-x-0 before:-top-4 before:h-4 before:bg-gradient-to-t before:from-white/70 before:to-transparent hover:bg-white/85 md:text-[10px]"
+                  className={cn(
+                    "flex w-full items-center justify-center gap-1 py-1.5 text-[9px] font-bold text-[color:var(--brand-navy)] transition-colors md:text-[10px]",
+                    areAcademicChipsExpanded
+                      ? "mt-1 bg-transparent hover:bg-[color:var(--brand-teal)]/8"
+                      : "relative -mt-3 bg-white/70 backdrop-blur-md before:pointer-events-none before:absolute before:inset-x-0 before:-top-4 before:h-4 before:bg-gradient-to-t before:from-white/70 before:to-transparent hover:bg-white/85",
+                  )}
                 >
                   {areAcademicChipsExpanded ? "Show less" : "Show more"}
                   {areAcademicChipsExpanded ? (
