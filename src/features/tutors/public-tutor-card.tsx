@@ -34,12 +34,12 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
   return (
     <span
       data-academic-chip
-      className="inline-flex max-w-full items-start gap-1 rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[9px] font-bold leading-snug text-[color:var(--brand-navy)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[10px]"
+      className="inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[9px] font-bold leading-snug text-[color:var(--brand-navy)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[10px]"
     >
       <span className="break-words">{chip.subject}</span>
       {grade ? (
         <>
-          <span className="mx-1 shrink-0 text-[color:var(--brand-teal)]">:</span>
+          <span className="mx-0.5 shrink-0 text-[color:var(--brand-teal)]">:</span>
           <span className="shrink-0 font-black">
             {grade.prefix}
             {grade.value}
@@ -203,10 +203,24 @@ export function PublicTutorCard({
       <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
         {academicChips.length > 0 ? (
           <section className="border-b border-[color:var(--brand-teal)]/20 pb-2.5 md:pb-3">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-[13px] font-black tracking-tight text-[color:var(--brand-navy)] md:text-[15px]">
-                Academic achievements
-              </h3>
+            <h3 className="text-[13px] font-black tracking-tight text-[color:var(--brand-navy)] md:text-[15px]">
+              Academic achievements
+            </h3>
+            <div className="relative mt-2">
+              <div
+                id={`academic-achievements-${tutor.tutor_code}`}
+                ref={academicChipsRef}
+                className="flex flex-wrap items-start gap-2 overflow-hidden"
+                style={
+                  !areAcademicChipsExpanded && academicPreviewHeight
+                    ? { maxHeight: academicPreviewHeight }
+                    : undefined
+                }
+              >
+                {academicChips.map((chip, index) => (
+                  <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
+                ))}
+              </div>
               {hasMoreAcademicChips ? (
                 <button
                   type="button"
@@ -214,9 +228,9 @@ export function PublicTutorCard({
                   aria-controls={`academic-achievements-${tutor.tutor_code}`}
                   onClick={toggleAcademicChips}
                   onKeyDown={(event) => event.stopPropagation()}
-                  className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[color:var(--brand-teal)]/45 bg-white px-2 py-1 text-[9px] font-bold text-[color:var(--brand-navy)] transition-colors hover:bg-[color:var(--brand-teal)]/10 md:px-2.5 md:text-[10px]"
+                  className="mt-1 flex w-full items-center justify-center gap-1 border-t border-[color:var(--brand-teal)]/15 bg-white/55 py-1 text-[9px] font-bold text-[color:var(--brand-navy)] backdrop-blur-sm transition-colors hover:bg-[color:var(--brand-teal)]/8 md:text-[10px]"
                 >
-                  {areAcademicChipsExpanded ? "Less" : "More"}
+                  {areAcademicChipsExpanded ? "Show less" : "Show more"}
                   {areAcademicChipsExpanded ? (
                     <ChevronUp className="h-3 w-3" aria-hidden="true" />
                   ) : (
@@ -224,20 +238,6 @@ export function PublicTutorCard({
                   )}
                 </button>
               ) : null}
-            </div>
-            <div
-              id={`academic-achievements-${tutor.tutor_code}`}
-              ref={academicChipsRef}
-              className="mt-2 flex flex-wrap items-start gap-2 overflow-hidden"
-              style={
-                !areAcademicChipsExpanded && academicPreviewHeight
-                  ? { maxHeight: academicPreviewHeight }
-                  : undefined
-              }
-            >
-              {academicChips.map((chip, index) => (
-                <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
-              ))}
             </div>
           </section>
         ) : null}
