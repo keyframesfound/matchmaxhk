@@ -40,12 +40,12 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
   const grade = splitGradeLabel(chip.grade);
 
   return (
-    <span className="inline-flex max-w-full items-center rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[9px] font-bold leading-tight text-[color:var(--brand-navy)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[10px]">
-      <span className="max-w-[8.5rem] truncate">{chip.subject}</span>
+    <span className="inline-flex min-w-0 max-w-full items-center rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[9px] font-bold leading-tight text-[color:var(--brand-navy)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[10px]">
+      <span className="block min-w-0 truncate">{chip.subject}</span>
       {grade ? (
         <>
-          <span className="mx-1 text-[color:var(--brand-teal)]">:</span>
-          <span className="font-black">
+          <span className="mx-1 shrink-0 text-[color:var(--brand-teal)]">:</span>
+          <span className="shrink-0 font-black">
             {grade.prefix}
             {grade.value}
           </span>
@@ -240,7 +240,7 @@ export function PublicTutorCard({
                 <div
                   key={visibleAcademicPage}
                   className={cn(
-                    "flex min-w-0 flex-wrap content-start items-start gap-1.5 overflow-hidden md:gap-2",
+                    "grid min-w-0 grid-cols-3 content-start items-start justify-items-start gap-1.5 overflow-hidden md:gap-2",
                     hasAcademicPager && `tutor-achievement-page-${pageDirection}`,
                   )}
                 >
@@ -259,7 +259,7 @@ export function PublicTutorCard({
                       ref={(element) => {
                         measurementRefs.current[pageIndex] = element;
                       }}
-                      className="flex flex-wrap content-start items-start gap-1.5 md:gap-2"
+                      className="grid grid-cols-3 content-start items-start justify-items-start gap-1.5 md:gap-2"
                     >
                       {page.map((chip, index) => (
                         <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
