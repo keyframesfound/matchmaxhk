@@ -974,7 +974,8 @@ function AdminTutors() {
                       </Section>
 
                       <Section title="Academic Excellence">
-                        <div className="space-y-3">
+
+
                         
 
                         <p className="text-xs text-muted-foreground">
