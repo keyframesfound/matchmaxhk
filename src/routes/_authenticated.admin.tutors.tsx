@@ -42,11 +42,11 @@ import {
   MAX_TUTOR_ACHIEVEMENTS,
   TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT,
   type Tutor,
-  type Education,
   type IaEeTokSupport,
   type TutorAchievement,
 } from "@/features/tutors/queries";
 import {
+  EXAM_PAPER_LABELS,
   EXAM_SYSTEMS,
   getSystem,
   getGradesForSelection,
@@ -72,15 +72,6 @@ export const Route = createFileRoute("/_authenticated/admin/tutors")({
   }),
   component: AdminTutors,
 });
-
-const EDUCATION_LEVELS = [
-  "Secondary school",
-  "Undergraduate",
-  "Postgraduate",
-  "Doctorate",
-  "Diploma / Certificate",
-  "Other",
-];
 
 const TARGET_STUDENT_OPTIONS = [
   "Primary",
@@ -317,17 +308,17 @@ function PhotoUpload({ value, onChange }: { value: string; onChange: (url: strin
   );
 }
 
-const eduSchema = z.object({
-  institution: z.string().trim().min(1).max(120),
-  qualification: z.string().trim().min(1).max(120),
-  year: z.union([z.coerce.number().int().min(1900).max(2100), z.literal(""), z.null()]).optional(),
-  level: z.string().trim().max(60).optional().or(z.literal("")).nullable(),
+const paperSchema = z.object({
+  label: z.string().trim().max(40),
+  score: z.string().trim().max(40),
 });
 
 const examEntrySchema = z.object({
   subject: z.string().trim().max(120),
   grade: z.string().trim().max(40),
+  papers: z.array(paperSchema).optional(),
 });
+
 
 const examSchema = z.object({
   system: z.string().trim(),
@@ -354,7 +345,6 @@ const formSchema = z.object({
   lesson_mode: z.enum(["online", "in_person", "either"]),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
   badge: z.string().trim().max(80).optional().or(z.literal("")),
-  bio: z.string().trim().max(2000).optional().or(z.literal("")),
   photo_url: z.string().trim().max(1000).optional().or(z.literal("")),
   tutor_code: z
     .string()
@@ -367,7 +357,6 @@ const formSchema = z.object({
   gender: z.enum(["male", "female", "other"]),
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
   teaching_since: z.union([z.coerce.number().int().min(1950).max(2100), z.literal("")]).optional(),
-  education: z.array(eduSchema),
   exam_results: z.array(examSchema).max(2, "Add no more than two exam systems"),
   achievements: z
     .array(achievementSchema)
@@ -389,7 +378,6 @@ const empty: FormValues = {
   lesson_mode: "either",
   hourly_rate: 0,
   badge: "",
-  bio: "",
   photo_url: "",
   tutor_code: "",
   is_published: true,
@@ -397,7 +385,6 @@ const empty: FormValues = {
   gender: "female",
   experience_years: "",
   teaching_since: "",
-  education: [],
   exam_results: [],
   achievements: [],
   ia_ee_tok_support: [],
@@ -416,7 +403,6 @@ function tutorToForm(t: Tutor): FormValues {
     lesson_mode: t.lesson_mode ?? "either",
     hourly_rate: t.hourly_rate,
     badge: t.badge ?? "",
-    bio: t.bio ?? "",
     photo_url: t.photo_url ?? "",
     tutor_code: t.tutor_code,
     is_published: t.is_published,
@@ -428,15 +414,13 @@ function tutorToForm(t: Tutor): FormValues {
       : "female",
     experience_years: t.experience_years ?? "",
     teaching_since: t.teaching_since ?? "",
-    education: (t.education ?? []).map((e) => ({
-      institution: e.institution ?? "",
-      qualification: e.qualification ?? "",
-      year: e.year ?? "",
-      level: e.level ?? "",
-    })),
     exam_results: (t.exam_results ?? []).slice(0, 2).map((r) => ({
       system: r.system ?? "",
-      subjects: (r.subjects ?? []).map((s) => ({ subject: s.subject ?? "", grade: s.grade ?? "" })),
+      subjects: (r.subjects ?? []).map((s) => ({
+        subject: s.subject ?? "",
+        grade: s.grade ?? "",
+        papers: (s.papers ?? []).map((p) => ({ label: p.label, score: p.score })),
+      })),
     })),
     achievements: (t.achievements ?? []).slice(0, MAX_TUTOR_ACHIEVEMENTS).map((achievement) => ({
       short_text: achievement.short_text ?? "",
@@ -448,19 +432,20 @@ function tutorToForm(t: Tutor): FormValues {
 }
 
 function formToPayload(v: FormValues, isNew: boolean) {
-  const cleanEdu: Education[] = v.education
-    .map((e) => ({
-      institution: e.institution.trim(),
-      qualification: e.qualification.trim(),
-      year: e.year === "" || e.year == null ? null : Number(e.year),
-      level: e.level && e.level.trim() ? e.level.trim() : null,
-    }))
-    .filter((e) => e.institution && e.qualification);
   const cleanExams: ExamResult[] = v.exam_results
     .map((r) => ({
       system: r.system,
       subjects: (r.subjects ?? [])
-        .map((s) => ({ subject: s.subject.trim(), grade: s.grade.trim() }))
+        .map((s) => {
+          const papers = (s.papers ?? [])
+            .map((p) => ({ label: p.label.trim(), score: p.score.trim() }))
+            .filter((p) => p.label && p.score);
+          return {
+            subject: s.subject.trim(),
+            grade: s.grade.trim(),
+            ...(papers.length ? { papers } : {}),
+          };
+        })
         .filter((s) => s.subject),
     }))
     .filter((r) => r.system && r.subjects.length > 0)
@@ -492,7 +477,6 @@ function formToPayload(v: FormValues, isNew: boolean) {
     lesson_mode: v.lesson_mode,
     hourly_rate: v.hourly_rate,
     badge: v.badge || null,
-    bio: v.bio || null,
     photo_url: v.photo_url || null,
     tutor_code: v.tutor_code.trim(),
     is_published: v.is_published,
@@ -500,7 +484,6 @@ function formToPayload(v: FormValues, isNew: boolean) {
     gender: v.gender,
     experience_years: v.experience_years === "" ? null : Number(v.experience_years),
     teaching_since: v.teaching_since === "" ? null : Number(v.teaching_since),
-    education: cleanEdu,
     exam_results: cleanExams,
     achievements: cleanAchievements,
     ia_ee_tok_support: v.ia_ee_tok_support,
@@ -508,6 +491,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
   };
   return base;
 }
+
 
 function AdminTutors() {
   const { hasAnyRole, loading, user } = useAuth();
@@ -612,11 +596,10 @@ function AdminTutors() {
       }
       if (
         !(parsed.data.qualifications_summary ?? "").trim() &&
-        parsed.data.education.length === 0 &&
         parsed.data.experience_years === ""
       ) {
         publishErrors.qualifications_summary =
-          "Add qualifications summary, education, or experience before publishing.";
+          "Add qualifications summary or experience before publishing.";
       }
       if (parsed.data.lesson_mode !== "online" && !(parsed.data.district ?? "").trim()) {
         publishErrors.district = "District is required for in-person or hybrid tutoring.";
@@ -632,20 +615,8 @@ function AdminTutors() {
     });
   }
 
-  function addEdu() {
-    setForm({
-      ...form,
-      education: [...form.education, { institution: "", qualification: "", year: "", level: "" }],
-    });
-  }
-  function updateEdu(i: number, patch: Partial<Education & { year: number | "" | null }>) {
-    const next = form.education.slice();
-    next[i] = { ...next[i], ...patch };
-    setForm({ ...form, education: next });
-  }
-  function removeEdu(i: number) {
-    setForm({ ...form, education: form.education.filter((_, idx) => idx !== i) });
-  }
+
+
 
   function addExam() {
     if (form.exam_results.length >= 2) return;
@@ -729,16 +700,12 @@ function AdminTutors() {
       lesson_mode: form.lesson_mode,
       hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
       badge: (form.badge ?? "").trim() || null,
-      bio: (form.bio ?? "").trim() || null,
+      bio: null,
       photo_url: (form.photo_url ?? "").trim() || null,
       tutor_code: form.tutor_code.trim() || "MM-PREVIEW",
       is_published: form.is_published,
-      education: form.education.map((education) => ({
-        institution: education.institution,
-        qualification: education.qualification,
-        year: education.year === "" ? null : education.year,
-        level: education.level ?? null,
-      })),
+      education: [],
+
       experience_years: form.experience_years === "" ? null : Number(form.experience_years),
       teaching_since: form.teaching_since === "" ? null : Number(form.teaching_since),
       languages: (form.languages_csv ?? "")
@@ -974,69 +941,9 @@ function AdminTutors() {
                       </Section>
 
                       <Section title="Academic Excellence">
-                        <div className="space-y-3">
-                          {form.education.length === 0 && (
-                            <p className="text-sm text-muted-foreground">
-                              No qualifications yet. Add one below.
-                            </p>
-                          )}
-                          {form.education.map((row, i) => (
-                            <div
-                              key={i}
-                              className="grid grid-cols-1 gap-2 rounded-xl border border-border bg-muted/30 p-3 sm:grid-cols-[160px_1fr_1fr_100px_auto]"
-                            >
-                              <Select
-                                value={row.level || "__none"}
-                                onValueChange={(v) =>
-                                  updateEdu(i, { level: v === "__none" ? "" : v })
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Level" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="__none">Level…</SelectItem>
-                                  {EDUCATION_LEVELS.map((l) => (
-                                    <SelectItem key={l} value={l}>
-                                      {l}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <Input
-                                placeholder="Institution (e.g. DBS, HKU)"
-                                value={row.institution}
-                                onChange={(e) => updateEdu(i, { institution: e.target.value })}
-                              />
-                              <Input
-                                placeholder="Qualification (e.g. HKDSE, BSc Maths)"
-                                value={row.qualification}
-                                onChange={(e) => updateEdu(i, { qualification: e.target.value })}
-                              />
-                              <Input
-                                type="number"
-                                placeholder="Year"
-                                value={row.year ?? ""}
-                                onChange={(e) =>
-                                  updateEdu(i, {
-                                    year: e.target.value === "" ? null : Number(e.target.value),
-                                  })
-                                }
-                              />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                onClick={() => removeEdu(i)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                          <Button type="button" variant="outline" onClick={addEdu}>
-                            <Plus className="mr-2 h-4 w-4" /> Add qualification
-                          </Button>
-                        </div>
+
+
+                        
 
                         <p className="text-xs text-muted-foreground">
                           Pick an exam system, then add each subject with its grade. The first
@@ -1096,41 +1003,75 @@ function AdminTutors() {
                                       entry.subject,
                                     );
                                     return (
-                                      <div
-                                        key={j}
-                                        className="grid grid-cols-[minmax(0,1fr)_minmax(0,140px)_auto] gap-2"
-                                      >
-                                        <SearchableSelect
-                                          value={entry.subject}
-                                          onChange={(v) => updateSubjectRow(i, j, { subject: v })}
-                                          options={subjectOptions}
-                                          placeholder={
-                                            sys?.freeSubject ? "Type a subject" : "Subject"
-                                          }
-                                          searchPlaceholder="Search subjects…"
-                                          allowCustom={sys?.freeSubject ?? false}
-                                          disabled={!row.system}
-                                        />
-                                        <SearchableSelect
-                                          value={entry.grade}
-                                          onChange={(v) => updateSubjectRow(i, j, { grade: v })}
-                                          options={gradeOptions}
-                                          placeholder={
-                                            gradeOptions.length === 0 ? "Type a grade" : "Grade"
-                                          }
-                                          searchPlaceholder="Search grades…"
-                                          allowCustom={gradeOptions.length === 0}
-                                          disabled={!entry.subject}
-                                        />
-                                        <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => removeSubjectRow(i, j)}
-                                          aria-label="Remove subject"
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
+                                      <div key={j} className="space-y-2">
+                                        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,140px)_auto] gap-2">
+                                          <SearchableSelect
+                                            value={entry.subject}
+                                            onChange={(v) => updateSubjectRow(i, j, { subject: v })}
+                                            options={subjectOptions}
+                                            placeholder={
+                                              sys?.freeSubject ? "Type a subject" : "Subject"
+                                            }
+                                            searchPlaceholder="Search subjects…"
+                                            allowCustom={sys?.freeSubject ?? false}
+                                            disabled={!row.system}
+                                          />
+                                          <SearchableSelect
+                                            value={entry.grade}
+                                            onChange={(v) => updateSubjectRow(i, j, { grade: v })}
+                                            options={gradeOptions}
+                                            placeholder={
+                                              gradeOptions.length === 0 ? "Type a grade" : "Grade"
+                                            }
+                                            searchPlaceholder="Search grades…"
+                                            allowCustom={gradeOptions.length === 0}
+                                            disabled={!entry.subject}
+                                          />
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => removeSubjectRow(i, j)}
+                                            aria-label="Remove subject"
+                                          >
+                                            <X className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                        {entry.subject ? (
+                                          <div className="grid grid-cols-1 gap-2 pl-1 sm:grid-cols-3">
+                                            {EXAM_PAPER_LABELS.map((label) => {
+                                              const current =
+                                                (entry.papers ?? []).find((p) => p.label === label)
+                                                  ?.score ?? "";
+                                              return (
+                                                <Input
+                                                  key={label}
+                                                  value={current}
+                                                  placeholder={`${label} (optional)`}
+                                                  onChange={(event) => {
+                                                    const score = event.target.value;
+                                                    const rest = (entry.papers ?? []).filter(
+                                                      (p) => p.label !== label,
+                                                    );
+                                                    const next = score.trim()
+                                                      ? [...rest, { label, score }]
+                                                      : rest;
+                                                    next.sort(
+                                                      (a, b) =>
+                                                        EXAM_PAPER_LABELS.indexOf(
+                                                          a.label as (typeof EXAM_PAPER_LABELS)[number],
+                                                        ) -
+                                                        EXAM_PAPER_LABELS.indexOf(
+                                                          b.label as (typeof EXAM_PAPER_LABELS)[number],
+                                                        ),
+                                                    );
+                                                    updateSubjectRow(i, j, { papers: next });
+                                                  }}
+                                                />
+                                              );
+                                            })}
+                                          </div>
+                                        ) : null}
                                       </div>
                                     );
                                   })}

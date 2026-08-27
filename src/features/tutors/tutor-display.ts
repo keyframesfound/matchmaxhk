@@ -65,3 +65,51 @@ export function getTutorSubjectChips(
       return { subject, grade: formatTutorGradeLabel(grade) };
     });
 }
+
+const SYSTEM_SHORT_LABELS: Record<string, string> = {
+  ib: "IBDP",
+  dse: "HKDSE",
+  alevel: "A-Level",
+  igcse: "IGCSE",
+  ap: "AP",
+  sat: "SAT",
+};
+
+export function getExamSystemShortLabel(systemId: string): string {
+  return SYSTEM_SHORT_LABELS[systemId] ?? "";
+}
+
+/**
+ * Formats "IBDP: Geography (HL)" — the level suffix only shows for HL.
+ * Falls back to the plain subject when no exam system matches.
+ */
+export function formatTaughtSubjectLabel(
+  subject: string,
+  tutor: Pick<Tutor, "exam_results">,
+): string {
+  const raw = subject.trim();
+  if (!raw) return "";
+
+  const levelMatch = raw.match(/\b(HL|SL)\b\s*$/i);
+  const level = levelMatch ? levelMatch[1].toUpperCase() : null;
+  const base = levelMatch ? raw.slice(0, levelMatch.index).trim() : raw;
+  const baseKey = normalizeSubjectKey(base);
+
+  let systemId = "";
+  for (const result of tutor.exam_results ?? []) {
+    for (const entry of result.subjects ?? []) {
+      const entryKey = normalizeSubjectKey((entry.subject ?? "").replace(/\b(HL|SL)\b\s*$/i, ""));
+      if (!entryKey) continue;
+      if (entryKey === baseKey || entryKey.includes(baseKey) || baseKey.includes(entryKey)) {
+        systemId = String(result.system);
+        break;
+      }
+    }
+    if (systemId) break;
+  }
+
+  const prefix = getExamSystemShortLabel(systemId);
+  const suffix = level === "HL" ? " (HL)" : "";
+  return `${prefix ? `${prefix}: ` : ""}${base}${suffix}`;
+}
+
