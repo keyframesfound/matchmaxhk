@@ -42,7 +42,6 @@ import {
   MAX_TUTOR_ACHIEVEMENTS,
   TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT,
   type Tutor,
-  type Education,
   type IaEeTokSupport,
   type TutorAchievement,
 } from "@/features/tutors/queries";
@@ -73,15 +72,6 @@ export const Route = createFileRoute("/_authenticated/admin/tutors")({
   }),
   component: AdminTutors,
 });
-
-const EDUCATION_LEVELS = [
-  "Secondary school",
-  "Undergraduate",
-  "Postgraduate",
-  "Doctorate",
-  "Diploma / Certificate",
-  "Other",
-];
 
 const TARGET_STUDENT_OPTIONS = [
   "Primary",
