@@ -157,10 +157,10 @@ export function PublicTutorCard({
               <img
                 src={tutor.photo_url}
                 alt={`Tutor ${formatTutorCode(tutor.tutor_code)}`}
-                className="h-11 w-11 rounded-[6px] border border-border bg-muted object-cover shadow-sm md:h-[3.25rem] md:w-[3.25rem]"
+                className="h-11 w-11 rounded-full border border-border bg-muted object-cover md:h-[3.25rem] md:w-[3.25rem]"
               />
             ) : (
-              <div className="flex h-11 w-11 items-center justify-center rounded-[6px] border border-border bg-muted text-sm font-bold text-[color:var(--brand-navy)] shadow-sm md:h-[3.25rem] md:w-[3.25rem] md:text-base">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted text-sm font-bold text-[color:var(--brand-navy)] md:h-[3.25rem] md:w-[3.25rem] md:text-base">
                 {getTutorInitials(tutor.tutor_code)}
               </div>
             )}
