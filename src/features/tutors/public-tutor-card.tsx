@@ -69,6 +69,7 @@ export function PublicTutorCard({
   const interactive = typeof onOpen === "function";
   const academicChips = getTutorSubjectChips(tutor);
   const [academicPage, setAcademicPage] = useState(0);
+  const [pageDirection, setPageDirection] = useState<"next" | "previous">("next");
   const maxAcademicPage = Math.max(0, Math.ceil(academicChips.length / RESULTS_PER_PAGE) - 1);
   const visibleAcademicPage = Math.min(academicPage, maxAcademicPage);
   const visibleAcademicChips = academicChips.slice(
@@ -87,13 +88,14 @@ export function PublicTutorCard({
 
   const changeAcademicPage = (event: MouseEvent<HTMLButtonElement>, direction: -1 | 1) => {
     event.stopPropagation();
+    setPageDirection(direction === 1 ? "next" : "previous");
     setAcademicPage((current) => Math.max(0, Math.min(maxAcademicPage, current + direction)));
   };
 
   return (
     <article
       className={cn(
-        "flex h-full min-h-[23rem] w-full flex-col overflow-hidden rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-white shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[28rem]",
+        "flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-white shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[23rem]",
         interactive && "cursor-pointer",
         className,
       )}
@@ -111,7 +113,7 @@ export function PublicTutorCard({
           : undefined
       }
     >
-      <header className="border-b border-[color:var(--brand-teal)]/20 bg-white px-3 py-3 md:px-4 md:py-4">
+      <header className="border-b border-[color:var(--brand-teal)]/20 bg-white px-3 py-2.5 md:px-4 md:py-3">
         <div className="flex items-start gap-2.5 md:gap-3.5">
           <div className="flex w-12 shrink-0 flex-col items-center gap-1.5 md:w-14">
             {tutor.photo_url ? (
@@ -125,7 +127,7 @@ export function PublicTutorCard({
                 {getTutorInitials(tutor.tutor_code)}
               </div>
             )}
-            <p className="whitespace-nowrap text-[8px] font-semibold tracking-wide text-muted-foreground md:text-[9px]">
+            <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-muted-foreground md:text-[11px]">
               {formatTutorCode(tutor.tutor_code)}
             </p>
           </div>
@@ -160,9 +162,9 @@ export function PublicTutorCard({
         </div>
       </header>
 
-      <div className="flex flex-1 flex-col px-3 pb-3.5 pt-3 md:px-4 md:pb-4 md:pt-3.5">
+      <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
         {academicChips.length > 0 ? (
-          <section className="border-b border-[color:var(--brand-teal)]/20 pb-3 md:pb-3.5">
+          <section className="border-b border-[color:var(--brand-teal)]/20 pb-2.5 md:pb-3">
             <div className="flex items-baseline justify-between gap-3">
               <h3 className="text-[13px] font-black tracking-tight text-[color:var(--brand-navy)] md:text-[15px]">
                 Academic achievements
@@ -175,7 +177,7 @@ export function PublicTutorCard({
             </div>
             <div
               className={cn(
-                "mt-2 grid min-h-[4.6rem] items-stretch gap-1.5 md:min-h-[5.25rem] md:gap-2",
+                "mt-2 grid items-stretch gap-1.5 md:gap-2",
                 hasAcademicPager
                   ? "grid-cols-[1.75rem_minmax(0,1fr)_1.75rem] md:grid-cols-[2rem_minmax(0,1fr)_2rem]"
                   : "grid-cols-1",
@@ -188,12 +190,18 @@ export function PublicTutorCard({
                   disabled={visibleAcademicPage === 0}
                   onClick={(event) => changeAcademicPage(event, -1)}
                   onKeyDown={(event) => event.stopPropagation()}
-                  className="flex min-h-[4.6rem] w-7 items-center justify-center self-stretch rounded-md border border-white/70 bg-white/55 text-[color:var(--brand-navy)] shadow-sm backdrop-blur-md transition-colors hover:bg-white/80 disabled:cursor-not-allowed disabled:border-border disabled:bg-muted/65 disabled:text-muted-foreground md:min-h-[5.25rem] md:w-8"
+                  className="flex w-7 items-center justify-center self-stretch rounded-md border border-white/70 bg-white/55 text-[color:var(--brand-navy)] shadow-sm backdrop-blur-md transition-colors hover:bg-white/80 disabled:cursor-not-allowed disabled:border-border disabled:bg-muted/65 disabled:text-muted-foreground md:w-8"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
               ) : null}
-              <div className="flex min-w-0 flex-wrap content-start items-start gap-1.5 overflow-hidden md:gap-2">
+              <div
+                key={visibleAcademicPage}
+                className={cn(
+                  "flex min-w-0 flex-wrap content-start items-start gap-1.5 overflow-hidden md:gap-2",
+                  hasAcademicPager && `tutor-achievement-page-${pageDirection}`,
+                )}
+              >
                 {visibleAcademicChips.map((chip, index) => (
                   <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
                 ))}
@@ -205,7 +213,7 @@ export function PublicTutorCard({
                   disabled={visibleAcademicPage === maxAcademicPage}
                   onClick={(event) => changeAcademicPage(event, 1)}
                   onKeyDown={(event) => event.stopPropagation()}
-                  className="flex min-h-[4.6rem] w-7 items-center justify-center self-stretch rounded-md border border-white/70 bg-white/55 text-[color:var(--brand-navy)] shadow-sm backdrop-blur-md transition-colors hover:bg-white/80 disabled:cursor-not-allowed disabled:border-border disabled:bg-muted/65 disabled:text-muted-foreground md:min-h-[5.25rem] md:w-8"
+                  className="flex w-7 items-center justify-center self-stretch rounded-md border border-white/70 bg-white/55 text-[color:var(--brand-navy)] shadow-sm backdrop-blur-md transition-colors hover:bg-white/80 disabled:cursor-not-allowed disabled:border-border disabled:bg-muted/65 disabled:text-muted-foreground md:w-8"
                 >
                   <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
@@ -214,7 +222,9 @@ export function PublicTutorCard({
           </section>
         ) : null}
 
-        <section className={cn("flex flex-1 flex-col", academicChips.length > 0 ? "pt-3" : "pt-0")}>
+        <section
+          className={cn("flex flex-1 flex-col", academicChips.length > 0 ? "pt-2.5" : "pt-0")}
+        >
           <h3 className="flex items-center gap-1.5 text-[11px] font-black tracking-tight text-[color:var(--brand-navy)] md:text-[12px]">
             <Award className="h-3.5 w-3.5 text-[color:var(--brand-teal)]" aria-hidden="true" />
             Achievements and Experiences
@@ -237,7 +247,7 @@ export function PublicTutorCard({
             </ul>
           ) : null}
 
-          <p className="mt-2.5 line-clamp-3 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--brand-navy)] md:mt-3 md:text-[14px]">
+          <p className="mt-2 line-clamp-3 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--brand-navy)] md:mt-2.5 md:text-[14px]">
             {removeEmoji(
               tutor.headline ?? "Experienced tutor matching students with tailored support",
             )}
@@ -245,7 +255,7 @@ export function PublicTutorCard({
         </section>
       </div>
 
-      <footer className="flex items-center justify-between gap-2 border-t border-[color:var(--brand-teal)]/20 bg-white px-3 py-2.5 md:gap-3 md:px-4 md:py-3">
+      <footer className="flex items-center justify-between gap-2 border-t border-[color:var(--brand-teal)]/20 bg-white px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
         <p className="text-xl font-black leading-none tracking-tight text-[color:var(--brand-navy)] md:text-3xl">
           HK${tutor.hourly_rate}
           <span className="ml-1 text-[10px] font-semibold text-muted-foreground md:text-[13px]">
