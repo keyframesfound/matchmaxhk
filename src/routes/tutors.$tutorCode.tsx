@@ -25,7 +25,11 @@ import {
   type Tutor,
 } from "@/features/tutors/queries";
 import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
-import { getTutorSubjectChips, type TutorSubjectChip } from "@/features/tutors/tutor-display";
+import {
+  formatTaughtSubjectLabel,
+  getTutorSubjectChips,
+  type TutorSubjectChip,
+} from "@/features/tutors/tutor-display";
 
 function useResponsiveHeadlineFit(text: string, baseSize = 18, minSize = 13) {
   const ref = useRef<HTMLParagraphElement | null>(null);
