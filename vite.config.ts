@@ -24,15 +24,17 @@ export default defineConfig({
   plugins: [
     tanstackStart({
       server: { entry: "server" },
+      prerender: {
+        enabled: true,
+        crawlLinks: true,
+        autoStaticPathsDiscovery: true,
+        autoSubfolderIndex: true,
+        failOnError: false,
+      },
     }),
     viteReact(),
     tailwindcss(),
     tsConfigPaths(),
-    nitro({
-      prerender: {
-        routes: ["/"],
-        crawlLinks: true,
-      },
-    }),
+    nitro(),
   ],
 });
