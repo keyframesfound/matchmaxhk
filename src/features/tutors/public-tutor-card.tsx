@@ -3,7 +3,7 @@ import { Award, ChevronLeft, ChevronRight, UserRound } from "lucide-react";
 import { getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
 import {
   formatTutorCode,
-  formatTutorGradeLabel,
+  getTutorSubjectChips,
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
 import { cn } from "@/lib/utils";
@@ -35,7 +35,7 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
 
   return (
     <span className="inline-flex min-w-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/55 bg-[color:var(--brand-teal)]/10 px-1.5 py-1 text-center text-[9px] font-bold leading-tight text-[color:var(--brand-navy)] md:px-2 md:py-1.5 md:text-[10px]">
-      {chip.subject}
+      <span className="min-w-0 truncate">{chip.subject}</span>
       {grade ? (
         <>
           <span className="mx-1 text-[color:var(--brand-teal)]">:</span>
@@ -67,15 +67,7 @@ export function PublicTutorCard({
   className,
 }: PublicTutorCardProps) {
   const interactive = typeof onOpen === "function";
-  const primaryExam = (tutor.exam_results ?? []).find((result) =>
-    result.subjects.some((entry) => entry.subject.trim()),
-  );
-  const academicChips = (primaryExam?.subjects ?? [])
-    .map((entry) => ({
-      subject: entry.subject.trim(),
-      grade: formatTutorGradeLabel(entry.grade),
-    }))
-    .filter((entry) => entry.subject);
+  const academicChips = getTutorSubjectChips(tutor);
   const [academicPage, setAcademicPage] = useState(0);
   const maxAcademicPage = Math.max(0, Math.ceil(academicChips.length / RESULTS_PER_PAGE) - 1);
   const visibleAcademicPage = Math.min(academicPage, maxAcademicPage);
