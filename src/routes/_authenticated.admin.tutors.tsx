@@ -47,6 +47,7 @@ import {
   type TutorAchievement,
 } from "@/features/tutors/queries";
 import {
+  EXAM_PAPER_LABELS,
   EXAM_SYSTEMS,
   getSystem,
   getGradesForSelection,
