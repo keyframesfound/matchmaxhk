@@ -1,5 +1,5 @@
-import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Award, ChevronLeft, ChevronRight, UserRound } from "lucide-react";
+import { type ReactNode } from "react";
+import { Award, UserRound } from "lucide-react";
 import { getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
 import {
   formatTutorCode,
@@ -7,14 +7,6 @@ import {
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
 import { cn } from "@/lib/utils";
-
-const RESULTS_PER_PAGE = 6;
-
-function paginateAcademicChips(chips: TutorSubjectChip[]) {
-  return Array.from({ length: Math.ceil(chips.length / RESULTS_PER_PAGE) }, (_, pageIndex) =>
-    chips.slice(pageIndex * RESULTS_PER_PAGE, pageIndex * RESULTS_PER_PAGE + RESULTS_PER_PAGE),
-  );
-}
 
 function getTutorInitials(tutorCode?: string | null) {
   const normalized = (tutorCode ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
@@ -40,8 +32,8 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
   const grade = splitGradeLabel(chip.grade);
 
   return (
-    <span className="inline-flex min-w-0 max-w-full items-center rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[9px] font-bold leading-tight text-[color:var(--brand-navy)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[10px]">
-      <span className="block min-w-0 truncate">{chip.subject}</span>
+    <span className="inline-flex max-w-full items-start gap-1 rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[9px] font-bold leading-snug text-[color:var(--brand-navy)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[10px]">
+      <span className="break-words">{chip.subject}</span>
       {grade ? (
         <>
           <span className="mx-1 shrink-0 text-[color:var(--brand-teal)]">:</span>
@@ -73,17 +65,7 @@ export function PublicTutorCard({
   className,
 }: PublicTutorCardProps) {
   const interactive = typeof onOpen === "function";
-  const academicChips = useMemo(() => getTutorSubjectChips(tutor), [tutor]);
-  const academicPages = useMemo(() => paginateAcademicChips(academicChips), [academicChips]);
-  const [academicPage, setAcademicPage] = useState(0);
-  const [pageDirection, setPageDirection] = useState<"next" | "previous">("next");
-  const achievementAreaRef = useRef<HTMLDivElement | null>(null);
-  const measurementRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [achievementAreaHeight, setAchievementAreaHeight] = useState<number | null>(null);
-  const maxAcademicPage = Math.max(0, academicPages.length - 1);
-  const visibleAcademicPage = Math.min(academicPage, maxAcademicPage);
-  const visibleAcademicChips = academicPages[visibleAcademicPage] ?? [];
-  const hasAcademicPager = academicPages.length > 1;
+  const academicChips = getTutorSubjectChips(tutor);
   const genderLabel = getTutorGenderLabel(tutor.gender);
   const primaryCredential = removeEmoji(
     tutor.university ?? tutor.academic_summary ?? "Academic profile verified",
@@ -92,42 +74,6 @@ export function PublicTutorCard({
     .map((value) => (value ? removeEmoji(value) : ""))
     .filter((value) => value && value !== primaryCredential)
     .slice(0, 2);
-
-  useEffect(() => {
-    measurementRefs.current = measurementRefs.current.slice(0, academicPages.length);
-
-    const updateAchievementAreaHeight = () => {
-      const maximumHeight = Math.max(
-        0,
-        ...measurementRefs.current.map((element) =>
-          Math.ceil(element?.getBoundingClientRect().height ?? 0),
-        ),
-      );
-      setAchievementAreaHeight(maximumHeight || null);
-    };
-
-    updateAchievementAreaHeight();
-    const frame = window.requestAnimationFrame(updateAchievementAreaHeight);
-    const resizeObserver =
-      typeof ResizeObserver === "undefined"
-        ? null
-        : new ResizeObserver(updateAchievementAreaHeight);
-
-    if (achievementAreaRef.current) resizeObserver?.observe(achievementAreaRef.current);
-    window.addEventListener("resize", updateAchievementAreaHeight);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      resizeObserver?.disconnect();
-      window.removeEventListener("resize", updateAchievementAreaHeight);
-    };
-  }, [academicPages]);
-
-  const changeAcademicPage = (event: MouseEvent<HTMLButtonElement>, direction: -1 | 1) => {
-    event.stopPropagation();
-    setPageDirection(direction === 1 ? "next" : "previous");
-    setAcademicPage((current) => Math.max(0, Math.min(maxAcademicPage, current + direction)));
-  };
 
   return (
     <article
@@ -202,84 +148,13 @@ export function PublicTutorCard({
       <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
         {academicChips.length > 0 ? (
           <section className="border-b border-[color:var(--brand-teal)]/20 pb-2.5 md:pb-3">
-            <div className="flex items-baseline justify-between gap-3">
-              <h3 className="text-[13px] font-black tracking-tight text-[color:var(--brand-navy)] md:text-[15px]">
-                Academic achievements
-              </h3>
-              {hasAcademicPager ? (
-                <span className="text-[8px] font-semibold uppercase tracking-[0.08em] text-muted-foreground md:text-[9px]">
-                  {visibleAcademicPage + 1} / {maxAcademicPage + 1}
-                </span>
-              ) : null}
-            </div>
-            <div
-              className={cn(
-                "mt-2 grid items-stretch gap-1.5 md:gap-2",
-                hasAcademicPager
-                  ? "grid-cols-[1.75rem_minmax(0,1fr)_1.75rem] md:grid-cols-[2rem_minmax(0,1fr)_2rem]"
-                  : "grid-cols-1",
-              )}
-            >
-              {hasAcademicPager ? (
-                <button
-                  type="button"
-                  aria-label="Previous academic achievements"
-                  disabled={visibleAcademicPage === 0}
-                  onClick={(event) => changeAcademicPage(event, -1)}
-                  onKeyDown={(event) => event.stopPropagation()}
-                  className="flex w-7 items-center justify-center self-stretch rounded-md border border-white/70 bg-white/55 text-[color:var(--brand-navy)] shadow-sm backdrop-blur-md transition-colors hover:bg-white/80 disabled:cursor-not-allowed disabled:border-border disabled:bg-muted/65 disabled:text-muted-foreground md:w-8"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              ) : null}
-              <div
-                ref={achievementAreaRef}
-                className="relative min-w-0"
-                style={achievementAreaHeight ? { minHeight: achievementAreaHeight } : undefined}
-              >
-                <div
-                  key={visibleAcademicPage}
-                  className={cn(
-                    "grid min-w-0 grid-cols-3 content-start items-start justify-items-start gap-1.5 overflow-hidden md:gap-2",
-                    hasAcademicPager && `tutor-achievement-page-${pageDirection}`,
-                  )}
-                >
-                  {visibleAcademicChips.map((chip, index) => (
-                    <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
-                  ))}
-                </div>
-
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none invisible absolute inset-x-0 top-0 -z-10"
-                >
-                  {academicPages.map((page, pageIndex) => (
-                    <div
-                      key={pageIndex}
-                      ref={(element) => {
-                        measurementRefs.current[pageIndex] = element;
-                      }}
-                      className="grid grid-cols-3 content-start items-start justify-items-start gap-1.5 md:gap-2"
-                    >
-                      {page.map((chip, index) => (
-                        <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {hasAcademicPager ? (
-                <button
-                  type="button"
-                  aria-label="Next academic achievements"
-                  disabled={visibleAcademicPage === maxAcademicPage}
-                  onClick={(event) => changeAcademicPage(event, 1)}
-                  onKeyDown={(event) => event.stopPropagation()}
-                  className="flex w-7 items-center justify-center self-stretch rounded-md border border-white/70 bg-white/55 text-[color:var(--brand-navy)] shadow-sm backdrop-blur-md transition-colors hover:bg-white/80 disabled:cursor-not-allowed disabled:border-border disabled:bg-muted/65 disabled:text-muted-foreground md:w-8"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              ) : null}
+            <h3 className="text-[13px] font-black tracking-tight text-[color:var(--brand-navy)] md:text-[15px]">
+              Academic achievements
+            </h3>
+            <div className="mt-2 flex flex-wrap items-start gap-2">
+              {academicChips.map((chip, index) => (
+                <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
+              ))}
             </div>
           </section>
         ) : null}
