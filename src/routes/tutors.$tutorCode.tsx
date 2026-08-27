@@ -483,11 +483,6 @@ function TutorDetail() {
                       <span className="text-muted-foreground">{t.languages.join(", ")}</span>
                     </li>
                   ) : null}
-                  {t.qualifications_summary ? (
-                    <li className="text-muted-foreground whitespace-pre-line">
-                      {t.qualifications_summary}
-                    </li>
-                  ) : null}
                 </ul>
               </ProfileSection>
             </div>
