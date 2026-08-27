@@ -469,20 +469,6 @@ function TutorDetail() {
                       {getTutorLessonModeLabel(t.lesson_mode)}
                     </span>
                   </li>
-                  <li className="flex items-baseline gap-2">
-                    <MapPin className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-navy)]" />
-                    <span className="font-bold text-[color:var(--brand-navy)]">Location:</span>
-                    <span className="text-muted-foreground">
-                      Hong Kong{t.district ? ` – ${t.district}` : ""}
-                    </span>
-                  </li>
-                  {t.languages.length > 0 ? (
-                    <li className="flex items-baseline gap-2">
-                      <Languages className="h-3.5 w-3.5 shrink-0 translate-y-0.5 text-[color:var(--brand-navy)]" />
-                      <span className="font-bold text-[color:var(--brand-navy)]">Languages:</span>
-                      <span className="text-muted-foreground">{t.languages.join(", ")}</span>
-                    </li>
-                  ) : null}
                 </ul>
               </ProfileSection>
             </div>

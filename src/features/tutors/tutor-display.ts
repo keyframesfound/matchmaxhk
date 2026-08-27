@@ -132,9 +132,25 @@ function collectLevelsFromExamResults(
   return [...levels].sort();
 }
 
+const SYSTEM_ALIAS_PATTERN =
+  /^(IBDP|IB|HKDSE|DSE|A-?Level|IGCSE|AP|SAT)\b[\s:–-]*/i;
+
+const SYSTEM_ALIASES: Record<string, string> = {
+  ibdp: "ib",
+  ib: "ib",
+  hkdse: "dse",
+  dse: "dse",
+  "a-level": "alevel",
+  alevel: "alevel",
+  igcse: "igcse",
+  ap: "ap",
+  sat: "sat",
+};
+
 /**
  * Returns a single readable sentence for the subjects the tutor teaches,
- * e.g. "IBDP: Geography (HL / SL), Chinese A (SL)".
+ * grouped per exam system with the system prefix shown once per group,
+ * e.g. "IBDP: Chem (HL / SL), Bio (HL / SL), IGCSE: Chem, Math".
  */
 export function getTutorSubjectSentence(
   tutor: Pick<Tutor, "subjects" | "exam_results">,
@@ -142,15 +158,26 @@ export function getTutorSubjectSentence(
   const groups: TaughtSubjectGroup[] = [];
 
   for (const raw of tutor.subjects ?? []) {
-    const trimmed = raw.trim();
+    let trimmed = raw.trim();
     if (!trimmed) continue;
+
+    // A subject string may itself carry a system prefix, e.g. "IGCSE Chem".
+    // That explicit prefix wins over any exam-result inference.
+    let explicitSystemId = "";
+    const systemMatch = trimmed.match(SYSTEM_ALIAS_PATTERN);
+    if (systemMatch) {
+      explicitSystemId = SYSTEM_ALIASES[systemMatch[1].toLowerCase()] ?? "";
+      trimmed = trimmed.slice(systemMatch[0].length).trim();
+      if (!trimmed) continue;
+    }
 
     const levelMatch = trimmed.match(/\b(HL|SL)\b\s*$/i);
     const level = levelMatch ? levelMatch[1].toUpperCase() : null;
     const base = levelMatch ? trimmed.slice(0, levelMatch.index).trim() : trimmed;
     const baseKey = normalizeSubjectKey(base);
 
-    const systemId = findExamSystemForSubject(base, tutor.exam_results);
+    const systemId =
+      explicitSystemId || findExamSystemForSubject(base, tutor.exam_results);
 
     let group = groups.find(
       (g) => normalizeSubjectKey(g.base) === baseKey && g.systemId === systemId,
@@ -166,17 +193,30 @@ export function getTutorSubjectSentence(
     }
   }
 
-  const parts = groups.map((g) => {
-    const prefix = getExamSystemShortLabel(g.systemId);
-    const levels = [...g.levels].sort();
-    let suffix = "";
-    if (levels.length === 2) {
-      suffix = " (HL / SL)";
-    } else if (levels.length === 1) {
-      suffix = ` (${levels[0]})`;
-    }
-    return `${prefix ? `${prefix}: ` : ""}${g.base}${suffix}`;
-  });
+  // Merge groups by system, preserving first-appearance order, so each
+  // system prefix is printed once: "IBDP: A, B, IGCSE: C, D".
+  const bySystem = new Map<string, TaughtSubjectGroup[]>();
+  for (const group of groups) {
+    const list = bySystem.get(group.systemId) ?? [];
+    list.push(group);
+    bySystem.set(group.systemId, list);
+  }
+
+  const parts: string[] = [];
+  for (const [systemId, systemGroups] of bySystem) {
+    const prefix = getExamSystemShortLabel(systemId);
+    const items = systemGroups.map((g) => {
+      const levels = [...g.levels].sort();
+      let suffix = "";
+      if (levels.length === 2) {
+        suffix = " (HL / SL)";
+      } else if (levels.length === 1) {
+        suffix = ` (${levels[0]})`;
+      }
+      return `${g.base}${suffix}`;
+    });
+    parts.push(`${prefix ? `${prefix}: ` : ""}${items.join(", ")}`);
+  }
 
   return parts.join(", ");
 }
