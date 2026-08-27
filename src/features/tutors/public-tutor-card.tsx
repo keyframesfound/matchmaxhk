@@ -232,7 +232,7 @@ export function PublicTutorCard({
                     "flex w-full items-center justify-center py-1.5 text-[10px] font-bold text-[color:var(--brand-navy)] transition-colors md:text-[11px]",
                     areAcademicChipsExpanded
                       ? "mt-1 bg-transparent hover:bg-[color:var(--brand-teal)]/8"
-                      : "absolute inset-x-0 bottom-0 h-10 rounded-b-[10px] bg-gradient-to-b from-white/75 via-white/95 to-white hover:from-white/85 hover:via-white hover:to-white",
+                      : "absolute inset-x-0 bottom-0 h-9 rounded-b-[10px] bg-gradient-to-b from-transparent via-white/70 to-white hover:via-white/85",
                   )}
                 >
                   <span
