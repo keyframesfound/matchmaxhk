@@ -729,7 +729,7 @@ function AdminTutors() {
       lesson_mode: form.lesson_mode,
       hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
       badge: (form.badge ?? "").trim() || null,
-      bio: (form.bio ?? "").trim() || null,
+      bio: null,
       photo_url: (form.photo_url ?? "").trim() || null,
       tutor_code: form.tutor_code.trim() || "MM-PREVIEW",
       is_published: form.is_published,
