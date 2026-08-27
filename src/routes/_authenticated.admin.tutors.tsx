@@ -733,12 +733,8 @@ function AdminTutors() {
       photo_url: (form.photo_url ?? "").trim() || null,
       tutor_code: form.tutor_code.trim() || "MM-PREVIEW",
       is_published: form.is_published,
-      education: form.education.map((education) => ({
-        institution: education.institution,
-        qualification: education.qualification,
-        year: education.year === "" ? null : education.year,
-        level: education.level ?? null,
-      })),
+      education: [],
+
       experience_years: form.experience_years === "" ? null : Number(form.experience_years),
       teaching_since: form.teaching_since === "" ? null : Number(form.teaching_since),
       languages: (form.languages_csv ?? "")
