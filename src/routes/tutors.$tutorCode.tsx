@@ -5,11 +5,13 @@ import {
   BadgeCheck,
   MapPin,
   MessageCircle,
-  GraduationCap,
   Award,
   Globe,
-  BookOpen,
-  Compass,
+  Layers,
+  LineChart,
+  Sparkles,
+  Languages,
+  type LucideIcon,
 } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
