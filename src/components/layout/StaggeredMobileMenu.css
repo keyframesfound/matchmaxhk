@@ -3,13 +3,6 @@
   z-index: 60;
 }
 
-@media (min-width: 1024px) {
-  .smm-prelayers,
-  .smm-panel {
-    display: none;
-  }
-}
-
 .smm-toggle {
   position: relative;
   z-index: 90;
