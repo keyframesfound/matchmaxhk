@@ -1,4 +1,4 @@
-import { type MouseEvent, type ReactNode, useState } from "react";
+import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Award, ChevronDown, ChevronUp, UserRound } from "lucide-react";
 import { getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
 import {
@@ -7,8 +7,6 @@ import {
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
 import { cn } from "@/lib/utils";
-
-const ACADEMIC_CHIPS_PER_PREVIEW = 6;
 
 function getTutorInitials(tutorCode?: string | null) {
   const normalized = (tutorCode ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
@@ -34,7 +32,10 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
   const grade = splitGradeLabel(chip.grade);
 
   return (
-    <span className="inline-flex max-w-full items-start gap-1 rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[9px] font-bold leading-snug text-[color:var(--brand-navy)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[10px]">
+    <span
+      data-academic-chip
+      className="inline-flex max-w-full items-start gap-1 rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[9px] font-bold leading-snug text-[color:var(--brand-navy)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[10px]"
+    >
       <span className="break-words">{chip.subject}</span>
       {grade ? (
         <>
@@ -67,12 +68,11 @@ export function PublicTutorCard({
   className,
 }: PublicTutorCardProps) {
   const interactive = typeof onOpen === "function";
-  const academicChips = getTutorSubjectChips(tutor);
+  const academicChips = useMemo(() => getTutorSubjectChips(tutor), [tutor]);
+  const academicChipsRef = useRef<HTMLDivElement | null>(null);
   const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
-  const hasMoreAcademicChips = academicChips.length > ACADEMIC_CHIPS_PER_PREVIEW;
-  const visibleAcademicChips = areAcademicChipsExpanded
-    ? academicChips
-    : academicChips.slice(0, ACADEMIC_CHIPS_PER_PREVIEW);
+  const [hasMoreAcademicChips, setHasMoreAcademicChips] = useState(false);
+  const [academicPreviewHeight, setAcademicPreviewHeight] = useState<number | null>(null);
   const genderLabel = getTutorGenderLabel(tutor.gender);
   const primaryCredential = removeEmoji(
     tutor.university ?? tutor.academic_summary ?? "Academic profile verified",
@@ -81,6 +81,49 @@ export function PublicTutorCard({
     .map((value) => (value ? removeEmoji(value) : ""))
     .filter((value) => value && value !== primaryCredential)
     .slice(0, 2);
+
+  useEffect(() => {
+    setAreAcademicChipsExpanded(false);
+
+    const measureAcademicPreview = () => {
+      const container = academicChipsRef.current;
+      if (!container) return;
+
+      const chips = Array.from(container.querySelectorAll<HTMLElement>("[data-academic-chip]"));
+      const rowOffsets = Array.from(new Set(chips.map((chip) => chip.offsetTop))).sort(
+        (first, second) => first - second,
+      );
+
+      if (rowOffsets.length <= 2) {
+        setHasMoreAcademicChips(false);
+        setAcademicPreviewHeight(null);
+        return;
+      }
+
+      const secondRowOffset = rowOffsets[1];
+      const secondRowBottom = Math.max(
+        ...chips
+          .filter((chip) => chip.offsetTop === secondRowOffset)
+          .map((chip) => chip.offsetTop + chip.offsetHeight),
+      );
+
+      setHasMoreAcademicChips(true);
+      setAcademicPreviewHeight(secondRowBottom);
+    };
+
+    const frame = window.requestAnimationFrame(measureAcademicPreview);
+    const resizeObserver =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measureAcademicPreview);
+
+    if (academicChipsRef.current) resizeObserver?.observe(academicChipsRef.current);
+    window.addEventListener("resize", measureAcademicPreview);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", measureAcademicPreview);
+    };
+  }, [academicChips]);
 
   const toggleAcademicChips = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -184,9 +227,15 @@ export function PublicTutorCard({
             </div>
             <div
               id={`academic-achievements-${tutor.tutor_code}`}
-              className="mt-2 grid grid-cols-3 content-start items-start justify-items-start gap-2"
+              ref={academicChipsRef}
+              className="mt-2 flex flex-wrap items-start gap-2 overflow-hidden"
+              style={
+                !areAcademicChipsExpanded && academicPreviewHeight
+                  ? { maxHeight: academicPreviewHeight }
+                  : undefined
+              }
             >
-              {visibleAcademicChips.map((chip, index) => (
+              {academicChips.map((chip, index) => (
                 <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
               ))}
             </div>
