@@ -176,7 +176,7 @@ export function PublicTutorCard({
             {supportingCredentials.map((credential, index) => (
               <p
                 key={`${credential}-${index}`}
-                className="mt-1.5 line-clamp-1 text-[11px] font-semibold leading-snug text-muted-foreground md:text-[13px]"
+                className="mt-1.5 text-[11px] font-semibold leading-snug text-muted-foreground md:text-[13px]"
               >
                 {credential}
               </p>
