@@ -213,7 +213,7 @@ export function PublicTutorCard({
                 className="flex flex-wrap items-start gap-2 overflow-hidden"
                 style={
                   !areAcademicChipsExpanded && academicPreviewHeight
-                    ? { maxHeight: academicPreviewHeight + 12 }
+                    ? { maxHeight: academicPreviewHeight + 44 }
                     : undefined
                 }
               >
@@ -232,7 +232,7 @@ export function PublicTutorCard({
                     "flex w-full items-center justify-center gap-1 py-1.5 text-[9px] font-bold text-[color:var(--brand-navy)] transition-colors md:text-[10px]",
                     areAcademicChipsExpanded
                       ? "mt-1 bg-transparent hover:bg-[color:var(--brand-teal)]/8"
-                      : "relative -mt-3 rounded-b-[10px] border-t border-[color:var(--brand-teal)]/10 bg-white/30 backdrop-blur-md before:pointer-events-none before:absolute before:inset-x-0 before:-top-4 before:h-4 before:bg-gradient-to-t before:from-white/30 before:to-transparent hover:bg-white/45",
+                      : "absolute inset-x-0 bottom-0 h-10 rounded-b-[10px] border-t border-white/50 bg-white/15 backdrop-blur-sm hover:bg-white/30",
                   )}
                 >
                   {areAcademicChipsExpanded ? "Show less" : "Show more"}
