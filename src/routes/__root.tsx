@@ -13,6 +13,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { I18nProvider } from "@/features/i18n/I18nProvider";
 import { AuthProvider } from "@/features/auth/useAuth";
+import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { WhatsAppFloatButton } from "@/components/layout/WhatsAppFloatButton";
 
 function NotFoundComponent() {
@@ -170,6 +171,7 @@ function RootComponent() {
       <I18nProvider>
         <AuthProvider>
           <Outlet />
+          <BackToTopButton />
           <WhatsAppFloatButton />
           <Toaster richColors position="top-center" closeButton />
         </AuthProvider>
