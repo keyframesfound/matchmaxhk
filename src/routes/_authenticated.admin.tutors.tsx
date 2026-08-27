@@ -354,7 +354,6 @@ const formSchema = z.object({
   lesson_mode: z.enum(["online", "in_person", "either"]),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
   badge: z.string().trim().max(80).optional().or(z.literal("")),
-  bio: z.string().trim().max(2000).optional().or(z.literal("")),
   photo_url: z.string().trim().max(1000).optional().or(z.literal("")),
   tutor_code: z
     .string()
@@ -367,7 +366,6 @@ const formSchema = z.object({
   gender: z.enum(["male", "female", "other"]),
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
   teaching_since: z.union([z.coerce.number().int().min(1950).max(2100), z.literal("")]).optional(),
-  education: z.array(eduSchema),
   exam_results: z.array(examSchema).max(2, "Add no more than two exam systems"),
   achievements: z
     .array(achievementSchema)
@@ -389,7 +387,6 @@ const empty: FormValues = {
   lesson_mode: "either",
   hourly_rate: 0,
   badge: "",
-  bio: "",
   photo_url: "",
   tutor_code: "",
   is_published: true,
@@ -397,7 +394,6 @@ const empty: FormValues = {
   gender: "female",
   experience_years: "",
   teaching_since: "",
-  education: [],
   exam_results: [],
   achievements: [],
   ia_ee_tok_support: [],
@@ -416,7 +412,6 @@ function tutorToForm(t: Tutor): FormValues {
     lesson_mode: t.lesson_mode ?? "either",
     hourly_rate: t.hourly_rate,
     badge: t.badge ?? "",
-    bio: t.bio ?? "",
     photo_url: t.photo_url ?? "",
     tutor_code: t.tutor_code,
     is_published: t.is_published,
