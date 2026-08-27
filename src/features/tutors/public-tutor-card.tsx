@@ -8,7 +8,7 @@ import {
 } from "@/features/tutors/tutor-display";
 import { cn } from "@/lib/utils";
 
-const RESULTS_PER_PAGE = 3;
+const RESULTS_PER_PAGE = 6;
 
 function getTutorInitials(tutorCode?: string | null) {
   const normalized = (tutorCode ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
@@ -34,7 +34,7 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
   const grade = splitGradeLabel(chip.grade);
 
   return (
-    <span className="inline-flex shrink-0 items-center rounded-full border border-[color:var(--brand-teal)]/55 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[10px] font-bold leading-none text-[color:var(--brand-navy)] md:px-3 md:py-1.5 md:text-[11px]">
+    <span className="inline-flex min-w-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/55 bg-[color:var(--brand-teal)]/10 px-1.5 py-1 text-center text-[9px] font-bold leading-tight text-[color:var(--brand-navy)] md:px-2 md:py-1.5 md:text-[10px]">
       {chip.subject}
       {grade ? (
         <>
@@ -145,7 +145,7 @@ export function PublicTutorCard({
             {supportingCredentials.map((credential, index) => (
               <p
                 key={`${credential}-${index}`}
-                className="mt-1 line-clamp-1 text-[9px] font-medium leading-tight text-muted-foreground md:text-[11px]"
+                className="mt-1.5 line-clamp-1 text-[11px] font-semibold leading-snug text-muted-foreground md:text-[13px]"
               >
                 {credential}
               </p>
@@ -181,7 +181,14 @@ export function PublicTutorCard({
                 </span>
               ) : null}
             </div>
-            <div className="mt-2 flex min-h-[2.1rem] items-center gap-1.5 md:gap-2">
+            <div
+              className={cn(
+                "mt-2 grid min-h-[4.6rem] items-stretch gap-1.5 md:min-h-[5.25rem] md:gap-2",
+                hasAcademicPager
+                  ? "grid-cols-[1.75rem_minmax(0,1fr)_1.75rem] md:grid-cols-[2rem_minmax(0,1fr)_2rem]"
+                  : "grid-cols-1",
+              )}
+            >
               {hasAcademicPager ? (
                 <button
                   type="button"
@@ -189,12 +196,12 @@ export function PublicTutorCard({
                   disabled={visibleAcademicPage === 0}
                   onClick={(event) => changeAcademicPage(event, -1)}
                   onKeyDown={(event) => event.stopPropagation()}
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/40 bg-[color:var(--brand-teal)]/10 text-[color:var(--brand-navy)] transition-colors hover:bg-[color:var(--brand-teal)]/20 disabled:cursor-not-allowed disabled:border-border disabled:bg-muted disabled:text-muted-foreground md:h-7 md:w-7"
+                  className="flex min-h-[4.6rem] w-7 items-center justify-center self-stretch rounded-md border border-white/70 bg-white/55 text-[color:var(--brand-navy)] shadow-sm backdrop-blur-md transition-colors hover:bg-white/80 disabled:cursor-not-allowed disabled:border-border disabled:bg-muted/65 disabled:text-muted-foreground md:min-h-[5.25rem] md:w-8"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
               ) : null}
-              <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-1.5 overflow-hidden md:gap-2">
+              <div className="grid min-w-0 grid-cols-3 content-start gap-1.5 overflow-hidden md:gap-2">
                 {visibleAcademicChips.map((chip, index) => (
                   <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
                 ))}
@@ -206,7 +213,7 @@ export function PublicTutorCard({
                   disabled={visibleAcademicPage === maxAcademicPage}
                   onClick={(event) => changeAcademicPage(event, 1)}
                   onKeyDown={(event) => event.stopPropagation()}
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/40 bg-[color:var(--brand-teal)]/10 text-[color:var(--brand-navy)] transition-colors hover:bg-[color:var(--brand-teal)]/20 disabled:cursor-not-allowed disabled:border-border disabled:bg-muted disabled:text-muted-foreground md:h-7 md:w-7"
+                  className="flex min-h-[4.6rem] w-7 items-center justify-center self-stretch rounded-md border border-white/70 bg-white/55 text-[color:var(--brand-navy)] shadow-sm backdrop-blur-md transition-colors hover:bg-white/80 disabled:cursor-not-allowed disabled:border-border disabled:bg-muted/65 disabled:text-muted-foreground md:min-h-[5.25rem] md:w-8"
                 >
                   <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
