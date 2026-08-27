@@ -448,19 +448,20 @@ function tutorToForm(t: Tutor): FormValues {
 }
 
 function formToPayload(v: FormValues, isNew: boolean) {
-  const cleanEdu: Education[] = v.education
-    .map((e) => ({
-      institution: e.institution.trim(),
-      qualification: e.qualification.trim(),
-      year: e.year === "" || e.year == null ? null : Number(e.year),
-      level: e.level && e.level.trim() ? e.level.trim() : null,
-    }))
-    .filter((e) => e.institution && e.qualification);
   const cleanExams: ExamResult[] = v.exam_results
     .map((r) => ({
       system: r.system,
       subjects: (r.subjects ?? [])
-        .map((s) => ({ subject: s.subject.trim(), grade: s.grade.trim() }))
+        .map((s) => {
+          const papers = (s.papers ?? [])
+            .map((p) => ({ label: p.label.trim(), score: p.score.trim() }))
+            .filter((p) => p.label && p.score);
+          return {
+            subject: s.subject.trim(),
+            grade: s.grade.trim(),
+            ...(papers.length ? { papers } : {}),
+          };
+        })
         .filter((s) => s.subject),
     }))
     .filter((r) => r.system && r.subjects.length > 0)
@@ -492,7 +493,6 @@ function formToPayload(v: FormValues, isNew: boolean) {
     lesson_mode: v.lesson_mode,
     hourly_rate: v.hourly_rate,
     badge: v.badge || null,
-    bio: v.bio || null,
     photo_url: v.photo_url || null,
     tutor_code: v.tutor_code.trim(),
     is_published: v.is_published,
@@ -500,7 +500,6 @@ function formToPayload(v: FormValues, isNew: boolean) {
     gender: v.gender,
     experience_years: v.experience_years === "" ? null : Number(v.experience_years),
     teaching_since: v.teaching_since === "" ? null : Number(v.teaching_since),
-    education: cleanEdu,
     exam_results: cleanExams,
     achievements: cleanAchievements,
     ia_ee_tok_support: v.ia_ee_tok_support,
@@ -508,6 +507,7 @@ function formToPayload(v: FormValues, isNew: boolean) {
   };
   return base;
 }
+
 
 function AdminTutors() {
   const { hasAnyRole, loading, user } = useAuth();
