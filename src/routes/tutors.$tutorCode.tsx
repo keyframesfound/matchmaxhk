@@ -419,7 +419,7 @@ function TutorDetail() {
                 {waUrl ? (
                   <Button
                     asChild
-                    className="mt-3 w-full bg-brand-gradient font-bold text-white shadow-teal sm:w-auto"
+                    className="mt-3 w-full bg-[#0A245F] font-bold text-white shadow-teal hover:bg-[#081d4f] sm:w-auto"
                   >
                     <a href={waUrl} target="_blank" rel="noopener noreferrer">
                       <MessageCircle className="mr-2 h-4 w-4" /> Request tutor
@@ -428,7 +428,7 @@ function TutorDetail() {
                 ) : (
                   <Button
                     disabled
-                    className="mt-3 w-full bg-brand-gradient font-bold text-white shadow-teal sm:w-auto"
+                    className="mt-3 w-full bg-[#0A245F] font-bold text-white shadow-teal hover:bg-[#081d4f] sm:w-auto"
                   >
                     <MessageCircle className="mr-2 h-4 w-4" /> Contact coming soon
                   </Button>
