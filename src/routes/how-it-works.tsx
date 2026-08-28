@@ -224,10 +224,10 @@ function HowItWorksPage() {
             </article>
             <article className="rounded-2xl border border-[color:var(--brand-navy)]/10 bg-[color:var(--brand-navy)] p-7 text-white sm:p-9">
               <UserPlus className="h-5 w-5" />
-              <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-white/60">
+              <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-white">
                 Your opportunities
               </p>
-              <h2 className="mt-3 text-2xl font-black">Receive better-fit requests.</h2>
+              <h2 className="mt-3 text-2xl font-black text-white">Receive better-fit requests.</h2>
               <p className="mt-3 text-sm leading-7 text-white/72">
                 When your profile is clear, families can find you for the subjects and lesson
                 formats you are best placed to teach.
