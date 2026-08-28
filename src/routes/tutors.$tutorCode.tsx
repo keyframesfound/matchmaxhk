@@ -193,9 +193,7 @@ function AcademicQualification({ result }: { result: ExamResult }) {
               className="border-l-2 border-[color:var(--brand-link)]/80 pl-3"
             >
               <div className="flex items-baseline gap-2">
-                <span className="text-sm font-bold text-[color:var(--ink)]">
-                  {entry.subject}
-                </span>
+                <span className="text-sm font-bold text-[color:var(--ink)]">{entry.subject}</span>
                 {entry.grade.trim() ? (
                   <span className="text-sm font-bold text-[color:var(--brand-link)]">
                     – Grade {entry.grade.replace(/^grade\s+/i, "")}
@@ -525,9 +523,7 @@ function TutorDetail() {
                     ) : null}
                     {t.ia_ee_tok_support.length > 0 ? (
                       <p className="mt-1 text-muted-foreground">
-                        <span className="font-bold text-[color:var(--ink)]">
-                          Mentorship:
-                        </span>{" "}
+                        <span className="font-bold text-[color:var(--ink)]">Mentorship:</span>{" "}
                         {t.ia_ee_tok_support.join(", ")}
                         {t.ia_ee_tok_notes ? ` — ${t.ia_ee_tok_notes}` : ""}
                       </p>
