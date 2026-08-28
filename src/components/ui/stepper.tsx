@@ -282,9 +282,9 @@ function StepIndicator({
       <motion.span
         className="stepper-indicator-inner"
         variants={{
-          inactive: { scale: 1, backgroundColor: "#eef2f3", color: "#56626f" },
-          active: { scale: 1.04, backgroundColor: "#041344", color: "#ffffff" },
-          complete: { scale: 1, backgroundColor: "#1fa8b6", color: "#ffffff" },
+          inactive: { scale: 1, backgroundColor: "var(--stepper-inactive-bg)", color: "var(--stepper-inactive-fg)" },
+          active: { scale: 1.04, backgroundColor: "var(--stepper-active-bg)", color: "var(--stepper-active-fg)" },
+          complete: { scale: 1, backgroundColor: "var(--stepper-complete-bg)", color: "var(--stepper-complete-fg)" },
         }}
         transition={{ duration: 0.3 }}
         animate={status}
@@ -303,7 +303,7 @@ function StepConnector({ isComplete }: { isComplete: boolean }) {
         className="stepper-connector-inner"
         variants={{
           incomplete: { width: 0, backgroundColor: "transparent" },
-          complete: { width: "100%", backgroundColor: "#1fa8b6" },
+          complete: { width: "100%", backgroundColor: "var(--stepper-connector)" },
         }}
         initial={false}
         animate={isComplete ? "complete" : "incomplete"}

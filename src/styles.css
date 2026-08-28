@@ -131,6 +131,17 @@
   --surface-invert-hover: #0a245f;
   --brand-link: #0d47a1;
 
+  /* Stepper */
+  --stepper-row-bg: linear-gradient(135deg, color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)), var(--color-card));
+  --stepper-inactive-bg: #eef2f3;
+  --stepper-inactive-fg: #56626f;
+  --stepper-active-bg: #041344;
+  --stepper-active-fg: #ffffff;
+  --stepper-complete-bg: #1fa8b6;
+  --stepper-complete-fg: #ffffff;
+  --stepper-dot: #ffffff;
+  --stepper-connector: #1fa8b6;
+
   /* Gradients & shadows */
   --gradient-brand: linear-gradient(135deg, #041344 0%, #0a245f 45%, #1fa8b6 100%);
   --gradient-brand-soft: linear-gradient(135deg, #f5fbfc 0%, #e8f8fa 100%);
@@ -145,6 +156,17 @@
   --surface-invert: #252525;
   --surface-invert-hover: #2f2f2f;
   --brand-link: #90caf9;
+
+  /* Stepper */
+  --stepper-row-bg: linear-gradient(135deg, color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)), var(--color-card));
+  --stepper-inactive-bg: #1f1f1f;
+  --stepper-inactive-fg: #a3a3a3;
+  --stepper-active-bg: #2bc2d1;
+  --stepper-active-fg: #0a0a0a;
+  --stepper-complete-bg: #2bc2d1;
+  --stepper-complete-fg: #0a0a0a;
+  --stepper-dot: #0a0a0a;
+  --stepper-connector: #2bc2d1;
   --gradient-brand: linear-gradient(135deg, #0a0a0a 0%, #101010 45%, #1fa8b6 100%);
   --gradient-brand-soft: linear-gradient(135deg, #0a0a0a 0%, #161616 100%);
 
@@ -497,15 +519,15 @@
   .join-stepper-indicator:hover .join-stepper-circle,
   .join-stepper-circle--active {
     transform: scale(1.05);
-    border-color: var(--brand-navy);
-    background: var(--brand-navy);
-    color: white;
+    border-color: var(--stepper-active-bg);
+    background: var(--stepper-active-bg);
+    color: var(--stepper-active-fg);
   }
 
   .join-stepper-circle--complete {
-    border-color: var(--brand-teal);
-    background: var(--brand-teal);
-    color: white;
+    border-color: var(--stepper-complete-bg);
+    background: var(--stepper-complete-bg);
+    color: var(--stepper-complete-fg);
   }
 
   .join-stepper-label {
@@ -516,7 +538,7 @@
   }
 
   .join-stepper-label--active {
-    color: var(--brand-navy);
+    color: var(--stepper-active-bg);
   }
 
   .join-stepper-connector {
