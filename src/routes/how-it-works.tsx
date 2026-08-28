@@ -252,27 +252,6 @@ function HowItWorksPage() {
             </article>
           </div>
         </section>
-
-        <section className="bg-[#f8fafc]">
-          <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-14 sm:px-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand-navy)]/55">
-                Ready to get started
-              </p>
-              <h2 className="mt-2 text-2xl font-black text-[color:var(--brand-navy)] sm:text-3xl">
-                Build your tutor profile.
-              </h2>
-            </div>
-            <Button
-              asChild
-              className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
-            >
-              <Link to="/tutors">
-                Find a tutor <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </section>
       </main>
       <SiteFooter />
     </div>
