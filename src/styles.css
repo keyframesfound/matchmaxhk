@@ -373,20 +373,20 @@
     }
   }
 
-  .consulting-reserve-card {
+  .saved-posts-reserve-card {
     background:
       radial-gradient(120% 130% at 12% 10%, rgba(31, 168, 182, 0.1) 0%, rgba(31, 168, 182, 0) 55%),
       linear-gradient(135deg, #fbfcfd 0%, #f3f8f9 100%);
   }
 
-  .consulting-hero-visual {
+  .saved-posts-hero-visual {
     background-color: #f6fbfc;
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
   }
 
-  .consulting-reserve-visual {
+  .saved-posts-reserve-visual {
     position: relative;
     overflow: hidden;
     background: linear-gradient(

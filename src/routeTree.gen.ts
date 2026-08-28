@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
-import { Route as ConsultingRouteImport } from './routes/consulting'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as JoinRouteImport } from './routes/join'
@@ -22,6 +21,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedMyCasesRouteImport } from './routes/_authenticated.my-cases'
 import { Route as AuthenticatedPostCaseRouteImport } from './routes/_authenticated.post-case'
+import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
 import { Route as AuthenticatedAdminCasesRouteImport } from './routes/_authenticated.admin.cases'
@@ -53,11 +53,6 @@ const AuthRoute = AuthRouteImport.update({
 const BecomeATutorRoute = BecomeATutorRouteImport.update({
   id: '/become-a-tutor',
   path: '/become-a-tutor',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConsultingRoute = ConsultingRouteImport.update({
-  id: '/consulting',
-  path: '/consulting',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -98,6 +93,11 @@ const AuthenticatedMyCasesRoute = AuthenticatedMyCasesRouteImport.update({
 const AuthenticatedPostCaseRoute = AuthenticatedPostCaseRouteImport.update({
   id: '/post-case',
   path: '/post-case',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSavedPostsRoute = AuthenticatedSavedPostsRouteImport.update({
+  id: '/saved-posts',
+  path: '/saved-posts',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const TutorsIndexRoute = TutorsIndexRouteImport.update({
@@ -175,7 +175,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
-  '/consulting': typeof ConsultingRoute
   '/faq': typeof FaqRoute
   '/how-it-works': typeof HowItWorksRoute
   '/join': typeof JoinRoute
@@ -184,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-cases': typeof AuthenticatedMyCasesRoute
   '/post-case': typeof AuthenticatedPostCaseRouteWithChildren
+  '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -202,7 +202,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
-  '/consulting': typeof ConsultingRoute
   '/faq': typeof FaqRoute
   '/how-it-works': typeof HowItWorksRoute
   '/join': typeof JoinRoute
@@ -211,6 +210,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-cases': typeof AuthenticatedMyCasesRoute
   '/post-case': typeof AuthenticatedPostCaseRouteWithChildren
+  '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors': typeof TutorsIndexRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -231,7 +231,6 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
-  '/consulting': typeof ConsultingRoute
   '/faq': typeof FaqRoute
   '/how-it-works': typeof HowItWorksRoute
   '/join': typeof JoinRoute
@@ -240,6 +239,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/my-cases': typeof AuthenticatedMyCasesRoute
   '/_authenticated/post-case': typeof AuthenticatedPostCaseRouteWithChildren
+  '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
   '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -260,7 +260,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/become-a-tutor'
-    | '/consulting'
     | '/faq'
     | '/how-it-works'
     | '/join'
@@ -269,6 +268,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/my-cases'
     | '/post-case'
+    | '/saved-posts'
     | '/tutors/$tutorCode'
     | '/tutors/'
     | '/admin/cases'
@@ -287,7 +287,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/become-a-tutor'
-    | '/consulting'
     | '/faq'
     | '/how-it-works'
     | '/join'
@@ -296,6 +295,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/my-cases'
     | '/post-case'
+    | '/saved-posts'
     | '/tutors/$tutorCode'
     | '/tutors'
     | '/admin/cases'
@@ -315,7 +315,6 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/become-a-tutor'
-    | '/consulting'
     | '/faq'
     | '/how-it-works'
     | '/join'
@@ -324,6 +323,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/my-cases'
     | '/_authenticated/post-case'
+    | '/_authenticated/saved-posts'
     | '/tutors/$tutorCode'
     | '/tutors/'
     | '/_authenticated/admin/cases'
@@ -344,7 +344,6 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
-  ConsultingRoute: typeof ConsultingRoute
   FaqRoute: typeof FaqRoute
   HowItWorksRoute: typeof HowItWorksRoute
   JoinRoute: typeof JoinRoute
@@ -385,13 +384,6 @@ declare module '@tanstack/react-router' {
       path: '/become-a-tutor'
       fullPath: '/become-a-tutor'
       preLoaderRoute: typeof BecomeATutorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/consulting': {
-      id: '/consulting'
-      path: '/consulting'
-      fullPath: '/consulting'
-      preLoaderRoute: typeof ConsultingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -448,6 +440,13 @@ declare module '@tanstack/react-router' {
       path: '/post-case'
       fullPath: '/post-case'
       preLoaderRoute: typeof AuthenticatedPostCaseRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/saved-posts': {
+      id: '/_authenticated/saved-posts'
+      path: '/saved-posts'
+      fullPath: '/saved-posts'
+      preLoaderRoute: typeof AuthenticatedSavedPostsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/tutors/': {
@@ -562,6 +561,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMyCasesRoute: typeof AuthenticatedMyCasesRoute
   AuthenticatedPostCaseRoute: typeof AuthenticatedPostCaseRouteWithChildren
+  AuthenticatedSavedPostsRoute: typeof AuthenticatedSavedPostsRoute
   AuthenticatedAdminCasesRoute: typeof AuthenticatedAdminCasesRoute
   AuthenticatedAdminR2Route: typeof AuthenticatedAdminR2Route
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
@@ -575,6 +575,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMyCasesRoute: AuthenticatedMyCasesRoute,
   AuthenticatedPostCaseRoute: AuthenticatedPostCaseRouteWithChildren,
+  AuthenticatedSavedPostsRoute: AuthenticatedSavedPostsRoute,
   AuthenticatedAdminCasesRoute: AuthenticatedAdminCasesRoute,
   AuthenticatedAdminR2Route: AuthenticatedAdminR2Route,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
@@ -593,7 +594,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
-  ConsultingRoute: ConsultingRoute,
   FaqRoute: FaqRoute,
   HowItWorksRoute: HowItWorksRoute,
   JoinRoute: JoinRoute,

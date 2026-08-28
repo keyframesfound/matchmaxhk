@@ -24,11 +24,17 @@ export function SiteHeader({ className }: { className?: string }) {
   const brandLabelClassName = "text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
   const mobileItems = [
     { label: t("How it works"), ariaLabel: t("How it works"), to: "/how-it-works" },
-    { label: t("nav.find", { defaultValue: "Find" }), ariaLabel: t("nav.find", { defaultValue: "Find" }), to: "/tutors" },
-    { label: "IB IA/EE/TOK Consult", ariaLabel: "IB IA/EE/TOK Consult", to: "/consulting" },
-    { label: "Become a tutor", ariaLabel: "Become a tutor", to: "/join" },
+    {
+      label: t("nav.find", { defaultValue: "Find" }),
+      ariaLabel: t("nav.find", { defaultValue: "Find" }),
+      to: "/tutors",
+    },
+    { label: "Saved Posts", ariaLabel: "Saved Posts", to: "/saved-posts" },
+    { label: t("tutors_cta.cta"), ariaLabel: t("tutors_cta.cta"), to: "/join" },
     { label: "Help Centre", ariaLabel: "Help Centre", to: "/faq" },
-    ...(user ? [{ label: t("nav.dashboard"), ariaLabel: t("nav.dashboard"), to: "/dashboard" }] : []),
+    ...(user
+      ? [{ label: t("nav.dashboard"), ariaLabel: t("nav.dashboard"), to: "/dashboard" }]
+      : []),
     ...(isAdmin
       ? [
           { label: "Manage tutors", ariaLabel: "Manage tutors", to: "/admin/tutors" },
@@ -51,59 +57,124 @@ export function SiteHeader({ className }: { className?: string }) {
         </Link>
 
         <nav className="ml-12 hidden items-center gap-9 lg:flex">
-          <a href="/how-it-works" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]">
+          <a
+            href="/how-it-works"
+            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]"
+          >
             {t("How it works")}
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
           </a>
-          <Link to="/tutors" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]">
+          <Link
+            to="/tutors"
+            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]"
+          >
             {t("nav.find", { defaultValue: "Find" })}
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
           </Link>
-          <Link to="/consulting" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]">
-            IB IA/EE/TOK Consult
+          <Link
+            to="/saved-posts"
+            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]"
+          >
+            Saved Posts
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
           </Link>
-          <Link to="/join" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]">
+          <Link
+            to="/join"
+            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]"
+          >
             {t("tutors_cta.cta")}
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
           </Link>
-          <Link to="/faq" className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]">
+          <Link
+            to="/faq"
+            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]"
+          >
             Help Centre
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
           </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-4">
-          <div className="flex items-center"><LanguageToggle /></div>
+          <div className="flex items-center">
+            <LanguageToggle />
+          </div>
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-9 gap-2 px-4 font-semibold text-[#041344] hover:bg-transparent hover:text-[#1FA8B6]">
-                  <span className="max-w-[120px] truncate">{user.email?.split("@")[0] ?? "Account"}</span>
+                <Button
+                  variant="ghost"
+                  className="h-9 gap-2 px-4 font-semibold text-[#041344] hover:bg-transparent hover:text-[#1FA8B6]"
+                >
+                  <span className="max-w-[120px] truncate">
+                    {user.email?.split("@")[0] ?? "Account"}
+                  </span>
                   <ChevronDown className="h-4 w-4 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-60 rounded-2xl border-[#041344]/10 bg-white p-2 shadow-xl">
+              <DropdownMenuContent
+                align="end"
+                className="w-60 rounded-2xl border-[#041344]/10 bg-white p-2 shadow-xl"
+              >
                 <DropdownMenuLabel className="px-3 py-2">
                   <div className="text-xs font-medium text-[#041344]/50">Signed in as</div>
-                  <div className="mt-1 truncate text-sm font-semibold text-[#041344]">{user.email}</div>
+                  <div className="mt-1 truncate text-sm font-semibold text-[#041344]">
+                    {user.email}
+                  </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20 focus:text-[#041344]"><Link to="/dashboard">{t("nav.dashboard")}</Link></DropdownMenuItem>
-                {isAdmin && <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"><Link to="/admin/tutors">Manage tutors</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"><Link to="/admin/r2">R2 images</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"><Link to="/admin/users">{t("nav.admin")}</Link></DropdownMenuItem>
-                </>}
+                <DropdownMenuItem
+                  asChild
+                  className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20 focus:text-[#041344]"
+                >
+                  <Link to="/dashboard">{t("nav.dashboard")}</Link>
+                </DropdownMenuItem>
+                {isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      asChild
+                      className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"
+                    >
+                      <Link to="/admin/tutors">Manage tutors</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      asChild
+                      className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"
+                    >
+                      <Link to="/admin/r2">R2 images</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      asChild
+                      className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"
+                    >
+                      <Link to="/admin/users">{t("nav.admin")}</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => void signOut()} className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-red-50 focus:text-red-600">{t("nav.sign_out")}</DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => void signOut()}
+                  className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-red-50 focus:text-red-600"
+                >
+                  {t("nav.sign_out")}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : <>
-            <Link to="/auth" className="hidden text-[15px] font-semibold text-[#041344] transition-colors hover:text-[#1FA8B6] sm:inline">{t("nav.sign_in")}</Link>
-            <Link to="/auth" className="hidden sm:block"><Button className="h-11 rounded-full bg-[#0A245F] px-6 text-[15px] font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#041344] hover:shadow-md">Sign up</Button></Link>
-          </>}
+          ) : (
+            <>
+              <Link
+                to="/auth"
+                className="hidden text-[15px] font-semibold text-[#041344] transition-colors hover:text-[#1FA8B6] sm:inline"
+              >
+                {t("nav.sign_in")}
+              </Link>
+              <Link to="/auth" className="hidden sm:block">
+                <Button className="h-11 rounded-full bg-[#0A245F] px-6 text-[15px] font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#041344] hover:shadow-md">
+                  Sign up
+                </Button>
+              </Link>
+            </>
+          )}
           <StaggeredMobileMenu
             items={mobileItems}
             socialItems={[
@@ -111,13 +182,41 @@ export function SiteHeader({ className }: { className?: string }) {
               { label: "Instagram", link: "https://www.instagram.com/match_max/" },
               { label: "Email", link: "mailto:matchmaxedu@gmail.com" },
             ]}
-            renderFooter={(closeMenu) => <div className="flex flex-col gap-3">
-              {!user ? <>
-                <Link to="/auth" onClick={closeMenu}><Button variant="outline" className="h-10 w-full rounded-full border-[#041344]/15 text-sm font-semibold text-[#041344] hover:bg-[#77E8EE]/20 hover:text-[#041344]">{t("nav.sign_in")}</Button></Link>
-                <Link to="/auth" onClick={closeMenu}><Button className="h-10 w-full rounded-full bg-[#0A245F] text-sm font-semibold text-white shadow-sm hover:bg-[#041344]">Sign up</Button></Link>
-              </> : <button type="button" onClick={() => { void signOut(); closeMenu(); }} className="h-10 w-full rounded-full border border-[#041344]/15 text-sm font-semibold text-[#041344] transition-colors hover:bg-red-50 hover:text-red-600">{t("nav.sign_out")}</button>}
-              <div className="flex items-center justify-start pt-2"><LanguageToggle /></div>
-            </div>}
+            renderFooter={(closeMenu) => (
+              <div className="flex flex-col gap-3">
+                {!user ? (
+                  <>
+                    <Link to="/auth" onClick={closeMenu}>
+                      <Button
+                        variant="outline"
+                        className="h-10 w-full rounded-full border-[#041344]/15 text-sm font-semibold text-[#041344] hover:bg-[#77E8EE]/20 hover:text-[#041344]"
+                      >
+                        {t("nav.sign_in")}
+                      </Button>
+                    </Link>
+                    <Link to="/auth" onClick={closeMenu}>
+                      <Button className="h-10 w-full rounded-full bg-[#0A245F] text-sm font-semibold text-white shadow-sm hover:bg-[#041344]">
+                        Sign up
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void signOut();
+                      closeMenu();
+                    }}
+                    className="h-10 w-full rounded-full border border-[#041344]/15 text-sm font-semibold text-[#041344] transition-colors hover:bg-red-50 hover:text-red-600"
+                  >
+                    {t("nav.sign_out")}
+                  </button>
+                )}
+                <div className="flex items-center justify-start pt-2">
+                  <LanguageToggle />
+                </div>
+              </div>
+            )}
           />
         </div>
       </div>

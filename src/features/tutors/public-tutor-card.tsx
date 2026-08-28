@@ -54,6 +54,7 @@ type PublicTutorCardProps = {
   tutor: Tutor;
   priceSuffix: string;
   footerAction: ReactNode;
+  saveAction?: ReactNode;
   onOpen?: (tutorCode: string) => void;
   badgeLabel?: string;
   className?: string;
@@ -63,6 +64,7 @@ export function PublicTutorCard({
   tutor,
   priceSuffix,
   footerAction,
+  saveAction,
   onOpen,
   badgeLabel,
   className,
@@ -294,7 +296,10 @@ export function PublicTutorCard({
             {priceSuffix}
           </span>
         </p>
-        {footerAction}
+        <div className="flex items-center gap-2">
+          {saveAction}
+          {footerAction}
+        </div>
       </footer>
     </article>
   );

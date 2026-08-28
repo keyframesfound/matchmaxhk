@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
+import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 import {
   fetchPublishedTutors,
@@ -322,19 +323,22 @@ function TutorsDirectory() {
                     priceSuffix={t("featured.per_hour")}
                     onOpen={openTutorDetail}
                     footerAction={
-                      <Button
-                        asChild
-                        className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
-                      >
-                        <a
-                          href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(event) => event.stopPropagation()}
+                      <>
+                        <TutorSaveButton tutorId={tut.id} />
+                        <Button
+                          asChild
+                          className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
                         >
-                          Request tutor
-                        </a>
-                      </Button>
+                          <a
+                            href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            Request tutor
+                          </a>
+                        </Button>
+                      </>
                     }
                   />
                 ))}

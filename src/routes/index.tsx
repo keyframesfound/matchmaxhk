@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
+import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 import { blurActive } from "@/lib/dom";
 import {
@@ -447,19 +448,22 @@ function Landing() {
                       priceSuffix={t("featured.per_hour")}
                       onOpen={openTutorDetail}
                       footerAction={
-                        <Button
-                          asChild
-                          className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
-                        >
-                          <a
-                            href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(event) => event.stopPropagation()}
+                        <>
+                          <TutorSaveButton tutorId={tut.id} />
+                          <Button
+                            asChild
+                            className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
                           >
-                            Request tutor
-                          </a>
-                        </Button>
+                            <a
+                              href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              Request tutor
+                            </a>
+                          </Button>
+                        </>
                       }
                     />
                   ))}
@@ -475,19 +479,22 @@ function Landing() {
                             priceSuffix={t("featured.per_hour")}
                             onOpen={openTutorDetail}
                             footerAction={
-                              <Button
-                                asChild
-                                className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
-                              >
-                                <a
-                                  href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  onClick={(event) => event.stopPropagation()}
+                              <>
+                                <TutorSaveButton tutorId={tut.id} />
+                                <Button
+                                  asChild
+                                  className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
                                 >
-                                  Request tutor
-                                </a>
-                              </Button>
+                                  <a
+                                    href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
+                                    Request tutor
+                                  </a>
+                                </Button>
+                              </>
                             }
                           />
                         </CarouselItem>
@@ -506,44 +513,43 @@ function Landing() {
       <section className="pb-12 md:pb-22">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <p className="text-xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
-            Book for later
+            Save your shortlist
           </p>
 
           <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
-            <article className="consulting-reserve-card overflow-hidden rounded-3xl md:rounded-sm">
+            <article className="saved-posts-reserve-card overflow-hidden rounded-3xl md:rounded-sm">
               <div className="grid min-h-[430px] gap-0 md:min-h-[520px]">
                 <div className="flex flex-col justify-between gap-4 p-4 sm:p-6 md:p-10">
                   <div>
                     <h2 className="mt-2 max-w-xl text-xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-2xl md:mt-5 md:text-[2.75rem]">
-                      Get your IA/EE/TOK reviewed by IB Top Scorers
+                      Keep your favorite tutors close
                     </h2>
                     <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm md:mt-5 md:text-[1.04rem]">
-                      Stop paying for expensive tutors just to read your drafts during lessons. You
-                      do not need someone watching you write. You need clear, line-by-line guidance
-                      and planning.
+                      Bookmark tutors from the directory so you can compare your shortlist and come
+                      back when you are ready to request a lesson.
                     </p>
 
                     <div className="mt-4 grid gap-2.5 sm:mt-6 sm:grid-cols-2">
                       <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
                         <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                          Review format
+                          Save profiles
                         </p>
                         <p className="mt-1 text-sm font-black text-[color:var(--brand-navy)] sm:text-lg">
-                          Offline line-by-line comments
+                          Build your shortlist
                         </p>
                         <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-sm">
-                          Rubric-linked notes with direct edits you can apply immediately.
+                          Keep promising tutor profiles in one place while you decide.
                         </p>
                       </div>
                       <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
                         <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                          1-month mentorship
+                          Return anytime
                         </p>
                         <p className="mt-1 text-sm font-black text-[color:var(--brand-navy)] sm:text-lg">
-                          WhatsApp + draft support
+                          Request when ready
                         </p>
                         <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-sm">
-                          Follow-up clarifications so revisions stay focused and efficient.
+                          Open a saved profile and contact the tutor when the time is right.
                         </p>
                       </div>
                     </div>
@@ -555,7 +561,7 @@ function Landing() {
                       size="lg"
                       className="h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-12 md:w-auto md:rounded-sm md:px-8 md:text-base"
                     >
-                      <Link to="/consulting">Explore consulting plans</Link>
+                      <Link to="/saved-posts">View saved posts</Link>
                     </Button>
                   </div>
                 </div>

@@ -7,7 +7,7 @@ import { LanguageToggle } from "@/components/brand/LanguageToggle";
 const productLinks = [
   { name: "Find tutors", to: "/tutors" },
   { name: "How it works", to: "/how-it-works" },
-  { name: "Consulting", to: "/consulting" },
+  { name: "Saved Posts", to: "/saved-posts" },
   { name: "Join as tutor", to: "/join" },
 ] as const;
 
@@ -30,8 +30,12 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl px-6 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <h3 className="text-4xl font-black tracking-tight text-foreground sm:text-5xl">MatchMax</h3>
-            <p className="mt-4 max-w-md text-sm leading-relaxed text-foreground/70">{t("footer.tagline")}</p>
+            <h3 className="text-4xl font-black tracking-tight text-foreground sm:text-5xl">
+              MatchMax
+            </h3>
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-foreground/70">
+              {t("footer.tagline")}
+            </p>
 
             <div className="mt-5 flex gap-4">
               <a
@@ -70,7 +74,10 @@ export function SiteFooter() {
               <ul className="space-y-3">
                 {productLinks.map((link) => (
                   <li key={link.to}>
-                    <Link className="text-sm text-foreground/70 transition-colors hover:text-brand" to={link.to}>
+                    <Link
+                      className="text-sm text-foreground/70 transition-colors hover:text-brand"
+                      to={link.to}
+                    >
                       {link.name}
                     </Link>
                   </li>
@@ -85,7 +92,10 @@ export function SiteFooter() {
               <ul className="space-y-3">
                 {companyLinks.map((link) => (
                   <li key={link.to}>
-                    <Link className="text-sm text-foreground/70 transition-colors hover:text-brand" to={link.to}>
+                    <Link
+                      className="text-sm text-foreground/70 transition-colors hover:text-brand"
+                      to={link.to}
+                    >
                       {link.name}
                     </Link>
                   </li>
@@ -100,7 +110,10 @@ export function SiteFooter() {
               <ul className="space-y-3">
                 {supportLinks.map((link) => (
                   <li key={link.to}>
-                    <Link className="text-sm text-foreground/70 transition-colors hover:text-brand" to={link.to}>
+                    <Link
+                      className="text-sm text-foreground/70 transition-colors hover:text-brand"
+                      to={link.to}
+                    >
                       {link.name}
                     </Link>
                   </li>
@@ -108,11 +121,12 @@ export function SiteFooter() {
               </ul>
             </div>
           </div>
-
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-center sm:flex-row">
-          <p className="text-sm text-foreground/60">© {year} MatchMax. {t("footer.rights")}</p>
+          <p className="text-sm text-foreground/60">
+            © {year} MatchMax. {t("footer.rights")}
+          </p>
           <LanguageToggle />
         </div>
       </div>
