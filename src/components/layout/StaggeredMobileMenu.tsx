@@ -194,7 +194,7 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
             <aside id={panelId} ref={panelRef} className="smm-panel" aria-hidden={!open}>
               <div className="smm-panel-header">
                 <Link to="/" className="smm-brand" aria-label="MatchMax home" onClick={() => closeMenu()}>
-                  <img src="/matchmax-logo.png" alt="" width={32} height={32} />
+                  <img src="/matchmax-logo.png" alt="" className="logo-dark-recolor" width={32} height={32} />
                   <span>MatchMax</span>
                 </Link>
               </div>
