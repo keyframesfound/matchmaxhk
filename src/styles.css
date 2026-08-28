@@ -139,42 +139,42 @@
 }
 
 .dark {
-  --ink: #e8eefc;
-  --surface: #0b1c46;
-  --surface-subtle: #061331;
-  --surface-invert: #14306e;
-  --surface-invert-hover: #1c3f8c;
+  --ink: #ededed;
+  --surface: #0a0a0a;
+  --surface-subtle: #000000;
+  --surface-invert: #161616;
+  --surface-invert-hover: #1f1f1f;
   --brand-link: #90caf9;
-  --gradient-brand: linear-gradient(135deg, #061331 0%, #10265c 45%, #1fa8b6 100%);
-  --gradient-brand-soft: linear-gradient(135deg, #0b1c46 0%, #10265c 100%);
+  --gradient-brand: linear-gradient(135deg, #0a0a0a 0%, #101010 45%, #1fa8b6 100%);
+  --gradient-brand-soft: linear-gradient(135deg, #0a0a0a 0%, #161616 100%);
 
-  --background: oklch(0.16 0.09 265);
-  --foreground: oklch(0.98 0.003 250);
-  --card: oklch(0.22 0.08 265);
-  --card-foreground: oklch(0.98 0.003 250);
-  --popover: oklch(0.22 0.08 265);
-  --popover-foreground: oklch(0.98 0.003 250);
-  --primary: oklch(0.66 0.11 197);
-  --primary-foreground: oklch(0.16 0.09 265);
-  --secondary: oklch(0.28 0.08 265);
-  --secondary-foreground: oklch(0.98 0.003 250);
-  --muted: oklch(0.28 0.08 265);
-  --muted-foreground: oklch(0.75 0.03 250);
-  --accent: oklch(0.78 0.13 195);
-  --accent-foreground: oklch(0.16 0.09 265);
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card: #141414;
+  --card-foreground: #ededed;
+  --popover: #141414;
+  --popover-foreground: #ededed;
+  --primary: #2bc2d1;
+  --primary-foreground: #0a0a0a;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #ededed;
+  --muted: #1f1f1f;
+  --muted-foreground: #a3a3a3;
+  --accent: #3fd8e4;
+  --accent-foreground: #0a0a0a;
   --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.98 0.003 250);
+  --destructive-foreground: #ededed;
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.66 0.11 197);
-  --sidebar: oklch(0.22 0.08 265);
-  --sidebar-foreground: oklch(0.98 0.003 250);
-  --sidebar-primary: oklch(0.66 0.11 197);
-  --sidebar-primary-foreground: oklch(0.16 0.09 265);
-  --sidebar-accent: oklch(0.28 0.08 265);
-  --sidebar-accent-foreground: oklch(0.98 0.003 250);
+  --ring: #2bc2d1;
+  --sidebar: #141414;
+  --sidebar-foreground: #ededed;
+  --sidebar-primary: #2bc2d1;
+  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-accent: #1f1f1f;
+  --sidebar-accent-foreground: #ededed;
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.66 0.11 197);
+  --sidebar-ring: #2bc2d1;
 }
 
 @layer base {
