@@ -107,14 +107,14 @@ export function TutorSaveButton({ tutorId }: { tutorId: string }) {
     <>
       <Button
         type="button"
-        variant="outline"
+        variant="ghost"
         size="icon"
         aria-label={saved ? "Remove tutor from saved posts" : "Save tutor"}
         title={saved ? "Remove from saved posts" : "Save tutor"}
         disabled={mutation.isPending}
         onClick={handleClick}
         onKeyDown={(event) => event.stopPropagation()}
-        className="h-9 w-9 shrink-0 rounded-sm border-[color:var(--brand-teal)]/35 text-[color:var(--ink)] hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--ink)]"
+        className="h-9 w-9 shrink-0 rounded-sm border-0 bg-transparent text-[color:var(--ink)] shadow-none hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--ink)]"
       >
         <Bookmark className={saved ? "h-4 w-4 fill-current" : "h-4 w-4"} aria-hidden="true" />
       </Button>
