@@ -1,6 +1,5 @@
 import { type MouseEvent, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
 import { Bookmark } from "lucide-react";
 import { toast } from "sonner";
 
@@ -78,7 +77,6 @@ async function setSavedTutor({
 
 export function TutorSaveButton({ tutorId }: { tutorId: string }) {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const savedQuery = useSavedTutorIds();
@@ -140,9 +138,11 @@ export function TutorSaveButton({ tutorId }: { tutorId: string }) {
             <Button
               type="button"
               className="rounded-sm bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
-              onClick={() => {
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
                 setDialogOpen(false);
-                void navigate({ to: "/auth", search: { mode: "sign_up" } });
+                window.location.assign("/auth?mode=sign_up");
               }}
             >
               Sign up

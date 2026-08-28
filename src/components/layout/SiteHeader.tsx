@@ -170,7 +170,7 @@ export function SiteHeader({ className }: { className?: string }) {
               >
                 {t("nav.sign_in")}
               </Link>
-              <Link to="/auth" className="hidden sm:block">
+              <Link to="/auth" search={{ mode: "sign_up" }} className="hidden sm:block">
                 <Button className="h-11 rounded-full bg-[#0A245F] px-6 text-[15px] font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#041344] hover:shadow-md">
                   Sign up
                 </Button>
@@ -196,7 +196,7 @@ export function SiteHeader({ className }: { className?: string }) {
                         {t("nav.sign_in")}
                       </Button>
                     </Link>
-                    <Link to="/auth" onClick={closeMenu}>
+                    <Link to="/auth" search={{ mode: "sign_up" }} onClick={closeMenu}>
                       <Button className="h-10 w-full rounded-full bg-[#0A245F] text-sm font-semibold text-white shadow-sm hover:bg-[#041344]">
                         Sign up
                       </Button>
