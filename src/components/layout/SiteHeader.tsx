@@ -26,7 +26,7 @@ export function SiteHeader({ className }: { className?: string }) {
     { label: t("How it works"), ariaLabel: t("How it works"), to: "/how-it-works" },
     { label: t("nav.find", { defaultValue: "Find" }), ariaLabel: t("nav.find", { defaultValue: "Find" }), to: "/tutors" },
     { label: "IB IA/EE/TOK Consult", ariaLabel: "IB IA/EE/TOK Consult", to: "/consulting" },
-    { label: t("tutors_cta.cta"), ariaLabel: t("tutors_cta.cta"), to: "/join" },
+    { label: "Become a tutor", ariaLabel: "Become a tutor", to: "/join" },
     { label: "Help Centre", ariaLabel: "Help Centre", to: "/faq" },
     ...(user ? [{ label: t("nav.dashboard"), ariaLabel: t("nav.dashboard"), to: "/dashboard" }] : []),
     ...(isAdmin
