@@ -650,3 +650,26 @@
     }
   }
 }
+
+@layer utilities {
+  .landing-tutor-marquee {
+    animation: landing-tutor-marquee 42s linear infinite;
+    will-change: transform;
+  }
+
+  @keyframes landing-tutor-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(-50% - 0.75rem));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .landing-tutor-marquee {
+      animation-play-state: paused;
+      transform: translateX(0);
+    }
+  }
+}

@@ -2,19 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, BookOpen, Clock3, Search, UserPlus } from "lucide-react";
+import { ArrowRight, Search, UserPlus } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { BlurHighlightText } from "@/components/ui/blur-highlight-text";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
@@ -408,21 +401,13 @@ function Landing() {
           </div>
 
           <div className="mt-6">
-            <div className="mb-6 flex items-baseline justify-between">
-              {publishedTutorsLoading ? (
-                <Skeleton className="h-4 w-28" />
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-bold text-foreground">{previewTutors.length}</span>{" "}
-                  {previewTutors.length === 1 ? "tutor" : "tutors"} found
-                </p>
-              )}
-            </div>
-
             {publishedTutorsLoading && (
-              <div className="grid gap-4 md:grid-cols-2 lg:gap-6 xl:grid-cols-3">
+              <div className="flex gap-4 overflow-hidden">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-56 rounded-sm border border-border" />
+                  <Skeleton
+                    key={i}
+                    className="h-[23rem] w-[min(86vw,370px)] shrink-0 rounded-sm border border-border"
+                  />
                 ))}
               </div>
             )}
@@ -439,72 +424,40 @@ function Landing() {
             )}
 
             {!publishedTutorsLoading && previewTutors.length > 0 && (
-              <>
-                <div className="grid gap-4 md:grid-cols-2 lg:hidden">
-                  {previewTutors.map((tut) => (
-                    <PublicTutorCard
-                      key={tut.id}
-                      tutor={tut}
-                      priceSuffix={t("featured.per_hour")}
-                      onOpen={openTutorDetail}
-                      footerAction={
-                        <>
-                          <TutorSaveButton tutorId={tut.id} />
-                          <Button
-                            asChild
-                            className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
-                          >
-                            <a
-                              href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(event) => event.stopPropagation()}
+              <div className="group relative overflow-hidden py-2 [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)]">
+                <div className="landing-tutor-marquee flex w-max gap-4 pr-4 group-hover:[animation-play-state:paused] md:gap-6 md:pr-6">
+                  {[...previewTutors, ...previewTutors].map((tut, index) => (
+                    <div
+                      key={`${tut.id}-${index}`}
+                      className="w-[min(86vw,370px)] shrink-0 md:w-[350px] xl:w-[370px]"
+                    >
+                      <PublicTutorCard
+                        tutor={tut}
+                        priceSuffix={t("featured.per_hour")}
+                        onOpen={openTutorDetail}
+                        footerAction={
+                          <>
+                            <TutorSaveButton tutorId={tut.id} />
+                            <Button
+                              asChild
+                              className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
                             >
-                              Request tutor
-                            </a>
-                          </Button>
-                        </>
-                      }
-                    />
+                              <a
+                                href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                Request tutor
+                              </a>
+                            </Button>
+                          </>
+                        }
+                      />
+                    </div>
                   ))}
                 </div>
-
-                <div className="hidden lg:block">
-                  <Carousel className="px-14" opts={{ align: "start" }}>
-                    <CarouselContent>
-                      {previewTutors.map((tut) => (
-                        <CarouselItem key={tut.id} className="lg:basis-1/2 xl:basis-1/3">
-                          <PublicTutorCard
-                            tutor={tut}
-                            priceSuffix={t("featured.per_hour")}
-                            onOpen={openTutorDetail}
-                            footerAction={
-                              <>
-                                <TutorSaveButton tutorId={tut.id} />
-                                <Button
-                                  asChild
-                                  className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
-                                >
-                                  <a
-                                    href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    onClick={(event) => event.stopPropagation()}
-                                  >
-                                    Request tutor
-                                  </a>
-                                </Button>
-                              </>
-                            }
-                          />
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="left-0 hidden h-11 w-11 border-[color:var(--brand-teal)]/30 bg-white text-[color:var(--brand-navy)] shadow-sm hover:bg-white lg:flex" />
-                    <CarouselNext className="right-0 hidden h-11 w-11 border-[color:var(--brand-teal)]/30 bg-white text-[color:var(--brand-navy)] shadow-sm hover:bg-white lg:flex" />
-                  </Carousel>
-                </div>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -516,7 +469,7 @@ function Landing() {
             Save your shortlist
           </p>
 
-          <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
+          <div className="mt-4">
             <article className="saved-posts-reserve-card overflow-hidden rounded-3xl md:rounded-sm">
               <div className="grid min-h-[430px] gap-0 md:min-h-[520px]">
                 <div className="flex flex-col justify-between gap-4 p-4 sm:p-6 md:p-10">
@@ -567,37 +520,6 @@ function Landing() {
                 </div>
               </div>
             </article>
-
-            <aside className="rounded-3xl border border-border bg-card p-4 shadow-[0_10px_24px_rgba(4,19,68,0.04)] md:rounded-sm md:p-7">
-              <h3 className="text-xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
-                Benefits
-              </h3>
-              <div className="mt-3 divide-y divide-border/80 md:mt-5">
-                {[
-                  {
-                    icon: BadgeCheck,
-                    text: "Choose your exact review track and timeline in advance.",
-                  },
-                  {
-                    icon: Clock3,
-                    text: "Follow up on your draft.",
-                  },
-                  {
-                    icon: BookOpen,
-                    text: "No live lesson time wasted reading drafts line-by-line.",
-                  },
-                ].map(({ icon: Icon, text }) => (
-                  <div key={text} className="flex gap-3 py-2.5 first:pt-0 last:pb-0 md:py-5">
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[color:var(--brand-navy)]/6 text-[color:var(--brand-navy)]">
-                      <Icon className="h-3.5 w-3.5" />
-                    </span>
-                    <p className="text-xs leading-relaxed text-foreground sm:text-sm md:text-[1.05rem]">
-                      {text}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </aside>
           </div>
         </div>
       </section>
