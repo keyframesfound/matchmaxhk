@@ -132,7 +132,7 @@ export function TutorSaveButton({
 
   return (
     <>
-      <div className={compact ? "flex items-center gap-0" : undefined}>
+      <div className={compact ? "flex items-center -space-x-2" : undefined}>
         <Button
           type="button"
           variant="ghost"
@@ -162,7 +162,7 @@ export function TutorSaveButton({
           />
         </Button>
         {compact ? (
-          <span className="min-w-5 text-right text-sm font-bold leading-none text-[color:var(--ink)]">
+          <span className="min-w-4 text-right text-sm font-bold leading-none text-[color:var(--ink)]">
             {saveCount}
           </span>
         ) : null}
