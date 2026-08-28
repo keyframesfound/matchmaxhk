@@ -30,7 +30,7 @@ export function SiteHeader({ className }: { className?: string }) {
       to: "/tutors",
     },
     { label: "Saved Posts", ariaLabel: "Saved Posts", to: "/saved-posts" },
-    { label: t("tutors_cta.cta"), ariaLabel: t("tutors_cta.cta"), to: "/join" },
+    { label: "Become a Tutor", ariaLabel: "Become a Tutor", to: "/join" },
     { label: "Help Centre", ariaLabel: "Help Centre", to: "/faq" },
     ...(user ? [{ label: "Settings", ariaLabel: "Settings", to: "/dashboard" }] : []),
     ...(isAdmin
@@ -80,7 +80,7 @@ export function SiteHeader({ className }: { className?: string }) {
             to="/join"
             className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]"
           >
-            {t("tutors_cta.cta")}
+            Become a Tutor
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
           </Link>
           <Link
