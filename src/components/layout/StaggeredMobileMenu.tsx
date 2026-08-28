@@ -31,7 +31,6 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
   const panelRef = useRef<HTMLElement>(null);
   const layersRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
-  const iconRef = useRef<HTMLSpanElement>(null);
   const openTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const closeTweenRef = useRef<gsap.core.Tween | null>(null);
   const panelId = useId();
@@ -51,7 +50,6 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
       if (!openRef.current) {
         gsap.set([panel, ...layers], { x: 0, xPercent: 100, opacity: 1 });
       }
-      gsap.set(iconRef.current, { rotate: openRef.current ? 225 : 0, transformOrigin: "50% 50%" });
     });
 
     return () => context.revert();
@@ -123,7 +121,6 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
       openRef.current = false;
       setOpen(false);
       playClose();
-      gsap.to(iconRef.current, { rotate: 0, duration: 0.3, ease: "power3.inOut", overwrite: "auto" });
       if (restoreFocus) toggleRef.current?.focus();
     },
     [playClose],
@@ -136,12 +133,10 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
 
     if (nextOpen) {
       playOpen();
-      gsap.to(iconRef.current, { rotate: 225, duration: 0.75, ease: "power4.out", overwrite: "auto" });
       return;
     }
 
     playClose();
-    gsap.to(iconRef.current, { rotate: 0, duration: 0.3, ease: "power3.inOut", overwrite: "auto" });
   }, [playClose, playOpen]);
 
   useEffect(() => {
@@ -180,9 +175,10 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
         onClick={toggleMenu}
       >
         <span className="smm-toggle-label">{open ? "Close" : "Menu"}</span>
-        <span ref={iconRef} className="smm-icon" aria-hidden="true">
+        <span className="smm-icon" aria-hidden="true">
           <span className="smm-icon-line" />
-          <span className="smm-icon-line smm-icon-line-vertical" />
+          <span className="smm-icon-line" />
+          <span className="smm-icon-line" />
         </span>
       </button>
 

@@ -322,7 +322,7 @@ function TutorDetail() {
     ref: headlineRef,
     fontSizePx: headlineSize,
     maxLines,
-  } = useResponsiveHeadlineFit(t.headline ?? "", 18, 13);
+  } = useResponsiveHeadlineFit(t.headline ?? "", 16, 12);
   const tutorSeoSummary = `Tutor ${t.tutor_code} offers ${subjectText || "tutoring"} support${t.district ? ` in ${t.district}` : " in Hong Kong"}. ${t.lesson_mode === "online" ? "Online lessons are available." : t.lesson_mode === "either" ? "Online and in-person lessons are available." : "In-person lessons are available."} Browse rates and availability on MatchMax.`;
   const tutorStructuredData = {
     "@context": "https://schema.org",
@@ -366,13 +366,13 @@ function TutorDetail() {
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-black text-[color:var(--brand-navy)] sm:text-4xl">
+                <h1 className="text-xl font-black text-[color:var(--brand-navy)] sm:text-2xl">
                   {profileTitle}
                 </h1>
                 {t.headline ? (
                   <p
                     ref={headlineRef}
-                    className="mt-1 break-words whitespace-pre-line text-muted-foreground"
+                    className="mt-1 break-words whitespace-pre-line text-sm text-muted-foreground sm:text-base"
                     style={{
                       fontSize: `${headlineSize}px`,
                       lineHeight: 1.45,
@@ -386,7 +386,7 @@ function TutorDetail() {
                   </p>
                 ) : null}
                 {t.university || t.highschool ? (
-                  <p className="mt-1 text-sm text-muted-foreground break-words">
+                  <p className="mt-2 break-words text-base font-semibold leading-snug text-[color:var(--brand-navy)] sm:text-lg">
                     {[t.university, t.highschool].filter(Boolean).join(" | ")}
                   </p>
                 ) : null}
