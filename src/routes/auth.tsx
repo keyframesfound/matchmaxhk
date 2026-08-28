@@ -41,7 +41,7 @@ function AuthPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const router = useRouter();
-  const [mode, setMode] = useState<"sign_in" | "sign_up">(requestedMode);
+  const [mode, setMode] = useState<"sign_in" | "sign_up">(requestedMode ?? "sign_in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
