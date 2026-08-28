@@ -104,15 +104,15 @@ function SettingsPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
-        <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+        <div className="mx-auto w-full max-w-3xl px-4 py-12 text-[color:var(--brand-navy)] sm:px-6 sm:py-16">
           <div>
-            <p className="text-sm font-bold uppercase tracking-widest text-[color:var(--brand-teal)]">
+            <p className="text-sm font-bold uppercase tracking-widest text-[color:var(--brand-navy)]">
               Account
             </p>
             <h1 className="mt-2 text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
               Settings
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--brand-navy)]/75">
               Update your account details or permanently remove your MatchMax account.
             </p>
           </div>
@@ -123,7 +123,7 @@ function SettingsPage() {
                 <h2 className="text-xl font-bold text-[color:var(--brand-navy)]">
                   Profile details
                 </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 text-sm text-[color:var(--brand-navy)]/75">
                   This name is used across your MatchMax account.
                 </p>
               </div>
@@ -156,8 +156,8 @@ function SettingsPage() {
 
             <section className="rounded-3xl border border-red-200 bg-red-50/50 p-6 sm:p-8">
               <div>
-                <h2 className="text-xl font-bold text-red-900">Delete account</h2>
-                <p className="mt-1 text-sm leading-6 text-red-800/80">
+                <h2 className="text-xl font-bold text-[color:var(--brand-navy)]">Delete account</h2>
+                <p className="mt-1 text-sm leading-6 text-[color:var(--brand-navy)]/75">
                   This permanently deletes your account, saved tutors, profile, and tutor profiles
                   you created. This action cannot be undone.
                 </p>
@@ -168,7 +168,7 @@ function SettingsPage() {
                     type="button"
                     variant="outline"
                     disabled={deleting}
-                    className="mt-6 border-red-300 bg-white font-bold text-red-700 hover:bg-red-100 hover:text-red-800"
+                    className="mt-6 border-red-300 bg-white font-bold text-[color:var(--brand-navy)] hover:bg-red-100 hover:text-[color:var(--brand-navy)]"
                   >
                     Delete my account
                   </Button>
@@ -202,11 +202,11 @@ function SettingsPage() {
           <div className="mt-8 flex flex-wrap gap-4 text-sm">
             <Link
               to="/saved-posts"
-              className="font-semibold text-[color:var(--brand-teal)] underline"
+              className="font-semibold text-[color:var(--brand-navy)] underline"
             >
               View saved posts
             </Link>
-            <Link to="/tutors" className="font-semibold text-[color:var(--brand-teal)] underline">
+            <Link to="/tutors" className="font-semibold text-[color:var(--brand-navy)] underline">
               Browse tutors
             </Link>
           </div>
