@@ -41,7 +41,7 @@ function applyTheme(theme: ThemePreference) {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [theme, setThemeState] = useState<ThemePreference>("system");
+  const [theme, setThemeState] = useState<ThemePreference>("light");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
   const loadedForUser = useRef<string | null>(null);
 
@@ -55,7 +55,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Adopt whatever is stored on this device on first client render.
   useEffect(() => {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    const initial = isTheme(stored) ? stored : "system";
+    const initial = isTheme(stored) ? stored : "light";
     setThemeState(initial);
     sync(initial);
   }, [sync]);
