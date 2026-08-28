@@ -296,9 +296,6 @@ function Landing() {
       <section className="hero-startup-bg relative overflow-hidden">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col justify-center">
-            <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75 md:text-xl">
-              Hong Kong&apos;s tutor network
-            </p>
             <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-5xl md:text-6xl lg:text-7xl">
               {t("hero.title_a")}
               <br />
@@ -459,9 +456,6 @@ function Landing() {
 
       <section className="pb-12 md:pb-22">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75 md:text-xl">
-            Keep your options open
-          </p>
           <h2 className="mt-2 text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
             Save your shortlist
           </h2>
@@ -526,9 +520,6 @@ function Landing() {
         <div className="mx-auto max-w-7xl space-y-8 px-4 md:space-y-12 md:px-6">
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div className="order-2 lg:order-1">
-              <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75 md:text-xl">
-                Find the right fit
-              </p>
               <h2 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--ink)] md:text-4xl">
                 {t("how.step1_title")}
               </h2>
@@ -563,9 +554,6 @@ function Landing() {
               </div>
             </div>
             <div>
-              <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75 md:text-xl">
-                For ambitious tutors
-              </p>
               <h3 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--ink)] md:text-4xl">
                 {t("tutors_cta.title")}
               </h3>
