@@ -93,7 +93,7 @@ function HowItWorksPage() {
             <div className="rounded-2xl border border-[color:var(--brand-navy)]/12 bg-[#f8fafc] p-6 sm:p-8">
               <div className="flex items-start justify-between gap-6 pb-6">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--brand-navy)]/55">
+                  <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75">
                     One clear process
                   </p>
                   <p className="mt-3 text-2xl font-black text-[color:var(--brand-navy)]">
@@ -137,7 +137,7 @@ function HowItWorksPage() {
         <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <div className="grid gap-12 lg:grid-cols-[0.75fr_1.25fr]">
             <div className="max-w-sm">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[color:var(--brand-navy)]/55">
+              <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75">
                 How it works
               </p>
               <h2 className="mt-4 text-3xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-4xl">
@@ -205,7 +205,7 @@ function HowItWorksPage() {
           <div className="grid gap-5 lg:grid-cols-2">
             <article className="rounded-2xl border border-[color:var(--brand-navy)]/10 bg-white p-7 sm:p-9">
               <Search className="h-5 w-5 text-[color:var(--brand-navy)]" />
-              <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand-navy)]/55">
+              <p className="mt-6 font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75">
                 Your profile
               </p>
               <h2 className="mt-3 text-2xl font-black text-[color:var(--brand-navy)]">
@@ -224,7 +224,7 @@ function HowItWorksPage() {
             </article>
             <article className="rounded-2xl border border-[color:var(--brand-navy)]/10 bg-[color:var(--brand-navy)] p-7 text-white sm:p-9">
               <UserPlus className="h-5 w-5" />
-              <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-white">
+              <p className="mt-6 font-serif text-lg italic tracking-wide text-white">
                 Your opportunities
               </p>
               <h2 className="mt-3 text-2xl font-black text-white">Receive better-fit requests.</h2>

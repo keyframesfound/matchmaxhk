@@ -418,7 +418,7 @@ function Landing() {
             )}
 
             {!publishedTutorsLoading && previewTutors.length > 0 && (
-              <div className="group relative overflow-hidden py-2 [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)]">
+              <div className="group relative overflow-hidden py-2">
                 <div className="landing-tutor-marquee flex w-max gap-4 pr-4 group-hover:[animation-play-state:paused] md:gap-6 md:pr-6">
                   {[...previewTutors, ...previewTutors].map((tut, index) => (
                     <div
@@ -459,9 +459,12 @@ function Landing() {
 
       <section className="pb-12 md:pb-22">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <p className="text-xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
-            Save your shortlist
+          <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75 md:text-xl">
+            Keep your options open
           </p>
+          <h2 className="mt-2 text-xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
+            Save your shortlist
+          </h2>
 
           <div className="mt-4">
             <article className="saved-posts-reserve-card overflow-hidden rounded-3xl md:rounded-sm">
@@ -523,7 +526,10 @@ function Landing() {
         <div className="mx-auto max-w-7xl space-y-8 px-4 md:space-y-12 md:px-6">
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div className="order-2 lg:order-1">
-              <h2 className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
+              <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75 md:text-xl">
+                Find the right fit
+              </p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
                 {t("how.step1_title")}
               </h2>
               <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
@@ -557,7 +563,10 @@ function Landing() {
               </div>
             </div>
             <div>
-              <h3 className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
+              <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75 md:text-xl">
+                For ambitious tutors
+              </p>
+              <h3 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
                 {t("tutors_cta.title")}
               </h3>
               <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
