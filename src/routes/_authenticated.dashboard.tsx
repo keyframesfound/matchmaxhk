@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Bookmark, CircleUserRound, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -79,7 +80,6 @@ function SettingsPage() {
       ]);
       if (profileError) throw profileError;
       if (authError) throw authError;
-      setDisplayName(nextName);
       toast.success("Your name has been updated.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to update your name.");
@@ -101,114 +101,173 @@ function SettingsPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-[#f8fafc] text-[color:var(--brand-navy)]">
       <SiteHeader />
       <main className="flex-1">
-        <div className="mx-auto w-full max-w-3xl px-4 py-12 text-[color:var(--brand-navy)] sm:px-6 sm:py-16">
-          <div>
-            <p className="text-sm font-bold uppercase tracking-widest text-[color:var(--brand-navy)]">
+        <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+          <header className="border-b border-[color:var(--brand-navy)]/10 pb-8">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand-navy)]/65">
               Account
             </p>
-            <h1 className="mt-2 text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-4xl">
               Settings
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--brand-navy)]/75">
-              Update your account details or permanently remove your MatchMax account.
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--brand-navy)]/70">
+              Manage your profile details and account access.
             </p>
-          </div>
+          </header>
 
-          <div className="mt-10 space-y-6">
-            <section className="rounded-3xl border border-border bg-card p-6 shadow-brand sm:p-8">
-              <div>
-                <h2 className="text-xl font-bold text-[color:var(--brand-navy)]">
-                  Profile details
-                </h2>
-                <p className="mt-1 text-sm text-[color:var(--brand-navy)]/75">
-                  This name is used across your MatchMax account.
-                </p>
-              </div>
-              <form onSubmit={saveProfile} className="mt-6 space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="settings-name">Name</Label>
-                  <Input
-                    id="settings-name"
-                    value={displayName}
-                    onChange={(event) => setDisplayName(event.target.value)}
-                    placeholder="Your name"
-                    maxLength={80}
-                    disabled={loadingProfile || saving}
-                    autoComplete="name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="settings-email">Email</Label>
-                  <Input id="settings-email" value={user?.email ?? ""} disabled readOnly />
-                </div>
-                <Button
-                  type="submit"
-                  disabled={loadingProfile || saving}
-                  className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+          <div className="grid gap-10 pt-10 lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-16">
+            <aside className="lg:sticky lg:top-24 lg:self-start">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--brand-navy)]/55">
+                Settings
+              </p>
+              <nav className="mt-3 space-y-1" aria-label="Settings sections">
+                <a
+                  href="#profile"
+                  className="flex items-center gap-2 rounded-lg bg-[color:var(--brand-navy)]/5 px-3 py-2 text-sm font-semibold text-[color:var(--brand-navy)]"
                 >
-                  {saving ? "Saving…" : "Save changes"}
-                </Button>
-              </form>
-            </section>
+                  <CircleUserRound className="h-4 w-4" aria-hidden="true" />
+                  Profile
+                </a>
+                <Link
+                  to="/saved-posts"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--brand-navy)]/70 transition-colors hover:bg-[color:var(--brand-navy)]/5 hover:text-[color:var(--brand-navy)]"
+                >
+                  <Bookmark className="h-4 w-4" aria-hidden="true" />
+                  Saved Posts
+                </Link>
+                <a
+                  href="#danger-zone"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--brand-navy)]/70 transition-colors hover:bg-[color:var(--brand-navy)]/5 hover:text-[color:var(--brand-navy)]"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  Danger zone
+                </a>
+              </nav>
+            </aside>
 
-            <section className="rounded-3xl border border-red-200 bg-red-50/50 p-6 sm:p-8">
-              <div>
-                <h2 className="text-xl font-bold text-[color:var(--brand-navy)]">Delete account</h2>
-                <p className="mt-1 text-sm leading-6 text-[color:var(--brand-navy)]/75">
-                  This permanently deletes your account, saved tutors, profile, and tutor profiles
-                  you created. This action cannot be undone.
-                </p>
-              </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
+            <div className="min-w-0 max-w-3xl space-y-6">
+              <section
+                id="profile"
+                className="rounded-2xl border border-[color:var(--brand-navy)]/10 bg-white"
+              >
+                <div className="border-b border-[color:var(--brand-navy)]/10 px-6 py-5 sm:px-8">
+                  <h2 className="text-lg font-bold text-[color:var(--brand-navy)]">Profile</h2>
+                  <p className="mt-1 text-sm text-[color:var(--brand-navy)]/65">
+                    Update the name associated with your MatchMax account.
+                  </p>
+                </div>
+                <form onSubmit={saveProfile} className="space-y-5 px-6 py-6 sm:px-8">
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-name" className="text-[color:var(--brand-navy)]">
+                      Name
+                    </Label>
+                    <Input
+                      id="settings-name"
+                      value={displayName}
+                      onChange={(event) => setDisplayName(event.target.value)}
+                      placeholder="Your name"
+                      maxLength={80}
+                      disabled={loadingProfile || saving}
+                      autoComplete="name"
+                      className="border-[color:var(--brand-navy)]/15 bg-white text-[color:var(--brand-navy)] placeholder:text-[color:var(--brand-navy)]/35 focus-visible:ring-[color:var(--brand-navy)]"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-email" className="text-[color:var(--brand-navy)]">
+                      Email
+                    </Label>
+                    <Input
+                      id="settings-email"
+                      value={user?.email ?? ""}
+                      disabled
+                      readOnly
+                      className="border-[color:var(--brand-navy)]/10 bg-slate-50 text-[color:var(--brand-navy)]/60"
+                    />
+                    <p className="text-xs text-[color:var(--brand-navy)]/55">
+                      Your email address is managed by your sign-in provider.
+                    </p>
+                  </div>
                   <Button
-                    type="button"
-                    variant="outline"
-                    disabled={deleting}
-                    className="mt-6 border-red-300 bg-white font-bold text-[color:var(--brand-navy)] hover:bg-red-100 hover:text-[color:var(--brand-navy)]"
+                    type="submit"
+                    disabled={loadingProfile || saving}
+                    className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
                   >
-                    Delete my account
+                    {saving ? "Saving…" : "Save changes"}
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete your MatchMax account?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This permanently removes your account and cannot be reversed. Your saved
-                      tutors and any tutor profiles you created will also be removed.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={(event) => {
-                        event.preventDefault();
-                        void deleteAccount();
-                      }}
-                      disabled={deleting}
-                      className="bg-red-600 text-white hover:bg-red-700"
-                    >
-                      {deleting ? "Deleting…" : "Delete permanently"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </section>
-          </div>
+                </form>
+              </section>
 
-          <div className="mt-8 flex flex-wrap gap-4 text-sm">
-            <Link
-              to="/saved-posts"
-              className="font-semibold text-[color:var(--brand-navy)] underline"
-            >
-              View saved posts
-            </Link>
-            <Link to="/tutors" className="font-semibold text-[color:var(--brand-navy)] underline">
-              Browse tutors
-            </Link>
+              <section
+                id="danger-zone"
+                className="rounded-2xl border border-[color:var(--brand-navy)]/15 bg-white"
+              >
+                <div className="border-b border-[color:var(--brand-navy)]/10 px-6 py-5 sm:px-8">
+                  <h2 className="text-lg font-bold text-[color:var(--brand-navy)]">Danger zone</h2>
+                  <p className="mt-1 text-sm text-[color:var(--brand-navy)]/65">
+                    Permanently remove your account and its associated data.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-5 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+                  <p className="max-w-xl text-sm leading-6 text-[color:var(--brand-navy)]/70">
+                    This deletes your account, saved tutors, profile, and tutor profiles you
+                    created. This action cannot be undone.
+                  </p>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={deleting}
+                        className="shrink-0 border-[color:var(--brand-navy)]/25 bg-white font-bold text-[color:var(--brand-navy)] hover:bg-[color:var(--brand-navy)]/5 hover:text-[color:var(--brand-navy)]"
+                      >
+                        Delete account
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="border-[color:var(--brand-navy)]/15 bg-white text-[color:var(--brand-navy)] shadow-2xl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-[color:var(--brand-navy)]">
+                          Delete your MatchMax account?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-[color:var(--brand-navy)]/70">
+                          This permanently removes your account and cannot be reversed. Your saved
+                          tutors and any tutor profiles you created will also be removed.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={(event) => {
+                            event.preventDefault();
+                            void deleteAccount();
+                          }}
+                          disabled={deleting}
+                          className="bg-[color:var(--brand-navy)] text-white hover:bg-[color:var(--brand-royal)]"
+                        >
+                          {deleting ? "Deleting…" : "Delete permanently"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </section>
+
+              <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-[color:var(--brand-navy)]/10 pt-5 text-sm">
+                <Link
+                  to="/saved-posts"
+                  className="font-semibold text-[color:var(--brand-navy)] underline"
+                >
+                  View saved posts
+                </Link>
+                <Link
+                  to="/tutors"
+                  className="font-semibold text-[color:var(--brand-navy)] underline"
+                >
+                  Browse tutors
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </main>
