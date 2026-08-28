@@ -218,9 +218,8 @@ function SettingsPage() {
                     <AlertDialogTrigger asChild>
                       <Button
                         type="button"
-                        variant="outline"
                         disabled={deleting}
-                        className="shrink-0 border-[color:var(--brand-navy)]/25 bg-white font-bold text-[color:var(--brand-navy)] hover:bg-[color:var(--brand-navy)]/5 hover:text-[color:var(--brand-navy)]"
+                        className="shrink-0 bg-red-600 font-bold text-white hover:bg-red-700"
                       >
                         Delete account
                       </Button>
