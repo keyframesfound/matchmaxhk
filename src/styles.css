@@ -519,15 +519,15 @@
   .join-stepper-indicator:hover .join-stepper-circle,
   .join-stepper-circle--active {
     transform: scale(1.05);
-    border-color: var(--brand-navy);
-    background: var(--brand-navy);
-    color: white;
+    border-color: var(--stepper-active-bg);
+    background: var(--stepper-active-bg);
+    color: var(--stepper-active-fg);
   }
 
   .join-stepper-circle--complete {
-    border-color: var(--brand-teal);
-    background: var(--brand-teal);
-    color: white;
+    border-color: var(--stepper-complete-bg);
+    background: var(--stepper-complete-bg);
+    color: var(--stepper-complete-fg);
   }
 
   .join-stepper-label {
@@ -538,7 +538,7 @@
   }
 
   .join-stepper-label--active {
-    color: var(--brand-navy);
+    color: var(--stepper-active-bg);
   }
 
   .join-stepper-connector {
