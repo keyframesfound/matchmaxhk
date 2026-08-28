@@ -149,11 +149,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+const themeInitScript = `(function(){try{var t=localStorage.getItem('matchmax-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
         {children}
@@ -170,12 +173,15 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <AuthProvider>
-          <Outlet />
-          <BackToTopButton />
-          <WhatsAppFloatButton />
-          <Toaster richColors position="top-center" closeButton />
+          <ThemeProvider>
+            <Outlet />
+            <BackToTopButton />
+            <WhatsAppFloatButton />
+            <Toaster richColors position="top-center" closeButton />
+          </ThemeProvider>
         </AuthProvider>
       </I18nProvider>
     </QueryClientProvider>
   );
 }
+
