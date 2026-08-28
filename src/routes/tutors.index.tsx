@@ -193,13 +193,13 @@ function TutorsDirectory() {
       <main className="flex-1">
         <section className="hero-startup-bg border-b border-border py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
+            <h1 className="text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
               Find verified tutors
             </h1>
 
             <div className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
               <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
-                <p className="text-sm font-black uppercase tracking-wide text-[color:var(--brand-navy)]">
+                <p className="text-sm font-black uppercase tracking-wide text-[color:var(--ink)]">
                   Find tutor
                 </p>
               </div>
@@ -254,7 +254,7 @@ function TutorsDirectory() {
                   className="h-11 rounded-sm"
                 />
                 <Button
-                  className="h-11 rounded-sm bg-[color:var(--brand-navy)] px-6 font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                  className="h-11 rounded-sm bg-[color:var(--surface-invert)] px-6 font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                   onClick={() =>
                     navigate({
                       search: {
@@ -294,7 +294,7 @@ function TutorsDirectory() {
 
             {!isLoading && filtered.length === 0 && (
               <div className="rounded-sm border border-dashed border-border bg-card p-12 text-center">
-                <p className="text-lg font-bold text-[color:var(--brand-navy)]">
+                <p className="text-lg font-bold text-[color:var(--ink)]">
                   No tutors match your filters yet
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -306,7 +306,7 @@ function TutorsDirectory() {
                   </Button>
                   <Button
                     asChild
-                    className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                    className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                   >
                     <Link to="/auth">Request a tutor</Link>
                   </Button>
@@ -327,7 +327,7 @@ function TutorsDirectory() {
                         <TutorSaveButton tutorId={tut.id} />
                         <Button
                           asChild
-                          className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
+                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert)]"
                         >
                           <a
                             href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}

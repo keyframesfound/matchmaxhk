@@ -11,9 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    mode: search.mode === "sign_up" ? ("sign_up" as const) : ("sign_in" as const),
-  }),
+  validateSearch: (search: Record<string, unknown>): { mode?: "sign_in" | "sign_up" } =>
+    search.mode === "sign_up" ? { mode: "sign_up" } : {},
+
   head: () => ({
     meta: [
       { title: "Log in — MatchMax" },
@@ -41,7 +41,7 @@ function AuthPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const router = useRouter();
-  const [mode, setMode] = useState<"sign_in" | "sign_up">(requestedMode);
+  const [mode, setMode] = useState<"sign_in" | "sign_up">(requestedMode ?? "sign_in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -110,7 +110,7 @@ function AuthPage() {
       <main className="flex flex-1 items-center justify-center p-4 py-8 lg:p-8">
         <div className="w-full max-w-[420px]">
           <div className="w-full rounded-3xl border border-border bg-card p-6 shadow-brand sm:p-8">
-            <h1 className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)]">
+            <h1 className="text-3xl font-black tracking-tight text-[color:var(--ink)]">
               {t(mode === "sign_in" ? "auth.sign_in_title" : "auth.sign_up_title")}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -194,7 +194,7 @@ function AuthPage() {
               <Button
                 type="submit"
                 disabled={busy}
-                className="h-11 w-full bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                className="h-11 w-full bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
               >
                 {busy ? t("auth.signing_in") : t("auth.continue")}
               </Button>

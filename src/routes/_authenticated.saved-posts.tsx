@@ -41,7 +41,7 @@ function SavedPostsPage() {
               <p className="text-sm font-bold uppercase tracking-widest text-[color:var(--brand-teal)]">
                 Your collection
               </p>
-              <h1 className="mt-2 text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
+              <h1 className="mt-2 text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
                 Saved Posts
               </h1>
               <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
@@ -57,7 +57,7 @@ function SavedPostsPage() {
             <div className="mt-10 text-sm text-muted-foreground">Loading saved tutors...</div>
           ) : savedTutorsQuery.isError ? (
             <div className="mt-10 rounded-sm border border-dashed border-border bg-card p-12 text-center">
-              <p className="text-lg font-bold text-[color:var(--brand-navy)]">
+              <p className="text-lg font-bold text-[color:var(--ink)]">
                 We couldn't load your saved tutors
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -70,7 +70,7 @@ function SavedPostsPage() {
                 className="mx-auto h-8 w-8 text-[color:var(--brand-teal)]"
                 aria-hidden="true"
               />
-              <p className="mt-4 text-lg font-bold text-[color:var(--brand-navy)]">
+              <p className="mt-4 text-lg font-bold text-[color:var(--ink)]">
                 You haven't saved any tutors yet
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -91,7 +91,7 @@ function SavedPostsPage() {
                   footerAction={
                     <Button
                       asChild
-                      className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
+                      className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert)]"
                     >
                       <a
                         href={buildTutorWhatsAppUrl("", tutor.tutor_code)}

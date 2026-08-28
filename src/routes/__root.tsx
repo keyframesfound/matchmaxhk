@@ -13,6 +13,8 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { I18nProvider } from "@/features/i18n/I18nProvider";
 import { AuthProvider } from "@/features/auth/useAuth";
+import { ThemeProvider } from "@/features/theme/ThemeProvider";
+
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { WhatsAppFloatButton } from "@/components/layout/WhatsAppFloatButton";
 
@@ -28,7 +30,7 @@ function NotFoundComponent() {
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-[color:var(--brand-navy)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[color:var(--brand-royal)]"
+            className="inline-flex items-center justify-center rounded-md bg-[color:var(--surface-invert)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[color:var(--surface-invert-hover)]"
           >
             Go home
           </Link>
@@ -57,7 +59,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-[color:var(--brand-navy)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[color:var(--brand-royal)]"
+            className="inline-flex items-center justify-center rounded-md bg-[color:var(--surface-invert)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[color:var(--surface-invert-hover)]"
           >
             Try again
           </button>
@@ -149,11 +151,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+const themeInitScript = `(function(){try{var t=localStorage.getItem('matchmax-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
         {children}
@@ -170,12 +175,15 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <AuthProvider>
-          <Outlet />
-          <BackToTopButton />
-          <WhatsAppFloatButton />
-          <Toaster richColors position="top-center" closeButton />
+          <ThemeProvider>
+            <Outlet />
+            <BackToTopButton />
+            <WhatsAppFloatButton />
+            <Toaster richColors position="top-center" closeButton />
+          </ThemeProvider>
         </AuthProvider>
       </I18nProvider>
     </QueryClientProvider>
   );
 }
+

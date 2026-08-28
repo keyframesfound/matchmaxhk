@@ -114,15 +114,15 @@ export function TutorSaveButton({ tutorId }: { tutorId: string }) {
         disabled={mutation.isPending}
         onClick={handleClick}
         onKeyDown={(event) => event.stopPropagation()}
-        className="h-9 w-9 shrink-0 rounded-sm border-[color:var(--brand-teal)]/35 text-[color:var(--brand-navy)] hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--brand-navy)]"
+        className="h-9 w-9 shrink-0 rounded-sm border-[color:var(--brand-teal)]/35 text-[color:var(--ink)] hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--ink)]"
       >
         <Bookmark className={saved ? "h-4 w-4 fill-current" : "h-4 w-4"} aria-hidden="true" />
       </Button>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-sm rounded-2xl border-[color:var(--brand-teal)]/20 bg-white p-6 shadow-xl">
+        <DialogContent className="max-w-sm rounded-2xl border-[color:var(--brand-teal)]/20 bg-[color:var(--surface)] p-6 shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black text-[color:var(--brand-navy)]">
+            <DialogTitle className="text-xl font-black text-[color:var(--ink)]">
               Sign up to save posts
             </DialogTitle>
             <DialogDescription className="pt-2 leading-relaxed">
@@ -137,7 +137,7 @@ export function TutorSaveButton({ tutorId }: { tutorId: string }) {
             </DialogClose>
             <Button
               type="button"
-              className="rounded-sm bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+              className="rounded-sm bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();

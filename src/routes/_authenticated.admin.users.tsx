@@ -141,7 +141,7 @@ function AdminUsers() {
       <SiteHeader />
       <main className="flex-1">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
-          <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
+          <h1 className="text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
             {t("admin.users_title")}
           </h1>
           <p className="mt-2 text-muted-foreground">{t("admin.users_subtitle")}</p>
@@ -237,7 +237,7 @@ function AdminUsers() {
                         </Select>
                         <Button
                           size="sm"
-                          className="h-9 bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                          className="h-9 bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                           disabled={!addRole[row.user_id]}
                           onClick={() => {
                             const r = addRole[row.user_id];

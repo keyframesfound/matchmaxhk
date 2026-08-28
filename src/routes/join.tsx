@@ -185,7 +185,7 @@ function RadioGroupField({
             key={option}
             className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition ${
               selected
-                ? "border-[color:var(--brand-navy)] bg-[color:var(--brand-navy)] text-white"
+                ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-white"
                 : "border-border bg-background text-muted-foreground hover:border-[color:var(--brand-teal)]"
             }`}
           >
@@ -262,7 +262,7 @@ function StepHeading({
       <p className="text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--brand-teal)]">
         Step {step} of {STEP_TITLES.length}
       </p>
-      <h2 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-3xl">
+      <h2 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
         {title}
       </h2>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
@@ -454,7 +454,7 @@ function JoinPage() {
         <main className="flex flex-1 items-center justify-center px-4 py-12">
           <div className="w-full max-w-md text-center">
             <CheckCircle2 className="mx-auto h-12 w-12 text-[color:var(--brand-teal)]" />
-            <h1 className="mt-4 text-2xl font-black tracking-tight text-[color:var(--brand-navy)]">
+            <h1 className="mt-4 text-2xl font-black tracking-tight text-[color:var(--ink)]">
               {t("join.success_title")}
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -463,7 +463,7 @@ function JoinPage() {
             <div className="mt-6 flex justify-center gap-3">
               <Button
                 asChild
-                className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
               >
                 <Link to="/">{t("join.back_home")}</Link>
               </Button>
@@ -484,7 +484,7 @@ function JoinPage() {
       <main className="flex-1">
         <section className="pt-8 sm:pt-12">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <h1 className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-4xl lg:text-5xl">
+            <h1 className="text-3xl font-black tracking-tight text-[color:var(--ink)] sm:text-4xl lg:text-5xl">
               {t("join.title")}
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">

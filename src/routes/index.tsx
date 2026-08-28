@@ -296,19 +296,19 @@ function Landing() {
       <section className="hero-startup-bg relative overflow-hidden">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col justify-center">
-            <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75 md:text-xl">
+            <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75 md:text-xl">
               Hong Kong&apos;s tutor network
             </p>
-            <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-5xl md:text-6xl lg:text-7xl">
               {t("hero.title_a")}
               <br />
-              <span className="text-[color:var(--brand-navy)]">{t("hero.title_b")}</span>
+              <span className="text-[color:var(--ink)]">{t("hero.title_b")}</span>
             </h1>
             <div className="mt-6 flex flex-wrap gap-3 md:mt-10">
               <Button
                 asChild
                 size="lg"
-                className="h-12 w-full rounded-xl bg-[color:var(--brand-navy)] px-5 text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
+                className="h-12 w-full rounded-xl bg-[color:var(--surface-invert)] px-5 text-base font-bold text-white shadow-brand hover:bg-[color:var(--surface-invert-hover)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
               >
                 <Link
                   to="/tutors"
@@ -330,7 +330,7 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="relative rounded-sm border border-border bg-card p-2.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-2.5 sm:pb-4">
-              <p className="text-xs font-black uppercase tracking-wide text-[color:var(--brand-navy)] sm:text-sm">
+              <p className="text-xs font-black uppercase tracking-wide text-[color:var(--ink)] sm:text-sm">
                 Find tutor
               </p>
             </div>
@@ -385,7 +385,7 @@ function Landing() {
                 className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
               />
               <Button
-                className="h-9 rounded-sm bg-[color:var(--brand-navy)] px-4 text-xs font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-11 md:px-6 md:text-base"
+                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-xs font-bold text-white hover:bg-[color:var(--surface-invert-hover)] md:h-11 md:px-6 md:text-base"
                 onClick={() => navigate({ to: "/tutors", search: tutorSearchParams })}
               >
                 <Search className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4" />
@@ -408,7 +408,7 @@ function Landing() {
 
             {!publishedTutorsLoading && previewTutors.length === 0 && (
               <div className="rounded-sm border border-dashed border-border bg-card p-12 text-center">
-                <p className="text-lg font-bold text-[color:var(--brand-navy)]">
+                <p className="text-lg font-bold text-[color:var(--ink)]">
                   No tutors match your filters yet
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -434,7 +434,7 @@ function Landing() {
                             <TutorSaveButton tutorId={tut.id} />
                             <Button
                               asChild
-                              className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
+                              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert)]"
                             >
                               <a
                                 href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
@@ -459,10 +459,10 @@ function Landing() {
 
       <section className="pb-12 md:pb-22">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75 md:text-xl">
+          <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75 md:text-xl">
             Keep your options open
           </p>
-          <h2 className="mt-2 text-xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
+          <h2 className="mt-2 text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
             Save your shortlist
           </h2>
 
@@ -471,7 +471,7 @@ function Landing() {
               <div className="grid min-h-[430px] gap-0 md:min-h-[520px]">
                 <div className="flex flex-col justify-between gap-4 p-4 sm:p-6 md:p-10">
                   <div>
-                    <h2 className="mt-2 max-w-xl text-xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-2xl md:mt-5 md:text-[2.75rem]">
+                    <h2 className="mt-2 max-w-xl text-xl font-black leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-2xl md:mt-5 md:text-[2.75rem]">
                       Keep your favorite tutors close
                     </h2>
                     <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm md:mt-5 md:text-[1.04rem]">
@@ -484,7 +484,7 @@ function Landing() {
                         <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                           Save profiles
                         </p>
-                        <p className="mt-1 text-sm font-black text-[color:var(--brand-navy)] sm:text-lg">
+                        <p className="mt-1 text-sm font-black text-[color:var(--ink)] sm:text-lg">
                           Build your shortlist
                         </p>
                         <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-sm">
@@ -495,7 +495,7 @@ function Landing() {
                         <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                           Return anytime
                         </p>
-                        <p className="mt-1 text-sm font-black text-[color:var(--brand-navy)] sm:text-lg">
+                        <p className="mt-1 text-sm font-black text-[color:var(--ink)] sm:text-lg">
                           Request when ready
                         </p>
                         <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-sm">
@@ -509,7 +509,7 @@ function Landing() {
                     <Button
                       asChild
                       size="lg"
-                      className="h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-12 md:w-auto md:rounded-sm md:px-8 md:text-base"
+                      className="h-11 w-full rounded-xl bg-[color:var(--surface-invert)] px-4 text-sm font-bold text-white hover:bg-[color:var(--surface-invert-hover)] md:h-12 md:w-auto md:rounded-sm md:px-8 md:text-base"
                     >
                       <Link to="/saved-posts">View saved posts</Link>
                     </Button>
@@ -526,10 +526,10 @@ function Landing() {
         <div className="mx-auto max-w-7xl space-y-8 px-4 md:space-y-12 md:px-6">
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div className="order-2 lg:order-1">
-              <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75 md:text-xl">
+              <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75 md:text-xl">
                 Find the right fit
               </p>
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--ink)] md:text-4xl">
                 {t("how.step1_title")}
               </h2>
               <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
@@ -538,7 +538,7 @@ function Landing() {
               <Button
                 asChild
                 size="lg"
-                className="mt-5 h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
+                className="mt-5 h-11 w-full rounded-xl bg-[color:var(--surface-invert)] px-4 text-sm font-bold text-white hover:bg-[color:var(--surface-invert-hover)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
                 <Link to="/tutors">
                   <Search className="mr-2 h-4 w-4" />
@@ -553,7 +553,7 @@ function Landing() {
 
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div>
-              <div className="overflow-hidden rounded-2xl bg-white">
+              <div className="overflow-hidden rounded-2xl bg-[color:var(--surface)]">
                 <img
                   src="/tutor-matching-network.jpeg"
                   alt="Tutor and student matching network"
@@ -563,10 +563,10 @@ function Landing() {
               </div>
             </div>
             <div>
-              <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75 md:text-xl">
+              <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75 md:text-xl">
                 For ambitious tutors
               </p>
-              <h3 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
+              <h3 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--ink)] md:text-4xl">
                 {t("tutors_cta.title")}
               </h3>
               <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
@@ -575,7 +575,7 @@ function Landing() {
               <Button
                 asChild
                 size="lg"
-                className="mt-5 h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
+                className="mt-5 h-11 w-full rounded-xl bg-[color:var(--surface-invert)] px-4 text-sm font-bold text-white hover:bg-[color:var(--surface-invert-hover)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
                 <Link to="/join">
                   <UserPlus className="mr-2 h-4 w-4" />

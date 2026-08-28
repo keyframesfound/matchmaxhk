@@ -167,7 +167,7 @@ export function SearchableSelect({
       {open ? (
         <motion.div
           ref={menuRef}
-          className="fixed z-50 origin-top overflow-hidden rounded-lg border border-[#041344]/10 bg-white/[0.96] text-[#041344] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.28)] backdrop-blur-xl"
+          className="fixed z-50 origin-top overflow-hidden rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)]/[0.96] text-[color:var(--ink)] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.28)] backdrop-blur-xl"
           style={{ left: position.left, top: position.top, width: position.width }}
           initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scaleY: 0.8, y: -10 }}
           animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scaleY: 1, y: 0 }}
@@ -182,7 +182,7 @@ export function SearchableSelect({
               : { type: "spring", stiffness: 400, damping: 30, mass: 0.8, duration: 0.25 }
           }
         >
-          <div className="relative border-b border-[#041344]/10 p-2">
+          <div className="relative border-b border-[color:var(--ink)]/10 p-2">
             <motion.div
               className="relative"
               initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, x: -10 }}
@@ -193,7 +193,7 @@ export function SearchableSelect({
                   : { type: "spring", stiffness: 400, damping: 25, delay: 0.05, duration: 0.2 }
               }
             >
-              <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#041344]/45" />
+              <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[color:var(--ink)]/45" />
               <input
                 ref={inputRef}
                 aria-activedescendant={
@@ -205,7 +205,7 @@ export function SearchableSelect({
                 aria-controls={listboxId}
                 aria-expanded={open}
                 aria-label={`Search ${placeholder.toLocaleLowerCase()} options`}
-                className="h-10 w-full rounded-md border border-[#041344]/10 bg-transparent py-2 pr-9 pl-9 text-sm font-medium text-[#041344] outline-none transition-colors placeholder:text-[#041344]/45 focus-visible:border-[#1FA8B6] focus-visible:ring-2 focus-visible:ring-[#1FA8B6] focus-visible:ring-offset-2"
+                className="h-10 w-full rounded-md border border-[color:var(--ink)]/10 bg-transparent py-2 pr-9 pl-9 text-sm font-medium text-[color:var(--ink)] outline-none transition-colors placeholder:text-[color:var(--ink)]/45 focus-visible:border-[#1FA8B6] focus-visible:ring-2 focus-visible:ring-[#1FA8B6] focus-visible:ring-offset-2"
                 onChange={(event) => {
                   setQuery(event.target.value);
                   setFocusedIndex(-1);
@@ -219,7 +219,7 @@ export function SearchableSelect({
                 {query ? (
                   <motion.button
                     aria-label="Clear search"
-                    className="absolute top-1/2 right-1.5 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full p-2 text-[#041344]/50 transition-colors hover:bg-[#77E8EE]/25 hover:text-[#041344] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FA8B6] focus-visible:ring-offset-2"
+                    className="absolute top-1/2 right-1.5 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full p-2 text-[color:var(--ink)]/50 transition-colors hover:bg-[#77E8EE]/25 hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FA8B6] focus-visible:ring-offset-2"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -287,8 +287,8 @@ export function SearchableSelect({
                       <button
                         aria-label={option.label}
                         className={cn(
-                          "flex min-h-11 w-full items-center px-4 py-2 text-left text-sm font-medium text-[#041344] transition-colors hover:bg-[#77E8EE]/25 focus-visible:bg-[#77E8EE]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FA8B6] focus-visible:ring-offset-2",
-                          isSelected && "font-semibold text-[#0A245F]",
+                          "flex min-h-11 w-full items-center px-4 py-2 text-left text-sm font-medium text-[color:var(--ink)] transition-colors hover:bg-[#77E8EE]/25 focus-visible:bg-[#77E8EE]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FA8B6] focus-visible:ring-offset-2",
+                          isSelected && "font-semibold text-[color:var(--ink)]",
                           isFocused && "bg-[#77E8EE]/25",
                         )}
                         onClick={() => selectOption(option)}
@@ -299,7 +299,7 @@ export function SearchableSelect({
                         <AnimatePresence>
                           {isSelected ? (
                             <motion.span
-                              className="ml-2 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#0A245F] text-white"
+                              className="ml-2 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[color:var(--surface-invert)] text-white"
                               initial={shouldReduceMotion ? {} : { scale: 0 }}
                               animate={shouldReduceMotion ? {} : { scale: 1 }}
                               transition={
@@ -324,7 +324,7 @@ export function SearchableSelect({
                 })
               ) : (
                 <motion.li
-                  className="px-4 py-8 text-center text-sm text-[#041344]/55"
+                  className="px-4 py-8 text-center text-sm text-[color:var(--ink)]/55"
                   initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={
@@ -335,7 +335,7 @@ export function SearchableSelect({
                 >
                   {allowCustom && query.trim() ? (
                     <button
-                      className="font-semibold text-[#0A245F] underline decoration-[#1FA8B6]/50 underline-offset-4"
+                      className="font-semibold text-[color:var(--ink)] underline decoration-[#1FA8B6]/50 underline-offset-4"
                       onClick={() => onChange(query.trim())}
                       type="button"
                     >
@@ -362,8 +362,8 @@ export function SearchableSelect({
         aria-haspopup="listbox"
         aria-label={selected ? `${placeholder}: ${selected.label}` : placeholder}
         className={cn(
-          "group flex h-11 w-full items-center justify-between gap-2 rounded-lg border border-[#041344]/15 bg-white/95 px-4 py-2 text-left text-sm font-semibold text-[#041344] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[#0A245F]/35 hover:bg-white focus-visible:border-[#1FA8B6] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#77E8EE]/35 disabled:cursor-not-allowed disabled:opacity-50",
-          !value && "text-[#041344]/50",
+          "group flex h-11 w-full items-center justify-between gap-2 rounded-lg border border-[color:var(--ink)]/15 bg-[color:var(--surface)]/95 px-4 py-2 text-left text-sm font-semibold text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[color:var(--ink)]/35 hover:bg-[color:var(--surface)] focus-visible:border-[#1FA8B6] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#77E8EE]/35 disabled:cursor-not-allowed disabled:opacity-50",
+          !value && "text-[color:var(--ink)]/50",
         )}
         disabled={disabled}
         onClick={() => (open ? closeMenu() : openMenu())}
@@ -371,7 +371,7 @@ export function SearchableSelect({
       >
         <span className="truncate">{displayLabel}</span>
         <motion.span
-          className="shrink-0 text-[#041344]/55"
+          className="shrink-0 text-[color:var(--ink)]/55"
           animate={{ rotate: open ? 180 : 0 }}
           transition={
             shouldReduceMotion
