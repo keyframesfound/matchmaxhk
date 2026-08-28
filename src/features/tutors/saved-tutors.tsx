@@ -140,7 +140,10 @@ export function TutorSaveButton({ tutorId }: { tutorId: string }) {
             <Button
               type="button"
               className="rounded-sm bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
-              onClick={() => void navigate({ to: "/auth" })}
+              onClick={() => {
+                setDialogOpen(false);
+                void navigate({ to: "/auth", search: { mode: "sign_up" } });
+              }}
             >
               Sign up
             </Button>

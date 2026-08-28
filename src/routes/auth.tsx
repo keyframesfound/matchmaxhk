@@ -11,6 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    mode: search.mode === "sign_up" ? ("sign_up" as const) : ("sign_in" as const),
+  }),
   head: () => ({
     meta: [
       { title: "Log in — MatchMax" },
@@ -35,10 +38,11 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const { t } = useTranslation();
+  const { mode: requestedMode } = Route.useSearch();
   const { user } = useAuth();
   const navigate = useNavigate();
   const router = useRouter();
-  const [mode, setMode] = useState<"sign_in" | "sign_up">("sign_in");
+  const [mode, setMode] = useState<"sign_in" | "sign_up">(requestedMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -198,7 +202,7 @@ function AuthPage() {
             </form>
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
-              {mode === "sign_in" ? t("auth.no_account") : t("auth.have_account")} {" "}
+              {mode === "sign_in" ? t("auth.no_account") : t("auth.have_account")}{" "}
               <button
                 type="button"
                 onClick={() => setMode(mode === "sign_in" ? "sign_up" : "sign_in")}
