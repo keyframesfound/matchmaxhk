@@ -152,6 +152,14 @@ function SettingsPage() {
                   Saved Posts
                 </Link>
                 <a
+                  href="#appearance"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--ink)]/70 transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
+                >
+                  <Palette className="h-4 w-4" aria-hidden="true" />
+                  Appearance
+                </a>
+                <a
+
                   href="#danger-zone"
                   className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--ink)]/70 transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
                 >
