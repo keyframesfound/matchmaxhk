@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bookmark, CircleUserRound, Trash2 } from "lucide-react";
+import { Bookmark, CircleUserRound, Monitor, Moon, Palette, Sun, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
