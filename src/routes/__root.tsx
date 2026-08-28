@@ -13,6 +13,8 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { I18nProvider } from "@/features/i18n/I18nProvider";
 import { AuthProvider } from "@/features/auth/useAuth";
+import { ThemeProvider } from "@/features/theme/ThemeProvider";
+
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { WhatsAppFloatButton } from "@/components/layout/WhatsAppFloatButton";
 
