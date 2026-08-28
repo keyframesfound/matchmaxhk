@@ -200,6 +200,47 @@ function SettingsPage() {
               </section>
 
               <section
+                id="appearance"
+                className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]"
+              >
+                <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
+                  <h2 className="text-lg font-bold text-[color:var(--ink)]">Appearance</h2>
+                  <p className="mt-1 text-sm text-[color:var(--ink)]/65">
+                    Choose how MatchMax looks on this account.
+                  </p>
+                </div>
+                <div className="grid gap-3 px-6 py-6 sm:grid-cols-3 sm:px-8">
+                  {THEME_OPTIONS.map((option) => {
+                    const Icon = option.icon;
+                    const active = theme === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setTheme(option.value)}
+                        aria-pressed={active}
+                        className={`flex flex-col items-start gap-2 rounded-xl border px-4 py-4 text-left transition-colors ${
+                          active
+                            ? "border-[color:var(--brand-link)] bg-[color:var(--ink)]/5"
+                            : "border-[color:var(--ink)]/12 hover:bg-[color:var(--ink)]/5"
+                        }`}
+                      >
+                        <Icon className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
+                        <span className="text-sm font-bold text-[color:var(--ink)]">
+                          {option.label}
+                        </span>
+                        <span className="text-xs text-[color:var(--ink)]/60">
+                          {option.description}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+
+
+
+              <section
                 id="danger-zone"
                 className="rounded-2xl border border-[color:var(--ink)]/15 bg-[color:var(--surface)]"
               >
