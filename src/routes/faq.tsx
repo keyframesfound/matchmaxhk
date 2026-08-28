@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/faq")({
   head: () => ({
@@ -43,16 +48,18 @@ const FAQ_ITEMS = [
 
 function FAQPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-[color:var(--ink)]">
+    <div className="flex min-h-screen flex-col bg-background text-white">
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-border py-14 sm:py-18">
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
-            <p className="text-center text-xs font-bold uppercase tracking-[0.24em] text-[color:var(--ink)]">FAQs</p>
-            <h1 className="mt-3 text-center text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
+            <p className="text-center text-xs font-bold uppercase tracking-[0.24em] text-white">
+              FAQs
+            </p>
+            <h1 className="mt-3 text-center text-4xl font-black tracking-tight text-white sm:text-5xl">
               Ask us anything
             </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-center text-base text-[color:var(--ink)]">
+            <p className="mx-auto mt-4 max-w-2xl text-center text-base text-white">
               Have any questions? We&apos;re here to assist you.
             </p>
           </div>
@@ -64,10 +71,10 @@ function FAQPage() {
               <Accordion type="single" collapsible className="w-full">
                 {FAQ_ITEMS.map((item, index) => (
                   <AccordionItem key={item.q} value={`faq-${index}`} className="border-border">
-                    <AccordionTrigger className="py-6 text-left text-xl font-extrabold text-[color:var(--ink)] hover:no-underline">
+                    <AccordionTrigger className="py-6 text-left text-xl font-extrabold text-white hover:no-underline">
                       {item.q}
                     </AccordionTrigger>
-                    <AccordionContent className="pb-6 text-base leading-relaxed text-black">
+                    <AccordionContent className="pb-6 text-base leading-relaxed text-white">
                       {item.a}
                     </AccordionContent>
                   </AccordionItem>
