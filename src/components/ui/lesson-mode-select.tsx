@@ -102,7 +102,7 @@ export function LessonModeSelect({
           disabled={disabled}
           className={cn(
             className,
-            "group h-11 w-full justify-between rounded-lg border-[#041344]/15 bg-white/95 px-4 text-left font-semibold text-[#041344] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[#0A245F]/35 hover:bg-white focus-visible:border-[#1FA8B6] focus-visible:ring-4 focus-visible:ring-[#77E8EE]/35",
+            "group h-11 w-full justify-between rounded-sm border-[#041344]/15 bg-white/95 px-4 text-left font-semibold text-[#041344] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[#0A245F]/35 hover:bg-white focus-visible:border-[#1FA8B6] focus-visible:ring-4 focus-visible:ring-[#77E8EE]/35",
             !mode && "text-[#041344]/50",
           )}
         >
