@@ -42,3 +42,10 @@ Add a theme control to the Settings page with three options — System, Light, D
 - Theme class goes on `<html>`; the existing `@custom-variant dark (&:is(.dark *))` then activates all `dark:` utilities.
 - No new dependencies.
 - Scope is styling plus one profile column; no changes to tutor, case, or email logic.
+
+## Pre-work: fix existing typecheck errors
+
+The build is currently failing on issues unrelated to dark mode; these get fixed first:
+
+- `/auth` now requires a `search` param, so `Link`/`navigate` calls to it in `SiteHeader.tsx`, `useAuth.tsx`, `_authenticated.tsx`, and `tutors.index.tsx` must pass `search={{ mode: "sign_in" }}` (or make the param optional on the route).
+- `src/integrations/supabase/types.ts` is missing `saved_tutors`, breaking `src/features/tutors/saved-tutors.tsx`; regenerate the database types.
