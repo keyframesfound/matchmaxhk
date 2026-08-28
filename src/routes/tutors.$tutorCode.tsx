@@ -106,13 +106,13 @@ function DetailSubjectChip({ chip }: { chip: TutorSubjectChip }) {
   const gradeMatch = chip.grade?.match(/^(Grade\s+)(.+)$/i);
 
   return (
-    <span className="rounded-[2px] bg-[color:var(--brand-teal)]/12 px-2 py-1 text-xs font-semibold text-[color:var(--brand-navy)]">
+    <span className="rounded-[2px] bg-[color:var(--brand-teal)]/12 px-2 py-1 text-xs font-semibold text-[color:var(--ink)]">
       {chip.subject}
       {chip.grade ? (
         <>
           {" : "}
           {gradeMatch?.[1] ?? ""}
-          <span className="font-black tracking-tight text-[color:var(--brand-navy)]">
+          <span className="font-black tracking-tight text-[color:var(--ink)]">
             {gradeMatch?.[2] ?? chip.grade}
           </span>
         </>
@@ -125,7 +125,7 @@ function ProfileSection({
   icon: Icon,
   title,
   children,
-  iconClassName = "text-[color:var(--brand-navy)]",
+  iconClassName = "text-[color:var(--ink)]",
 }: {
   icon: LucideIcon;
   title: string;
@@ -135,10 +135,10 @@ function ProfileSection({
   return (
     <section className="border-b border-border/70 px-5 py-5 last:border-b-0 sm:px-6">
       <div className="flex items-center gap-2.5">
-        <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--brand-navy)]/15 bg-[color:var(--brand-navy)]/8">
+        <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--ink)]/15 bg-[color:var(--ink)]/8">
           <Icon className={`h-4 w-4 ${iconClassName}`} strokeWidth={2.1} />
         </span>
-        <h2 className="text-base font-black tracking-tight text-[color:var(--brand-navy)] sm:text-lg">
+        <h2 className="text-base font-black tracking-tight text-[color:var(--ink)] sm:text-lg">
           {title}
         </h2>
       </div>
@@ -166,7 +166,7 @@ function LessonDetailRow({
         strokeWidth={2.35}
       />
       <p className="text-sm leading-relaxed sm:text-base">
-        <span className="font-black text-[color:var(--brand-navy)]">{label}:</span>{" "}
+        <span className="font-black text-[color:var(--ink)]">{label}:</span>{" "}
         <span className="text-muted-foreground">{value}</span>
       </p>
     </li>
@@ -190,14 +190,14 @@ function AcademicQualification({ result }: { result: ExamResult }) {
           return (
             <li
               key={`${entry.subject}-${subjectIndex}`}
-              className="border-l-2 border-[color:var(--brand-royal)]/80 pl-3"
+              className="border-l-2 border-[color:var(--brand-link)]/80 pl-3"
             >
               <div className="flex items-baseline gap-2">
-                <span className="text-sm font-bold text-[color:var(--brand-navy)]">
+                <span className="text-sm font-bold text-[color:var(--ink)]">
                   {entry.subject}
                 </span>
                 {entry.grade.trim() ? (
-                  <span className="text-sm font-bold text-[color:var(--brand-royal)]">
+                  <span className="text-sm font-bold text-[color:var(--brand-link)]">
                     – Grade {entry.grade.replace(/^grade\s+/i, "")}
                   </span>
                 ) : null}
@@ -253,7 +253,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-24 text-center">
-        <h1 className="text-3xl font-black text-[color:var(--brand-navy)]">Tutor not found</h1>
+        <h1 className="text-3xl font-black text-[color:var(--ink)]">Tutor not found</h1>
         <p className="mt-3 text-muted-foreground">
           This tutor code doesn’t match any published tutor.
         </p>
@@ -367,7 +367,7 @@ function TutorDetail() {
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <h1 className="text-xl font-black text-[color:var(--brand-navy)] sm:text-2xl">
+                <h1 className="text-xl font-black text-[color:var(--ink)] sm:text-2xl">
                   {profileTitle}
                 </h1>
                 {t.headline ? (
@@ -387,7 +387,7 @@ function TutorDetail() {
                   </p>
                 ) : null}
                 {t.university || t.highschool ? (
-                  <p className="mt-2 break-words text-base font-semibold leading-snug text-[color:var(--brand-navy)] sm:text-lg">
+                  <p className="mt-2 break-words text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
                     {[t.university, t.highschool].filter(Boolean).join(" | ")}
                   </p>
                 ) : null}
@@ -414,7 +414,7 @@ function TutorDetail() {
               </div>
               <div className="w-full sm:w-auto sm:text-right">
                 <div className="flex items-center justify-start gap-2 sm:justify-end">
-                  <p className="text-3xl font-black text-[color:var(--brand-navy)]">
+                  <p className="text-3xl font-black text-[color:var(--ink)]">
                     HK${t.hourly_rate}
                     <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
                   </p>
@@ -423,7 +423,7 @@ function TutorDetail() {
                 {waUrl ? (
                   <Button
                     asChild
-                    className="mt-3 w-full bg-[#0A245F] font-bold text-white shadow-teal hover:bg-[#081d4f] sm:w-auto"
+                    className="mt-3 w-full bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert)] sm:w-auto"
                   >
                     <a href={waUrl} target="_blank" rel="noopener noreferrer">
                       <MessageCircle className="mr-2 h-4 w-4" /> Request tutor
@@ -432,7 +432,7 @@ function TutorDetail() {
                 ) : (
                   <Button
                     disabled
-                    className="mt-3 w-full bg-[#0A245F] font-bold text-white shadow-teal hover:bg-[#081d4f] sm:w-auto"
+                    className="mt-3 w-full bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert)] sm:w-auto"
                   >
                     <MessageCircle className="mr-2 h-4 w-4" /> Contact coming soon
                   </Button>
@@ -472,7 +472,7 @@ function TutorDetail() {
                               strokeWidth={2.1}
                             />
                             <div className="min-w-0">
-                              <p className="text-sm font-bold text-[color:var(--brand-navy)]">
+                              <p className="text-sm font-bold text-[color:var(--ink)]">
                                 {achievement.short_text}
                               </p>
                               {achievement.detail_text ? (
@@ -508,7 +508,7 @@ function TutorDetail() {
 
                           return (
                             <li key={`${result.system}-${index}`} className="leading-relaxed">
-                              <span className="font-black text-[color:var(--brand-navy)]">
+                              <span className="font-black text-[color:var(--ink)]">
                                 {systemLabel}:
                               </span>{" "}
                               <span className="text-muted-foreground">
@@ -519,13 +519,13 @@ function TutorDetail() {
                         })}
                       </ul>
                     ) : subjectChips.length > 0 ? (
-                      <p className="font-bold leading-relaxed text-[color:var(--brand-navy)]">
+                      <p className="font-bold leading-relaxed text-[color:var(--ink)]">
                         {getTutorSubjectSentence(t)}
                       </p>
                     ) : null}
                     {t.ia_ee_tok_support.length > 0 ? (
                       <p className="mt-1 text-muted-foreground">
-                        <span className="font-bold text-[color:var(--brand-navy)]">
+                        <span className="font-bold text-[color:var(--ink)]">
                           Mentorship:
                         </span>{" "}
                         {t.ia_ee_tok_support.join(", ")}
@@ -542,19 +542,19 @@ function TutorDetail() {
                     icon={Globe}
                     label="Format"
                     value={lessonFormat}
-                    iconClassName="text-[color:var(--brand-navy)]"
+                    iconClassName="text-[color:var(--ink)]"
                   />
                   <LessonDetailRow
                     icon={MapPin}
                     label="Location"
                     value={lessonLocation}
-                    iconClassName="text-[color:var(--brand-navy)]"
+                    iconClassName="text-[color:var(--ink)]"
                   />
                   <LessonDetailRow
                     icon={Languages}
                     label="Languages"
                     value={lessonLanguages}
-                    iconClassName="text-[color:var(--brand-navy)]"
+                    iconClassName="text-[color:var(--ink)]"
                   />
                 </ul>
               </ProfileSection>

@@ -140,7 +140,7 @@ function CaseDetail() {
             </span>
           )}
         </div>
-        <h1 className="mt-4 text-3xl font-black tracking-tight text-[color:var(--brand-navy)]">
+        <h1 className="mt-4 text-3xl font-black tracking-tight text-[color:var(--ink)]">
           {c.title}
         </h1>
 
@@ -191,7 +191,7 @@ function CaseDetail() {
       </div>
 
       <div className="mt-8 rounded-3xl border border-border bg-card p-8">
-        <h2 className="text-lg font-bold text-[color:var(--brand-navy)]">Express interest</h2>
+        <h2 className="text-lg font-bold text-[color:var(--ink)]">Express interest</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Select which of your tutor profiles is a match. The MatchMax team reviews interest and
           releases parent contact info.
@@ -229,7 +229,7 @@ function CaseDetail() {
               loading={mutation.isPending}
               disabled={!tutorId}
               onClick={() => mutation.mutate()}
-              className="bg-[color:var(--brand-navy)] text-white hover:bg-[color:var(--brand-royal)]"
+              className="bg-[color:var(--surface-invert)] text-white hover:bg-[color:var(--surface-invert-hover)]"
             >
               Submit interest
             </Button>

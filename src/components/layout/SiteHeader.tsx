@@ -44,7 +44,7 @@ export function SiteHeader({ className }: { className?: string }) {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full border-b border-[#041344]/10 bg-white/95 backdrop-blur-sm ${className ?? ""}`}
+      className={`sticky top-0 z-50 w-full border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm ${className ?? ""}`}
     >
       <div className="mx-auto flex h-[64px] max-w-[1440px] items-center px-4 sm:px-8 lg:px-10">
         <Link to="/" className="flex shrink-0 items-center" aria-label="MatchMax home">
@@ -57,38 +57,38 @@ export function SiteHeader({ className }: { className?: string }) {
         <nav className="ml-12 hidden items-center gap-9 lg:flex">
           <a
             href="/how-it-works"
-            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)]"
           >
             {t("How it works")}
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </a>
           <Link
             to="/tutors"
-            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)]"
           >
             {t("nav.find", { defaultValue: "Find" })}
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
           <Link
             to="/saved-posts"
-            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)]"
           >
             Saved Posts
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
           <Link
             to="/join"
-            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)]"
           >
             Become a Tutor
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
           <Link
             to="/faq"
-            className="group relative text-[15px] font-semibold text-[#041344]/85 transition-colors duration-200 hover:text-[#0D47A1]"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)]"
           >
             Help Centre
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[#0D47A1] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
         </nav>
 
@@ -102,7 +102,7 @@ export function SiteHeader({ className }: { className?: string }) {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="h-9 gap-2 px-4 font-semibold text-[#041344] hover:bg-transparent hover:text-[#1FA8B6]"
+                    className="h-9 gap-2 px-4 font-semibold text-[color:var(--ink)] hover:bg-transparent hover:text-[#1FA8B6]"
                   >
                     <span className="max-w-[120px] truncate">
                       {user.email?.split("@")[0] ?? "Account"}
@@ -112,18 +112,18 @@ export function SiteHeader({ className }: { className?: string }) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-60 rounded-2xl border-[#041344]/10 bg-white p-2 shadow-xl"
+                  className="w-60 rounded-2xl border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-2 shadow-xl"
                 >
                   <DropdownMenuLabel className="px-3 py-2">
-                    <div className="text-xs font-medium text-[#041344]/50">Signed in as</div>
-                    <div className="mt-1 truncate text-sm font-semibold text-[#041344]">
+                    <div className="text-xs font-medium text-[color:var(--ink)]/50">Signed in as</div>
+                    <div className="mt-1 truncate text-sm font-semibold text-[color:var(--ink)]">
                       {user.email}
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     asChild
-                    className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20 focus:text-[#041344]"
+                    className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
                   >
                     <Link to="/dashboard">Settings</Link>
                   </DropdownMenuItem>
@@ -132,19 +132,19 @@ export function SiteHeader({ className }: { className?: string }) {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         asChild
-                        className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"
+                        className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
                       >
                         <Link to="/admin/tutors">Manage tutors</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         asChild
-                        className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"
+                        className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
                       >
                         <Link to="/admin/r2">R2 images</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         asChild
-                        className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"
+                        className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
                       >
                         <Link to="/admin/users">{t("nav.admin")}</Link>
                       </DropdownMenuItem>
@@ -153,7 +153,7 @@ export function SiteHeader({ className }: { className?: string }) {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onSelect={() => void signOut()}
-                    className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-red-50 focus:text-red-600"
+                    className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-red-50 focus:text-red-600"
                   >
                     {t("nav.sign_out")}
                   </DropdownMenuItem>
@@ -164,12 +164,12 @@ export function SiteHeader({ className }: { className?: string }) {
             <>
               <Link
                 to="/auth"
-                className="hidden text-[15px] font-semibold text-[#041344] transition-colors hover:text-[#1FA8B6] sm:inline"
+                className="hidden text-[15px] font-semibold text-[color:var(--ink)] transition-colors hover:text-[#1FA8B6] sm:inline"
               >
                 {t("nav.sign_in")}
               </Link>
               <Link to="/auth" search={{ mode: "sign_up" }} className="hidden sm:block">
-                <Button className="h-11 rounded-full bg-[#0A245F] px-6 text-[15px] font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#041344] hover:shadow-md">
+                <Button className="h-11 rounded-full bg-[color:var(--surface-invert)] px-6 text-[15px] font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[color:var(--surface-invert)] hover:shadow-md">
                   Sign up
                 </Button>
               </Link>
@@ -189,13 +189,13 @@ export function SiteHeader({ className }: { className?: string }) {
                     <Link to="/auth" onClick={closeMenu}>
                       <Button
                         variant="outline"
-                        className="h-10 w-full rounded-full border-[#041344]/15 text-sm font-semibold text-[#041344] hover:bg-[#77E8EE]/20 hover:text-[#041344]"
+                        className="h-10 w-full rounded-full border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[#77E8EE]/20 hover:text-[color:var(--ink)]"
                       >
                         {t("nav.sign_in")}
                       </Button>
                     </Link>
                     <Link to="/auth" search={{ mode: "sign_up" }} onClick={closeMenu}>
-                      <Button className="h-10 w-full rounded-full bg-[#0A245F] text-sm font-semibold text-white shadow-sm hover:bg-[#041344]">
+                      <Button className="h-10 w-full rounded-full bg-[color:var(--surface-invert)] text-sm font-semibold text-white shadow-sm hover:bg-[color:var(--surface-invert)]">
                         Sign up
                       </Button>
                     </Link>
@@ -207,7 +207,7 @@ export function SiteHeader({ className }: { className?: string }) {
                       void signOut();
                       closeMenu();
                     }}
-                    className="h-10 w-full rounded-full border border-[#041344]/15 text-sm font-semibold text-[#041344] transition-colors hover:bg-red-50 hover:text-red-600"
+                    className="h-10 w-full rounded-full border border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-red-50 hover:text-red-600"
                   >
                     {t("nav.sign_out")}
                   </button>

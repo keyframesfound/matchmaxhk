@@ -719,13 +719,13 @@ function AdminTutors() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-[color:var(--surface)]">
       <SiteHeader />
-      <main className="flex-1 bg-white">
+      <main className="flex-1 bg-[color:var(--surface)]">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
+              <h1 className="text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
                 Tutors
               </h1>
               <p className="mt-2 text-muted-foreground">
@@ -736,12 +736,12 @@ function AdminTutors() {
               <DialogTrigger asChild>
                 <Button
                   onClick={openAdd}
-                  className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                  className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                 >
                   <Plus className="mr-2 h-4 w-4" /> Add tutor
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-h-[94vh] overflow-y-auto bg-white sm:max-w-[min(96vw,88rem)]">
+              <DialogContent className="max-h-[94vh] overflow-y-auto bg-[color:var(--surface)] sm:max-w-[min(96vw,88rem)]">
                 <DialogHeader>
                   <DialogTitle>{editing ? "Edit tutor" : "Add tutor"}</DialogTitle>
                 </DialogHeader>
@@ -824,7 +824,7 @@ function AdminTutors() {
                                 {form.subjects.map((s) => (
                                   <span
                                     key={s}
-                                    className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-navy)]"
+                                    className="inline-flex items-center gap-1 rounded-full bg-[color:var(--ink)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--ink)]"
                                   >
                                     {s}
                                     <button
@@ -875,7 +875,7 @@ function AdminTutors() {
                                     {targetStudentList.map((item) => (
                                       <span
                                         key={item}
-                                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--brand-navy)]"
+                                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--ink)]/10 px-2.5 py-1 text-xs font-medium text-[color:var(--ink)]"
                                       >
                                         {item}
                                         <button
@@ -1085,7 +1085,7 @@ function AdminTutors() {
                               className="rounded-xl border border-border bg-muted/30 p-3"
                             >
                               <div className="flex items-center justify-between gap-3">
-                                <p className="text-xs font-semibold text-[color:var(--brand-navy)]">
+                                <p className="text-xs font-semibold text-[color:var(--ink)]">
                                   Highlight {index + 1}
                                 </p>
                                 <Button
@@ -1153,7 +1153,7 @@ function AdminTutors() {
                           {IA_EE_TOK_SUPPORT_OPTIONS.map((item) => (
                             <label
                               key={item}
-                              className="flex cursor-pointer items-center gap-2 rounded-sm border border-border bg-background px-3 py-2 text-sm font-medium text-[color:var(--brand-navy)]"
+                              className="flex cursor-pointer items-center gap-2 rounded-sm border border-border bg-background px-3 py-2 text-sm font-medium text-[color:var(--ink)]"
                             >
                               <Checkbox
                                 checked={form.ia_ee_tok_support.includes(item)}
@@ -1304,7 +1304,7 @@ function AdminTutors() {
                         <Button
                           type="submit"
                           disabled={save.isPending}
-                          className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                          className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                         >
                           {save.isPending ? "Saving…" : editing ? "Save changes" : "Add tutor"}
                         </Button>
@@ -1313,7 +1313,7 @@ function AdminTutors() {
 
                     <aside className="rounded-2xl border border-border bg-muted/30 p-4 xl:sticky xl:top-0">
                       <div className="mb-3">
-                        <h3 className="text-sm font-bold text-[color:var(--brand-navy)]">
+                        <h3 className="text-sm font-bold text-[color:var(--ink)]">
                           Live public-card preview
                         </h3>
                         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">

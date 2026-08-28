@@ -34,7 +34,7 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
   return (
     <span
       data-academic-chip
-      className="inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[9px] font-bold leading-snug text-[color:var(--brand-navy)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[10px]"
+      className="inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[9px] font-bold leading-snug text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[10px]"
     >
       <span className="break-words">{chip.subject}</span>
       {grade ? (
@@ -135,7 +135,7 @@ export function PublicTutorCard({
   return (
     <article
       className={cn(
-        "flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-white shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[23rem]",
+        "flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--surface)] shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[23rem]",
         interactive && "cursor-pointer",
         className,
       )}
@@ -153,7 +153,7 @@ export function PublicTutorCard({
           : undefined
       }
     >
-      <header className="border-b border-[color:var(--brand-teal)]/20 bg-white px-3 py-2.5 md:px-4 md:py-3">
+      <header className="border-b border-[color:var(--brand-teal)]/20 bg-[color:var(--surface)] px-3 py-2.5 md:px-4 md:py-3">
         <div className="flex items-start gap-2.5 md:gap-3.5">
           <div className="flex w-12 shrink-0 flex-col items-center gap-1.5 md:w-14">
             {tutor.photo_url ? (
@@ -163,7 +163,7 @@ export function PublicTutorCard({
                 className="h-11 w-11 rounded-full border border-border bg-muted object-cover md:h-[3.25rem] md:w-[3.25rem]"
               />
             ) : (
-              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted text-sm font-bold text-[color:var(--brand-navy)] md:h-[3.25rem] md:w-[3.25rem] md:text-base">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted text-sm font-bold text-[color:var(--ink)] md:h-[3.25rem] md:w-[3.25rem] md:text-base">
                 {getTutorInitials(tutor.tutor_code)}
               </div>
             )}
@@ -173,7 +173,7 @@ export function PublicTutorCard({
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">
-            <p className="line-clamp-2 text-[14px] font-black leading-tight tracking-tight text-[color:var(--brand-navy)] md:text-[17px]">
+            <p className="line-clamp-2 text-[14px] font-black leading-tight tracking-tight text-[color:var(--ink)] md:text-[17px]">
               {primaryCredential}
             </p>
             {supportingCredentials.map((credential, index) => (
@@ -188,13 +188,13 @@ export function PublicTutorCard({
 
           <div className="flex shrink-0 flex-col items-end gap-1">
             {genderLabel ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[9px] font-bold text-[color:var(--brand-navy)] md:px-2.5 md:text-[10px]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[9px] font-bold text-[color:var(--ink)] md:px-2.5 md:text-[10px]">
                 <UserRound className="h-3 w-3 text-[color:var(--brand-teal)]" aria-hidden="true" />
                 {genderLabel}
               </span>
             ) : null}
             {badgeLabel ? (
-              <span className="rounded-full border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/8 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wide text-[color:var(--brand-navy)] md:text-[9px]">
+              <span className="rounded-full border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/8 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wide text-[color:var(--ink)] md:text-[9px]">
                 {badgeLabel}
               </span>
             ) : null}
@@ -205,7 +205,7 @@ export function PublicTutorCard({
       <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
         {academicChips.length > 0 ? (
           <section className="border-b border-[color:var(--brand-teal)]/20 pb-2.5 md:pb-3">
-            <h3 className="text-[13px] font-black tracking-tight text-[color:var(--brand-navy)] md:text-[15px]">
+            <h3 className="text-[13px] font-black tracking-tight text-[color:var(--ink)] md:text-[15px]">
               Academic achievements
             </h3>
             <div className="relative mt-2">
@@ -231,10 +231,10 @@ export function PublicTutorCard({
                   onClick={toggleAcademicChips}
                   onKeyDown={(event) => event.stopPropagation()}
                   className={cn(
-                    "flex w-full items-center justify-center py-1.5 text-[10px] font-bold text-[color:var(--brand-navy)] transition-colors md:text-[11px]",
+                    "flex w-full items-center justify-center py-1.5 text-[10px] font-bold text-[color:var(--ink)] transition-colors md:text-[11px]",
                     areAcademicChipsExpanded
                       ? "mt-1 bg-transparent hover:bg-[color:var(--brand-teal)]/8"
-                      : "absolute -inset-x-1 bottom-0 h-9 rounded-b-[10px] bg-gradient-to-b from-transparent via-white/70 to-white hover:via-white/85",
+                      : "absolute -inset-x-1 bottom-0 h-9 rounded-b-[10px] bg-gradient-to-b from-transparent via-[color:var(--surface)]/70 to-[color:var(--surface)] hover:via-[color:var(--surface)]/85",
                   )}
                 >
                   <span
@@ -259,7 +259,7 @@ export function PublicTutorCard({
         <section
           className={cn("flex flex-1 flex-col", academicChips.length > 0 ? "pt-2.5" : "pt-0")}
         >
-          <h3 className="flex items-center gap-1.5 text-[11px] font-black tracking-tight text-[color:var(--brand-navy)] md:text-[12px]">
+          <h3 className="flex items-center gap-1.5 text-[11px] font-black tracking-tight text-[color:var(--ink)] md:text-[12px]">
             <Award className="h-3.5 w-3.5 text-[color:var(--brand-teal)]" aria-hidden="true" />
             Achievements and Experiences
           </h3>
@@ -269,7 +269,7 @@ export function PublicTutorCard({
               {tutor.achievements.slice(0, 3).map((achievement, index) => (
                 <li
                   key={`${achievement.short_text}-${index}`}
-                  className="flex gap-1.5 text-[10px] font-medium leading-snug text-[color:var(--brand-navy)] md:text-[11px]"
+                  className="flex gap-1.5 text-[10px] font-medium leading-snug text-[color:var(--ink)] md:text-[11px]"
                 >
                   <Award
                     className="mt-0.5 h-3 w-3 shrink-0 text-[color:var(--brand-teal)]"
@@ -281,7 +281,7 @@ export function PublicTutorCard({
             </ul>
           ) : null}
 
-          <p className="mt-2 line-clamp-3 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--brand-navy)] md:mt-2.5 md:text-[14px]">
+          <p className="mt-2 line-clamp-3 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--ink)] md:mt-2.5 md:text-[14px]">
             {removeEmoji(
               tutor.headline ?? "Experienced tutor matching students with tailored support",
             )}
@@ -289,8 +289,8 @@ export function PublicTutorCard({
         </section>
       </div>
 
-      <footer className="flex items-center justify-between gap-2 border-t border-[color:var(--brand-teal)]/20 bg-white px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
-        <p className="text-xl font-black leading-none tracking-tight text-[color:var(--brand-navy)] md:text-3xl">
+      <footer className="flex items-center justify-between gap-2 border-t border-[color:var(--brand-teal)]/20 bg-[color:var(--surface)] px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
+        <p className="text-xl font-black leading-none tracking-tight text-[color:var(--ink)] md:text-3xl">
           HK${tutor.hourly_rate}
           <span className="ml-1 text-[10px] font-semibold text-muted-foreground md:text-[13px]">
             {priceSuffix}

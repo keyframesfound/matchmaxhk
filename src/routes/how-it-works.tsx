@@ -53,26 +53,26 @@ const TUTOR_BENEFITS = [
 
 function HowItWorksPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8fafc] text-[color:var(--brand-navy)]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--surface-subtle)] text-[color:var(--ink)]">
       <SiteHeader />
       <main className="flex-1">
-        <section className="bg-[#f8fafc]">
+        <section className="bg-[color:var(--surface-subtle)]">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:py-24">
             <div>
-              <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75 sm:text-xl">
+              <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75 sm:text-xl">
                 How MatchMax works for tutors
               </p>
-              <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-6xl sm:leading-[1.02]">
+              <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-6xl sm:leading-[1.02]">
                 Build a tutoring profile students can trust.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-[color:var(--brand-navy)]/70">
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-[color:var(--ink)]/70">
                 MatchMax gives strong tutors a clearer way to present their experience, connect with
                 relevant students, and build a flexible tutoring practice.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button
                   asChild
-                  className="bg-[color:var(--brand-navy)] font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)]"
+                  className="bg-[color:var(--surface-invert)] font-bold text-white shadow-brand hover:bg-[color:var(--surface-invert-hover)]"
                 >
                   <Link to="/tutors">
                     Find a tutor <ArrowRight className="ml-2 h-4 w-4" />
@@ -81,7 +81,7 @@ function HowItWorksPage() {
                 <Button
                   asChild
                   variant="outline"
-                  className="border-[color:var(--brand-navy)]/20 bg-white font-bold text-[color:var(--brand-navy)] hover:bg-[color:var(--brand-navy)]/5"
+                  className="border-[color:var(--ink)]/20 bg-[color:var(--surface)] font-bold text-[color:var(--ink)] hover:bg-[color:var(--ink)]/5"
                 >
                   <Link to="/join">
                     Become a Tutor <UserPlus className="ml-2 h-4 w-4" />
@@ -90,42 +90,42 @@ function HowItWorksPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[color:var(--brand-navy)]/12 bg-[#f8fafc] p-6 sm:p-8">
+            <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--surface-subtle)] p-6 sm:p-8">
               <div className="flex items-start justify-between gap-6 pb-6">
                 <div>
-                  <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75">
+                  <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75">
                     One clear process
                   </p>
-                  <p className="mt-3 text-2xl font-black text-[color:var(--brand-navy)]">
+                  <p className="mt-3 text-2xl font-black text-[color:var(--ink)]">
                     From application to first request.
                   </p>
                 </div>
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[color:var(--brand-navy)] text-white">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[color:var(--surface-invert)] text-white">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-6 pt-6">
                 <div>
-                  <p className="text-3xl font-black text-[color:var(--brand-navy)]">01</p>
-                  <p className="mt-1 text-sm leading-5 text-[color:var(--brand-navy)]/65">
+                  <p className="text-3xl font-black text-[color:var(--ink)]">01</p>
+                  <p className="mt-1 text-sm leading-5 text-[color:var(--ink)]/65">
                     Submit your profile
                   </p>
                 </div>
                 <div>
-                  <p className="text-3xl font-black text-[color:var(--brand-navy)]">02</p>
-                  <p className="mt-1 text-sm leading-5 text-[color:var(--brand-navy)]/65">
+                  <p className="text-3xl font-black text-[color:var(--ink)]">02</p>
+                  <p className="mt-1 text-sm leading-5 text-[color:var(--ink)]/65">
                     Complete verification
                   </p>
                 </div>
                 <div>
-                  <p className="text-3xl font-black text-[color:var(--brand-navy)]">03</p>
-                  <p className="mt-1 text-sm leading-5 text-[color:var(--brand-navy)]/65">
+                  <p className="text-3xl font-black text-[color:var(--ink)]">03</p>
+                  <p className="mt-1 text-sm leading-5 text-[color:var(--ink)]/65">
                     Meet the right students
                   </p>
                 </div>
                 <div>
-                  <p className="text-3xl font-black text-[color:var(--brand-navy)]">HK</p>
-                  <p className="mt-1 text-sm leading-5 text-[color:var(--brand-navy)]/65">
+                  <p className="text-3xl font-black text-[color:var(--ink)]">HK</p>
+                  <p className="mt-1 text-sm leading-5 text-[color:var(--ink)]/65">
                     Built for tutors
                   </p>
                 </div>
@@ -137,13 +137,13 @@ function HowItWorksPage() {
         <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <div className="grid gap-12 lg:grid-cols-[0.75fr_1.25fr]">
             <div className="max-w-sm">
-              <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75">
+              <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75">
                 How it works
               </p>
-              <h2 className="mt-4 text-3xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-4xl">
+              <h2 className="mt-4 text-3xl font-black tracking-tight text-[color:var(--ink)] sm:text-4xl">
                 From application to first request.
               </h2>
-              <p className="mt-4 text-sm leading-7 text-[color:var(--brand-navy)]/68">
+              <p className="mt-4 text-sm leading-7 text-[color:var(--ink)]/68">
                 Every step is designed to make your next move clear, from submitting your
                 application to receiving a request that matches what you teach.
               </p>
@@ -154,14 +154,14 @@ function HowItWorksPage() {
                   key={step.number}
                   className="grid gap-4 py-7 sm:grid-cols-[72px_1fr] sm:gap-6"
                 >
-                  <p className="text-sm font-black tracking-[0.14em] text-[color:var(--brand-navy)]">
+                  <p className="text-sm font-black tracking-[0.14em] text-[color:var(--ink)]">
                     {step.number}
                   </p>
                   <div>
-                    <h3 className="text-xl font-bold text-[color:var(--brand-navy)]">
+                    <h3 className="text-xl font-bold text-[color:var(--ink)]">
                       {step.title}
                     </h3>
-                    <p className="mt-2 max-w-2xl text-sm leading-7 text-[color:var(--brand-navy)]/68">
+                    <p className="mt-2 max-w-2xl text-sm leading-7 text-[color:var(--ink)]/68">
                       {step.text}
                     </p>
                   </div>
@@ -171,29 +171,29 @@ function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="bg-[#f8fafc]">
+        <section className="bg-[color:var(--surface-subtle)]">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:py-20">
             <div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--brand-navy)] text-white">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--surface-invert)] text-white">
                 <BadgeCheck className="h-5 w-5" />
               </div>
-              <h2 className="mt-6 text-3xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-4xl">
+              <h2 className="mt-6 text-3xl font-black tracking-tight text-[color:var(--ink)] sm:text-4xl">
                 Your profile should do the explaining.
               </h2>
-              <p className="mt-4 max-w-xl text-sm leading-7 text-[color:var(--brand-navy)]/68">
+              <p className="mt-4 max-w-xl text-sm leading-7 text-[color:var(--ink)]/68">
                 Students make better enquiries when they can quickly understand your academic
                 background, subjects, teaching style, and availability.
               </p>
             </div>
-            <div className="rounded-2xl border border-[color:var(--brand-navy)]/10 bg-[#f8fafc] p-6 sm:p-8">
-              <p className="text-sm font-bold text-[color:var(--brand-navy)]">
+            <div className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-6 sm:p-8">
+              <p className="text-sm font-bold text-[color:var(--ink)]">
                 What your profile makes clear
               </p>
               <div className="mt-5 space-y-4">
                 {TRUST_POINTS.map((point) => (
                   <div key={point} className="flex items-start gap-3">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-navy)]" />
-                    <p className="text-sm leading-6 text-[color:var(--brand-navy)]/72">{point}</p>
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--ink)]" />
+                    <p className="text-sm leading-6 text-[color:var(--ink)]/72">{point}</p>
                   </div>
                 ))}
               </div>
@@ -203,26 +203,26 @@ function HowItWorksPage() {
 
         <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <div className="grid gap-5 lg:grid-cols-2">
-            <article className="rounded-2xl border border-[color:var(--brand-navy)]/10 bg-white p-7 sm:p-9">
-              <Search className="h-5 w-5 text-[color:var(--brand-navy)]" />
-              <p className="mt-6 font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75">
+            <article className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-7 sm:p-9">
+              <Search className="h-5 w-5 text-[color:var(--ink)]" />
+              <p className="mt-6 font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75">
                 Your profile
               </p>
-              <h2 className="mt-3 text-2xl font-black text-[color:var(--brand-navy)]">
+              <h2 className="mt-3 text-2xl font-black text-[color:var(--ink)]">
                 Show what makes you a strong tutor.
               </h2>
-              <p className="mt-3 text-sm leading-7 text-[color:var(--brand-navy)]/68">
+              <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/68">
                 Present your strongest subjects, academic results, experience, rates, and preferred
                 lesson format in one professional profile.
               </p>
               <Link
                 to="/tutors"
-                className="mt-6 inline-flex items-center text-sm font-bold text-[color:var(--brand-navy)] underline underline-offset-4"
+                className="mt-6 inline-flex items-center text-sm font-bold text-[color:var(--ink)] underline underline-offset-4"
               >
                 See tutor profiles <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </article>
-            <article className="rounded-2xl border border-[color:var(--brand-navy)]/10 bg-[color:var(--brand-navy)] p-7 text-white sm:p-9">
+            <article className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-invert)] p-7 text-white sm:p-9">
               <UserPlus className="h-5 w-5" />
               <p className="mt-6 font-serif text-lg italic tracking-wide text-white">
                 Your opportunities

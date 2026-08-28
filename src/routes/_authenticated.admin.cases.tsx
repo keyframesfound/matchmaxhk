@@ -64,7 +64,7 @@ function AdminCases() {
       <SiteHeader />
       <main className="flex-1">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-          <h1 className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-4xl">
+          <h1 className="text-3xl font-black tracking-tight text-[color:var(--ink)] sm:text-4xl">
             Cases queue
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">

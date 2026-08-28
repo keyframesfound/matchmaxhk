@@ -38,15 +38,15 @@ const buttonVariants = cva(
         candy:
           "border border-white/25 bg-gradient-to-b from-[var(--btn,var(--brand-teal))] to-[var(--btn-hover,#168590)] text-[var(--btn-fg,#fff)] shadow-md shadow-black/20 ring-1 ring-[color-mix(in_oklab,var(--foreground)_15%,var(--btn,var(--brand-teal)))] hover:from-[var(--btn-hover,#168590)] hover:to-[var(--btn-hover,#168590)] [&_svg]:drop-shadow-sm",
         default:
-          "bg-[color:var(--brand-royal)] text-white shadow-sm hover:bg-[color:var(--brand-navy)]",
+          "bg-[color:var(--surface-invert-hover)] text-white shadow-sm hover:bg-[color:var(--surface-invert)]",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         ghost:
-          "text-[color:var(--brand-navy)] hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--brand-teal)]",
+          "text-[color:var(--ink)] hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--brand-teal)]",
         link: "text-[color:var(--brand-teal)] underline-offset-4 hover:underline",
         outline:
-          "border border-[color:var(--brand-navy)]/15 bg-white text-[color:var(--brand-navy)] shadow-sm hover:border-[color:var(--brand-teal)]/40 hover:bg-[color:var(--brand-teal)]/8",
+          "border border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] shadow-sm hover:border-[color:var(--brand-teal)]/40 hover:bg-[color:var(--brand-teal)]/8",
         secondary:
-          "bg-[color:var(--brand-teal)]/10 text-[color:var(--brand-navy)] shadow-sm hover:bg-[color:var(--brand-teal)]/20",
+          "bg-[color:var(--brand-teal)]/10 text-[color:var(--ink)] shadow-sm hover:bg-[color:var(--brand-teal)]/20",
         soft: "bg-[color-mix(in_oklab,var(--btn,var(--foreground))_12%,transparent)] text-[var(--btn,var(--foreground))] hover:bg-[color-mix(in_oklab,var(--btn,var(--foreground))_18%,transparent)]",
         solid:
           "bg-[var(--btn,var(--foreground))] text-[var(--btn-fg,var(--background))] shadow-sm hover:bg-[var(--btn-hover,var(--brand-navy))]",

@@ -56,15 +56,15 @@ const SECTIONS = [
 
 function PrivacyPolicyPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-white text-slate-900">
+    <div className="flex min-h-screen flex-col bg-[color:var(--surface)] text-[color:var(--ink)]">
       <SiteHeader />
       <main className="flex-1 pb-16">
-        <section className="border-b border-border bg-white py-16 sm:py-24">
+        <section className="border-b border-border bg-[color:var(--surface)] py-16 sm:py-24">
           <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-            <h1 className="mt-3 text-4xl font-black tracking-tight text-[#041344] sm:text-5xl">
+            <h1 className="mt-3 text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
               Privacy Policy
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-[color:var(--ink)]/70">
               We&apos;re committed to creating a safe, transparent, and trustworthy marketplace for both parents
               and tutors.
             </p>
@@ -75,8 +75,8 @@ function PrivacyPolicyPage() {
           <div className="space-y-8">
             
             {/* Intro Content Box */}
-            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <p className="text-sm leading-relaxed text-slate-600 sm:text-base">
+            <article className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-6 shadow-sm sm:p-8">
+              <p className="text-sm leading-relaxed text-[color:var(--ink)]/70 sm:text-base">
                 {INTRO_TEXT}
               </p>
             </article>
@@ -85,22 +85,22 @@ function PrivacyPolicyPage() {
             {SECTIONS.map((section) => (
               <article
                 key={section.title}
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md sm:p-8"
+                className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-6 shadow-sm transition-shadow hover:shadow-md sm:p-8"
               >
                 <div className="flex flex-col items-start gap-6 sm:flex-row">
-                  <div className="rounded-xl bg-[#041344]/10 p-4 text-[#041344]">
+                  <div className="rounded-xl bg-[color:var(--ink)]/10 p-4 text-[color:var(--ink)]">
                     <section.icon className="h-7 w-7" strokeWidth={2.5} />
                   </div>
 
                   <div className="flex-1 space-y-4">
-                    <h2 className="text-2xl font-black text-[#041344]">{section.title}</h2>
+                    <h2 className="text-2xl font-black text-[color:var(--ink)]">{section.title}</h2>
                     
                     {section.intro && (
-                      <p className="text-sm leading-relaxed text-slate-600">{section.intro}</p>
+                      <p className="text-sm leading-relaxed text-[color:var(--ink)]/70">{section.intro}</p>
                     )}
                     
                     {section.points && section.points.length > 0 && (
-                      <ul className="space-y-2 pl-6 text-sm text-slate-600 marker:text-[#041344]">
+                      <ul className="space-y-2 pl-6 text-sm text-[color:var(--ink)]/70 marker:text-[color:var(--ink)]">
                         {section.points.map((point) => (
                           <li key={point} className="list-disc pl-1">
                             {point}
@@ -110,7 +110,7 @@ function PrivacyPolicyPage() {
                     )}
                     
                     {section.closing && (
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-[color:var(--ink)]/70">
                         {section.closing}
                       </p>
                     )}
@@ -120,20 +120,20 @@ function PrivacyPolicyPage() {
             ))}
 
             {/* Support / Contact Block */}
-            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <article className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-6 shadow-sm sm:p-8">
               <div className="flex items-start gap-4">
-                <div className="rounded-xl bg-[#041344]/10 p-4 text-[#041344]">
+                <div className="rounded-xl bg-[color:var(--ink)]/10 p-4 text-[color:var(--ink)]">
                   <Info className="h-7 w-7" strokeWidth={2.5} />
                 </div>
                 <div className="space-y-3">
-                  <h2 className="text-2xl font-black text-[#041344]">Privacy Questions?</h2>
-                  <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
+                  <h2 className="text-2xl font-black text-[color:var(--ink)]">Privacy Questions?</h2>
+                  <p className="max-w-2xl text-sm leading-relaxed text-[color:var(--ink)]/70">
                     Our support team is here to help. If you have any questions about how we handle your data, 
                     or need to submit a data request, please don&apos;t hesitate to reach out.
                   </p>
                   <a
                     href="/faq"
-                    className="inline-flex h-10 items-center justify-center rounded-md bg-[color:var(--brand-navy)] px-4 text-sm font-medium text-white transition-colors hover:bg-[color:var(--brand-royal)]"
+                    className="inline-flex h-10 items-center justify-center rounded-md bg-[color:var(--surface-invert)] px-4 text-sm font-medium text-white transition-colors hover:bg-[color:var(--surface-invert-hover)]"
                   >
                     Contact Support
                   </a>

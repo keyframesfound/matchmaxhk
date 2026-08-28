@@ -172,7 +172,7 @@ function AdminSettings() {
       <SiteHeader />
       <main className="flex-1">
         <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-          <h1 className="text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-5xl">
+          <h1 className="text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
             {t("admin.settings_title")}
           </h1>
           <p className="mt-2 text-muted-foreground">{t("admin.settings_subtitle")}</p>
@@ -267,7 +267,7 @@ function AdminSettings() {
                     {form.subject_options.map((s) => (
                       <span
                         key={s}
-                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
+                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)]"
                       >
                         {s}
                         <button
@@ -345,7 +345,7 @@ function AdminSettings() {
                     {form.popular_subjects.map((s) => (
                       <span
                         key={s}
-                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-navy)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--brand-navy)]"
+                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--ink)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)]"
                       >
                         {s}
                         <button
@@ -406,7 +406,7 @@ function AdminSettings() {
               <Button
                 type="submit"
                 loading={save.isPending}
-                className="bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
               >
                 {t("admin.save")}
               </Button>

@@ -110,7 +110,7 @@ function AuthPage() {
       <main className="flex flex-1 items-center justify-center p-4 py-8 lg:p-8">
         <div className="w-full max-w-[420px]">
           <div className="w-full rounded-3xl border border-border bg-card p-6 shadow-brand sm:p-8">
-            <h1 className="text-3xl font-black tracking-tight text-[color:var(--brand-navy)]">
+            <h1 className="text-3xl font-black tracking-tight text-[color:var(--ink)]">
               {t(mode === "sign_in" ? "auth.sign_in_title" : "auth.sign_up_title")}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -194,7 +194,7 @@ function AuthPage() {
               <Button
                 type="submit"
                 disabled={busy}
-                className="h-11 w-full bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+                className="h-11 w-full bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
               >
                 {busy ? t("auth.signing_in") : t("auth.continue")}
               </Button>
