@@ -59,7 +59,7 @@ function HowItWorksPage() {
         <section className="bg-[#f8fafc]">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:py-24">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[color:var(--brand-navy)]/60">
+              <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75 sm:text-xl">
                 How MatchMax works for tutors
               </p>
               <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-6xl sm:leading-[1.02]">

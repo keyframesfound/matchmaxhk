@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Search, UserPlus } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { BlurHighlightText } from "@/components/ui/blur-highlight-text";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -295,20 +294,15 @@ function Landing() {
 
       {/* HERO SECTION */}
       <section className="hero-startup-bg relative overflow-hidden">
-        <div
-          aria-hidden
-          className="absolute inset-0 -z-10"
-          style={{
-            background:
-              "radial-gradient(ellipse at top right, color-mix(in oklab, #2ED5DE 25%, transparent) 0%, transparent 55%), radial-gradient(ellipse at bottom left, color-mix(in oklab, #041344 15%, transparent) 0%, transparent 50%)",
-          }}
-        />
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col justify-center">
+            <p className="font-serif text-lg italic tracking-wide text-[color:var(--brand-navy)]/75 md:text-xl">
+              Hong Kong&apos;s tutor network
+            </p>
             <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-5xl md:text-6xl lg:text-7xl">
               {t("hero.title_a")}
               <br />
-              <span className="text-brand-gradient">{t("hero.title_b")}</span>
+              <span className="text-[color:var(--brand-navy)]">{t("hero.title_b")}</span>
             </h1>
             <div className="mt-6 flex flex-wrap gap-3 md:mt-10">
               <Button
@@ -530,7 +524,7 @@ function Landing() {
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div className="order-2 lg:order-1">
               <h2 className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
-                <BlurHighlightText highlights={["tutor"]}>{t("how.step1_title")}</BlurHighlightText>
+                {t("how.step1_title")}
               </h2>
               <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
                 {t("how.step1_desc")}
@@ -564,9 +558,7 @@ function Landing() {
             </div>
             <div>
               <h3 className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
-                <BlurHighlightText highlights={["You do the teaching", "matching"]}>
-                  {t("tutors_cta.title")}
-                </BlurHighlightText>
+                {t("tutors_cta.title")}
               </h3>
               <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
                 {t("tutors_cta.subtitle")}
