@@ -709,3 +709,13 @@
 .dark .hero-startup-bg > img {
   filter: brightness(0.85) saturate(0.9);
 }
+
+/* Logo recolor for dark mode: light blue/cyan tint */
+.logo-dark-recolor {
+  transition: filter 150ms ease;
+}
+
+.dark .logo-dark-recolor {
+  filter: brightness(0) invert(0.78) sepia(1) saturate(3.5) hue-rotate(165deg);
+}
+
