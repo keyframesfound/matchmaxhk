@@ -296,7 +296,7 @@ export function PublicTutorCard({
             {priceSuffix}
           </span>
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 md:gap-2">
           {saveAction}
           {footerAction}
         </div>

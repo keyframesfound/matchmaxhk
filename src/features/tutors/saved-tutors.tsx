@@ -85,7 +85,13 @@ async function setSavedTutor({
   if (error) throw error;
 }
 
-export function TutorSaveButton({ tutorId, compact = false }: { tutorId: string; compact?: boolean }) {
+export function TutorSaveButton({
+  tutorId,
+  compact = false,
+}: {
+  tutorId: string;
+  compact?: boolean;
+}) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -126,7 +132,7 @@ export function TutorSaveButton({ tutorId, compact = false }: { tutorId: string;
 
   return (
     <>
-      <div className={compact ? "flex items-center gap-0.5" : undefined}>
+      <div className={compact ? "flex items-center gap-0" : undefined}>
         <Button
           type="button"
           variant="ghost"
@@ -138,7 +144,7 @@ export function TutorSaveButton({ tutorId, compact = false }: { tutorId: string;
           onKeyDown={(event) => event.stopPropagation()}
           className={
             compact
-              ? "h-10 w-10 shrink-0 rounded-sm border-0 bg-transparent p-0 text-[color:var(--ink)] shadow-none hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--ink)]"
+              ? "h-10 w-8 shrink-0 rounded-sm border-0 bg-transparent p-0 text-[color:var(--ink)] shadow-none hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--ink)]"
               : "h-9 w-9 shrink-0 rounded-sm border-0 bg-transparent text-[color:var(--ink)] shadow-none hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--ink)]"
           }
         >
@@ -146,17 +152,17 @@ export function TutorSaveButton({ tutorId, compact = false }: { tutorId: string;
             className={
               saved
                 ? compact
-                  ? "h-7 w-7 fill-current"
+                  ? "h-8 w-8 fill-current"
                   : "h-5 w-5 fill-current"
                 : compact
-                  ? "h-7 w-7"
+                  ? "h-8 w-8"
                   : "h-5 w-5"
             }
             aria-hidden="true"
           />
         </Button>
         {compact ? (
-          <span className="min-w-5 -ml-0.5 text-right text-sm font-bold leading-none text-[color:var(--ink)]">
+          <span className="min-w-5 text-right text-sm font-bold leading-none text-[color:var(--ink)]">
             {saveCount}
           </span>
         ) : null}

@@ -413,7 +413,7 @@ function TutorDetail() {
                 </div>
               </div>
               <div className="w-full sm:w-auto sm:text-right">
-                <div className="flex items-center justify-start gap-2 sm:justify-end">
+                <div className="flex items-center justify-start gap-1.5 sm:justify-end">
                   <p className="text-3xl font-black text-[color:var(--ink)]">
                     HK${t.hourly_rate}
                     <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
