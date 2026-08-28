@@ -190,9 +190,20 @@
     font-family: var(--font-sans);
   }
 
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
   body {
     overflow-x: clip;
+    background-color: var(--surface-subtle);
+    color: var(--ink);
   }
+
 
   .hero-startup-bg {
     position: relative;
