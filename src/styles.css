@@ -699,3 +699,13 @@
     }
   }
 }
+
+/* Dark theme adjustments for photographic/pattern backdrops */
+.dark .hero-startup-bg::before {
+  opacity: 0.18;
+}
+
+.dark img.hero-illustration,
+.dark .hero-startup-bg > img {
+  filter: brightness(0.85) saturate(0.9);
+}
