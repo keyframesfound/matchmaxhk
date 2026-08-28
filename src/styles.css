@@ -142,8 +142,8 @@
   --ink: #ededed;
   --surface: #0a0a0a;
   --surface-subtle: #000000;
-  --surface-invert: #161616;
-  --surface-invert-hover: #1f1f1f;
+  --surface-invert: #252525;
+  --surface-invert-hover: #2f2f2f;
   --brand-link: #90caf9;
   --gradient-brand: linear-gradient(135deg, #0a0a0a 0%, #101010 45%, #1fa8b6 100%);
   --gradient-brand-soft: linear-gradient(135deg, #0a0a0a 0%, #161616 100%);
@@ -164,8 +164,8 @@
   --accent-foreground: #0a0a0a;
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: #ededed;
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
+  --border: oklch(1 0 0 / 22%);
+  --input: oklch(1 0 0 / 25%);
   --ring: #2bc2d1;
   --sidebar: #141414;
   --sidebar-foreground: #ededed;
@@ -173,7 +173,7 @@
   --sidebar-primary-foreground: #0a0a0a;
   --sidebar-accent: #1f1f1f;
   --sidebar-accent-foreground: #ededed;
-  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-border: oklch(1 0 0 / 20%);
   --sidebar-ring: #2bc2d1;
 }
 
