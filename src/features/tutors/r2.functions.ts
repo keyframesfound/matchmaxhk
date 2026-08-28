@@ -332,7 +332,11 @@ export const setDefaultTutorProfileImage = createServerFn({ method: "POST" })
     const config = getR2Config();
     const url = buildPublicUrl(config.publicBaseUrl, data.key);
     const settingKey = data.gender === "male" ? "default_tutor_profile_photo_male" : "default_tutor_profile_photo_female";
-    const { error } = await context.supabase
+    // Keep the caller-scoped client for authorization above, then use the
+    // server-only client for this privileged settings write. This avoids
+    // relying on the publishable-key client to satisfy app_settings RLS.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
       .from("app_settings")
       .upsert([{ key: settingKey, value: url }], { onConflict: "key" });
 
