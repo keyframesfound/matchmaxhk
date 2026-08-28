@@ -123,6 +123,14 @@
   --sidebar-border: oklch(0.93 0.008 250);
   --sidebar-ring: oklch(0.66 0.11 197);
 
+  /* Themed app surfaces */
+  --ink: #041344;
+  --surface: #ffffff;
+  --surface-subtle: #f8fafc;
+  --surface-invert: #041344;
+  --surface-invert-hover: #0a245f;
+  --brand-link: #0d47a1;
+
   /* Gradients & shadows */
   --gradient-brand: linear-gradient(135deg, #041344 0%, #0a245f 45%, #1fa8b6 100%);
   --gradient-brand-soft: linear-gradient(135deg, #f5fbfc 0%, #e8f8fa 100%);
@@ -131,6 +139,15 @@
 }
 
 .dark {
+  --ink: #e8eefc;
+  --surface: #0b1c46;
+  --surface-subtle: #061331;
+  --surface-invert: #14306e;
+  --surface-invert-hover: #1c3f8c;
+  --brand-link: #90caf9;
+  --gradient-brand: linear-gradient(135deg, #061331 0%, #10265c 45%, #1fa8b6 100%);
+  --gradient-brand-soft: linear-gradient(135deg, #0b1c46 0%, #10265c 100%);
+
   --background: oklch(0.16 0.09 265);
   --foreground: oklch(0.98 0.003 250);
   --card: oklch(0.22 0.08 265);
