@@ -56,7 +56,7 @@ function HowItWorksPage() {
     <div className="flex min-h-screen flex-col bg-[#f8fafc] text-[color:var(--brand-navy)]">
       <SiteHeader />
       <main className="flex-1">
-        <section className="border-b border-[color:var(--brand-navy)]/10 bg-[#f8fafc]">
+        <section className="bg-[#f8fafc]">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:py-24">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[color:var(--brand-navy)]/60">
@@ -91,7 +91,7 @@ function HowItWorksPage() {
             </div>
 
             <div className="rounded-2xl border border-[color:var(--brand-navy)]/12 bg-[#f8fafc] p-6 sm:p-8">
-              <div className="flex items-start justify-between gap-6 border-b border-[color:var(--brand-navy)]/10 pb-6">
+              <div className="flex items-start justify-between gap-6 pb-6">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--brand-navy)]/55">
                     One clear process
@@ -148,13 +148,13 @@ function HowItWorksPage() {
                 application to receiving a request that matches what you teach.
               </p>
             </div>
-            <div className="divide-y divide-[color:var(--brand-navy)]/10 border-y border-[color:var(--brand-navy)]/10">
+            <div>
               {STEPS.map((step) => (
                 <article
                   key={step.number}
                   className="grid gap-4 py-7 sm:grid-cols-[72px_1fr] sm:gap-6"
                 >
-                  <p className="text-sm font-black tracking-[0.14em] text-[color:var(--brand-teal)]">
+                  <p className="text-sm font-black tracking-[0.14em] text-[color:var(--brand-navy)]">
                     {step.number}
                   </p>
                   <div>
@@ -171,7 +171,7 @@ function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="border-y border-[color:var(--brand-navy)]/10 bg-[#f8fafc]">
+        <section className="bg-[#f8fafc]">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:py-20">
             <div>
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--brand-navy)] text-white">
@@ -253,7 +253,7 @@ function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="border-t border-[color:var(--brand-navy)]/10 bg-[#f8fafc]">
+        <section className="bg-[#f8fafc]">
           <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-14 sm:px-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand-navy)]/55">
