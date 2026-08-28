@@ -12,7 +12,7 @@ export const Route = createFileRoute("/how-it-works")({
       {
         name: "description",
         content:
-          "See how MatchMax helps tutors build a credible profile, reach the right families, and grow their tutoring practice.",
+          "See how MatchMax helps tutors build a credible profile, reach the right students, and grow their tutoring practice.",
       },
       { name: "robots", content: "index, follow" },
     ],
@@ -24,7 +24,7 @@ const STEPS = [
   {
     number: "01",
     title: "Apply to join MatchMax",
-    text: "Share the subjects, levels, rates, and experience you want families to see. A complete application gives our team the context to review your profile properly.",
+    text: "Share the subjects, levels, rates, and experience you want students to see. A complete application gives our team the context to review your profile properly.",
   },
   {
     number: "02",
@@ -34,14 +34,14 @@ const STEPS = [
   {
     number: "03",
     title: "Receive student requests",
-    text: "Families can discover your strengths, review your profile, and contact you when your subjects, rates, and availability are a good fit.",
+    text: "Students can discover your strengths, review your profile, and contact you when your subjects, rates, and availability are a good fit.",
   },
 ];
 
 const TRUST_POINTS = [
   "Academic results and qualifications are reviewed",
   "Your profile shows subjects, lesson mode, rates, and experience",
-  "Families can understand your strengths before they enquire",
+  "Students can understand your strengths before they enquire",
   "You stay in control of your availability and lesson preferences",
 ];
 
@@ -63,11 +63,11 @@ function HowItWorksPage() {
                 How MatchMax works for tutors
               </p>
               <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-6xl sm:leading-[1.02]">
-                Build a tutoring profile families can trust.
+                Build a tutoring profile students can trust.
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-[color:var(--brand-navy)]/70">
                 MatchMax gives strong tutors a clearer way to present their experience, connect with
-                relevant families, and build a flexible tutoring practice.
+                relevant students, and build a flexible tutoring practice.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button
@@ -120,7 +120,7 @@ function HowItWorksPage() {
                 <div>
                   <p className="text-3xl font-black text-[color:var(--brand-navy)]">03</p>
                   <p className="mt-1 text-sm leading-5 text-[color:var(--brand-navy)]/65">
-                    Meet the right family
+                    Meet the right students
                   </p>
                 </div>
                 <div>
@@ -181,7 +181,7 @@ function HowItWorksPage() {
                 Your profile should do the explaining.
               </h2>
               <p className="mt-4 max-w-xl text-sm leading-7 text-[color:var(--brand-navy)]/68">
-                Families make better enquiries when they can quickly understand your academic
+                Students make better enquiries when they can quickly understand your academic
                 background, subjects, teaching style, and availability.
               </p>
             </div>
@@ -229,7 +229,7 @@ function HowItWorksPage() {
               </p>
               <h2 className="mt-3 text-2xl font-black text-white">Receive better-fit requests.</h2>
               <p className="mt-3 text-sm leading-7 text-white/72">
-                When your profile is clear, families can find you for the subjects and lesson
+                When your profile is clear, students can find you for the subjects and lesson
                 formats you are best placed to teach.
               </p>
               <div className="mt-6 space-y-3">
