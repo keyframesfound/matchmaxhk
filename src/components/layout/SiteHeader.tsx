@@ -99,67 +99,69 @@ export function SiteHeader({ className }: { className?: string }) {
             <LanguageToggle />
           </div>
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="h-9 gap-2 px-4 font-semibold text-[#041344] hover:bg-transparent hover:text-[#1FA8B6]"
+            <div className="hidden lg:block">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="h-9 gap-2 px-4 font-semibold text-[#041344] hover:bg-transparent hover:text-[#1FA8B6]"
+                  >
+                    <span className="max-w-[120px] truncate">
+                      {user.email?.split("@")[0] ?? "Account"}
+                    </span>
+                    <ChevronDown className="h-4 w-4 opacity-60" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-60 rounded-2xl border-[#041344]/10 bg-white p-2 shadow-xl"
                 >
-                  <span className="max-w-[120px] truncate">
-                    {user.email?.split("@")[0] ?? "Account"}
-                  </span>
-                  <ChevronDown className="h-4 w-4 opacity-60" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-60 rounded-2xl border-[#041344]/10 bg-white p-2 shadow-xl"
-              >
-                <DropdownMenuLabel className="px-3 py-2">
-                  <div className="text-xs font-medium text-[#041344]/50">Signed in as</div>
-                  <div className="mt-1 truncate text-sm font-semibold text-[#041344]">
-                    {user.email}
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  asChild
-                  className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20 focus:text-[#041344]"
-                >
-                  <Link to="/dashboard">{t("nav.dashboard")}</Link>
-                </DropdownMenuItem>
-                {isAdmin && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      asChild
-                      className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"
-                    >
-                      <Link to="/admin/tutors">Manage tutors</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      asChild
-                      className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"
-                    >
-                      <Link to="/admin/r2">R2 images</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      asChild
-                      className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"
-                    >
-                      <Link to="/admin/users">{t("nav.admin")}</Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onSelect={() => void signOut()}
-                  className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-red-50 focus:text-red-600"
-                >
-                  {t("nav.sign_out")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuLabel className="px-3 py-2">
+                    <div className="text-xs font-medium text-[#041344]/50">Signed in as</div>
+                    <div className="mt-1 truncate text-sm font-semibold text-[#041344]">
+                      {user.email}
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    asChild
+                    className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20 focus:text-[#041344]"
+                  >
+                    <Link to="/dashboard">{t("nav.dashboard")}</Link>
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        asChild
+                        className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"
+                      >
+                        <Link to="/admin/tutors">Manage tutors</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        asChild
+                        className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"
+                      >
+                        <Link to="/admin/r2">R2 images</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        asChild
+                        className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20"
+                      >
+                        <Link to="/admin/users">{t("nav.admin")}</Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={() => void signOut()}
+                    className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-red-50 focus:text-red-600"
+                  >
+                    {t("nav.sign_out")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           ) : (
             <>
               <Link

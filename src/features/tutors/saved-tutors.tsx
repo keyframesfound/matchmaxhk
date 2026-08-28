@@ -1,10 +1,19 @@
-import { type MouseEvent } from "react";
+import { type MouseEvent, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Bookmark } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/features/auth/useAuth";
 import { fetchPublishedTutors, type Tutor } from "@/features/tutors/queries";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,6 +80,7 @@ export function TutorSaveButton({ tutorId }: { tutorId: string }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [dialogOpen, setDialogOpen] = useState(false);
   const savedQuery = useSavedTutorIds();
   const saved = savedQuery.data?.includes(tutorId) ?? false;
 
@@ -89,27 +99,54 @@ export function TutorSaveButton({ tutorId }: { tutorId: string }) {
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (!user) {
-      toast("Sign up to save posts", {
-        action: { label: "Sign up", onClick: () => void navigate({ to: "/auth" }) },
-      });
+      setDialogOpen(true);
       return;
     }
     mutation.mutate(!saved);
   };
 
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size="icon"
-      aria-label={saved ? "Remove tutor from saved posts" : "Save tutor"}
-      title={saved ? "Remove from saved posts" : "Save tutor"}
-      disabled={mutation.isPending || savedQuery.isLoading}
-      onClick={handleClick}
-      onKeyDown={(event) => event.stopPropagation()}
-      className="h-9 w-9 shrink-0 rounded-sm border-[color:var(--brand-teal)]/35 text-[color:var(--brand-navy)] hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--brand-navy)]"
-    >
-      <Bookmark className={saved ? "h-4 w-4 fill-current" : "h-4 w-4"} aria-hidden="true" />
-    </Button>
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        aria-label={saved ? "Remove tutor from saved posts" : "Save tutor"}
+        title={saved ? "Remove from saved posts" : "Save tutor"}
+        disabled={mutation.isPending}
+        onClick={handleClick}
+        onKeyDown={(event) => event.stopPropagation()}
+        className="h-9 w-9 shrink-0 rounded-sm border-[color:var(--brand-teal)]/35 text-[color:var(--brand-navy)] hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--brand-navy)]"
+      >
+        <Bookmark className={saved ? "h-4 w-4 fill-current" : "h-4 w-4"} aria-hidden="true" />
+      </Button>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-sm rounded-2xl border-[color:var(--brand-teal)]/20 bg-white p-6 shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black text-[color:var(--brand-navy)]">
+              Sign up to save posts
+            </DialogTitle>
+            <DialogDescription className="pt-2 leading-relaxed">
+              Create a free account to bookmark tutors and find them again later.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <DialogClose asChild>
+              <Button type="button" variant="outline" className="rounded-sm">
+                Maybe later
+              </Button>
+            </DialogClose>
+            <Button
+              type="button"
+              className="rounded-sm bg-[color:var(--brand-navy)] font-bold text-white hover:bg-[color:var(--brand-royal)]"
+              onClick={() => void navigate({ to: "/auth" })}
+            >
+              Sign up
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
