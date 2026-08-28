@@ -11,9 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    mode: search.mode === "sign_up" ? ("sign_up" as const) : ("sign_in" as const),
-  }),
+  validateSearch: (search: Record<string, unknown>): { mode?: "sign_in" | "sign_up" } =>
+    search.mode === "sign_up" ? { mode: "sign_up" } : {},
+
   head: () => ({
     meta: [
       { title: "Log in — MatchMax" },
