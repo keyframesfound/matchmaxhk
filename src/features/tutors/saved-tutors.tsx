@@ -30,6 +30,16 @@ async function fetchSavedTutorIds(userId: string): Promise<string[]> {
   return (data ?? []).map((row) => row.tutor_id);
 }
 
+async function fetchSavedTutorCount(tutorId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from("saved_tutors")
+    .select("tutor_id", { count: "exact", head: true })
+    .eq("tutor_id", tutorId);
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function fetchSavedTutors(userId: string): Promise<Tutor[]> {
   const [savedIds, tutors] = await Promise.all([
     fetchSavedTutorIds(userId),
@@ -80,7 +90,13 @@ export function TutorSaveButton({ tutorId }: { tutorId: string }) {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const savedQuery = useSavedTutorIds();
+  const saveCountQuery = useQuery({
+    queryKey: ["saved-tutor-count", tutorId],
+    queryFn: () => fetchSavedTutorCount(tutorId),
+    staleTime: 60_000,
+  });
   const saved = savedQuery.data?.includes(tutorId) ?? false;
+  const saveCount = saveCountQuery.data ?? 0;
 
   const mutation = useMutation({
     mutationFn: (nextSaved: boolean) =>
@@ -89,7 +105,11 @@ export function TutorSaveButton({ tutorId }: { tutorId: string }) {
       queryClient.setQueryData<string[]>(savedTutorsQueryKey(user?.id), (ids = []) =>
         nextSaved ? Array.from(new Set([...ids, tutorId])) : ids.filter((id) => id !== tutorId),
       );
+      queryClient.setQueryData<number>(["saved-tutor-count", tutorId], (count = 0) =>
+        Math.max(0, count + (nextSaved ? 1 : -1)),
+      );
       void queryClient.invalidateQueries({ queryKey: ["saved-tutors"] });
+      void queryClient.invalidateQueries({ queryKey: ["saved-tutor-count", tutorId] });
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -105,19 +125,24 @@ export function TutorSaveButton({ tutorId }: { tutorId: string }) {
 
   return (
     <>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label={saved ? "Remove tutor from saved posts" : "Save tutor"}
-        title={saved ? "Remove from saved posts" : "Save tutor"}
-        disabled={mutation.isPending}
-        onClick={handleClick}
-        onKeyDown={(event) => event.stopPropagation()}
-        className="h-9 w-9 shrink-0 rounded-sm border-0 bg-transparent text-[color:var(--ink)] shadow-none hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--ink)]"
-      >
-        <Bookmark className={saved ? "h-4 w-4 fill-current" : "h-4 w-4"} aria-hidden="true" />
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={saved ? "Remove tutor from saved posts" : "Save tutor"}
+          title={saved ? "Remove from saved posts" : "Save tutor"}
+          disabled={mutation.isPending}
+          onClick={handleClick}
+          onKeyDown={(event) => event.stopPropagation()}
+          className="h-9 w-9 shrink-0 rounded-sm border-0 bg-transparent text-[color:var(--ink)] shadow-none hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--ink)]"
+        >
+          <Bookmark className={saved ? "h-5 w-5 fill-current" : "h-5 w-5"} aria-hidden="true" />
+        </Button>
+        <span className="min-w-5 text-right text-sm font-semibold text-[color:var(--ink)]">
+          {saveCount}
+        </span>
+      </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-sm rounded-2xl border-[color:var(--brand-teal)]/20 bg-[color:var(--surface)] p-6 shadow-xl">
