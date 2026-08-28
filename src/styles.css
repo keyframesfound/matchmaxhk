@@ -131,6 +131,17 @@
   --surface-invert-hover: #0a245f;
   --brand-link: #0d47a1;
 
+  /* Stepper */
+  --stepper-row-bg: linear-gradient(135deg, color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)), var(--color-card));
+  --stepper-inactive-bg: #eef2f3;
+  --stepper-inactive-fg: #56626f;
+  --stepper-active-bg: #041344;
+  --stepper-active-fg: #ffffff;
+  --stepper-complete-bg: #1fa8b6;
+  --stepper-complete-fg: #ffffff;
+  --stepper-dot: #ffffff;
+  --stepper-connector: #1fa8b6;
+
   /* Gradients & shadows */
   --gradient-brand: linear-gradient(135deg, #041344 0%, #0a245f 45%, #1fa8b6 100%);
   --gradient-brand-soft: linear-gradient(135deg, #f5fbfc 0%, #e8f8fa 100%);
