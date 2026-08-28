@@ -125,7 +125,7 @@ export function TutorSaveButton({ tutorId }: { tutorId: string }) {
 
   return (
     <>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-0.5">
         <Button
           type="button"
           variant="ghost"
@@ -135,11 +135,11 @@ export function TutorSaveButton({ tutorId }: { tutorId: string }) {
           disabled={mutation.isPending}
           onClick={handleClick}
           onKeyDown={(event) => event.stopPropagation()}
-          className="h-9 w-9 shrink-0 rounded-sm border-0 bg-transparent p-0 text-[color:var(--ink)] shadow-none hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--ink)]"
+          className="h-10 w-10 shrink-0 rounded-sm border-0 bg-transparent p-0 text-[color:var(--ink)] shadow-none hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--ink)]"
         >
-          <Bookmark className={saved ? "h-6 w-6 fill-current" : "h-6 w-6"} aria-hidden="true" />
+          <Bookmark className={saved ? "h-7 w-7 fill-current" : "h-7 w-7"} aria-hidden="true" />
         </Button>
-        <span className="min-w-5 text-right text-sm font-semibold leading-none text-[color:var(--ink)]">
+        <span className="min-w-5 -ml-0.5 text-right text-sm font-bold leading-none text-[color:var(--ink)]">
           {saveCount}
         </span>
       </div>
