@@ -12,7 +12,7 @@ export const Route = createFileRoute("/how-it-works")({
       {
         name: "description",
         content:
-          "See how MatchMax connects families with verified tutors through a clear, human-led matching process.",
+          "See how MatchMax helps tutors build a credible profile, reach the right families, and grow their tutoring practice.",
       },
       { name: "robots", content: "index, follow" },
     ],
@@ -23,26 +23,26 @@ export const Route = createFileRoute("/how-it-works")({
 const STEPS = [
   {
     number: "01",
-    title: "Tell us what you need",
-    text: "Share the subject, level, lesson format, and schedule that matter to your family. A focused brief gives the right tutors enough context to respond well.",
+    title: "Apply to join MatchMax",
+    text: "Share the subjects, levels, rates, and experience you want families to see. A complete application gives our team the context to review your profile properly.",
   },
   {
     number: "02",
-    title: "Compare verified tutors",
-    text: "Review profiles with academic results, teaching experience, subjects, rates, and availability in one place before you make contact.",
+    title: "Get verified",
+    text: "Our team reviews your academic background, qualifications, and profile details before your tutor profile goes live.",
   },
   {
     number: "03",
-    title: "Start with the right fit",
-    text: "Request a tutor through MatchMax, confirm the details, and move into lessons with a clear plan and a tutor who understands the goal.",
+    title: "Receive student requests",
+    text: "Families can discover your strengths, review your profile, and contact you when your subjects, rates, and availability are a good fit.",
   },
 ];
 
 const TRUST_POINTS = [
   "Academic results and qualifications are reviewed",
-  "Profiles show subjects, lesson mode, rates, and experience",
-  "Families can shortlist before requesting a tutor",
-  "Tutor and family details stay clear from first contact",
+  "Your profile shows subjects, lesson mode, rates, and experience",
+  "Families can understand your strengths before they enquire",
+  "You stay in control of your availability and lesson preferences",
 ];
 
 const TUTOR_BENEFITS = [
@@ -56,18 +56,18 @@ function HowItWorksPage() {
     <div className="flex min-h-screen flex-col bg-[#f8fafc] text-[color:var(--brand-navy)]">
       <SiteHeader />
       <main className="flex-1">
-        <section className="border-b border-[color:var(--brand-navy)]/10 bg-white">
+        <section className="border-b border-[color:var(--brand-navy)]/10 bg-[#f8fafc]">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:py-24">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[color:var(--brand-navy)]/60">
-                The MatchMax approach
+                How MatchMax works for tutors
               </p>
               <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-6xl sm:leading-[1.02]">
-                A better way to find the right tutor.
+                Build a tutoring profile families can trust.
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-[color:var(--brand-navy)]/70">
-                MatchMax makes tutoring easier to navigate: clear profiles, verified academic
-                backgrounds, and a simple path from shortlist to first lesson.
+                MatchMax gives strong tutors a clearer way to present their experience, connect with
+                relevant families, and build a flexible tutoring practice.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button
@@ -97,7 +97,7 @@ function HowItWorksPage() {
                     One clear process
                   </p>
                   <p className="mt-3 text-2xl font-black text-[color:var(--brand-navy)]">
-                    Less scrolling. More confidence.
+                    From application to first request.
                   </p>
                 </div>
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[color:var(--brand-navy)] text-white">
@@ -108,25 +108,25 @@ function HowItWorksPage() {
                 <div>
                   <p className="text-3xl font-black text-[color:var(--brand-navy)]">01</p>
                   <p className="mt-1 text-sm leading-5 text-[color:var(--brand-navy)]/65">
-                    Brief the goal
+                    Submit your profile
                   </p>
                 </div>
                 <div>
                   <p className="text-3xl font-black text-[color:var(--brand-navy)]">02</p>
                   <p className="mt-1 text-sm leading-5 text-[color:var(--brand-navy)]/65">
-                    Review the fit
+                    Complete verification
                   </p>
                 </div>
                 <div>
                   <p className="text-3xl font-black text-[color:var(--brand-navy)]">03</p>
                   <p className="mt-1 text-sm leading-5 text-[color:var(--brand-navy)]/65">
-                    Start learning
+                    Meet the right family
                   </p>
                 </div>
                 <div>
                   <p className="text-3xl font-black text-[color:var(--brand-navy)]">HK</p>
                   <p className="mt-1 text-sm leading-5 text-[color:var(--brand-navy)]/65">
-                    Built for Hong Kong
+                    Built for tutors
                   </p>
                 </div>
               </div>
@@ -141,11 +141,11 @@ function HowItWorksPage() {
                 How it works
               </p>
               <h2 className="mt-4 text-3xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-4xl">
-                From first search to first lesson.
+                From application to first request.
               </h2>
               <p className="mt-4 text-sm leading-7 text-[color:var(--brand-navy)]/68">
-                Every step is designed to make the next decision easier, whether you are finding
-                support for a student or building your tutoring practice.
+                Every step is designed to make your next move clear, from submitting your
+                application to receiving a request that matches what you teach.
               </p>
             </div>
             <div className="divide-y divide-[color:var(--brand-navy)]/10 border-y border-[color:var(--brand-navy)]/10">
@@ -171,23 +171,23 @@ function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="border-y border-[color:var(--brand-navy)]/10 bg-white">
+        <section className="border-y border-[color:var(--brand-navy)]/10 bg-[#f8fafc]">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:py-20">
             <div>
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--brand-navy)] text-white">
                 <BadgeCheck className="h-5 w-5" />
               </div>
               <h2 className="mt-6 text-3xl font-black tracking-tight text-[color:var(--brand-navy)] sm:text-4xl">
-                Confidence comes from better information.
+                Your profile should do the explaining.
               </h2>
               <p className="mt-4 max-w-xl text-sm leading-7 text-[color:var(--brand-navy)]/68">
-                A tutor profile should help a family make a considered choice. MatchMax keeps the
-                important details visible and makes the path to contact straightforward.
+                Families make better enquiries when they can quickly understand your academic
+                background, subjects, teaching style, and availability.
               </p>
             </div>
             <div className="rounded-2xl border border-[color:var(--brand-navy)]/10 bg-[#f8fafc] p-6 sm:p-8">
               <p className="text-sm font-bold text-[color:var(--brand-navy)]">
-                What you can see on a profile
+                What your profile makes clear
               </p>
               <div className="mt-5 space-y-4">
                 {TRUST_POINTS.map((point) => (
@@ -206,31 +206,31 @@ function HowItWorksPage() {
             <article className="rounded-2xl border border-[color:var(--brand-navy)]/10 bg-white p-7 sm:p-9">
               <Search className="h-5 w-5 text-[color:var(--brand-navy)]" />
               <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand-navy)]/55">
-                For families
+                Your profile
               </p>
               <h2 className="mt-3 text-2xl font-black text-[color:var(--brand-navy)]">
-                Find support that fits.
+                Show what makes you a strong tutor.
               </h2>
               <p className="mt-3 text-sm leading-7 text-[color:var(--brand-navy)]/68">
-                Search by subject, programme, lesson mode, and budget. Save promising tutors,
-                compare profiles, and request the one that feels right.
+                Present your strongest subjects, academic results, experience, rates, and preferred
+                lesson format in one professional profile.
               </p>
               <Link
                 to="/tutors"
                 className="mt-6 inline-flex items-center text-sm font-bold text-[color:var(--brand-navy)] underline underline-offset-4"
               >
-                Browse tutors <ArrowRight className="ml-2 h-4 w-4" />
+                See tutor profiles <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </article>
             <article className="rounded-2xl border border-[color:var(--brand-navy)]/10 bg-[color:var(--brand-navy)] p-7 text-white sm:p-9">
               <UserPlus className="h-5 w-5" />
               <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-white/60">
-                For tutors
+                Your opportunities
               </p>
-              <h2 className="mt-3 text-2xl font-black">Teach on your terms.</h2>
+              <h2 className="mt-3 text-2xl font-black">Receive better-fit requests.</h2>
               <p className="mt-3 text-sm leading-7 text-white/72">
-                Present your strengths clearly, set the conditions that work for you, and connect
-                with families looking for your subject expertise.
+                When your profile is clear, families can find you for the subjects and lesson
+                formats you are best placed to teach.
               </p>
               <div className="mt-6 space-y-3">
                 {TUTOR_BENEFITS.map((benefit) => (
@@ -253,14 +253,14 @@ function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="border-t border-[color:var(--brand-navy)]/10 bg-white">
+        <section className="border-t border-[color:var(--brand-navy)]/10 bg-[#f8fafc]">
           <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-14 sm:px-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--brand-navy)]/55">
-                Ready when you are
+                Ready to get started
               </p>
               <h2 className="mt-2 text-2xl font-black text-[color:var(--brand-navy)] sm:text-3xl">
-                Start with a better shortlist.
+                Build your tutor profile.
               </h2>
             </div>
             <Button
