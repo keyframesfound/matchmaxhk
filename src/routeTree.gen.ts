@@ -19,8 +19,6 @@ import { Route as JoinRouteImport } from './routes/join'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
-import { Route as AuthenticatedMyCasesRouteImport } from './routes/_authenticated.my-cases'
-import { Route as AuthenticatedPostCaseRouteImport } from './routes/_authenticated.post-case'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
@@ -31,7 +29,6 @@ import { Route as AuthenticatedAdminTutorsRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
 import { Route as AuthenticatedCasesIndexRouteImport } from './routes/_authenticated.cases.index'
 import { Route as AuthenticatedCasesCaseIdRouteImport } from './routes/_authenticated.cases.$caseId'
-import { Route as AuthenticatedPostCaseSuccessCaseIdRouteImport } from './routes/_authenticated.post-case.success.$caseId'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -83,16 +80,6 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedMyCasesRoute = AuthenticatedMyCasesRouteImport.update({
-  id: '/my-cases',
-  path: '/my-cases',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPostCaseRoute = AuthenticatedPostCaseRouteImport.update({
-  id: '/post-case',
-  path: '/post-case',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedSavedPostsRoute = AuthenticatedSavedPostsRouteImport.update({
@@ -148,12 +135,6 @@ const AuthenticatedCasesCaseIdRoute =
     path: '/cases/$caseId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedPostCaseSuccessCaseIdRoute =
-  AuthenticatedPostCaseSuccessCaseIdRouteImport.update({
-    id: '/success/$caseId',
-    path: '/success/$caseId',
-    getParentRoute: () => AuthenticatedPostCaseRoute,
-  } as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   id: '/lovable/email/auth/preview',
   path: '/lovable/email/auth/preview',
@@ -181,8 +162,6 @@ export interface FileRoutesByFullPath {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/my-cases': typeof AuthenticatedMyCasesRoute
-  '/post-case': typeof AuthenticatedPostCaseRouteWithChildren
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
@@ -193,7 +172,6 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/cases/': typeof AuthenticatedCasesIndexRoute
-  '/post-case/success/$caseId': typeof AuthenticatedPostCaseSuccessCaseIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -208,8 +186,6 @@ export interface FileRoutesByTo {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/my-cases': typeof AuthenticatedMyCasesRoute
-  '/post-case': typeof AuthenticatedPostCaseRouteWithChildren
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors': typeof TutorsIndexRoute
@@ -220,7 +196,6 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/cases': typeof AuthenticatedCasesIndexRoute
-  '/post-case/success/$caseId': typeof AuthenticatedPostCaseSuccessCaseIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -237,8 +212,6 @@ export interface FileRoutesById {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/my-cases': typeof AuthenticatedMyCasesRoute
-  '/_authenticated/post-case': typeof AuthenticatedPostCaseRouteWithChildren
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/tutors/': typeof TutorsIndexRoute
@@ -249,7 +222,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/_authenticated/cases/': typeof AuthenticatedCasesIndexRoute
-  '/_authenticated/post-case/success/$caseId': typeof AuthenticatedPostCaseSuccessCaseIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -266,8 +238,6 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/sitemap.xml'
     | '/dashboard'
-    | '/my-cases'
-    | '/post-case'
     | '/saved-posts'
     | '/tutors/$tutorCode'
     | '/tutors/'
@@ -278,7 +248,6 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/cases/$caseId'
     | '/cases/'
-    | '/post-case/success/$caseId'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -293,8 +262,6 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/sitemap.xml'
     | '/dashboard'
-    | '/my-cases'
-    | '/post-case'
     | '/saved-posts'
     | '/tutors/$tutorCode'
     | '/tutors'
@@ -305,7 +272,6 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/cases/$caseId'
     | '/cases'
-    | '/post-case/success/$caseId'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -321,8 +287,6 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/sitemap.xml'
     | '/_authenticated/dashboard'
-    | '/_authenticated/my-cases'
-    | '/_authenticated/post-case'
     | '/_authenticated/saved-posts'
     | '/tutors/$tutorCode'
     | '/tutors/'
@@ -333,7 +297,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/cases/$caseId'
     | '/_authenticated/cases/'
-    | '/_authenticated/post-case/success/$caseId'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -428,20 +391,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/my-cases': {
-      id: '/_authenticated/my-cases'
-      path: '/my-cases'
-      fullPath: '/my-cases'
-      preLoaderRoute: typeof AuthenticatedMyCasesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/post-case': {
-      id: '/_authenticated/post-case'
-      path: '/post-case'
-      fullPath: '/post-case'
-      preLoaderRoute: typeof AuthenticatedPostCaseRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/saved-posts': {
       id: '/_authenticated/saved-posts'
       path: '/saved-posts'
@@ -512,13 +461,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCasesCaseIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/post-case/success/$caseId': {
-      id: '/_authenticated/post-case/success/$caseId'
-      path: '/success/$caseId'
-      fullPath: '/post-case/success/$caseId'
-      preLoaderRoute: typeof AuthenticatedPostCaseSuccessCaseIdRouteImport
-      parentRoute: typeof AuthenticatedPostCaseRoute
-    }
     '/lovable/email/auth/preview': {
       id: '/lovable/email/auth/preview'
       path: '/lovable/email/auth/preview'
@@ -543,24 +485,8 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedPostCaseRouteChildren {
-  AuthenticatedPostCaseSuccessCaseIdRoute: typeof AuthenticatedPostCaseSuccessCaseIdRoute
-}
-
-const AuthenticatedPostCaseRouteChildren: AuthenticatedPostCaseRouteChildren = {
-  AuthenticatedPostCaseSuccessCaseIdRoute:
-    AuthenticatedPostCaseSuccessCaseIdRoute,
-}
-
-const AuthenticatedPostCaseRouteWithChildren =
-  AuthenticatedPostCaseRoute._addFileChildren(
-    AuthenticatedPostCaseRouteChildren,
-  )
-
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedMyCasesRoute: typeof AuthenticatedMyCasesRoute
-  AuthenticatedPostCaseRoute: typeof AuthenticatedPostCaseRouteWithChildren
   AuthenticatedSavedPostsRoute: typeof AuthenticatedSavedPostsRoute
   AuthenticatedAdminCasesRoute: typeof AuthenticatedAdminCasesRoute
   AuthenticatedAdminR2Route: typeof AuthenticatedAdminR2Route
@@ -573,8 +499,6 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedMyCasesRoute: AuthenticatedMyCasesRoute,
-  AuthenticatedPostCaseRoute: AuthenticatedPostCaseRouteWithChildren,
   AuthenticatedSavedPostsRoute: AuthenticatedSavedPostsRoute,
   AuthenticatedAdminCasesRoute: AuthenticatedAdminCasesRoute,
   AuthenticatedAdminR2Route: AuthenticatedAdminR2Route,

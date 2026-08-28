@@ -32,9 +32,7 @@ export function SiteHeader({ className }: { className?: string }) {
     { label: "Saved Posts", ariaLabel: "Saved Posts", to: "/saved-posts" },
     { label: t("tutors_cta.cta"), ariaLabel: t("tutors_cta.cta"), to: "/join" },
     { label: "Help Centre", ariaLabel: "Help Centre", to: "/faq" },
-    ...(user
-      ? [{ label: t("nav.dashboard"), ariaLabel: t("nav.dashboard"), to: "/dashboard" }]
-      : []),
+    ...(user ? [{ label: "Settings", ariaLabel: "Settings", to: "/dashboard" }] : []),
     ...(isAdmin
       ? [
           { label: "Manage tutors", ariaLabel: "Manage tutors", to: "/admin/tutors" },
@@ -127,7 +125,7 @@ export function SiteHeader({ className }: { className?: string }) {
                     asChild
                     className="cursor-pointer rounded-xl px-3 py-2.5 font-medium text-[#041344] focus:bg-[#77E8EE]/20 focus:text-[#041344]"
                   >
-                    <Link to="/dashboard">{t("nav.dashboard")}</Link>
+                    <Link to="/dashboard">Settings</Link>
                   </DropdownMenuItem>
                   {isAdmin && (
                     <>

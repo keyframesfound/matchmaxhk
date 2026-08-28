@@ -20,13 +20,12 @@ export const Route = createFileRoute("/auth")({
       {
         name: "description",
         content:
-          "Log in or create your MatchMax account to post a tutoring case or manage your tutor profile.",
+          "Log in or create your MatchMax account to manage your MatchMax profile and saved tutors.",
       },
       { property: "og:title", content: "Log in — MatchMax" },
       {
         property: "og:description",
-        content:
-          "Access your MatchMax dashboard to post a tutoring case or manage your verified tutor profile.",
+        content: "Access your MatchMax settings and saved tutor profiles.",
       },
       { property: "og:url", content: "https://matchmax.hk/auth" },
       { name: "robots", content: "noindex" },
@@ -59,7 +58,7 @@ function AuthPage() {
       if (mode === "sign_in") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success(t("dashboard.welcome"));
+        toast.success("Welcome back to MatchMax.");
         router.navigate({ to: "/dashboard", replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
