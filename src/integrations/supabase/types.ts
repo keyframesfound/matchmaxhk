@@ -92,6 +92,7 @@ export type Database = {
           id: string
           locale: string
           phone: string | null
+          theme_preference: string
           updated_at: string
         }
         Insert: {
@@ -102,6 +103,7 @@ export type Database = {
           id: string
           locale?: string
           phone?: string | null
+          theme_preference?: string
           updated_at?: string
         }
         Update: {
@@ -112,9 +114,39 @@ export type Database = {
           id?: string
           locale?: string
           phone?: string | null
+          theme_preference?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      saved_tutors: {
+        Row: {
+          created_at: string
+          id: string
+          tutor_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tutor_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tutor_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_tutors_tutor_id_fkey"
+            columns: ["tutor_id"]
+            isOneToOne: false
+            referencedRelation: "tutors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tutor_reviews: {
         Row: {
