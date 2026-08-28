@@ -81,11 +81,11 @@
     sans-serif;
 
   /* Brand raw */
-  --brand-navy: #041344;
-  --brand-royal: #0d47a1;
-  --brand-teal: #90caf9;
-  --brand-cyan: #e3f2fd;
-  --brand-aqua: #77e8ee;
+  --brand-navy: #091540;
+  --brand-royal: #1B2CC1;
+  --brand-teal: #7692FF;
+  --brand-cyan: #ABD2FA;
+  --brand-aqua: #ABD2FA;
 
   /* Semantic — light theme */
   --background: oklch(1 0 0);
