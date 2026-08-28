@@ -21,7 +21,7 @@
   width: 100%;
   align-items: flex-start;
   padding: 1.25rem 1rem 0;
-  background: linear-gradient(135deg, color-mix(in oklab, var(--brand-teal) 8%, white), white);
+  background: var(--stepper-row-bg);
 }
 
 .stepper-indicator-group {
@@ -66,7 +66,7 @@
   height: 0.625rem;
   width: 0.625rem;
   border-radius: 9999px;
-  background: #ffffff;
+  background: var(--stepper-dot);
 }
 
 .stepper-check-icon {
@@ -190,7 +190,7 @@
   height: 0.625rem;
   width: 0.625rem;
   border-radius: 9999px;
-  background: #ffffff;
+  background: var(--stepper-dot);
 }
 
 @media (max-width: 639px) {
