@@ -225,7 +225,7 @@
   }
 
   body {
-    background-color: #ffffff;
+    background-color: var(--surface);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-size: 0.95rem;
@@ -370,7 +370,7 @@
   }
 
   .landing-tutor-visual--dots {
-    background-color: #eceef0;
+    background-color: var(--surface-subtle);
     background-image: url("/finding-tutor-visual.jpeg");
     background-size: cover;
     background-position: center;
@@ -402,11 +402,11 @@
   }
 
   .saved-posts-reserve-card {
-    background: #eef8fa;
+    background: color-mix(in oklab, var(--brand-teal) 10%, var(--surface));
   }
 
   .saved-posts-hero-visual {
-    background-color: #f6fbfc;
+    background-color: var(--surface-subtle);
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -440,7 +440,7 @@
     align-items: flex-start;
     gap: 0.25rem;
     padding: 1.25rem 1rem 0;
-    background: linear-gradient(135deg, color-mix(in oklab, var(--brand-teal) 8%, white), white);
+    background: linear-gradient(135deg, color-mix(in oklab, var(--brand-teal) 8%, var(--surface)), var(--surface));
   }
 
   .join-stepper-indicator-group {
@@ -480,7 +480,7 @@
     justify-content: center;
     border: 1px solid color-mix(in oklab, var(--brand-navy) 14%, transparent);
     border-radius: 9999px;
-    background: color-mix(in oklab, var(--brand-navy) 4%, white);
+    background: color-mix(in oklab, var(--ink) 6%, var(--surface));
     color: var(--color-muted-foreground);
     transition:
       transform 180ms ease,
