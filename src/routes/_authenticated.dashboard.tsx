@@ -22,6 +22,18 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteMyAccount } from "@/lib/account.functions";
+import { useTheme, type ThemePreference } from "@/features/theme/ThemeProvider";
+
+const THEME_OPTIONS: {
+  value: ThemePreference;
+  label: string;
+  description: string;
+  icon: typeof Sun;
+}[] = [
+  { value: "system", label: "System", description: "Match your device setting", icon: Monitor },
+  { value: "light", label: "Light", description: "Always use the light theme", icon: Sun },
+  { value: "dark", label: "Dark", description: "Deep navy dark theme", icon: Moon },
+];
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -36,6 +48,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function SettingsPage() {
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
+
   const [displayName, setDisplayName] = useState("");
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [saving, setSaving] = useState(false);
