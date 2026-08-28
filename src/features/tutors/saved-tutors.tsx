@@ -40,6 +40,13 @@ async function fetchSavedTutorCount(tutorId: string): Promise<number> {
   return count ?? 0;
 }
 
+function formatSavedTutorCount(count: number) {
+  return new Intl.NumberFormat("en", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(count);
+}
+
 export async function fetchSavedTutors(userId: string): Promise<Tutor[]> {
   const [savedIds, tutors] = await Promise.all([
     fetchSavedTutorIds(userId),
@@ -162,8 +169,8 @@ export function TutorSaveButton({
           />
         </Button>
         {compact ? (
-          <span className="min-w-4 text-right text-sm font-bold leading-none text-[color:var(--ink)]">
-            {saveCount}
+          <span className="min-w-4 shrink-0 whitespace-nowrap text-right text-sm font-bold leading-none text-[color:var(--ink)]">
+            {formatSavedTutorCount(saveCount)}
           </span>
         ) : null}
       </div>
