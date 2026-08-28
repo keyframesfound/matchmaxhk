@@ -418,7 +418,7 @@ function TutorDetail() {
                     HK${t.hourly_rate}
                     <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
                   </p>
-                  <TutorSaveButton tutorId={t.id} />
+                  <TutorSaveButton tutorId={t.id} compact />
                 </div>
                 {waUrl ? (
                   <Button

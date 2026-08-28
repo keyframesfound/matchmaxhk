@@ -428,7 +428,7 @@ function Landing() {
                         onOpen={openTutorDetail}
                         footerAction={
                           <>
-                            <TutorSaveButton tutorId={tut.id} />
+                            <TutorSaveButton tutorId={tut.id} compact />
                             <Button
                               asChild
                               className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert)]"
