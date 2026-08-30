@@ -980,11 +980,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                 <TagInput
                   value={form.subjects}
                   onChange={(subjects) => setForm({ ...form, subjects })}
-                  suggestions={SUBJECT_OPTIONS.map((s) => ({
-                    value: s.name,
-                    label: s.name,
-                    category: s.category,
-                  }))}
+                  suggestions={SUBJECT_OPTIONS}
                   placeholder="Add subjects (e.g. IB Biology, Math HL)..."
                 />
               </FormField>
@@ -1088,14 +1084,8 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                               entry.subject,
                             );
                             const subjectSuggestions = currentSystem
-                              ? currentSystem.subjects.map((s) => ({
-                                  value: s.name,
-                                  label: s.name,
-                                }))
-                              : SUBJECT_OPTIONS.map((s) => ({
-                                  value: s.name,
-                                  label: s.name,
-                                }));
+                              ? currentSystem.subjects
+                              : SUBJECT_OPTIONS;
 
                             return (
                               <div
