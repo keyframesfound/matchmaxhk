@@ -318,7 +318,6 @@ function JoinPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isStepperPinned, setIsStepperPinned] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [showCaptcha, setShowCaptcha] = useState(false);
   const previousStepRef = useRef(currentStep);
   const captchaContainerRef = useRef<HTMLDivElement>(null);
   const captchaWidgetIdRef = useRef<string | null>(null);
@@ -370,7 +369,7 @@ function JoinPage() {
   }, [currentStep]);
 
   useEffect(() => {
-    if (!showCaptcha || !siteKey || !captchaContainerRef.current) return;
+    if (currentStep !== 4 || !siteKey || !captchaContainerRef.current) return;
 
     const renderWidget = () => {
       if (!window.turnstile || !captchaContainerRef.current || captchaWidgetIdRef.current) return;
@@ -399,7 +398,7 @@ function JoinPage() {
     newScript.addEventListener("load", renderWidget);
     document.head.appendChild(newScript);
     return () => newScript.removeEventListener("load", renderWidget);
-  }, [showCaptcha, siteKey]);
+  }, [currentStep, siteKey]);
 
   const set = (key: keyof FormState) => (value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -434,11 +433,13 @@ function JoinPage() {
     setFormError(null);
 
     if (!siteKey) {
-      setShowCaptcha(true);
+      setCurrentStep(4);
+      setFormError("Application verification is unavailable. Please try again later.");
       return;
     }
     if (!captchaToken) {
-      setShowCaptcha(true);
+      setCurrentStep(4);
+      setFormError("Please complete the security check before submitting.");
       return;
     }
 
@@ -491,7 +492,6 @@ function JoinPage() {
       );
     } finally {
       setSubmitting(false);
-      setShowCaptcha(false);
       if (captchaWidgetIdRef.current && window.turnstile) {
         setCaptchaToken(null);
         window.turnstile.reset(captchaWidgetIdRef.current);
@@ -870,6 +870,7 @@ function JoinPage() {
                         <p className="text-xs font-medium text-destructive">Please accept the privacy notice.</p>
                       ) : null}
                     </div>
+                    <div ref={captchaContainerRef} className="min-h-[65px] sm:col-span-2" />
                   </div>
                   {formError ? (
                     <p className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
@@ -882,47 +883,6 @@ function JoinPage() {
           </div>
         </section>
       </main>
-      {showCaptcha ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="turnstile-dialog-title"
-        >
-          <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-xl">
-            <h2 id="turnstile-dialog-title" className="text-lg font-bold text-foreground">
-              Verify your application
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Complete the security check to submit your tutor application.
-            </p>
-            {siteKey ? (
-              <div ref={captchaContainerRef} className="mt-5 min-h-[65px]" />
-            ) : (
-              <p className="mt-5 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-                Application verification is unavailable. Please try again later.
-              </p>
-            )}
-            <div className="mt-6 flex justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowCaptcha(false)}
-                disabled={submitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                onClick={() => void submitApplication()}
-                disabled={!siteKey || !captchaToken || submitting}
-              >
-                Submit application
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
       <SiteFooter />
     </div>
   );
