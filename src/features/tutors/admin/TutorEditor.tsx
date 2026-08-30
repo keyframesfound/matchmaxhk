@@ -897,7 +897,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                 label="Headline"
                 required
                 error={errors.headline}
-                hint="Concise 1-line specialty pitch"
+                hint="Concise 3-line highlight"
               >
                 <Input
                   value={form.headline}
