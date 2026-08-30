@@ -509,32 +509,12 @@ function TutorDetail() {
                 </ProfileSection>
               ) : null}
 
-              {examResults.length > 0 ||
-              subjectChips.length > 0 ||
-              t.ia_ee_tok_support.length > 0 ? (
+              {t.subjects.length > 0 || t.ia_ee_tok_support.length > 0 ? (
                 <ProfileSection icon={Layers} title="Subjects Taught">
                   <div className="text-left text-sm">
-                    {examResults.length > 0 ? (
-                      <ul className="space-y-2.5">
-                        {examResults.map((result, index) => {
-                          const { systemLabel, subjects } = getExamSystemSubjectSummary(result);
-                          const taughtSubjects = subjects.filter(Boolean);
-
-                          return (
-                            <li key={`${result.system}-${index}`} className="leading-relaxed">
-                              <span className="font-black text-[color:var(--ink)]">
-                                {systemLabel}:
-                              </span>{" "}
-                              <span className="text-muted-foreground">
-                                {taughtSubjects.join(", ")}
-                              </span>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    ) : subjectChips.length > 0 ? (
+                    {t.subjects.length > 0 ? (
                       <p className="font-bold leading-relaxed text-[color:var(--ink)]">
-                        {getTutorSubjectSentence(t)}
+                        {t.subjects.filter(Boolean).join(", ")}
                       </p>
                     ) : null}
                     {t.ia_ee_tok_support.length > 0 ? (

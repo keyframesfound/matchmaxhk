@@ -72,6 +72,17 @@ export function SearchableSelect({
     );
   }, [normalized, query]);
 
+  const customValue = query.trim();
+  const canUseCustomValue =
+    allowCustom &&
+    customValue.length > 0 &&
+    !normalized.some((option) => {
+      const candidate = `${option.label ?? ""} ${option.value}`
+        .trim()
+        .toLocaleLowerCase();
+      return candidate === customValue.toLocaleLowerCase();
+    });
+
   const updatePosition = () => {
     const rect = buttonRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -206,6 +217,22 @@ export function SearchableSelect({
                 ref={inputRef}
                 onMouseDown={(event) => event.stopPropagation()}
                 onPointerDown={(event) => event.stopPropagation()}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter" || !allowCustom || !customValue) return;
+
+                  const exactMatch = normalized.some((option) => {
+                    const candidate = `${option.label ?? ""} ${option.value}`
+                      .trim()
+                      .toLocaleLowerCase();
+                    return candidate === customValue.toLocaleLowerCase();
+                  });
+
+                  if (!exactMatch) {
+                    event.preventDefault();
+                    onChange(customValue);
+                    closeMenu();
+                  }
+                }}
                 aria-activedescendant={
                   focusedIndex >= 0
                     ? `${listboxId}-option-${filteredOptions[focusedIndex]?.value}`
@@ -343,13 +370,16 @@ export function SearchableSelect({
                       : { type: "spring", stiffness: 400, damping: 25, duration: 0.2 }
                   }
                 >
-                  {allowCustom && query.trim() ? (
+                  {canUseCustomValue ? (
                     <button
                       className="font-semibold text-[color:var(--ink)] underline decoration-[#1FA8B6]/50 underline-offset-4"
-                      onClick={() => onChange(query.trim())}
+                      onClick={() => {
+                        onChange(customValue);
+                        closeMenu();
+                      }}
                       type="button"
                     >
-                      Use “{query.trim()}”
+                      Use “{customValue}”
                     </button>
                   ) : (
                     emptyText
