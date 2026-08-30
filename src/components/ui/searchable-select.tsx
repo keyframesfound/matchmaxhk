@@ -167,12 +167,15 @@ export function SearchableSelect({
       {open ? (
         <motion.div
           ref={menuRef}
-          className="fixed z-50 origin-top overflow-hidden rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)]/[0.96] text-[color:var(--ink)] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.28)] backdrop-blur-xl"
+          onMouseDown={(event) => event.stopPropagation()}
+          onPointerDown={(event) => event.stopPropagation()}
+          className="fixed z-[9999] origin-top overflow-hidden rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)]/[0.96] text-[color:var(--ink)] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.28)] backdrop-blur-xl"
           style={{
             left: position.left,
             top: position.top,
             width: position.width,
             pointerEvents: "auto",
+            zIndex: 9999,
           }}
           initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scaleY: 0.8, y: -10 }}
           animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scaleY: 1, y: 0 }}
@@ -201,6 +204,8 @@ export function SearchableSelect({
               <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[color:var(--ink)]/45" />
               <input
                 ref={inputRef}
+                onMouseDown={(event) => event.stopPropagation()}
+                onPointerDown={(event) => event.stopPropagation()}
                 aria-activedescendant={
                   focusedIndex >= 0
                     ? `${listboxId}-option-${filteredOptions[focusedIndex]?.value}`
