@@ -22,6 +22,7 @@ interface TurnstileApi {
     },
   ) => string;
   reset: (widgetId: string) => void;
+  remove: (widgetId: string) => void;
 }
 
 declare global {
@@ -67,6 +68,7 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
   const captchaContainerRef = useRef<HTMLDivElement>(null);
   const captchaWidgetIdRef = useRef<string | null>(null);
   const siteKey = import.meta.env.VITE_TURNSTILE_SITEKEY;
@@ -83,9 +85,15 @@ function AuthPage() {
       captchaWidgetIdRef.current = window.turnstile.render(captchaContainerRef.current, {
         sitekey: siteKey,
         action: "auth",
-        callback: setCaptchaToken,
+        callback: (token) => {
+          setCaptchaError(null);
+          setCaptchaToken(token);
+        },
         "expired-callback": () => setCaptchaToken(null),
-        "error-callback": () => setCaptchaToken(null),
+        "error-callback": (errorCode: string) => {
+          setCaptchaToken(null);
+          setCaptchaError(`Security check unavailable (${errorCode}).`);
+        },
       });
     };
 
@@ -97,6 +105,9 @@ function AuthPage() {
       renderWidget();
       return () => {
         script.removeEventListener("load", renderWidget);
+        if (captchaWidgetIdRef.current && window.turnstile) {
+          window.turnstile.remove(captchaWidgetIdRef.current);
+        }
         captchaWidgetIdRef.current = null;
       };
     }
@@ -106,9 +117,15 @@ function AuthPage() {
     newScript.async = true;
     newScript.defer = true;
     newScript.addEventListener("load", renderWidget);
+    newScript.addEventListener("error", () => {
+      setCaptchaError("Security check could not be loaded.");
+    });
     document.head.appendChild(newScript);
     return () => {
       newScript.removeEventListener("load", renderWidget);
+      if (captchaWidgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(captchaWidgetIdRef.current);
+      }
       captchaWidgetIdRef.current = null;
     };
   }, [siteKey]);
@@ -164,17 +181,12 @@ function AuthPage() {
   // under Authentication -> Providers in your Supabase project dashboard, with a
   // Google OAuth client ID/secret set there.
   async function onOAuth(provider: "google") {
-    if (!captchaToken) {
-      toast.error("Please complete the security check.");
-      return;
-    }
     setBusy(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
-          captchaToken,
         },
       });
       if (error) throw error;
@@ -183,7 +195,6 @@ function AuthPage() {
       toast.error(msg);
     } finally {
       setBusy(false);
-      resetCaptcha();
     }
   }
 
@@ -207,7 +218,7 @@ function AuthPage() {
                 variant="outline"
                 className="h-11 w-full font-bold"
                 onClick={() => onOAuth("google")}
-                disabled={busy || !captchaToken}
+                disabled={busy}
               >
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden>
                   <path
@@ -280,6 +291,7 @@ function AuthPage() {
                 className="min-h-[65px]"
                 aria-label="Security check"
               />
+              {captchaError ? <p className="text-sm text-destructive">{captchaError}</p> : null}
               <Button
                 type="submit"
                 disabled={busy || !captchaToken}
