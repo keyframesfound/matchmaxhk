@@ -294,6 +294,7 @@ function ModernPhotoUpload({
   } = useQuery({
     queryKey: ["admin", "r2", "tutor-images"],
     queryFn: () => listImagesFn({ data: { limit: 40 } }) as Promise<R2TutorImage[]>,
+    enabled: showGallery,
   });
 
   const upload = useMutation({

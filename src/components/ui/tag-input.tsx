@@ -1,4 +1,4 @@
-import { Plus, X } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -6,14 +6,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 
 export type TagOption = {
   value: string;
@@ -53,7 +45,9 @@ export function TagInput({
   const normalizedSuggestions = React.useMemo<TagOption[]>(
     () =>
       suggestions.map((item) =>
-        typeof item === "string" ? { value: item, label: item } : { value: item.value, label: item.label ?? item.value, category: item.category },
+        typeof item === "string"
+          ? { value: item, label: item }
+          : { value: item.value, label: item.label ?? item.value, category: item.category },
       ),
     [suggestions],
   );
@@ -62,6 +56,17 @@ export function TagInput({
     () => normalizedSuggestions.filter((item) => !value.includes(item.value)),
     [normalizedSuggestions, value],
   );
+
+  const filteredSuggestions = React.useMemo(() => {
+    const q = inputValue.trim().toLowerCase();
+    if (!q) return availableSuggestions;
+    return availableSuggestions.filter(
+      (opt) =>
+        (opt.label ?? "").toLowerCase().includes(q) ||
+        (opt.value ?? "").toLowerCase().includes(q) ||
+        (opt.category ?? "").toLowerCase().includes(q),
+    );
+  }, [availableSuggestions, inputValue]);
 
   const addTag = React.useCallback(
     (tag: string) => {
@@ -170,80 +175,44 @@ export function TagInput({
           className="w-(--radix-popover-trigger-width) min-w-[240px] p-0 shadow-[0_20px_45px_-18px_rgba(4,19,68,0.25)] backdrop-blur-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] text-[color:var(--ink)] z-[9999]"
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
-          <Command
-            shouldFilter={true}
-            filter={(itemValue, search) => {
-              if (!search) return 1;
-              const searchLower = search.toLowerCase();
-              const option = availableSuggestions.find((o) => o.value === itemValue);
-              if (!option) {
-                return itemValue.toLowerCase().includes(searchLower) ? 1 : 0;
-              }
-              const matchString = `${option.label ?? ""} ${option.value} ${option.category ?? ""}`.toLowerCase();
-              return matchString.includes(searchLower) ? 1 : 0;
-            }}
-          >
-            <CommandInput
-              placeholder={searchPlaceholder}
-              value={inputValue}
-              onValueChange={setInputValue}
-              className="h-9 text-xs"
-            />
-            <CommandList className="max-h-56 overflow-y-auto p-1">
-              <CommandEmpty className="py-3 text-center text-xs text-[color:var(--ink)]/60">
-                {canAddCustom ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      addTag(trimmedInput);
-                    }}
-                    className="inline-flex items-center gap-1 font-semibold text-[#1FA8B6] hover:underline"
-                  >
-                    <Plus className="h-3.5 w-3.5" /> Add &ldquo;{trimmedInput}&rdquo;
-                  </button>
-                ) : (
-                  emptyText
+          <div className="max-h-56 overflow-y-auto p-1 text-xs">
+            {filteredSuggestions.length === 0 && !canAddCustom && (
+              <div className="py-3 text-center text-xs text-muted-foreground">{emptyText}</div>
+            )}
+
+            {filteredSuggestions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  addTag(option.value);
+                }}
+                className="flex w-full cursor-pointer items-center justify-between rounded-md px-2.5 py-1.5 text-xs font-medium text-[color:var(--ink)] transition-colors hover:bg-[#77E8EE]/20 text-left"
+              >
+                <span>{option.label}</span>
+                {option.category && (
+                  <span className="text-[10px] text-muted-foreground font-normal">
+                    {option.category}
+                  </span>
                 )}
-              </CommandEmpty>
+              </button>
+            ))}
 
-              {availableSuggestions.length > 0 && (
-                <CommandGroup heading="Suggestions">
-                  {availableSuggestions.map((option) => (
-                    <CommandItem
-                      key={option.value}
-                      value={option.value}
-                      onSelect={() => {
-                        addTag(option.value);
-                      }}
-                      className="flex cursor-pointer items-center justify-between rounded-md px-2.5 py-1.5 text-xs font-medium text-[color:var(--ink)] transition-colors hover:bg-[#77E8EE]/20 aria-selected:bg-[#77E8EE]/25"
-                    >
-                      <span>{option.label}</span>
-                      {option.category && (
-                        <span className="text-[10px] text-muted-foreground font-normal">
-                          {option.category}
-                        </span>
-                      )}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
-
-              {canAddCustom && (
-                <div className="border-t border-[color:var(--ink)]/10 pt-1 pb-0.5 px-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      addTag(trimmedInput);
-                    }}
-                    className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-xs font-semibold text-[#1FA8B6] hover:bg-[#77E8EE]/20 text-left"
-                  >
-                    <span>Create &ldquo;{trimmedInput}&rdquo;</span>
-                    <Plus className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              )}
-            </CommandList>
-          </Command>
+            {canAddCustom && (
+              <div className="border-t border-[color:var(--ink)]/10 mt-1 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    addTag(trimmedInput);
+                  }}
+                  className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-xs font-semibold text-[#1FA8B6] hover:bg-[#77E8EE]/20 text-left"
+                >
+                  <span>Add &ldquo;{trimmedInput}&rdquo;</span>
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
         </PopoverContent>
       </Popover>
     </div>
