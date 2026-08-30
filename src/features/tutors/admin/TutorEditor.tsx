@@ -908,9 +908,9 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
-                  label="University / Institution"
+                  label="Academic Headline"
                   error={errors.university}
-                  hint="Current or graduated"
+                  hint="IBDP 45 / 45 | AP"
                 >
                   <Input
                     value={form.university}
