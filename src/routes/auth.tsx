@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -9,6 +9,26 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
+
+interface TurnstileApi {
+  render: (
+    container: HTMLElement,
+    options: {
+      sitekey: string;
+      action: string;
+      callback: (token: string) => void;
+      "expired-callback": () => void;
+      "error-callback": () => void;
+    },
+  ) => string;
+  reset: (widgetId: string) => void;
+}
+
+declare global {
+  interface Window {
+    turnstile?: TurnstileApi;
+  }
+}
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): { mode?: "sign_in" | "sign_up" } =>
@@ -46,17 +66,74 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaContainerRef = useRef<HTMLDivElement>(null);
+  const captchaWidgetIdRef = useRef<string | null>(null);
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITEKEY;
 
   useEffect(() => {
     if (user) navigate({ to: "/dashboard", replace: true });
   }, [user, navigate]);
 
+  useEffect(() => {
+    if (!siteKey || !captchaContainerRef.current) return;
+
+    const renderWidget = () => {
+      if (!window.turnstile || !captchaContainerRef.current || captchaWidgetIdRef.current) return;
+      captchaWidgetIdRef.current = window.turnstile.render(captchaContainerRef.current, {
+        sitekey: siteKey,
+        action: "auth",
+        callback: setCaptchaToken,
+        "expired-callback": () => setCaptchaToken(null),
+        "error-callback": () => setCaptchaToken(null),
+      });
+    };
+
+    const scriptSelector =
+      'script[src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"]';
+    const script = document.querySelector<HTMLScriptElement>(scriptSelector);
+    if (script) {
+      script.addEventListener("load", renderWidget);
+      renderWidget();
+      return () => {
+        script.removeEventListener("load", renderWidget);
+        captchaWidgetIdRef.current = null;
+      };
+    }
+
+    const newScript = document.createElement("script");
+    newScript.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    newScript.async = true;
+    newScript.defer = true;
+    newScript.addEventListener("load", renderWidget);
+    document.head.appendChild(newScript);
+    return () => {
+      newScript.removeEventListener("load", renderWidget);
+      captchaWidgetIdRef.current = null;
+    };
+  }, [siteKey]);
+
+  function resetCaptcha() {
+    setCaptchaToken(null);
+    if (captchaWidgetIdRef.current && window.turnstile) {
+      window.turnstile.reset(captchaWidgetIdRef.current);
+    }
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!captchaToken) {
+      toast.error("Please complete the security check.");
+      return;
+    }
     setBusy(true);
     try {
       if (mode === "sign_in") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+          captchaToken,
+        });
         if (error) throw error;
         toast.success("Welcome back to MatchMax.");
         router.navigate({ to: "/dashboard", replace: true });
@@ -67,6 +144,7 @@ function AuthPage() {
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
             data: { display_name: name },
+            captchaToken,
           },
         });
         if (error) throw error;
@@ -77,6 +155,7 @@ function AuthPage() {
       toast.error(msg);
     } finally {
       setBusy(false);
+      resetCaptcha();
     }
   }
 
@@ -85,21 +164,26 @@ function AuthPage() {
   // under Authentication -> Providers in your Supabase project dashboard, with a
   // Google OAuth client ID/secret set there.
   async function onOAuth(provider: "google") {
+    if (!captchaToken) {
+      toast.error("Please complete the security check.");
+      return;
+    }
     setBusy(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
+          captchaToken,
         },
       });
       if (error) throw error;
-      // Supabase redirects the browser to the provider immediately, so we
-      // never actually reach the code below in normal operation.
     } catch (err) {
       const msg = err instanceof Error ? err.message : `${provider} sign-in failed`;
       toast.error(msg);
+    } finally {
       setBusy(false);
+      resetCaptcha();
     }
   }
 
@@ -123,7 +207,7 @@ function AuthPage() {
                 variant="outline"
                 className="h-11 w-full font-bold"
                 onClick={() => onOAuth("google")}
-                disabled={busy}
+                disabled={busy || !captchaToken}
               >
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden>
                   <path
@@ -191,9 +275,14 @@ function AuthPage() {
                   autoComplete={mode === "sign_in" ? "current-password" : "new-password"}
                 />
               </div>
+              <div
+                ref={captchaContainerRef}
+                className="min-h-[65px]"
+                aria-label="Security check"
+              />
               <Button
                 type="submit"
-                disabled={busy}
+                disabled={busy || !captchaToken}
                 className="h-11 w-full bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
               >
                 {busy ? t("auth.signing_in") : t("auth.continue")}

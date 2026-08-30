@@ -317,7 +317,12 @@ function JoinPage() {
   const [done, setDone] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isStepperPinned, setIsStepperPinned] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [showCaptcha, setShowCaptcha] = useState(false);
   const previousStepRef = useRef(currentStep);
+  const captchaContainerRef = useRef<HTMLDivElement>(null);
+  const captchaWidgetIdRef = useRef<string | null>(null);
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITEKEY;
 
   useEffect(() => {
     const updateStickyState = () => {
@@ -364,6 +369,38 @@ function JoinPage() {
     };
   }, [currentStep]);
 
+  useEffect(() => {
+    if (!showCaptcha || !siteKey || !captchaContainerRef.current) return;
+
+    const renderWidget = () => {
+      if (!window.turnstile || !captchaContainerRef.current || captchaWidgetIdRef.current) return;
+      captchaWidgetIdRef.current = window.turnstile.render(captchaContainerRef.current, {
+        sitekey: siteKey,
+        action: "tutor_application",
+        callback: setCaptchaToken,
+        "expired-callback": () => setCaptchaToken(null),
+        "error-callback": () => setCaptchaToken(null),
+      });
+    };
+
+    const scriptSelector =
+      'script[src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"]';
+    const script = document.querySelector<HTMLScriptElement>(scriptSelector);
+    if (script) {
+      script.addEventListener("load", renderWidget);
+      renderWidget();
+      return () => script.removeEventListener("load", renderWidget);
+    }
+
+    const newScript = document.createElement("script");
+    newScript.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    newScript.async = true;
+    newScript.defer = true;
+    newScript.addEventListener("load", renderWidget);
+    document.head.appendChild(newScript);
+    return () => newScript.removeEventListener("load", renderWidget);
+  }, [showCaptcha, siteKey]);
+
   const set = (key: keyof FormState) => (value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -396,6 +433,15 @@ function JoinPage() {
   async function submitApplication() {
     setFormError(null);
 
+    if (!siteKey) {
+      setShowCaptcha(true);
+      return;
+    }
+    if (!captchaToken) {
+      setShowCaptcha(true);
+      return;
+    }
+
     const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
     if (totalBytes > MAX_TOTAL_BYTES) {
       setErrors((prev) => ({ ...prev, attachments: "Attachments exceed 20 MB in total." }));
@@ -415,6 +461,7 @@ function JoinPage() {
 
       const parsed = tutorApplicationSchema.safeParse({
         ...form,
+        turnstileToken: captchaToken,
         commissionAck,
         privacyAck,
         attachments,
@@ -444,6 +491,11 @@ function JoinPage() {
       );
     } finally {
       setSubmitting(false);
+      setShowCaptcha(false);
+      if (captchaWidgetIdRef.current && window.turnstile) {
+        setCaptchaToken(null);
+        window.turnstile.reset(captchaWidgetIdRef.current);
+      }
     }
   }
 
@@ -830,6 +882,47 @@ function JoinPage() {
           </div>
         </section>
       </main>
+      {showCaptcha ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="turnstile-dialog-title"
+        >
+          <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-xl">
+            <h2 id="turnstile-dialog-title" className="text-lg font-bold text-foreground">
+              Verify your application
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Complete the security check to submit your tutor application.
+            </p>
+            {siteKey ? (
+              <div ref={captchaContainerRef} className="mt-5 min-h-[65px]" />
+            ) : (
+              <p className="mt-5 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                Application verification is unavailable. Please try again later.
+              </p>
+            )}
+            <div className="mt-6 flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowCaptcha(false)}
+                disabled={submitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => void submitApplication()}
+                disabled={!siteKey || !captchaToken || submitting}
+              >
+                Submit application
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       <SiteFooter />
     </div>
   );

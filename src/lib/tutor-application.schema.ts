@@ -32,6 +32,7 @@ export const attachmentSchema = z.object({
 });
 
 export const tutorApplicationSchema = z.object({
+  turnstileToken: z.string().trim().min(1, "Complete the security check").max(2048),
   name: z.string().trim().min(1, "Required").max(120),
   phone: z.string().trim().min(5, "Required").max(60),
   email: z.string().trim().email("Enter a valid email"),
