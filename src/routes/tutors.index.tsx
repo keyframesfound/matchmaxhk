@@ -308,7 +308,14 @@ function TutorsDirectory() {
                     asChild
                     className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                   >
-                    <Link to="/auth">Request a tutor</Link>
+                    <a
+                      href={buildTutorWhatsAppUrl(whatsappNumber, "")}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      Request a tutor
+                    </a>
                   </Button>
                 </div>
               </div>

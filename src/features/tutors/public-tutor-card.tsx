@@ -1,5 +1,5 @@
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Award, ChevronDown, ChevronUp, UserRound } from "lucide-react";
+import { Award, UserRound } from "lucide-react";
 import { getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
 import {
   formatTutorCode,
@@ -75,6 +75,7 @@ export function PublicTutorCard({
   const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
   const [hasMoreAcademicChips, setHasMoreAcademicChips] = useState(false);
   const [academicPreviewHeight, setAcademicPreviewHeight] = useState<number | null>(null);
+  const [academicExpandedHeight, setAcademicExpandedHeight] = useState<number | null>(null);
   const genderLabel = getTutorGenderLabel(tutor.gender);
   const primaryCredential = removeEmoji(
     tutor.university ?? tutor.highschool ?? "Academic profile verified",
@@ -99,6 +100,7 @@ export function PublicTutorCard({
       if (rowOffsets.length <= 2) {
         setHasMoreAcademicChips(false);
         setAcademicPreviewHeight(null);
+        setAcademicExpandedHeight(null);
         return;
       }
 
@@ -111,6 +113,7 @@ export function PublicTutorCard({
 
       setHasMoreAcademicChips(true);
       setAcademicPreviewHeight(secondRowBottom);
+      setAcademicExpandedHeight(container.scrollHeight || secondRowBottom);
     };
 
     const frame = window.requestAnimationFrame(measureAcademicPreview);
@@ -212,10 +215,14 @@ export function PublicTutorCard({
               <div
                 id={`academic-achievements-${tutor.tutor_code}`}
                 ref={academicChipsRef}
-                className="flex flex-wrap items-start gap-2 overflow-hidden"
+                className="flex flex-wrap items-start gap-2 overflow-hidden transition-[max-height,opacity] duration-300 ease-out"
                 style={
-                  !areAcademicChipsExpanded && academicPreviewHeight
-                    ? { maxHeight: academicPreviewHeight + 2 }
+                  academicPreviewHeight
+                    ? {
+                        maxHeight: areAcademicChipsExpanded
+                          ? `${academicExpandedHeight ?? academicPreviewHeight + 2}px`
+                          : `${academicPreviewHeight + 2}px`,
+                      }
                     : undefined
                 }
               >
@@ -223,32 +230,18 @@ export function PublicTutorCard({
                   <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
                 ))}
               </div>
-              {hasMoreAcademicChips ? (
+              {!areAcademicChipsExpanded && hasMoreAcademicChips ? (
                 <button
                   type="button"
-                  aria-expanded={areAcademicChipsExpanded}
+                  aria-expanded={false}
                   aria-controls={`academic-achievements-${tutor.tutor_code}`}
                   onClick={toggleAcademicChips}
                   onKeyDown={(event) => event.stopPropagation()}
-                  className={cn(
-                    "flex w-full items-center justify-center py-1.5 text-[10px] font-bold text-[color:var(--ink)] transition-colors md:text-[11px]",
-                    areAcademicChipsExpanded
-                      ? "mt-1 bg-transparent hover:bg-[color:var(--brand-teal)]/8"
-                      : "absolute -inset-x-1 bottom-0 h-9 rounded-b-[10px] bg-gradient-to-b from-transparent via-[color:var(--surface)]/70 to-[color:var(--surface)] hover:via-[color:var(--surface)]/85",
-                  )}
+                  className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-[color:var(--surface)] via-[color:var(--surface)]/80 to-transparent pb-1 pt-6"
                 >
-                  <span
-                    className={cn(
-                      "flex items-center gap-1",
-                      !areAcademicChipsExpanded && "translate-y-0.5",
-                    )}
-                  >
-                    {areAcademicChipsExpanded ? "Hide" : "Show"}
-                    {areAcademicChipsExpanded ? (
-                      <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
-                    ) : (
-                      <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
-                    )}
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--surface)]/95 px-2.5 py-1 text-[10px] font-black tracking-[0.02em] text-[color:var(--ink)] shadow-[0_8px_18px_rgba(4,19,68,0.10)] backdrop-blur-sm md:text-[11px]">
+                    <span className="text-base leading-none">...</span>
+                    <span>more</span>
                   </span>
                 </button>
               ) : null}
