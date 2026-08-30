@@ -4,11 +4,17 @@ import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import {
+  Users,
+  Search,
+  UserPlus,
+  RefreshCw,
+  Shield,
+  X,
+} from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -17,18 +23,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, type AppRole } from "@/features/auth/useAuth";
 import { deleteUserAccount } from "@/lib/cases.functions";
+import { provisionUserAccount } from "@/lib/account.functions";
+import { ROLE_DISPLAY_NAMES } from "@/features/auth/roleLabel";
+
+import { UserStatsOverview, type UserRow } from "@/features/admin-users/UserStatsOverview";
+import { UsersTable } from "@/features/admin-users/UsersTable";
+import { RolesMatrixTab } from "@/features/admin-users/RolesMatrixTab";
+import { RoleManagementDialog } from "@/features/admin-users/RoleManagementDialog";
+import { InviteUserDialog } from "@/features/admin-users/InviteUserDialog";
+import { DeleteUserAlertDialog } from "@/features/admin-users/DeleteUserAlertDialog";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({
     meta: [
-      { title: "Users & roles — MatchMax admin" },
+      { title: "User Directory & Access Control — MatchMax Admin" },
       {
         name: "description",
         content:
-          "Grant or revoke MatchMax user roles — manage admins, staff, tutors, and parent accounts across the platform.",
+          "Manage platform users, provision new accounts, and grant or revoke security roles across MatchMax.",
       },
       { property: "og:url", content: "https://matchmax.hk/admin/users" },
       { name: "robots", content: "noindex" },
@@ -38,23 +54,25 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
   component: AdminUsers,
 });
 
-const ROLES: AppRole[] = ["super_admin", "admin", "staff", "tutor", "parent"];
-
-type Row = {
-  user_id: string;
-  display_name: string | null;
-  email: string | null;
-  roles: AppRole[];
-};
-
 function AdminUsers() {
   const { t } = useTranslation();
   const { hasAnyRole, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
   const deleteFn = useServerFn(deleteUserAccount);
+  const provisionFn = useServerFn(provisionUserAccount);
+
+  // Filter & Search states
   const [search, setSearch] = useState("");
-  const [addRole, setAddRole] = useState<Record<string, AppRole>>({});
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name">("newest");
+  const [activeTab, setActiveTab] = useState<"users" | "roles">("users");
+
+  // Dialog States
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [roleUser, setRoleUser] = useState<UserRow | null>(null);
+  const [deleteUser, setDeleteUser] = useState<UserRow | null>(null);
 
   useEffect(() => {
     if (!loading && !hasAnyRole(["admin", "super_admin"])) {
@@ -62,65 +80,100 @@ function AdminUsers() {
     }
   }, [loading, hasAnyRole, navigate]);
 
-  const { data: rows = [], isLoading } = useQuery({
+  // Fetch Users & Roles
+  const {
+    data: rows = [],
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useQuery({
     queryKey: ["admin", "users"],
-    queryFn: async (): Promise<Row[]> => {
+    queryFn: async (): Promise<UserRow[]> => {
       const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
         supabase
           .from("profiles")
-          .select("id, display_name, email")
+          .select("id, display_name, email, created_at")
           .order("created_at", { ascending: false }),
         supabase.from("user_roles").select("user_id, role"),
       ]);
+
       if (pErr) throw pErr;
       if (rErr) throw rErr;
+
       const byUser = new Map<string, AppRole[]>();
       (roles ?? []).forEach((r: { user_id: string; role: AppRole }) => {
         const arr = byUser.get(r.user_id) ?? [];
         arr.push(r.role);
         byUser.set(r.user_id, arr);
       });
+
       return (profiles ?? []).map((p) => ({
         user_id: p.id,
         display_name: p.display_name,
         email: p.email,
+        created_at: p.created_at,
         roles: byUser.get(p.id) ?? [],
       }));
     },
   });
 
-  const filtered = useMemo(() => {
+  // Filter & Sort Logic
+  const filteredUsers = useMemo(() => {
+    let result = [...rows];
     const q = search.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(
-      (r) => r.email?.toLowerCase().includes(q) || r.display_name?.toLowerCase().includes(q),
-    );
-  }, [rows, search]);
 
-  const grant = useMutation({
+    if (q) {
+      result = result.filter(
+        (r) =>
+          r.email?.toLowerCase().includes(q) ||
+          r.display_name?.toLowerCase().includes(q) ||
+          r.user_id.toLowerCase().includes(q),
+      );
+    }
+
+    if (roleFilter !== "all") {
+      result = result.filter((r) => r.roles.includes(roleFilter as AppRole));
+    }
+
+    if (sortBy === "name") {
+      result.sort((a, b) =>
+        (a.display_name ?? a.email ?? "").localeCompare(b.display_name ?? b.email ?? ""),
+      );
+    } else if (sortBy === "oldest") {
+      result.sort(
+        (a, b) =>
+          new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime(),
+      );
+    } else {
+      // newest
+      result.sort(
+        (a, b) =>
+          new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime(),
+      );
+    }
+
+    return result;
+  }, [rows, search, roleFilter, sortBy]);
+
+  // Mutations
+  const grantMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
       const { error } = await supabase.from("user_roles").insert({ user_id: userId, role });
       if (error) throw error;
     },
-    onSuccess: () => {
-      toast.success("Role granted");
+    onSuccess: (_, variables) => {
+      toast.success("Role granted successfully");
       queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      if (roleUser && roleUser.user_id === variables.userId) {
+        setRoleUser((prev) =>
+          prev ? { ...prev, roles: [...prev.roles, variables.role] } : null,
+        );
+      }
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(`Failed to grant role: ${e.message}`),
   });
 
-  const deleteAccount = useMutation({
-    mutationFn: async (userId: string) => {
-      return deleteFn({ data: { userId } });
-    },
-    onSuccess: () => {
-      toast.success("Account deleted");
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const revoke = useMutation({
+  const revokeMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
       const { error } = await supabase
         .from("user_roles")
@@ -129,147 +182,225 @@ function AdminUsers() {
         .eq("role", role);
       if (error) throw error;
     },
-    onSuccess: () => {
-      toast.success("Role revoked");
+    onSuccess: (_, variables) => {
+      toast.success("Role revoked successfully");
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      if (roleUser && roleUser.user_id === variables.userId) {
+        setRoleUser((prev) =>
+          prev ? { ...prev, roles: prev.roles.filter((r) => r !== variables.role) } : null,
+        );
+      }
+    },
+    onError: (e: Error) => toast.error(`Failed to revoke role: ${e.message}`),
+  });
+
+  const provisionMutation = useMutation({
+    mutationFn: async (data: {
+      email: string;
+      displayName?: string;
+      password?: string;
+      role: AppRole;
+    }) => {
+      return provisionFn({ data });
+    },
+    onSuccess: (res) => {
+      toast.success(`Account created for ${res.email}`);
       queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteAccountMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      return deleteFn({ data: { userId } });
+    },
+    onSuccess: () => {
+      toast.success("Account permanently deleted");
+      setDeleteUser(null);
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const hasActiveFilters = search.trim() !== "" || roleFilter !== "all" || sortBy !== "newest";
+
+  const clearFilters = () => {
+    setSearch("");
+    setRoleFilter("all");
+    setSortBy("newest");
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
-          <h1 className="text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
-            {t("admin.users_title")}
-          </h1>
-          <p className="mt-2 text-muted-foreground">{t("admin.users_subtitle")}</p>
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 space-y-8">
+          {/* Top Page Header */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-border/60">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-3xl font-black tracking-tight text-[color:var(--ink)] sm:text-4xl">
+                  User Directory & Access
+                </h1>
+                <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-bold text-[color:var(--ink)]">
+                  {rows.length} {rows.length === 1 ? "User" : "Users"}
+                </span>
+              </div>
+              <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+                Manage account access, assign platform security roles, and provision new user profiles.
+              </p>
+            </div>
 
-          <div className="mt-8">
-            <Input
-              placeholder={t("admin.search_placeholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="max-w-md"
-            />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetch()}
+                disabled={isRefetching}
+                className="h-9 gap-1.5 font-bold text-xs"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isRefetching ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setIsInviteOpen(true)}
+                className="h-9 gap-1.5 bg-[color:var(--surface-invert)] font-bold text-xs text-white hover:bg-[color:var(--surface-invert-hover)]"
+              >
+                <UserPlus className="h-4 w-4" />
+                Invite User
+              </Button>
+            </div>
           </div>
 
-          <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">{t("admin.name")}</th>
-                  <th className="px-4 py-3">{t("admin.email")}</th>
-                  <th className="px-4 py-3">{t("admin.roles")}</th>
-                  <th className="px-4 py-3 text-right">{t("admin.actions")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading &&
-                  Array.from({ length: 6 }).map((_, index) => (
-                    <tr key={index} className="border-t border-border">
-                      <td className="px-4 py-4">
-                        <Skeleton className="h-4 w-28" />
-                      </td>
-                      <td className="px-4 py-4">
-                        <Skeleton className="h-4 w-44" />
-                      </td>
-                      <td className="px-4 py-4">
-                        <Skeleton className="h-5 w-24 rounded-full" />
-                      </td>
-                      <td className="px-4 py-4">
-                        <Skeleton className="ml-auto h-9 w-36" />
-                      </td>
-                    </tr>
-                  ))}
-                {!isLoading && filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                      {t("admin.no_users")}
-                    </td>
-                  </tr>
-                )}
-                {filtered.map((row) => (
-                  <tr key={row.user_id} className="border-t border-border align-top">
-                    <td className="px-4 py-4 font-semibold">{row.display_name ?? "—"}</td>
-                    <td className="px-4 py-4 text-muted-foreground">{row.email ?? "—"}</td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-wrap gap-1.5">
-                        {row.roles.length === 0 && (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                        {row.roles.map((r) => (
-                          <span
-                            key={r}
-                            className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-[11px] font-bold text-[color:var(--brand-teal)]"
-                          >
-                            {r.replace("_", " ")}
-                            <button
-                              className="opacity-70 hover:opacity-100"
-                              onClick={() => revoke.mutate({ userId: row.user_id, role: r })}
-                              aria-label={`Revoke ${r}`}
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <Select
-                          value={addRole[row.user_id] ?? ""}
-                          onValueChange={(v) =>
-                            setAddRole((s) => ({ ...s, [row.user_id]: v as AppRole }))
-                          }
-                        >
-                          <SelectTrigger className="h-9 w-[140px]">
-                            <SelectValue placeholder={t("admin.select_role")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ROLES.filter((r) => !row.roles.includes(r)).map((r) => (
-                              <SelectItem key={r} value={r}>
-                                {r.replace("_", " ")}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          size="sm"
-                          className="h-9 bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                          disabled={!addRole[row.user_id]}
-                          onClick={() => {
-                            const r = addRole[row.user_id];
-                            if (!r) return;
-                            grant.mutate({ userId: row.user_id, role: r });
-                            setAddRole((s) => ({ ...s, [row.user_id]: "" as AppRole }));
-                          }}
-                        >
-                          {t("admin.grant")}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="h-9 font-bold"
-                          onClick={() => {
-                            const confirmed = window.confirm(
-                              "Delete this account? This will remove the user, their tutor profile, and their roles.",
-                            );
-                            if (!confirmed) return;
-                            deleteAccount.mutate(row.user_id);
-                          }}
-                          disabled={deleteAccount.isPending}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* Cloudflare KPI Overview Cards */}
+          <UserStatsOverview users={rows} isLoading={isLoading} />
+
+          {/* Main Tabs Container */}
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "users" | "roles")}>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-3">
+              <TabsList className="bg-muted/60 p-1">
+                <TabsTrigger value="users" className="gap-2 text-xs font-bold">
+                  <Users className="h-3.5 w-3.5" />
+                  All Users ({filteredUsers.length})
+                </TabsTrigger>
+                <TabsTrigger value="roles" className="gap-2 text-xs font-bold">
+                  <Shield className="h-3.5 w-3.5" />
+                  Roles & Matrix
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* ALL USERS TAB CONTENT */}
+            <TabsContent value="users" className="mt-6 space-y-4 focus-visible:outline-none">
+              {/* Filter Controls Bar */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border/70 bg-card p-3 shadow-xs">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by display name, email, or ID..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9 h-9 text-xs"
+                  />
+                  {search && (
+                    <button
+                      onClick={() => setSearch("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[color:var(--ink)]"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger className="h-9 w-[150px] text-xs font-semibold">
+                      <SelectValue placeholder="Filter by Role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Roles</SelectItem>
+                      {(["super_admin", "admin", "staff", "tutor", "parent"] as AppRole[]).map(
+                        (role) => (
+                          <SelectItem key={role} value={role}>
+                            {ROLE_DISPLAY_NAMES[role]}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                    <SelectTrigger className="h-9 w-[140px] text-xs font-semibold">
+                      <SelectValue placeholder="Sort Order" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="newest">Newest First</SelectItem>
+                      <SelectItem value="oldest">Oldest First</SelectItem>
+                      <SelectItem value="name">Name A-Z</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {hasActiveFilters && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="h-9 text-xs font-semibold text-muted-foreground hover:text-[color:var(--ink)]"
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Data Table */}
+              <UsersTable
+                users={filteredUsers}
+                isLoading={isLoading}
+                onManageRoles={(user) => setRoleUser(user)}
+                onDeleteUser={(user) => setDeleteUser(user)}
+              />
+            </TabsContent>
+
+            {/* ROLES MATRIX TAB CONTENT */}
+            <TabsContent value="roles" className="mt-6 focus-visible:outline-none">
+              <RolesMatrixTab users={rows} />
+            </TabsContent>
+          </Tabs>
+
+          {/* Dialogs */}
+          <RoleManagementDialog
+            user={roleUser}
+            open={!!roleUser}
+            onOpenChange={(open) => !open && setRoleUser(null)}
+            onGrantRole={async (userId, role) => {
+              await grantMutation.mutateAsync({ userId, role });
+            }}
+            onRevokeRole={async (userId, role) => {
+              await revokeMutation.mutateAsync({ userId, role });
+            }}
+            isMutating={grantMutation.isPending || revokeMutation.isPending}
+          />
+
+          <InviteUserDialog
+            open={isInviteOpen}
+            onOpenChange={setIsInviteOpen}
+            onProvision={async (data) => {
+              await provisionMutation.mutateAsync(data);
+            }}
+            isPending={provisionMutation.isPending}
+          />
+
+          <DeleteUserAlertDialog
+            user={deleteUser}
+            open={!!deleteUser}
+            onOpenChange={(open) => !open && setDeleteUser(null)}
+            onConfirmDelete={async (userId) => {
+              await deleteAccountMutation.mutateAsync(userId);
+            }}
+            isDeleting={deleteAccountMutation.isPending}
+          />
         </div>
       </main>
       <SiteFooter />
