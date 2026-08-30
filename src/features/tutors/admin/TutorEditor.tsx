@@ -750,30 +750,6 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
     });
   };
 
-  // Achievements Builder
-  const addAchievement = () => {
-    if (form.achievements.length >= MAX_TUTOR_ACHIEVEMENTS) return;
-    setForm((prev) => ({
-      ...prev,
-      achievements: [...prev.achievements, { short_text: "", detail_text: "" }],
-    }));
-  };
-
-  const updateAchievement = (index: number, patch: Partial<TutorAchievement>) => {
-    setForm((prev) => {
-      const copy = [...prev.achievements];
-      copy[index] = { ...copy[index], ...patch };
-      return { ...prev, achievements: copy };
-    });
-  };
-
-  const removeAchievement = (index: number) => {
-    setForm((prev) => ({
-      ...prev,
-      achievements: prev.achievements.filter((_, idx) => idx !== index),
-    }));
-  };
-
   const toggleIaEeTok = (item: IaEeTokSupport, checked: boolean) => {
     setForm((prev) => ({
       ...prev,
@@ -1311,11 +1287,11 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
               </FormField>
             </EditorSection>
 
-            {/* 5. Biography, Highlights & Mentoring */}
+            {/* 5. Biography & Mentoring */}
             <EditorSection
               icon={Sparkles}
-              title="Bio, Highlights & Mentorship"
-              description="Rich personal bio, top achievements, and IB coursework support tags."
+              title="Bio & Mentorship"
+              description="Rich personal bio and IB coursework mentoring support."
               id="bio"
             >
               <FormField
@@ -1333,78 +1309,6 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                   className="text-xs leading-relaxed"
                 />
               </FormField>
-
-              {/* Achievements slots */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label className="text-xs font-semibold text-[color:var(--ink)]">
-                      Key Achievement Highlights ({form.achievements.length}/{MAX_TUTOR_ACHIEVEMENTS})
-                    </Label>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Bullet pills displayed prominently on public cards.
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addAchievement}
-                    disabled={form.achievements.length >= MAX_TUTOR_ACHIEVEMENTS}
-                    className="h-7.5 text-xs"
-                  >
-                    <Plus className="mr-1 h-3 w-3" />
-                    Add Highlight
-                  </Button>
-                </div>
-
-                {form.achievements.length === 0 ? (
-                  <div className="p-3 text-center text-xs text-muted-foreground border border-dashed border-border rounded-xl">
-                    No highlights added yet. Click &ldquo;Add Highlight&rdquo; to add awards, honors, or scoring feats.
-                  </div>
-                ) : (
-                  <div className="space-y-2.5">
-                    {form.achievements.map((ach, idx) => (
-                      <div
-                        key={idx}
-                        className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)]/40 p-3 space-y-2"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold text-[color:var(--ink)]">
-                            Highlight #{idx + 1}
-                          </span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeAchievement(idx)}
-                            className="h-6 w-6 text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <Input
-                          value={ach.short_text}
-                          onChange={(e) =>
-                            updateAchievement(idx, { short_text: e.target.value })
-                          }
-                          placeholder="e.g. Top in Hong Kong for IB Chemistry (Grade 7)"
-                          maxLength={TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT}
-                          className="h-8 text-xs font-medium"
-                        />
-                        <Input
-                          value={ach.detail_text ?? ""}
-                          onChange={(e) =>
-                            updateAchievement(idx, { detail_text: e.target.value })
-                          }
-                          placeholder="Optional extra context or verification detail"
-                          className="h-7.5 text-[11px] text-muted-foreground"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
 
               {/* IA / EE / TOK Mentorship */}
               <div className="space-y-3 pt-2 border-t border-[color:var(--ink)]/10">
