@@ -71,7 +71,10 @@ function AuthPage() {
   const [captchaError, setCaptchaError] = useState<string | null>(null);
   const captchaContainerRef = useRef<HTMLDivElement>(null);
   const captchaWidgetIdRef = useRef<string | null>(null);
-  const siteKey = import.meta.env.VITE_TURNSTILE_SITEKEY;
+  // Keep the public sitekey available even if the Cloudflare Git build omits the VITE_* variable.
+  // The corresponding secret remains server-side in Supabase and is never bundled.
+  const siteKey =
+    import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAEiLema3uiveM5pp";
 
   useEffect(() => {
     if (user) navigate({ to: "/dashboard", replace: true });
