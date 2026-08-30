@@ -173,8 +173,30 @@ function LessonDetailRow({
   );
 }
 
+function formatExamSystemLabel(system: string) {
+  const normalized = system.trim().toLowerCase();
+
+  if (normalized === "ib" || normalized === "ibdp") return "IBDP";
+  if (normalized === "dse" || normalized === "hkdse") return "HKDSE";
+  if (normalized === "alevel" || normalized === "a-level" || normalized === "gce a-level")
+    return "GCE A-Level";
+  if (normalized === "igcse" || normalized === "gcse") return "IGCSE / GCSE";
+  if (normalized === "ap") return "AP";
+  if (normalized === "sat") return "SAT";
+
+  const systemName = system.trim();
+  return (getSystem(normalized)?.label ?? systemName) || "Exam system";
+}
+
+function getExamSystemSubjectSummary(result: ExamResult) {
+  const systemLabel = formatExamSystemLabel(result.system);
+  const subjects = (result.subjects ?? []).map((entry) => entry.subject.trim()).filter(Boolean);
+
+  return { systemLabel, subjects };
+}
+
 function AcademicQualification({ result }: { result: ExamResult }) {
-  const label = getSystem(result.system)?.label ?? result.system.toUpperCase();
+  const label = formatExamSystemLabel(result.system);
   const subjects = result.subjects.filter((entry) => entry.subject.trim());
 
   if (subjects.length === 0) return null;
@@ -495,14 +517,8 @@ function TutorDetail() {
                     {examResults.length > 0 ? (
                       <ul className="space-y-2.5">
                         {examResults.map((result, index) => {
-                          const normalizedSystem = result.system.trim().toLowerCase();
-                          const systemLabel =
-                            normalizedSystem === "ib" || normalizedSystem === "ibdp"
-                              ? "IBDP"
-                              : (getSystem(normalizedSystem)?.label ?? result.system);
-                          const taughtSubjects = result.subjects
-                            .map((entry) => entry.subject.trim())
-                            .filter(Boolean);
+                          const { systemLabel, subjects } = getExamSystemSubjectSummary(result);
+                          const taughtSubjects = subjects.filter(Boolean);
 
                           return (
                             <li key={`${result.system}-${index}`} className="leading-relaxed">
@@ -523,7 +539,7 @@ function TutorDetail() {
                     ) : null}
                     {t.ia_ee_tok_support.length > 0 ? (
                       <p className="mt-1 text-muted-foreground">
-                        <span className="font-bold text-[color:var(--ink)]">Mentorship:</span>{" "}
+                        <span className="font-bold text-[color:var(--ink)]">IA / EE / TOK:</span>{" "}
                         {t.ia_ee_tok_support.join(", ")}
                         {t.ia_ee_tok_notes ? ` — ${t.ia_ee_tok_notes}` : ""}
                       </p>
