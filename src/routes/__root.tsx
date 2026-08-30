@@ -45,14 +45,19 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+      <div className="max-w-lg text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           This page didn't load
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
+        {error?.message ? (
+          <div className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-left font-mono text-xs text-destructive break-words">
+            <span className="font-semibold">Error:</span> {error.message}
+          </div>
+        ) : null}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {

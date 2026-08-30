@@ -70,9 +70,9 @@ function AdminTutors() {
     if (!q) return tutors;
     return tutors.filter(
       (r) =>
-        r.display_name.toLowerCase().includes(q) ||
-        r.tutor_code.toLowerCase().includes(q) ||
-        (r.subjects ?? []).some((s) => s.toLowerCase().includes(q)) ||
+        (r.display_name ?? "").toLowerCase().includes(q) ||
+        (r.tutor_code ?? "").toLowerCase().includes(q) ||
+        (r.subjects ?? []).some((s) => (s ?? "").toLowerCase().includes(q)) ||
         (r.headline ?? "").toLowerCase().includes(q),
     );
   }, [tutors, search]);
@@ -255,13 +255,13 @@ function AdminTutors() {
                               />
                             ) : (
                               <div className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--ink)]/[0.06] text-xs font-bold text-[color:var(--ink)]/60">
-                                {row.tutor_code.slice(0, 2)}
+                                {(row.tutor_code || "MM").slice(0, 2)}
                               </div>
                             )}
                             <div>
                               <div className="flex items-center gap-1.5">
                                 <span className="font-bold text-[color:var(--ink)] font-mono">
-                                  {row.tutor_code}
+                                  {row.tutor_code || "Unnamed"}
                                 </span>
                                 {getTutorGenderLabel(row.gender) && (
                                   <span className="text-xs text-muted-foreground font-normal">
@@ -330,21 +330,23 @@ function AdminTutors() {
 
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              asChild
-                              className="h-8 text-xs text-muted-foreground hover:text-[color:var(--ink)]"
-                            >
-                              <Link
-                                to="/tutors/$tutorCode"
-                                params={{ tutorCode: row.tutor_code }}
-                                target="_blank"
+                            {row.tutor_code ? (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                asChild
+                                className="h-8 text-xs text-muted-foreground hover:text-[color:var(--ink)]"
                               >
-                                <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                                View
-                              </Link>
-                            </Button>
+                                <Link
+                                  to="/tutors/$tutorCode"
+                                  params={{ tutorCode: row.tutor_code }}
+                                  target="_blank"
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                                  View
+                                </Link>
+                              </Button>
+                            ) : null}
 
                             <Button
                               size="sm"
