@@ -2,7 +2,6 @@
  * MatchMax searchable selector: mirrors the supplied reference with a portal-anchored
  * spring overlay, search-first list, animated option entry, and full keyboard support.
  */
-import { DismissableLayerBranch } from "@radix-ui/react-dismissable-layer";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
@@ -164,13 +163,17 @@ export function SearchableSelect({
   }, [closeMenu, filteredOptions, focusedIndex, open, selectOption]);
 
   const dropdownContent = (
-    <DismissableLayerBranch className="contents" style={{ pointerEvents: "auto" }}>
-      <AnimatePresence>
-        {open ? (
+    <AnimatePresence>
+      {open ? (
         <motion.div
           ref={menuRef}
           className="fixed z-50 origin-top overflow-hidden rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)]/[0.96] text-[color:var(--ink)] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.28)] backdrop-blur-xl"
-          style={{ left: position.left, top: position.top, width: position.width, pointerEvents: "auto" }}
+          style={{
+            left: position.left,
+            top: position.top,
+            width: position.width,
+            pointerEvents: "auto",
+          }}
           initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scaleY: 0.8, y: -10 }}
           animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scaleY: 1, y: 0 }}
           exit={
@@ -351,9 +354,8 @@ export function SearchableSelect({
             </AnimatePresence>
           </ul>
         </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </DismissableLayerBranch>
+      ) : null}
+    </AnimatePresence>
   );
 
   return (
