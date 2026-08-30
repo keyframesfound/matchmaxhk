@@ -231,19 +231,19 @@ export function PublicTutorCard({
                 ))}
               </div>
               {!areAcademicChipsExpanded && hasMoreAcademicChips ? (
-                <button
-                  type="button"
-                  aria-expanded={false}
-                  aria-controls={`academic-achievements-${tutor.tutor_code}`}
-                  onClick={toggleAcademicChips}
-                  onKeyDown={(event) => event.stopPropagation()}
-                  className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-[color:var(--surface)] via-[color:var(--surface)]/80 to-transparent pb-1 pt-6"
-                >
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--surface)]/95 px-2.5 py-1 text-[10px] font-black tracking-[0.02em] text-[color:var(--ink)] shadow-[0_8px_18px_rgba(4,19,68,0.10)] backdrop-blur-sm md:text-[11px]">
-                    <span className="text-base leading-none">...</span>
+                <div className="pointer-events-none absolute bottom-0 right-0 flex max-w-[80%] items-center justify-end bg-gradient-to-l from-[color:var(--surface)] via-[color:var(--surface)]/95 to-transparent pl-6 pr-0 pt-2">
+                  <button
+                    type="button"
+                    aria-expanded={false}
+                    aria-controls={`academic-achievements-${tutor.tutor_code}`}
+                    onClick={toggleAcademicChips}
+                    onKeyDown={(event) => event.stopPropagation()}
+                    className="pointer-events-auto inline-flex items-center gap-1 rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--surface)] px-2 py-1 text-[9px] font-bold leading-snug text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-colors hover:bg-[color:var(--brand-teal)]/8 md:px-2.5 md:py-1.5 md:text-[10px]"
+                  >
+                    <span className="text-[12px] font-black leading-none">...</span>
                     <span>more</span>
-                  </span>
-                </button>
+                  </button>
+                </div>
               ) : null}
             </div>
           </section>
