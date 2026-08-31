@@ -184,12 +184,17 @@ function AuthPage() {
   // under Authentication -> Providers in your Supabase project dashboard, with a
   // Google OAuth client ID/secret set there.
   async function onOAuth(provider: "google") {
+    if (!captchaToken) {
+      toast.error("Please complete the security check.");
+      return;
+    }
     setBusy(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
+          captchaToken,
         },
       });
       if (error) throw error;
@@ -198,6 +203,7 @@ function AuthPage() {
       toast.error(msg);
     } finally {
       setBusy(false);
+      resetCaptcha();
     }
   }
 
