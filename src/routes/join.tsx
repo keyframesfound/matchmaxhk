@@ -321,7 +321,8 @@ function JoinPage() {
   const previousStepRef = useRef(currentStep);
   const captchaContainerRef = useRef<HTMLDivElement>(null);
   const captchaWidgetIdRef = useRef<string | null>(null);
-  const siteKey = import.meta.env.VITE_TURNSTILE_SITEKEY;
+  const siteKey =
+    import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAEiLema3uiveM5pp";
 
   useEffect(() => {
     const updateStickyState = () => {
