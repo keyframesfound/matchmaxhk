@@ -18,7 +18,7 @@ interface TurnstileApi {
       action: string;
       callback: (token: string) => void;
       "expired-callback": () => void;
-      "error-callback": () => void;
+      "error-callback": (errorCode?: string) => void;
     },
   ) => string;
   reset: (widgetId: string) => void;
@@ -67,7 +67,6 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
-  const [sendingRecovery, setSendingRecovery] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaError, setCaptchaError] = useState<string | null>(null);
   const captchaContainerRef = useRef<HTMLDivElement>(null);
@@ -94,7 +93,7 @@ function AuthPage() {
           setCaptchaToken(token);
         },
         "expired-callback": () => setCaptchaToken(null),
-        "error-callback": (errorCode: string) => {
+        "error-callback": (errorCode = "unknown") => {
           setCaptchaToken(null);
           setCaptchaError(`Security check unavailable (${errorCode}).`);
         },
@@ -202,27 +201,6 @@ function AuthPage() {
     }
   }
 
-  async function sendPasswordRecovery() {
-    const recoveryEmail = email.trim();
-    if (!recoveryEmail) {
-      toast.error("Enter your email address first.");
-      return;
-    }
-
-    setSendingRecovery(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(recoveryEmail, {
-        redirectTo: `${window.location.origin}/dashboard`,
-      });
-      if (error) throw error;
-      toast.success("Check your email for a password reset link.");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to send reset email.");
-    } finally {
-      setSendingRecovery(false);
-    }
-  }
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
@@ -311,14 +289,12 @@ function AuthPage() {
                   autoComplete={mode === "sign_in" ? "current-password" : "new-password"}
                 />
                 {mode === "sign_in" ? (
-                  <button
-                    type="button"
-                    onClick={() => void sendPasswordRecovery()}
-                    disabled={sendingRecovery}
+                  <Link
+                    to="/forgot-password"
                     className="text-xs font-semibold text-[color:var(--brand-teal)] hover:underline disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {sendingRecovery ? "Sending reset link..." : "Forgot password?"}
-                  </button>
+                    Forgot password?
+                  </Link>
                 ) : null}
               </div>
               <div
