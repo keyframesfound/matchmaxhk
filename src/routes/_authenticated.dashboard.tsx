@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bookmark, CircleUserRound, Monitor, Moon, Palette, Sun, Trash2 } from "lucide-react";
+import { Bookmark, CircleUserRound, KeyRound, Monitor, Moon, Palette, Sun, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -53,6 +53,9 @@ function SettingsPage() {
   const [displayName, setDisplayName] = useState("");
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
@@ -114,6 +117,31 @@ function SettingsPage() {
     }
   }
 
+  async function changePassword(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (newPassword.length < 6) {
+      toast.error("Your new password must be at least 6 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      setNewPassword("");
+      setConfirmPassword("");
+      toast.success("Your password has been updated.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update your password.");
+    } finally {
+      setChangingPassword(false);
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--surface-subtle)] text-[color:var(--ink)]">
       <SiteHeader />
@@ -151,6 +179,13 @@ function SettingsPage() {
                   <Bookmark className="h-4 w-4" aria-hidden="true" />
                   Saved Posts
                 </Link>
+                <a
+                  href="#security"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--ink)]/70 transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
+                >
+                  <KeyRound className="h-4 w-4" aria-hidden="true" />
+                  Password
+                </a>
                 <a
                   href="#appearance"
                   className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--ink)]/70 transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
@@ -217,6 +252,57 @@ function SettingsPage() {
                     className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                   >
                     {saving ? "Saving…" : "Save changes"}
+                  </Button>
+                </form>
+              </section>
+
+              <section
+                id="security"
+                className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]"
+              >
+                <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
+                  <h2 className="text-lg font-bold text-[color:var(--ink)]">Password</h2>
+                  <p className="mt-1 text-sm text-[color:var(--ink)]/65">
+                    Set a new password for your MatchMax account.
+                  </p>
+                </div>
+                <form onSubmit={changePassword} className="space-y-5 px-6 py-6 sm:px-8">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password" className="text-[color:var(--ink)]">
+                      New password
+                    </Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      value={newPassword}
+                      onChange={(event) => setNewPassword(event.target.value)}
+                      minLength={6}
+                      required
+                      autoComplete="new-password"
+                      className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] focus-visible:ring-[color:var(--ink)]"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-new-password" className="text-[color:var(--ink)]">
+                      Confirm new password
+                    </Label>
+                    <Input
+                      id="confirm-new-password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(event) => setConfirmPassword(event.target.value)}
+                      minLength={6}
+                      required
+                      autoComplete="new-password"
+                      className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] focus-visible:ring-[color:var(--ink)]"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={changingPassword}
+                    className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                  >
+                    {changingPassword ? "Updating..." : "Update password"}
                   </Button>
                 </form>
               </section>

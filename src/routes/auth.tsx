@@ -67,6 +67,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sendingRecovery, setSendingRecovery] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaError, setCaptchaError] = useState<string | null>(null);
   const captchaContainerRef = useRef<HTMLDivElement>(null);
@@ -184,17 +185,12 @@ function AuthPage() {
   // under Authentication -> Providers in your Supabase project dashboard, with a
   // Google OAuth client ID/secret set there.
   async function onOAuth(provider: "google") {
-    if (!captchaToken) {
-      toast.error("Please complete the security check.");
-      return;
-    }
     setBusy(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
-          captchaToken,
         },
       });
       if (error) throw error;
@@ -203,7 +199,27 @@ function AuthPage() {
       toast.error(msg);
     } finally {
       setBusy(false);
-      resetCaptcha();
+    }
+  }
+
+  async function sendPasswordRecovery() {
+    const recoveryEmail = email.trim();
+    if (!recoveryEmail) {
+      toast.error("Enter your email address first.");
+      return;
+    }
+
+    setSendingRecovery(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(recoveryEmail, {
+        redirectTo: `${window.location.origin}/dashboard`,
+      });
+      if (error) throw error;
+      toast.success("Check your email for a password reset link.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to send reset email.");
+    } finally {
+      setSendingRecovery(false);
     }
   }
 
@@ -294,6 +310,16 @@ function AuthPage() {
                   minLength={6}
                   autoComplete={mode === "sign_in" ? "current-password" : "new-password"}
                 />
+                {mode === "sign_in" ? (
+                  <button
+                    type="button"
+                    onClick={() => void sendPasswordRecovery()}
+                    disabled={sendingRecovery}
+                    className="text-xs font-semibold text-[color:var(--brand-teal)] hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {sendingRecovery ? "Sending reset link..." : "Forgot password?"}
+                  </button>
+                ) : null}
               </div>
               <div
                 ref={captchaContainerRef}
