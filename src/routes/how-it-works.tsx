@@ -145,10 +145,10 @@ const AUDIENCES = [
 
 function HowItWorksPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[color:var(--ink)]">
-      <SiteHeader className="!border-b-0 !bg-white" />
+    <div className="flex min-h-screen flex-col bg-white text-[color:var(--ink)] dark:bg-[color:var(--surface)]">
+      <SiteHeader className="!border-b-0 !bg-white dark:!bg-[color:var(--surface)]" />
       <main className="flex-1">
-        <section className="overflow-hidden bg-white">
+        <section className="overflow-hidden bg-white dark:bg-[color:var(--surface)]">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_0.8fr] lg:py-28">
             <div>
               <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/70">
@@ -164,7 +164,7 @@ function HowItWorksPage() {
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button
                   asChild
-                  className="bg-white font-bold text-[color:var(--ink)] hover:bg-white/90"
+                  className="bg-white font-bold text-[color:var(--ink)] hover:bg-white/90 dark:bg-[color:var(--surface-invert)] dark:text-white dark:hover:bg-[color:var(--surface-invert-hover)]"
                 >
                   <Link to="/tutors">
                     Find a tutor <ArrowRight className="ml-2 h-4 w-4" />
@@ -222,7 +222,7 @@ function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="bg-white">
+        <section className="bg-white dark:bg-[color:var(--surface)]">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
             <div className="flex max-w-2xl items-start gap-4">
               <Clock3 className="mt-1 h-6 w-6 shrink-0" />
@@ -293,7 +293,7 @@ function HowItWorksPage() {
           </div>
         </section>
       </main>
-      <SiteFooter className="!border-t-0 !bg-white" />
+      <SiteFooter hideDivider className="!border-t-0 !bg-white dark:!bg-[color:var(--surface)]" />
     </div>
   );
 }

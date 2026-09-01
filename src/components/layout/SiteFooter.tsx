@@ -21,7 +21,13 @@ const supportLinks = [
   { name: "Help center", to: "/faq" },
 ] as const;
 
-export function SiteFooter({ className }: { className?: string }) {
+export function SiteFooter({
+  className,
+  hideDivider = false,
+}: {
+  className?: string;
+  hideDivider?: boolean;
+}) {
   const { t } = useTranslation();
   const year = new Date().getFullYear();
 
@@ -123,7 +129,9 @@ export function SiteFooter({ className }: { className?: string }) {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-center sm:flex-row">
+        <div
+          className={`mt-12 flex flex-col items-center justify-between gap-4 pt-8 text-center sm:flex-row ${hideDivider ? "" : "border-t border-border"}`}
+        >
           <p className="text-sm text-foreground/60">
             © {year} MatchMax. {t("footer.rights")}
           </p>
