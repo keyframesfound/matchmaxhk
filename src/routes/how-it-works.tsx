@@ -1,5 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, BadgeCheck, Check, Search, ShieldCheck, UserPlus } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Building2,
+  Check,
+  CircleDollarSign,
+  Clock3,
+  GraduationCap,
+  Handshake,
+  MessageCircle,
+  Search,
+  ShieldCheck,
+  UserRoundCheck,
+} from "lucide-react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -12,7 +25,7 @@ export const Route = createFileRoute("/how-it-works")({
       {
         name: "description",
         content:
-          "See how MatchMax helps tutors build a credible profile, reach the right students, and grow their tutoring practice.",
+          "Discover MatchMax's transparent, high-calibre tutoring matching for families, tutors, and education centres in Hong Kong.",
       },
       { name: "robots", content: "index, follow" },
     ],
@@ -20,59 +33,138 @@ export const Route = createFileRoute("/how-it-works")({
   component: HowItWorksPage,
 });
 
-const STEPS = [
+const DIFFERENCE = [
   {
-    number: "01",
-    title: "Apply to join MatchMax",
-    text: "Share the subjects, levels, rates, and experience you want students to see. A complete application gives our team the context to review your profile properly.",
+    icon: GraduationCap,
+    title: "Top 1% elite screening",
+    text: "We demand academic excellence. Our network consists of top-tier talent, including candidates with IB 40+, DSE Best 5 30+, and official examiners. Every profile is rigorously verified so parents are paired with authentic, high-calibre educators.",
   },
   {
-    number: "02",
-    title: "Get verified",
-    text: "Our team reviews your academic background, qualifications, and profile details before your tutor profile goes live.",
+    icon: CircleDollarSign,
+    title: "The most transparent fees in Hong Kong",
+    text: "Traditional agencies typically charge tutors half of their first month's tuition—up to a full two weeks of pay. MatchMax charges a radically transparent, one-time flat fee of just 1.5 lessons, so top talent keeps more of what they earn.",
   },
   {
-    number: "03",
-    title: "Receive student requests",
-    text: "Students can discover your strengths, review your profile, and contact you when your subjects, rates, and availability are a good fit.",
+    icon: Building2,
+    title: "Zero-cost B2B placements",
+    text: "MatchMax charges educational partners $0, delivering elite, verified staffing solutions at unprecedented speed and zero risk.",
+  },
+  {
+    icon: Handshake,
+    title: "Student-founded expertise",
+    text: "Built by university students, we understand the logistics of private tutoring. We consider every application individually and provide personalised, manual guidance to ensure the perfect fit.",
   },
 ];
 
-const TRUST_POINTS = [
-  "Academic results and qualifications are reviewed",
-  "Your profile shows subjects, lesson mode, rates, and experience",
-  "Students can understand your strengths before they enquire",
-  "You stay in control of your availability and lesson preferences",
-];
-
-const TUTOR_BENEFITS = [
-  "A professional profile that explains what you teach",
-  "Control over your subjects, rates, and availability",
-  "Relevant requests instead of broad, unqualified enquiries",
+const AUDIENCES = [
+  {
+    eyebrow: "For parents & students",
+    title: "The highest calibre of educational matching, completely free.",
+    icon: Search,
+    steps: [
+      [
+        "01",
+        "Search or connect",
+        "Browse using advanced filters, or send your exact requirements to our WhatsApp hotline.",
+      ],
+      [
+        "02",
+        "Review the best",
+        "Within one business day, our team curates and sends profiles of elite, verified candidates. Review their subjects taught, achievements, and experience independently.",
+      ],
+      [
+        "03",
+        "Seamless connection",
+        "Once you select a tutor, simply provide your WhatsApp contact.",
+      ],
+      [
+        "04",
+        "Instant group chat setup",
+        "We immediately open a dedicated WhatsApp group with you and the tutor to coordinate logistics—no middleman delays.",
+      ],
+    ],
+    link: { to: "/tutors" as const, label: "Find a tutor" },
+  },
+  {
+    eyebrow: "For tutors",
+    title: "Maximise your earning potential with Hong Kong's most tutor-friendly platform.",
+    icon: UserRoundCheck,
+    steps: [
+      [
+        "01",
+        "Apply & prove your worth",
+        "Submit your application online. We strictly verify academic credentials and notify you of acceptance within one business day.",
+      ],
+      [
+        "02",
+        "Anonymous promotion",
+        "Once accepted, you receive a unique identification code. We market your profile across our website, social media, and elite B2B partner networks while keeping your real name private.",
+      ],
+      [
+        "03",
+        "Receive premium case cards",
+        "We bring opportunities to you: detailed case cards for top-tier private and centre-based jobs. You always have the freedom to accept or decline.",
+      ],
+      [
+        "04",
+        "A fair commission",
+        "Our service is free until you secure a client. Then, the fee is a simple 1.5-lesson flat rate—no hidden fees or ongoing percentage cuts.",
+      ],
+    ],
+    link: { to: "/join" as const, label: "Apply as a tutor" },
+  },
+  {
+    eyebrow: "For agencies & educational centres",
+    title: "Hong Kong's most elite tutoring database for your centre, absolutely free.",
+    icon: Building2,
+    steps: [
+      [
+        "01",
+        "Submit your vacancies",
+        "Contact our business team with your staffing requirements for part-time or full-time instructional roles.",
+      ],
+      [
+        "02",
+        "Rapid 24-hour shortlisting",
+        "Our active pool of heavily vetted, top-percentile tutors—including IB 40+ and DSE 30+ candidates—delivers a curated shortlist within one business day.",
+      ],
+      [
+        "03",
+        "Review & interview",
+        "Assess a candidate's subjects taught, achievements, and experience, then proceed directly to interviewing your chosen applicants.",
+      ],
+      [
+        "04",
+        "Zero placement fees",
+        "We handle recruitment and matching at exactly no cost to your business: a completely risk-free way to scale your centre.",
+      ],
+    ],
+    link: { to: "/tutors" as const, label: "Explore our tutors" },
+  },
 ];
 
 function HowItWorksPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-[color:var(--surface-subtle)] text-[color:var(--ink)]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--surface)] text-[color:var(--ink)]">
       <SiteHeader />
       <main className="flex-1">
-        <section className="bg-[color:var(--surface-subtle)]">
-          <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:py-24">
+        <section className="overflow-hidden bg-[color:var(--surface-invert)] text-white">
+          <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_0.8fr] lg:py-28">
             <div>
-              <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75 sm:text-xl">
-                How MatchMax works for tutors
+              <p className="font-serif text-lg italic tracking-wide text-white/75">
+                The MatchMax Difference
               </p>
-              <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-6xl sm:leading-[1.02]">
-                Build a tutoring profile students can trust.
+              <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight sm:text-6xl sm:leading-[1.02]">
+                A new standard for tutoring in Hong Kong.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-[color:var(--ink)]/70">
-                MatchMax gives strong tutors a clearer way to present their experience, connect with
-                relevant students, and build a flexible tutoring practice.
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72">
+                We believe the tutoring industry should be defined by transparency, speed, and
+                uncompromising quality. MatchMax is built to deliver exactly that.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button
                   asChild
-                  className="bg-[color:var(--surface-invert)] font-bold text-white shadow-brand hover:bg-[color:var(--surface-invert-hover)]"
+                  className="bg-white font-bold text-[color:var(--ink)] hover:bg-white/90"
                 >
                   <Link to="/tutors">
                     Find a tutor <ArrowRight className="ml-2 h-4 w-4" />
@@ -81,175 +173,123 @@ function HowItWorksPage() {
                 <Button
                   asChild
                   variant="outline"
-                  className="border-[color:var(--ink)]/20 bg-[color:var(--surface)] font-bold text-[color:var(--ink)] hover:bg-[color:var(--ink)]/5"
+                  className="border-white/35 bg-transparent font-bold text-white hover:bg-white/10 hover:text-white"
                 >
-                  <Link to="/join">
-                    Become a Tutor <UserPlus className="ml-2 h-4 w-4" />
-                  </Link>
+                  <Link to="/join">Become a tutor</Link>
                 </Button>
               </div>
             </div>
-
-            <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--surface-subtle)] p-6 sm:p-8">
-              <div className="flex items-start justify-between gap-6 pb-6">
-                <div>
-                  <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75">
-                    One clear process
-                  </p>
-                  <p className="mt-3 text-2xl font-black text-[color:var(--ink)]">
-                    From application to first request.
-                  </p>
-                </div>
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[color:var(--surface-invert)] text-white">
-                  <ShieldCheck className="h-5 w-5" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-6 pt-6">
-                <div>
-                  <p className="text-3xl font-black text-[color:var(--ink)]">01</p>
-                  <p className="mt-1 text-sm leading-5 text-[color:var(--ink)]/65">
-                    Submit your profile
-                  </p>
-                </div>
-                <div>
-                  <p className="text-3xl font-black text-[color:var(--ink)]">02</p>
-                  <p className="mt-1 text-sm leading-5 text-[color:var(--ink)]/65">
-                    Complete verification
-                  </p>
-                </div>
-                <div>
-                  <p className="text-3xl font-black text-[color:var(--ink)]">03</p>
-                  <p className="mt-1 text-sm leading-5 text-[color:var(--ink)]/65">
-                    Meet the right students
-                  </p>
-                </div>
-                <div>
-                  <p className="text-3xl font-black text-[color:var(--ink)]">HK</p>
-                  <p className="mt-1 text-sm leading-5 text-[color:var(--ink)]/65">
-                    Built for tutors
-                  </p>
-                </div>
+            <div className="border-l border-white/20 pl-6 sm:pl-10 lg:mt-14">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-white/55">
+                Our promise
+              </p>
+              <p className="mt-5 font-serif text-3xl leading-tight italic sm:text-4xl">
+                “Better matches begin with higher standards.”
+              </p>
+              <div className="mt-10 flex items-center gap-3 text-sm text-white/70">
+                <ShieldCheck className="h-5 w-5 shrink-0" />
+                Every tutor profile is rigorously verified.
               </div>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <div className="grid gap-12 lg:grid-cols-[0.75fr_1.25fr]">
-            <div className="max-w-sm">
-              <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75">
-                How it works
-              </p>
-              <h2 className="mt-4 text-3xl font-black tracking-tight text-[color:var(--ink)] sm:text-4xl">
-                From application to first request.
-              </h2>
-              <p className="mt-4 text-sm leading-7 text-[color:var(--ink)]/68">
-                Every step is designed to make your next move clear, from submitting your
-                application to receiving a request that matches what you teach.
-              </p>
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+          <div className="max-w-2xl">
+            <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/70">
+              Why MatchMax
+            </p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+              A better model, by design.
+            </h2>
+          </div>
+          <div className="mt-12 grid border-t border-[color:var(--ink)]/15 md:grid-cols-2">
+            {DIFFERENCE.map(({ icon: Icon, title, text }, index) => (
+              <article
+                key={title}
+                className="border-b border-[color:var(--ink)]/15 py-8 md:px-8 md:odd:border-r md:odd:pl-0 md:even:pr-0"
+              >
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-black tracking-[0.14em] text-[color:var(--ink)]/45">
+                    0{index + 1}
+                  </span>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-6 text-xl font-black">{title}</h3>
+                <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/68">{text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="border-y border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)]">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+            <div className="flex max-w-2xl items-start gap-4">
+              <Clock3 className="mt-1 h-6 w-6 shrink-0" />
+              <div>
+                <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/70">
+                  One business day
+                </p>
+                <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+                  Clear steps for every side of the match.
+                </h2>
+              </div>
             </div>
-            <div>
-              {STEPS.map((step) => (
-                <article
-                  key={step.number}
-                  className="grid gap-4 py-7 sm:grid-cols-[72px_1fr] sm:gap-6"
-                >
-                  <p className="text-sm font-black tracking-[0.14em] text-[color:var(--ink)]">
-                    {step.number}
-                  </p>
+            <div className="mt-14 space-y-16">
+              {AUDIENCES.map(({ eyebrow, title, icon: Icon, steps, link }) => (
+                <article key={eyebrow} className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16">
                   <div>
-                    <h3 className="text-xl font-bold text-[color:var(--ink)]">
-                      {step.title}
-                    </h3>
-                    <p className="mt-2 max-w-2xl text-sm leading-7 text-[color:var(--ink)]/68">
-                      {step.text}
+                    <Icon className="h-6 w-6" />
+                    <p className="mt-6 text-sm font-bold uppercase tracking-[0.16em] text-[color:var(--ink)]/55">
+                      {eyebrow}
                     </p>
+                    <h3 className="mt-3 text-2xl font-black tracking-tight">{title}</h3>
+                    <Link
+                      to={link.to}
+                      className="mt-6 inline-flex items-center text-sm font-bold underline underline-offset-4"
+                    >
+                      {link.label} <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
                   </div>
+                  <ol className="border-t border-[color:var(--ink)]/15">
+                    {steps.map(([number, stepTitle, text]) => (
+                      <li
+                        key={number}
+                        className="grid gap-3 border-b border-[color:var(--ink)]/15 py-5 sm:grid-cols-[52px_1fr] sm:gap-5"
+                      >
+                        <span className="text-sm font-black tracking-[0.14em] text-[color:var(--ink)]/50">
+                          {number}
+                        </span>
+                        <div>
+                          <h4 className="font-bold">{stepTitle}</h4>
+                          <p className="mt-1.5 text-sm leading-6 text-[color:var(--ink)]/68">
+                            {text}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="bg-[color:var(--surface-subtle)]">
-          <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:py-20">
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+          <div className="grid gap-8 border-l-4 border-[color:var(--ink)] pl-6 sm:grid-cols-[1fr_auto] sm:items-end sm:pl-10">
             <div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--surface-invert)] text-white">
-                <BadgeCheck className="h-5 w-5" />
-              </div>
-              <h2 className="mt-6 text-3xl font-black tracking-tight text-[color:var(--ink)] sm:text-4xl">
-                Your profile should do the explaining.
+              <MessageCircle className="h-6 w-6" />
+              <h2 className="mt-6 text-3xl font-black tracking-tight sm:text-4xl">
+                The right match starts with a conversation.
               </h2>
-              <p className="mt-4 max-w-xl text-sm leading-7 text-[color:var(--ink)]/68">
-                Students make better enquiries when they can quickly understand your academic
-                background, subjects, teaching style, and availability.
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-[color:var(--ink)]/68">
+                Whether you are looking for a tutor, building your teaching practice, or staffing a
+                centre, our team makes every connection personal.
               </p>
             </div>
-            <div className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-6 sm:p-8">
-              <p className="text-sm font-bold text-[color:var(--ink)]">
-                What your profile makes clear
-              </p>
-              <div className="mt-5 space-y-4">
-                {TRUST_POINTS.map((point) => (
-                  <div key={point} className="flex items-start gap-3">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--ink)]" />
-                    <p className="text-sm leading-6 text-[color:var(--ink)]/72">{point}</p>
-                  </div>
-                ))}
-              </div>
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <Check className="h-4 w-4" /> Personal guidance, never robotic matching.
             </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <div className="grid gap-5 lg:grid-cols-2">
-            <article className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-7 sm:p-9">
-              <Search className="h-5 w-5 text-[color:var(--ink)]" />
-              <p className="mt-6 font-serif text-lg italic tracking-wide text-[color:var(--ink)]/75">
-                Your profile
-              </p>
-              <h2 className="mt-3 text-2xl font-black text-[color:var(--ink)]">
-                Show what makes you a strong tutor.
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/68">
-                Present your strongest subjects, academic results, experience, rates, and preferred
-                lesson format in one professional profile.
-              </p>
-              <Link
-                to="/tutors"
-                className="mt-6 inline-flex items-center text-sm font-bold text-[color:var(--ink)] underline underline-offset-4"
-              >
-                See tutor profiles <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </article>
-            <article className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-invert)] p-7 text-white sm:p-9">
-              <UserPlus className="h-5 w-5" />
-              <p className="mt-6 font-serif text-lg italic tracking-wide text-white">
-                Your opportunities
-              </p>
-              <h2 className="mt-3 text-2xl font-black text-white">Receive better-fit requests.</h2>
-              <p className="mt-3 text-sm leading-7 text-white/72">
-                When your profile is clear, students can find you for the subjects and lesson
-                formats you are best placed to teach.
-              </p>
-              <div className="mt-6 space-y-3">
-                {TUTOR_BENEFITS.map((benefit) => (
-                  <div
-                    key={benefit}
-                    className="flex items-start gap-3 text-sm leading-6 text-white/80"
-                  >
-                    <Check className="mt-1 h-4 w-4 shrink-0" />
-                    <span>{benefit}</span>
-                  </div>
-                ))}
-              </div>
-              <Link
-                to="/join"
-                className="mt-7 inline-flex items-center text-sm font-bold text-white underline underline-offset-4"
-              >
-                Become a Tutor <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </article>
           </div>
         </section>
       </main>
