@@ -50,9 +50,7 @@ import {
   uploadTutorProfileImage,
   type R2TutorImage,
 } from "@/features/tutors/r2.functions";
-import {
-  DEFAULT_SUBJECT_OPTIONS as SUBJECT_OPTIONS,
-} from "@/features/tutors/subjects";
+import { DEFAULT_SUBJECT_OPTIONS as SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import {
   HK_DISTRICTS,
   IA_EE_TOK_SUPPORT_OPTIONS,
@@ -124,8 +122,9 @@ export const tutorFormSchema = z.object({
   headline: z.string().trim().min(1, "Headline is required").max(200),
   subjects: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one subject"),
   target_students: z.array(z.string().trim().min(1).max(80)),
+  academic_headline: z.string().trim().max(120).optional().or(z.literal("")),
   university: z.string().trim().max(120).optional().or(z.literal("")),
-  highschool: z.string().trim().max(120).optional().or(z.literal("")),
+  secondary_school: z.string().trim().max(120).optional().or(z.literal("")),
   qualifications_summary: z.string().trim().max(1200).optional().or(z.literal("")),
   district: z.string().trim().max(80).optional().or(z.literal("")),
   lesson_mode: z.enum(["online", "in_person", "either"]),
@@ -156,8 +155,9 @@ export const emptyTutorForm: TutorFormData = {
   headline: "",
   subjects: [],
   target_students: [],
+  academic_headline: "",
   university: "",
-  highschool: "",
+  secondary_school: "",
   qualifications_summary: "",
   district: "",
   lesson_mode: "either",
@@ -180,8 +180,9 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     headline: t.headline ?? "",
     subjects: t.subjects ?? [],
     target_students: t.target_students ?? [],
+    academic_headline: t.academic_headline ?? "",
     university: t.university ?? "",
-    highschool: t.highschool ?? "",
+    secondary_school: t.secondary_school ?? "",
     qualifications_summary: t.qualifications_summary ?? "",
     district: t.district ?? "",
     lesson_mode: t.lesson_mode ?? "either",
@@ -245,8 +246,9 @@ export function formDataToPayload(v: TutorFormData) {
   return {
     display_name: v.tutor_code.trim(),
     headline: v.headline.trim(),
+    academic_headline: v.academic_headline?.trim() || null,
     university: v.university?.trim() || null,
-    highschool: v.highschool?.trim() || null,
+    secondary_school: v.secondary_school?.trim() || null,
     qualifications_summary: v.qualifications_summary?.trim() || null,
     subjects: v.subjects,
     target_students: v.target_students,
@@ -533,9 +535,7 @@ function EditorSection({
           </div>
           <div>
             <h2 className="text-base font-bold text-[color:var(--ink)]">{title}</h2>
-            {description && (
-              <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-            )}
+            {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
           </div>
         </div>
         {badge}
@@ -603,8 +603,9 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
       id: initialData?.id ?? "preview-tutor",
       display_name: form.tutor_code.trim() || "MM-PREVIEW",
       headline: form.headline.trim() || null,
+      academic_headline: form.academic_headline?.trim() || null,
       university: form.university?.trim() || null,
-      highschool: form.highschool?.trim() || null,
+      secondary_school: form.secondary_school?.trim() || null,
       target_students: form.target_students,
       qualifications_summary: form.qualifications_summary?.trim() || null,
       subjects: form.subjects,
@@ -653,8 +654,13 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
 
     const publishErrors: Record<string, string> = {};
     if (parsed.data.is_published) {
-      if (!(parsed.data.university ?? "").trim() && !(parsed.data.highschool ?? "").trim()) {
-        publishErrors.university = "Add university or high school before publishing.";
+      if (
+        !(parsed.data.academic_headline ?? "").trim() &&
+        !(parsed.data.university ?? "").trim() &&
+        !(parsed.data.secondary_school ?? "").trim()
+      ) {
+        publishErrors.academic_headline =
+          "Add an academic headline, university, or secondary school before publishing.";
       }
       if (
         !(parsed.data.qualifications_summary ?? "").trim() &&
@@ -868,9 +874,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                 <FormField label="Gender" required error={errors.gender}>
                   <SearchableSelect
                     value={form.gender}
-                    onChange={(v) =>
-                      setForm({ ...form, gender: v as "male" | "female" | "other" })
-                    }
+                    onChange={(v) => setForm({ ...form, gender: v as "male" | "female" | "other" })}
                     options={[
                       { value: "female", label: "Female" },
                       { value: "male", label: "Male" },
@@ -880,11 +884,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                   />
                 </FormField>
 
-                <FormField
-                  label="Profile Badge"
-                  error={errors.badge}
-                  hint="Shown as header pill"
-                >
+                <FormField label="Profile Badge" error={errors.badge} hint="Shown as header pill">
                   <Input
                     value={form.badge}
                     onChange={(e) => setForm({ ...form, badge: e.target.value })}
@@ -906,27 +906,39 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                 />
               </FormField>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <FormField
                   label="Academic Headline"
-                  error={errors.university}
+                  error={errors.academic_headline}
                   hint="IBDP 45 / 45 | AP"
+                >
+                  <Input
+                    value={form.academic_headline}
+                    onChange={(e) => setForm({ ...form, academic_headline: e.target.value })}
+                    placeholder="e.g. IBDP 44/45 or HKDSE Best 5: 32"
+                  />
+                </FormField>
+
+                <FormField
+                  label="University"
+                  error={errors.university}
+                  hint="Current tertiary institution"
                 >
                   <Input
                     value={form.university}
                     onChange={(e) => setForm({ ...form, university: e.target.value })}
-                    placeholder="e.g. Chinese University of Hong Kong"
+                    placeholder="e.g. The University of Hong Kong"
                   />
                 </FormField>
 
                 <FormField
                   label="Secondary School"
-                  error={errors.highschool}
+                  error={errors.secondary_school}
                   hint="Graduated institution"
                 >
                   <Input
-                    value={form.highschool}
-                    onChange={(e) => setForm({ ...form, highschool: e.target.value })}
+                    value={form.secondary_school}
+                    onChange={(e) => setForm({ ...form, secondary_school: e.target.value })}
                     placeholder="e.g. Diocesan Boys' School"
                   />
                 </FormField>
@@ -1210,9 +1222,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                     <Input
                       type="number"
                       value={form.hourly_rate}
-                      onChange={(e) =>
-                        setForm({ ...form, hourly_rate: Number(e.target.value) })
-                      }
+                      onChange={(e) => setForm({ ...form, hourly_rate: Number(e.target.value) })}
                       className="pl-10 font-semibold"
                     />
                   </div>
@@ -1229,9 +1239,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                   >
                     <Select
                       value={form.district || "__none"}
-                      onValueChange={(v) =>
-                        setForm({ ...form, district: v === "__none" ? "" : v })
-                      }
+                      onValueChange={(v) => setForm({ ...form, district: v === "__none" ? "" : v })}
                     >
                       <SelectTrigger className="h-10 text-xs">
                         <SelectValue placeholder="Select District…" />
@@ -1302,9 +1310,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                 <Textarea
                   rows={4}
                   value={form.qualifications_summary}
-                  onChange={(e) =>
-                    setForm({ ...form, qualifications_summary: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, qualifications_summary: e.target.value })}
                   placeholder="e.g. Full-time IB & DSE specialist with 5+ years experience. Proven track record guiding 30+ students to grade 7 in IB Biology and Chemistry..."
                   className="text-xs leading-relaxed"
                 />
@@ -1317,7 +1323,8 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                     IB Coursework Mentoring Support
                   </Label>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Select if tutor provides specialized guidance on Internal Assessments, Extended Essays, or TOK.
+                    Select if tutor provides specialized guidance on Internal Assessments, Extended
+                    Essays, or TOK.
                   </p>
                 </div>
 
@@ -1334,9 +1341,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                     >
                       <Checkbox
                         checked={form.ia_ee_tok_support.includes(item)}
-                        onCheckedChange={(checked) =>
-                          toggleIaEeTok(item, checked === true)
-                        }
+                        onCheckedChange={(checked) => toggleIaEeTok(item, checked === true)}
                       />
                       <span>{item} Mentoring</span>
                     </label>
@@ -1352,9 +1357,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                     <Textarea
                       rows={2}
                       value={form.ia_ee_tok_notes}
-                      onChange={(e) =>
-                        setForm({ ...form, ia_ee_tok_notes: e.target.value })
-                      }
+                      onChange={(e) => setForm({ ...form, ia_ee_tok_notes: e.target.value })}
                       placeholder="e.g. Topic brainstorming, methodology review, formatting & rubric alignment."
                       className="text-xs"
                     />
@@ -1370,7 +1373,8 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                   Public Directory Visibility
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  When enabled, this tutor is discoverable in the MatchMax directory and search filters.
+                  When enabled, this tutor is discoverable in the MatchMax directory and search
+                  filters.
                 </p>
               </div>
               <Switch
@@ -1391,9 +1395,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                     Live Card Preview
                   </span>
                 </div>
-                <span className="text-[11px] text-muted-foreground">
-                  Matches student view
-                </span>
+                <span className="text-[11px] text-muted-foreground">Matches student view</span>
               </div>
 
               <PublicTutorCard

@@ -16,8 +16,9 @@ export type Tutor = {
   id: string;
   display_name: string;
   headline: string | null;
+  academic_headline: string | null;
   university: string | null;
-  highschool: string | null;
+  secondary_school: string | null;
   target_students: string[];
   qualifications_summary: string | null;
   subjects: string[];
@@ -48,7 +49,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, university, highschool, target_students, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, photo_url, tutor_code, is_published, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
+  "id, display_name, headline, academic_headline, university, secondary_school, target_students, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, photo_url, tutor_code, is_published, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -171,8 +172,9 @@ function normalize(
   return {
     ...(row as unknown as Tutor),
     photo_url: resolvedPhotoUrl,
+    academic_headline: typeof row.academic_headline === "string" ? row.academic_headline : null,
     university: typeof row.university === "string" ? row.university : null,
-    highschool: typeof row.highschool === "string" ? row.highschool : null,
+    secondary_school: typeof row.secondary_school === "string" ? row.secondary_school : null,
     qualifications_summary:
       typeof row.qualifications_summary === "string" ? row.qualifications_summary : null,
     exam_results: exams,

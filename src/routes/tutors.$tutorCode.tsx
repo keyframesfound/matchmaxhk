@@ -406,10 +406,18 @@ function TutorDetail() {
                     {t.headline}
                   </p>
                 ) : null}
-                {t.university || t.highschool ? (
-                  <p className="mt-2 break-words text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
-                    {[t.university, t.highschool].filter(Boolean).join(" | ")}
-                  </p>
+                {t.academic_headline || t.university || t.secondary_school ? (
+                  <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
+                    {t.academic_headline ? (
+                      <p className="break-words">{t.academic_headline}</p>
+                    ) : null}
+                    {t.university ? <p className="break-words">{t.university}</p> : null}
+                    {t.secondary_school ? (
+                      <p className="break-words text-sm font-medium text-muted-foreground sm:text-base">
+                        {t.secondary_school}
+                      </p>
+                    ) : null}
+                  </div>
                 ) : null}
                 <div className={`mt-4 flex-wrap gap-2 ${t.badge ? "flex" : "hidden sm:flex"}`}>
                   <span className="hidden items-center gap-1 rounded-[2px] border border-border bg-muted px-2.5 py-1 text-xs text-muted-foreground sm:inline-flex">

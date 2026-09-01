@@ -78,9 +78,12 @@ export function PublicTutorCard({
   const [academicExpandedHeight, setAcademicExpandedHeight] = useState<number | null>(null);
   const genderLabel = getTutorGenderLabel(tutor.gender);
   const primaryCredential = removeEmoji(
-    tutor.university ?? tutor.highschool ?? "Academic profile verified",
+    tutor.academic_headline ??
+      tutor.university ??
+      tutor.secondary_school ??
+      "Academic profile verified",
   );
-  const supportingCredentials = [tutor.university, tutor.highschool]
+  const supportingCredentials = [tutor.university, tutor.secondary_school]
     .map((value) => (value ? removeEmoji(value) : ""))
     .filter((value) => value && value !== primaryCredential)
     .slice(0, 2);
