@@ -381,6 +381,36 @@
 }
 
 @layer utilities {
+  .how-it-works-hero__image {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(100deg, rgba(4, 19, 68, 0.98) 8%, rgba(4, 19, 68, 0.82) 52%, rgba(4, 19, 68, 0.55)),
+      url("/tutor-matching-network.jpeg") center / cover no-repeat;
+    filter: saturate(0.78) contrast(1.1);
+  }
+
+  .how-it-works-hero__image::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    background: radial-gradient(circle at 76% 30%, rgba(31, 168, 182, 0.32), transparent 33%);
+  }
+
+  .how-it-works-paper {
+    background-color: #f8fbfc;
+    background-image:
+      radial-gradient(circle at 88% 28%, rgba(119, 232, 238, 0.3), transparent 22rem),
+      repeating-linear-gradient(90deg, transparent 0, transparent calc(8.333% - 1px), rgba(4, 19, 68, 0.055) calc(8.333% - 1px), rgba(4, 19, 68, 0.055) 8.333%),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
+    background-attachment: fixed;
+  }
+
+  .dark .how-it-works-paper {
+    background-color: var(--surface);
+    background-image: none;
+  }
+
   .landing-tutor-visual {
     position: relative;
     width: 100%;

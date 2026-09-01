@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
-  BadgeCheck,
   Building2,
   Check,
   CircleDollarSign,
@@ -13,6 +12,7 @@ import {
   ShieldCheck,
   UserRoundCheck,
 } from "lucide-react";
+import { motion } from "motion/react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -145,124 +145,117 @@ const AUDIENCES = [
 
 function HowItWorksPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[color:var(--ink)] dark:bg-[color:var(--surface)]">
-      <SiteHeader className="!border-b-0 !bg-white dark:!bg-[color:var(--surface)]" />
+    <div className="how-it-works-paper flex min-h-screen flex-col text-[color:var(--ink)]">
+      <SiteHeader className="!border-b-0 !bg-white/95 dark:!bg-[color:var(--surface)]" />
       <main className="flex-1">
-        <section className="overflow-hidden bg-white dark:bg-[color:var(--surface)]">
-          <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_0.8fr] lg:py-28">
-            <div>
-              <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/70">
-                The MatchMax Difference
+        <section className="how-it-works-hero relative isolate min-h-[680px] overflow-hidden bg-[#06133e] text-white sm:min-h-[760px]">
+          <div className="how-it-works-hero__image" aria-hidden="true" />
+          <div className="relative mx-auto flex min-h-[680px] max-w-[1440px] flex-col px-5 py-10 sm:min-h-[760px] sm:px-8 lg:px-12">
+            <motion.h1
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.85, delay: 0.12, ease: "easeOut" }}
+              className="mt-auto max-w-6xl pb-8 font-serif text-[clamp(4.2rem,10vw,10rem)] leading-[0.9] tracking-tight text-white"
+            >
+              Better matching,
+              <br />
+              by design.
+            </motion.h1>
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
+              className="flex flex-col justify-between gap-7 sm:flex-row sm:items-end"
+            >
+              <p className="max-w-xs text-sm leading-6 text-white/78 sm:text-base">
+                The thoughtful, transparent way to find exceptional tutors and meaningful teaching opportunities in Hong Kong.
               </p>
-              <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight sm:text-6xl sm:leading-[1.02]">
-                A new standard for tutoring in Hong Kong.
-              </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-[color:var(--ink)]/68">
-                We believe the tutoring industry should be defined by transparency, speed, and
-                uncompromising quality. MatchMax is built to deliver exactly that.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Button
-                  asChild
-                  className="bg-white font-bold text-[color:var(--ink)] hover:bg-white/90 dark:bg-[color:var(--surface-invert)] dark:text-white dark:hover:bg-[color:var(--surface-invert-hover)]"
-                >
-                  <Link to="/tutors">
-                    Find a tutor <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
+              <div className="flex flex-wrap gap-3">
+                <Button asChild size="lg" className="bg-[#77E8EE] font-bold text-[#041344] hover:bg-white">
+                  <Link to="/tutors">Find a tutor <ArrowRight className="ml-2 h-4 w-4" /></Link>
                 </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="border-[color:var(--ink)]/20 bg-transparent font-bold text-[color:var(--ink)] hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
-                >
+                <Button asChild size="lg" variant="outline" className="border-white/35 bg-white/5 font-bold text-white hover:bg-white/15 hover:text-white">
                   <Link to="/join">Become a tutor</Link>
                 </Button>
               </div>
-            </div>
-            <div className="pl-6 sm:pl-10 lg:mt-14">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-[color:var(--ink)]/55">
-                Our promise
-              </p>
-              <p className="mt-5 font-serif text-3xl leading-tight italic sm:text-4xl">
-                “Better matches begin with higher standards.”
-              </p>
-              <div className="mt-10 flex items-center gap-3 text-sm text-[color:var(--ink)]/70">
-                <ShieldCheck className="h-5 w-5 shrink-0" />
-                Every tutor profile is rigorously verified.
-              </div>
-            </div>
+            </motion.div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-          <div className="max-w-2xl">
-            <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/70">
-              Why MatchMax
-            </p>
-            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
-              A better model, by design.
+        <section className="overflow-hidden bg-[#06133e] px-5 py-20 text-white sm:px-8 sm:py-28 lg:px-12">
+          <div className="mx-auto max-w-[1440px]">
+            <p className="max-w-2xl text-sm leading-6 text-white/65 sm:text-base">We built MatchMax around a simple belief: tutoring works better when every introduction is deliberate.</p>
+            <h2 className="mt-10 max-w-6xl font-serif text-[clamp(3.6rem,8.2vw,8.5rem)] leading-[0.88] tracking-tight text-white">
+              Higher standards.
+              <span className="block text-[#77E8EE]">Stronger starts.</span>
             </h2>
           </div>
-          <div className="mt-12 grid md:grid-cols-2">
+        </section>
+
+        <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
+          <div className="grid gap-7 md:grid-cols-[0.45fr_1.2fr] md:items-end">
+            <p className="text-sm font-bold text-[color:var(--brand-teal)]">01 / The MatchMax standard</p>
+            <div>
+              <h2 className="max-w-3xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
+                Built for a better introduction, <span className="font-serif font-normal italic">not more noise.</span>
+              </h2>
+              <p className="mt-6 max-w-xl text-sm leading-7 text-[color:var(--ink)]/65">Every part of the experience is designed to remove uncertainty, not add another layer of agency noise.</p>
+            </div>
+          </div>
+          <div className="mt-20 grid gap-x-12 gap-y-16 md:grid-cols-2">
             {DIFFERENCE.map(({ icon: Icon, title, text }, index) => (
               <article
                 key={title}
-                className="py-8 md:px-8 md:odd:pl-0 md:even:pr-0"
+                className="group"
               >
                 <div className="flex items-center gap-4">
-                  <span className="text-sm font-black tracking-[0.14em] text-[color:var(--ink)]/45">
+                  <span className="text-sm font-black tracking-[0.14em] text-[color:var(--brand-teal)]">
                     0{index + 1}
                   </span>
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-5 w-5 transition-transform duration-300 group-hover:-translate-y-1" />
                 </div>
-                <h3 className="mt-6 text-xl font-black">{title}</h3>
+                <h3 className="mt-6 text-2xl font-black tracking-tight">{title}</h3>
                 <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/68">{text}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="bg-white dark:bg-[color:var(--surface)]">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-            <div className="flex max-w-2xl items-start gap-4">
-              <Clock3 className="mt-1 h-6 w-6 shrink-0" />
+        <section className="bg-transparent px-5 py-20 text-[#041344] dark:bg-[#10234f] dark:text-white sm:px-8 sm:py-28 lg:px-12">
+          <div className="mx-auto max-w-[1440px]">
+            <div className="grid gap-6 md:grid-cols-[0.7fr_1.3fr] md:items-end">
               <div>
-                <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/70">
-                  One business day
-                </p>
-                <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
-                  Clear steps for every side of the match.
-                </h2>
+                <p className="text-sm font-bold text-[#1FA8B6]">02 / The matching flow</p>
+                <div className="mt-5 flex items-center gap-3 text-sm font-bold"><Clock3 className="h-5 w-5" /> Within one business day</div>
               </div>
+              <h2 className="max-w-3xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">One thoughtful process, for every side of the match.</h2>
             </div>
-            <div className="mt-14 space-y-16">
-              {AUDIENCES.map(({ eyebrow, title, icon: Icon, steps, link }) => (
-                <article key={eyebrow} className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16">
+            <div className="mt-20 space-y-24">
+              {AUDIENCES.map(({ eyebrow, title, icon: Icon, steps, link }, audienceIndex) => (
+                <article key={eyebrow} className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-20">
                   <div>
-                    <Icon className="h-6 w-6" />
-                    <p className="mt-6 text-sm font-bold uppercase tracking-[0.16em] text-[color:var(--ink)]/55">
-                      {eyebrow}
-                    </p>
-                    <h3 className="mt-3 text-2xl font-black tracking-tight">{title}</h3>
+                    <Icon className="h-7 w-7 text-[#1FA8B6]" />
+                    <p className="mt-6 text-sm font-bold text-[#1FA8B6]">0{audienceIndex + 1} / {eyebrow}</p>
+                    <h3 className="mt-3 text-3xl font-black leading-tight tracking-tight">{title}</h3>
                     <Link
                       to={link.to}
-                      className="mt-6 inline-flex items-center text-sm font-bold underline underline-offset-4"
+                      className="mt-8 inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
                     >
                       {link.label} <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </div>
-                  <ol>
+                  <ol className="grid gap-7 sm:grid-cols-2">
                     {steps.map(([number, stepTitle, text]) => (
                       <li
                         key={number}
-                        className="grid gap-3 py-5 sm:grid-cols-[52px_1fr] sm:gap-5"
+                        className="grid grid-cols-[42px_1fr] gap-3"
                       >
-                        <span className="text-sm font-black tracking-[0.14em] text-[color:var(--ink)]/50">
+                        <span className="font-serif text-3xl leading-none text-[#1FA8B6]">
                           {number}
                         </span>
                         <div>
-                          <h4 className="font-bold">{stepTitle}</h4>
-                          <p className="mt-1.5 text-sm leading-6 text-[color:var(--ink)]/68">
+                          <h4 className="text-base font-black">{stepTitle}</h4>
+                          <p className="mt-2 text-sm leading-6 text-current/70">
                             {text}
                           </p>
                         </div>
@@ -275,25 +268,25 @@ function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-          <div className="grid gap-8 pl-6 sm:grid-cols-[1fr_auto] sm:items-end sm:pl-10">
+        <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
+          <div className="grid gap-10 sm:grid-cols-[1fr_auto] sm:items-end">
             <div>
-              <MessageCircle className="h-6 w-6" />
-              <h2 className="mt-6 text-3xl font-black tracking-tight sm:text-4xl">
+              <MessageCircle className="h-7 w-7 text-[color:var(--brand-teal)]" />
+              <h2 className="mt-7 max-w-4xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
                 The right match starts with a conversation.
               </h2>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-[color:var(--ink)]/68">
+              <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/68">
                 Whether you are looking for a tutor, building your teaching practice, or staffing a
                 centre, our team makes every connection personal.
               </p>
             </div>
-            <div className="flex items-center gap-2 text-sm font-bold">
-              <Check className="h-4 w-4" /> Personal guidance, never robotic matching.
+            <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]/70">
+              <Check className="h-4 w-4 text-[color:var(--brand-teal)]" /> Personal guidance, never robotic matching.
             </div>
           </div>
         </section>
       </main>
-      <SiteFooter hideDivider className="!border-t-0 !bg-white dark:!bg-[color:var(--surface)]" />
+      <SiteFooter hideDivider className="!border-t-0 !bg-transparent dark:!bg-[color:var(--surface)]" />
     </div>
   );
 }
