@@ -145,19 +145,19 @@ const AUDIENCES = [
 
 function HowItWorksPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-[color:var(--surface)] text-[color:var(--ink)]">
-      <SiteHeader />
+    <div className="flex min-h-screen flex-col bg-white text-[color:var(--ink)]">
+      <SiteHeader className="!border-b-0 !bg-white" />
       <main className="flex-1">
-        <section className="overflow-hidden bg-[color:var(--surface-invert)] text-white">
+        <section className="overflow-hidden bg-white">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_0.8fr] lg:py-28">
             <div>
-              <p className="font-serif text-lg italic tracking-wide text-white/75">
+              <p className="font-serif text-lg italic tracking-wide text-[color:var(--ink)]/70">
                 The MatchMax Difference
               </p>
               <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight sm:text-6xl sm:leading-[1.02]">
                 A new standard for tutoring in Hong Kong.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72">
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-[color:var(--ink)]/68">
                 We believe the tutoring industry should be defined by transparency, speed, and
                 uncompromising quality. MatchMax is built to deliver exactly that.
               </p>
@@ -173,20 +173,20 @@ function HowItWorksPage() {
                 <Button
                   asChild
                   variant="outline"
-                  className="border-white/35 bg-transparent font-bold text-white hover:bg-white/10 hover:text-white"
+                  className="border-[color:var(--ink)]/20 bg-transparent font-bold text-[color:var(--ink)] hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
                 >
                   <Link to="/join">Become a tutor</Link>
                 </Button>
               </div>
             </div>
-            <div className="border-l border-white/20 pl-6 sm:pl-10 lg:mt-14">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-white/55">
+            <div className="pl-6 sm:pl-10 lg:mt-14">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-[color:var(--ink)]/55">
                 Our promise
               </p>
               <p className="mt-5 font-serif text-3xl leading-tight italic sm:text-4xl">
                 “Better matches begin with higher standards.”
               </p>
-              <div className="mt-10 flex items-center gap-3 text-sm text-white/70">
+              <div className="mt-10 flex items-center gap-3 text-sm text-[color:var(--ink)]/70">
                 <ShieldCheck className="h-5 w-5 shrink-0" />
                 Every tutor profile is rigorously verified.
               </div>
@@ -203,11 +203,11 @@ function HowItWorksPage() {
               A better model, by design.
             </h2>
           </div>
-          <div className="mt-12 grid border-t border-[color:var(--ink)]/15 md:grid-cols-2">
+          <div className="mt-12 grid md:grid-cols-2">
             {DIFFERENCE.map(({ icon: Icon, title, text }, index) => (
               <article
                 key={title}
-                className="border-b border-[color:var(--ink)]/15 py-8 md:px-8 md:odd:border-r md:odd:pl-0 md:even:pr-0"
+                className="py-8 md:px-8 md:odd:pl-0 md:even:pr-0"
               >
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-black tracking-[0.14em] text-[color:var(--ink)]/45">
@@ -222,7 +222,7 @@ function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="border-y border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)]">
+        <section className="bg-white">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
             <div className="flex max-w-2xl items-start gap-4">
               <Clock3 className="mt-1 h-6 w-6 shrink-0" />
@@ -251,11 +251,11 @@ function HowItWorksPage() {
                       {link.label} <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </div>
-                  <ol className="border-t border-[color:var(--ink)]/15">
+                  <ol>
                     {steps.map(([number, stepTitle, text]) => (
                       <li
                         key={number}
-                        className="grid gap-3 border-b border-[color:var(--ink)]/15 py-5 sm:grid-cols-[52px_1fr] sm:gap-5"
+                        className="grid gap-3 py-5 sm:grid-cols-[52px_1fr] sm:gap-5"
                       >
                         <span className="text-sm font-black tracking-[0.14em] text-[color:var(--ink)]/50">
                           {number}
@@ -276,7 +276,7 @@ function HowItWorksPage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-          <div className="grid gap-8 border-l-4 border-[color:var(--ink)] pl-6 sm:grid-cols-[1fr_auto] sm:items-end sm:pl-10">
+          <div className="grid gap-8 pl-6 sm:grid-cols-[1fr_auto] sm:items-end sm:pl-10">
             <div>
               <MessageCircle className="h-6 w-6" />
               <h2 className="mt-6 text-3xl font-black tracking-tight sm:text-4xl">
@@ -293,7 +293,7 @@ function HowItWorksPage() {
           </div>
         </section>
       </main>
-      <SiteFooter />
+      <SiteFooter className="!border-t-0 !bg-white" />
     </div>
   );
 }
