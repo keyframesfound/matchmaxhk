@@ -223,6 +223,18 @@
 }
 
 @media (max-width: 639px) {
+  .join-stepper .stepper-indicator-row {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .join-stepper .stepper-indicator-row::-webkit-scrollbar {
+    display: none;
+  }
+
   .join-stepper .stepper-circle-container {
     overflow: visible;
     padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));

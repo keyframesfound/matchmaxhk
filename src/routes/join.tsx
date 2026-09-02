@@ -26,10 +26,10 @@ export const Route = createFileRoute("/join")({
 
 function JoinPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-hidden bg-background">
       <SiteHeader />
-      <main className="flex-1 py-8 sm:py-12">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+      <main className="min-w-0 flex-1 py-8 sm:py-12">
+        <div className="mx-auto w-full min-w-0 max-w-5xl px-4 sm:px-6">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-black text-[color:var(--ink)] sm:text-4xl">
               Apply to tutor with MatchMax
