@@ -36,7 +36,7 @@ import {
   tutorApplicationSchema,
 } from "@/lib/tutor-application.schema";
 import { MTR_LINES, toggleLineStations } from "./mtr";
-import { IB_BLOCKS, getGradesForSelection, getSystem } from "@/features/tutors/examSystems";
+import { getGradesForSelection, getSystem } from "@/features/tutors/examSystems";
 
 type ScoreRow = {
   subject: string;
@@ -85,11 +85,13 @@ const PROFESSIONAL_STEPS = [
   "Acknowledgments",
 ];
 function blankQualification(curriculum = "IBDP"): Qualification {
-  const scores =
-    curriculum === "IBDP"
-      ? IB_BLOCKS.map(() => ({ subject: "", grade: "", detail: "", level: "", gradeSystem: "" }))
-      : [{ subject: "", grade: "", detail: "", level: "", gradeSystem: "" }];
-  return { curriculum, overall: "", boards: [], scores, best6: "" };
+  return {
+    curriculum,
+    overall: "",
+    boards: [],
+    scores: [{ subject: "", grade: "", detail: "", level: "", gradeSystem: "" }],
+    best6: "",
+  };
 }
 
 function Hint({ children }: { children: React.ReactNode }) {
@@ -503,23 +505,19 @@ export function ApplicationForm() {
         </div>
         {qualification.scores.map((score, scoreIndex) => {
           const gradeOptions =
-            qualification.curriculum === "IBDP" && scoreIndex >= 6
+            qualification.curriculum === "IBDP" && ["TOK", "Extended Essay"].includes(score.subject)
               ? ["A", "B", "C", "D", "E"]
               : qualification.curriculum === "IGCSE / GCSE" && score.gradeSystem === "A*-G"
                 ? ["A*", "A", "B", "C", "D", "E", "F", "G", "U"]
                 : qualification.curriculum === "IGCSE / GCSE" && score.gradeSystem === "9-1"
                   ? ["9", "8", "7", "6", "5", "4", "3", "2", "1", "U"]
                   : getGradesForSelection(system?.id ?? "other", score.subject);
-          const ibBlock = qualification.curriculum === "IBDP" ? IB_BLOCKS[scoreIndex] : null;
-          const availableSubjects = ibBlock ? ibBlock[1] : system?.subjects;
+          const availableSubjects = system?.subjects;
           return (
             <div
               key={scoreIndex}
               className="grid gap-3 rounded-md border border-border/70 p-3 sm:grid-cols-2"
             >
-              {ibBlock ? (
-                <p className="sm:col-span-2 text-sm font-semibold text-foreground">{ibBlock[0]}</p>
-              ) : null}
               <SearchableSelect
                 value={score.subject}
                 onChange={(subject) =>
@@ -569,7 +567,7 @@ export function ApplicationForm() {
                 }
                 placeholder="Specific paper grades / breakdown (optional)"
               />
-              {qualification.scores.length > 1 && !ibBlock ? (
+              {qualification.scores.length > 1 ? (
                 <Button
                   type="button"
                   variant="outline"
@@ -585,23 +583,21 @@ export function ApplicationForm() {
             </div>
           );
         })}
-        {qualification.curriculum !== "IBDP" ? (
-          <Button
-            type="button"
-            variant="outline"
-            className="w-fit"
-            onClick={() =>
-              updateQualification(qualificationIndex, {
-                scores: [
-                  ...qualification.scores,
-                  { subject: "", grade: "", detail: "", level: "", gradeSystem: "" },
-                ],
-              })
-            }
-          >
-            <Plus /> Add another subject
-          </Button>
-        ) : null}
+        <Button
+          type="button"
+          variant="outline"
+          className="w-fit"
+          onClick={() =>
+            updateQualification(qualificationIndex, {
+              scores: [
+                ...qualification.scores,
+                { subject: "", grade: "", detail: "", level: "", gradeSystem: "" },
+              ],
+            })
+          }
+        >
+          <Plus /> Add another subject
+        </Button>
       </div>
     );
   };
