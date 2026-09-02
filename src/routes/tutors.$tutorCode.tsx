@@ -372,11 +372,11 @@ function TutorDetail() {
       />
       <SiteHeader />
       <main className="flex-1">
-        <section className="bg-[#171717] py-5 font-mono text-[#d4d4d4] sm:py-7">
+        <section className="border-b border-border bg-background py-5 font-mono text-[color:var(--ink)] sm:py-7">
           <div className="mx-auto max-w-5xl px-5 sm:px-8">
             <Link
               to="/tutors"
-              className="inline-block text-sm font-semibold text-[#a3a3a3] transition-colors hover:text-white"
+              className="inline-block text-sm font-semibold text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
             >
               &lt; Back
             </Link>
@@ -386,21 +386,20 @@ function TutorDetail() {
                   <img
                     src={t.photo_url}
                     alt={t.tutor_code}
-                    className="h-20 w-20 object-cover grayscale"
+                    className="h-20 w-20 rounded-full object-cover"
                   />
                 ) : (
-                  <span className="text-sm leading-6 text-[#a3a3a3]">[ Avatar ]</span>
+                  <span className="flex h-20 w-20 items-center justify-center rounded-full border border-border bg-muted text-sm leading-6 text-muted-foreground">
+                    Avatar
+                  </span>
                 )}
               </div>
               <div className="min-w-0 space-y-1 text-sm leading-6 sm:text-base">
-                <h1 className="font-bold text-[#f5f5f5]">{profileTitle}</h1>
-                {t.academic_headline ? <p className="break-words">{t.academic_headline}</p> : null}
-                {t.university ? <p className="break-words">{t.university}</p> : null}
-                {t.secondary_school ? <p className="break-words">{t.secondary_school}</p> : null}
+                <h1 className="font-bold text-[color:var(--ink)]">{profileTitle}</h1>
                 {t.headline ? (
                   <p
                     ref={headlineRef}
-                    className="break-words whitespace-pre-line text-[#a3a3a3]"
+                    className="break-words whitespace-pre-line text-muted-foreground"
                     style={{
                       fontSize: `${headlineSize}px`,
                       lineHeight: 1.45,
@@ -415,31 +414,28 @@ function TutorDetail() {
                 ) : null}
               </div>
               <div className="space-y-4 text-sm leading-6 sm:text-right sm:text-base">
-                <p className="font-bold text-[#f5f5f5]">HK${t.hourly_rate} /hr</p>
-                <p className="text-[#a3a3a3]">Ref: {t.tutor_code}</p>
+                <p className="font-bold text-[color:var(--ink)]">HK${t.hourly_rate} /hr</p>
+                <p className="text-muted-foreground">Ref: {t.tutor_code}</p>
                 <TutorSaveButton tutorId={t.id} compact />
               </div>
             </div>
-            <div className="mt-5 border-t border-[#404040] pt-5 sm:ml-[124px]">
+            <div className="mt-5 border-t border-border pt-5 sm:ml-[124px]">
               {waUrl ? (
-                <a
-                  href={waUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#e5e5e5] transition-colors hover:text-white"
+                <Button
+                  asChild
+                  className="bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert)]"
                 >
-                  <span aria-hidden="true">[</span>
-                  <MessageCircle className="h-4 w-4" strokeWidth={2} />
-                  Request tutor
-                  <span aria-hidden="true">]</span>
-                </a>
+                  <a href={waUrl} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="mr-2 h-4 w-4" /> Request tutor
+                  </a>
+                </Button>
               ) : (
-                <span className="inline-flex items-center gap-2 text-sm text-[#737373]">
-                  <span aria-hidden="true">[</span>
-                  <MessageCircle className="h-4 w-4" strokeWidth={2} />
-                  Contact coming soon
-                  <span aria-hidden="true">]</span>
-                </span>
+                <Button
+                  disabled
+                  className="bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert)]"
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" /> Contact coming soon
+                </Button>
               )}
             </div>
           </div>
