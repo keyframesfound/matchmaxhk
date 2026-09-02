@@ -30,6 +30,7 @@ export interface StepperProps extends Omit<HTMLAttributes<HTMLDivElement>, "chil
   onFinalStepCompleted?: () => void;
   stepCircleContainerClassName?: string;
   stepContainerClassName?: string;
+  scrollActiveIndicatorIntoView?: boolean;
   contentClassName?: string;
   footerClassName?: string;
   backButtonProps?: ButtonHTMLAttributes<HTMLButtonElement>;
@@ -51,6 +52,7 @@ export default function Stepper({
   onFinalStepCompleted = () => {},
   stepCircleContainerClassName = "",
   stepContainerClassName = "",
+  scrollActiveIndicatorIntoView = false,
   contentClassName = "",
   footerClassName = "",
   backButtonProps = {},
@@ -70,6 +72,14 @@ export default function Stepper({
   const [direction, setDirection] = useState<1 | -1>(1);
   const currentStep = controlledStep ?? internalStep;
   const previousControlledStep = useRef(currentStep);
+  const progressRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!scrollActiveIndicatorIntoView) return;
+    progressRef.current
+      ?.querySelector<HTMLElement>('[aria-current="step"]')
+      ?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [currentStep, scrollActiveIndicatorIntoView]);
 
   useEffect(() => {
     if (controlledStep === undefined || controlledStep === previousControlledStep.current) return;
@@ -121,7 +131,11 @@ export default function Stepper({
   return (
     <div className={cn("stepper-outer-container", className)} {...rest}>
       <div className={cn("stepper-circle-container", stepCircleContainerClassName)}>
-        <div className={cn("stepper-indicator-row", stepContainerClassName)} aria-label="Form progress">
+        <div
+          ref={progressRef}
+          className={cn("stepper-indicator-row", stepContainerClassName)}
+          aria-label="Form progress"
+        >
           {stepsArray.map((_, index) => {
             const stepNumber = index + 1;
             const isNotLastStep = index < totalSteps - 1;

@@ -644,6 +644,7 @@ export function ApplicationForm() {
       </aside>
       <Stepper
         className="join-stepper"
+        scrollActiveIndicatorIntoView
         currentStep={step}
         onStepChange={setStep}
         onBeforeStepChange={() => validateCurrentStep()}

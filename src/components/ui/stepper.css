@@ -195,30 +195,30 @@
 
 @media (min-width: 640px) {
   .join-stepper .stepper-indicator-row {
-    position: relative;
     align-items: flex-start;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .join-stepper .stepper-indicator-row::-webkit-scrollbar {
+    display: none;
   }
 
   .join-stepper .stepper-indicator-group {
-    position: relative;
-    display: block;
-    flex: 1 1 0;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    scroll-snap-align: center;
   }
 
   .join-stepper .join-stepper-indicator {
-    position: relative;
-    z-index: 1;
-    width: 100%;
+    width: 9rem;
   }
 
   .join-stepper .stepper-connector {
-    position: absolute;
-    top: 1.0625rem;
-    right: calc(-50% + 1.125rem);
-    left: calc(50% + 1.125rem);
-    z-index: 0;
-    height: 0.125rem;
-    margin: 0;
+    flex: 0 0 2.5rem;
+    margin: 0 0 1.75rem;
   }
 }
 
@@ -235,6 +235,26 @@
     padding: 0.875rem 1rem 0.75rem;
     border-bottom: 1px solid color-mix(in oklab, var(--brand-navy) 9%, transparent);
     box-shadow: 0 8px 18px -18px color-mix(in oklab, var(--brand-navy) 45%, transparent);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .join-stepper .join-stepper-progress::-webkit-scrollbar {
+    display: none;
+  }
+
+  .join-stepper .stepper-indicator-group {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+  }
+
+  .join-stepper .join-stepper-indicator {
+    width: 8rem;
+  }
+
+  .join-stepper .stepper-connector {
+    flex: 0 0 1.25rem;
   }
 
   .join-stepper .join-stepper-mobile-footer {
