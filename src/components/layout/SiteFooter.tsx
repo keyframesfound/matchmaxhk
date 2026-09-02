@@ -64,7 +64,7 @@ export function SiteFooter({
               </a>
               <a
                 className="text-foreground/60 transition-colors hover:text-brand"
-                href="mailto:matchmaxedu@gmail.com"
+                href="mailto:contact@matchmax.hk"
                 aria-label="Email MatchMax"
               >
                 <Mail className="h-5 w-5" aria-hidden="true" />
