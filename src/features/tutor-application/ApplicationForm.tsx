@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Input as FormInput } from "@/components/base/input/input";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
@@ -783,13 +784,16 @@ export function ApplicationForm() {
                   onChange={(event) => setBaseField("name", event.target.value)}
                 />
               </Field>
-              <Field label="Email" required error={fieldErrors.email}>
-                <Input
-                  type="email"
-                  value={base.email}
-                  onChange={(event) => setBaseField("email", event.target.value)}
-                />
-              </Field>
+              <FormInput
+                isRequired
+                isInvalid={Boolean(fieldErrors.email)}
+                label="Email"
+                hint={fieldErrors.email || "This is a hint text to help user."}
+                tooltip="Use an email address you check regularly."
+                type="email"
+                value={base.email}
+                onChange={(event) => setBaseField("email", event.target.value)}
+              />
             </div>
             <div className="grid content-start gap-6">
               <Field
