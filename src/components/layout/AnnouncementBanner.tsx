@@ -28,7 +28,7 @@ export function AnnouncementBanner() {
     >
       <Link
         to="/how-it-works"
-        className="pr-8 text-center text-[12px] font-medium leading-snug text-white hover:underline sm:pr-10 sm:text-sm"
+        className="pr-8 text-center text-[12px] font-medium leading-snug text-white underline underline-offset-2 sm:pr-10 sm:text-sm"
       >
         Free for parents. Fair for tutors. Keep more with a low 1.5-lesson commission.
       </Link>

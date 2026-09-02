@@ -47,7 +47,6 @@ export function SiteHeader({ className }: { className?: string }) {
     <header
       className={`sticky top-0 z-50 w-full border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm ${className ?? ""}`}
     >
-      <AnnouncementBanner />
       <div className="mx-auto flex h-[64px] max-w-[1440px] items-center px-4 sm:px-8 lg:px-10">
         <Link to="/" className="flex shrink-0 items-center" aria-label="MatchMax home">
           <div className="flex items-center gap-2">
@@ -222,6 +221,7 @@ export function SiteHeader({ className }: { className?: string }) {
           />
         </div>
       </div>
+      <AnnouncementBanner />
     </header>
   );
 }
