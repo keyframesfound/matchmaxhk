@@ -242,7 +242,7 @@ export function PublicTutorCard({
                     aria-controls={`academic-achievements-${tutor.tutor_code}`}
                     onClick={toggleAcademicChips}
                     onKeyDown={(event) => event.stopPropagation()}
-                    className="inline-flex items-center self-center px-0.5 py-1 text-[11px] font-bold leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline md:py-1.5 md:text-[12px]"
+                    className="inline-flex translate-y-0.5 items-center self-center px-0.5 py-1 text-[11px] font-bold leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline md:py-1.5 md:text-[12px]"
                   >
                     ... more
                   </button>
