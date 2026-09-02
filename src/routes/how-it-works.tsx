@@ -157,19 +157,14 @@ function HowItWorksPage() {
               transition={{ duration: 0.85, delay: 0.12, ease: "easeOut" }}
               className="mt-auto max-w-6xl pb-8 font-serif text-[clamp(4.2rem,10vw,10rem)] leading-[0.9] tracking-tight text-white"
             >
-              Better matching,
-              <br />
-              by design.
+              How it works
             </motion.h1>
             <motion.div
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
-              className="flex flex-col justify-between gap-7 sm:flex-row sm:items-end"
+              className="flex justify-end"
             >
-              <p className="max-w-xs text-sm leading-6 text-white/78 sm:text-base">
-                The thoughtful, transparent way to find exceptional tutors and meaningful teaching opportunities in Hong Kong.
-              </p>
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg" className="bg-[#77E8EE] font-bold text-[#041344] hover:bg-white">
                   <Link to="/tutors">Find a tutor <ArrowRight className="ml-2 h-4 w-4" /></Link>
@@ -179,16 +174,6 @@ function HowItWorksPage() {
                 </Button>
               </div>
             </motion.div>
-          </div>
-        </section>
-
-        <section className="overflow-hidden bg-[#06133e] px-5 py-20 text-white sm:px-8 sm:py-28 lg:px-12">
-          <div className="mx-auto max-w-[1440px]">
-            <p className="max-w-2xl text-sm leading-6 text-white/65 sm:text-base">We built MatchMax around a simple belief: tutoring works better when every introduction is deliberate.</p>
-            <h2 className="mt-10 max-w-6xl font-serif text-[clamp(3.6rem,8.2vw,8.5rem)] leading-[0.88] tracking-tight text-white">
-              Higher standards.
-              <span className="block text-[#77E8EE]">Stronger starts.</span>
-            </h2>
           </div>
         </section>
 
