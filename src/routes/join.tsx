@@ -137,7 +137,7 @@ const STEP_TITLES = [
 ] as const;
 
 const STEP_FIELD_KEYS: ReadonlyArray<readonly string[]> = [
-  ["name", "phone", "email", "startDate", "status", "statusOther"],
+  ["name", "phone", "email", "startDate", "status"],
   ["university", "programme", "highSchool", "curriculum", "curricula", "overallScore"],
   ["subjectsConfident", "subjectResults", "awards", "experience", "hourlyRate", "materials", "format"],
   ["maxStudents", "locations", "medium", "notes", "attachments", "commissionAck", "privacyAck"],
@@ -1102,13 +1102,13 @@ function JoinPage() {
                     </div>
                     <div ref={captchaContainerRef} className="min-h-[65px] sm:col-span-2" />
                   </div>
-                  {formError ? (
-                    <p className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
-                      {formError}
-                    </p>
-                  ) : null}
                 </Step>
               </Stepper>
+              {formError ? (
+                <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive" role="alert">
+                  {formError}
+                </p>
+              ) : null}
             </form>
           </div>
         </section>
