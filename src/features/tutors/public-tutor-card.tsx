@@ -73,9 +73,7 @@ export function PublicTutorCard({
   const academicChips = useMemo(() => getTutorSubjectChips(tutor), [tutor]);
   const academicChipsRef = useRef<HTMLDivElement | null>(null);
   const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
-  const [hasMoreAcademicChips, setHasMoreAcademicChips] = useState(false);
-  const [academicPreviewHeight, setAcademicPreviewHeight] = useState<number | null>(null);
-  const [academicExpandedHeight, setAcademicExpandedHeight] = useState<number | null>(null);
+  const [visibleAcademicChipCount, setVisibleAcademicChipCount] = useState(academicChips.length);
   const genderLabel = getTutorGenderLabel(tutor.gender);
   const primaryCredential = removeEmoji(
     tutor.academic_headline ??
@@ -90,33 +88,36 @@ export function PublicTutorCard({
 
   useEffect(() => {
     setAreAcademicChipsExpanded(false);
+    setVisibleAcademicChipCount(academicChips.length);
+  }, [academicChips]);
+
+  useEffect(() => {
+    if (areAcademicChipsExpanded) return;
 
     const measureAcademicPreview = () => {
       const container = academicChipsRef.current;
       if (!container) return;
 
       const chips = Array.from(container.querySelectorAll<HTMLElement>("[data-academic-chip]"));
-      const rowOffsets = Array.from(new Set(chips.map((chip) => chip.offsetTop))).sort(
+      const button = container.querySelector<HTMLElement>("[data-academic-more]");
+      const rowOffsets = Array.from(
+        new Set([...chips, ...(button ? [button] : [])].map((item) => item.offsetTop)),
+      ).sort(
         (first, second) => first - second,
       );
 
-      if (rowOffsets.length <= 2) {
-        setHasMoreAcademicChips(false);
-        setAcademicPreviewHeight(null);
-        setAcademicExpandedHeight(null);
+      if (visibleAcademicChipCount === academicChips.length) {
+        if (rowOffsets.length > 2) {
+          setVisibleAcademicChipCount(Math.max(0, academicChips.length - 1));
+        }
         return;
       }
 
-      const secondRowOffset = rowOffsets[1];
-      const secondRowBottom = Math.max(
-        ...chips
-          .filter((chip) => chip.offsetTop === secondRowOffset)
-          .map((chip) => chip.offsetTop + chip.offsetHeight),
-      );
-
-      setHasMoreAcademicChips(true);
-      setAcademicPreviewHeight(secondRowBottom);
-      setAcademicExpandedHeight(container.scrollHeight || secondRowBottom);
+      if (button && rowOffsets.indexOf(button.offsetTop) > 1) {
+        setVisibleAcademicChipCount((count) => Math.max(0, count - 1));
+      } else if (visibleAcademicChipCount < academicChips.length - 1) {
+        setVisibleAcademicChipCount((count) => count + 1);
+      }
     };
 
     const frame = window.requestAnimationFrame(measureAcademicPreview);
@@ -131,7 +132,7 @@ export function PublicTutorCard({
       resizeObserver?.disconnect();
       window.removeEventListener("resize", measureAcademicPreview);
     };
-  }, [academicChips]);
+  }, [academicChips, areAcademicChipsExpanded, visibleAcademicChipCount]);
 
   const toggleAcademicChips = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -219,35 +220,26 @@ export function PublicTutorCard({
                 id={`academic-achievements-${tutor.tutor_code}`}
                 ref={academicChipsRef}
                 className="flex flex-wrap items-start gap-2 overflow-hidden transition-[max-height,opacity] duration-300 ease-out"
-                style={
-                  academicPreviewHeight
-                    ? {
-                        maxHeight: areAcademicChipsExpanded
-                          ? `${academicExpandedHeight ?? academicPreviewHeight + 2}px`
-                          : `${academicPreviewHeight + 2}px`,
-                      }
-                    : undefined
-                }
               >
-                {academicChips.map((chip, index) => (
+                {academicChips
+                  .slice(0, areAcademicChipsExpanded ? undefined : visibleAcademicChipCount)
+                  .map((chip, index) => (
                   <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
-                ))}
-              </div>
-              {!areAcademicChipsExpanded && hasMoreAcademicChips ? (
-                <div className="pointer-events-none absolute bottom-0 right-0 flex max-w-[80%] items-center justify-end bg-gradient-to-l from-[color:var(--surface)] via-[color:var(--surface)]/95 to-transparent pl-6 pr-0 pt-2">
+                  ))}
+                {!areAcademicChipsExpanded && visibleAcademicChipCount < academicChips.length ? (
                   <button
+                    data-academic-more
                     type="button"
                     aria-expanded={false}
                     aria-controls={`academic-achievements-${tutor.tutor_code}`}
                     onClick={toggleAcademicChips}
                     onKeyDown={(event) => event.stopPropagation()}
-                    className="pointer-events-auto inline-flex items-center gap-1 rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--surface)] px-2 py-1 text-[9px] font-bold leading-snug text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-colors hover:bg-[color:var(--brand-teal)]/8 md:px-2.5 md:py-1.5 md:text-[10px]"
+                    className="inline-flex items-center self-center px-0.5 py-1 text-[9px] font-bold leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline md:py-1.5 md:text-[10px]"
                   >
-                    <span className="text-[12px] font-black leading-none">...</span>
-                    <span>more</span>
+                    ... more
                   </button>
-                </div>
-              ) : null}
+                ) : null}
+              </div>
             </div>
           </section>
         ) : null}
