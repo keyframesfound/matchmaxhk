@@ -104,7 +104,7 @@ export function SiteHeader({ className }: { className?: string }) {
           </div>
           {user ? (
             <div className="hidden lg:block">
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
