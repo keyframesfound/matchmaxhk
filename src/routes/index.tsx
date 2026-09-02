@@ -2,28 +2,21 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Search, UserPlus } from "lucide-react";
+import { ArrowRight, BookOpen, Globe2, GraduationCap, Landmark, Search, UserPlus } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
-import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
-import { TutorSaveButton } from "@/features/tutors/saved-tutors";
-import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 import { blurActive } from "@/lib/dom";
 import {
-  fetchPublishedTutors,
   fetchTopWeeklyTutors,
   fetchLandingStats,
   fetchTutorByCode,
   HK_DISTRICTS,
-  matchesDistrictFilter,
-  matchesLessonModeFilter,
 } from "@/features/tutors/queries";
-import { DEFAULT_SUBJECT_OPTIONS, matchesSubjectQuery } from "@/features/tutors/subjects";
+import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
 const OG_IMAGE =
@@ -54,6 +47,15 @@ const HOME_GENDER_OPTIONS = [
   { value: "", label: "Any gender" },
   { value: "female", label: "Female" },
   { value: "male", label: "Male" },
+];
+
+const CURRICULUM_CATEGORIES = [
+  { label: "IBDP", description: "International Baccalaureate", value: "IB", icon: Globe2 },
+  { label: "DSE", description: "Hong Kong Diploma", value: "DSE", icon: Landmark },
+  { label: "IGCSE", description: "International GCSE", value: "IGCSE", icon: BookOpen },
+  { label: "A Level", description: "Advanced Level", value: "A-Level", icon: GraduationCap },
+  { label: "Primary", description: "Primary school", value: "Primary", icon: BookOpen },
+  { label: "Secondary", description: "Secondary school", value: "Secondary", icon: GraduationCap },
 ];
 
 export const Route = createFileRoute("/")({
@@ -165,26 +167,7 @@ function Landing() {
     enabled: !!heroTutorCode,
   });
 
-  const { data: publishedTutors = [], isLoading: publishedTutorsLoading } = useQuery({
-    queryKey: ["landing", "published_tutors"],
-    queryFn: fetchPublishedTutors,
-  });
-
-  const { data: whatsappNumber = "" } = useQuery({
-    queryKey: ["settings", "whatsapp_number"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "whatsapp_number")
-        .maybeSingle();
-      if (error) throw error;
-      const value = data?.value;
-      return typeof value === "string" ? value : "";
-    },
-  });
-
-  const defaultHeroTutor = pickedHeroTutor ?? featuredTutors[0] ?? publishedTutors[0] ?? null;
+  const defaultHeroTutor = pickedHeroTutor ?? featuredTutors[0] ?? null;
 
   const heroTutor = useMemo(() => {
     return defaultHeroTutor;
@@ -209,42 +192,6 @@ function Landing() {
     }
     return params;
   }, [homeSearch]);
-
-  const previewTutors = useMemo(() => {
-    const categoryFilter = (homeSearch.category ?? "").toLowerCase();
-    const subjectFilter = (homeSearch.subject ?? "").toLowerCase();
-    const districtFilter = homeSearch.mode === "in_person" ? (homeSearch.district ?? "") : "";
-    const modeFilter = homeSearch.mode ?? "";
-    const genderFilter = homeSearch.gender ?? "";
-    const query = (homeSearch.q ?? "").trim().toLowerCase();
-
-    return publishedTutors
-      .filter((tut) => {
-        if (categoryFilter) {
-          const categorySource = [...tut.subjects, ...tut.target_students, tut.headline ?? ""]
-            .join(" ")
-            .toLowerCase();
-          if (!categorySource.includes(categoryFilter)) return false;
-        }
-        if (subjectFilter && !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter)))
-          return false;
-        if (!matchesLessonModeFilter(modeFilter, tut.lesson_mode)) return false;
-        if (!matchesDistrictFilter(districtFilter, tut.district)) return false;
-        if (genderFilter && (tut.gender ?? "") !== genderFilter) return false;
-        if (
-          query &&
-          !(
-            tut.tutor_code.toLowerCase().includes(query) ||
-            tut.subjects.some((s) => matchesSubjectQuery(s, query)) ||
-            (tut.headline ?? "").toLowerCase().includes(query)
-          )
-        ) {
-          return false;
-        }
-        return true;
-      })
-      .slice(0, 6);
-  }, [homeSearch, publishedTutors]);
 
   // JSON-LD
   const structuredData = {
@@ -391,65 +338,37 @@ function Landing() {
             </div>
           </div>
 
-          <div className="mt-6">
-            {publishedTutorsLoading && (
-              <div className="flex gap-4 overflow-hidden">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    className="h-[23rem] w-[min(86vw,370px)] shrink-0 rounded-sm border border-border"
-                  />
-                ))}
-              </div>
-            )}
-
-            {!publishedTutorsLoading && previewTutors.length === 0 && (
-              <div className="rounded-sm border border-dashed border-border bg-card p-12 text-center">
-                <p className="text-lg font-bold text-[color:var(--ink)]">
-                  No tutors match your filters yet
+          <div className="mt-6 border-y border-border py-5 md:mt-8 md:py-6">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-lg font-black text-[color:var(--ink)] md:text-xl">
+                  Browse by curriculum
                 </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Try widening your search, then tap Search to view all matching tutors.
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  Find a tutor for your course of study.
                 </p>
               </div>
-            )}
+              <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            </div>
 
-            {!publishedTutorsLoading && previewTutors.length > 0 && (
-              <div className="group relative overflow-hidden py-2">
-                <div className="landing-tutor-marquee flex w-max gap-4 pr-4 group-hover:[animation-play-state:paused] md:gap-6 md:pr-6">
-                  {[...previewTutors, ...previewTutors].map((tut, index) => (
-                    <div
-                      key={`${tut.id}-${index}`}
-                      className="w-[min(86vw,370px)] shrink-0 md:w-[350px] xl:w-[370px]"
-                    >
-                      <PublicTutorCard
-                        tutor={tut}
-                        priceSuffix={t("featured.per_hour")}
-                        onOpen={openTutorDetail}
-                        footerAction={
-                          <>
-                            <TutorSaveButton tutorId={tut.id} compact />
-                            <Button
-                              asChild
-                              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert)]"
-                            >
-                              <a
-                                href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={(event) => event.stopPropagation()}
-                              >
-                                Request tutor
-                              </a>
-                            </Button>
-                          </>
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
+              {CURRICULUM_CATEGORIES.map(({ label, description, value, icon: Icon }) => (
+                <Link
+                  key={value}
+                  to="/tutors"
+                  search={{ category: value }}
+                  className="group flex min-w-[178px] snap-start items-center gap-3 rounded-sm border border-border bg-card px-4 py-3 transition-colors hover:border-[color:var(--ink)] hover:bg-[color:var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:min-w-[205px]"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[color:var(--surface)] text-[color:var(--ink)] group-hover:bg-[color:var(--ink)] group-hover:text-white">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-black text-[color:var(--ink)]">{label}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{description}</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </section>
