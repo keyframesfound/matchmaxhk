@@ -240,6 +240,11 @@ const IGCSE_GRADES_NUMERIC = ["9", "8", "7", "6", "5", "4", "3", "2", "1", "U"];
 const IGCSE_GRADES_LEGACY = ["A*", "A", "B", "C", "D", "E", "F", "G", "U"];
 const AP_GRADES = ["5", "4", "3", "2", "1"];
 
+const dseGradesFor = (subject: string): string[] => {
+  if (subject === "CSD") return ["Pass", "Fail"];
+  return DSE_GRADES;
+};
+
 const satGradesFor = (subject: string): string[] => {
   if (subject === "SAT Total") {
     // 400–1600 in 10-point steps
@@ -262,7 +267,7 @@ const satGradesFor = (subject: string): string[] => {
 
 export const EXAM_SYSTEMS: ExamSystem[] = [
   { id: "ib", label: "IB Diploma", subjects: IB_SUBJECTS, grades: IB_GRADES },
-  { id: "dse", label: "HKDSE", subjects: DSE_SUBJECTS, grades: DSE_GRADES },
+  { id: "dse", label: "HKDSE", subjects: DSE_SUBJECTS, grades: DSE_GRADES, gradesFor: dseGradesFor },
   { id: "alevel", label: "GCE A-Level", subjects: ALEVEL_SUBJECTS, grades: ALEVEL_GRADES },
   {
     id: "igcse",

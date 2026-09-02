@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Select,
   SelectContent,
@@ -66,21 +67,21 @@ const SYSTEM_IDS: Record<string, string> = {
 };
 const LANGUAGES = ["English", "Cantonese", "Mandarin"];
 const ACADEMIC_STEPS = [
-  "Basic Details",
-  "Academic Background",
+  "Basic Info",
+  "Academics",
   "Subjects Taught",
-  "Lesson Preferences & Locations",
-  "Achievements and Experiences",
-  "Logistics & Rate",
+  "Lesson Preferences",
+  "Experience",
+  "Rate",
   "Acknowledgments",
 ];
 const PROFESSIONAL_STEPS = [
-  "Basic Details & Professional Status",
-  "Higher Education & Teaching Credentials",
+  "Basic Details",
+  "Academics",
   "Subjects Taught",
-  "Lesson Preferences & Locations",
-  "Achievements and Experiences",
-  "Logistics & Rate",
+  "Lesson Preferences",
+  "Experience",
+  "Rate",
   "Acknowledgments",
 ];
 const IB_BLOCKS = [
@@ -542,23 +543,16 @@ export function ApplicationForm() {
               {ibBlock ? (
                 <p className="sm:col-span-2 text-sm font-semibold text-foreground">{ibBlock[0]}</p>
               ) : null}
-              <Select
+              <SearchableSelect
                 value={score.subject}
-                onValueChange={(subject) =>
+                onChange={(subject) =>
                   updateScore(qualificationIndex, scoreIndex, { subject, grade: "" })
                 }
-              >
-                <SelectTrigger aria-label="Subject name">
-                  <SelectValue placeholder="Choose subject" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(availableSubjects ?? []).map((subject) => (
-                    <SelectItem key={subject} value={subject}>
-                      {subject}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={availableSubjects ?? []}
+                placeholder="Choose subject"
+                searchPlaceholder="Search subjects..."
+                emptyText="No matching subjects."
+              />
               {qualification.curriculum === "A-Level" ? (
                 <SingleChoice
                   options={["A-Level", "AS-Level"]}
