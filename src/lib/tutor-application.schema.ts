@@ -16,7 +16,6 @@ export const STATUS_OPTIONS = [
   "University student",
   "Graduate",
   "Full-time tutor",
-  "Part-time tutor",
   "Current school teacher",
   "Former school teacher",
   "Official examiner / moderator",

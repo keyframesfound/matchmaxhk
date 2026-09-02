@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import Stepper, { Step, type StepperIndicatorRenderArgs } from "@/components/ui/stepper";
 import { cn } from "@/lib/utils";
@@ -535,19 +542,23 @@ export function ApplicationForm() {
               {ibBlock ? (
                 <p className="sm:col-span-2 text-sm font-semibold text-foreground">{ibBlock[0]}</p>
               ) : null}
-              <Input
+              <Select
                 value={score.subject}
-                list={`subjects-${qualificationIndex}-${scoreIndex}`}
-                onChange={(event) =>
-                  updateScore(qualificationIndex, scoreIndex, { subject: event.target.value })
+                onValueChange={(subject) =>
+                  updateScore(qualificationIndex, scoreIndex, { subject, grade: "" })
                 }
-                placeholder="Subject name"
-              />
-              <datalist id={`subjects-${qualificationIndex}-${scoreIndex}`}>
-                {availableSubjects?.map((subject) => (
-                  <option key={subject} value={subject} />
-                ))}
-              </datalist>
+              >
+                <SelectTrigger aria-label="Subject name">
+                  <SelectValue placeholder="Choose subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(availableSubjects ?? []).map((subject) => (
+                    <SelectItem key={subject} value={subject}>
+                      {subject}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {qualification.curriculum === "A-Level" ? (
                 <SingleChoice
                   options={["A-Level", "AS-Level"]}
@@ -563,19 +574,22 @@ export function ApplicationForm() {
                   }
                 />
               ) : null}
-              <Input
+              <Select
                 value={score.grade}
-                list={`grades-${qualificationIndex}-${scoreIndex}`}
-                onChange={(event) =>
-                  updateScore(qualificationIndex, scoreIndex, { grade: event.target.value })
-                }
-                placeholder="Overall grade"
-              />
-              <datalist id={`grades-${qualificationIndex}-${scoreIndex}`}>
-                {gradeOptions.map((grade) => (
-                  <option key={grade} value={grade} />
-                ))}
-              </datalist>
+                onValueChange={(grade) => updateScore(qualificationIndex, scoreIndex, { grade })}
+                disabled={!score.subject}
+              >
+                <SelectTrigger aria-label="Overall grade">
+                  <SelectValue placeholder="Choose grade" />
+                </SelectTrigger>
+                <SelectContent>
+                  {gradeOptions.map((grade) => (
+                    <SelectItem key={grade} value={grade}>
+                      {grade}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Input
                 className="sm:col-span-2"
                 value={score.detail}
@@ -633,6 +647,7 @@ export function ApplicationForm() {
         {notice}
       </aside>
       <Stepper
+        className="join-stepper"
         currentStep={step}
         onStepChange={setStep}
         onBeforeStepChange={() => validateCurrentStep()}

@@ -193,6 +193,35 @@
   background: var(--stepper-dot);
 }
 
+@media (min-width: 640px) {
+  .join-stepper .stepper-indicator-row {
+    position: relative;
+    align-items: flex-start;
+  }
+
+  .join-stepper .stepper-indicator-group {
+    position: relative;
+    display: block;
+    flex: 1 1 0;
+  }
+
+  .join-stepper .join-stepper-indicator {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+
+  .join-stepper .stepper-connector {
+    position: absolute;
+    top: 1.0625rem;
+    right: calc(-50% + 1.125rem);
+    left: calc(50% + 1.125rem);
+    z-index: 0;
+    height: 0.125rem;
+    margin: 0;
+  }
+}
+
 @media (max-width: 639px) {
   .join-stepper .stepper-circle-container {
     overflow: visible;
