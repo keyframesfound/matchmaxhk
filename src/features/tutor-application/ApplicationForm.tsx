@@ -1,4 +1,4 @@
-import { cloneElement, isValidElement, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, LocateFixed, Paperclip, Plus, Trash2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/base/input/input";
+import { FormField } from "@/components/ui/form-field";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
@@ -96,6 +97,13 @@ const PROFESSIONAL_STEPS = [
   "Rate",
   "Acknowledgments",
 ];
+
+const Field = FormField;
+
+function Hint({ children }: { children: React.ReactNode }) {
+  return <p className="text-xs italic leading-relaxed text-muted-foreground">{children}</p>;
+}
+
 function blankQualification(curriculum = "IBDP"): Qualification {
   return {
     curriculum,
@@ -104,46 +112,6 @@ function blankQualification(curriculum = "IBDP"): Qualification {
     scores: [{ subject: "", grade: "", detail: "", level: "", gradeSystem: "" }],
     best6: "",
   };
-}
-
-function Hint({ children }: { children: React.ReactNode }) {
-  return <p className="text-xs italic leading-relaxed text-muted-foreground">{children}</p>;
-}
-
-function Field({
-  label,
-  required,
-  error,
-  hint,
-  className,
-  children,
-}: {
-  label: string;
-  required?: boolean;
-  error?: string;
-  hint?: React.ReactNode;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  const isInput = isValidElement(children) && children.type === Input;
-  const renderedChildren = isInput
-    ? cloneElement(
-        children as React.ReactElement<{ hint?: React.ReactNode; isInvalid?: boolean }>,
-        { hint: error, isInvalid: Boolean(error) },
-      )
-    : children;
-
-  return (
-    <div className={cn("grid gap-2", className)}>
-      <Label className="font-semibold text-foreground">
-        {label}
-        {required ? <span className="ml-1 text-destructive">*</span> : null}
-      </Label>
-      {renderedChildren}
-      {hint ? <Hint>{hint}</Hint> : null}
-      {error && !isInput ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
-    </div>
-  );
 }
 
 function Choices({

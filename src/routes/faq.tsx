@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageIntro } from "@/components/layout/PageIntro";
+import { PublicPage } from "@/components/layout/PublicPage";
 import {
   Accordion,
   AccordionContent,
@@ -48,43 +49,33 @@ const FAQ_ITEMS = [
 
 function FAQPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <SiteHeader />
-      <main className="flex-1">
-        <section className="border-b border-border py-14 sm:py-18">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6">
-            <p className="text-center text-xs font-bold uppercase tracking-[0.24em] text-foreground">
-              FAQs
-            </p>
-            <h1 className="mt-3 text-center text-4xl font-black tracking-tight text-foreground sm:text-5xl">
-              Ask us anything
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-center text-base text-foreground">
-              Have any questions? We&apos;re here to assist you.
-            </p>
-          </div>
-        </section>
+    <PublicPage>
+      <PageIntro
+        align="center"
+        description="Have any questions? We're here to assist you."
+        eyebrow="FAQs"
+        title="Ask Us Anything"
+        width="default"
+      />
 
-        <section className="py-10 sm:py-14">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6">
-            <div className="rounded-2xl border border-border bg-[color:var(--surface)] px-5 py-2 sm:px-8">
-              <Accordion type="single" collapsible className="w-full">
-                {FAQ_ITEMS.map((item, index) => (
-                  <AccordionItem key={item.q} value={`faq-${index}`} className="border-border">
-                    <AccordionTrigger className="py-6 text-left text-xl font-extrabold text-foreground hover:no-underline">
-                      {item.q}
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-6 text-base leading-relaxed text-foreground">
-                      {item.a}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
+      <section className="py-10 sm:py-14">
+        <PageContainer width="default">
+          <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] px-5 py-2 shadow-[var(--shadow-brand)] sm:px-8">
+            <Accordion type="single" collapsible className="w-full">
+              {FAQ_ITEMS.map((item, index) => (
+                <AccordionItem key={item.q} value={`faq-${index}`} className="border-border">
+                  <AccordionTrigger className="py-6 text-left text-xl font-bold text-foreground hover:no-underline">
+                    {item.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-6 text-base leading-relaxed text-muted-foreground">
+                    {item.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
-        </section>
-      </main>
-      <SiteFooter />
-    </div>
+        </PageContainer>
+      </section>
+    </PublicPage>
   );
 }

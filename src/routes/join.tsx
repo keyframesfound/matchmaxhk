@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { SiteFooter } from "@/components/layout/SiteFooter";
-import { SiteHeader } from "@/components/layout/SiteHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageIntro } from "@/components/layout/PageIntro";
+import { PublicPage } from "@/components/layout/PublicPage";
 import { ApplicationForm } from "@/features/tutor-application/ApplicationForm";
 
 export const Route = createFileRoute("/join")({
@@ -26,24 +27,15 @@ export const Route = createFileRoute("/join")({
 
 function JoinPage() {
   return (
-    <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-background">
-      <SiteHeader />
-      <main className="min-w-0 flex-1 py-8 sm:py-12">
-        <div className="mx-auto w-full min-w-0 max-w-5xl px-4 sm:px-6">
-          <div className="max-w-3xl">
-            <h1 className="text-3xl font-black text-[color:var(--ink)] sm:text-4xl">
-              Apply to tutor with MatchMax
-            </h1>
-            <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-              Build your teaching profile for the exam systems and subjects you know best.
-            </p>
-          </div>
-          <div className="mt-8">
-            <ApplicationForm />
-          </div>
-        </div>
-      </main>
-      <SiteFooter />
-    </div>
+    <PublicPage>
+      <PageIntro
+        description="Build your teaching profile for the exam systems and subjects you know best."
+        title="Apply to Tutor With MatchMax"
+        width="wide"
+      />
+      <PageContainer className="py-8 sm:py-12" width="wide">
+        <ApplicationForm />
+      </PageContainer>
+    </PublicPage>
   );
 }

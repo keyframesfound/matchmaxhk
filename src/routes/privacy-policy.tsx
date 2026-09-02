@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageIntro } from "@/components/layout/PageIntro";
+import { PublicPage } from "@/components/layout/PublicPage";
 
 export const Route = createFileRoute("/privacy-policy")({
   head: () => ({
@@ -52,50 +53,44 @@ const SECTIONS = [
 
 function PrivacyPolicyPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-[color:var(--surface)] text-[color:var(--ink)]">
-      <SiteHeader />
-      <main className="flex-1">
-        <section className="border-b border-border py-16 sm:py-24">
-          <div className="mx-auto max-w-3xl px-5 sm:px-6">
-            <p className="text-sm font-semibold text-[color:var(--brand-link)]">Legal</p>
-            <h1 className="mt-3 text-4xl font-bold text-foreground sm:text-5xl">Privacy Policy</h1>
-            <p className="mt-5 text-base leading-7 text-muted-foreground sm:text-lg">
-              Your privacy matters to us. This policy explains how MatchMax collects and handles your personal data.
-            </p>
-            <p className="mt-5 text-sm text-muted-foreground">Current as of 3 September 2026</p>
-          </div>
-        </section>
+    <PublicPage>
+      <PageIntro
+        description="Your privacy matters to us. This policy explains how MatchMax collects and handles your personal data."
+        eyebrow="Legal"
+        meta="Current as of 3 September 2026"
+        title="Privacy Policy"
+      />
 
-        <section className="mx-auto max-w-3xl px-5 py-14 sm:px-6 sm:py-20">
+      <section className="py-14 sm:py-20">
+        <PageContainer width="narrow">
           <div className="space-y-12">
-            <div className="border-b border-border pb-12 text-base leading-7 text-muted-foreground">
-              <p>{INTRO_TEXT}</p>
-            </div>
+          <div className="border-b border-border pb-12 text-base leading-7 text-muted-foreground">
+            <p>{INTRO_TEXT}</p>
+          </div>
 
-            {SECTIONS.map((section) => (
-              <article key={section.title} className="border-b border-border pb-12 last:border-b-0 last:pb-0">
-                <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{section.title}</h2>
-                <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">
-                  {section.intro && <p>{section.intro}</p>}
-                  {section.points.length > 0 && (
-                    <ul className="list-disc space-y-3 pl-5 marker:text-[color:var(--brand-link)]">
-                      {section.points.map((point) => (
-                        <li key={point} className="pl-1">
-                          {point}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  {section.closing && <p className="whitespace-pre-wrap">{section.closing}</p>}
-                </div>
-              </article>
-            ))}
+          {SECTIONS.map((section) => (
+            <article key={section.title} className="border-b border-border pb-12 last:border-b-0 last:pb-0">
+              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{section.title}</h2>
+              <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">
+                {section.intro && <p>{section.intro}</p>}
+                {section.points.length > 0 && (
+                  <ul className="list-disc space-y-3 pl-5 marker:text-[color:var(--brand-link)]">
+                    {section.points.map((point) => (
+                      <li key={point} className="pl-1">
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {section.closing && <p className="whitespace-pre-wrap">{section.closing}</p>}
+              </div>
+            </article>
+          ))}
 
             <article className="border-t border-border pt-12">
-              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Questions about privacy?</h2>
+              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Questions About Privacy?</h2>
               <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
-                For questions about how we handle your data, or to submit a data access or correction request, contact
-                us at{" "}
+                For questions about how we handle your data, or to submit a data access or correction request, contact us at{" "}
                 <a className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4" href="mailto:info@matchmax.hk">
                   info@matchmax.hk
                 </a>
@@ -103,9 +98,8 @@ function PrivacyPolicyPage() {
               </p>
             </article>
           </div>
-        </section>
-      </main>
-      <SiteFooter />
-    </div>
+        </PageContainer>
+      </section>
+    </PublicPage>
   );
 }

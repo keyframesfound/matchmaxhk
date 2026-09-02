@@ -69,6 +69,8 @@
 
 :root {
   --radius: 0.7rem;
+  --radius-control: 0.5rem;
+  --radius-panel: 0.75rem;
   /* Uber Move is Uber's proprietary typeface; DM Sans is the web fallback. */
   --font-sans:
     "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
@@ -147,6 +149,7 @@
   --gradient-brand-soft: linear-gradient(135deg, #f5fbfc 0%, #e8f8fa 100%);
   --shadow-brand: 0 10px 30px -18px color-mix(in oklab, #041344 24%, transparent);
   --shadow-teal: 0 12px 24px -16px color-mix(in oklab, #1fa8b6 28%, transparent);
+  --focus-ring: 0 0 0 3px color-mix(in oklab, var(--ring) 32%, transparent);
 }
 
 .dark {
@@ -229,16 +232,7 @@
 
   html {
     color-scheme: light;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  html::-webkit-scrollbar {
-    display: none;
-  }
-
-  body::-webkit-scrollbar {
-    display: none;
+    scroll-behavior: smooth;
   }
 
   html.dark {
@@ -247,8 +241,7 @@
 
   body {
     overflow-x: clip;
-    background-color: var(--surface-subtle);
-    color: var(--ink);
+    -webkit-tap-highlight-color: color-mix(in oklab, var(--brand-teal) 20%, transparent);
   }
 
 
@@ -278,7 +271,6 @@
     font-size: 0.95rem;
     font-weight: 400;
     line-height: 1.6;
-    letter-spacing: -0.01em;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
@@ -334,6 +326,7 @@
   textarea,
   select {
     font-weight: 500;
+    touch-action: manipulation;
   }
 
   button:not(:disabled),
@@ -342,19 +335,6 @@
   summary,
   [data-slot="button"] {
     cursor: pointer;
-  }
-
-  .font-black,
-  .font-extrabold {
-    font-weight: 700 !important;
-  }
-
-  .font-bold {
-    font-weight: 600 !important;
-  }
-
-  .font-semibold {
-    font-weight: 600 !important;
   }
 
   .font-medium {
