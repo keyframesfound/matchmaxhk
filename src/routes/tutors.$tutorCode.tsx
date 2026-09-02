@@ -45,7 +45,7 @@ function ProfileSection({
   icon: Icon,
   title,
   children,
-  iconClassName = "text-[color:var(--ink)]",
+  iconClassName = "text-[#18D0D0]",
 }: {
   icon: LucideIcon;
   title: string;
@@ -53,12 +53,12 @@ function ProfileSection({
   iconClassName?: string;
 }) {
   return (
-    <section className="border-b border-border/70 px-5 py-5 last:border-b-0 sm:px-6">
+    <section className="border-b border-[#18D0D0]/20 px-5 py-5 last:border-b-0 sm:px-6">
       <div className="flex items-center gap-2.5">
-        <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--ink)]/15 bg-[color:var(--ink)]/8">
+        <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[#18D0D0]/30 bg-[#18D0D0]/8">
           <Icon className={`h-4 w-4 ${iconClassName}`} strokeWidth={2.1} />
         </span>
-        <h2 className="text-base font-black tracking-tight text-[color:var(--ink)] sm:text-lg">
+        <h2 className="text-base font-black tracking-tight text-[#18D0D0] sm:text-lg">
           {title}
         </h2>
       </div>
@@ -123,7 +123,7 @@ function AcademicQualification({ result }: { result: ExamResult }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[color:var(--ink)]">
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#18D0D0]">
         {label}
       </p>
       <ul className="space-y-1.5">
@@ -132,18 +132,18 @@ function AcademicQualification({ result }: { result: ExamResult }) {
           return (
             <li
               key={`${entry.subject}-${subjectIndex}`}
-              className="border-l-2 border-[color:var(--brand-link)]/80 pl-3"
+              className="border-l-2 border-[#18D0D0]/80 pl-3"
             >
               <div className="flex items-baseline gap-2">
-                <span className="text-sm font-bold text-[color:var(--ink)]">{entry.subject}</span>
+                <span className="text-sm font-bold text-[#18D0D0]">{entry.subject}</span>
                 {entry.grade.trim() ? (
-                  <span className="text-sm font-bold text-[color:var(--brand-link)]">
+                  <span className="text-sm font-bold text-[#18D0D0]">
                     – Grade {entry.grade.replace(/^grade\s+/i, "")}
                   </span>
                 ) : null}
               </div>
               {papers.length > 0 ? (
-                <p className="mt-0.5 text-xs font-semibold text-[color:var(--ink)]">
+                <p className="mt-0.5 text-xs font-semibold text-[#18D0D0]">
                   {papers.map((paper, paperIndex) => (
                     <span key={`${paper.label}-${paperIndex}`}>
                       {paperIndex > 0 ? <strong> · </strong> : null}
@@ -383,7 +383,7 @@ function TutorDetail() {
                 <ProfileSection icon={Award} title="Achievement & Experience">
                   <div className="space-y-4">
                     {profileBio ? (
-                      <p className="whitespace-pre-line text-sm leading-relaxed text-[color:var(--ink)]">
+                      <p className="whitespace-pre-line text-sm leading-relaxed text-[#18D0D0]">
                         {profileBio}
                       </p>
                     ) : null}
@@ -396,11 +396,11 @@ function TutorDetail() {
                               strokeWidth={2.1}
                             />
                             <div className="min-w-0">
-                              <p className="text-sm font-bold text-[color:var(--ink)]">
+                              <p className="text-sm font-bold text-[#18D0D0]">
                                 {achievement.short_text}
                               </p>
                               {achievement.detail_text ? (
-                                <p className="mt-0.5 whitespace-pre-line text-sm leading-relaxed text-[color:var(--ink)]">
+                                <p className="mt-0.5 whitespace-pre-line text-sm leading-relaxed text-[#18D0D0]">
                                   {achievement.detail_text}
                                 </p>
                               ) : null}
@@ -417,13 +417,13 @@ function TutorDetail() {
                 <ProfileSection icon={Layers} title="Subjects Taught">
                   <div className="text-left text-sm">
                     {t.subjects.length > 0 ? (
-                      <p className="font-bold leading-relaxed text-[color:var(--ink)]">
+                      <p className="font-bold leading-relaxed text-[#18D0D0]">
                         {t.subjects.filter(Boolean).join(", ")}
                       </p>
                     ) : null}
                     {t.ia_ee_tok_support.length > 0 ? (
                       <p className="mt-1 text-muted-foreground">
-                        <span className="font-bold text-[color:var(--ink)]">IA / EE / TOK:</span>{" "}
+                        <span className="font-bold text-[#18D0D0]">IA / EE / TOK:</span>{" "}
                         {t.ia_ee_tok_support.join(", ")}
                         {t.ia_ee_tok_notes ? ` — ${t.ia_ee_tok_notes}` : ""}
                       </p>

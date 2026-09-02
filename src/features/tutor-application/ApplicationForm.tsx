@@ -1345,14 +1345,6 @@ export function ApplicationForm() {
           </div>
         </Step>
       </Stepper>
-      {error ? (
-        <p
-          className="mt-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm font-medium text-destructive"
-          role="alert"
-        >
-          {error}
-        </p>
-      ) : null}
     </form>
   );
 }
