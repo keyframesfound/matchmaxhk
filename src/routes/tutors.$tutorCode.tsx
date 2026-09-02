@@ -203,7 +203,7 @@ function AcademicQualification({ result }: { result: ExamResult }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[color:var(--ink)]">
         {label}
       </p>
       <ul className="space-y-1.5">
@@ -223,8 +223,13 @@ function AcademicQualification({ result }: { result: ExamResult }) {
                 ) : null}
               </div>
               {papers.length > 0 ? (
-                <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
-                  {papers.map((p) => `${p.label}: ${p.score}`).join(" · ")}
+                <p className="mt-0.5 text-xs font-semibold text-[color:var(--ink)]">
+                  {papers.map((paper, paperIndex) => (
+                    <span key={`${paper.label}-${paperIndex}`}>
+                      {paperIndex > 0 ? <strong> · </strong> : null}
+                      {paper.label}: {paper.score}
+                    </span>
+                  ))}
                 </p>
               ) : null}
             </li>
@@ -325,7 +330,6 @@ function TutorDetail() {
     ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`I would like to request tutor ${t.tutor_code}`)}`
     : "";
   const genderLabel = getTutorGenderLabel(t.gender);
-  const profileTitle = `${t.tutor_code}${genderLabel ? ` • ${genderLabel}` : ""}`;
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
   const subjectChips = getTutorSubjectChips(t);
   const examResults = (t.exam_results ?? []).filter((result) =>
@@ -372,34 +376,34 @@ function TutorDetail() {
       />
       <SiteHeader />
       <main className="flex-1">
-        <section className="border-b border-border bg-background py-5 font-mono text-[color:var(--ink)] sm:py-7">
+        <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
           <div className="mx-auto max-w-5xl px-5 sm:px-8">
-            <Link
-              to="/tutors"
-              className="inline-block text-sm font-semibold text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
-            >
-              &lt; Back
-            </Link>
-            <div className="mt-6 grid gap-5 sm:grid-cols-[100px_minmax(0,1fr)_auto] sm:gap-x-6">
-              <div className="flex min-h-20 items-start justify-center sm:justify-start">
-                {t.photo_url ? (
-                  <img
-                    src={t.photo_url}
-                    alt={t.tutor_code}
-                    className="h-20 w-20 rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="flex h-20 w-20 items-center justify-center rounded-full border border-border bg-muted text-sm leading-6 text-muted-foreground">
-                    Avatar
-                  </span>
-                )}
-              </div>
-              <div className="min-w-0 space-y-1 text-sm leading-6 sm:text-base">
-                <h1 className="font-bold text-[color:var(--ink)]">{profileTitle}</h1>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+              {t.photo_url ? (
+                <img
+                  src={t.photo_url}
+                  alt={t.tutor_code}
+                  className="h-16 w-16 shrink-0 rounded-full object-cover sm:h-20 sm:w-20"
+                />
+              ) : (
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-xl font-semibold text-[color:var(--brand-teal)] sm:h-20 sm:w-20 sm:text-2xl">
+                  {t.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl font-black text-[color:var(--ink)] sm:text-2xl">
+                  {t.tutor_code}
+                  {genderLabel ? (
+                    <>
+                      <strong> • </strong>
+                      {genderLabel}
+                    </>
+                  ) : null}
+                </h1>
                 {t.headline ? (
                   <p
                     ref={headlineRef}
-                    className="break-words whitespace-pre-line text-muted-foreground"
+                    className="mt-1 break-words whitespace-pre-line text-sm text-muted-foreground sm:text-base"
                     style={{
                       fontSize: `${headlineSize}px`,
                       lineHeight: 1.45,
@@ -412,31 +416,66 @@ function TutorDetail() {
                     {t.headline}
                   </p>
                 ) : null}
+                {t.academic_headline || t.university || t.secondary_school ? (
+                  <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
+                    {t.academic_headline ? (
+                      <p className="break-words">{t.academic_headline}</p>
+                    ) : null}
+                    {t.university ? <p className="break-words">{t.university}</p> : null}
+                    {t.secondary_school ? (
+                      <p className="break-words text-sm font-medium text-muted-foreground sm:text-base">
+                        {t.secondary_school}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+                <div className={`mt-4 flex-wrap gap-2 ${t.badge ? "flex" : "hidden sm:flex"}`}>
+                  <span className="hidden items-center gap-1 rounded-[2px] border border-border bg-muted px-2.5 py-1 text-xs text-muted-foreground sm:inline-flex">
+                    {t.lesson_mode === "online" ? (
+                      <Globe className="h-3 w-3" />
+                    ) : (
+                      <MapPin className="h-3 w-3" />
+                    )}
+                    {getTutorLocationLabel(t)}
+                  </span>
+                  {t.badge ? (
+                    <span className="inline-flex items-center gap-1 rounded-[2px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-bold text-[color:var(--brand-teal)]">
+                      <BadgeCheck className="h-3 w-3" /> {t.badge}
+                    </span>
+                  ) : null}
+                  {subjectChips.map((chip, index) => (
+                    <span key={`${chip.subject}-${index}`} className="hidden sm:contents">
+                      <DetailSubjectChip chip={chip} />
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-4 text-sm leading-6 sm:text-right sm:text-base">
-                <p className="font-bold text-[color:var(--ink)]">HK${t.hourly_rate} /hr</p>
-                <p className="text-muted-foreground">Ref: {t.tutor_code}</p>
-                <TutorSaveButton tutorId={t.id} compact />
+              <div className="w-full sm:w-auto sm:text-right">
+                <div className="flex items-center justify-start gap-1.5 sm:justify-end">
+                  <p className="text-3xl font-black text-[color:var(--ink)]">
+                    HK${t.hourly_rate}
+                    <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
+                  </p>
+                  <TutorSaveButton tutorId={t.id} compact />
+                </div>
+                {waUrl ? (
+                  <Button
+                    asChild
+                    className="mt-3 w-full bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert)] sm:w-auto"
+                  >
+                    <a href={waUrl} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle className="mr-2 h-4 w-4" /> Request tutor
+                    </a>
+                  </Button>
+                ) : (
+                  <Button
+                    disabled
+                    className="mt-3 w-full bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert)] sm:w-auto"
+                  >
+                    <MessageCircle className="mr-2 h-4 w-4" /> Contact coming soon
+                  </Button>
+                )}
               </div>
-            </div>
-            <div className="mt-5 border-t border-border pt-5 sm:ml-[124px]">
-              {waUrl ? (
-                <Button
-                  asChild
-                  className="bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert)]"
-                >
-                  <a href={waUrl} target="_blank" rel="noopener noreferrer">
-                    <MessageCircle className="mr-2 h-4 w-4" /> Request tutor
-                  </a>
-                </Button>
-              ) : (
-                <Button
-                  disabled
-                  className="bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert)]"
-                >
-                  <MessageCircle className="mr-2 h-4 w-4" /> Contact coming soon
-                </Button>
-              )}
             </div>
           </div>
         </section>
@@ -458,7 +497,7 @@ function TutorDetail() {
                 <ProfileSection icon={Award} title="Achievement & Experience">
                   <div className="space-y-4">
                     {profileBio ? (
-                      <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                      <p className="whitespace-pre-line text-sm leading-relaxed text-[color:var(--ink)]">
                         {profileBio}
                       </p>
                     ) : null}
@@ -475,7 +514,7 @@ function TutorDetail() {
                                 {achievement.short_text}
                               </p>
                               {achievement.detail_text ? (
-                                <p className="mt-0.5 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                                <p className="mt-0.5 whitespace-pre-line text-sm leading-relaxed text-[color:var(--ink)]">
                                   {achievement.detail_text}
                                 </p>
                               ) : null}
