@@ -113,34 +113,6 @@ const AUDIENCES = [
     ],
     link: { to: "/join" as const, label: "Apply as a tutor" },
   },
-  {
-    eyebrow: "For agencies & educational centres",
-    title: "Hong Kong's most elite tutoring database for your centre, absolutely free.",
-    icon: Building2,
-    steps: [
-      [
-        "01",
-        "Submit your vacancies",
-        "Contact our business team with your staffing requirements for part-time or full-time instructional roles.",
-      ],
-      [
-        "02",
-        "Rapid 24-hour shortlisting",
-        "Our active pool of heavily vetted, top-percentile tutors—including IB 40+ and DSE 30+ candidates—delivers a curated shortlist within one business day.",
-      ],
-      [
-        "03",
-        "Review & interview",
-        "Assess a candidate's subjects taught, achievements, and experience, then proceed directly to interviewing your chosen applicants.",
-      ],
-      [
-        "04",
-        "Zero placement fees",
-        "We handle recruitment and matching at exactly no cost to your business: a completely risk-free way to scale your centre.",
-      ],
-    ],
-    link: { to: "/tutors" as const, label: "Explore our tutors" },
-  },
 ];
 
 function HowItWorksPage() {
@@ -148,9 +120,9 @@ function HowItWorksPage() {
     <div className="how-it-works-paper flex min-h-screen flex-col text-[color:var(--ink)]">
       <SiteHeader className="!border-b-0 !bg-white/95 dark:!bg-[color:var(--surface)]" />
       <main className="flex-1">
-        <section className="how-it-works-hero relative isolate min-h-[680px] overflow-hidden bg-[#06133e] text-white sm:min-h-[760px]">
+        <section className="how-it-works-hero relative isolate min-h-[520px] overflow-hidden bg-[#06133e] text-white sm:min-h-[600px]">
           <div className="how-it-works-hero__image" aria-hidden="true" />
-          <div className="relative mx-auto flex min-h-[680px] max-w-[1440px] flex-col px-5 py-10 sm:min-h-[760px] sm:px-8 lg:px-12">
+          <div className="relative mx-auto flex min-h-[520px] max-w-[1440px] flex-col px-5 py-10 sm:min-h-[600px] sm:px-8 lg:px-12">
             <motion.h1
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
