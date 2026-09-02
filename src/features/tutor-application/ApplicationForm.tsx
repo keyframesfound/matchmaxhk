@@ -649,37 +649,41 @@ export function ApplicationForm() {
             title={professional ? "Basic Details & Professional Status" : "Basic Details"}
           />
           <div className="grid gap-6 sm:grid-cols-2">
-            <Field label="Full Name" required error={fieldErrors.name}>
-              <Input
-                value={base.name}
-                onChange={(event) => setBaseField("name", event.target.value)}
-              />
-            </Field>
-            <Field
-              label="Phone / WhatsApp Number"
-              required
-              hint="Used strictly for internal verification and instant case alerts when parents request a match."
-              error={fieldErrors.phone}
-            >
-              <Input
-                value={base.phone}
-                onChange={(event) => setBaseField("phone", event.target.value)}
-              />
-            </Field>
-            <Field label="Email" required error={fieldErrors.email}>
-              <Input
-                type="email"
-                value={base.email}
-                onChange={(event) => setBaseField("email", event.target.value)}
-              />
-            </Field>
-            <Field label="Medium of Instruction" required error={fieldErrors.medium}>
-              <Choices
-                options={LANGUAGES}
-                values={base.medium}
-                onToggle={(language) => setBaseField("medium", updateArray(base.medium, language))}
-              />
-            </Field>
+            <div className="grid content-start gap-6">
+              <Field label="Full Name" required error={fieldErrors.name}>
+                <Input
+                  value={base.name}
+                  onChange={(event) => setBaseField("name", event.target.value)}
+                />
+              </Field>
+              <Field label="Email" required error={fieldErrors.email}>
+                <Input
+                  type="email"
+                  value={base.email}
+                  onChange={(event) => setBaseField("email", event.target.value)}
+                />
+              </Field>
+            </div>
+            <div className="grid content-start gap-6">
+              <Field
+                label="Phone / WhatsApp Number"
+                required
+                hint="Used strictly for internal verification and instant case alerts when parents request a match."
+                error={fieldErrors.phone}
+              >
+                <Input
+                  value={base.phone}
+                  onChange={(event) => setBaseField("phone", event.target.value)}
+                />
+              </Field>
+              <Field label="Medium of Instruction" required error={fieldErrors.medium}>
+                <Choices
+                  options={LANGUAGES}
+                  values={base.medium}
+                  onToggle={(language) => setBaseField("medium", updateArray(base.medium, language))}
+                />
+              </Field>
+            </div>
             <Field label="Current Status" required error={fieldErrors.status}>
               <SingleChoice
                 options={STATUS_OPTIONS}
@@ -800,14 +804,7 @@ export function ApplicationForm() {
                         options={CURRICULUM_OPTIONS}
                         value={qualification.curriculum}
                         onChange={(curriculum) =>
-                          updateQualification(index, {
-                            curriculum,
-                            overall: "",
-                            boards: [],
-                            scores: [
-                              { subject: "", grade: "", detail: "", level: "", gradeSystem: "" },
-                            ],
-                          })
+                          updateQualification(index, blankQualification(curriculum))
                         }
                       />
                       <Field
@@ -869,6 +866,14 @@ export function ApplicationForm() {
                         </Field>
                       ) : null}
                     </div>
+                    <div className="mt-5 border-t border-border pt-5">
+                      <h3 className="text-base font-black text-[color:var(--ink)]">Subject Scores</h3>
+                      <Hint>
+                        List your full academic profile. Specific paper grades or breakdowns highlight
+                        niche strengths for parents looking for targeted support.
+                      </Hint>
+                      <div className="mt-4">{scoreEditor(qualification, index)}</div>
+                    </div>
                   </div>
                 ))}
                 <Button
@@ -892,19 +897,8 @@ export function ApplicationForm() {
             ) : null}
           </div>
         </Step>
-        {!professional ? (
-          <Step>
-            <Heading step={3} title="Subject Scores" />
-            <Hint>
-              Even if you do not plan to teach every subject, listing your full academic profile
-              makes your teaches profile more impressive. Specific paper grades highlight niche
-              strengths.
-            </Hint>
-            <div className="mt-5 grid gap-5">{qualifications.map(scoreEditor)}</div>
-          </Step>
-        ) : null}
         <Step>
-          <Heading step={professional ? 3 : 4} title="Subjects Taught" />
+          <Heading step={professional ? 3 : 3} title="Subjects Taught" />
           <Field
             label="Subjects Willing to Teach"
             required
@@ -926,7 +920,7 @@ export function ApplicationForm() {
           </Field>
         </Step>
         <Step>
-          <Heading step={professional ? 4 : 5} title="Lesson Preferences & Locations" />
+          <Heading step={professional ? 4 : 4} title="Lesson Preferences & Locations" />
           <div className="grid gap-6">
             <Field
               label="Mode of Lesson"
@@ -988,7 +982,7 @@ export function ApplicationForm() {
           </div>
         </Step>
         <Step>
-          <Heading step={professional ? 5 : 6} title="Achievements and Experiences" />
+          <Heading step={professional ? 5 : 5} title="Achievements and Experiences" />
           <Field
             label="Title / Description"
             required
@@ -1050,7 +1044,7 @@ export function ApplicationForm() {
           </label>
         </Step>
         <Step>
-          <Heading step={professional ? 6 : 7} title="Logistics & Rate" />
+          <Heading step={professional ? 6 : 6} title="Logistics & Rate" />
           <div className="grid gap-6 sm:grid-cols-2">
             <Field label="Proposed Hourly Rate (HKD)" required error={fieldErrors.hourlyRate}>
               <Input
