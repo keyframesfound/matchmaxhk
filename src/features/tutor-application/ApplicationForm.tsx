@@ -254,7 +254,8 @@ export function ApplicationForm({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        const isPinned = !entry.isIntersecting && entry.boundingClientRect.top < 60;
+        const isMobile = window.matchMedia("(max-width: 639px)").matches;
+        const isPinned = isMobile && !entry.isIntersecting && entry.boundingClientRect.top < 60;
         onTopScrollerActiveChange(isPinned);
       },
       { threshold: [0] },
