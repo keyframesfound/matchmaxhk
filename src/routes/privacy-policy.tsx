@@ -47,7 +47,7 @@ const SECTIONS = [
       "You have the right to opt out of any communication from us. We will only maintain your personal data if legally permitted to do so, after you have instructed us not to send information and communications to you. You have the right to request access to and correction of your personal data as provided in the Personal Data (Privacy) Ordinance. Your right of access includes the right to obtain a copy of your personal data and the right to correct any of the data that is inaccurate.",
     points: [],
     closing:
-      "Requests for access to and/or correction of your personal data relating to your application should be sent to: info@matchmax.hk\n\nExecutive Director\nMatchMax",
+      "Requests for access to and/or correction of your personal data relating to your application should be sent to: contact@matchmax.hk\n\nExecutive Director\nMatchMax",
   },
 ];
 
@@ -91,8 +91,8 @@ function PrivacyPolicyPage() {
               <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Questions About Privacy?</h2>
               <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
                 For questions about how we handle your data, or to submit a data access or correction request, contact us at{" "}
-                <a className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4" href="mailto:info@matchmax.hk">
-                  info@matchmax.hk
+                <a className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4" href="mailto:contact@matchmax.hk">
+                  contact@matchmax.hk
                 </a>
                 .
               </p>
