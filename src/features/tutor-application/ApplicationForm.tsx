@@ -209,6 +209,7 @@ export function ApplicationForm() {
   const [excludedAutoStations, setExcludedAutoStations] = useState<string[]>([]);
   const [locating, setLocating] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
+  const [suggestionStatus, setSuggestionStatus] = useState<"idle" | "adding" | "done">("idle");
   const [base, setBase] = useState({
     name: "",
     phone: "+852 ",
@@ -238,27 +239,29 @@ export function ApplicationForm() {
   const professional = PROFESSIONAL_STATUSES.has(base.status);
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
-  function applyTravelSuggestions(origin: string, budget: string) {
-    if (!origin) return;
-    const suggestions = getReachableMtrStations(origin, Number(budget)).filter(
+  async function addTravelSuggestions() {
+    if (!originStation || suggestionStatus === "adding") return;
+    const selectedOrigin = originStation;
+    const selectedBudget = travelBudget;
+    setSuggestionStatus("adding");
+    const startedAt = Date.now();
+    const suggestions = getReachableMtrStations(selectedOrigin, Number(selectedBudget)).filter(
       (station) => !excludedAutoStations.includes(station),
     );
+    const remainingDelay = Math.max(0, 3000 - (Date.now() - startedAt));
+    await new Promise((resolve) => window.setTimeout(resolve, remainingDelay));
     setBaseField(
       "stations",
       [...new Set([...base.stations.filter((station) => !autoStations.includes(station)), ...suggestions])],
     );
     setAutoStations(suggestions);
     setFieldErrors((current) => ({ ...current, stations: "" }));
+    setSuggestionStatus("done");
   }
 
   function setOrigin(value: string) {
     setOriginStation(value);
-    applyTravelSuggestions(value, travelBudget);
-  }
-
-  function setBudget(value: string) {
-    setTravelBudget(value);
-    applyTravelSuggestions(originStation, value);
+    setSuggestionStatus("idle");
   }
 
   function toggleManualStation(station: string) {
@@ -1091,7 +1094,10 @@ export function ApplicationForm() {
                           key={budget}
                           type="button"
                           disabled={!originStation}
-                          onClick={() => setBudget(budget)}
+                          onClick={() => {
+                            setTravelBudget(budget);
+                            setSuggestionStatus("idle");
+                          }}
                           className={cn(
                             "rounded-lg border px-3 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
                             travelBudget === budget && originStation
@@ -1109,6 +1115,33 @@ export function ApplicationForm() {
                       Stations within {travelBudget} minutes of {originStation} are preselected. You can edit the list below.
                     </p>
                   ) : null}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="solid"
+                      color="accent"
+                      onClick={addTravelSuggestions}
+                      disabled={!originStation || suggestionStatus === "adding"}
+                      loading={suggestionStatus === "adding"}
+                    >
+                      <Plus />
+                      Add stations
+                    </Button>
+                    {suggestionStatus !== "idle" ? (
+                      <p
+                        className={cn(
+                          "text-sm font-semibold transition-colors",
+                          suggestionStatus === "adding"
+                            ? "animate-pulse text-[color:var(--brand-teal)]"
+                            : "text-emerald-700",
+                        )}
+                        role="status"
+                        aria-live="polite"
+                      >
+                        {suggestionStatus === "adding" ? "Adding stations…" : "Done"}
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
                 <Accordion type="single" collapsible className="overflow-hidden rounded-lg border border-border px-4">
                   {MTR_LINES.map((line) => (
