@@ -1143,7 +1143,9 @@ export function ApplicationForm() {
                         role="status"
                         aria-live="polite"
                       >
-                        {suggestionStatus === "adding" ? "Adding stations…" : "Done"}
+                        {suggestionStatus === "adding"
+                          ? "Adding stations…"
+                          : `Done · ${autoStations.length} stations within ${travelBudget} min`}
                       </p>
                     ) : null}
                   </div>
@@ -1152,7 +1154,7 @@ export function ApplicationForm() {
                   {MTR_LINES.map((line) => (
                     <AccordionItem key={line.id} value={line.id}>
                       <AccordionTrigger className="font-semibold text-foreground hover:no-underline">
-                        {line.label}
+                        {line.label} - {line.stations.filter((station) => base.stations.includes(station)).length} selected
                       </AccordionTrigger>
                       <AccordionContent className="pt-2">
                         <div className="grid gap-3 sm:grid-cols-3">
