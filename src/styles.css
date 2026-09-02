@@ -153,8 +153,8 @@
   --ink: #ffffff;
   --surface: #05070a;
   --surface-subtle: #000000;
-  --surface-invert: #ffffff;
-  --surface-invert-hover: #e6f1ff;
+  --surface-invert: #0a245f;
+  --surface-invert-hover: #1b2cc1;
   --brand-link: #abd2fa;
 
   /* Stepper */
@@ -170,7 +170,7 @@
   --gradient-brand: linear-gradient(135deg, #000000 0%, #07101c 45%, #abd2fa 100%);
   --gradient-brand-soft: linear-gradient(135deg, #000000 0%, #0b121c 100%);
 
-  --background: #000000;
+  --background: #121010;
   --foreground: #ffffff;
   --card: #0b121c;
   --card-foreground: #ffffff;
