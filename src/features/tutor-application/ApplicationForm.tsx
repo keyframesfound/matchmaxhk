@@ -795,7 +795,7 @@ export function ApplicationForm() {
                 isRequired
                 isInvalid={Boolean(fieldErrors.email)}
                 label="Email"
-                hint={fieldErrors.email || "This is a hint text to help user."}
+                hint={fieldErrors.email || "Add your personal email"}
                 tooltip="Use an email address you check regularly."
                 type="email"
                 value={base.email}
@@ -806,7 +806,7 @@ export function ApplicationForm() {
               <Field
                 label="Phone / WhatsApp Number"
                 required
-                hint="Used strictly for internal verification and instant case alerts when parents request a match."
+                hint="Whatsapp Number"
                 error={fieldErrors.phone}
               >
                 <Input
