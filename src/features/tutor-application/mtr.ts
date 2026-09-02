@@ -98,6 +98,7 @@ const STATION_LINKS: Record<string, string[]> = {
   "Tsim Sha Tsui": ["East Tsim Sha Tsui"],
   "East Tsim Sha Tsui": ["Tsim Sha Tsui"],
 };
+const PLATFORM_AND_WAIT_MINUTES = 5;
 
 export const MTR_STATION_OPTIONS = [...new Set(ROUTING_LINES.flatMap((line) => line.stations))];
 
@@ -118,7 +119,7 @@ function lineNeighbors(line: MtrLine, station: string) {
   return neighbors;
 }
 
-/** Returns stations reachable within an estimated rail + transfer time budget. */
+/** Returns stations reachable within a conservative estimated MTR travel-time budget. */
 export function getReachableMtrStations(origin: string, maxMinutes: number): string[] {
   const distances = new Map<string, number>();
   const queue: Array<{ state: RouteState; minutes: number }> = [];
@@ -173,7 +174,11 @@ export function getReachableMtrStations(origin: string, maxMinutes: number): str
   }
 
   return MTR_STATION_OPTIONS.filter((station) =>
-    [...distances].some(([key, minutes]) => key.endsWith(`:${station}`) && minutes <= maxMinutes),
+    station === origin ||
+    [...distances].some(
+      ([key, minutes]) =>
+        key.endsWith(`:${station}`) && minutes + PLATFORM_AND_WAIT_MINUTES <= maxMinutes,
+    ),
   );
 }
 

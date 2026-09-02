@@ -923,7 +923,7 @@ export function ApplicationForm() {
                         </Button>
                       ) : null}
                     </div>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2 sm:grid-rows-[auto_auto]">
                       <SingleChoice
                         options={CURRICULUM_OPTIONS}
                         value={qualification.curriculum}
@@ -979,15 +979,17 @@ export function ApplicationForm() {
                         </Field>
                       ) : null}
                       {qualification.curriculum === "HKDSE" ? (
-                        <Field label="Best 6 Score">
-                          <Input
-                            type="number"
-                            value={qualification.best6}
-                            onChange={(event) =>
-                              updateQualification(index, { best6: event.target.value })
-                            }
-                          />
-                        </Field>
+                        <div className="sm:col-start-2">
+                          <Field label="Best 6 Score">
+                            <Input
+                              type="number"
+                              value={qualification.best6}
+                              onChange={(event) =>
+                                updateQualification(index, { best6: event.target.value })
+                              }
+                            />
+                          </Field>
+                        </div>
                       ) : null}
                     </div>
                     <div className="mt-5 border-t border-border pt-5">
