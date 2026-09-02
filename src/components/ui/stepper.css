@@ -8,8 +8,9 @@
 }
 
 .stepper-circle-container {
+  position: relative;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid color-mix(in oklab, var(--brand-navy) 10%, transparent);
   border-radius: 1.5rem;
   background: var(--color-card);
@@ -17,11 +18,26 @@
 }
 
 .stepper-indicator-row {
+  position: sticky;
+  top: 64px;
+  z-index: 30;
   display: flex;
   width: 100%;
   align-items: flex-start;
-  padding: 1.25rem 1rem 0;
+  padding: 1.25rem 1rem 1rem;
   background: var(--stepper-row-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top-left-radius: 1.5rem;
+  border-top-right-radius: 1.5rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--brand-navy) 10%, transparent);
+  box-shadow: 0 4px 14px -4px color-mix(in oklab, var(--brand-navy) 12%, transparent);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.stepper-indicator-row::-webkit-scrollbar {
+  display: none;
 }
 
 .stepper-indicator-group {
@@ -101,7 +117,17 @@
 }
 
 .stepper-footer-container {
-  padding: 1rem 1.5rem 1.5rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  padding: 1rem 1.5rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in oklab, var(--color-card) 96%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom-left-radius: 1.5rem;
+  border-bottom-right-radius: 1.5rem;
+  border-top: 1px solid color-mix(in oklab, var(--brand-navy) 10%, transparent);
+  box-shadow: 0 -8px 24px -8px color-mix(in oklab, var(--brand-navy) 18%, transparent);
 }
 
 .stepper-footer-nav {
@@ -125,7 +151,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 0.75rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 700;
   line-height: 1.2;
@@ -166,7 +192,7 @@
 
 @media (min-width: 640px) {
   .stepper-indicator-row {
-    padding: 1.5rem 2rem 0;
+    padding: 1.5rem 2rem 1rem;
   }
 
   .stepper-step-default {
@@ -174,7 +200,7 @@
   }
 
   .stepper-footer-container {
-    padding: 1rem 2rem 2rem;
+    padding: 1.25rem 2rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -201,10 +227,6 @@
     scrollbar-width: none;
   }
 
-  .join-stepper .stepper-indicator-row::-webkit-scrollbar {
-    display: none;
-  }
-
   .join-stepper .stepper-indicator-group {
     display: flex;
     flex: 0 0 auto;
@@ -224,36 +246,16 @@
 
 @media (max-width: 639px) {
   .join-stepper .stepper-indicator-row {
-    width: 100%;
-    min-width: 0;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-  }
-
-  .join-stepper .stepper-indicator-row::-webkit-scrollbar {
-    display: none;
+    top: 64px;
   }
 
   .join-stepper .stepper-circle-container {
-    overflow: visible;
-    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    border-radius: 1rem;
   }
 
-  .join-stepper .join-stepper-progress {
-    position: sticky;
-    top: 4rem;
-    z-index: 40;
-    padding: 0.875rem 1rem 0.75rem;
-    border-bottom: 1px solid color-mix(in oklab, var(--brand-navy) 9%, transparent);
-    box-shadow: 0 8px 18px -18px color-mix(in oklab, var(--brand-navy) 45%, transparent);
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
-    scrollbar-width: none;
-  }
-
-  .join-stepper .join-stepper-progress::-webkit-scrollbar {
-    display: none;
+  .join-stepper .stepper-footer-container {
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
   }
 
   .join-stepper .stepper-indicator-group {
@@ -269,88 +271,7 @@
     flex: 0 0 1.25rem;
   }
 
-  .join-stepper .join-stepper-mobile-footer {
-    position: fixed;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 20;
-    padding: 0.75rem max(1rem, env(safe-area-inset-right)) calc(0.75rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
-    border-top: 1px solid color-mix(in oklab, var(--brand-navy) 10%, transparent);
-    background: color-mix(in oklab, var(--color-card) 96%, transparent);
-    box-shadow: 0 -12px 30px -22px color-mix(in oklab, var(--brand-navy) 55%, transparent);
-    backdrop-filter: blur(14px);
-  }
-
-  .join-stepper .join-stepper-mobile-footer .stepper-footer-nav {
-    width: min(100%, 40rem);
-    margin: 0 auto;
-  }
-
-  .join-stepper .join-stepper-mobile-footer .stepper-back-button,
-  .join-stepper .join-stepper-mobile-footer .stepper-next-button {
-    min-height: 3rem;
-    padding-right: 1.25rem;
-    padding-left: 1.25rem;
-  }
-}
-
-@media (max-width: 639px) {
-  .join-site-header {
-    transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1), opacity 180ms ease;
-    will-change: transform, opacity;
-  }
-
-  .join-site-header--hidden {
-    pointer-events: none;
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-
-  .join-stepper .join-stepper-progress {
-    transition: top 220ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 220ms cubic-bezier(0.23, 1, 0.32, 1), background-color 220ms cubic-bezier(0.23, 1, 0.32, 1);
-  }
-
-  .join-stepper--pinned .join-stepper-progress {
-    top: 0;
-    box-shadow: 0 12px 24px -20px color-mix(in oklab, var(--brand-navy) 60%, transparent);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .join-site-header,
-  .join-stepper .join-stepper-progress {
-    transition: none;
-  }
-}
-
-@media (max-width: 639px) {
-  .join-stepper-form {
-    width: calc(100% + 2rem);
-    margin-right: -1rem;
-    margin-left: -1rem;
-  }
-
-  .join-stepper,
-  .join-stepper .stepper-outer-container,
-  .join-stepper .stepper-circle-container {
-    width: 100%;
-    min-height: 100vh;
-  }
-
-  .join-stepper .stepper-circle-container {
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  .join-stepper .join-stepper-progress {
-    width: 100%;
-    border-radius: 0;
-  }
-
   .join-stepper .stepper-step-default {
-    min-height: calc(100vh - 9.5rem - env(safe-area-inset-bottom));
-    padding: 1.75rem 1rem;
+    padding: 1.5rem 1rem;
   }
 }

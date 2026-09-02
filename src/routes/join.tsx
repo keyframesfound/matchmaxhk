@@ -26,7 +26,7 @@ export const Route = createFileRoute("/join")({
 
 function JoinPage() {
   return (
-    <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-hidden bg-background">
+    <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-background">
       <SiteHeader />
       <main className="min-w-0 flex-1 py-8 sm:py-12">
         <div className="mx-auto w-full min-w-0 max-w-5xl px-4 sm:px-6">
