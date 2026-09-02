@@ -120,9 +120,9 @@ function HowItWorksPage() {
     <div className="how-it-works-paper flex min-h-screen flex-col text-[color:var(--ink)]">
       <SiteHeader className="!border-b-0 !bg-white/95 dark:!bg-[color:var(--surface)]" />
       <main className="flex-1">
-        <section className="how-it-works-hero relative isolate min-h-[420px] overflow-hidden bg-[#06133e] text-white sm:min-h-[600px]">
+        <section className="how-it-works-hero relative isolate min-h-[220px] overflow-hidden bg-[#06133e] text-white sm:min-h-[600px]">
           <div className="how-it-works-hero__image" aria-hidden="true" />
-          <div className="relative mx-auto flex min-h-[420px] max-w-[1440px] flex-col px-5 py-10 sm:min-h-[600px] sm:px-8 lg:px-12">
+          <div className="relative mx-auto flex min-h-[220px] max-w-[1440px] flex-col px-5 py-10 sm:min-h-[600px] sm:px-8 lg:px-12">
             <motion.h1
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
