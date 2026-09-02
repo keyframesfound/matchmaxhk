@@ -36,7 +36,7 @@ import {
   tutorApplicationSchema,
 } from "@/lib/tutor-application.schema";
 import { MTR_LINES, toggleLineStations } from "./mtr";
-import { getGradesForSelection, getSystem } from "@/features/tutors/examSystems";
+import { IB_BLOCKS, getGradesForSelection, getSystem } from "@/features/tutors/examSystems";
 
 type ScoreRow = {
   subject: string;
@@ -84,23 +84,6 @@ const PROFESSIONAL_STEPS = [
   "Rate",
   "Acknowledgments",
 ];
-const IB_BLOCKS = [
-  ["Group 1: Studies in Language and Literature", ["Eng A", "Chin A"]],
-  [
-    "Group 2: Language Acquisition",
-    ["Eng B", "Chin B", "French B", "Spanish B", "German B", "Japanese B"],
-  ],
-  [
-    "Group 3: Individuals and Societies",
-    ["Business", "Econ", "Geog", "Global", "Hist", "Phil", "Psych", "ESS"],
-  ],
-  ["Group 4: Sciences", ["Bio", "Chem", "CompSci", "Design", "Phys", "SEHS"]],
-  ["Group 5: Mathematics", ["Math"]],
-  ["Group 6: The Arts / Elective", ["Visual", "Music", "Theatre", "Film", "Dance"]],
-  ["Theory of Knowledge (TOK)", ["Theory of Knowledge"]],
-  ["Extended Essay (EE)", ["Extended Essay"]],
-] as const;
-
 function blankQualification(curriculum = "IBDP"): Qualification {
   const scores =
     curriculum === "IBDP"
@@ -528,13 +511,7 @@ export function ApplicationForm() {
                   ? ["9", "8", "7", "6", "5", "4", "3", "2", "1", "U"]
                   : getGradesForSelection(system?.id ?? "other", score.subject);
           const ibBlock = qualification.curriculum === "IBDP" ? IB_BLOCKS[scoreIndex] : null;
-          const availableSubjects = ibBlock
-            ? scoreIndex < 6
-              ? (system?.subjects.filter((subject) =>
-                  ibBlock[1].some((prefix) => subject.startsWith(prefix)),
-                ) ?? [])
-              : ibBlock[1]
-            : system?.subjects;
+          const availableSubjects = ibBlock ? ibBlock[1] : system?.subjects;
           return (
             <div
               key={scoreIndex}
