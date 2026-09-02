@@ -320,9 +320,7 @@ function TutorDetail() {
                     ) : null}
                     {t.university ? <p className="break-words">{t.university}</p> : null}
                     {t.secondary_school ? (
-                      <p className="break-words text-sm sm:text-base">
-                        {t.secondary_school}
-                      </p>
+                      <p className="break-words">{t.secondary_school}</p>
                     ) : null}
                   </div>
                 ) : null}
