@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Info, UserCog, FileText, Lock } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
@@ -22,7 +21,6 @@ export const INTRO_TEXT =
 
 const SECTIONS = [
   {
-    icon: FileText,
     title: "Purpose of Collection",
     intro:
       "We will only use personal data collected from you for one or more of the following purposes:",
@@ -36,7 +34,6 @@ const SECTIONS = [
       "We will not use or disclose your personal data for any other purpose without first seeking your written consent, unless authorised or required by law. We will not publish or make known publicly to others any and all personal data provided to us such as health information, Hong Kong ID card, address or contact details in newsletters, email or phone inquiries, or bulletins without the written consent by you.",
   },
   {
-    icon: Lock,
     title: "Data Security",
     intro:
       "We will take reasonable measures to keep secure the personal data which we hold and to protect it from any and all unauthorised disclosure and misuse.",
@@ -44,7 +41,6 @@ const SECTIONS = [
     closing: "",
   },
   {
-    icon: UserCog,
     title: "Access to Personal Data",
     intro:
       "You have the right to opt out of any communication from us. We will only maintain your personal data if legally permitted to do so, after you have instructed us not to send information and communications to you. You have the right to request access to and correction of your personal data as provided in the Personal Data (Privacy) Ordinance. Your right of access includes the right to obtain a copy of your personal data and the right to correct any of the data that is inaccurate.",
@@ -58,89 +54,54 @@ function PrivacyPolicyPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--surface)] text-[color:var(--ink)]">
       <SiteHeader />
-      <main className="flex-1 pb-16">
-        <section className="border-b border-border bg-[color:var(--surface)] py-16 sm:py-24">
-          <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-            <h1 className="mt-3 text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
-              Privacy Policy
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-[color:var(--ink)]/70">
-              We&apos;re committed to creating a safe, transparent, and trustworthy marketplace for both parents
-              and tutors.
+      <main className="flex-1">
+        <section className="border-b border-border py-16 sm:py-24">
+          <div className="mx-auto max-w-3xl px-5 sm:px-6">
+            <p className="text-sm font-semibold text-[color:var(--brand-link)]">Legal</p>
+            <h1 className="mt-3 text-4xl font-bold text-foreground sm:text-5xl">Privacy Policy</h1>
+            <p className="mt-5 text-base leading-7 text-muted-foreground sm:text-lg">
+              Your privacy matters to us. This policy explains how MatchMax collects and handles your personal data.
             </p>
+            <p className="mt-5 text-sm text-muted-foreground">Current as of 3 September 2026</p>
           </div>
         </section>
 
-        <section className="mx-auto max-w-4xl px-4 pt-12 sm:px-6">
-          <div className="space-y-8">
-            
-            {/* Intro Content Box */}
-            <article className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-6 shadow-sm sm:p-8">
-              <p className="text-sm leading-relaxed text-[color:var(--ink)]/70 sm:text-base">
-                {INTRO_TEXT}
-              </p>
-            </article>
+        <section className="mx-auto max-w-3xl px-5 py-14 sm:px-6 sm:py-20">
+          <div className="space-y-12">
+            <div className="border-b border-border pb-12 text-base leading-7 text-muted-foreground">
+              <p>{INTRO_TEXT}</p>
+            </div>
 
-            {/* Policy Sections */}
             {SECTIONS.map((section) => (
-              <article
-                key={section.title}
-                className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-6 shadow-sm transition-shadow hover:shadow-md sm:p-8"
-              >
-                <div className="flex flex-col items-start gap-6 sm:flex-row">
-                  <div className="rounded-xl bg-[color:var(--ink)]/10 p-4 text-[color:var(--ink)]">
-                    <section.icon className="h-7 w-7" strokeWidth={2.5} />
-                  </div>
-
-                  <div className="flex-1 space-y-4">
-                    <h2 className="text-2xl font-black text-[color:var(--ink)]">{section.title}</h2>
-                    
-                    {section.intro && (
-                      <p className="text-sm leading-relaxed text-[color:var(--ink)]/70">{section.intro}</p>
-                    )}
-                    
-                    {section.points && section.points.length > 0 && (
-                      <ul className="space-y-2 pl-6 text-sm text-[color:var(--ink)]/70 marker:text-[color:var(--ink)]">
-                        {section.points.map((point) => (
-                          <li key={point} className="list-disc pl-1">
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    
-                    {section.closing && (
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-[color:var(--ink)]/70">
-                        {section.closing}
-                      </p>
-                    )}
-                  </div>
+              <article key={section.title} className="border-b border-border pb-12 last:border-b-0 last:pb-0">
+                <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{section.title}</h2>
+                <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">
+                  {section.intro && <p>{section.intro}</p>}
+                  {section.points.length > 0 && (
+                    <ul className="list-disc space-y-3 pl-5 marker:text-[color:var(--brand-link)]">
+                      {section.points.map((point) => (
+                        <li key={point} className="pl-1">
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {section.closing && <p className="whitespace-pre-wrap">{section.closing}</p>}
                 </div>
               </article>
             ))}
 
-            {/* Support / Contact Block */}
-            <article className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-6 shadow-sm sm:p-8">
-              <div className="flex items-start gap-4">
-                <div className="rounded-xl bg-[color:var(--ink)]/10 p-4 text-[color:var(--ink)]">
-                  <Info className="h-7 w-7" strokeWidth={2.5} />
-                </div>
-                <div className="space-y-3">
-                  <h2 className="text-2xl font-black text-[color:var(--ink)]">Privacy Questions?</h2>
-                  <p className="max-w-2xl text-sm leading-relaxed text-[color:var(--ink)]/70">
-                    Our support team is here to help. If you have any questions about how we handle your data, 
-                    or need to submit a data request, please don&apos;t hesitate to reach out.
-                  </p>
-                  <a
-                    href="/faq"
-                    className="inline-flex h-10 items-center justify-center rounded-md bg-[color:var(--surface-invert)] px-4 text-sm font-medium text-white transition-colors hover:bg-[color:var(--surface-invert-hover)]"
-                  >
-                    Contact Support
-                  </a>
-                </div>
-              </div>
+            <article className="border-t border-border pt-12">
+              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Questions about privacy?</h2>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+                For questions about how we handle your data, or to submit a data access or correction request, contact
+                us at{" "}
+                <a className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4" href="mailto:info@matchmax.hk">
+                  info@matchmax.hk
+                </a>
+                .
+              </p>
             </article>
-            
           </div>
         </section>
       </main>
