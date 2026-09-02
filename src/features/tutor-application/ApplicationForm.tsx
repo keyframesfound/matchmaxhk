@@ -115,16 +115,18 @@ function Field({
   required,
   error,
   hint,
+  className,
   children,
 }: {
   label: string;
   required?: boolean;
   error?: string;
   hint?: React.ReactNode;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-2">
+    <div className={cn("grid gap-2", className)}>
       <Label className="font-semibold text-foreground">
         {label}
         {required ? <span className="ml-1 text-destructive">*</span> : null}
@@ -194,13 +196,8 @@ function updateArray(values: string[], value: string) {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
 }
 
-export function ApplicationForm({
-  onTopScrollerActiveChange,
-}: {
-  onTopScrollerActiveChange?: (active: boolean) => void;
-} = {}) {
+export function ApplicationForm() {
   const submit = useServerFn(submitTutorApplication);
-  const topSentinelRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -247,26 +244,6 @@ export function ApplicationForm({
   const professional = PROFESSIONAL_STATUSES.has(base.status);
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
-
-  useEffect(() => {
-    const element = topSentinelRef.current;
-    if (!element || !onTopScrollerActiveChange) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const isMobile = window.matchMedia("(max-width: 639px)").matches;
-        const isPinned = isMobile && !entry.isIntersecting && entry.boundingClientRect.top < 60;
-        onTopScrollerActiveChange(isPinned);
-      },
-      { threshold: [0] },
-    );
-
-    observer.observe(element);
-    return () => {
-      observer.disconnect();
-      onTopScrollerActiveChange(false);
-    };
-  }, [onTopScrollerActiveChange]);
 
   async function addTravelSuggestions() {
     if (!originStation || suggestionStatus === "adding") return;
@@ -435,7 +412,7 @@ export function ApplicationForm({
 
   function validateCurrentStep() {
     const next: Record<string, string> = {};
-    const required = (key: string, value: string | string[] | boolean) => {
+    const required = (key: string, value: string | string[] | boolean | unknown[]) => {
       if (!value || (Array.isArray(value) && value.length === 0)) next[key] = "Required";
     };
     if (step === 1) {
@@ -780,7 +757,6 @@ export function ApplicationForm({
       <aside className="mb-8 rounded-lg border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/8 px-4 py-3 text-sm leading-relaxed text-foreground">
         {notice}
       </aside>
-      <div ref={topSentinelRef} className="h-px w-full" aria-hidden="true" />
       <Stepper
         className="join-stepper"
         scrollActiveIndicatorIntoView
@@ -835,7 +811,7 @@ export function ApplicationForm({
                 />
               </Field>
             </div>
-            <Field label="Current Status" required error={fieldErrors.status}>
+            <Field label="Current Status" required error={fieldErrors.status} className="sm:col-span-2">
               <SingleChoice
                 options={STATUS_OPTIONS}
                 value={base.status}
@@ -852,31 +828,25 @@ export function ApplicationForm({
                   placeholder="Please specify"
                 />
               ) : null}
-            </Field>
-            {professional ? (
-              <Field label="Professional Status" required error={fieldErrors.roles}>
-                <Choices
-                  options={PROFESSIONAL_ROLE_OPTIONS}
-                  values={roles}
-                  onToggle={(role) => setRoles(updateArray(roles, role))}
-                />
-                {roles.includes("Official examiner / moderator") ? (
-                  <div className="mt-4">
-                    <Label>Examining Board(s)</Label>
-                    <div className="mt-2">
-                      <Choices
-                        options={EXAMINING_BOARD_OPTIONS}
-                        values={boards}
-                        onToggle={(board) => setBoards(updateArray(boards, board))}
-                      />
-                    </div>
-                    {fieldErrors.boards ? (
-                      <p className="mt-2 text-xs text-destructive">{fieldErrors.boards}</p>
-                    ) : null}
+              {base.status === "Official examiner / moderator" || roles.includes("Official examiner / moderator") ? (
+                <div className="mt-4">
+                  <Label className="font-semibold text-foreground">
+                    Examining Board(s)
+                    <span className="ml-1 text-destructive">*</span>
+                  </Label>
+                  <div className="mt-2">
+                    <Choices
+                      options={EXAMINING_BOARD_OPTIONS}
+                      values={boards}
+                      onToggle={(board) => setBoards(updateArray(boards, board))}
+                    />
                   </div>
-                ) : null}
-              </Field>
-            ) : null}
+                  {fieldErrors.boards ? (
+                    <p className="mt-2 text-xs font-medium text-destructive">{fieldErrors.boards}</p>
+                  ) : null}
+                </div>
+              ) : null}
+            </Field>
           </div>
         </Step>
         <Step>
@@ -931,33 +901,36 @@ export function ApplicationForm({
                 </Hint>
                 {qualifications.map((qualification, index) => (
                   <div key={index} className="mt-4 rounded-lg border border-border p-4">
-                    <div className="flex items-center justify-between">
-                      <Label>
-                        {index === 0 ? "Primary Curriculum" : "Additional Qualification"}
-                      </Label>
-                      {index > 0 ? (
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          onClick={() =>
-                            setQualifications((previous) =>
-                              previous.filter((_, itemIndex) => itemIndex !== index),
-                            )
-                          }
-                        >
-                          <Trash2 />
-                        </Button>
-                      ) : null}
-                    </div>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2 sm:grid-rows-[auto_auto]">
-                      <SingleChoice
-                        options={CURRICULUM_OPTIONS}
-                        value={qualification.curriculum}
-                        onChange={(curriculum) =>
-                          updateQualification(index, blankQualification(curriculum))
-                        }
-                      />
+                    <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
+                      <Field
+                        label={index === 0 ? "Primary Curriculum" : "Additional Qualification"}
+                        required
+                        error={fieldErrors[`curriculum-${index}`]}
+                      >
+                        <div className="flex items-center gap-2">
+                          <SingleChoice
+                            options={CURRICULUM_OPTIONS}
+                            value={qualification.curriculum}
+                            onChange={(curriculum) =>
+                              updateQualification(index, blankQualification(curriculum))
+                            }
+                          />
+                          {index > 0 ? (
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              onClick={() =>
+                                setQualifications((previous) =>
+                                  previous.filter((_, itemIndex) => itemIndex !== index),
+                                )
+                              }
+                            >
+                              <Trash2 />
+                            </Button>
+                          ) : null}
+                        </div>
+                      </Field>
                       <Field
                         label={
                           qualification.curriculum === "HKDSE"
@@ -987,6 +960,7 @@ export function ApplicationForm({
                           label="Exam Board(s)"
                           required
                           error={fieldErrors[`boards-${index}`]}
+                          className="sm:col-span-2"
                         >
                           <Choices
                             options={[
@@ -1006,17 +980,15 @@ export function ApplicationForm({
                         </Field>
                       ) : null}
                       {qualification.curriculum === "HKDSE" ? (
-                        <div className="sm:col-start-2">
-                          <Field label="Best 6 Score">
-                            <Input
-                              type="number"
-                              value={qualification.best6}
-                              onChange={(event) =>
-                                updateQualification(index, { best6: event.target.value })
-                              }
-                            />
-                          </Field>
-                        </div>
+                        <Field label="Best 6 Score">
+                          <Input
+                            type="number"
+                            value={qualification.best6}
+                            onChange={(event) =>
+                              updateQualification(index, { best6: event.target.value })
+                            }
+                          />
+                        </Field>
                       ) : null}
                     </div>
                     <div className="mt-5 border-t border-border pt-5">
@@ -1278,13 +1250,24 @@ export function ApplicationForm({
               checked={base.certificatesLater}
               onCheckedChange={(checked) => setBaseField("certificatesLater", checked === true)}
             />
-            I will provide supporting official certificates later to expedite profile creation.
+            I will provide supporting official certificates later to expedite profile creation. (Optional)
           </label>
         </Step>
         <Step>
           <Heading step={professional ? 6 : 6} title="Logistics & Rate" />
           <div className="grid gap-6 sm:grid-cols-2">
-            <Field label="Proposed Hourly Rate (HKD)" required error={fieldErrors.hourlyRate}>
+            <Field
+              label="Proposed Hourly Rate (HKD)"
+              required
+              error={fieldErrors.hourlyRate}
+              hint={
+                primary.curriculum === "IBDP"
+                  ? "Suggested recent graduate rates: 45/45 HK$500/hr, 43-44 HK$400/hr, 40-42 HK$300-350/hr."
+                  : primary.curriculum === "HKDSE"
+                    ? "Suggested DSE rates: high achievers HK$150-200/hr; premium HK$250-300/hr for top scorers, sought-after majors, or extensive experience."
+                    : undefined
+              }
+            >
               <Input
                 type="number"
                 value={base.hourlyRate}
@@ -1298,17 +1281,6 @@ export function ApplicationForm({
                 onChange={(materials) => setBaseField("materials", materials)}
               />
             </Field>
-            {primary.curriculum === "IBDP" ? (
-              <Hint>
-                Suggested recent graduate rates: 45/45 HK$500/hr, 43-44 HK$400/hr, 40-42
-                HK$300-350/hr.
-              </Hint>
-            ) : primary.curriculum === "HKDSE" ? (
-              <Hint>
-                Suggested DSE rates: high achievers HK$150-200/hr; premium HK$250-300/hr for top
-                scorers, sought-after majors, or extensive experience.
-              </Hint>
-            ) : null}
           </div>
         </Step>
         <Step>

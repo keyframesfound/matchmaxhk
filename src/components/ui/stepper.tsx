@@ -257,7 +257,13 @@ function SlideTransition({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
-    if (containerRef.current) onHeightReady(containerRef.current.offsetHeight);
+    const el = containerRef.current;
+    if (!el) return;
+    const updateHeight = () => onHeightReady(el.offsetHeight);
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [children, onHeightReady]);
 
   return (
