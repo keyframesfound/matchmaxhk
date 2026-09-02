@@ -33,6 +33,14 @@ export const CURRICULUM_OPTIONS = [
 ] as const;
 export const MATERIALS_OPTIONS = ["Yes", "No", "In progress"] as const;
 export const FORMAT_OPTIONS = ["Face to face", "Online", "Both"] as const;
+export const PROFESSIONAL_ROLE_OPTIONS = [
+  "Official examiner / moderator",
+  "Current school teacher",
+  "Former school teacher",
+  "Full-time professional tutor",
+] as const;
+export const EXAMINING_BOARD_OPTIONS = ["IBO", "Cambridge CAIE", "Pearson Edexcel", "HKEAA", "AQA", "OCR"] as const;
+export const TEACHING_QUALIFICATION_OPTIONS = ["PGDE", "PGCE", "BEd", "MEd", "TEFL / TESOL", "Registered Teacher (RT)"] as const;
 
 export const attachmentSchema = z.object({
   filename: z.string().min(1).max(200),
@@ -49,6 +57,9 @@ export const tutorApplicationSchema = z.object({
   startDate: z.string().trim().max(40).optional().default(""),
   status: z.enum(STATUS_OPTIONS),
   statusOther: z.string().trim().max(200).optional().default(""),
+  professionalRoles: z.array(z.enum(PROFESSIONAL_ROLE_OPTIONS)).default([]),
+  examiningBoards: z.array(z.enum(EXAMINING_BOARD_OPTIONS)).default([]),
+  teachingQualifications: z.array(z.enum(TEACHING_QUALIFICATION_OPTIONS)).default([]),
   university: z.string().trim().max(200).optional().default(""),
   programme: z.string().trim().max(200).optional().default(""),
   highSchool: z.string().trim().min(1, "Required").max(200),
@@ -66,9 +77,35 @@ export const tutorApplicationSchema = z.object({
   locations: z.string().trim().max(400).optional().default(""),
   medium: z.string().trim().min(1, "Required").max(200),
   notes: z.string().trim().max(2000).optional().default(""),
+  certificatesLater: z.boolean().default(false),
   commissionAck: z.literal(true),
   privacyAck: z.literal(true),
   attachments: z.array(attachmentSchema).min(1, "Please attach your results").max(MAX_FILES),
+}).superRefine((data, context) => {
+  const isProfessional = data.professionalRoles.length > 0 || [
+    "Current school teacher",
+    "Former school teacher",
+    "Official examiner / moderator",
+  ].includes(data.status);
+
+  if (data.status === "Other" && !data.statusOther) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["statusOther"], message: "Required" });
+  }
+  if (data.format !== "Online" && !data.locations) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["locations"], message: "Select at least one teaching location" });
+  }
+  if (data.curriculum === "IBDP" && !/^4[0-5]$/.test(data.overallScore)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["overallScore"], message: "Enter an IBDP score from 40 to 45" });
+  }
+  if (data.curriculum === "HKDSE" && !/^\d+$/.test(data.overallScore)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["overallScore"], message: "Enter a numeric Best 5 score" });
+  }
+  if (isProfessional && data.teachingQualifications.length === 0) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["teachingQualifications"], message: "Select at least one teaching qualification" });
+  }
+  if (data.professionalRoles.includes("Official examiner / moderator") && data.examiningBoards.length === 0) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["examiningBoards"], message: "Select at least one examining board" });
+  }
 });
 
 export type TutorApplicationInput = z.input<typeof tutorApplicationSchema>;
@@ -85,15 +122,23 @@ export interface AnswerRow {
   value: string;
 }
 
+export function getApplicationPath(data: TutorApplication): string {
+  return data.professionalRoles.length > 0 ? "Professional / Examiner" : data.curriculum;
+}
+
 export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
   const status =
     data.status === "Other" && data.statusOther ? `Other — ${data.statusOther}` : data.status;
   return [
+    { label: "Application path", value: getApplicationPath(data) },
     { label: "Name", value: data.name },
     { label: "Contact number / WhatsApp", value: data.phone },
     { label: "Email", value: data.email },
     { label: "Earliest start date", value: data.startDate || "—" },
     { label: "Current status", value: status },
+    ...(data.professionalRoles.length ? [{ label: "Professional roles", value: data.professionalRoles.join(", ") }] : []),
+    ...(data.examiningBoards.length ? [{ label: "Examining boards", value: data.examiningBoards.join(", ") }] : []),
+    ...(data.teachingQualifications.length ? [{ label: "Teaching qualifications", value: data.teachingQualifications.join(", ") }] : []),
     { label: "University / institution", value: data.university || "—" },
     { label: "Degree / programme", value: data.programme || "—" },
     { label: "High school and graduation year", value: data.highSchool },
@@ -111,6 +156,7 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     { label: "Preferred teaching location(s)", value: data.locations || "—" },
     { label: "Preferred medium of instruction", value: data.medium },
     { label: "Anything else / referral", value: data.notes || "—" },
+    { label: "Certificates to follow", value: data.certificatesLater ? "Yes" : "No" },
     { label: "Attachments", value: data.attachments.map((f) => f.filename).join(", ") },
     { label: "Commission acknowledged", value: "Yes" },
     { label: "Privacy notice accepted", value: "Yes" },

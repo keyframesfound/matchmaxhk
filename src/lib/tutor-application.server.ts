@@ -8,6 +8,7 @@ import {
   MAX_FILE_BYTES,
   MAX_TOTAL_BYTES,
   buildAnswerRows,
+  getApplicationPath,
   type TutorApplication,
 } from "./tutor-application.schema";
 
@@ -47,7 +48,7 @@ export async function sendTutorApplication(data: TutorApplication): Promise<void
   const { error } = await new Resend(apiKey).emails.send({
     from: FROM,
     to: RECIPIENT,
-    subject: `New tutor application — ${data.name}`,
+    subject: `New ${getApplicationPath(data)} tutor application — ${data.name}`,
     html,
     text,
     replyTo: data.email,
