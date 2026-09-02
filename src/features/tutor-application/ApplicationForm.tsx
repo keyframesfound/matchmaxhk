@@ -1089,7 +1089,7 @@ export function ApplicationForm() {
                   <div className="grid gap-2">
                     <Label className="text-sm font-semibold">Estimated MTR travel time</Label>
                     <div className="flex flex-wrap gap-2">
-                      {["5", "10", "20"].map((budget) => (
+                      {["10", "20", "30"].map((budget) => (
                         <button
                           key={budget}
                           type="button"
@@ -1125,7 +1125,7 @@ export function ApplicationForm() {
                       loading={suggestionStatus === "adding"}
                     >
                       <Plus />
-                      Add stations
+                      Quick Add Stations
                     </Button>
                     {suggestionStatus !== "idle" ? (
                       <p
