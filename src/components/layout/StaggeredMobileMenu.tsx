@@ -167,7 +167,7 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
     <div className="staggered-mobile-menu lg:hidden" data-open={open || undefined}>
       <button
         ref={toggleRef}
-        className="smm-toggle"
+        className="smm-toggle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1fa8b6] focus-visible:ring-offset-2"
         type="button"
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}

@@ -63,35 +63,35 @@ export function SiteHeader({ className }: { className?: string }) {
         <nav className="ml-12 hidden items-center gap-9 lg:flex">
           <a
             href="/how-it-works"
-            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)]"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
             {t("How it works")}
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </a>
           <Link
             to="/tutors"
-            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)]"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
             {t("nav.find", { defaultValue: "Find" })}
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
           <Link
             to="/saved-posts"
-            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)]"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
             Saved Posts
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
           <Link
             to="/join"
-            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)]"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
             Become a Tutor
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
           <Link
             to="/faq"
-            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)]"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
             Help Centre
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />

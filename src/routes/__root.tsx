@@ -84,10 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
-      },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "MatchMax | Verified Tutors in Hong Kong" },
       {
         name: "description",
@@ -166,6 +163,12 @@ function RootShell({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-[color:var(--surface)] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-[color:var(--ink)] focus-visible:ring-2 focus-visible:ring-[color:var(--brand-teal)]"
+        >
+          Skip to main content
+        </a>
         {children}
         <Scripts />
       </body>
@@ -181,7 +184,9 @@ function RootComponent() {
       <I18nProvider>
         <AuthProvider>
           <ThemeProvider>
-            <Outlet />
+            <main id="main-content">
+              <Outlet />
+            </main>
             <BackToTopButton />
             <WhatsAppFloatButton />
             <Toaster richColors position="top-center" closeButton />
@@ -191,4 +196,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-
