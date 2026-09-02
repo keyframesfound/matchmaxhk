@@ -2,15 +2,20 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BookOpen, Globe2, GraduationCap, Landmark, Search, UserPlus } from "lucide-react";
+import { ArrowRight, Search, UserPlus } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
+import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
+import { TutorSaveButton } from "@/features/tutors/saved-tutors";
+import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 import { blurActive } from "@/lib/dom";
 import {
+  fetchPublishedTutors,
   fetchTopWeeklyTutors,
   fetchLandingStats,
   fetchTutorByCode,
@@ -50,12 +55,11 @@ const HOME_GENDER_OPTIONS = [
 ];
 
 const CURRICULUM_CATEGORIES = [
-  { label: "IBDP", description: "International Baccalaureate", value: "IB", icon: Globe2 },
-  { label: "DSE", description: "Hong Kong Diploma", value: "DSE", icon: Landmark },
-  { label: "IGCSE", description: "International GCSE", value: "IGCSE", icon: BookOpen },
-  { label: "A Level", description: "Advanced Level", value: "A-Level", icon: GraduationCap },
-  { label: "Primary", description: "Primary school", value: "Primary", icon: BookOpen },
-  { label: "Secondary", description: "Secondary school", value: "Secondary", icon: GraduationCap },
+  { label: "IBDP", value: "IB" },
+  { label: "DSE", value: "DSE" },
+  { label: "IGCSE", value: "IGCSE" },
+  { label: "A Levels", value: "A-Level" },
+  { label: "Examiner", value: "International" },
 ];
 
 export const Route = createFileRoute("/")({
@@ -167,11 +171,39 @@ function Landing() {
     enabled: !!heroTutorCode,
   });
 
+  const { data: publishedTutors = [], isLoading: publishedTutorsLoading } = useQuery({
+    queryKey: ["landing", "published_tutors"],
+    queryFn: fetchPublishedTutors,
+  });
+
+  const { data: whatsappNumber = "" } = useQuery({
+    queryKey: ["settings", "whatsapp_number"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "whatsapp_number")
+        .maybeSingle();
+      if (error) throw error;
+      return typeof data?.value === "string" ? data.value : "";
+    },
+  });
+
   const defaultHeroTutor = pickedHeroTutor ?? featuredTutors[0] ?? null;
 
   const heroTutor = useMemo(() => {
     return defaultHeroTutor;
   }, [defaultHeroTutor]);
+
+  const tutorsForCategory = (category: string) =>
+    publishedTutors
+      .filter((tutor) =>
+        [...tutor.subjects, ...tutor.target_students, tutor.headline ?? ""]
+          .join(" ")
+          .toLowerCase()
+          .includes(category.toLowerCase()),
+      )
+      .slice(0, 6);
 
   const openTutorDetail = (tutorCode: string) => {
     navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
@@ -338,37 +370,66 @@ function Landing() {
             </div>
           </div>
 
-          <div className="mt-6 border-y border-border py-5 md:mt-8 md:py-6">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-lg font-black text-[color:var(--ink)] md:text-xl">
-                  Browse by curriculum
-                </p>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  Find a tutor for your course of study.
-                </p>
-              </div>
-              <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-            </div>
+          <div className="mt-8 space-y-10 md:mt-10 md:space-y-12">
+            {CURRICULUM_CATEGORIES.map(({ label, value }) => {
+              const tutors = tutorsForCategory(value);
 
-            <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
-              {CURRICULUM_CATEGORIES.map(({ label, description, value, icon: Icon }) => (
-                <Link
-                  key={value}
-                  to="/tutors"
-                  search={{ category: value }}
-                  className="group flex min-w-[178px] snap-start items-center gap-3 rounded-sm border border-border bg-card px-4 py-3 transition-colors hover:border-[color:var(--ink)] hover:bg-[color:var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:min-w-[205px]"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[color:var(--surface)] text-[color:var(--ink)] group-hover:bg-[color:var(--ink)] group-hover:text-white">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-black text-[color:var(--ink)]">{label}</span>
-                    <span className="block truncate text-xs text-muted-foreground">{description}</span>
-                  </span>
-                </Link>
-              ))}
-            </div>
+              return (
+                <section key={value}>
+                  <div className="mb-4 flex items-center justify-between gap-4">
+                    <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
+                      {label} tutors
+                    </h2>
+                    <Button
+                      asChild
+                      size="icon"
+                      variant="ghost"
+                      className="h-11 w-11 shrink-0 rounded-full bg-[color:var(--surface)] hover:bg-[color:var(--surface-invert)] hover:text-white"
+                    >
+                      <Link to="/tutors" search={{ category: value }} aria-label={`Browse all ${label} tutors`}>
+                        <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  </div>
+
+                  {publishedTutorsLoading ? (
+                    <div className="-mx-4 flex gap-4 overflow-hidden px-4 md:mx-0 md:px-0">
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <Skeleton
+                          key={index}
+                          className="h-[23rem] w-[min(86vw,370px)] shrink-0 rounded-sm border border-border"
+                        />
+                      ))}
+                    </div>
+                  ) : tutors.length > 0 ? (
+                    <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:gap-6 md:px-0">
+                      {tutors.map((tutor) => (
+                        <div key={tutor.id} className="w-[min(86vw,370px)] shrink-0 snap-start md:w-[350px] xl:w-[370px]">
+                          <PublicTutorCard
+                            tutor={tutor}
+                            priceSuffix={t("featured.per_hour")}
+                            onOpen={openTutorDetail}
+                            footerAction={
+                              <>
+                                <TutorSaveButton tutorId={tutor.id} compact />
+                                <Button
+                                  asChild
+                                  className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                                >
+                                  <a href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>
+                                    Request tutor
+                                  </a>
+                                </Button>
+                              </>
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </section>
+              );
+            })}
           </div>
         </div>
       </section>
