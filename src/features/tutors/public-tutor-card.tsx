@@ -72,6 +72,7 @@ export function PublicTutorCard({
   const interactive = typeof onOpen === "function";
   const academicChips = useMemo(() => getTutorSubjectChips(tutor), [tutor]);
   const academicChipsRef = useRef<HTMLDivElement | null>(null);
+  const academicWidthRef = useRef<number | null>(null);
   const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
   const [visibleAcademicChipCount, setVisibleAcademicChipCount] = useState(academicChips.length);
   const genderLabel = getTutorGenderLabel(tutor.gender);
@@ -88,6 +89,7 @@ export function PublicTutorCard({
 
   useEffect(() => {
     setAreAcademicChipsExpanded(false);
+    academicWidthRef.current = null;
     setVisibleAcademicChipCount(academicChips.length);
   }, [academicChips]);
 
@@ -97,6 +99,14 @@ export function PublicTutorCard({
     const measureAcademicPreview = () => {
       const container = academicChipsRef.current;
       if (!container) return;
+
+      if (academicWidthRef.current !== container.clientWidth) {
+        academicWidthRef.current = container.clientWidth;
+        if (visibleAcademicChipCount !== academicChips.length) {
+          setVisibleAcademicChipCount(academicChips.length);
+          return;
+        }
+      }
 
       const chips = Array.from(container.querySelectorAll<HTMLElement>("[data-academic-chip]"));
       const button = container.querySelector<HTMLElement>("[data-academic-more]");
