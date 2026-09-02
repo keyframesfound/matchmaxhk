@@ -21,3 +21,140 @@ export function toggleLineStations(selectedStations: string[], line: MtrLine): s
   if (includesEveryStation) return selectedStations.filter((station) => !line.stations.includes(station));
   return [...new Set([...selectedStations, ...line.stations])];
 }
+
+export type MtrStationCoordinate = { latitude: number; longitude: number };
+
+// Approximate station positions are used only to turn browser GPS into a station origin.
+// Destination suggestions always come from the line graph below, never from distance.
+const STATION_COORDINATES: Record<string, MtrStationCoordinate> = {
+  "Kennedy Town": { latitude: 22.2819, longitude: 114.1267 },
+  HKU: { latitude: 22.2849, longitude: 114.1371 },
+  "Sai Ying Pun": { latitude: 22.2861, longitude: 114.1445 },
+  "Sheung Wan": { latitude: 22.2868, longitude: 114.1514 },
+  Central: { latitude: 22.2819, longitude: 114.1582 },
+  Admiralty: { latitude: 22.2797, longitude: 114.165 },
+  "Wan Chai": { latitude: 22.277, longitude: 114.172 },
+  "Causeway Bay": { latitude: 22.2801, longitude: 114.184 },
+  "North Point": { latitude: 22.2916, longitude: 114.2004 },
+  "Quarry Bay": { latitude: 22.2881, longitude: 114.2095 },
+  "Tai Koo": { latitude: 22.2848, longitude: 114.2163 },
+  "Shau Kei Wan": { latitude: 22.2783, longitude: 114.2283 },
+  "Chai Wan": { latitude: 22.2647, longitude: 114.2375 },
+  "Tsim Sha Tsui": { latitude: 22.297, longitude: 114.172 },
+  Jordan: { latitude: 22.3048, longitude: 114.1719 },
+  "Yau Ma Tei": { latitude: 22.3126, longitude: 114.1706 },
+  "Mong Kok": { latitude: 22.3193, longitude: 114.1694 },
+  "Prince Edward": { latitude: 22.3249, longitude: 114.1682 },
+  "Kowloon Tong": { latitude: 22.3372, longitude: 114.1765 },
+  "Wong Tai Sin": { latitude: 22.3419, longitude: 114.193 },
+  "Diamond Hill": { latitude: 22.3401, longitude: 114.201 },
+  "Kowloon Bay": { latitude: 22.3231, longitude: 114.2134 },
+  "Kwun Tong": { latitude: 22.3129, longitude: 114.226 },
+  "Lam Tin": { latitude: 22.3073, longitude: 114.2329 },
+  "Tiu Keng Leng": { latitude: 22.3049, longitude: 114.2522 },
+  "Tseung Kwan O": { latitude: 22.3074, longitude: 114.26 },
+  "Hang Hau": { latitude: 22.315, longitude: 114.264 },
+  "Ocean Park": { latitude: 22.2489, longitude: 114.1736 },
+  "Hung Hom": { latitude: 22.3028, longitude: 114.182 },
+  "Tai Wai": { latitude: 22.3726, longitude: 114.178 },
+  "Sha Tin": { latitude: 22.3828, longitude: 114.187 },
+  University: { latitude: 22.4133, longitude: 114.209 },
+  "Tai Po Market": { latitude: 22.4445, longitude: 114.169 },
+  Fanling: { latitude: 22.492, longitude: 114.139 },
+  "Tuen Mun": { latitude: 22.395, longitude: 113.973 },
+  "Yuen Long": { latitude: 22.445, longitude: 114.034 },
+  "Tsuen Wan West": { latitude: 22.368, longitude: 114.109 },
+  "Mei Foo": { latitude: 22.337, longitude: 114.14 },
+  "Hong Kong": { latitude: 22.2849, longitude: 114.158 },
+  Kowloon: { latitude: 22.3048, longitude: 114.161 },
+  "Olympic": { latitude: 22.318, longitude: 114.16 },
+  "Tung Chung": { latitude: 22.29, longitude: 113.943 },
+};
+
+const ROUTING_LINES = MTR_LINES.filter((line) => line.id !== "other");
+const RAIL_MINUTES_PER_STOP = 2;
+const INTERCHANGE_MINUTES = 4;
+
+export const MTR_STATION_OPTIONS = [...new Set(ROUTING_LINES.flatMap((line) => line.stations))];
+
+type RouteState = { station: string; lineId: string };
+
+function stateKey(state: RouteState) {
+  return `${state.lineId}:${state.station}`;
+}
+
+function lineNeighbors(line: MtrLine, station: string) {
+  const index = line.stations.indexOf(station);
+  return index < 0
+    ? []
+    : [line.stations[index - 1], line.stations[index + 1]].filter(
+        (neighbor): neighbor is string => Boolean(neighbor),
+      );
+}
+
+/** Returns stations reachable within an estimated rail + transfer time budget. */
+export function getReachableMtrStations(origin: string, maxMinutes: number): string[] {
+  const distances = new Map<string, number>();
+  const queue: Array<{ state: RouteState; minutes: number }> = [];
+  for (const line of ROUTING_LINES) {
+    if (line.stations.includes(origin)) {
+      const state = { station: origin, lineId: line.id };
+      distances.set(stateKey(state), 0);
+      queue.push({ state, minutes: 0 });
+    }
+  }
+
+  while (queue.length) {
+    queue.sort((a, b) => a.minutes - b.minutes);
+    const current = queue.shift();
+    if (!current || current.minutes > maxMinutes) continue;
+    const line = ROUTING_LINES.find((candidate) => candidate.id === current.state.lineId);
+    if (!line) continue;
+
+    for (const neighbor of lineNeighbors(line, current.state.station)) {
+      const next = { station: neighbor, lineId: line.id };
+      const minutes = current.minutes + RAIL_MINUTES_PER_STOP;
+      const key = stateKey(next);
+      if ((distances.get(key) ?? Infinity) > minutes) {
+        distances.set(key, minutes);
+        queue.push({ state: next, minutes });
+      }
+    }
+
+    for (const interchangeLine of ROUTING_LINES) {
+      if (interchangeLine.id === line.id || !interchangeLine.stations.includes(current.state.station)) continue;
+      const next = { station: current.state.station, lineId: interchangeLine.id };
+      const minutes = current.minutes + INTERCHANGE_MINUTES;
+      const key = stateKey(next);
+      if ((distances.get(key) ?? Infinity) > minutes) {
+        distances.set(key, minutes);
+        queue.push({ state: next, minutes });
+      }
+    }
+  }
+
+  return MTR_STATION_OPTIONS.filter((station) =>
+    [...distances].some(([key, minutes]) => key.endsWith(`:${station}`) && minutes <= maxMinutes),
+  );
+}
+
+function distanceSquared(a: MtrStationCoordinate, b: MtrStationCoordinate) {
+  const latitudeScale = Math.cos((a.latitude * Math.PI) / 180);
+  return (a.latitude - b.latitude) ** 2 + ((a.longitude - b.longitude) * latitudeScale) ** 2;
+}
+
+/** Finds the nearest station with maintained coordinates; GPS never determines destinations. */
+export function getNearestMtrStation(latitude: number, longitude: number): string | null {
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  const origin = { latitude, longitude };
+  return MTR_STATION_OPTIONS.filter((station) => STATION_COORDINATES[station]).reduce<string | null>(
+    (nearest, station) => {
+      if (!nearest) return station;
+      return distanceSquared(origin, STATION_COORDINATES[station]) <
+        distanceSquared(origin, STATION_COORDINATES[nearest])
+        ? station
+        : nearest;
+    },
+    null,
+  );
+}

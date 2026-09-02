@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, Paperclip, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, LocateFixed, Paperclip, Plus, Trash2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,13 @@ import {
   TEACHING_QUALIFICATION_OPTIONS,
   tutorApplicationSchema,
 } from "@/lib/tutor-application.schema";
-import { MTR_LINES, toggleLineStations } from "./mtr";
+import {
+  getNearestMtrStation,
+  getReachableMtrStations,
+  MTR_LINES,
+  MTR_STATION_OPTIONS,
+  toggleLineStations,
+} from "./mtr";
 import { getGradesForSelection, getSystem } from "@/features/tutors/examSystems";
 
 type ScoreRow = {
@@ -196,6 +202,12 @@ export function ApplicationForm() {
   const [captcha, setCaptcha] = useState<string | null>(null);
   const captchaRef = useRef<HTMLDivElement>(null);
   const captchaWidget = useRef<string | null>(null);
+  const [originStation, setOriginStation] = useState("");
+  const [travelBudget, setTravelBudget] = useState("10");
+  const [autoStations, setAutoStations] = useState<string[]>([]);
+  const [excludedAutoStations, setExcludedAutoStations] = useState<string[]>([]);
+  const [locating, setLocating] = useState(false);
+  const [locationMessage, setLocationMessage] = useState("");
   const [base, setBase] = useState({
     name: "",
     phone: "+852 ",
@@ -225,6 +237,78 @@ export function ApplicationForm() {
   const professional = PROFESSIONAL_STATUSES.has(base.status);
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
+  function applyTravelSuggestions(origin: string, budget: string) {
+    if (!origin) return;
+    const suggestions = getReachableMtrStations(origin, Number(budget)).filter(
+      (station) => !excludedAutoStations.includes(station),
+    );
+    setBaseField(
+      "stations",
+      [...new Set([...base.stations.filter((station) => !autoStations.includes(station)), ...suggestions])],
+    );
+    setAutoStations(suggestions);
+    setFieldErrors((current) => ({ ...current, stations: "" }));
+  }
+
+  function setOrigin(value: string) {
+    setOriginStation(value);
+    applyTravelSuggestions(value, travelBudget);
+  }
+
+  function setBudget(value: string) {
+    setTravelBudget(value);
+    applyTravelSuggestions(originStation, value);
+  }
+
+  function toggleManualStation(station: string) {
+    const isSelected = base.stations.includes(station);
+    if (isSelected && autoStations.includes(station)) {
+      setExcludedAutoStations((current) => [...new Set([...current, station])]);
+    } else if (!isSelected) {
+      setExcludedAutoStations((current) => current.filter((item) => item !== station));
+    }
+    setAutoStations((current) => current.filter((item) => item !== station));
+    setBaseField("stations", updateArray(base.stations, station));
+  }
+
+  function toggleManualLine(line: (typeof MTR_LINES)[number]) {
+    const selectedStations = line.stations.filter((station) => base.stations.includes(station));
+    const excludedStations = selectedStations.filter((station) => autoStations.includes(station));
+    if (excludedStations.length) {
+      setExcludedAutoStations((current) => [...new Set([...current, ...excludedStations])]);
+    } else {
+      setExcludedAutoStations((current) => current.filter((station) => !line.stations.includes(station)));
+    }
+    setAutoStations((current) => current.filter((station) => !line.stations.includes(station)));
+    setBaseField("stations", toggleLineStations(base.stations, line));
+  }
+
+  function locateOrigin() {
+    if (!navigator.geolocation) {
+      setLocationMessage("Location is not available in this browser. Choose a station manually.");
+      return;
+    }
+    setLocating(true);
+    setLocationMessage("");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const station = getNearestMtrStation(position.coords.latitude, position.coords.longitude);
+        setLocating(false);
+        if (!station) {
+          setLocationMessage("We could not find a nearby MTR station. Choose one manually.");
+          return;
+        }
+        setOrigin(station);
+        setLocationMessage(`Nearest station found: ${station}`);
+      },
+      () => {
+        setLocating(false);
+        setLocationMessage("Location permission was unavailable. Choose a station manually.");
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
+    );
+  }
+
   const allResultSubjects = useMemo(
     () =>
       qualifications.flatMap((qualification) =>
@@ -950,9 +1034,60 @@ export function ApplicationForm() {
               <Field
                 label="Possible Teaching Locations (MTR Network)"
                 required
-                hint="Select all MTR lines and stations you can realistically travel to."
+                hint="Suggestions use estimated MTR rail and transfer time, not straight-line station distance. Walking time and delays are not included."
                 error={fieldErrors.stations}
               >
+                <div className="grid gap-3 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4">
+                  <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                    <div className="grid gap-2">
+                      <Label className="text-sm font-semibold">Starting MTR station</Label>
+                      <SearchableSelect
+                        value={originStation}
+                        onChange={setOrigin}
+                        options={MTR_STATION_OPTIONS}
+                        placeholder="Choose your closest station"
+                        searchPlaceholder="Search MTR stations"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={locateOrigin}
+                      disabled={locating}
+                    >
+                      <LocateFixed />
+                      {locating ? "Locating…" : "Use my location"}
+                    </Button>
+                  </div>
+                  {locationMessage ? <p className="text-xs font-medium text-[color:var(--ink)]/70">{locationMessage}</p> : null}
+                  <div className="grid gap-2">
+                    <Label className="text-sm font-semibold">Estimated MTR travel time</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {["5", "10", "20"].map((budget) => (
+                        <button
+                          key={budget}
+                          type="button"
+                          disabled={!originStation}
+                          onClick={() => setBudget(budget)}
+                          className={cn(
+                            "rounded-lg border px-3 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                            travelBudget === budget && originStation
+                              ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-white"
+                              : "border-border bg-card text-foreground hover:border-[color:var(--brand-teal)]/50",
+                          )}
+                        >
+                          Within {budget} min
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {originStation ? (
+                    <p className="text-xs text-muted-foreground">
+                      Stations within {travelBudget} minutes of {originStation} are preselected. You can edit the list below.
+                    </p>
+                  ) : null}
+                </div>
                 <Accordion type="single" collapsible className="overflow-hidden rounded-lg border border-border px-4">
                   {MTR_LINES.map((line) => (
                     <AccordionItem key={line.id} value={line.id}>
@@ -967,7 +1102,7 @@ export function ApplicationForm() {
                               base.stations.includes(station),
                             )}
                             onCheckedChange={() =>
-                              setBaseField("stations", toggleLineStations(base.stations, line))
+                                toggleManualLine(line)
                             }
                           />{" "}
                           Select all
@@ -980,7 +1115,7 @@ export function ApplicationForm() {
                             <Checkbox
                               checked={base.stations.includes(station)}
                               onCheckedChange={() =>
-                                setBaseField("stations", updateArray(base.stations, station))
+                                toggleManualStation(station)
                               }
                             />
                             {station}
