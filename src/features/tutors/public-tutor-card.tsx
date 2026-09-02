@@ -115,8 +115,6 @@ export function PublicTutorCard({
 
       if (button && rowOffsets.indexOf(button.offsetTop) > 1) {
         setVisibleAcademicChipCount((count) => Math.max(0, count - 1));
-      } else if (visibleAcademicChipCount < academicChips.length - 1) {
-        setVisibleAcademicChipCount((count) => count + 1);
       }
     };
 
