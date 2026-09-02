@@ -162,7 +162,7 @@ export function SearchableSelect({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-xs font-medium text-[color:var(--ink)] placeholder:text-[color:var(--ink)]/40 outline-none focus:border-[#1FA8B6] focus:bg-[color:var(--surface)] focus:ring-2 focus:ring-[#77E8EE]/20 transition-all"
+              className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-xs font-medium text-[color:var(--ink)] placeholder:text-[color:var(--ink)]/40 transition-[border-color,background-color,box-shadow] focus:border-[#1FA8B6] focus:bg-[color:var(--surface)] focus:ring-2 focus:ring-[#77E8EE]/20"
             />
             {query && (
               <button
