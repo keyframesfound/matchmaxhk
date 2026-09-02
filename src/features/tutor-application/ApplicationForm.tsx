@@ -3,6 +3,12 @@ import { CheckCircle2, Paperclip, Plus, Trash2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -513,21 +519,34 @@ export function ApplicationForm() {
                   ? ["9", "8", "7", "6", "5", "4", "3", "2", "1", "U"]
                   : getGradesForSelection(system?.id ?? "other", score.subject);
           const availableSubjects = system?.subjects;
+                  const isFreeformQualification = qualification.curriculum === "Foundation / other";
           return (
             <div
               key={scoreIndex}
               className="grid gap-3 rounded-md border border-border/70 p-3 sm:grid-cols-2"
             >
-              <SearchableSelect
-                value={score.subject}
-                onChange={(subject) =>
-                  updateScore(qualificationIndex, scoreIndex, { subject, grade: "" })
-                }
-                options={availableSubjects ?? []}
-                placeholder="Choose subject"
-                searchPlaceholder="Search subjects..."
-                emptyText="No matching subjects."
-              />
+              {isFreeformQualification ? (
+                <Input
+                  value={score.subject}
+                  onChange={(event) =>
+                    updateScore(qualificationIndex, scoreIndex, {
+                      subject: event.target.value,
+                    })
+                  }
+                  placeholder="Subject name"
+                />
+              ) : (
+                <SearchableSelect
+                  value={score.subject}
+                  onChange={(subject) =>
+                    updateScore(qualificationIndex, scoreIndex, { subject, grade: "" })
+                  }
+                  options={availableSubjects ?? []}
+                  placeholder="Choose subject"
+                  searchPlaceholder="Search subjects..."
+                  emptyText="No matching subjects."
+                />
+              )}
               {qualification.curriculum === "A-Level" ? (
                 <SingleChoice
                   options={["A-Level", "AS-Level"]}
@@ -543,22 +562,32 @@ export function ApplicationForm() {
                   }
                 />
               ) : null}
-              <Select
-                value={score.grade}
-                onValueChange={(grade) => updateScore(qualificationIndex, scoreIndex, { grade })}
-                disabled={!score.subject}
-              >
-                <SelectTrigger aria-label="Overall grade">
-                  <SelectValue placeholder="Choose grade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {gradeOptions.map((grade) => (
-                    <SelectItem key={grade} value={grade}>
-                      {grade}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isFreeformQualification ? (
+                <Input
+                  value={score.grade}
+                  onChange={(event) =>
+                    updateScore(qualificationIndex, scoreIndex, { grade: event.target.value })
+                  }
+                  placeholder="Grade / result"
+                />
+              ) : (
+                <Select
+                  value={score.grade}
+                  onValueChange={(grade) => updateScore(qualificationIndex, scoreIndex, { grade })}
+                  disabled={!score.subject}
+                >
+                  <SelectTrigger aria-label="Overall grade">
+                    <SelectValue placeholder="Choose grade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {gradeOptions.map((grade) => (
+                      <SelectItem key={grade} value={grade}>
+                        {grade}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               <Input
                 className="sm:col-span-2"
                 value={score.detail}
@@ -923,13 +952,14 @@ export function ApplicationForm() {
                 hint="Select all MTR lines and stations you can realistically travel to."
                 error={fieldErrors.stations}
               >
-                <div className="grid gap-3">
+                <Accordion type="single" collapsible className="overflow-hidden rounded-lg border border-border px-4">
                   {MTR_LINES.map((line) => (
-                    <details key={line.id} className="rounded-lg border border-border p-3">
-                      <summary className="cursor-pointer font-semibold text-foreground">
+                    <AccordionItem key={line.id} value={line.id}>
+                      <AccordionTrigger className="font-semibold text-foreground hover:no-underline">
                         {line.label}
-                      </summary>
-                      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-2">
+                        <div className="grid gap-3 sm:grid-cols-3">
                         <label className="flex items-center gap-2 text-sm font-semibold">
                           <Checkbox
                             checked={line.stations.every((station) =>
@@ -955,10 +985,11 @@ export function ApplicationForm() {
                             {station}
                           </label>
                         ))}
-                      </div>
-                    </details>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
                   ))}
-                </div>
+                </Accordion>
               </Field>
             ) : null}
           </div>
