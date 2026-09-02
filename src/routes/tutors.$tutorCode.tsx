@@ -1,8 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
 import {
-  BadgeCheck,
   MapPin,
   MessageCircle,
   Award,
@@ -21,70 +19,10 @@ import {
   fetchTutorByCode,
   getTutorGenderLabel,
   getTutorLessonModeLabel,
-  getTutorLocationLabel,
   type Tutor,
 } from "@/features/tutors/queries";
 import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
-import {
-  getTutorSubjectChips,
-  getTutorSubjectSentence,
-  type TutorSubjectChip,
-} from "@/features/tutors/tutor-display";
-
-function useResponsiveHeadlineFit(text: string, baseSize = 18, minSize = 13) {
-  const ref = useRef<HTMLParagraphElement | null>(null);
-  const [fontSizePx, setFontSizePx] = useState(baseSize);
-  const [maxLines, setMaxLines] = useState(2);
-
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 1024px)");
-    const updateLines = () => setMaxLines(media.matches ? 1 : 2);
-    updateLines();
-    media.addEventListener("change", updateLines);
-    return () => media.removeEventListener("change", updateLines);
-  }, []);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-
-    const fitToTwoLines = () => {
-      let current = baseSize;
-      node.style.fontSize = `${current}px`;
-      node.style.lineHeight = "1.45";
-
-      let lineHeight = Number.parseFloat(window.getComputedStyle(node).lineHeight);
-      if (!Number.isFinite(lineHeight) || lineHeight <= 0) lineHeight = current * 1.45;
-      const maxHeight = lineHeight * maxLines + 1;
-
-      while (current > minSize && node.scrollHeight > maxHeight) {
-        current -= 0.5;
-        node.style.fontSize = `${current}px`;
-        lineHeight = Number.parseFloat(window.getComputedStyle(node).lineHeight) || current * 1.45;
-      }
-
-      setFontSizePx(current);
-    };
-
-    fitToTwoLines();
-
-    let raf = 0;
-    const observer = new ResizeObserver(() => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(fitToTwoLines);
-    });
-    observer.observe(node);
-    if (node.parentElement) observer.observe(node.parentElement);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      observer.disconnect();
-    };
-  }, [text, baseSize, minSize, maxLines]);
-
-  return { ref, fontSizePx, maxLines };
-}
 
 function buildTutorSeoMeta(tutor: Tutor, url: string) {
   const subjects = (tutor.subjects ?? []).filter(Boolean);
@@ -100,25 +38,6 @@ function buildTutorSeoMeta(tutor: Tutor, url: string) {
   const description = `Tutor ${tutor.tutor_code} offers ${subjectText || "subject"} support${locationText}. Browse profile details, lesson mode, rates and availability on MatchMax.`;
 
   return { title, description, url };
-}
-
-function DetailSubjectChip({ chip }: { chip: TutorSubjectChip }) {
-  const gradeMatch = chip.grade?.match(/^(Grade\s+)(.+)$/i);
-
-  return (
-    <span className="rounded-[2px] bg-[color:var(--brand-teal)]/12 px-2 py-1 text-xs font-semibold text-[color:var(--ink)]">
-      {chip.subject}
-      {chip.grade ? (
-        <>
-          {" : "}
-          {gradeMatch?.[1] ?? ""}
-          <span className="font-black tracking-tight text-[color:var(--ink)]">
-            {gradeMatch?.[2] ?? chip.grade}
-          </span>
-        </>
-      ) : null}
-    </span>
-  );
 }
 
 function ProfileSection({
@@ -331,7 +250,6 @@ function TutorDetail() {
     : "";
   const genderLabel = getTutorGenderLabel(t.gender);
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
-  const subjectChips = getTutorSubjectChips(t);
   const examResults = (t.exam_results ?? []).filter((result) =>
     result.subjects.some((entry) => entry.subject.trim()),
   );
@@ -343,11 +261,6 @@ function TutorDetail() {
     / tutoring$/,
     "",
   );
-  const {
-    ref: headlineRef,
-    fontSizePx: headlineSize,
-    maxLines,
-  } = useResponsiveHeadlineFit(t.headline ?? "", 16, 12);
   const tutorSeoSummary = `Tutor ${t.tutor_code} offers ${subjectText || "tutoring"} support${t.district ? ` in ${t.district}` : " in Hong Kong"}. ${t.lesson_mode === "online" ? "Online lessons are available." : t.lesson_mode === "either" ? "Online and in-person lessons are available." : "In-person lessons are available."} Browse rates and availability on MatchMax.`;
   const tutorStructuredData = {
     "@context": "https://schema.org",
@@ -400,22 +313,6 @@ function TutorDetail() {
                     </>
                   ) : null}
                 </h1>
-                {t.headline ? (
-                  <p
-                    ref={headlineRef}
-                    className="mt-1 break-words whitespace-pre-line text-sm text-muted-foreground sm:text-base"
-                    style={{
-                      fontSize: `${headlineSize}px`,
-                      lineHeight: 1.45,
-                      display: "-webkit-box",
-                      WebkitLineClamp: maxLines,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {t.headline}
-                  </p>
-                ) : null}
                 {t.academic_headline || t.university || t.secondary_school ? (
                   <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
                     {t.academic_headline ? (
@@ -429,26 +326,6 @@ function TutorDetail() {
                     ) : null}
                   </div>
                 ) : null}
-                <div className={`mt-4 flex-wrap gap-2 ${t.badge ? "flex" : "hidden sm:flex"}`}>
-                  <span className="hidden items-center gap-1 rounded-[2px] border border-border bg-muted px-2.5 py-1 text-xs text-muted-foreground sm:inline-flex">
-                    {t.lesson_mode === "online" ? (
-                      <Globe className="h-3 w-3" />
-                    ) : (
-                      <MapPin className="h-3 w-3" />
-                    )}
-                    {getTutorLocationLabel(t)}
-                  </span>
-                  {t.badge ? (
-                    <span className="inline-flex items-center gap-1 rounded-[2px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-bold text-[color:var(--brand-teal)]">
-                      <BadgeCheck className="h-3 w-3" /> {t.badge}
-                    </span>
-                  ) : null}
-                  {subjectChips.map((chip, index) => (
-                    <span key={`${chip.subject}-${index}`} className="hidden sm:contents">
-                      <DetailSubjectChip chip={chip} />
-                    </span>
-                  ))}
-                </div>
               </div>
               <div className="w-full sm:w-auto sm:text-right">
                 <div className="flex items-center justify-start gap-1.5 sm:justify-end">
