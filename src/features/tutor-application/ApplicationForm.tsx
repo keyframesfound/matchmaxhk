@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { cloneElement, isValidElement, useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, LocateFixed, Paperclip, Plus, Trash2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -125,15 +125,23 @@ function Field({
   className?: string;
   children: React.ReactNode;
 }) {
+  const isInput = isValidElement(children) && children.type === Input;
+  const renderedChildren = isInput
+    ? cloneElement(
+        children as React.ReactElement<{ hint?: React.ReactNode; isInvalid?: boolean }>,
+        { hint: error, isInvalid: Boolean(error) },
+      )
+    : children;
+
   return (
     <div className={cn("grid gap-2", className)}>
       <Label className="font-semibold text-foreground">
         {label}
         {required ? <span className="ml-1 text-destructive">*</span> : null}
       </Label>
-      {children}
+      {renderedChildren}
       {hint ? <Hint>{hint}</Hint> : null}
-      {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
+      {error && !isInput ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
     </div>
   );
 }
