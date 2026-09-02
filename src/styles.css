@@ -216,6 +216,16 @@
 
   html {
     color-scheme: light;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar {
+    display: none;
+  }
+
+  body::-webkit-scrollbar {
+    display: none;
   }
 
   html.dark {

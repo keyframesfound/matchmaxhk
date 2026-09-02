@@ -10,8 +10,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Input as FormInput } from "@/components/base/input/input";
+import { Input } from "@/components/base/input/input";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
@@ -784,7 +783,7 @@ export function ApplicationForm() {
                   onChange={(event) => setBaseField("name", event.target.value)}
                 />
               </Field>
-              <FormInput
+              <Input
                 isRequired
                 isInvalid={Boolean(fieldErrors.email)}
                 label="Email"
