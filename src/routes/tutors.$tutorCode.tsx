@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   MapPin,
   MessageCircle,
+  ArrowLeft,
   Award,
   Globe,
   Languages,
@@ -291,6 +292,16 @@ function TutorDetail() {
       <main className="flex-1">
         <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
           <div className="mx-auto max-w-5xl px-5 sm:px-8">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mb-6"
+              onClick={() => window.history.back()}
+            >
+              <ArrowLeft aria-hidden="true" />
+              Back
+            </Button>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
               {t.photo_url ? (
                 <img
