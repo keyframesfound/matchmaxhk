@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, CircleHelp, LogOut, Moon, Settings, Sun, UserRound } from "lucide-react";
+import { Bookmark, ChevronsUpDown, CircleHelp, LogOut, Moon, Settings, Sun, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
@@ -108,68 +108,84 @@ export function SiteHeader({ className }: { className?: string }) {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-11 w-60 justify-start gap-2 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-2 text-left text-[color:var(--ink)] shadow-sm transition-colors hover:bg-[color:var(--surface)] hover:text-[color:var(--ink)]"
+                    className="relative h-auto w-60 justify-start gap-3 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-2 text-left text-[color:var(--ink)] shadow-sm transition-colors hover:bg-[color:var(--surface)] hover:text-[color:var(--ink)]"
                   >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#1FA8B6] text-xs font-bold text-white">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1FA8B6] text-sm font-bold text-white">
                       {accountInitial}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold leading-4">{accountName}</span>
+                      <span className="block truncate text-sm font-semibold leading-5">{accountName}</span>
                       <span className="block truncate text-xs font-normal leading-4 text-[color:var(--ink)]/55">
                         {user.email}
                       </span>
                     </span>
-                    <ChevronDown className="h-4 w-4 shrink-0 text-[color:var(--ink)]/45" aria-hidden="true" />
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[color:var(--ink)]/45">
+                      <ChevronsUpDown className="h-4 w-4" aria-hidden="true" />
+                    </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-60 rounded-lg border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-1.5 shadow-xl"
+                  className="w-60 overflow-hidden rounded-lg border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0 shadow-xl"
                 >
-                  <DropdownMenuLabel className="px-3 py-2.5">
-                    <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--ink)]/50">
+                  <DropdownMenuLabel className="border-b border-[color:var(--ink)]/10 px-4 py-3">
+                    <div className="text-sm font-semibold text-[color:var(--ink)]">
                       MatchMax account
                     </div>
-                    <div className="mt-1 truncate text-sm font-semibold text-[color:var(--ink)]">{accountName}</div>
+                    <div className="mt-0.5 text-xs font-normal text-[color:var(--ink)]/60">
+                      Manage your profile and preferences
+                    </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    asChild
-                    className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
-                  >
-                    <a href="/dashboard#profile">
-                      <UserRound aria-hidden="true" />
-                      Profile
-                    </a>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    asChild
-                    className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
-                  >
-                    <a href="/dashboard">
-                      <Settings aria-hidden="true" />
-                      Settings
-                    </a>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={() => setTheme(useDarkTheme ? "dark" : "light")}
-                    className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
-                  >
-                    {useDarkTheme ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
-                    {useDarkTheme ? "Dark mode" : "Light mode"}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    asChild
-                    className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
-                  >
-                    <Link to="/faq">
-                      <CircleHelp aria-hidden="true" />
-                      Help Centre
-                    </Link>
-                  </DropdownMenuItem>
-                  {isAdmin && (
-                    <>
-                      <DropdownMenuSeparator />
+                  <div className="p-1.5">
+                    <DropdownMenuItem
+                      asChild
+                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                    >
+                      <a href="/dashboard#profile">
+                        <UserRound aria-hidden="true" />
+                        Profile
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      asChild
+                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                    >
+                      <a href="/dashboard">
+                        <Settings aria-hidden="true" />
+                        Settings
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      asChild
+                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                    >
+                      <Link to="/saved-posts">
+                        <Bookmark aria-hidden="true" />
+                        Saved posts
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => setTheme(useDarkTheme ? "dark" : "light")}
+                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                    >
+                      {useDarkTheme ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
+                      {useDarkTheme ? "Dark mode" : "Light mode"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      asChild
+                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                    >
+                      <Link to="/faq">
+                        <CircleHelp aria-hidden="true" />
+                        Help Centre
+                      </Link>
+                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator className="my-1.5" />
+                        <DropdownMenuLabel className="px-3 py-1 text-xs font-semibold text-[color:var(--ink)]/50">
+                          Administration
+                        </DropdownMenuLabel>
                       <DropdownMenuItem
                         asChild
                         className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
@@ -188,16 +204,21 @@ export function SiteHeader({ className }: { className?: string }) {
                       >
                         <Link to="/admin/users">{t("nav.admin")}</Link>
                       </DropdownMenuItem>
-                    </>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={() => void signOut()}
-                    className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-red-50 focus:text-red-600"
-                  >
-                    <LogOut aria-hidden="true" />
-                    {t("nav.sign_out")}
-                  </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuSeparator className="my-1.5" />
+                    <DropdownMenuItem
+                      onSelect={() => void signOut()}
+                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-red-50 focus:text-red-600"
+                    >
+                      <LogOut aria-hidden="true" />
+                      {t("nav.sign_out")}
+                    </DropdownMenuItem>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-[color:var(--ink)]/10 px-4 py-2.5 text-xs text-[color:var(--ink)]/50">
+                    <span>MatchMax</span>
+                    <span>Account menu</span>
+                  </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
