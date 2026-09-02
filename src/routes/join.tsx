@@ -29,6 +29,15 @@ import {
   tutorApplicationSchema,
 } from "@/lib/tutor-application.schema";
 import { submitTutorApplication } from "@/lib/tutor-application.functions";
+import { MTR_LINES, toggleLineStations } from "@/features/tutor-application/mtr";
+import { getGradesForSelection, getSystem } from "@/features/tutors/examSystems";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/join")({
   head: () => ({
@@ -65,7 +74,7 @@ interface FormState {
   programme: string;
   highSchool: string;
   curriculum: string;
-  curriculumOther: string;
+  curricula: string[];
   overallScore: string;
   subjectsConfident: string;
   subjectResults: string;
@@ -80,6 +89,20 @@ interface FormState {
   notes: string;
 }
 
+interface SubjectScoreRow {
+  subject: string;
+  grade: string;
+  details: string;
+}
+
+const CURRICULUM_SYSTEM_IDS: Record<string, string> = {
+  IBDP: "ib",
+  "A-Level": "alevel",
+  "IGCSE / GCSE": "igcse",
+  HKDSE: "dse",
+  AP: "ap",
+};
+
 const initialState: FormState = {
   name: "",
   phone: "",
@@ -91,7 +114,7 @@ const initialState: FormState = {
   programme: "",
   highSchool: "",
   curriculum: "",
-  curriculumOther: "",
+  curricula: [],
   overallScore: "",
   subjectsConfident: "",
   subjectResults: "",
@@ -115,7 +138,7 @@ const STEP_TITLES = [
 
 const STEP_FIELD_KEYS: ReadonlyArray<readonly string[]> = [
   ["name", "phone", "email", "startDate", "status", "statusOther"],
-  ["university", "programme", "highSchool", "curriculum", "curriculumOther", "overallScore"],
+  ["university", "programme", "highSchool", "curriculum", "curricula", "overallScore"],
   ["subjectsConfident", "subjectResults", "awards", "experience", "hourlyRate", "materials", "format"],
   ["maxStudents", "locations", "medium", "notes", "attachments", "commissionAck", "privacyAck"],
 ];
@@ -318,11 +341,44 @@ function JoinPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isStepperPinned, setIsStepperPinned] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [selectedStations, setSelectedStations] = useState<string[]>([]);
+  const [subjectScoreRows, setSubjectScoreRows] = useState<SubjectScoreRow[]>([
+    { subject: "", grade: "", details: "" },
+  ]);
   const previousStepRef = useRef(currentStep);
   const captchaContainerRef = useRef<HTMLDivElement>(null);
   const captchaWidgetIdRef = useRef<string | null>(null);
   const siteKey =
     import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAEiLema3uiveM5pp";
+  const isProfessional = [
+    "Current school teacher",
+    "Former school teacher",
+    "Official examiner / moderator",
+  ].includes(form.status);
+  const applicationPath = isProfessional ? "Professional / Examiner" : form.curriculum;
+  const screeningNotice = isProfessional
+    ? "MatchMax's Professional tier is reserved for highly qualified educators. Teaching credentials or official examiner letters are required for verification, and your identity, CV, and current employment remain confidential to the MatchMax internal team."
+    : form.curriculum === "IBDP"
+      ? "For IBDP, MatchMax currently accepts candidates with an overall achieved score of 40 or above. Applications are reviewed by our team and unsuccessful candidates are informed by email."
+      : form.curriculum === "A-Level"
+        ? "For A-Level, MatchMax generally accepts candidates with a minimum overall achievement of A*AA or equivalent. Applications are reviewed by our team and unsuccessful candidates are informed by email."
+        : form.curriculum === "IGCSE / GCSE"
+          ? "For IGCSE / GCSE, MatchMax seeks a strong track record of A*/A or 7-9 grades, particularly in the subjects you wish to teach."
+          : form.curriculum === "HKDSE"
+            ? "For HKDSE, MatchMax accepts candidates with a minimum Best 5 score of 30. Applications are reviewed by our team and unsuccessful candidates are informed by email."
+            : "MatchMax employs a rigorous screening process to maintain premium tutor standards."
+  const overallScoreLabel =
+    form.curriculum === "IBDP"
+      ? "Overall achieved score (40-45)"
+      : form.curriculum === "HKDSE"
+        ? "Best 5 score"
+        : form.curriculum === "A-Level" || form.curriculum === "IGCSE / GCSE"
+          ? "Overall achieved grades"
+          : "Overall achieved score or grades";
+  const subjectResultLabel = isProfessional
+    ? "Teaching credentials, examiner roles and track record"
+    : "Subject scores and academic strengths";
+  const examSystem = getSystem(CURRICULUM_SYSTEM_IDS[form.curriculum] ?? "other");
 
   useEffect(() => {
     const updateStickyState = () => {
@@ -401,8 +457,105 @@ function JoinPage() {
     return () => newScript.removeEventListener("load", renderWidget);
   }, [currentStep, siteKey]);
 
-  const set = (key: keyof FormState) => (value: string) =>
+  const set = (key: Exclude<keyof FormState, "curricula">) => (value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  function toggleCurriculum(curriculum: string) {
+    setForm((previous) => {
+      const curricula = previous.curricula.includes(curriculum)
+        ? previous.curricula.filter((item) => item !== curriculum)
+        : [...previous.curricula, curriculum];
+      const primaryCurriculum = curricula.includes(previous.curriculum)
+        ? previous.curriculum
+        : (curricula[0] ?? "");
+      return { ...previous, curricula, curriculum: primaryCurriculum };
+    });
+  }
+
+  function toggleStation(station: string) {
+    setSelectedStations((previous) => {
+      const next = previous.includes(station)
+        ? previous.filter((item) => item !== station)
+        : [...previous, station];
+      set("locations")(next.join(", "));
+      return next;
+    });
+  }
+
+  function toggleLine(line: (typeof MTR_LINES)[number]) {
+    setSelectedStations((previous) => {
+      const next = toggleLineStations(previous, line);
+      set("locations")(next.join(", "));
+      return next;
+    });
+  }
+
+  function updateSubjectScore(index: number, patch: Partial<SubjectScoreRow>) {
+    setSubjectScoreRows((previous) => {
+      const next = previous.map((row, rowIndex) =>
+        rowIndex === index ? { ...row, ...patch } : row,
+      );
+      set("subjectResults")(
+        next
+          .filter((row) => row.subject || row.grade || row.details)
+          .map((row) => `${row.subject || "Subject"}: ${row.grade || "No grade"}${row.details ? ` (${row.details})` : ""}`)
+          .join("\n"),
+      );
+      return next;
+    });
+  }
+
+  function validateCurrentStep(step: number): boolean {
+    const requiredFields = STEP_FIELD_KEYS[step - 1] ?? [];
+    const fieldErrors: Record<string, string> = {};
+
+    for (const field of requiredFields) {
+      if (["startDate", "university", "programme", "awards", "maxStudents", "locations", "notes"].includes(field)) {
+        continue;
+      }
+      if (field === "attachments") {
+        if (files.length === 0) fieldErrors[field] = "Please attach your results.";
+        continue;
+      }
+      if (field === "commissionAck" && !commissionAck) {
+        fieldErrors[field] = "Please accept the commission terms.";
+        continue;
+      }
+      if (field === "privacyAck" && !privacyAck) {
+        fieldErrors[field] = "Please accept the privacy notice.";
+        continue;
+      }
+      if (field === "curricula" && form.curricula.length === 0) {
+        fieldErrors[field] = "Select at least one curriculum.";
+        continue;
+      }
+      const value = form[field as keyof FormState];
+      if (typeof value === "string" && !value.trim()) fieldErrors[field] = "Required";
+    }
+
+    if (form.status === "Other" && !form.statusOther.trim()) fieldErrors.statusOther = "Required";
+    if (step === 4 && form.format !== "Online" && selectedStations.length === 0) {
+      fieldErrors.locations = "Select at least one possible teaching location.";
+    }
+
+    setErrors((previous) => ({ ...previous, ...fieldErrors }));
+    if (Object.keys(fieldErrors).length === 0) return true;
+
+    const firstField = Object.keys(fieldErrors)[0];
+    setFormError("Please complete the highlighted questions before continuing.");
+    window.requestAnimationFrame(() => {
+      document.querySelector<HTMLElement>(`[name="${firstField}"]`)?.focus();
+    });
+    return false;
+  }
+
+  function handleBeforeStepChange(step: number, nextStep: number) {
+    if (nextStep > step + 1) {
+      setFormError("Complete each page in order before continuing.");
+      return false;
+    }
+    return nextStep <= step || validateCurrentStep(step);
+  }
 
   function handleStepChange(nextStep: number) {
     setCurrentStep(nextStep);
@@ -511,7 +664,7 @@ function JoinPage() {
               {t("join.success_title")}
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              {t("join.success_message")}
+              Your application has been received{isProfessional ? " securely" : ""}! Please note that parents can directly source and request you for lessons via our MatchMax WhatsApp hotline. Keep an eye on your messages!
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <Button
@@ -553,6 +706,12 @@ function JoinPage() {
               <SampleProfile />
             </div>
 
+            {form.status || form.curriculum ? (
+              <aside className="mb-8 rounded-lg border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/8 px-4 py-3 text-sm leading-relaxed text-foreground">
+                <span className="font-semibold">{applicationPath || "Tutor"} application:</span> {screeningNotice}
+              </aside>
+            ) : null}
+
             <form
               className="join-stepper-form"
               onSubmit={(event) => {
@@ -568,6 +727,7 @@ function JoinPage() {
                 currentStep={currentStep}
                 initialStep={1}
                 onStepChange={handleStepChange}
+                onBeforeStepChange={handleBeforeStepChange}
                 onFinalStepCompleted={() => void submitApplication()}
                 backButtonText="Previous"
                 nextButtonText="Continue"
@@ -578,8 +738,8 @@ function JoinPage() {
                 <Step>
                   <StepHeading
                     step={1}
-                    title="Contact details"
-                    description="Tell us how to reach you and what you are doing now."
+                    title="Basic details & status"
+                    description="Choose your current status before continuing to your academic qualifications."
                   />
                   <div className="grid gap-6 sm:grid-cols-2">
                     <Field label="Name" required error={errors["name"]}>
@@ -639,8 +799,8 @@ function JoinPage() {
                 <Step>
                   <StepHeading
                     step={2}
-                    title="Academic profile"
-                    description="Share the academic background students and parents will want to see."
+                    title="Academic background & qualifications"
+                    description="Choose your primary curriculum, then include every other curriculum you completed."
                   />
                   <div className="grid gap-6 sm:grid-cols-2">
                     <Field label="Current university / institution" error={errors["university"]}>
@@ -669,19 +829,40 @@ function JoinPage() {
                         name="curriculum"
                         options={CURRICULUM_OPTIONS}
                         value={form.curriculum}
-                        onChange={set("curriculum")}
+                        onChange={(curriculum) => {
+                          setSubjectScoreRows([{ subject: "", grade: "", details: "" }]);
+                          setForm((previous) => ({
+                            ...previous,
+                            curriculum,
+                            subjectResults: "",
+                            curricula: previous.curricula.includes(curriculum)
+                              ? previous.curricula
+                              : [...previous.curricula, curriculum],
+                          }));
+                        }}
                       />
-                      {form.curriculum === "Other" ? (
-                        <Input
-                          className="mt-2"
-                          value={form.curriculumOther}
-                          onChange={(e) => set("curriculumOther")(e.target.value)}
-                          placeholder="HKDSE / GCSE / IGCSE"
-                        />
-                      ) : null}
                     </Field>
                     <Field
-                      label="Overall achieved score in your high school qualification"
+                      label="Other curricula completed"
+                      required
+                      hint="Select every curriculum you completed. You can add subject results for each in the next version of this form."
+                      error={errors["curricula"]}
+                      className="sm:col-span-2"
+                    >
+                      <div className="flex flex-wrap gap-x-5 gap-y-3">
+                        {CURRICULUM_OPTIONS.map((curriculum) => (
+                          <label key={curriculum} className="flex items-center gap-2 text-sm text-foreground">
+                            <Checkbox
+                              checked={form.curricula.includes(curriculum)}
+                              onCheckedChange={() => toggleCurriculum(curriculum)}
+                            />
+                            <span>{curriculum}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </Field>
+                    <Field
+                      label={overallScoreLabel}
                       required
                       error={errors["overallScore"]}
                       className="sm:col-span-2"
@@ -698,8 +879,8 @@ function JoinPage() {
                 <Step>
                   <StepHeading
                     step={3}
-                    title="Teaching profile"
-                    description="Highlight the subjects, experience and teaching approach you bring."
+                    title={isProfessional ? "Subjects taught & credentials" : "Subject scores & teaching profile"}
+                    description={isProfessional ? "Show the curricula, subjects and experience you teach." : "List your academic footprint, then highlight the subjects you teach."}
                   />
                   <div className="grid gap-6 sm:grid-cols-2">
                     <Field
@@ -715,19 +896,40 @@ function JoinPage() {
                         placeholder="History HL, Economics HL, Business Management HL, Chemistry SL"
                       />
                     </Field>
-                    <Field
-                      label="Relevant subject results / academic strengths"
-                      required
-                      error={errors["subjectResults"]}
-                      className="sm:col-span-2"
-                    >
-                      <Textarea
-                        rows={3}
-                        value={form.subjectResults}
-                        onChange={(e) => set("subjectResults")(e.target.value)}
-                        placeholder="History HL 7, Economics HL 7, EE in History grade A"
-                      />
-                    </Field>
+                    {examSystem && !isProfessional ? (
+                      <Field
+                        label={subjectResultLabel}
+                        required
+                        hint="Add every subject you completed. Specific paper marks are optional and help parents find the right tutor."
+                        error={errors["subjectResults"]}
+                        className="sm:col-span-2"
+                      >
+                        <div className="grid gap-3">
+                          {subjectScoreRows.map((row, index) => {
+                            const grades = getGradesForSelection(examSystem.id, row.subject);
+                            return (
+                              <div key={index} className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[1fr_9rem_auto]">
+                                <Select value={row.subject} onValueChange={(subject) => updateSubjectScore(index, { subject, grade: "" })}>
+                                  <SelectTrigger aria-label={`Subject ${index + 1}`}><SelectValue placeholder="Subject" /></SelectTrigger>
+                                  <SelectContent>{examSystem.subjects.map((subject) => <SelectItem key={subject} value={subject}>{subject}</SelectItem>)}</SelectContent>
+                                </Select>
+                                <Select value={row.grade} onValueChange={(grade) => updateSubjectScore(index, { grade })} disabled={!row.subject}>
+                                  <SelectTrigger aria-label={`Grade ${index + 1}`}><SelectValue placeholder="Grade" /></SelectTrigger>
+                                  <SelectContent>{grades.map((grade) => <SelectItem key={grade} value={grade}>{grade}</SelectItem>)}</SelectContent>
+                                </Select>
+                                {subjectScoreRows.length > 1 ? <Button type="button" variant="outline" onClick={() => setSubjectScoreRows((previous) => previous.filter((_, rowIndex) => rowIndex !== index))}>Remove</Button> : null}
+                                <Input className="sm:col-span-3" value={row.details} onChange={(event) => updateSubjectScore(index, { details: event.target.value })} placeholder="Specific paper grades or breakdown (optional)" />
+                              </div>
+                            );
+                          })}
+                          <Button type="button" variant="outline" className="w-fit" onClick={() => setSubjectScoreRows((previous) => [...previous, { subject: "", grade: "", details: "" }])}>+ Add another subject</Button>
+                        </div>
+                      </Field>
+                    ) : (
+                      <Field label={subjectResultLabel} required error={errors["subjectResults"]} className="sm:col-span-2">
+                        <Textarea rows={3} value={form.subjectResults} onChange={(event) => set("subjectResults")(event.target.value)} placeholder="Teaching credentials, examining boards, subjects and years of experience" />
+                      </Field>
+                    )}
                     <Field
                       label="Awards, scholarships or notable achievements"
                       error={errors["awards"]}
@@ -801,12 +1003,39 @@ function JoinPage() {
                         placeholder="4"
                       />
                     </Field>
-                    <Field label="Preferred teaching location(s) if in-person" error={errors["locations"]}>
-                      <Input
-                        value={form.locations}
-                        onChange={(e) => set("locations")(e.target.value)}
-                        placeholder="Causeway Bay, Wan Chai, Kowloon Tong"
-                      />
+                    <Field
+                      label="Possible Teaching Locations (MTR Network)"
+                      hint="Select all lines and stations you can realistically travel to. Broader coverage creates more matching opportunities."
+                      error={errors["locations"]}
+                      className="sm:col-span-2"
+                    >
+                      <div className="grid gap-3">
+                        {MTR_LINES.map((line) => {
+                          const allSelected = line.stations.every((station) => selectedStations.includes(station));
+                          return (
+                            <details key={line.id} className="rounded-lg border border-border bg-card px-4 py-3">
+                              <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-semibold text-foreground">
+                                <span>{line.label}</span>
+                                <span className="text-xs font-normal text-muted-foreground">
+                                  {line.stations.filter((station) => selectedStations.includes(station)).length}/{line.stations.length}
+                                </span>
+                              </summary>
+                              <div className="mt-4 grid gap-3 border-t border-border pt-3 sm:grid-cols-3">
+                                <label className="flex items-center gap-2 text-sm font-semibold text-foreground sm:col-span-3">
+                                  <Checkbox checked={allSelected} onCheckedChange={() => toggleLine(line)} />
+                                  <span>Select all {line.label}</span>
+                                </label>
+                                {line.stations.map((station) => (
+                                  <label key={`${line.id}-${station}`} className="flex items-center gap-2 text-sm text-foreground">
+                                    <Checkbox checked={selectedStations.includes(station)} onCheckedChange={() => toggleStation(station)} />
+                                    <span>{station}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </details>
+                          );
+                        })}
+                      </div>
                     </Field>
                     <Field label="Preferred medium of instruction" required error={errors["medium"]}>
                       <Input

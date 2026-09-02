@@ -20,10 +20,14 @@ export async function sendTutorApplication(data: TutorApplication): Promise<void
     if (!ACCEPTED_FILE_TYPES.includes(file.contentType)) {
       throw new Error(`Unsupported file type: ${file.filename}`);
     }
-    if (file.size > MAX_FILE_BYTES) {
+    const bytes = Buffer.from(file.content, "base64");
+    if (bytes.length === 0 || bytes.length !== file.size) {
+      throw new Error(`Invalid file data: ${file.filename}`);
+    }
+    if (bytes.length > MAX_FILE_BYTES) {
       throw new Error(`File too large: ${file.filename}`);
     }
-    total += file.size;
+    total += bytes.length;
   }
   if (total > MAX_TOTAL_BYTES) {
     throw new Error("Attachments exceed the 20 MB total limit.");

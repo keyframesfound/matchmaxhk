@@ -26,6 +26,7 @@ export interface StepperProps extends Omit<HTMLAttributes<HTMLDivElement>, "chil
   initialStep?: number;
   currentStep?: number;
   onStepChange?: (step: number) => void;
+  onBeforeStepChange?: (currentStep: number, nextStep: number) => boolean | Promise<boolean>;
   onFinalStepCompleted?: () => void;
   stepCircleContainerClassName?: string;
   stepContainerClassName?: string;
@@ -46,6 +47,7 @@ export default function Stepper({
   initialStep = 1,
   currentStep: controlledStep,
   onStepChange = () => {},
+  onBeforeStepChange,
   onFinalStepCompleted = () => {},
   stepCircleContainerClassName = "",
   stepContainerClassName = "",
@@ -78,7 +80,12 @@ export default function Stepper({
   const isCompleted = currentStep > totalSteps;
   const isLastStep = currentStep === totalSteps;
 
-  const updateStep = (nextStep: number) => {
+  const updateStep = async (nextStep: number) => {
+    if (nextStep > currentStep && onBeforeStepChange) {
+      const mayAdvance = await onBeforeStepChange(currentStep, nextStep);
+      if (!mayAdvance) return;
+    }
+
     if (nextStep > totalSteps) {
       if (controlledStep === undefined) setInternalStep(nextStep);
       onFinalStepCompleted();
@@ -92,20 +99,20 @@ export default function Stepper({
   const handleBack = () => {
     if (currentStep > 1) {
       setDirection(-1);
-      updateStep(currentStep - 1);
+      void updateStep(currentStep - 1);
     }
   };
 
   const handleNext = () => {
     if (!isLastStep) {
       setDirection(1);
-      updateStep(currentStep + 1);
+      void updateStep(currentStep + 1);
     }
   };
 
   const handleComplete = () => {
     setDirection(1);
-    updateStep(totalSteps + 1);
+    void updateStep(totalSteps + 1);
   };
 
   const { className: backButtonClassName, onClick: onBackClick, ...backButtonRest } = backButtonProps;
@@ -121,7 +128,7 @@ export default function Stepper({
             const onStepClick = (clickedStep: number) => {
               if (clickedStep === currentStep || disableStepIndicators) return;
               setDirection(clickedStep > currentStep ? 1 : -1);
-              updateStep(clickedStep);
+              void updateStep(clickedStep);
             };
 
             return (
@@ -314,7 +321,7 @@ function StepConnector({ isComplete }: { isComplete: boolean }) {
 }
 
 const stepVariants = {
-  enter: (direction: 1 | -1) => ({ x: direction >= 0 ? "-100%" : "100%", opacity: 0 }),
+  enter: (direction: 1 | -1) => ({ x: direction >= 0 ? "100%" : "-100%", opacity: 0 }),
   center: { x: "0%", opacity: 1 },
-  exit: (direction: 1 | -1) => ({ x: direction >= 0 ? "50%" : "-50%", opacity: 0 }),
+  exit: (direction: 1 | -1) => ({ x: direction >= 0 ? "-50%" : "50%", opacity: 0 }),
 };

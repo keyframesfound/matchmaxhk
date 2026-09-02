@@ -17,10 +17,20 @@ export const STATUS_OPTIONS = [
   "Graduate",
   "Full-time tutor",
   "Part-time tutor",
+  "Current school teacher",
+  "Former school teacher",
+  "Official examiner / moderator",
   "Other",
 ] as const;
 
-export const CURRICULUM_OPTIONS = ["IBDP", "A-Level", "AP", "Other"] as const;
+export const CURRICULUM_OPTIONS = [
+  "IBDP",
+  "A-Level",
+  "IGCSE / GCSE",
+  "HKDSE",
+  "AP",
+  "Foundation / other",
+] as const;
 export const MATERIALS_OPTIONS = ["Yes", "No", "In progress"] as const;
 export const FORMAT_OPTIONS = ["Face to face", "Online", "Both"] as const;
 
@@ -43,7 +53,7 @@ export const tutorApplicationSchema = z.object({
   programme: z.string().trim().max(200).optional().default(""),
   highSchool: z.string().trim().min(1, "Required").max(200),
   curriculum: z.enum(CURRICULUM_OPTIONS),
-  curriculumOther: z.string().trim().max(200).optional().default(""),
+  curricula: z.array(z.enum(CURRICULUM_OPTIONS)).min(1, "Select at least one curriculum"),
   overallScore: z.string().trim().min(1, "Required").max(200),
   subjectsConfident: z.string().trim().min(1, "Required").max(2000),
   subjectResults: z.string().trim().min(1, "Required").max(2000),
@@ -78,11 +88,6 @@ export interface AnswerRow {
 export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
   const status =
     data.status === "Other" && data.statusOther ? `Other — ${data.statusOther}` : data.status;
-  const curriculum =
-    data.curriculum === "Other" && data.curriculumOther
-      ? `Other — ${data.curriculumOther}`
-      : data.curriculum;
-
   return [
     { label: "Name", value: data.name },
     { label: "Contact number / WhatsApp", value: data.phone },
@@ -92,7 +97,8 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     { label: "University / institution", value: data.university || "—" },
     { label: "Degree / programme", value: data.programme || "—" },
     { label: "High school and graduation year", value: data.highSchool },
-    { label: "Curriculum completed", value: curriculum },
+    { label: "Primary curriculum", value: data.curriculum },
+    { label: "Curricula completed", value: data.curricula.join(", ") },
     { label: "Overall achieved score", value: data.overallScore },
     { label: "Subjects and levels confident teaching", value: data.subjectsConfident },
     { label: "Relevant subject results / academic strengths", value: data.subjectResults },
