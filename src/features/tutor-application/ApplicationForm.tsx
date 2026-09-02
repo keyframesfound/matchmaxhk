@@ -200,6 +200,7 @@ export function ApplicationForm() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [files, setFiles] = useState<File[]>([]);
   const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
   const captchaRef = useRef<HTMLDivElement>(null);
   const captchaWidget = useRef<string | null>(null);
   const [originStation, setOriginStation] = useState("");
@@ -336,8 +337,15 @@ export function ApplicationForm() {
       captchaWidget.current = window.turnstile.render(captchaRef.current, {
         sitekey: siteKey,
         action: "tutor_application",
-        callback: setCaptcha,
+        callback: (token) => {
+          setCaptchaError(null);
+          setCaptcha(token);
+        },
         "expired-callback": () => setCaptcha(null),
+        "error-callback": (errorCode = "unknown") => {
+          setCaptcha(null);
+          setCaptchaError(`Security check unavailable (${errorCode}).`);
+        },
       });
     };
     const existing = document.querySelector<HTMLScriptElement>(
@@ -346,14 +354,28 @@ export function ApplicationForm() {
     if (existing) {
       existing.addEventListener("load", renderCaptcha);
       renderCaptcha();
-      return () => existing.removeEventListener("load", renderCaptcha);
+      return () => {
+        existing.removeEventListener("load", renderCaptcha);
+        if (captchaWidget.current && window.turnstile) {
+          window.turnstile.remove(captchaWidget.current);
+        }
+        captchaWidget.current = null;
+      };
     }
     const script = document.createElement("script");
     script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
     script.async = true;
+    script.defer = true;
     script.addEventListener("load", renderCaptcha);
+    script.addEventListener("error", () => setCaptchaError("Security check could not be loaded."));
     document.head.appendChild(script);
-    return () => script.removeEventListener("load", renderCaptcha);
+    return () => {
+      script.removeEventListener("load", renderCaptcha);
+      if (captchaWidget.current && window.turnstile) {
+        window.turnstile.remove(captchaWidget.current);
+      }
+      captchaWidget.current = null;
+    };
   }, [step, stepTitles.length]);
 
   function setBaseField<Key extends keyof typeof base>(key: Key, value: (typeof base)[Key]) {
@@ -1276,6 +1298,7 @@ export function ApplicationForm() {
               {COMMISSION_TEXT}
             </label>
             <div ref={captchaRef} className="min-h-[65px]" />
+            {captchaError ? <p className="text-xs font-medium text-destructive" role="alert">{captchaError}</p> : null}
           </div>
         </Step>
       </Stepper>
