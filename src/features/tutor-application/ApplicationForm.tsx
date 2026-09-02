@@ -148,7 +148,10 @@ function Choices({
   return (
     <div className="flex flex-wrap gap-x-5 gap-y-3">
       {options.map((option) => (
-        <label key={option} className="flex items-center gap-2 text-sm text-foreground">
+        <label
+          key={option}
+          className="flex min-h-11 cursor-pointer items-center gap-2 py-1 text-sm text-foreground"
+        >
           <Checkbox checked={values.includes(option)} onCheckedChange={() => onToggle(option)} />
           <span>{option}</span>
         </label>
