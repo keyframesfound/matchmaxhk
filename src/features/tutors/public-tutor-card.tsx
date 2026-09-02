@@ -159,7 +159,7 @@ export function PublicTutorCard({
           : undefined
       }
     >
-      <header className="border-b border-[color:var(--brand-teal)]/20 bg-[color:var(--surface)] px-3 py-2.5 md:px-4 md:py-3">
+      <header className="relative border-b border-[color:var(--brand-teal)]/20 bg-[color:var(--surface)] px-3 py-2.5 md:px-4 md:py-3">
         <div className="flex items-start gap-2.5 md:gap-3.5">
           <div className="flex w-12 shrink-0 flex-col items-center gap-1.5 md:w-14">
             {tutor.photo_url ? (
@@ -179,7 +179,7 @@ export function PublicTutorCard({
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">
-            <p className="line-clamp-2 text-[14px] font-black leading-tight tracking-tight text-[color:var(--ink)] md:text-[17px]">
+            <p className="line-clamp-2 text-[14px] font-black leading-tight tracking-tight text-[color:var(--ink)] md:pr-20 md:text-[17px]">
               {primaryCredential}
             </p>
             {supportingCredentials.map((credential, index) => (
@@ -192,7 +192,7 @@ export function PublicTutorCard({
             ))}
           </div>
 
-          <div className="flex shrink-0 flex-col items-end gap-1">
+          <div className="flex shrink-0 flex-col items-end gap-1 md:absolute md:right-4 md:top-3">
             {genderLabel ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[9px] font-bold text-[color:var(--ink)] md:px-2.5 md:text-[10px]">
                 <UserRound className="h-3 w-3 text-[color:var(--brand-teal)]" aria-hidden="true" />
