@@ -136,31 +136,33 @@ export default function Stepper({
           className={cn("stepper-indicator-row", stepContainerClassName)}
           aria-label="Form progress"
         >
-          {stepsArray.map((_, index) => {
-            const stepNumber = index + 1;
-            const isNotLastStep = index < totalSteps - 1;
-            const onStepClick = (clickedStep: number) => {
-              if (clickedStep === currentStep || disableStepIndicators) return;
-              setDirection(clickedStep > currentStep ? 1 : -1);
-              void updateStep(clickedStep);
-            };
+          <div className="stepper-indicator-track">
+            {stepsArray.map((_, index) => {
+              const stepNumber = index + 1;
+              const isNotLastStep = index < totalSteps - 1;
+              const onStepClick = (clickedStep: number) => {
+                if (clickedStep === currentStep || disableStepIndicators) return;
+                setDirection(clickedStep > currentStep ? 1 : -1);
+                void updateStep(clickedStep);
+              };
 
-            return (
-              <div key={stepNumber} className="stepper-indicator-group">
-                {renderStepIndicator ? (
-                  renderStepIndicator({ step: stepNumber, currentStep, onStepClick })
-                ) : (
-                  <StepIndicator
-                    step={stepNumber}
-                    currentStep={currentStep}
-                    disableStepIndicators={disableStepIndicators}
-                    onClickStep={onStepClick}
-                  />
-                )}
-                {isNotLastStep ? <StepConnector isComplete={currentStep > stepNumber} /> : null}
-              </div>
-            );
-          })}
+              return (
+                <div key={stepNumber} className="stepper-indicator-group">
+                  {renderStepIndicator ? (
+                    renderStepIndicator({ step: stepNumber, currentStep, onStepClick })
+                  ) : (
+                    <StepIndicator
+                      step={stepNumber}
+                      currentStep={currentStep}
+                      disableStepIndicators={disableStepIndicators}
+                      onClickStep={onStepClick}
+                    />
+                  )}
+                  {isNotLastStep ? <StepConnector isComplete={currentStep > stepNumber} /> : null}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <StepContentWrapper

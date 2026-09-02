@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -25,9 +26,11 @@ export const Route = createFileRoute("/join")({
 });
 
 function JoinPage() {
+  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
+
   return (
     <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-background">
-      <SiteHeader />
+      <SiteHeader hidden={isHeaderHidden} />
       <main className="min-w-0 flex-1 py-8 sm:py-12">
         <div className="mx-auto w-full min-w-0 max-w-5xl px-4 sm:px-6">
           <div className="max-w-3xl">
@@ -39,7 +42,7 @@ function JoinPage() {
             </p>
           </div>
           <div className="mt-8">
-            <ApplicationForm />
+            <ApplicationForm onTopScrollerActiveChange={setIsHeaderHidden} />
           </div>
         </div>
       </main>

@@ -18,7 +18,13 @@ import { useAuth } from "@/features/auth/useAuth";
 import { AnnouncementBanner } from "./AnnouncementBanner";
 import { StaggeredMobileMenu } from "./StaggeredMobileMenu";
 
-export function SiteHeader({ className }: { className?: string }) {
+export function SiteHeader({
+  className,
+  hidden,
+}: {
+  className?: string;
+  hidden?: boolean;
+}) {
   const { t } = useTranslation();
   const { user, signOut, hasAnyRole } = useAuth();
   const isAdmin = hasAnyRole(["admin", "super_admin"]);
@@ -45,7 +51,9 @@ export function SiteHeader({ className }: { className?: string }) {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm ${className ?? ""}`}
+      className={`sticky top-0 z-50 w-full border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm transition-all duration-300 ease-in-out ${
+        hidden ? "-translate-y-full pointer-events-none opacity-0" : "translate-y-0 opacity-100"
+      } ${className ?? ""}`}
     >
       <div className="mx-auto flex h-[64px] max-w-[1440px] items-center px-4 sm:px-8 lg:px-10">
         <Link to="/" className="flex shrink-0 items-center" aria-label="MatchMax home">

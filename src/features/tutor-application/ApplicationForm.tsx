@@ -194,8 +194,13 @@ function updateArray(values: string[], value: string) {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
 }
 
-export function ApplicationForm() {
+export function ApplicationForm({
+  onTopScrollerActiveChange,
+}: {
+  onTopScrollerActiveChange?: (active: boolean) => void;
+} = {}) {
   const submit = useServerFn(submitTutorApplication);
+  const topSentinelRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -242,6 +247,26 @@ export function ApplicationForm() {
   const professional = PROFESSIONAL_STATUSES.has(base.status);
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
+
+  useEffect(() => {
+    const element = topSentinelRef.current;
+    if (!element || !onTopScrollerActiveChange) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const isPinned = !entry.isIntersecting && entry.boundingClientRect.top < 60;
+        onTopScrollerActiveChange(isPinned);
+      },
+      { threshold: [0] },
+    );
+
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      onTopScrollerActiveChange(false);
+    };
+  }, [onTopScrollerActiveChange]);
+
   async function addTravelSuggestions() {
     if (!originStation || suggestionStatus === "adding") return;
     const selectedOrigin = originStation;
@@ -754,6 +779,7 @@ export function ApplicationForm() {
       <aside className="mb-8 rounded-lg border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/8 px-4 py-3 text-sm leading-relaxed text-foreground">
         {notice}
       </aside>
+      <div ref={topSentinelRef} className="h-px w-full" aria-hidden="true" />
       <Stepper
         className="join-stepper"
         scrollActiveIndicatorIntoView
