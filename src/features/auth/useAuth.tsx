@@ -25,6 +25,15 @@ async function fetchRoles(userId: string): Promise<AppRole[]> {
   return (data ?? []).map((r) => r.role as AppRole);
 }
 
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => {
+      window.setTimeout(() => resolve(fallback), timeoutMs);
+    }),
+  ]);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -59,18 +68,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    supabase.auth.getSession().then(({ data }) => {
+    withTimeout(supabase.auth.getSession(), 8000, { data: { session: null } }).then(({ data }) => {
       if (!mounted) return;
       setSession(data.session);
       setUser(data.session?.user ?? null);
+      setLoading(false);
       if (data.session?.user) {
-        fetchRoles(data.session.user.id).then((r) => {
+        withTimeout(fetchRoles(data.session.user.id), 8000, []).then((r) => {
           if (mounted) setRoles(r);
-          if (mounted) setLoading(false);
         });
       } else {
-        setLoading(false);
+        setRoles([]);
       }
+    }).catch(() => {
+      if (mounted) setLoading(false);
     });
 
     return () => {
