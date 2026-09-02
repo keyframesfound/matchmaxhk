@@ -372,28 +372,35 @@ function TutorDetail() {
       />
       <SiteHeader />
       <main className="flex-1">
-        <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
-              {t.photo_url ? (
-                <img
-                  src={t.photo_url}
-                  alt={t.tutor_code}
-                  className="h-16 w-16 shrink-0 rounded-full object-cover sm:h-20 sm:w-20"
-                />
-              ) : (
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-xl font-semibold text-[color:var(--brand-teal)] sm:h-20 sm:w-20 sm:text-2xl">
-                  {t.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <h1 className="text-xl font-black text-[color:var(--ink)] sm:text-2xl">
-                  {profileTitle}
-                </h1>
+        <section className="bg-[#171717] py-5 font-mono text-[#d4d4d4] sm:py-7">
+          <div className="mx-auto max-w-5xl px-5 sm:px-8">
+            <Link
+              to="/tutors"
+              className="inline-block text-sm font-semibold text-[#a3a3a3] transition-colors hover:text-white"
+            >
+              &lt; Back
+            </Link>
+            <div className="mt-6 grid gap-5 sm:grid-cols-[100px_minmax(0,1fr)_auto] sm:gap-x-6">
+              <div className="flex min-h-20 items-start justify-center sm:justify-start">
+                {t.photo_url ? (
+                  <img
+                    src={t.photo_url}
+                    alt={t.tutor_code}
+                    className="h-20 w-20 object-cover grayscale"
+                  />
+                ) : (
+                  <span className="text-sm leading-6 text-[#a3a3a3]">[ Avatar ]</span>
+                )}
+              </div>
+              <div className="min-w-0 space-y-1 text-sm leading-6 sm:text-base">
+                <h1 className="font-bold text-[#f5f5f5]">{profileTitle}</h1>
+                {t.academic_headline ? <p className="break-words">{t.academic_headline}</p> : null}
+                {t.university ? <p className="break-words">{t.university}</p> : null}
+                {t.secondary_school ? <p className="break-words">{t.secondary_school}</p> : null}
                 {t.headline ? (
                   <p
                     ref={headlineRef}
-                    className="mt-1 break-words whitespace-pre-line text-sm text-muted-foreground sm:text-base"
+                    className="break-words whitespace-pre-line text-[#a3a3a3]"
                     style={{
                       fontSize: `${headlineSize}px`,
                       lineHeight: 1.45,
@@ -406,66 +413,34 @@ function TutorDetail() {
                     {t.headline}
                   </p>
                 ) : null}
-                {t.academic_headline || t.university || t.secondary_school ? (
-                  <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
-                    {t.academic_headline ? (
-                      <p className="break-words">{t.academic_headline}</p>
-                    ) : null}
-                    {t.university ? <p className="break-words">{t.university}</p> : null}
-                    {t.secondary_school ? (
-                      <p className="break-words text-sm font-medium text-muted-foreground sm:text-base">
-                        {t.secondary_school}
-                      </p>
-                    ) : null}
-                  </div>
-                ) : null}
-                <div className={`mt-4 flex-wrap gap-2 ${t.badge ? "flex" : "hidden sm:flex"}`}>
-                  <span className="hidden items-center gap-1 rounded-[2px] border border-border bg-muted px-2.5 py-1 text-xs text-muted-foreground sm:inline-flex">
-                    {t.lesson_mode === "online" ? (
-                      <Globe className="h-3 w-3" />
-                    ) : (
-                      <MapPin className="h-3 w-3" />
-                    )}
-                    {getTutorLocationLabel(t)}
-                  </span>
-                  {t.badge ? (
-                    <span className="inline-flex items-center gap-1 rounded-[2px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-bold text-[color:var(--brand-teal)]">
-                      <BadgeCheck className="h-3 w-3" /> {t.badge}
-                    </span>
-                  ) : null}
-                  {subjectChips.map((chip, index) => (
-                    <span key={`${chip.subject}-${index}`} className="hidden sm:contents">
-                      <DetailSubjectChip chip={chip} />
-                    </span>
-                  ))}
-                </div>
               </div>
-              <div className="w-full sm:w-auto sm:text-right">
-                <div className="flex items-center justify-start gap-1.5 sm:justify-end">
-                  <p className="text-3xl font-black text-[color:var(--ink)]">
-                    HK${t.hourly_rate}
-                    <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
-                  </p>
-                  <TutorSaveButton tutorId={t.id} compact />
-                </div>
-                {waUrl ? (
-                  <Button
-                    asChild
-                    className="mt-3 w-full bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert)] sm:w-auto"
-                  >
-                    <a href={waUrl} target="_blank" rel="noopener noreferrer">
-                      <MessageCircle className="mr-2 h-4 w-4" /> Request tutor
-                    </a>
-                  </Button>
-                ) : (
-                  <Button
-                    disabled
-                    className="mt-3 w-full bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert)] sm:w-auto"
-                  >
-                    <MessageCircle className="mr-2 h-4 w-4" /> Contact coming soon
-                  </Button>
-                )}
+              <div className="space-y-4 text-sm leading-6 sm:text-right sm:text-base">
+                <p className="font-bold text-[#f5f5f5]">HK${t.hourly_rate} /hr</p>
+                <p className="text-[#a3a3a3]">Ref: {t.tutor_code}</p>
+                <TutorSaveButton tutorId={t.id} compact />
               </div>
+            </div>
+            <div className="mt-5 border-t border-[#404040] pt-5 sm:ml-[124px]">
+              {waUrl ? (
+                <a
+                  href={waUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#e5e5e5] transition-colors hover:text-white"
+                >
+                  <span aria-hidden="true">[</span>
+                  <MessageCircle className="h-4 w-4" strokeWidth={2} />
+                  Request tutor
+                  <span aria-hidden="true">]</span>
+                </a>
+              ) : (
+                <span className="inline-flex items-center gap-2 text-sm text-[#737373]">
+                  <span aria-hidden="true">[</span>
+                  <MessageCircle className="h-4 w-4" strokeWidth={2} />
+                  Contact coming soon
+                  <span aria-hidden="true">]</span>
+                </span>
+              )}
             </div>
           </div>
         </section>
