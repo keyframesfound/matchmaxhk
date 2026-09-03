@@ -50,6 +50,7 @@ import {
   toggleLineStations,
 } from "./mtr";
 import { getGradesForSelection, getSystem } from "@/features/tutors/examSystems";
+import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 
 type ScoreRow = {
   subject: string;
@@ -148,7 +149,7 @@ function SingleChoice({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap items-start gap-2">
       {options.map((option) => (
         <button
           key={option}
@@ -203,7 +204,6 @@ export function ApplicationForm() {
     programme: "",
     year: "",
     subjectsTaught: [] as string[],
-    manualSubjects: "",
     format: "",
     stations: [] as string[],
     experiences: [""] as string[],
@@ -232,10 +232,12 @@ export function ApplicationForm() {
     );
     const remainingDelay = Math.max(0, 3000 - (Date.now() - startedAt));
     await new Promise((resolve) => window.setTimeout(resolve, remainingDelay));
-    setBaseField(
-      "stations",
-      [...new Set([...base.stations.filter((station) => !autoStations.includes(station)), ...suggestions])],
-    );
+    setBaseField("stations", [
+      ...new Set([
+        ...base.stations.filter((station) => !autoStations.includes(station)),
+        ...suggestions,
+      ]),
+    ]);
     setAutoStations(suggestions);
     setFieldErrors((current) => ({ ...current, stations: "" }));
     setSuggestionStatus("done");
@@ -263,7 +265,9 @@ export function ApplicationForm() {
     if (excludedStations.length) {
       setExcludedAutoStations((current) => [...new Set([...current, ...excludedStations])]);
     } else {
-      setExcludedAutoStations((current) => current.filter((station) => !line.stations.includes(station)));
+      setExcludedAutoStations((current) =>
+        current.filter((station) => !line.stations.includes(station)),
+      );
     }
     setAutoStations((current) => current.filter((station) => !line.stations.includes(station)));
     setBaseField("stations", toggleLineStations(base.stations, line));
@@ -417,11 +421,7 @@ export function ApplicationForm() {
     }
     const subjectStep = professional ? 3 : 2;
     if (step === subjectStep) {
-      if (professional)
-        required(
-          "subjectsTaught",
-          base.subjectsTaught.length ? base.subjectsTaught : base.manualSubjects.trim(),
-        );
+      if (professional) required("subjectsTaught", base.subjectsTaught);
       else
         qualifications.forEach((qualification, qualificationIndex) =>
           qualification.scores.forEach((score, scoreIndex) => {
@@ -431,11 +431,7 @@ export function ApplicationForm() {
         );
     }
     const taughtStep = professional ? 3 : 3;
-    if (step === taughtStep)
-      required(
-        "subjectsTaught",
-        base.subjectsTaught.length ? base.subjectsTaught : base.manualSubjects.trim(),
-      );
+    if (step === taughtStep) required("subjectsTaught", base.subjectsTaught);
     const lessonStep = professional ? 4 : 4;
     if (step === lessonStep) {
       required("format", base.format);
@@ -497,9 +493,9 @@ export function ApplicationForm() {
         curriculum: primary.curriculum,
         curricula: qualifications.map((qualification) => qualification.curriculum),
         overallScore: primary.overall || "Professional pathway",
-        subjectsConfident: [...base.subjectsTaught, base.manualSubjects].filter(Boolean).join(", "),
+        subjectsConfident: base.subjectsTaught.join(", "),
         subjectResults: professional
-          ? `Professional subjects: ${[...base.subjectsTaught, base.manualSubjects].filter(Boolean).join(", ")}\n${base.experiences.filter(Boolean).join("\n")}`
+          ? `Professional subjects: ${base.subjectsTaught.join(", ")}\n${base.experiences.filter(Boolean).join("\n")}`
           : subjectResults,
         awards: "",
         experience: base.experiences.filter(Boolean).join("\n"),
@@ -610,7 +606,7 @@ export function ApplicationForm() {
                   ? ["9", "8", "7", "6", "5", "4", "3", "2", "1", "U"]
                   : getGradesForSelection(system?.id ?? "other", score.subject);
           const availableSubjects = system?.subjects;
-                  const isFreeformQualification = qualification.curriculum === "Foundation / other";
+          const isFreeformQualification = qualification.curriculum === "Foundation / other";
           return (
             <div
               key={scoreIndex}
@@ -757,6 +753,7 @@ export function ApplicationForm() {
                 <Input
                   value={base.name}
                   onChange={(event) => setBaseField("name", event.target.value)}
+                  placeholder="Jayden Lau"
                 />
               </Field>
               <Input
@@ -768,6 +765,7 @@ export function ApplicationForm() {
                 type="email"
                 value={base.email}
                 onChange={(event) => setBaseField("email", event.target.value)}
+                placeholder="jayden.lau@example.com"
               />
             </div>
             <div className="grid content-start gap-6">
@@ -780,17 +778,25 @@ export function ApplicationForm() {
                 <Input
                   value={base.phone}
                   onChange={(event) => setBaseField("phone", event.target.value)}
+                  placeholder="+852 9123 4567"
                 />
               </Field>
               <Field label="Medium of Instruction" required error={fieldErrors.medium}>
                 <Choices
                   options={LANGUAGES}
                   values={base.medium}
-                  onToggle={(language) => setBaseField("medium", updateArray(base.medium, language))}
+                  onToggle={(language) =>
+                    setBaseField("medium", updateArray(base.medium, language))
+                  }
                 />
               </Field>
             </div>
-            <Field label="Current Status" required error={fieldErrors.status} className="sm:col-span-2">
+            <Field
+              label="Current Status"
+              required
+              error={fieldErrors.status}
+              className="sm:col-span-2"
+            >
               <SingleChoice
                 options={STATUS_OPTIONS}
                 value={base.status}
@@ -807,7 +813,8 @@ export function ApplicationForm() {
                   placeholder="Please specify"
                 />
               ) : null}
-              {base.status === "Official examiner / moderator" || roles.includes("Official examiner / moderator") ? (
+              {base.status === "Official examiner / moderator" ||
+              roles.includes("Official examiner / moderator") ? (
                 <div className="mt-4">
                   <Label className="font-semibold text-foreground">
                     Examining Board(s)
@@ -821,7 +828,9 @@ export function ApplicationForm() {
                     />
                   </div>
                   {fieldErrors.boards ? (
-                    <p className="mt-2 text-xs font-medium text-destructive">{fieldErrors.boards}</p>
+                    <p className="mt-2 text-xs font-medium text-destructive">
+                      {fieldErrors.boards}
+                    </p>
                   ) : null}
                 </div>
               ) : null}
@@ -848,6 +857,7 @@ export function ApplicationForm() {
                   <Input
                     value={base.highSchool}
                     onChange={(event) => setBaseField("highSchool", event.target.value)}
+                    placeholder="Diocesan Boys' School, 2023"
                   />
                 </Field>
                 <Field label="Current Year of Study">
@@ -863,12 +873,14 @@ export function ApplicationForm() {
               <Input
                 value={base.university}
                 onChange={(event) => setBaseField("university", event.target.value)}
+                placeholder="HKUST"
               />
             </Field>
             <Field label="Degree / Programme Major">
               <Input
                 value={base.programme}
                 onChange={(event) => setBaseField("programme", event.target.value)}
+                placeholder="BBA Global Business & BSc Computer Science"
               />
             </Field>
             {!professional ? (
@@ -932,6 +944,13 @@ export function ApplicationForm() {
                           onChange={(event) =>
                             updateQualification(index, { overall: event.target.value })
                           }
+                          placeholder={
+                            qualification.curriculum === "IBDP"
+                              ? "43 / 45"
+                              : qualification.curriculum === "HKDSE"
+                                ? "32"
+                                : "A*AA"
+                          }
                         />
                       </Field>
                       {["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum) ? (
@@ -966,15 +985,18 @@ export function ApplicationForm() {
                             onChange={(event) =>
                               updateQualification(index, { best6: event.target.value })
                             }
+                            placeholder="36"
                           />
                         </Field>
                       ) : null}
                     </div>
                     <div className="mt-5 border-t border-border pt-5">
-                      <h3 className="text-base font-black text-[color:var(--ink)]">Subject Scores</h3>
+                      <h3 className="text-base font-black text-[color:var(--ink)]">
+                        Subject Scores
+                      </h3>
                       <Hint>
-                        List your full academic profile. Specific paper grades or breakdowns highlight
-                        niche strengths for parents looking for targeted support.
+                        List your full academic profile. Specific paper grades or breakdowns
+                        highlight niche strengths for parents looking for targeted support.
                       </Hint>
                       <div className="mt-4">{scoreEditor(qualification, index)}</div>
                     </div>
@@ -1010,16 +1032,11 @@ export function ApplicationForm() {
             error={fieldErrors.subjectsTaught}
           >
             <Choices
-              options={[...new Set(allResultSubjects)]}
+              options={[...new Set([...DEFAULT_SUBJECT_OPTIONS, ...allResultSubjects])]}
               values={base.subjectsTaught}
               onToggle={(subject) =>
                 setBaseField("subjectsTaught", updateArray(base.subjectsTaught, subject))
               }
-            />
-            <Input
-              value={base.manualSubjects}
-              onChange={(event) => setBaseField("manualSubjects", event.target.value)}
-              placeholder="Add another subject or curriculum"
             />
           </Field>
         </Step>
@@ -1068,7 +1085,11 @@ export function ApplicationForm() {
                       {locating ? "Locating…" : "Use my location"}
                     </Button>
                   </div>
-                  {locationMessage ? <p className="text-xs font-medium text-[color:var(--ink)]/70">{locationMessage}</p> : null}
+                  {locationMessage ? (
+                    <p className="text-xs font-medium text-[color:var(--ink)]/70">
+                      {locationMessage}
+                    </p>
+                  ) : null}
                   <div className="grid gap-2">
                     <Label className="text-sm font-semibold">Estimated MTR travel time</Label>
                     <div className="flex flex-wrap gap-2">
@@ -1095,7 +1116,8 @@ export function ApplicationForm() {
                   </div>
                   {originStation ? (
                     <p className="text-xs text-muted-foreground">
-                      Stations within {travelBudget} minutes of {originStation} are preselected. You can edit the list below.
+                      Stations within {travelBudget} minutes of {originStation} are preselected. You
+                      can edit the list below.
                     </p>
                   ) : null}
                   <div className="flex flex-wrap items-center gap-3">
@@ -1128,39 +1150,41 @@ export function ApplicationForm() {
                     ) : null}
                   </div>
                 </div>
-                <Accordion type="single" collapsible className="overflow-hidden rounded-lg border border-border px-4">
+                <Accordion
+                  type="single"
+                  collapsible
+                  className="overflow-hidden rounded-lg border border-border px-4"
+                >
                   {MTR_LINES.map((line) => (
                     <AccordionItem key={line.id} value={line.id}>
                       <AccordionTrigger className="font-semibold text-foreground hover:no-underline">
-                        {line.label} - {line.stations.filter((station) => base.stations.includes(station)).length} selected
+                        {line.label} -{" "}
+                        {line.stations.filter((station) => base.stations.includes(station)).length}{" "}
+                        selected
                       </AccordionTrigger>
                       <AccordionContent className="pt-2">
                         <div className="grid gap-3 sm:grid-cols-3">
-                        <label className="flex items-center gap-2 text-sm font-semibold">
-                          <Checkbox
-                            checked={line.stations.every((station) =>
-                              base.stations.includes(station),
-                            )}
-                            onCheckedChange={() =>
-                                toggleManualLine(line)
-                            }
-                          />{" "}
-                          Select all
-                        </label>
-                        {line.stations.map((station) => (
-                          <label
-                            key={`${line.id}-${station}`}
-                            className="flex items-center gap-2 text-sm"
-                          >
+                          <label className="flex items-center gap-2 text-sm font-semibold">
                             <Checkbox
-                              checked={base.stations.includes(station)}
-                              onCheckedChange={() =>
-                                toggleManualStation(station)
-                              }
-                            />
-                            {station}
+                              checked={line.stations.every((station) =>
+                                base.stations.includes(station),
+                              )}
+                              onCheckedChange={() => toggleManualLine(line)}
+                            />{" "}
+                            Select all
                           </label>
-                        ))}
+                          {line.stations.map((station) => (
+                            <label
+                              key={`${line.id}-${station}`}
+                              className="flex items-center gap-2 text-sm"
+                            >
+                              <Checkbox
+                                checked={base.stations.includes(station)}
+                                onCheckedChange={() => toggleManualStation(station)}
+                              />
+                              {station}
+                            </label>
+                          ))}
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -1229,7 +1253,8 @@ export function ApplicationForm() {
               checked={base.certificatesLater}
               onCheckedChange={(checked) => setBaseField("certificatesLater", checked === true)}
             />
-            I will provide supporting official certificates later to expedite profile creation. (Optional)
+            I will provide supporting official certificates later to expedite profile creation.
+            (Optional)
           </label>
         </Step>
         <Step>
@@ -1251,9 +1276,15 @@ export function ApplicationForm() {
                 type="number"
                 value={base.hourlyRate}
                 onChange={(event) => setBaseField("hourlyRate", event.target.value)}
+                placeholder="450"
               />
             </Field>
-            <Field label="Teaching materials" required error={fieldErrors.materials}>
+            <Field
+              label="Teaching materials"
+              required
+              error={fieldErrors.materials}
+              className="self-start"
+            >
               <SingleChoice
                 options={MATERIALS_OPTIONS}
                 value={base.materials}
@@ -1316,7 +1347,11 @@ export function ApplicationForm() {
               {COMMISSION_TEXT}
             </label>
             <div ref={captchaRef} className="min-h-[65px]" />
-            {captchaError ? <p className="text-xs font-medium text-destructive" role="alert">{captchaError}</p> : null}
+            {captchaError ? (
+              <p className="text-xs font-medium text-destructive" role="alert">
+                {captchaError}
+              </p>
+            ) : null}
           </div>
         </Step>
       </Stepper>
