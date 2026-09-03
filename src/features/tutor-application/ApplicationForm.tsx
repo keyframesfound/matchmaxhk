@@ -138,6 +138,13 @@ function readableFileSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function isTranscriptImage(file: File) {
+  return (
+    ["image/jpeg", "image/png"].includes(file.type) ||
+    /\.(jpe?g|png)$/i.test(file.name)
+  );
+}
+
 function DocumentUpload({
   file,
   onSelect,
@@ -150,6 +157,24 @@ function DocumentUpload({
   disabled?: boolean;
 }) {
   const [dragging, setDragging] = useState(false);
+  const [progress, setProgress] = useState(file ? 100 : 0);
+  useEffect(() => {
+    if (!file) {
+      setProgress(0);
+      return;
+    }
+    setProgress(0);
+    const interval = window.setInterval(() => {
+      setProgress((current) => {
+        if (current >= 100) {
+          window.clearInterval(interval);
+          return 100;
+        }
+        return Math.min(current + 20, 100);
+      });
+    }, 75);
+    return () => window.clearInterval(interval);
+  }, [file]);
   const selectFile = (candidate: File | undefined) => {
     if (candidate) onSelect(candidate);
   };
@@ -187,9 +212,15 @@ function DocumentUpload({
         />
       </label>
       {file ? (
-        <div className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-xs text-muted-foreground">
-          <span className="flex min-w-0 items-center gap-2"><Paperclip className="h-3 w-3 shrink-0" /><span className="truncate">{file.name} ({readableFileSize(file.size)})</span></span>
-          <Button type="button" size="icon" variant="ghost" aria-label="Remove file" onClick={onRemove} disabled={disabled}><X /></Button>
+        <div className="grid gap-2 rounded-md border border-border px-3 py-2 text-xs text-muted-foreground">
+          <div className="flex items-center justify-between gap-3">
+            <span className="flex min-w-0 items-center gap-2"><Paperclip className="h-3 w-3 shrink-0" /><span className="truncate">{file.name} ({readableFileSize(file.size)})</span></span>
+            <Button type="button" size="icon" variant="ghost" aria-label="Remove file" onClick={onRemove} disabled={disabled}><X /></Button>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-label={`Upload ${progress}%`}>
+            <div className="h-full bg-[color:var(--brand-teal)] transition-[width] duration-100" style={{ width: `${progress}%` }} />
+          </div>
+          <span>{progress < 100 ? `Preparing upload ${progress}%` : "Ready"}</span>
         </div>
       ) : null}
     </div>
@@ -204,7 +235,7 @@ function blankQualification(curriculum = "IBDP"): Qualification {
     scores: [{ subject: "", grade: "", detail: "", level: "", gradeSystem: "", papers: [] }],
     best6: "",
     transcript: null,
-    transcriptStatus: "not_applicable",
+    transcriptStatus: "upload",
   };
 }
 
@@ -663,7 +694,7 @@ export function ApplicationForm() {
     });
   }
   async function autoFillQualification(qualificationIndex: number, file: File) {
-    if (!["image/jpeg", "image/png"].includes(file.type) || file.size > MAX_FILE_BYTES) {
+    if (!isTranscriptImage(file) || file.size > MAX_FILE_BYTES) {
       setError("Use a JPG or PNG transcript image no larger than 5 MB.");
       return;
     }
@@ -673,7 +704,9 @@ export function ApplicationForm() {
       const extracted = await extractTranscript({
         data: {
           curriculum: qualifications[qualificationIndex].curriculum as (typeof CURRICULUM_OPTIONS)[number],
-          contentType: file.type as "image/jpeg" | "image/png",
+          contentType: (file.type === "image/png" || /\.png$/i.test(file.name)
+            ? "image/png"
+            : "image/jpeg") as "image/jpeg" | "image/png",
           content: await fileData(file),
         },
       });
@@ -1352,7 +1385,7 @@ export function ApplicationForm() {
                               disabled={transcriptStatus === "reading"}
                               onRemove={() => updateQualification(index, { transcript: null })}
                               onSelect={(file) => {
-                                if (!ACCEPTED_FILE_TYPES.includes(file.type) || file.size > MAX_FILE_BYTES) {
+                                if ((!ACCEPTED_FILE_TYPES.includes(file.type) && !/\.(pdf|jpe?g|png|docx?)$/i.test(file.name)) || file.size > MAX_FILE_BYTES) {
                                   setError("Choose a supported transcript file no larger than 5 MB.");
                                   return;
                                 }
@@ -1366,7 +1399,7 @@ export function ApplicationForm() {
                               loading={transcriptStatus === "reading"}
                               disabled={
                                 !qualification.transcript ||
-                                !["image/jpeg", "image/png"].includes(qualification.transcript.type) ||
+                                !isTranscriptImage(qualification.transcript) ||
                                 transcriptStatus === "reading"
                               }
                               onClick={() => {
