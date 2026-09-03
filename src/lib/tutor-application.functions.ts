@@ -59,7 +59,11 @@ export const extractTranscriptQualification = createServerFn({ method: "POST" })
         ],
       }),
     });
-    if (!response.ok) throw new Error("Transcript auto-fill is unavailable. Please enter your results manually.");
+    if (!response.ok) {
+      throw new Error(
+        `Transcript auto-fill failed (OpenRouter ${response.status}). Please try again or enter your results manually.`,
+      );
+    }
 
     const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const content = payload.choices?.[0]?.message?.content;

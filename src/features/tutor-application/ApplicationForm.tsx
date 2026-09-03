@@ -357,6 +357,7 @@ export function ApplicationForm() {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [transcriptStatus, setTranscriptStatus] = useState<"idle" | "reading">("idle");
+  const [transcriptMessage, setTranscriptMessage] = useState("");
   const [captcha, setCaptcha] = useState<string | null>(null);
   const [captchaError, setCaptchaError] = useState<string | null>(null);
   const captchaRef = useRef<HTMLDivElement>(null);
@@ -686,6 +687,7 @@ export function ApplicationForm() {
       return;
     }
     setTranscriptStatus("reading");
+    setTranscriptMessage("Reading transcript with AI...");
     setError(null);
     try {
       const extracted = await extractTranscript({
@@ -705,8 +707,13 @@ export function ApplicationForm() {
           papers: [],
         })),
       });
+      setTranscriptMessage(
+        `Added ${extracted.scores.length} result${extracted.scores.length === 1 ? "" : "s"}. Review the fields below.`,
+      );
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Transcript auto-fill failed.");
+      const message = reason instanceof Error ? reason.message : "Transcript auto-fill failed.";
+      setError(message);
+      setTranscriptMessage(message);
     } finally {
       setTranscriptStatus("idle");
     }
@@ -1408,6 +1415,22 @@ export function ApplicationForm() {
                               <Sparkles /> Auto-fill with AI
                             </Button>
                             <Hint>JPG and PNG transcripts can be read by AI. Review every populated field before submitting.</Hint>
+                            {transcriptMessage ? (
+                              <p
+                                className={cn(
+                                  "text-xs font-medium",
+                                  transcriptStatus === "reading"
+                                    ? "animate-pulse text-[color:var(--brand-teal)]"
+                                    : transcriptMessage.startsWith("Added")
+                                      ? "text-emerald-700"
+                                      : "text-destructive",
+                                )}
+                                role="status"
+                                aria-live="polite"
+                              >
+                                {transcriptMessage}
+                              </p>
+                            ) : null}
                           </div>
                         ) : null}
                       </Field>
