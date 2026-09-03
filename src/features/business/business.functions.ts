@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 import {
   buildPublicUrl,
@@ -40,6 +41,9 @@ export type OrganizationRecord = {
   cover_image_url: string | null;
   instagram_url: string | null;
   intro_video_url: string | null;
+  linkedin_url: string | null;
+  rednote_url: string | null;
+  x_url: string | null;
   facebook_url: string | null;
   youtube_url: string | null;
   founded_year: number | null;
@@ -189,6 +193,9 @@ const UpdateOrganizationInput = z.object({
   cover_image_url: z.string().trim().max(1000).optional(),
   instagram_url: z.string().trim().max(300).optional(),
   intro_video_url: z.string().trim().max(300).optional(),
+  linkedin_url: z.string().trim().max(300).optional(),
+  rednote_url: z.string().trim().max(300).optional(),
+  x_url: z.string().trim().max(300).optional(),
   facebook_url: z.string().trim().max(300).optional(),
   youtube_url: z.string().trim().max(300).optional(),
   founded_year: z.number().int().min(1900).max(2100).nullable().optional(),
@@ -219,6 +226,9 @@ export const updateOrganization = createServerFn({ method: "POST" })
       patch.cover_image_url = emptyToNull(data.cover_image_url);
     }
     if (data.instagram_url !== undefined) patch.instagram_url = emptyToNull(data.instagram_url);
+    if (data.linkedin_url !== undefined) patch.linkedin_url = emptyToNull(data.linkedin_url);
+    if (data.rednote_url !== undefined) patch.rednote_url = emptyToNull(data.rednote_url);
+    if (data.x_url !== undefined) patch.x_url = emptyToNull(data.x_url);
     if (data.intro_video_url !== undefined) {
       patch.intro_video_url = emptyToNull(data.intro_video_url);
     }
@@ -455,6 +465,20 @@ function normalizeFaqValue(value: unknown): OrgFaqItem[] {
     })
     .filter((item) => item.question.trim() && item.answer.trim());
 }
+
+export const fetchOrganizationSeoMeta = createServerFn({ method: "GET" })
+  .inputValidator((data: unknown) =>
+    z.object({ slug: z.string().trim().min(1).max(80) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { data: org } = await supabaseAdmin
+      .from("organizations")
+      .select("name, tagline, description, logo_url, cover_image_url")
+      .eq("slug", data.slug)
+      .eq("status", "active")
+      .maybeSingle();
+    return org ?? null;
+  });
 
 export const listMyOrganization = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

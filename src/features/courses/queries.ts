@@ -35,6 +35,12 @@ export type CourseWithOrganization = Course & {
     whatsapp_number: string | null;
     contact_email: string | null;
     contact_phone: string | null;
+    youtube_url: string | null;
+    linkedin_url: string | null;
+    x_url: string | null;
+    rednote_url: string | null;
+    instagram_url: string | null;
+    facebook_url: string | null;
   } | null;
 };
 
@@ -85,6 +91,9 @@ export type OrganizationPublic = {
   cover_image_url: string | null;
   instagram_url: string | null;
   intro_video_url: string | null;
+  linkedin_url: string | null;
+  rednote_url: string | null;
+  x_url: string | null;
   facebook_url: string | null;
   youtube_url: string | null;
   founded_year: number | null;
@@ -96,7 +105,7 @@ export type OrganizationPublic = {
 };
 
 function courseWithOrgSelect(): string {
-  return "*, organization:organizations!inner(id, slug, name, tagline, description, website_url, created_at, logo_url, district, whatsapp_number, contact_email, contact_phone)";
+  return "*, organization:organizations!inner(id, slug, name, tagline, description, website_url, created_at, logo_url, district, whatsapp_number, contact_email, contact_phone, youtube_url, linkedin_url, x_url, rednote_url, instagram_url, facebook_url)";
 }
 
 export async function fetchPublishedCourses(
@@ -167,7 +176,7 @@ export async function fetchOrganizationBySlug(slug: string): Promise<Organizatio
   const { data, error } = await supabase
     .from("organizations")
     .select(
-      "id, slug, name, tagline, description, website_url, contact_email, contact_phone, whatsapp_number, district, logo_url, cover_image_url, instagram_url, intro_video_url, facebook_url, youtube_url, founded_year, languages, faq, plan, status, created_at",
+      "id, slug, name, tagline, description, website_url, contact_email, contact_phone, whatsapp_number, district, logo_url, cover_image_url, instagram_url, intro_video_url, linkedin_url, rednote_url, x_url, facebook_url, youtube_url, founded_year, languages, faq, plan, status, created_at",
     )
     .eq("slug", slug)
     .maybeSingle();

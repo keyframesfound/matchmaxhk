@@ -17,6 +17,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SocialLinks } from "@/components/business/social-links";
 import { CourseLevelBadge } from "@/features/courses/course-card";
 import {
   fetchCourseById,
@@ -81,6 +82,17 @@ function BusinessProfileCard({
           <p className="line-clamp-2 text-sm text-muted-foreground">
             {organization.tagline || organization.district || "MatchMax partner"}
           </p>
+          <SocialLinks
+            className="mt-1 justify-center"
+            urls={{
+              youtube: organization.youtube_url,
+              linkedin: organization.linkedin_url,
+              x: organization.x_url,
+              rednote: organization.rednote_url,
+              instagram: organization.instagram_url,
+              facebook: organization.facebook_url,
+            }}
+          />
         </div>
       </div>
 

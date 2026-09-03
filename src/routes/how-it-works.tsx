@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  Asterisk,
   ArrowRight,
   Building2,
   Check,
@@ -12,11 +13,9 @@ import {
   ShieldCheck,
   UserRoundCheck,
 } from "lucide-react";
-import { motion } from "motion/react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
@@ -120,61 +119,46 @@ function HowItWorksPage() {
     <div className="how-it-works-paper flex min-h-screen flex-col text-[color:var(--ink)]">
       <SiteHeader className="!border-b-0 !bg-white/95 dark:!bg-[color:var(--surface)]" />
       <main className="flex-1">
-        <section className="how-it-works-hero relative isolate min-h-[220px] overflow-hidden bg-[#06133e] text-white sm:min-h-[600px]">
-          <div className="how-it-works-hero__image" aria-hidden="true" />
-          <div className="relative mx-auto flex min-h-[220px] max-w-[1440px] flex-col px-5 py-10 sm:min-h-[600px] sm:px-8 lg:px-12">
-            <motion.h1
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.85, delay: 0.12, ease: "easeOut" }}
-              className="mt-auto max-w-6xl pb-8 font-serif text-[clamp(4.2rem,10vw,10rem)] leading-[0.9] tracking-tight text-white"
-            >
-              How it works
-            </motion.h1>
-            <motion.div
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
-              className="flex justify-end"
-            >
-              <div className="flex flex-wrap gap-3">
-                <Button asChild size="lg" className="bg-[#77E8EE] font-bold text-[#041344] hover:bg-white">
-                  <Link to="/tutors">Find a tutor <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="border-white/35 bg-white/5 font-bold text-white hover:bg-white/15 hover:text-white">
-                  <Link to="/join">Become a tutor</Link>
-                </Button>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
         <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
-          <div className="grid gap-7 md:grid-cols-[0.45fr_1.2fr] md:items-end">
-            <p className="text-sm font-bold text-[color:var(--brand-teal)]">01 / The MatchMax standard</p>
-            <div>
-              <h2 className="max-w-3xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
-                Built for a better introduction, <span className="font-serif font-normal italic">not more noise.</span>
-              </h2>
-              <p className="mt-6 max-w-xl text-sm leading-7 text-[color:var(--ink)]/65">Every part of the experience is designed to remove uncertainty, not add another layer of agency noise.</p>
-            </div>
-          </div>
-          <div className="mt-20 grid gap-x-12 gap-y-16 md:grid-cols-2">
-            {DIFFERENCE.map(({ icon: Icon, title, text }, index) => (
-              <article
-                key={title}
-                className="group"
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,4fr)] lg:gap-20">
+            <div className="h-fit lg:sticky lg:top-24">
+              <p className="text-sm font-bold text-[color:var(--brand-teal)]">How MatchMax works</p>
+              <div className="relative mt-5 w-fit">
+                <h1 className="max-w-lg text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
+                  A better way to make the right introduction.
+                </h1>
+                <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--brand-teal)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
+              </div>
+              <p className="mt-6 max-w-md text-base leading-7 text-[color:var(--ink)]/65">
+                We remove the uncertainty from finding exceptional tutors, courses, and education
+                partners in Hong Kong.
+              </p>
+              <Link
+                to="/tutors"
+                className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-[color:var(--ink)] transition-transform hover:translate-x-1"
               >
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-black tracking-[0.14em] text-[color:var(--brand-teal)]">
-                    0{index + 1}
-                  </span>
-                  <Icon className="h-5 w-5 transition-transform duration-300 group-hover:-translate-y-1" />
-                </div>
-                <h3 className="mt-6 text-2xl font-black tracking-tight">{title}</h3>
-                <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/68">{text}</p>
-              </article>
-            ))}
+                Find a tutor <ArrowRight className="h-4 w-4 text-[color:var(--brand-teal)]" />
+              </Link>
+            </div>
+            <ol className="border-t border-[color:var(--ink)]/15">
+              {DIFFERENCE.map(({ icon: Icon, title, text }, index) => (
+                <li
+                  key={title}
+                  className="group relative grid gap-5 border-b border-[color:var(--ink)]/15 py-8 sm:grid-cols-[3.5rem_minmax(0,1fr)] sm:gap-8 sm:py-10"
+                >
+                  <div className="flex items-center justify-between sm:block">
+                    <span className="flex h-11 w-11 items-center justify-center bg-[color:var(--brand-teal)]/10 text-sm font-black text-[color:var(--brand-link)]">
+                      0{index + 1}
+                    </span>
+                    <Icon className="h-5 w-5 text-[color:var(--brand-teal)] transition-transform duration-300 group-hover:-translate-y-1 sm:mt-5" />
+                  </div>
+                  <div className="max-w-2xl">
+                    <h2 className="text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
+                    <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/68">{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 
@@ -183,17 +167,28 @@ function HowItWorksPage() {
             <div className="grid gap-6 md:grid-cols-[0.7fr_1.3fr] md:items-end">
               <div>
                 <p className="text-sm font-bold text-[#1FA8B6]">02 / The matching flow</p>
-                <div className="mt-5 flex items-center gap-3 text-sm font-bold"><Clock3 className="h-5 w-5" /> Within one business day</div>
+                <div className="mt-5 flex items-center gap-3 text-sm font-bold">
+                  <Clock3 className="h-5 w-5" /> Within one business day
+                </div>
               </div>
-              <h2 className="max-w-3xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">One thoughtful process, for every side of the match.</h2>
+              <h2 className="max-w-3xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
+                One thoughtful process, for every side of the match.
+              </h2>
             </div>
-            <div className="mt-20 space-y-24">
+            <div className="mt-16 space-y-20">
               {AUDIENCES.map(({ eyebrow, title, icon: Icon, steps, link }, audienceIndex) => (
-                <article key={eyebrow} className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-20">
-                  <div>
+                <article
+                  key={eyebrow}
+                  className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,4fr)] lg:gap-20"
+                >
+                  <div className="h-fit lg:sticky lg:top-24">
                     <Icon className="h-7 w-7 text-[#1FA8B6]" />
-                    <p className="mt-6 text-sm font-bold text-[#1FA8B6]">0{audienceIndex + 1} / {eyebrow}</p>
-                    <h3 className="mt-3 text-3xl font-black leading-tight tracking-tight">{title}</h3>
+                    <p className="mt-6 text-sm font-bold text-[#1FA8B6]">
+                      0{audienceIndex + 1} / {eyebrow}
+                    </p>
+                    <h3 className="mt-3 text-3xl font-black leading-tight tracking-tight">
+                      {title}
+                    </h3>
                     <Link
                       to={link.to}
                       className="mt-8 inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
@@ -201,20 +196,20 @@ function HowItWorksPage() {
                       {link.label} <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </div>
-                  <ol className="grid gap-7 sm:grid-cols-2">
+                  <ol className="border-t border-current/20">
                     {steps.map(([number, stepTitle, text]) => (
                       <li
                         key={number}
-                        className="grid grid-cols-[42px_1fr] gap-3"
+                        className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-5 border-b border-current/20 py-7 sm:gap-8 sm:py-9"
                       >
-                        <span className="font-serif text-3xl leading-none text-[#1FA8B6]">
+                        <span className="flex h-11 w-11 items-center justify-center bg-[#1FA8B6]/15 text-sm font-black text-[#1FA8B6]">
                           {number}
                         </span>
                         <div>
-                          <h4 className="text-base font-black">{stepTitle}</h4>
-                          <p className="mt-2 text-sm leading-6 text-current/70">
-                            {text}
-                          </p>
+                          <h4 className="text-xl font-black tracking-tight sm:text-2xl">
+                            {stepTitle}
+                          </h4>
+                          <p className="mt-3 max-w-2xl text-sm leading-7 text-current/70">{text}</p>
                         </div>
                       </li>
                     ))}
@@ -238,12 +233,16 @@ function HowItWorksPage() {
               </p>
             </div>
             <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]/70">
-              <Check className="h-4 w-4 text-[color:var(--brand-teal)]" /> Personal guidance, never robotic matching.
+              <Check className="h-4 w-4 text-[color:var(--brand-teal)]" /> Personal guidance, never
+              robotic matching.
             </div>
           </div>
         </section>
       </main>
-      <SiteFooter hideDivider className="!border-t-0 !bg-transparent dark:!bg-[color:var(--surface)]" />
+      <SiteFooter
+        hideDivider
+        className="!border-t-0 !bg-transparent dark:!bg-[color:var(--surface)]"
+      />
     </div>
   );
 }

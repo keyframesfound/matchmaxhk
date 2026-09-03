@@ -4,21 +4,20 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft,
+  ArrowUp,
   BadgeCheck,
   BookOpen,
   Building2,
   CalendarDays,
   Camera,
-  Facebook,
+  Contact,
   Globe,
-  Instagram,
   Mail,
   MapPin,
   MessageCircle,
   Pencil,
   Phone,
   Share2,
-  Youtube,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -31,10 +30,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/business/empty-state";
+import { BackToTop } from "@/components/business/back-to-top";
+import { SocialLinks } from "@/components/business/social-links";
 import {
   OrgAboutDialog,
   OrgContactDialog,
@@ -42,6 +42,7 @@ import {
   normalizeFaq,
 } from "@/features/business/organization-edit-dialogs";
 import {
+  fetchOrganizationSeoMeta,
   getOrganizationRoleForSlug,
   updateOrganization,
   uploadOrganizationImage,
@@ -54,13 +55,50 @@ import {
   formatCoursePrice,
   type OrganizationPublic,
 } from "@/features/courses/queries";
+import { downloadVCard } from "@/lib/vcard";
+import type { SocialUrls } from "@/components/business/social-links";
 import { YouTubePlayer } from "@/components/business/youtube-player";
 import { parseYouTubeUrl } from "@/lib/youtube";
 
+type OrganizationSeoMeta = {
+  name: string;
+  tagline: string | null;
+  description: string | null;
+  logo_url: string | null;
+  cover_image_url: string | null;
+} | null;
+
 export const Route = createFileRoute("/business/$slug")({
-  head: () => ({
-    meta: [{ title: "Business profile | MatchMax" }, { name: "robots", content: "index, follow" }],
-  }),
+  loader: async ({ params }): Promise<OrganizationSeoMeta> => {
+    try {
+      return (await fetchOrganizationSeoMeta({
+        data: { slug: params.slug },
+      })) as OrganizationSeoMeta;
+    } catch {
+      return null;
+    }
+  },
+  head: ({ match }) => {
+    const meta = (match.loaderData ?? null) as OrganizationSeoMeta;
+    const title = meta ? `${meta.name} | MatchMax` : "Business profile | MatchMax";
+    const description = (
+      meta?.tagline ||
+      meta?.description ||
+      "Discover courses from trusted Hong Kong learning centres on MatchMax."
+    ).slice(0, 200);
+    const image = meta?.logo_url || meta?.cover_image_url || undefined;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { name: "robots", content: "index, follow" },
+        { property: "og:type", content: "profile" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        ...(image ? [{ property: "og:image", content: image }] : []),
+      ],
+    };
+  },
   component: BusinessPublicProfile,
 });
 
@@ -143,6 +181,7 @@ function BusinessPublicProfile() {
   const [identityOpen, setIdentityOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"about" | "courses">("about");
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState<"logo" | "cover" | null>(null);
@@ -251,6 +290,20 @@ function BusinessPublicProfile() {
     }
   };
 
+  const handleSaveContact = () => {
+    if (!org) return;
+    const socials: SocialUrls = {
+      youtube: org.youtube_url,
+      linkedin: org.linkedin_url,
+      x: org.x_url,
+      rednote: org.rednote_url,
+      instagram: org.instagram_url,
+      facebook: org.facebook_url,
+    };
+    downloadVCard(org, socials, window.location.href);
+    toast.success("Contact card downloaded");
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-muted/40">
       <SiteHeader />
@@ -324,8 +377,47 @@ function BusinessPublicProfile() {
               </div>
             )}
 
+            <div className="sticky top-16 z-30 mt-4 flex w-fit items-center gap-1 rounded-full border border-border bg-card/95 p-1 shadow-sm backdrop-blur">
+              {(["about", "courses"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(tab);
+                    document
+                      .getElementById("business-main-card")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+                    activeTab === tab
+                      ? "bg-[color:var(--surface-invert)] text-white"
+                      : "text-muted-foreground hover:text-[color:var(--ink)]"
+                  }`}
+                >
+                  {tab === "about" ? "About" : "Courses"}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("about");
+                  requestAnimationFrame(() => {
+                    document
+                      .getElementById("contact-details")
+                      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  });
+                }}
+                className="rounded-full px-4 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
+              >
+                Contact
+              </button>
+            </div>
+
             <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-              <section className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+              <section
+                id="business-main-card"
+                className="min-w-0 scroll-mt-28 overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+              >
                 {/* Banner */}
                 <div className="group relative h-32 w-full sm:h-44">
                   {org.cover_image_url ? (
@@ -426,6 +518,9 @@ function BusinessPublicProfile() {
                           </a>
                         </Button>
                       )}
+                      <Button variant="ghost" prefix={<Contact />} onClick={handleSaveContact}>
+                        Save contact
+                      </Button>
                     </div>
                   </div>
 
@@ -443,6 +538,17 @@ function BusinessPublicProfile() {
                           {org.tagline}
                         </p>
                       ) : null}
+                      <SocialLinks
+                        className="mt-3"
+                        urls={{
+                          youtube: org.youtube_url,
+                          linkedin: org.linkedin_url,
+                          x: org.x_url,
+                          rednote: org.rednote_url,
+                          instagram: org.instagram_url,
+                          facebook: org.facebook_url,
+                        }}
+                      />
                     </div>
                     {isOwner && (
                       <Button
@@ -486,16 +592,11 @@ function BusinessPublicProfile() {
                     </span>
                   </div>
 
-                  <Tabs defaultValue="about" className="mt-6 gap-5">
-                    <TabsList className="w-full">
-                      <TabsTrigger value="about" className="flex-1">
-                        About
-                      </TabsTrigger>
-                      <TabsTrigger value="courses" className="flex-1">
-                        Courses
-                      </TabsTrigger>
-                    </TabsList>
-
+                  <Tabs
+                    value={activeTab}
+                    onValueChange={(value) => setActiveTab(value as "about" | "courses")}
+                    className="mt-6 gap-5"
+                  >
                     <TabsContent value="about">
                       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,1fr)]">
                         <div className="min-w-0">
@@ -591,46 +692,6 @@ function BusinessPublicProfile() {
                               </li>
                             ) : null}
                           </ul>
-                          {(org.instagram_url || org.facebook_url || org.youtube_url) && (
-                            <>
-                              <Separator className="my-3" />
-                              <div className="flex items-center gap-2">
-                                {org.instagram_url && (
-                                  <a
-                                    href={org.instagram_url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    aria-label="Instagram"
-                                    className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-[#1FA8B6]/40 hover:text-[color:var(--brand-link)]"
-                                  >
-                                    <Instagram className="h-4 w-4" />
-                                  </a>
-                                )}
-                                {org.facebook_url && (
-                                  <a
-                                    href={org.facebook_url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    aria-label="Facebook"
-                                    className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-[#1FA8B6]/40 hover:text-[color:var(--brand-link)]"
-                                  >
-                                    <Facebook className="h-4 w-4" />
-                                  </a>
-                                )}
-                                {org.youtube_url && (
-                                  <a
-                                    href={org.youtube_url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    aria-label="YouTube"
-                                    className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-[#1FA8B6]/40 hover:text-[color:var(--brand-link)]"
-                                  >
-                                    <Youtube className="h-4 w-4" />
-                                  </a>
-                                )}
-                              </div>
-                            </>
-                          )}
                         </div>
                       </div>
                     </TabsContent>
@@ -723,7 +784,10 @@ function BusinessPublicProfile() {
               {/* Sidebar */}
               <aside>
                 <div className="sticky top-24 space-y-4">
-                  <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                  <div
+                    id="contact-details"
+                    className="scroll-mt-28 rounded-xl border border-border bg-card p-6 shadow-sm"
+                  >
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="text-base font-black tracking-tight text-[color:var(--ink)]">
                         Get in touch
@@ -798,6 +862,7 @@ function BusinessPublicProfile() {
           </div>
         )}
       </main>
+      <BackToTop />
       <SiteFooter />
 
       {org && (

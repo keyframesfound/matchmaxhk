@@ -208,15 +208,18 @@ export type Database = {
           instagram_url: string | null;
           intro_video_url: string | null;
           languages: string | null;
+          linkedin_url: string | null;
           logo_url: string | null;
           name: string;
           plan: Database["public"]["Enums"]["org_plan"];
+          rednote_url: string | null;
           slug: string;
           status: Database["public"]["Enums"]["org_status"];
           tagline: string | null;
           updated_at: string;
           website_url: string | null;
           whatsapp_number: string | null;
+          x_url: string | null;
           youtube_url: string | null;
         };
         Insert: {
@@ -234,15 +237,18 @@ export type Database = {
           instagram_url?: string | null;
           intro_video_url?: string | null;
           languages?: string | null;
+          linkedin_url?: string | null;
           logo_url?: string | null;
           name: string;
           plan?: Database["public"]["Enums"]["org_plan"];
+          rednote_url?: string | null;
           slug: string;
           status?: Database["public"]["Enums"]["org_status"];
           tagline?: string | null;
           updated_at?: string;
           website_url?: string | null;
           whatsapp_number?: string | null;
+          x_url?: string | null;
           youtube_url?: string | null;
         };
         Update: {
@@ -260,15 +266,18 @@ export type Database = {
           instagram_url?: string | null;
           intro_video_url?: string | null;
           languages?: string | null;
+          linkedin_url?: string | null;
           logo_url?: string | null;
           name?: string;
           plan?: Database["public"]["Enums"]["org_plan"];
+          rednote_url?: string | null;
           slug?: string;
           status?: Database["public"]["Enums"]["org_status"];
           tagline?: string | null;
           updated_at?: string;
           website_url?: string | null;
           whatsapp_number?: string | null;
+          x_url?: string | null;
           youtube_url?: string | null;
         };
         Relationships: [];

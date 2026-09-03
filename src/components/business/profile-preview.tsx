@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { SocialLinks, type SocialUrls } from "@/components/business/social-links";
 
 export type ProfilePreviewData = {
   slug: string;
@@ -23,6 +24,7 @@ export type ProfilePreviewData = {
   contactEmail: string;
   whatsappNumber: string;
   introVideoUrl: string | null;
+  socials: SocialUrls;
   courseCount: number;
   memberSince: string;
 };
@@ -107,6 +109,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
               Add a tagline to introduce your business
             </p>
           )}
+          <SocialLinks className="mt-2.5" urls={data.socials} />
           <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-muted-foreground">
             {data.district ? (
               <span className="inline-flex items-center gap-1.5">

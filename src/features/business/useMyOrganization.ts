@@ -25,6 +25,9 @@ export type Organization = {
   cover_image_url: string | null;
   instagram_url: string | null;
   intro_video_url: string | null;
+  linkedin_url: string | null;
+  rednote_url: string | null;
+  x_url: string | null;
   facebook_url: string | null;
   youtube_url: string | null;
   founded_year: number | null;

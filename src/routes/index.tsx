@@ -60,7 +60,7 @@ const CURRICULUM_CATEGORIES = [
   { label: "DSE", value: "DSE" },
   { label: "IGCSE", value: "IGCSE" },
   { label: "A Levels", value: "A-Level" },
-  { label: "Examiner", value: "International" },
+  { label: "Examiner/pro teachers", value: "International" },
 ];
 
 export const Route = createFileRoute("/")({

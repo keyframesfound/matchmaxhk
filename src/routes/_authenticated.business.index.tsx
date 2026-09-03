@@ -6,7 +6,7 @@ import { ArrowRight, BookOpen, Check, ExternalLink, X } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/business/empty-state";
 import { BusinessLayout, UsageMeter } from "@/components/business/business-layout";
 import { CoursesPanel } from "@/features/business/courses-panel";
@@ -211,13 +211,6 @@ function BusinessOverview() {
         </div>
 
         <Tabs value={tab} onValueChange={switchTab} className="mt-8 gap-6">
-          <TabsList className="w-full sm:w-auto">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="courses">Courses</TabsTrigger>
-            <TabsTrigger value="team">Team</TabsTrigger>
-            <TabsTrigger value="profile">Profile & branding</TabsTrigger>
-          </TabsList>
-
           <TabsContent value="overview">
             <div className={cn("grid gap-4", showOnboarding && "lg:grid-cols-[1.5fr_1fr]")}>
               {showOnboarding && (

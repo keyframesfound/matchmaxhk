@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
+import { SOCIAL_NETWORKS, SocialInput } from "@/components/business/social-links";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
 import { parseYouTubeUrl } from "@/lib/youtube";
 import { updateOrganization, type OrgFaqItem } from "@/features/business/business.functions";
@@ -365,9 +366,12 @@ export function OrgContactDialog({
     contact_email: org.contact_email ?? "",
     contact_phone: org.contact_phone ?? "",
     whatsapp_number: org.whatsapp_number ?? "",
+    youtube_url: org.youtube_url ?? "",
+    linkedin_url: org.linkedin_url ?? "",
+    x_url: org.x_url ?? "",
+    rednote_url: org.rednote_url ?? "",
     instagram_url: org.instagram_url ?? "",
     facebook_url: org.facebook_url ?? "",
-    youtube_url: org.youtube_url ?? "",
   });
 
   useEffect(() => {
@@ -377,9 +381,12 @@ export function OrgContactDialog({
         contact_email: org.contact_email ?? "",
         contact_phone: org.contact_phone ?? "",
         whatsapp_number: org.whatsapp_number ?? "",
+        youtube_url: org.youtube_url ?? "",
+        linkedin_url: org.linkedin_url ?? "",
+        x_url: org.x_url ?? "",
+        rednote_url: org.rednote_url ?? "",
         instagram_url: org.instagram_url ?? "",
         facebook_url: org.facebook_url ?? "",
-        youtube_url: org.youtube_url ?? "",
       });
     }
   }, [open, org]);
@@ -440,26 +447,20 @@ export function OrgContactDialog({
               onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2.5">
             <Label>Social links</Label>
-            <Input
-              placeholder="Instagram URL"
-              type="url"
-              value={form.instagram_url}
-              onChange={(e) => setForm({ ...form, instagram_url: e.target.value })}
-            />
-            <Input
-              placeholder="Facebook URL"
-              type="url"
-              value={form.facebook_url}
-              onChange={(e) => setForm({ ...form, facebook_url: e.target.value })}
-            />
-            <Input
-              placeholder="YouTube URL"
-              type="url"
-              value={form.youtube_url}
-              onChange={(e) => setForm({ ...form, youtube_url: e.target.value })}
-            />
+            {SOCIAL_NETWORKS.map((network) => {
+              const field = `${network.id}_url` as keyof typeof form;
+              return (
+                <SocialInput
+                  key={network.id}
+                  network={network}
+                  id={`oc-${network.id}`}
+                  value={form[field]}
+                  onChange={(value) => setForm({ ...form, [field]: value })}
+                />
+              );
+            })}
           </div>
           <SaveFooter saving={saving} onCancel={() => onOpenChange(false)} onSave={() => {}} />
         </form>

@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 import { ProfilePreview, type ProfilePreviewData } from "@/components/business/profile-preview";
+import { SOCIAL_NETWORKS, SocialInput } from "@/components/business/social-links";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
 import { parseYouTubeUrl } from "@/lib/youtube";
 import {
@@ -48,9 +49,12 @@ type ProfileForm = {
   contact_phone: string;
   whatsapp_number: string;
   district: string;
+  youtube_url: string;
+  linkedin_url: string;
+  x_url: string;
+  rednote_url: string;
   instagram_url: string;
   facebook_url: string;
-  youtube_url: string;
   intro_video_url: string;
   founded_year: string;
   languages: string;
@@ -66,9 +70,12 @@ function formFromOrganization(organization: Organization): ProfileForm {
     contact_phone: organization.contact_phone ?? "",
     whatsapp_number: organization.whatsapp_number ?? "",
     district: organization.district ?? "",
+    youtube_url: organization.youtube_url ?? "",
+    linkedin_url: organization.linkedin_url ?? "",
+    x_url: organization.x_url ?? "",
+    rednote_url: organization.rednote_url ?? "",
     instagram_url: organization.instagram_url ?? "",
     facebook_url: organization.facebook_url ?? "",
-    youtube_url: organization.youtube_url ?? "",
     intro_video_url: organization.intro_video_url ?? "",
     founded_year: organization.founded_year ? String(organization.founded_year) : "",
     languages: organization.languages ?? "",
@@ -172,9 +179,12 @@ export function ProfilePanel() {
     contact_phone: "",
     whatsapp_number: "",
     district: "",
+    youtube_url: "",
+    linkedin_url: "",
+    x_url: "",
+    rednote_url: "",
     instagram_url: "",
     facebook_url: "",
-    youtube_url: "",
     intro_video_url: "",
     founded_year: "",
     languages: "",
@@ -234,6 +244,13 @@ export function ProfilePanel() {
         done: !!form.whatsapp_number.trim(),
         section: "contact" as SectionId,
       },
+      {
+        label: "Social links",
+        done: SOCIAL_NETWORKS.some(
+          (network) => !!form[`${network.id}_url` as keyof ProfileForm]?.trim(),
+        ),
+        section: "contact" as SectionId,
+      },
     ];
     const filled = items.filter((item) => item.done).length;
     return { items, filled, total: items.length, pct: Math.round((filled / items.length) * 100) };
@@ -260,6 +277,14 @@ export function ProfilePanel() {
     contactEmail: form.contact_email.trim(),
     whatsappNumber: form.whatsapp_number.trim(),
     introVideoUrl: parseYouTubeUrl(form.intro_video_url)?.thumbnailUrl ?? null,
+    socials: {
+      youtube: form.youtube_url.trim() || null,
+      linkedin: form.linkedin_url.trim() || null,
+      x: form.x_url.trim() || null,
+      rednote: form.rednote_url.trim() || null,
+      instagram: form.instagram_url.trim() || null,
+      facebook: form.facebook_url.trim() || null,
+    },
     courseCount: usage?.coursesUsed ?? 0,
     memberSince: organization
       ? new Date(organization.created_at).toLocaleDateString("en-HK", {
@@ -327,9 +352,12 @@ export function ProfilePanel() {
           contact_phone: form.contact_phone,
           whatsapp_number: form.whatsapp_number,
           district: form.district || undefined,
+          youtube_url: form.youtube_url,
+          linkedin_url: form.linkedin_url,
+          x_url: form.x_url,
+          rednote_url: form.rednote_url,
           instagram_url: form.instagram_url,
           facebook_url: form.facebook_url,
-          youtube_url: form.youtube_url,
           intro_video_url: form.intro_video_url,
           founded_year: form.founded_year.trim() ? Number(form.founded_year) : null,
           languages: form.languages,
@@ -724,24 +752,18 @@ export function ProfilePanel() {
                 <div className="space-y-1.5">
                   <Label>Social links</Label>
                   <div className="space-y-2">
-                    <Input
-                      placeholder="Instagram URL"
-                      type="url"
-                      value={form.instagram_url}
-                      onChange={(e) => setField({ instagram_url: e.target.value })}
-                    />
-                    <Input
-                      placeholder="Facebook URL"
-                      type="url"
-                      value={form.facebook_url}
-                      onChange={(e) => setField({ facebook_url: e.target.value })}
-                    />
-                    <Input
-                      placeholder="YouTube URL"
-                      type="url"
-                      value={form.youtube_url}
-                      onChange={(e) => setField({ youtube_url: e.target.value })}
-                    />
+                    {SOCIAL_NETWORKS.map((network) => {
+                      const field = `${network.id}_url` as keyof ProfileForm;
+                      return (
+                        <SocialInput
+                          key={network.id}
+                          network={network}
+                          id={`pp-${network.id}`}
+                          value={form[field]}
+                          onChange={(value) => setField({ [field]: value } as Partial<ProfileForm>)}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               </div>

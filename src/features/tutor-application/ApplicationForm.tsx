@@ -79,8 +79,8 @@ type Achievement = {
 };
 
 const PROFESSIONAL_STATUSES = new Set([
-  "Current school teacher",
-  "Former school teacher",
+  "Current professional teacher",
+  "Former professional teacher",
   "Official examiner / moderator",
 ]);
 const SYSTEM_IDS: Record<string, string> = {
