@@ -45,6 +45,7 @@ export const extractTranscriptQualification = createServerFn({ method: "POST" })
       body: JSON.stringify({
         model: "qwen/qwen3-vl-32b-instruct",
         temperature: 0,
+        max_tokens: 2_000,
         response_format: { type: "json_object" },
         messages: [
           {
