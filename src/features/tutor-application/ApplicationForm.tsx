@@ -102,6 +102,16 @@ const COUNTRY_OPTIONS = [
   "Australia",
   "Other",
 ];
+const COUNTRY_DIAL_CODES: Record<string, string> = {
+  "Hong Kong": "+852",
+  "Mainland China": "+86",
+  Macau: "+853",
+  Singapore: "+65",
+  "United Kingdom": "+44",
+  "United States": "+1",
+  Canada: "+1",
+  Australia: "+61",
+};
 const ACADEMIC_STEPS = [
   "Basic Info",
   "Academics",
@@ -599,6 +609,15 @@ export function ApplicationForm() {
       ),
     );
   }
+  function setCountry(country: string) {
+    const dialCode = COUNTRY_DIAL_CODES[country];
+    const phoneWithoutDialCode = base.phone.replace(/^\+(?:852|853|86|65|44|61|1)\s*/, "");
+    setBase((previous) => ({
+      ...previous,
+      country,
+      phone: dialCode ? `${dialCode} ${phoneWithoutDialCode}`.trimEnd() : phoneWithoutDialCode,
+    }));
+  }
 
   function validateCurrentStep() {
     const next: Record<string, string> = {};
@@ -607,7 +626,7 @@ export function ApplicationForm() {
     };
     if (step === 1) {
       required("name", base.name.trim());
-      required("phone", base.phone.replace("+852", "").trim());
+      required("phone", base.phone.trim());
       required("email", base.email.trim());
       required("country", base.country.trim());
       if (base.country === "Other") required("countryOther", base.countryOther.trim());
@@ -1109,7 +1128,7 @@ export function ApplicationForm() {
               <Field label="Country / Region" required error={fieldErrors.country}>
                 <SearchableSelect
                   value={base.country}
-                  onChange={(country) => setBaseField("country", country)}
+                  onChange={setCountry}
                   options={COUNTRY_OPTIONS}
                   placeholder="Choose country or region"
                   searchPlaceholder="Search countries"
