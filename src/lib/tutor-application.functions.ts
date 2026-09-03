@@ -66,8 +66,17 @@ export const extractTranscriptQualification = createServerFn({ method: "POST" })
       }),
     });
     if (!response.ok) {
+      const errorBody = await response.text();
+      let providerMessage = "";
+      try {
+        const parsed = JSON.parse(errorBody) as { error?: { message?: string } };
+        providerMessage = parsed.error?.message?.trim() ?? "";
+      } catch {
+        providerMessage = errorBody.trim();
+      }
+      const detail = providerMessage ? `: ${providerMessage.slice(0, 240)}` : "";
       throw new Error(
-        `Transcript auto-fill failed (OpenRouter ${response.status}). Please try again or enter your results manually.`,
+        `Transcript auto-fill failed (OpenRouter ${response.status})${detail}. Please try again or enter your results manually.`,
       );
     }
 
