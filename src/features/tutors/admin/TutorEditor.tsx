@@ -1411,28 +1411,11 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                 hint="Detailed overview shown on the public profile"
               >
                 <Textarea
-                  rows={10}
+                  rows={4}
                   value={form.qualifications_summary}
                   onChange={(e) => setForm({ ...form, qualifications_summary: e.target.value })}
-                  placeholder={`Write a clear tutor profile using only your own verified information.
-
-Name
-【Exam results / academic headline | University or current programme | Subject specialist】
-
-Academic Excellence
-• Overall scores, subject grades, and notable paper or coursework results
-
-Qualifications and Track Record
-• University, scholarships or awards, relevant teaching experience, and student outcomes
-
-Subjects and Target Students
-• Subjects, exam systems or levels taught, and the students you support
-
-Lesson Format
-• Online or in-person, areas covered, and any scheduling or trial-lesson details
-
-Use specific results where possible, and mention that official credentials are available upon request.`}
-                  className="min-h-[240px] whitespace-pre-wrap text-xs leading-relaxed"
+                  placeholder="e.g. Full-time IB & DSE specialist with 5+ years experience. Proven track record guiding 30+ students to grade 7 in IB Biology and Chemistry..."
+                  className="text-xs leading-relaxed"
                 />
               </FormField>
 
