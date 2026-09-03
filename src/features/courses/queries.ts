@@ -96,6 +96,26 @@ export async function fetchPublishedCourses(
   return (data ?? []) as unknown as CourseWithOrganization[];
 }
 
+export async function fetchPublishedCourseSubjects(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("courses")
+    .select("subject, organization:organizations!inner(id)")
+    .eq("is_published", true)
+    .eq("organizations.status", "active")
+    .not("subject", "is", null)
+    .limit(500);
+
+  if (error) throw new Error(error.message);
+
+  return Array.from(
+    new Set(
+      (data ?? [])
+        .map((course) => course.subject?.trim())
+        .filter((subject): subject is string => Boolean(subject)),
+    ),
+  ).sort((first, second) => first.localeCompare(second, "en-HK"));
+}
+
 export async function fetchCourseById(id: string): Promise<CourseWithOrganization | null> {
   const { data, error } = await supabase
     .from("courses")

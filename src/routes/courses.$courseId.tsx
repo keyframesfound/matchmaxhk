@@ -1,10 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, CalendarDays, Clock, GraduationCap, MapPin, Tag } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Clock,
+  GraduationCap,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Tag,
+} from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CourseLevelBadge } from "@/features/courses/course-card";
 import { fetchCourseById, courseModeLabel, formatCoursePrice } from "@/features/courses/queries";
 
 export const Route = createFileRoute("/courses/$courseId")({
@@ -45,7 +55,7 @@ function CourseDetail() {
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
-        <section className="hero-startup-bg border-b border-border py-8">
+        <section className="hero-startup-bg border-b border-border py-10">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <Link
               to="/courses"
@@ -78,11 +88,7 @@ function CourseDetail() {
             {course && (
               <div className="mt-6">
                 <div className="flex flex-wrap items-center gap-2">
-                  {course.level ? (
-                    <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                      {course.level}
-                    </span>
-                  ) : null}
+                  <CourseLevelBadge level={course.level} />
                   {course.subject ? (
                     <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                       <Tag className="h-3.5 w-3.5" />
@@ -105,7 +111,7 @@ function CourseDetail() {
 
         {course && (
           <section className="py-10">
-            <div className="mx-auto grid max-w-5xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.6fr_1fr]">
+            <div className="mx-auto grid max-w-5xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
               <div>
                 {course.image_url ? (
                   <img
@@ -116,7 +122,7 @@ function CourseDetail() {
                 ) : null}
 
                 <h2 className="text-xl font-bold text-[color:var(--ink)]">About this course</h2>
-                <div className="mt-4 space-y-4 text-[15px] leading-relaxed text-muted-foreground">
+                <div className="mt-4 max-w-3xl space-y-4 text-[15px] leading-relaxed text-muted-foreground">
                   {course.description ? (
                     course.description
                       .split(/\n{2,}/)
@@ -150,7 +156,7 @@ function CourseDetail() {
                   {course.district ? (
                     <div className="rounded-lg border border-border bg-card p-4">
                       <dt className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        <Tag className="h-4 w-4" />
+                        <MapPin className="h-4 w-4" />
                         Location
                       </dt>
                       <dd className="mt-1.5 text-sm font-semibold text-[color:var(--ink)]">
@@ -174,9 +180,12 @@ function CourseDetail() {
 
               <aside>
                 <div className="sticky top-24 rounded-lg border border-border bg-card p-6 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Offered by
-                  </p>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Offered by
+                    </p>
+                    {course.level ? <CourseLevelBadge level={course.level} /> : null}
+                  </div>
                   <div className="mt-3 flex items-center gap-3">
                     {course.organization?.logo_url ? (
                       <img
@@ -209,15 +218,16 @@ function CourseDetail() {
                     {whatsappUrl ? (
                       <Button
                         asChild
+                        prefix={<MessageCircle />}
                         className="h-11 bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                       >
                         <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                          Enquire on WhatsApp
+                          Chat on WhatsApp
                         </a>
                       </Button>
                     ) : null}
                     {contactEmail ? (
-                      <Button asChild variant="outline" className="h-11">
+                      <Button asChild variant="outline" prefix={<Mail />} className="h-11">
                         <a
                           href={`mailto:${contactEmail}?subject=${encodeURIComponent(`Course enquiry: ${course.title}`)}`}
                         >
@@ -226,7 +236,9 @@ function CourseDetail() {
                       </Button>
                     ) : null}
                     {!whatsappUrl && !contactEmail && (
-                      <p className="text-sm text-muted-foreground">Contact details coming soon.</p>
+                      <div className="rounded-md border border-dashed border-border bg-muted/40 px-3 py-3 text-sm text-muted-foreground">
+                        Contact details will be available soon.
+                      </div>
                     )}
                   </div>
                 </div>

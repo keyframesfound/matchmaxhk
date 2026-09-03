@@ -1,10 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { Search } from "lucide-react";
+import { Building2, Search, SlidersHorizontal } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { EmptyState } from "@/components/business/empty-state";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +14,7 @@ import { CourseCard } from "@/features/courses/course-card";
 import {
   COURSE_LEVEL_OPTIONS,
   COURSE_MODE_OPTIONS,
+  fetchPublishedCourseSubjects,
   fetchPublishedCourses,
 } from "@/features/courses/queries";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
@@ -69,6 +71,10 @@ function CoursesDirectory() {
     queryKey: ["courses", "published", search],
     queryFn: () => fetchPublishedCourses(search),
   });
+  const { data: subjects } = useQuery({
+    queryKey: ["courses", "published-subjects"],
+    queryFn: fetchPublishedCourseSubjects,
+  });
 
   const clearAll = () => {
     setDraft({});
@@ -76,6 +82,16 @@ function CoursesDirectory() {
   };
 
   const results = courses ?? [];
+  const hasActiveFilters = Object.values(search).some(Boolean);
+  const subjectOptions = [
+    { value: "", label: "Any subject" },
+    ...(subjects ?? []).map((subject) => ({ value: subject, label: subject })),
+  ];
+
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    navigate({ search: { ...draft } });
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -83,19 +99,21 @@ function CoursesDirectory() {
       <main className="flex-1">
         <section className="hero-startup-bg border-b border-border py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <h1 className="text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
-              Courses
+            <p className="text-sm font-semibold text-[color:var(--brand-link)]">Course directory</p>
+            <h1 className="mt-2 text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
+              Find the right course
             </h1>
             <p className="mt-3 max-w-2xl text-base text-muted-foreground sm:text-lg">
-              Structured courses from verified tutoring businesses and education centres across Hong
-              Kong.
+              Compare structured courses from verified education centres across Hong Kong.
             </p>
 
-            <div className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
-              <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
-                <p className="text-sm font-black uppercase tracking-wide text-[color:var(--ink)]">
-                  Find a course
-                </p>
+            <form
+              className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5"
+              onSubmit={handleSearch}
+            >
+              <div className="flex items-center gap-2 border-b border-border pb-4">
+                <SlidersHorizontal className="h-4 w-4 text-[color:var(--brand-link)]" />
+                <p className="text-sm font-bold text-[color:var(--ink)]">Search and filter</p>
               </div>
 
               <div className="mt-4 grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
@@ -122,7 +140,7 @@ function CoursesDirectory() {
                 <SearchableSelect
                   value={draft.subject ?? ""}
                   onChange={(v) => setDraftParam({ subject: v || undefined })}
-                  options={[{ value: "", label: "Any subject" }]}
+                  options={subjectOptions}
                   placeholder="Any subject"
                   searchPlaceholder="Search subject..."
                   className="h-11 rounded-sm"
@@ -146,19 +164,19 @@ function CoursesDirectory() {
                   className="h-11 rounded-sm"
                 />
                 <Button
+                  type="submit"
                   className="h-11 rounded-sm bg-[color:var(--surface-invert)] px-6 font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                  onClick={() => navigate({ search: { ...draft } })}
                 >
                   Search
                 </Button>
               </div>
-            </div>
+            </form>
           </div>
         </section>
 
         <section className="py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="mb-6 flex items-baseline justify-between">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
               {isLoading ? (
                 <Skeleton className="h-4 w-28" />
               ) : (
@@ -167,6 +185,11 @@ function CoursesDirectory() {
                   {results.length === 1 ? "course" : "courses"} found
                 </p>
               )}
+              {hasActiveFilters ? (
+                <Button variant="ghost" size="sm" onClick={clearAll}>
+                  Clear filters
+                </Button>
+              ) : null}
             </div>
 
             {isLoading && (
@@ -178,25 +201,29 @@ function CoursesDirectory() {
             )}
 
             {!isLoading && results.length === 0 && (
-              <div className="rounded-sm border border-dashed border-border bg-card p-12 text-center">
-                <p className="text-lg font-bold text-[color:var(--ink)]">
-                  No courses match your filters yet
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Try widening your search, or clear filters to see everything.
-                </p>
-                <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  <Button variant="outline" onClick={clearAll}>
-                    Clear filters
+              <EmptyState
+                icon={Search}
+                title={
+                  hasActiveFilters ? "No courses match these filters" : "No courses available yet"
+                }
+                description={
+                  hasActiveFilters
+                    ? "Try broadening your search or clear the filters to browse all published courses."
+                    : "New courses from verified education centres will appear here."
+                }
+                action={
+                  hasActiveFilters ? (
+                    <Button variant="outline" onClick={clearAll}>
+                      Clear filters
+                    </Button>
+                  ) : undefined
+                }
+                secondaryAction={
+                  <Button asChild variant="ghost" prefix={<Building2 />}>
+                    <Link to="/pricing">List your courses</Link>
                   </Button>
-                  <Button
-                    asChild
-                    className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                  >
-                    <a href="/pricing">Run a course on MatchMax</a>
-                  </Button>
-                </div>
-              </div>
+                }
+              />
             )}
 
             {!isLoading && results.length > 0 && (

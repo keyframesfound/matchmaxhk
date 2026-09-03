@@ -1,4 +1,5 @@
 import { ArrowRight, Clock, MapPin } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 import { courseModeLabel, formatCoursePrice, type CourseWithOrganization } from "./queries";
 
@@ -48,9 +49,10 @@ export function CourseCard({ course }: CourseCardProps) {
     .join("");
 
   return (
-    <a
-      href={`/courses/${course.id}`}
-      className="group flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-sm transition-all duration-200 hover:shadow-md sm:flex-row sm:items-start sm:gap-6"
+    <Link
+      to="/courses/$courseId"
+      params={{ courseId: course.id }}
+      className="group grid gap-4 rounded-lg border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-[color:var(--brand-teal)]/45 hover:shadow-md sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-6"
     >
       {course.organization?.logo_url ? (
         <img
@@ -69,7 +71,9 @@ export function CourseCard({ course }: CourseCardProps) {
         <div className="flex flex-wrap items-center gap-2">
           <CourseLevelBadge level={course.level} />
           {course.subject ? (
-            <span className="text-xs font-medium text-muted-foreground">{course.subject}</span>
+            <span className="rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+              {course.subject}
+            </span>
           ) : null}
         </div>
         <h3 className="mt-2 text-base font-semibold text-[color:var(--ink)] group-hover:text-[color:var(--brand-link)] sm:text-lg">
@@ -78,7 +82,7 @@ export function CourseCard({ course }: CourseCardProps) {
         {course.summary ? (
           <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{course.summary}</p>
         ) : null}
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" />
             {courseModeLabel(course.mode)}
@@ -93,17 +97,17 @@ export function CourseCard({ course }: CourseCardProps) {
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-start">
+      <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border pt-4 sm:min-w-28 sm:flex-col sm:items-end sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
         {price ? (
           <span className="text-lg font-bold text-[color:var(--ink)]">{price}</span>
         ) : (
           <span className="text-sm font-semibold text-muted-foreground">Enquire</span>
         )}
-        <span className="inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand-link)]">
+        <span className="inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand-link)] group-hover:text-[color:var(--brand-teal)]">
           View course
           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
         </span>
       </div>
-    </a>
+    </Link>
   );
 }
