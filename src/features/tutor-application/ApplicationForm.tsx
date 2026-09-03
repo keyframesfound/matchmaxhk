@@ -1104,7 +1104,7 @@ export function ApplicationForm() {
                 type="email"
                 value={base.email}
                 onChange={(event) => setBaseField("email", event.target.value)}
-                placeholder="hauzton.chan@matchmax.hk"
+                placeholder="hauzton.chan@gmail.com"
               />
               <Field label="Country / Region" required error={fieldErrors.country}>
                 <SearchableSelect
