@@ -1397,13 +1397,17 @@ export function ApplicationForm() {
                               variant="outline"
                               className="w-fit"
                               loading={transcriptStatus === "reading"}
-                              disabled={
-                                !qualification.transcript ||
-                                !isTranscriptImage(qualification.transcript) ||
-                                transcriptStatus === "reading"
-                              }
+                              disabled={transcriptStatus === "reading"}
                               onClick={() => {
-                                if (qualification.transcript) void autoFillQualification(index, qualification.transcript);
+                                if (!qualification.transcript) {
+                                  setError("Upload a JPG or PNG transcript before using AI auto-fill.");
+                                  return;
+                                }
+                                if (!isTranscriptImage(qualification.transcript)) {
+                                  setError("AI auto-fill supports JPG and PNG transcript images only.");
+                                  return;
+                                }
+                                void autoFillQualification(index, qualification.transcript);
                               }}
                             >
                               <Sparkles /> Auto-fill with AI
