@@ -1,8 +1,20 @@
+import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check, Minus } from "lucide-react";
+import { ArrowRight, Check, Sparkles, X } from "lucide-react";
+
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -11,7 +23,7 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "List your courses on MatchMax. Business and Enterprise plans for tutoring centres and education companies in Hong Kong.",
+          "Compare MatchMax plans: free tutor profiles, Business and Enterprise plans for tutoring centres and education companies in Hong Kong.",
       },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Plans for Tutoring Businesses | MatchMax" },
@@ -22,27 +34,106 @@ export const Route = createFileRoute("/pricing")({
   component: PricingPage,
 });
 
-type PlanFeature = { label: string; business: string | boolean; enterprise: string | boolean };
+type CellValue = boolean | string;
 
-const FEATURES: PlanFeature[] = [
-  { label: "Published courses", business: "Up to 10", enterprise: "Unlimited" },
-  { label: "Admin team members", business: "Owner + 1 admin", enterprise: "Owner + 20 admins" },
-  { label: "Course images hosted on Cloudflare CDN", business: true, enterprise: true },
-  { label: "Business profile with logo & branding", business: true, enterprise: true },
-  { label: "Public course directory listing", business: true, enterprise: true },
-  { label: "WhatsApp & email enquiries", business: true, enterprise: true },
-  { label: "Priority placement in course directory", business: false, enterprise: true },
-  { label: "Dedicated support", business: false, enterprise: true },
+type Feature = {
+  label: string;
+  values: [CellValue, CellValue, CellValue];
+};
+
+type FeatureGroup = {
+  section: string;
+  features: Feature[];
+};
+
+const plans = [
+  {
+    name: "Basic",
+    audience: "Tutor profile",
+    price: "Free",
+    cadence: "For individual tutors",
+    highlighted: false,
+    cta: { label: "Create free profile", to: "/join" },
+  },
+  {
+    name: "Business",
+    audience: "For centres & small teams",
+    price: "Custom",
+    cadence: "Billed offline",
+    highlighted: true,
+    cta: { label: "Get started", to: "/business/join" },
+  },
+  {
+    name: "Enterprise",
+    audience: "For schools & larger centres",
+    price: "Custom",
+    cadence: "Billed offline",
+    highlighted: false,
+    cta: { label: "Get started", to: "/business/join", search: { plan: "enterprise" } },
+  },
+] as const;
+
+const groups: FeatureGroup[] = [
+  {
+    section: "Profile & listings",
+    features: [
+      { label: "Public tutor profile", values: [true, false, false] },
+      { label: "Business profile with logo & branding", values: [false, true, true] },
+      { label: "Published courses", values: [false, "Up to 10", "Unlimited"] },
+      { label: "Public course directory listing", values: [false, true, true] },
+    ],
+  },
+  {
+    section: "Enquiries & team",
+    features: [
+      { label: "WhatsApp enquiries", values: [true, true, true] },
+      { label: "Email enquiries", values: [false, true, true] },
+      { label: "Course images hosted on Cloudflare CDN", values: [false, true, true] },
+      { label: "Admin team members", values: [false, "Owner + 1 admin", "Owner + 20 admins"] },
+    ],
+  },
+  {
+    section: "Growth & support",
+    features: [
+      { label: "Priority placement in course directory", values: [false, false, true] },
+      { label: "Dedicated support", values: [false, false, true] },
+    ],
+  },
 ];
 
-function FeatureValue({ value }: { value: string | boolean }) {
-  if (value === true) {
-    return <Check className="mx-auto h-5 w-5 text-emerald-600" aria-label="Included" />;
+function Cell({ value, highlighted }: { value: CellValue; highlighted: boolean }) {
+  if (typeof value === "boolean") {
+    return value ? (
+      <span
+        className={cn(
+          "mx-auto flex size-5 items-center justify-center rounded-md",
+          highlighted ? "bg-[#1FA8B6]" : "bg-[#1FA8B6]/15",
+        )}
+      >
+        <Check
+          className={cn("size-3.5", highlighted ? "text-white" : "text-[#1FA8B6]")}
+          aria-hidden
+        />
+        <span className="sr-only">Included</span>
+      </span>
+    ) : (
+      <span className="mx-auto flex size-5 items-center justify-center rounded-md bg-muted">
+        <X className="size-3.5 text-muted-foreground" aria-hidden />
+        <span className="sr-only">Not included</span>
+      </span>
+    );
   }
-  if (value === false) {
-    return <Minus className="mx-auto h-5 w-5 text-muted-foreground/50" aria-label="Not included" />;
-  }
-  return <span className="text-sm font-semibold text-[color:var(--ink)]">{value}</span>;
+
+  return (
+    <span
+      className={cn(
+        "text-sm font-medium",
+        highlighted ? "text-[color:var(--ink)]" : "text-muted-foreground",
+      )}
+    >
+      {value}
+    </span>
+  );
 }
 
 function PricingPage() {
@@ -57,83 +148,132 @@ function PricingPage() {
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
               Put your courses in front of thousands of Hong Kong parents and students searching for
-              tutors every month. Create your account, post courses, and manage your team.
+              tutors every month. Compare plans side by side and upgrade as you grow.
             </p>
           </div>
         </section>
 
         <section className="py-12 sm:py-16">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6">
-            <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-              <table className="w-full border-collapse text-left">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="w-2/5 p-4 text-sm font-semibold text-muted-foreground sm:p-6">
-                      Compare plans
-                    </th>
-                    <th className="w-3/10 border-l border-border p-4 text-center sm:p-6">
-                      <p className="text-base font-bold text-[color:var(--ink)]">Business</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        For individual tutors & small centres
-                      </p>
-                    </th>
-                    <th className="w-3/10 border-l border-border p-4 text-center sm:p-6">
-                      <p className="text-base font-bold text-[color:var(--ink)]">Enterprise</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        For schools & larger centres
-                      </p>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {FEATURES.map((feature, index) => (
-                    <tr
-                      key={feature.label}
-                      className={
-                        index % 2 === 1
-                          ? "border-b border-border bg-muted/40"
-                          : "border-b border-border"
-                      }
-                    >
-                      <td className="p-4 text-sm font-medium text-[color:var(--ink)] sm:p-6">
-                        {feature.label}
-                      </td>
-                      <td className="border-l border-border p-4 text-center sm:p-6">
-                        <FeatureValue value={feature.business} />
-                      </td>
-                      <td className="border-l border-border p-4 text-center sm:p-6">
-                        <FeatureValue value={feature.enterprise} />
-                      </td>
-                    </tr>
-                  ))}
-                  <tr>
-                    <td className="p-4 sm:p-6" />
-                    <td className="border-l border-border p-4 text-center sm:p-6">
-                      <Button
-                        asChild
-                        className="w-full bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                      >
-                        <Link to="/business/join">Get started</Link>
-                      </Button>
-                    </td>
-                    <td className="border-l border-border p-4 text-center sm:p-6">
-                      <Button
-                        asChild
-                        className="w-full bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                      >
-                        <Link to="/business/join" search={{ plan: "enterprise" }}>
-                          Get started
-                        </Link>
-                      </Button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
+            <div className="mb-10 max-w-2xl">
+              <Badge variant="outline" className="mb-4 gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-[#1FA8B6]" aria-hidden />
+                Compare plans
+              </Badge>
+              <h2 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
+                Find the right plan for your team
+              </h2>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Individual tutors can join free with a public tutor profile. Centres and schools
+                list courses on the Business or Enterprise plan.
+              </p>
+            </div>
+
+            <div className="relative">
+              <Badge className="absolute bottom-full left-[68%] z-20 mb-2 -translate-x-1/2 border-none bg-[#1FA8B6] font-bold text-white">
+                Most popular
+              </Badge>
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <Table className="table-fixed text-sm">
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="sticky top-0 z-20 w-[36%] border-b border-border bg-background align-bottom">
+                        <span className="inline-block pb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                          Features
+                        </span>
+                      </TableHead>
+                      {plans.map((plan) => (
+                        <TableHead
+                          key={plan.name}
+                          className={cn(
+                            "sticky top-0 z-20 border-b border-border text-center align-bottom",
+                            plan.highlighted ? "bg-[#1FA8B6]/5" : "bg-background",
+                          )}
+                        >
+                          <div className="flex flex-col items-center gap-1 py-3">
+                            <span className="text-sm font-semibold text-[color:var(--ink)]">
+                              {plan.name}
+                            </span>
+                            <span className="text-lg font-bold text-[color:var(--ink)]">
+                              {plan.price}
+                            </span>
+                            <span className="text-xs font-normal text-muted-foreground">
+                              {plan.cadence}
+                            </span>
+                          </div>
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+
+                  <TableBody>
+                    {groups.map((group) => (
+                      <React.Fragment key={group.section}>
+                        <TableRow className="bg-muted/40 hover:bg-muted/40">
+                          <TableCell
+                            colSpan={4}
+                            className="py-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--ink)]"
+                          >
+                            {group.section}
+                          </TableCell>
+                        </TableRow>
+                        {group.features.map((feature) => (
+                          <TableRow key={`${group.section}-${feature.label}`}>
+                            <TableCell className="py-3 font-medium text-[color:var(--ink)]">
+                              {feature.label}
+                            </TableCell>
+                            {feature.values.map((value, i) => (
+                              <TableCell
+                                key={`${feature.label}-${plans[i].name}`}
+                                className={cn(
+                                  "py-3 text-center",
+                                  plans[i].highlighted && "bg-[#1FA8B6]/5",
+                                )}
+                              >
+                                <Cell value={value} highlighted={plans[i].highlighted} />
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </React.Fragment>
+                    ))}
+
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell className="py-4" />
+                      {plans.map((plan) => (
+                        <TableCell
+                          key={`cta-${plan.name}`}
+                          className={cn("py-4 text-center", plan.highlighted && "bg-[#1FA8B6]/5")}
+                        >
+                          <Button
+                            asChild
+                            size="sm"
+                            variant={plan.highlighted ? "default" : "outline"}
+                            className="w-full font-bold"
+                          >
+                            {plan.name === "Enterprise" ? (
+                              <Link to="/business/join" search={{ plan: "enterprise" }}>
+                                {plan.cta.label}
+                                <ArrowRight className="ml-1 h-4 w-4" aria-hidden />
+                              </Link>
+                            ) : (
+                              <Link to={plan.cta.to}>
+                                {plan.cta.label}
+                                <ArrowRight className="ml-1 h-4 w-4" aria-hidden />
+                              </Link>
+                            )}
+                          </Button>
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
             </div>
 
             <p className="mt-8 text-center text-sm text-muted-foreground">
-              Plans are billed offline — create your account and our team will contact you to
-              activate it. Questions? Reach us via the Help Centre.
+              Business and Enterprise plans are billed offline — create your account and our team
+              will contact you to activate it. Questions? Reach us via the Help Centre.
             </p>
           </div>
         </section>

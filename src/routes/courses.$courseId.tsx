@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
+  ArrowUpRight,
+  BadgeCheck,
   CalendarDays,
   Clock,
   GraduationCap,
@@ -15,7 +17,13 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CourseLevelBadge } from "@/features/courses/course-card";
-import { fetchCourseById, courseModeLabel, formatCoursePrice } from "@/features/courses/queries";
+import {
+  fetchCourseById,
+  fetchOrganizationCourseCount,
+  courseModeLabel,
+  formatCoursePrice,
+} from "@/features/courses/queries";
+import type { CourseWithOrganization } from "@/features/courses/queries";
 
 export const Route = createFileRoute("/courses/$courseId")({
   head: () => ({
@@ -31,6 +39,93 @@ function buildWhatsAppUrl(number: string | null, courseTitle: string): string {
     `Hi MatchMax, I'd like to enquire about the course "${courseTitle}".`,
   );
   return `https://wa.me/${digits}?text=${message}`;
+}
+
+function BusinessProfileCard({
+  organization,
+}: {
+  organization: NonNullable<CourseWithOrganization["organization"]>;
+}) {
+  const { data: courseCount = 0, isLoading: countLoading } = useQuery({
+    queryKey: ["organization-course-count", organization.id],
+    queryFn: () => fetchOrganizationCourseCount(organization.id),
+    staleTime: 60_000,
+  });
+
+  const memberSince = new Date(organization.created_at).getFullYear();
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+      <div className="flex items-start gap-4">
+        {organization.logo_url ? (
+          <img
+            src={organization.logo_url}
+            alt=""
+            className="size-14 shrink-0 rounded-lg border border-border object-cover"
+          />
+        ) : (
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-[#1FA8B6]/10 text-base font-bold text-[#1FA8B6]">
+            {organization.name.slice(0, 2).toUpperCase()}
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <h3 className="flex items-center gap-1.5 text-base font-bold tracking-tight text-[color:var(--ink)]">
+            <span className="truncate">{organization.name}</span>
+            <BadgeCheck
+              className="h-4.5 w-4.5 shrink-0 text-[#1FA8B6]"
+              aria-label="Verified business"
+            />
+          </h3>
+          <p className="mt-0.5 truncate text-sm text-muted-foreground">
+            {organization.tagline || organization.district || "MatchMax partner"}
+          </p>
+        </div>
+      </div>
+
+      {organization.description ? (
+        <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+          {organization.description}
+        </p>
+      ) : null}
+
+      <div className="mt-4 grid grid-cols-3 divide-x divide-border border-y border-border">
+        <div className="flex flex-col items-center gap-0.5 py-3">
+          <span className="text-sm font-semibold tabular-nums text-[color:var(--ink)]">
+            {countLoading ? "…" : courseCount}
+          </span>
+          <span className="text-xs text-muted-foreground">Courses</span>
+        </div>
+        <div className="flex flex-col items-center gap-0.5 px-2 py-3">
+          <span className="max-w-full truncate text-sm font-semibold text-[color:var(--ink)]">
+            {organization.district || "—"}
+          </span>
+          <span className="text-xs text-muted-foreground">District</span>
+        </div>
+        <div className="flex flex-col items-center gap-0.5 py-3">
+          <span className="text-sm font-semibold tabular-nums text-[color:var(--ink)]">
+            {memberSince}
+          </span>
+          <span className="text-xs text-muted-foreground">Member since</span>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center gap-2">
+        <Button asChild className="flex-1 font-bold">
+          <a href={`/business/${organization.slug}`}>
+            View profile
+            <ArrowUpRight className="ml-1 h-4 w-4" aria-hidden />
+          </a>
+        </Button>
+        {organization.website_url ? (
+          <Button asChild variant="outline" className="flex-1">
+            <a href={organization.website_url} target="_blank" rel="noreferrer">
+              Website
+            </a>
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 function CourseDetail() {
@@ -179,70 +274,46 @@ function CourseDetail() {
               </div>
 
               <aside>
-                <div className="sticky top-24 rounded-lg border border-border bg-card p-6 shadow-sm">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Offered by
-                    </p>
-                    {course.level ? <CourseLevelBadge level={course.level} /> : null}
-                  </div>
-                  <div className="mt-3 flex items-center gap-3">
-                    {course.organization?.logo_url ? (
-                      <img
-                        src={course.organization.logo_url}
-                        alt=""
-                        className="h-11 w-11 rounded-lg border border-border object-cover"
-                      />
-                    ) : (
-                      <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#1FA8B6]/10 text-sm font-bold text-[#1FA8B6]">
-                        {(course.organization?.name ?? "MM").slice(0, 2).toUpperCase()}
-                      </span>
-                    )}
-                    <div className="min-w-0">
-                      <a
-                        href={`/business/${course.organization?.slug ?? ""}`}
-                        className="truncate text-sm font-bold text-[color:var(--ink)] hover:text-[color:var(--brand-link)] hover:underline"
-                      >
-                        {course.organization?.name ?? "MatchMax partner"}
-                      </a>
-                      {course.organization?.district ? (
-                        <p className="text-xs text-muted-foreground">
-                          {course.organization.district}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  {price ? (
-                    <p className="mt-5 text-2xl font-black text-[color:var(--ink)]">{price}</p>
+                <div className="sticky top-24 space-y-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Offered by
+                  </p>
+                  {course.organization ? (
+                    <BusinessProfileCard organization={course.organization} />
                   ) : null}
 
-                  <div className="mt-5 flex flex-col gap-3">
-                    {whatsappUrl ? (
-                      <Button
-                        asChild
-                        prefix={<MessageCircle />}
-                        className="h-11 bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                      >
-                        <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                          Chat on WhatsApp
-                        </a>
-                      </Button>
+                  <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+                    {price ? (
+                      <p className="text-2xl font-black text-[color:var(--ink)]">{price}</p>
                     ) : null}
-                    {contactEmail ? (
-                      <Button asChild variant="outline" prefix={<Mail />} className="h-11">
-                        <a
-                          href={`mailto:${contactEmail}?subject=${encodeURIComponent(`Course enquiry: ${course.title}`)}`}
+
+                    <div className={price ? "mt-5 flex flex-col gap-3" : "flex flex-col gap-3"}>
+                      {whatsappUrl ? (
+                        <Button
+                          asChild
+                          prefix={<MessageCircle />}
+                          className="h-11 bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                         >
-                          Email enquiry
-                        </a>
-                      </Button>
-                    ) : null}
-                    {!whatsappUrl && !contactEmail && (
-                      <div className="rounded-md border border-dashed border-border bg-muted/40 px-3 py-3 text-sm text-muted-foreground">
-                        Contact details will be available soon.
-                      </div>
-                    )}
+                          <a href={whatsappUrl} target="_blank" rel="noreferrer">
+                            Chat on WhatsApp
+                          </a>
+                        </Button>
+                      ) : null}
+                      {contactEmail ? (
+                        <Button asChild variant="outline" prefix={<Mail />} className="h-11">
+                          <a
+                            href={`mailto:${contactEmail}?subject=${encodeURIComponent(`Course enquiry: ${course.title}`)}`}
+                          >
+                            Email enquiry
+                          </a>
+                        </Button>
+                      ) : null}
+                      {!whatsappUrl && !contactEmail && (
+                        <div className="rounded-md border border-dashed border-border bg-muted/40 px-3 py-3 text-sm text-muted-foreground">
+                          Contact details will be available soon.
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </aside>

@@ -26,6 +26,10 @@ export type CourseWithOrganization = Course & {
     id: string;
     slug: string;
     name: string;
+    tagline: string | null;
+    description: string | null;
+    website_url: string | null;
+    created_at: string;
     logo_url: string | null;
     district: string | null;
     whatsapp_number: string | null;
@@ -83,7 +87,7 @@ export type OrganizationPublic = {
 };
 
 function courseWithOrgSelect(): string {
-  return "*, organization:organizations!inner(id, slug, name, logo_url, district, whatsapp_number, contact_email, contact_phone)";
+  return "*, organization:organizations!inner(id, slug, name, tagline, description, website_url, created_at, logo_url, district, whatsapp_number, contact_email, contact_phone)";
 }
 
 export async function fetchPublishedCourses(
@@ -177,6 +181,16 @@ export async function fetchCoursesByOrganizationId(
     .limit(limit);
   if (error) throw new Error(error.message);
   return (data ?? []) as unknown as CourseWithOrganization[];
+}
+
+export async function fetchOrganizationCourseCount(orgId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from("courses")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", orgId)
+    .eq("is_published", true);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
 }
 
 export function courseModeLabel(mode: CourseMode): string {

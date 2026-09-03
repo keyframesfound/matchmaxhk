@@ -94,9 +94,17 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
     <div className="flex h-full min-h-0 flex-1 bg-muted/40">
       <aside className="hidden h-full w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
         <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1FA8B6] text-sm font-bold text-white">
-            {initials || "MM"}
-          </span>
+          {organization.logo_url ? (
+            <img
+              src={organization.logo_url}
+              alt=""
+              className="h-8 w-8 rounded-lg border border-border object-cover"
+            />
+          ) : (
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1FA8B6] text-sm font-bold text-white">
+              {initials || "MM"}
+            </span>
+          )}
           <div className="min-w-0">
             <p className="truncate text-sm font-bold text-[color:var(--ink)]">
               {organization.name}
@@ -148,7 +156,15 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
         <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-3 border-b border-border bg-card/95 px-4 backdrop-blur sm:px-8">
           <div className="flex min-w-0 items-center gap-3 lg:hidden">
             <Link to="/business" className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-[#1FA8B6]" />
+              {organization.logo_url ? (
+                <img
+                  src={organization.logo_url}
+                  alt=""
+                  className="h-6 w-6 rounded-md border border-border object-cover"
+                />
+              ) : (
+                <Building2 className="h-5 w-5 text-[#1FA8B6]" />
+              )}
               <span className="truncate text-sm font-bold text-[color:var(--ink)]">
                 {organization.name}
               </span>
