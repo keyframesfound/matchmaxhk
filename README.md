@@ -6,6 +6,12 @@ MatchMax is a Hong Kong based Education-Tutor Startup aiming at IBDP , IGCSE, DS
 
 ## Development
 
+### Transcript AI auto-fill
+
+Transcript image extraction uses Mistral's vision API. Add `MISTRAL_API_KEY` to the local
+environment and the Vercel project environment variables before deploying. The feature accepts
+JPG and PNG images only.
+
 ### Cloudflare R2 (tutor profile images)
 
 Admin tutor photo uploads/picking now use Cloudflare R2. Set these server env vars:

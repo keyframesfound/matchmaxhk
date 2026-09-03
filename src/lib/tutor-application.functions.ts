@@ -30,20 +30,18 @@ const transcriptInputSchema = z.object({
 export const extractTranscriptQualification = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => transcriptInputSchema.parse(input))
   .handler(async ({ data }) => {
-    const apiKey = getRuntimeEnv("OPENROUTER_API_KEY");
+    const apiKey = getRuntimeEnv("MISTRAL_API_KEY");
     if (!apiKey) throw new Error("Transcript auto-fill is not configured.");
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://matchmax.hk",
-        "X-Title": "MatchMax Tutor Application",
       },
       signal: AbortSignal.timeout(30_000),
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "mistral-small-latest",
         temperature: 0,
         response_format: { type: "json_object" },
         messages: [
@@ -58,7 +56,7 @@ export const extractTranscriptQualification = createServerFn({ method: "POST" })
               { type: "text", text: `Extract the ${data.curriculum} qualification.` },
               {
                 type: "image_url",
-                image_url: { url: `data:${data.contentType};base64,${data.content}` },
+                image_url: `data:${data.contentType};base64,${data.content}`,
               },
             ],
           },
@@ -66,11 +64,6 @@ export const extractTranscriptQualification = createServerFn({ method: "POST" })
       }),
     });
     if (!response.ok) {
-      if (response.status === 403) {
-        throw new Error(
-          "Transcript auto-fill is unavailable because the AI service does not support the region where this service is running. Enter your results manually.",
-        );
-      }
       const errorBody = await response.text();
       let providerMessage = "";
       try {
@@ -81,7 +74,7 @@ export const extractTranscriptQualification = createServerFn({ method: "POST" })
       }
       const detail = providerMessage ? `: ${providerMessage.slice(0, 240)}` : "";
       throw new Error(
-        `Transcript auto-fill failed (OpenRouter ${response.status})${detail}. Please try again or enter your results manually.`,
+        `Transcript auto-fill failed (Mistral ${response.status})${detail}. Please try again or enter your results manually.`,
       );
     }
 
