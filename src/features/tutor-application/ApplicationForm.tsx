@@ -144,11 +144,15 @@ function DocumentUpload({
   onSelect,
   onRemove,
   disabled,
+  accept = ACCEPT_ATTRIBUTE,
+  prompt = "Drop a file here or choose a file",
 }: {
   file: File | null;
   onSelect: (file: File) => void;
   onRemove: () => void;
   disabled?: boolean;
+  accept?: string;
+  prompt?: string;
 }) {
   const [dragging, setDragging] = useState(false);
   const [progress, setProgress] = useState(file ? 100 : 0);
@@ -193,11 +197,11 @@ function DocumentUpload({
         }}
       >
         <Upload className="h-4 w-4 text-[color:var(--brand-teal)]" />
-        <span>Drop a file here or choose a file</span>
+        <span>{prompt}</span>
         <input
           type="file"
           className="sr-only"
-          accept={ACCEPT_ATTRIBUTE}
+          accept={accept}
           disabled={disabled}
           onChange={(event) => {
             selectFile(event.target.files?.[0]);
@@ -1385,10 +1389,16 @@ export function ApplicationForm() {
                             <DocumentUpload
                               file={qualification.transcript}
                               disabled={transcriptStatus === "reading"}
+                              accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                              prompt="Drop a JPG or PNG image here or choose one"
                               onRemove={() => updateQualification(index, { transcript: null })}
                               onSelect={(file) => {
-                                if ((!ACCEPTED_FILE_TYPES.includes(file.type) && !/\.(pdf|jpe?g|png|docx?)$/i.test(file.name)) || file.size > MAX_FILE_BYTES) {
-                                  setError("Choose a supported transcript file no larger than 5 MB.");
+                                if (!isTranscriptImage(file)) {
+                                  setError("PDFs and documents cannot be uploaded here. Use a JPG or PNG image of your transcript instead.");
+                                  return;
+                                }
+                                if (file.size > MAX_FILE_BYTES) {
+                                  setError("Transcript images must be no larger than 5 MB.");
                                   return;
                                 }
                                 updateQualification(index, { transcript: file });

@@ -66,6 +66,11 @@ export const extractTranscriptQualification = createServerFn({ method: "POST" })
       }),
     });
     if (!response.ok) {
+      if (response.status === 403) {
+        throw new Error(
+          "Transcript auto-fill is unavailable because the AI service does not support the region where this service is running. Enter your results manually.",
+        );
+      }
       const errorBody = await response.text();
       let providerMessage = "";
       try {
