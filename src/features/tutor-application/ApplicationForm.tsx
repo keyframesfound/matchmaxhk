@@ -879,7 +879,7 @@ export function ApplicationForm() {
   const scoreEditor = (qualification: Qualification, qualificationIndex: number) => {
     const system = getSystem(SYSTEM_IDS[qualification.curriculum] ?? "other");
     return (
-      <div key={qualificationIndex} className="grid gap-4 rounded-lg border border-border p-4">
+      <div key={qualificationIndex} className="grid gap-4">
         <div className="flex items-center justify-between">
           <p className="font-bold text-foreground">{qualification.curriculum} subject scores</p>
           {qualifications.length > 1 ? (
@@ -990,26 +990,27 @@ export function ApplicationForm() {
                     key={`${paper.label}-${paperIndex}`}
                     className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
                   >
-                    <Select
-                      className="col-span-2 sm:col-span-1"
-                      value={paper.label}
-                      onValueChange={(label) =>
-                        updateScore(qualificationIndex, scoreIndex, {
-                          papers: score.papers.map((item, itemIndex) =>
-                            itemIndex === paperIndex ? { ...item, label } : item,
-                          ),
-                        })
-                      }
-                    >
-                      <SelectTrigger aria-label="Assessment component">
-                        <SelectValue placeholder="Choose paper or assessment" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {paperOptions(qualification.curriculum).map((option) => (
-                          <SelectItem key={option} value={option}>{option}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="col-span-2 sm:col-span-1">
+                      <Select
+                        value={paper.label}
+                        onValueChange={(label) =>
+                          updateScore(qualificationIndex, scoreIndex, {
+                            papers: score.papers.map((item, itemIndex) =>
+                              itemIndex === paperIndex ? { ...item, label } : item,
+                            ),
+                          })
+                        }
+                      >
+                        <SelectTrigger aria-label="Assessment component">
+                          <SelectValue placeholder="Choose paper or assessment" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {paperOptions(qualification.curriculum).map((option) => (
+                            <SelectItem key={option} value={option}>{option}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <Input
                       value={paper.score}
                       onChange={(event) =>
