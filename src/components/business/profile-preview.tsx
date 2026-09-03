@@ -6,6 +6,7 @@ import {
   Mail,
   MapPin,
   MessageCircle,
+  Play,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ export type ProfilePreviewData = {
   websiteUrl: string;
   contactEmail: string;
   whatsappNumber: string;
+  introVideoUrl: string | null;
   courseCount: number;
   memberSince: string;
 };
@@ -150,6 +152,21 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
       {/* About */}
       <div className="border-t border-border px-5 py-5">
         <h2 className="text-base font-black tracking-tight text-[color:var(--ink)]">About</h2>
+        {data.introVideoUrl ? (
+          <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-lg border border-border bg-black">
+            <img
+              src={data.introVideoUrl}
+              alt=""
+              loading="lazy"
+              className="h-full w-full object-cover"
+            />
+            <span className="absolute inset-0 flex items-center justify-center bg-black/10">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white">
+                <Play className="ml-0.5 h-4 w-4 fill-current" />
+              </span>
+            </span>
+          </div>
+        ) : null}
         {data.description ? (
           <div className="mt-2 space-y-2 text-sm leading-relaxed text-muted-foreground">
             {data.description

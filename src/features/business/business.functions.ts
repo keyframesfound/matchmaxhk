@@ -23,6 +23,8 @@ type DbClient = SupabaseClient<Database>;
 
 export type OrgRole = "owner" | "admin";
 
+export type OrgFaqItem = { question: string; answer: string };
+
 export type OrganizationRecord = {
   id: string;
   slug: string;
@@ -36,6 +38,13 @@ export type OrganizationRecord = {
   district: string | null;
   logo_url: string | null;
   cover_image_url: string | null;
+  instagram_url: string | null;
+  intro_video_url: string | null;
+  facebook_url: string | null;
+  youtube_url: string | null;
+  founded_year: number | null;
+  languages: string | null;
+  faq: OrgFaqItem[];
   plan: "business" | "enterprise";
   status: "pending" | "active" | "suspended";
   created_by: string;
@@ -161,6 +170,11 @@ export const createOrganization = createServerFn({ method: "POST" })
     return { organization: org };
   });
 
+const FaqItemInput = z.object({
+  question: z.string().trim().min(1).max(200),
+  answer: z.string().trim().min(1).max(1000),
+});
+
 const UpdateOrganizationInput = z.object({
   orgId: z.string().uuid(),
   name: z.string().trim().min(2).max(120).optional(),
@@ -173,6 +187,13 @@ const UpdateOrganizationInput = z.object({
   district: z.string().trim().max(80).optional(),
   logo_url: z.string().trim().max(1000).optional(),
   cover_image_url: z.string().trim().max(1000).optional(),
+  instagram_url: z.string().trim().max(300).optional(),
+  intro_video_url: z.string().trim().max(300).optional(),
+  facebook_url: z.string().trim().max(300).optional(),
+  youtube_url: z.string().trim().max(300).optional(),
+  founded_year: z.number().int().min(1900).max(2100).nullable().optional(),
+  languages: z.string().trim().max(200).optional(),
+  faq: z.array(FaqItemInput).max(8).optional(),
 });
 
 export const updateOrganization = createServerFn({ method: "POST" })
@@ -196,6 +217,17 @@ export const updateOrganization = createServerFn({ method: "POST" })
     if (data.logo_url !== undefined) patch.logo_url = emptyToNull(data.logo_url);
     if (data.cover_image_url !== undefined) {
       patch.cover_image_url = emptyToNull(data.cover_image_url);
+    }
+    if (data.instagram_url !== undefined) patch.instagram_url = emptyToNull(data.instagram_url);
+    if (data.intro_video_url !== undefined) {
+      patch.intro_video_url = emptyToNull(data.intro_video_url);
+    }
+    if (data.facebook_url !== undefined) patch.facebook_url = emptyToNull(data.facebook_url);
+    if (data.youtube_url !== undefined) patch.youtube_url = emptyToNull(data.youtube_url);
+    if (data.founded_year !== undefined) patch.founded_year = data.founded_year;
+    if (data.languages !== undefined) patch.languages = emptyToNull(data.languages);
+    if (data.faq !== undefined) {
+      patch.faq = data.faq.length > 0 ? data.faq : [];
     }
 
     if (Object.keys(patch).length === 0) {
@@ -395,6 +427,35 @@ export const removeMember = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const getOrganizationRoleForSlug = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z.object({ slug: z.string().trim().min(1).max(80) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const client = context.supabase as unknown as DbClient;
+    const { data: org } = await client
+      .from("organizations")
+      .select("id")
+      .eq("slug", data.slug)
+      .maybeSingle();
+    if (!org) return { role: null };
+    const role = await getOrgRole(client, org.id);
+    return { role };
+  });
+
+function normalizeFaqValue(value: unknown): OrgFaqItem[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      const record = item as Record<string, unknown> | null;
+      const question = typeof record?.question === "string" ? record.question : "";
+      const answer = typeof record?.answer === "string" ? record.answer : "";
+      return { question, answer };
+    })
+    .filter((item) => item.question.trim() && item.answer.trim());
+}
+
 export const listMyOrganization = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -416,17 +477,21 @@ export const listMyOrganization = createServerFn({ method: "POST" })
       email: string;
       role: OrgRole;
       status: "pending" | "active" | "revoked";
-      organization: OrganizationRecord | null;
+      organization: Record<string, unknown> | null;
     };
 
-    const rows = (memberships ?? []) as MemberRow[];
+    const rows = (memberships ?? []) as unknown as MemberRow[];
     const active = rows.filter((row) => row.status === "active" && row.organization);
     if (active.length === 0) {
       return { membership: null, organization: null, usage: null };
     }
 
     const membership = active.find((row) => row.role === "owner") ?? active[0];
-    const organization = membership.organization as OrganizationRecord;
+    const rawOrganization = membership.organization as unknown as OrganizationRecord;
+    const organization: OrganizationRecord = {
+      ...rawOrganization,
+      faq: normalizeFaqValue(rawOrganization?.faq),
+    };
 
     const [courseCount, memberCount] = await Promise.all([
       client

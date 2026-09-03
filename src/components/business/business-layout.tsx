@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BookOpen,
   Building2,
@@ -15,10 +15,10 @@ import { cn } from "@/lib/utils";
 import type { Organization, OrgUsage } from "@/features/business/useMyOrganization";
 
 const NAV_ITEMS = [
-  { label: "Overview", to: "/business", icon: LayoutDashboard, match: "/business" },
-  { label: "Courses", to: "/business/courses", icon: BookOpen, match: "/business/courses" },
-  { label: "Team", to: "/business/team", icon: UsersRound, match: "/business/team" },
-  { label: "Settings", to: "/business/settings", icon: Settings, match: "/business/settings" },
+  { label: "Overview", tab: "overview", icon: LayoutDashboard },
+  { label: "Courses", tab: "courses", icon: BookOpen },
+  { label: "Team", tab: "team", icon: UsersRound },
+  { label: "Profile", tab: "profile", icon: Settings },
 ] as const;
 
 export function PlanBadge({ plan }: { plan: Organization["plan"] }) {
@@ -78,17 +78,32 @@ type BusinessLayoutProps = {
   organization: Organization;
   usage: OrgUsage | null;
   children: ReactNode;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 };
 
-export function BusinessLayout({ organization, usage, children }: BusinessLayoutProps) {
-  const location = useLocation();
+export function BusinessLayout({
+  organization,
+  usage,
+  children,
+  activeTab,
+  onTabChange,
+}: BusinessLayoutProps) {
   const navigate = useNavigate();
-  const activeItem = NAV_ITEMS.find((item) => location.pathname === item.match) ?? NAV_ITEMS[0];
+  const activeTabName = activeTab ?? "overview";
   const initials = organization.name
     .split(/\s+/)
     .slice(0, 2)
     .map((word) => word.charAt(0).toUpperCase())
     .join("");
+
+  const switchTab = (tab: string) => {
+    if (onTabChange) {
+      onTabChange(tab);
+    } else {
+      navigate({ to: "/business", search: { tab } });
+    }
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-1 bg-muted/40">
@@ -115,13 +130,15 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
 
         <nav className="flex-1 space-y-0.5 px-3 py-3">
           {NAV_ITEMS.map((item) => {
-            const active = location.pathname === item.match;
+            const active = activeTabName === item.tab;
             return (
-              <Link
-                key={item.to}
-                to={item.to}
+              <button
+                key={item.tab}
+                type="button"
+                onClick={() => switchTab(item.tab)}
+                aria-current={active}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   active
                     ? "bg-[color:var(--brand-teal)]/10 font-semibold text-[color:var(--ink)]"
                     : "text-muted-foreground hover:bg-muted/60 hover:text-[color:var(--ink)]",
@@ -129,7 +146,7 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
-              </Link>
+              </button>
             );
           })}
         </nav>
@@ -155,7 +172,7 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-3 border-b border-border bg-card/95 px-4 backdrop-blur sm:px-8">
           <div className="flex min-w-0 items-center gap-3 lg:hidden">
-            <Link to="/business" className="flex items-center gap-2">
+            <Link to="/business" search={{ tab: undefined }} className="flex items-center gap-2">
               {organization.logo_url ? (
                 <img
                   src={organization.logo_url}
@@ -203,11 +220,13 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
 
         <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-4 py-2 lg:hidden">
           {NAV_ITEMS.map((item) => {
-            const active = location.pathname === item.match;
+            const active = activeTabName === item.tab;
             return (
-              <Link
-                key={item.to}
-                to={item.to}
+              <button
+                key={item.tab}
+                type="button"
+                onClick={() => switchTab(item.tab)}
+                aria-current={active}
                 className={cn(
                   "flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   active
@@ -217,7 +236,7 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
-              </Link>
+              </button>
             );
           })}
         </nav>
@@ -227,12 +246,15 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
             <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-2 text-sm">
               <Link
                 to="/business"
+                search={{ tab: undefined }}
                 className="font-medium text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
               >
                 Business
               </Link>
               <ChevronRight className="h-4 w-4 text-muted-foreground/60" />
-              <span className="font-medium text-[color:var(--ink)]">{activeItem.label}</span>
+              <span className="font-medium text-[color:var(--ink)]">
+                {activeTabName.charAt(0).toUpperCase() + activeTabName.slice(1)}
+              </span>
             </nav>
             {children}
           </div>

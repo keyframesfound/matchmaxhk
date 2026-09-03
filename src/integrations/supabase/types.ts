@@ -201,7 +201,13 @@ export type Database = {
           created_by: string;
           description: string | null;
           district: string | null;
+          facebook_url: string | null;
+          faq: Json;
+          founded_year: number | null;
           id: string;
+          instagram_url: string | null;
+          intro_video_url: string | null;
+          languages: string | null;
           logo_url: string | null;
           name: string;
           plan: Database["public"]["Enums"]["org_plan"];
@@ -211,6 +217,7 @@ export type Database = {
           updated_at: string;
           website_url: string | null;
           whatsapp_number: string | null;
+          youtube_url: string | null;
         };
         Insert: {
           contact_email?: string | null;
@@ -220,7 +227,13 @@ export type Database = {
           created_by: string;
           description?: string | null;
           district?: string | null;
+          facebook_url?: string | null;
+          faq?: Json;
+          founded_year?: number | null;
           id?: string;
+          instagram_url?: string | null;
+          intro_video_url?: string | null;
+          languages?: string | null;
           logo_url?: string | null;
           name: string;
           plan?: Database["public"]["Enums"]["org_plan"];
@@ -230,6 +243,7 @@ export type Database = {
           updated_at?: string;
           website_url?: string | null;
           whatsapp_number?: string | null;
+          youtube_url?: string | null;
         };
         Update: {
           contact_email?: string | null;
@@ -239,7 +253,13 @@ export type Database = {
           created_by?: string;
           description?: string | null;
           district?: string | null;
+          facebook_url?: string | null;
+          faq?: Json;
+          founded_year?: number | null;
           id?: string;
+          instagram_url?: string | null;
+          intro_video_url?: string | null;
+          languages?: string | null;
           logo_url?: string | null;
           name?: string;
           plan?: Database["public"]["Enums"]["org_plan"];
@@ -249,6 +269,7 @@ export type Database = {
           updated_at?: string;
           website_url?: string | null;
           whatsapp_number?: string | null;
+          youtube_url?: string | null;
         };
         Relationships: [];
       };

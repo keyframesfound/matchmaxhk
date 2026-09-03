@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowUpRight,
   BadgeCheck,
+  BookOpen,
   CalendarDays,
   Clock,
   GraduationCap,
@@ -19,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CourseLevelBadge } from "@/features/courses/course-card";
 import {
   fetchCourseById,
+  fetchCoursesByOrganizationId,
   fetchOrganizationCourseCount,
   courseModeLabel,
   formatCoursePrice,
@@ -56,37 +58,31 @@ function BusinessProfileCard({
 
   return (
     <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col items-center gap-3 text-center">
         {organization.logo_url ? (
           <img
             src={organization.logo_url}
             alt=""
-            className="size-14 shrink-0 rounded-lg border border-border object-cover"
+            className="size-16 shrink-0 rounded-full border border-border object-cover"
           />
         ) : (
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-[#1FA8B6]/10 text-base font-bold text-[#1FA8B6]">
+          <span className="flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-[#1FA8B6]/10 text-base font-bold text-[#1FA8B6]">
             {organization.name.slice(0, 2).toUpperCase()}
           </span>
         )}
-        <div className="min-w-0 flex-1">
+        <div className="flex flex-col items-center gap-1">
           <h3 className="flex items-center gap-1.5 text-base font-bold tracking-tight text-[color:var(--ink)]">
-            <span className="truncate">{organization.name}</span>
+            <span className="max-w-[220px] truncate">{organization.name}</span>
             <BadgeCheck
               className="h-4.5 w-4.5 shrink-0 text-[#1FA8B6]"
               aria-label="Verified business"
             />
           </h3>
-          <p className="mt-0.5 truncate text-sm text-muted-foreground">
+          <p className="line-clamp-2 text-sm text-muted-foreground">
             {organization.tagline || organization.district || "MatchMax partner"}
           </p>
         </div>
       </div>
-
-      {organization.description ? (
-        <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-          {organization.description}
-        </p>
-      ) : null}
 
       <div className="mt-4 grid grid-cols-3 divide-x divide-border border-y border-border">
         <div className="flex flex-col items-center gap-0.5 py-3">
@@ -125,6 +121,68 @@ function BusinessProfileCard({
         ) : null}
       </div>
     </div>
+  );
+}
+
+function MoreFromCentre({ orgId, currentCourseId }: { orgId: string; currentCourseId: string }) {
+  const { data: courses, isLoading } = useQuery({
+    queryKey: ["organization-more-courses", orgId],
+    queryFn: () => fetchCoursesByOrganizationId(orgId, 20),
+    staleTime: 60_000,
+  });
+
+  const others = (courses ?? []).filter((course) => course.id !== currentCourseId).slice(0, 6);
+  if (isLoading || others.length === 0) return null;
+
+  return (
+    <section className="mt-10 border-t border-border pt-8">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-lg font-bold text-[color:var(--ink)]">More from this centre</h2>
+        <a
+          href={`/courses`}
+          className="text-sm font-semibold text-[color:var(--brand-link)] hover:underline"
+        >
+          View all
+        </a>
+      </div>
+      <div className="mt-4 -mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+        {others.map((course) => {
+          const coursePrice = formatCoursePrice(course.price, course.currency);
+          return (
+            <a
+              key={course.id}
+              href={`/courses/${course.id}`}
+              className="group w-56 shrink-0 snap-start overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
+                {course.image_url ? (
+                  <img
+                    src={course.image_url}
+                    alt={course.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                  />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center text-muted-foreground/40">
+                    <BookOpen className="h-8 w-8" />
+                  </span>
+                )}
+              </div>
+              <div className="p-3">
+                {coursePrice ? (
+                  <p className="text-sm font-black text-[color:var(--ink)]">{coursePrice}</p>
+                ) : (
+                  <p className="text-xs font-semibold text-muted-foreground">Enquire for pricing</p>
+                )}
+                <p className="mt-1 line-clamp-2 text-sm font-medium text-[color:var(--ink)] group-hover:text-[color:var(--brand-link)]">
+                  {course.title}
+                </p>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -271,6 +329,10 @@ function CourseDetail() {
                     </div>
                   ) : null}
                 </dl>
+
+                {course.organization?.id ? (
+                  <MoreFromCentre orgId={course.organization.id} currentCourseId={course.id} />
+                ) : null}
               </div>
 
               <aside>

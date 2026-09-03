@@ -60,7 +60,7 @@ function BusinessJoinPage() {
         },
       });
       toast.success("Organization created — pending activation");
-      navigate({ to: "/business" });
+      navigate({ to: "/business", search: { tab: undefined } });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to create organization");
     } finally {

@@ -31,6 +31,7 @@ type CourseFormModalProps = {
   onOpenChange: (open: boolean) => void;
   organization: Organization;
   course: Course | null;
+  duplicate?: boolean;
   onSaved: () => void;
 };
 
@@ -52,6 +53,7 @@ export function CourseFormModal({
   onOpenChange,
   organization,
   course,
+  duplicate = false,
   onSaved,
 }: CourseFormModalProps) {
   const uploadImageFn = useServerFn(uploadOrganizationImage);
@@ -72,7 +74,7 @@ export function CourseFormModal({
     price: course?.price !== null && course?.price !== undefined ? String(course.price) : "",
     schedule_text: course?.schedule_text ?? "",
     district: course?.district ?? "",
-    is_published: course?.is_published ?? true,
+    is_published: duplicate ? false : (course?.is_published ?? true),
   });
 
   const setField = (patch: Partial<FormState>) => setForm((prev) => ({ ...prev, ...patch }));
@@ -144,7 +146,7 @@ export function CourseFormModal({
 
     setSaving(true);
     try {
-      if (course) {
+      if (course && !duplicate) {
         const { error } = await supabase.from("courses").update(payload).eq("id", course.id);
         if (error) throw new Error(error.message);
         toast.success("Course updated");
@@ -170,9 +172,11 @@ export function CourseFormModal({
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{course ? "Edit course" : "New course"}</DialogTitle>
+          <DialogTitle>
+            {course ? (duplicate ? "Duplicate course" : "Edit course") : "New course"}
+          </DialogTitle>
           <DialogDescription>
-            {course
+            {course && !duplicate
               ? "Update the details of this course."
               : "Publish a course to the public directory. You can unpublish it any time."}
           </DialogDescription>

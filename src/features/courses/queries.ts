@@ -68,6 +68,8 @@ function sanitizeFilterTerm(term: string): string {
   return term.replace(/[,()"\\]/g, " ").trim();
 }
 
+export type OrgFaqPublicItem = { question: string; answer: string };
+
 export type OrganizationPublic = {
   id: string;
   slug: string;
@@ -81,6 +83,13 @@ export type OrganizationPublic = {
   district: string | null;
   logo_url: string | null;
   cover_image_url: string | null;
+  instagram_url: string | null;
+  intro_video_url: string | null;
+  facebook_url: string | null;
+  youtube_url: string | null;
+  founded_year: number | null;
+  languages: string | null;
+  faq: OrgFaqPublicItem[];
   plan: "business" | "enterprise";
   status: "pending" | "active" | "suspended";
   created_at: string;
@@ -158,7 +167,7 @@ export async function fetchOrganizationBySlug(slug: string): Promise<Organizatio
   const { data, error } = await supabase
     .from("organizations")
     .select(
-      "id, slug, name, tagline, description, website_url, contact_email, contact_phone, whatsapp_number, district, logo_url, cover_image_url, plan, status, created_at",
+      "id, slug, name, tagline, description, website_url, contact_email, contact_phone, whatsapp_number, district, logo_url, cover_image_url, instagram_url, intro_video_url, facebook_url, youtube_url, founded_year, languages, faq, plan, status, created_at",
     )
     .eq("slug", slug)
     .maybeSingle();

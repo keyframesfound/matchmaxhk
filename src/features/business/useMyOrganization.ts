@@ -3,11 +3,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback } from "react";
 
 import { useAuth } from "@/features/auth/useAuth";
-import { listMyOrganization } from "./business.functions";
+import { listMyOrganization, type OrgFaqItem } from "./business.functions";
 
 export type OrgPlan = "business" | "enterprise";
 export type OrgStatus = "pending" | "active" | "suspended";
 export type OrgMemberRole = "owner" | "admin";
+export type { OrgFaqItem };
 
 export type Organization = {
   id: string;
@@ -22,6 +23,13 @@ export type Organization = {
   district: string | null;
   logo_url: string | null;
   cover_image_url: string | null;
+  instagram_url: string | null;
+  intro_video_url: string | null;
+  facebook_url: string | null;
+  youtube_url: string | null;
+  founded_year: number | null;
+  languages: string | null;
+  faq: OrgFaqItem[];
   plan: OrgPlan;
   status: OrgStatus;
   created_at: string;

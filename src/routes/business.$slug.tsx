@@ -1,31 +1,61 @@
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft,
   BadgeCheck,
   BookOpen,
   Building2,
   CalendarDays,
+  Camera,
+  Facebook,
   Globe,
+  Instagram,
   Mail,
   MapPin,
   MessageCircle,
+  Pencil,
   Phone,
+  Share2,
+  Youtube,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/business/empty-state";
 import {
+  OrgAboutDialog,
+  OrgContactDialog,
+  OrgIdentityDialog,
+  normalizeFaq,
+} from "@/features/business/organization-edit-dialogs";
+import {
+  getOrganizationRoleForSlug,
+  updateOrganization,
+  uploadOrganizationImage,
+} from "@/features/business/business.functions";
+import { useAuth } from "@/features/auth/useAuth";
+import {
   courseModeLabel,
   fetchCoursesByOrganizationId,
   fetchOrganizationBySlug,
   formatCoursePrice,
+  type OrganizationPublic,
 } from "@/features/courses/queries";
+import { YouTubePlayer } from "@/components/business/youtube-player";
+import { parseYouTubeUrl } from "@/lib/youtube";
 
 export const Route = createFileRoute("/business/$slug")({
   head: () => ({
@@ -104,6 +134,20 @@ function ListingCard({
 
 function BusinessPublicProfile() {
   const { slug } = Route.useParams();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const roleFn = useServerFn(getOrganizationRoleForSlug);
+  const updateOrgFn = useServerFn(updateOrganization);
+  const uploadImageFn = useServerFn(uploadOrganizationImage);
+
+  const [identityOpen, setIdentityOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [levelFilter, setLevelFilter] = useState<string | null>(null);
+  const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState<"logo" | "cover" | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const {
     data: org,
@@ -121,6 +165,19 @@ function BusinessPublicProfile() {
     enabled: !!org,
   });
 
+  const { data: roleData } = useQuery({
+    queryKey: ["my-org-role", slug, user?.id ?? null],
+    queryFn: () => roleFn({ data: { slug } }) as Promise<{ role: "owner" | "admin" | null }>,
+    enabled: !!user && !!slug,
+  });
+  const isOwner = !!user && !!roleData?.role;
+
+  useEffect(() => {
+    if (org) {
+      document.title = `${org.name} | MatchMax`;
+    }
+  }, [org]);
+
   const initials = (org?.name ?? "")
     .split(/\s+/)
     .slice(0, 2)
@@ -131,10 +188,68 @@ function BusinessPublicProfile() {
   const memberSince = org
     ? new Date(org.created_at).toLocaleDateString("en-HK", { month: "long", year: "numeric" })
     : null;
-  const memberSinceShort = org
-    ? new Date(org.created_at).toLocaleDateString("en-HK", { month: "short", year: "numeric" })
-    : null;
+  const faqItems = org ? normalizeFaq(org.faq) : [];
   const courseCount = courses?.length ?? 0;
+
+  const levels = useMemo(
+    () => Array.from(new Set((courses ?? []).map((c) => c.level).filter(Boolean))) as string[],
+    [courses],
+  );
+  const subjects = useMemo(
+    () => Array.from(new Set((courses ?? []).map((c) => c.subject).filter(Boolean))) as string[],
+    [courses],
+  );
+  const filteredCourses = (courses ?? []).filter(
+    (course) =>
+      (!levelFilter || course.level === levelFilter) &&
+      (!subjectFilter || course.subject === subjectFilter),
+  );
+
+  const fileToBase64 = async (file: File): Promise<string> => {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let binary = "";
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.slice(i, i + chunkSize));
+    }
+    return btoa(binary);
+  };
+
+  const handleOwnerImage = async (kind: "logo" | "cover", file: File) => {
+    if (!org) return;
+    setUploadingImage(kind);
+    try {
+      const result = (await uploadImageFn({
+        data: {
+          orgId: org.id,
+          fileName: file.name,
+          contentType: file.type || "image/jpeg",
+          base64Data: await fileToBase64(file),
+        },
+      })) as { key: string; url: string };
+      await (updateOrgFn({
+        data: {
+          orgId: org.id,
+          ...(kind === "logo" ? { logo_url: result.url } : { cover_image_url: result.url }),
+        },
+      }) as Promise<unknown>);
+      toast.success(kind === "logo" ? "Logo updated" : "Cover image updated");
+      void queryClient.invalidateQueries({ queryKey: ["organization-profile", slug] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setUploadingImage(null);
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Profile link copied");
+    } catch {
+      toast.error("Could not copy the link");
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/40">
@@ -170,13 +285,23 @@ function BusinessPublicProfile() {
 
         {org && (
           <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
-            <Link
-              to="/courses"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--brand-link)]"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              All courses
-            </Link>
+            <div className="flex items-center justify-between gap-3">
+              <Link
+                to="/courses"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--brand-link)]"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                All courses
+              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                prefix={<Share2 />}
+                onClick={() => void handleShare()}
+              >
+                Share
+              </Button>
+            </div>
 
             {isPreview && (
               <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
@@ -188,30 +313,91 @@ function BusinessPublicProfile() {
               </div>
             )}
 
+            {isOwner && (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#1FA8B6]/30 bg-[#1FA8B6]/5 p-3 text-sm">
+                <p className="font-medium text-[color:var(--ink)]">
+                  You're viewing your public profile — edit it inline or in the console.
+                </p>
+                <Button asChild variant="outline" size="sm">
+                  <a href="/business">Open console</a>
+                </Button>
+              </div>
+            )}
+
             <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-              {/* Profile card — banner, avatar, stats, tabs */}
               <section className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-                <div className="relative h-32 w-full sm:h-44">
+                {/* Banner */}
+                <div className="group relative h-32 w-full sm:h-44">
                   {org.cover_image_url ? (
                     <img src={org.cover_image_url} alt="" className="h-full w-full object-cover" />
                   ) : (
                     <div className="h-full w-full bg-gradient-to-r from-[#1FA8B6] via-[#2bbfcc] to-[#77E8EE]" />
                   )}
+                  {isOwner && (
+                    <>
+                      <button
+                        type="button"
+                        aria-label="Change cover image"
+                        disabled={uploadingImage !== null}
+                        onClick={() => coverInputRef.current?.click()}
+                        className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md bg-black/50 text-white opacity-0 transition-opacity hover:bg-black/70 focus-visible:opacity-100 group-hover:opacity-100"
+                      >
+                        <Camera className="h-4 w-4" />
+                      </button>
+                      <input
+                        ref={coverInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                        className="sr-only"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          e.target.value = "";
+                          if (file) void handleOwnerImage("cover", file);
+                        }}
+                      />
+                    </>
+                  )}
                 </div>
 
                 <div className="px-5 pb-6 sm:px-8">
                   <div className="relative z-10 -mt-12 flex flex-wrap items-end justify-between gap-4 sm:-mt-14">
-                    {org.logo_url ? (
-                      <img
-                        src={org.logo_url}
-                        alt=""
-                        className="h-24 w-24 rounded-full border-4 border-card object-cover shadow-md sm:h-28 sm:w-28"
-                      />
-                    ) : (
-                      <span className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-card bg-[#1FA8B6] text-2xl font-bold text-white shadow-md sm:h-28 sm:w-28">
-                        {initials || "MM"}
-                      </span>
-                    )}
+                    <div className="group relative shrink-0">
+                      {org.logo_url ? (
+                        <img
+                          src={org.logo_url}
+                          alt=""
+                          className="h-24 w-24 rounded-full border-4 border-card object-cover shadow-md sm:h-28 sm:w-28"
+                        />
+                      ) : (
+                        <span className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-card bg-[#1FA8B6] text-2xl font-bold leading-none text-white shadow-md sm:h-28 sm:w-28">
+                          {initials || "MM"}
+                        </span>
+                      )}
+                      {isOwner && (
+                        <>
+                          <button
+                            type="button"
+                            aria-label="Change logo"
+                            disabled={uploadingImage !== null}
+                            onClick={() => logoInputRef.current?.click()}
+                            className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 text-white opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100 group-hover:opacity-100"
+                          >
+                            <Camera className="h-5 w-5" />
+                          </button>
+                          <input
+                            ref={logoInputRef}
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                            className="sr-only"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              e.target.value = "";
+                              if (file) void handleOwnerImage("logo", file);
+                            }}
+                          />
+                        </>
+                      )}
+                    </div>
                     <div className="flex flex-wrap items-center gap-2 pb-1">
                       {whatsappUrl && (
                         <Button
@@ -243,19 +429,31 @@ function BusinessPublicProfile() {
                     </div>
                   </div>
 
-                  <div className="mt-4">
-                    <h1 className="flex flex-wrap items-center gap-2 text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                      {org.name}
-                      <BadgeCheck
-                        className="h-6 w-6 shrink-0 text-[#1FA8B6]"
-                        aria-label="Verified business"
-                      />
-                    </h1>
-                    {org.tagline ? (
-                      <p className="mt-1.5 max-w-2xl text-[15px] font-medium text-muted-foreground">
-                        {org.tagline}
-                      </p>
-                    ) : null}
+                  <div className="mt-4 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h1 className="flex flex-wrap items-center gap-2 text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                        {org.name}
+                        <BadgeCheck
+                          className="h-6 w-6 shrink-0 text-[#1FA8B6]"
+                          aria-label="Verified business"
+                        />
+                      </h1>
+                      {org.tagline ? (
+                        <p className="mt-1.5 max-w-2xl text-[15px] font-medium text-muted-foreground">
+                          {org.tagline}
+                        </p>
+                      ) : null}
+                    </div>
+                    {isOwner && (
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label="Edit business details"
+                        onClick={() => setIdentityOpen(true)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
 
                   {/* Stats strip */}
@@ -278,23 +476,204 @@ function BusinessPublicProfile() {
                     ) : null}
                     <span className="flex items-baseline gap-1.5">
                       <span className="font-semibold text-[color:var(--ink)]">
-                        {memberSinceShort}
+                        {org.founded_year ?? "—"}
                       </span>
+                      <span className="text-muted-foreground">Founded</span>
+                    </span>
+                    <span className="flex items-baseline gap-1.5">
+                      <span className="font-semibold text-[color:var(--ink)]">{memberSince}</span>
                       <span className="text-muted-foreground">member since</span>
                     </span>
                   </div>
 
-                  <Tabs defaultValue="courses" className="mt-6 gap-5">
+                  <Tabs defaultValue="about" className="mt-6 gap-5">
                     <TabsList className="w-full">
-                      <TabsTrigger value="courses" className="flex-1">
-                        Courses
-                      </TabsTrigger>
                       <TabsTrigger value="about" className="flex-1">
                         About
                       </TabsTrigger>
+                      <TabsTrigger value="courses" className="flex-1">
+                        Courses
+                      </TabsTrigger>
                     </TabsList>
 
+                    <TabsContent value="about">
+                      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,1fr)]">
+                        <div className="min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <h2 className="text-base font-black tracking-tight text-[color:var(--ink)]">
+                              About
+                            </h2>
+                            {isOwner && (
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label="Edit about section"
+                                onClick={() => setAboutOpen(true)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                          <div className="mt-2 space-y-3 text-[15px] leading-relaxed text-muted-foreground">
+                            {parseYouTubeUrl(org.intro_video_url) ? (
+                              <div className="pt-1">
+                                <YouTubePlayer
+                                  url={org.intro_video_url ?? ""}
+                                  title={`Intro video from ${org.name}`}
+                                />
+                              </div>
+                            ) : null}
+                            {org.description ? (
+                              org.description
+                                .split(/\n{2,}/)
+                                .map((paragraph, i) => <p key={i}>{paragraph}</p>)
+                            ) : !parseYouTubeUrl(org.intro_video_url) ? (
+                              <p>This business hasn't added a description yet.</p>
+                            ) : null}
+                          </div>
+
+                          {faqItems.length > 0 && (
+                            <div className="mt-6">
+                              <h3 className="text-sm font-bold text-[color:var(--ink)]">
+                                Frequently asked questions
+                              </h3>
+                              <Accordion type="single" collapsible className="mt-2">
+                                {faqItems.map((item, i) => (
+                                  <AccordionItem key={i} value={`faq-${i}`}>
+                                    <AccordionTrigger className="text-left text-sm font-medium">
+                                      {item.question}
+                                    </AccordionTrigger>
+                                    <AccordionContent className="text-sm text-muted-foreground">
+                                      {item.answer}
+                                    </AccordionContent>
+                                  </AccordionItem>
+                                ))}
+                              </Accordion>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Facts panel */}
+                        <div className="rounded-lg border border-border bg-muted/40 p-4">
+                          <h3 className="text-sm font-bold text-[color:var(--ink)]">Details</h3>
+                          <ul className="mt-3 flex flex-col gap-2.5 text-sm text-muted-foreground">
+                            <li className="flex items-center gap-2.5">
+                              <MapPin className="h-4 w-4 shrink-0" />
+                              {org.district ?? "Hong Kong"}
+                            </li>
+                            {org.founded_year ? (
+                              <li className="flex items-center gap-2.5">
+                                <CalendarDays className="h-4 w-4 shrink-0" />
+                                Founded {org.founded_year}
+                              </li>
+                            ) : null}
+                            {org.languages ? (
+                              <li className="flex items-center gap-2.5">
+                                <BookOpen className="h-4 w-4 shrink-0" />
+                                {org.languages}
+                              </li>
+                            ) : null}
+                            <li className="flex items-center gap-2.5">
+                              <BadgeCheck className="h-4 w-4 shrink-0" />
+                              Member since {memberSince}
+                            </li>
+                            {org.website_url ? (
+                              <li className="flex items-center gap-2.5">
+                                <Globe className="h-4 w-4 shrink-0" />
+                                <a
+                                  href={org.website_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="truncate font-medium text-[color:var(--brand-link)] hover:underline"
+                                >
+                                  {org.website_url.replace(/^https?:\/\//, "")}
+                                </a>
+                              </li>
+                            ) : null}
+                          </ul>
+                          {(org.instagram_url || org.facebook_url || org.youtube_url) && (
+                            <>
+                              <Separator className="my-3" />
+                              <div className="flex items-center gap-2">
+                                {org.instagram_url && (
+                                  <a
+                                    href={org.instagram_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    aria-label="Instagram"
+                                    className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-[#1FA8B6]/40 hover:text-[color:var(--brand-link)]"
+                                  >
+                                    <Instagram className="h-4 w-4" />
+                                  </a>
+                                )}
+                                {org.facebook_url && (
+                                  <a
+                                    href={org.facebook_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    aria-label="Facebook"
+                                    className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-[#1FA8B6]/40 hover:text-[color:var(--brand-link)]"
+                                  >
+                                    <Facebook className="h-4 w-4" />
+                                  </a>
+                                )}
+                                {org.youtube_url && (
+                                  <a
+                                    href={org.youtube_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    aria-label="YouTube"
+                                    className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-[#1FA8B6]/40 hover:text-[color:var(--brand-link)]"
+                                  >
+                                    <Youtube className="h-4 w-4" />
+                                  </a>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </TabsContent>
+
                     <TabsContent value="courses">
+                      {(levels.length > 0 || subjects.length > 0) && (
+                        <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                          {levels.map((level) => (
+                            <button
+                              key={level}
+                              type="button"
+                              aria-pressed={levelFilter === level}
+                              onClick={() =>
+                                setLevelFilter((prev) => (prev === level ? null : level))
+                              }
+                              className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
+                                levelFilter === level
+                                  ? "bg-[#1FA8B6] text-white ring-[#1FA8B6]"
+                                  : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
+                              }`}
+                            >
+                              {level}
+                            </button>
+                          ))}
+                          {subjects.map((subject) => (
+                            <button
+                              key={subject}
+                              type="button"
+                              aria-pressed={subjectFilter === subject}
+                              onClick={() =>
+                                setSubjectFilter((prev) => (prev === subject ? null : subject))
+                              }
+                              className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
+                                subjectFilter === subject
+                                  ? "bg-[#0A245F] text-white ring-[#0A245F]"
+                                  : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
+                              }`}
+                            >
+                              {subject}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       <div className="grid gap-4 sm:grid-cols-2">
                         {coursesLoading && (
                           <>
@@ -302,60 +681,40 @@ function BusinessPublicProfile() {
                             <Skeleton className="h-64 rounded-xl" />
                           </>
                         )}
-                        {!coursesLoading && courseCount === 0 && (
+                        {!coursesLoading && filteredCourses.length === 0 && (
                           <div className="sm:col-span-2">
                             <EmptyState
                               icon={BookOpen}
-                              title="No courses listed yet"
-                              description="This business hasn't published any courses — check back soon."
+                              title="No courses found"
+                              description={
+                                (courses ?? []).length === 0
+                                  ? "This business hasn't published any courses — check back soon."
+                                  : "No courses match the selected filters."
+                              }
                               secondaryAction={
-                                <Button variant="outline" asChild>
-                                  <Link to="/courses">Browse other courses</Link>
-                                </Button>
+                                (levelFilter || subjectFilter) && (courses ?? []).length > 0 ? (
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                      setLevelFilter(null);
+                                      setSubjectFilter(null);
+                                    }}
+                                  >
+                                    Clear filters
+                                  </Button>
+                                ) : (
+                                  <Button variant="outline" asChild>
+                                    <Link to="/courses">Browse other courses</Link>
+                                  </Button>
+                                )
                               }
                             />
                           </div>
                         )}
-                        {(courses ?? []).map((course) => (
+                        {filteredCourses.map((course) => (
                           <ListingCard key={course.id} course={course} />
                         ))}
                       </div>
-                    </TabsContent>
-
-                    <TabsContent value="about" className="flex flex-col gap-4">
-                      <div className="space-y-3 text-[15px] leading-relaxed text-muted-foreground">
-                        {org.description ? (
-                          org.description
-                            .split(/\n{2,}/)
-                            .map((paragraph, i) => <p key={i}>{paragraph}</p>)
-                        ) : (
-                          <p>This business hasn't added a description yet.</p>
-                        )}
-                      </div>
-                      <Separator />
-                      <ul className="flex flex-col gap-2.5 text-sm text-muted-foreground">
-                        <li className="flex items-center gap-2.5">
-                          <MapPin className="h-4 w-4 shrink-0" />
-                          {org.district ?? "Hong Kong"}
-                        </li>
-                        <li className="flex items-center gap-2.5">
-                          <CalendarDays className="h-4 w-4 shrink-0" />
-                          Joined {memberSince}
-                        </li>
-                        {org.website_url ? (
-                          <li className="flex items-center gap-2.5">
-                            <Globe className="h-4 w-4 shrink-0" />
-                            <a
-                              href={org.website_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="font-medium text-[color:var(--brand-link)] hover:underline"
-                            >
-                              {org.website_url.replace(/^https?:\/\//, "")}
-                            </a>
-                          </li>
-                        ) : null}
-                      </ul>
                     </TabsContent>
                   </Tabs>
                 </div>
@@ -365,9 +724,21 @@ function BusinessPublicProfile() {
               <aside>
                 <div className="sticky top-24 space-y-4">
                   <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-                    <h3 className="text-base font-black tracking-tight text-[color:var(--ink)]">
-                      Get in touch
-                    </h3>
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-base font-black tracking-tight text-[color:var(--ink)]">
+                        Get in touch
+                      </h3>
+                      {isOwner && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label="Edit contact details"
+                          onClick={() => setContactOpen(true)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                     <div className="mt-4 flex flex-col gap-3 text-sm">
                       {org.website_url && (
                         <a
@@ -421,18 +792,6 @@ function BusinessPublicProfile() {
                       </Button>
                     )}
                   </div>
-
-                  <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Listed on
-                    </p>
-                    <p className="mt-1.5 text-sm font-bold text-[color:var(--ink)]">
-                      MatchMax Hong Kong
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Verified tutoring businesses & education centres
-                    </p>
-                  </div>
                 </div>
               </aside>
             </div>
@@ -440,6 +799,14 @@ function BusinessPublicProfile() {
         )}
       </main>
       <SiteFooter />
+
+      {org && (
+        <>
+          <OrgIdentityDialog org={org} open={identityOpen} onOpenChange={setIdentityOpen} />
+          <OrgAboutDialog org={org} open={aboutOpen} onOpenChange={setAboutOpen} />
+          <OrgContactDialog org={org} open={contactOpen} onOpenChange={setContactOpen} />
+        </>
+      )}
     </div>
   );
 }
