@@ -1,4 +1,5 @@
 import type { Tutor } from "@/features/tutors/queries";
+import { EXAM_SYSTEMS } from "@/features/tutors/examSystems";
 
 export type TutorSubjectChip = {
   subject: string;
@@ -85,22 +86,13 @@ type TaughtSubjectGroup = {
   levels: Set<string>;
 };
 
-function findExamSystemForSubject(
-  subjectBase: string,
-  examResults: Tutor["exam_results"],
-): string {
+function findExamSystemForSubject(subjectBase: string, examResults: Tutor["exam_results"]): string {
   const baseKey = normalizeSubjectKey(subjectBase);
   for (const result of examResults ?? []) {
     for (const entry of result.subjects ?? []) {
-      const entryKey = normalizeSubjectKey(
-        (entry.subject ?? "").replace(/\b(HL|SL)\b\s*$/i, ""),
-      );
+      const entryKey = normalizeSubjectKey((entry.subject ?? "").replace(/\b(HL|SL)\b\s*$/i, ""));
       if (!entryKey) continue;
-      if (
-        entryKey === baseKey ||
-        entryKey.includes(baseKey) ||
-        baseKey.includes(entryKey)
-      ) {
+      if (entryKey === baseKey || entryKey.includes(baseKey) || baseKey.includes(entryKey)) {
         return String(result.system);
       }
     }
@@ -119,11 +111,7 @@ function collectLevelsFromExamResults(
       const raw = (entry.subject ?? "").trim();
       const entryKey = normalizeSubjectKey(raw.replace(/\b(HL|SL)\b\s*$/i, ""));
       if (!entryKey) continue;
-      if (
-        entryKey === baseKey ||
-        entryKey.includes(baseKey) ||
-        baseKey.includes(entryKey)
-      ) {
+      if (entryKey === baseKey || entryKey.includes(baseKey) || baseKey.includes(entryKey)) {
         const match = raw.match(/\b(HL|SL)\b/i);
         if (match) levels.add(match[1].toUpperCase());
       }
@@ -132,8 +120,7 @@ function collectLevelsFromExamResults(
   return [...levels].sort();
 }
 
-const SYSTEM_ALIAS_PATTERN =
-  /^(IBDP|IB|HKDSE|DSE|A-?Level|IGCSE|AP|SAT)\b[\s:–-]*/i;
+const SYSTEM_ALIAS_PATTERN = /^(IBDP|IB|HKDSE|DSE|A-?Level|IGCSE|AP|SAT)\b[\s:–-]*/i;
 
 const SYSTEM_ALIASES: Record<string, string> = {
   ibdp: "ib",
@@ -152,9 +139,7 @@ const SYSTEM_ALIASES: Record<string, string> = {
  * grouped per exam system with the system prefix shown once per group,
  * e.g. "IBDP: Chem (HL / SL), Bio (HL / SL), IGCSE: Chem, Math".
  */
-export function getTutorSubjectSentence(
-  tutor: Pick<Tutor, "subjects" | "exam_results">,
-): string {
+export function getTutorSubjectSentence(tutor: Pick<Tutor, "subjects" | "exam_results">): string {
   const groups: TaughtSubjectGroup[] = [];
 
   for (const raw of tutor.subjects ?? []) {
@@ -176,8 +161,7 @@ export function getTutorSubjectSentence(
     const base = levelMatch ? trimmed.slice(0, levelMatch.index).trim() : trimmed;
     const baseKey = normalizeSubjectKey(base);
 
-    const systemId =
-      explicitSystemId || findExamSystemForSubject(base, tutor.exam_results);
+    const systemId = explicitSystemId || findExamSystemForSubject(base, tutor.exam_results);
 
     let group = groups.find(
       (g) => normalizeSubjectKey(g.base) === baseKey && g.systemId === systemId,
@@ -221,6 +205,72 @@ export function getTutorSubjectSentence(
   return parts.join(", ");
 }
 
+export type TutorSubjectGroup = {
+  systemId: string;
+  subjects: string[];
+};
+
+/**
+ * Groups the subjects saved in the tutor editor by exam system so the profile
+ * can render one row per system: "IBDP: Math AA HL, Math AA SL", "HKDSE: ...".
+ * Subjects are categorized against the canonical exam-system lists; anything
+ * unmatched lands in the "other" system.
+ */
+export function getTutorSubjectGroups(
+  tutor: Pick<Tutor, "subjects" | "exam_results">,
+): TutorSubjectGroup[] {
+  // Canonical subject name -> system ids, in EXAM_SYSTEMS order. Names that
+  // exist in several systems (e.g. "Biology") keep every candidate id so the
+  // tutor's own exam results can disambiguate.
+  const systemIdsBySubject = new Map<string, string[]>();
+  for (const system of EXAM_SYSTEMS) {
+    for (const subject of system.subjects) {
+      const key = normalizeSubjectKey(subject);
+      if (!key) continue;
+      const ids = systemIdsBySubject.get(key) ?? [];
+      if (!ids.includes(system.id)) ids.push(system.id);
+      systemIdsBySubject.set(key, ids);
+    }
+  }
+
+  const groups = new Map<string, string[]>();
+  const addSubject = (systemId: string, subject: string) => {
+    const id = systemId || "other";
+    const list = groups.get(id) ?? [];
+    list.push(subject);
+    groups.set(id, list);
+  };
+
+  for (const raw of tutor.subjects ?? []) {
+    const subject = raw.trim();
+    if (!subject) continue;
+
+    const matchingSystemIds = systemIdsBySubject.get(normalizeSubjectKey(subject)) ?? [];
+    if (matchingSystemIds.length > 0) {
+      const inferredSystemId = findExamSystemForSubject(subject, tutor.exam_results);
+      const systemId = matchingSystemIds.includes(inferredSystemId)
+        ? inferredSystemId
+        : matchingSystemIds[0];
+      addSubject(systemId, subject);
+      continue;
+    }
+
+    // Free-text tags may carry an explicit system prefix, e.g. "IB Biology".
+    const systemMatch = subject.match(SYSTEM_ALIAS_PATTERN);
+    if (systemMatch) {
+      const explicitSystemId = SYSTEM_ALIASES[systemMatch[1].toLowerCase()] ?? "";
+      const rest = subject.slice(systemMatch[0].length).trim();
+      if (!rest) continue;
+      addSubject(explicitSystemId, rest);
+      continue;
+    }
+
+    addSubject(findExamSystemForSubject(subject, tutor.exam_results), subject);
+  }
+
+  return [...groups.entries()].map(([systemId, subjects]) => ({ systemId, subjects }));
+}
+
 /**
  * Legacy single-label formatter. Kept for hero chips and other call sites.
  */
@@ -239,4 +289,3 @@ export function formatTaughtSubjectLabel(
   const suffix = level ? ` (${level})` : "";
   return `${prefix ? `${prefix}: ` : ""}${base}${suffix}`;
 }
-

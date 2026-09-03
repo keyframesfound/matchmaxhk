@@ -23,6 +23,7 @@ import {
   type Tutor,
 } from "@/features/tutors/queries";
 import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
+import { getTutorSubjectGroups } from "@/features/tutors/tutor-display";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 
 function buildTutorSeoMeta(tutor: Tutor, url: string) {
@@ -251,6 +252,10 @@ function TutorDetail() {
     : "";
   const genderLabel = getTutorGenderLabel(t.gender);
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
+  const subjectGroups = getTutorSubjectGroups(t).map((group) => ({
+    ...group,
+    systemLabel: formatExamSystemLabel(group.systemId),
+  }));
   const examResults = (t.exam_results ?? []).filter((result) =>
     result.subjects.some((entry) => entry.subject.trim()),
   );
@@ -417,9 +422,16 @@ function TutorDetail() {
                 <ProfileSection icon={Layers} title="Subjects Taught">
                   <div className="text-left text-sm">
                     {t.subjects.length > 0 ? (
-                      <p className="font-bold leading-relaxed text-[color:var(--ink)]">
-                        {t.subjects.filter(Boolean).join(", ")}
-                      </p>
+                      <div className="space-y-1">
+                        {subjectGroups.map((group) => (
+                          <p
+                            key={group.systemId}
+                            className="font-bold leading-relaxed text-[color:var(--ink)]"
+                          >
+                            {group.systemLabel}: {group.subjects.join(", ")}
+                          </p>
+                        ))}
+                      </div>
                     ) : null}
                     {t.ia_ee_tok_support.length > 0 ? (
                       <p className="mt-1 text-muted-foreground">
