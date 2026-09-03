@@ -152,17 +152,23 @@
   --focus-ring: 0 0 0 3px color-mix(in oklab, var(--ring) 32%, transparent);
 }
 
+/*
+ * Dark theme — "Untitled UI"-style cool dark surfaces.
+ * Canvas  #0C111D (gray-950) · Cards #101828 (gray-900) · Elevated #182230–#1D2939 (gray-850/800)
+ * Borders stay subtle (#1E2836), secondary text is gray-400 (#98A2B3),
+ * and the brand blue accents (#ABD2FA / #0A245F / #1B2CC1 / teal) are preserved.
+ */
 .dark {
-  --ink: #ffffff;
-  --surface: #1e1d20;
-  --surface-subtle: #181719;
-  --surface-raised: #28262b;
-  --surface-hover: #333137;
-  --surface-invert: #0a245f;
-  --surface-invert-hover: #1b2cc1;
+  --ink: #f4f7fb;
+  --surface: #090a0c;
+  --surface-subtle: #0c0e11;
+  --surface-raised: #111419;
+  --surface-hover: #1a1f27;
+  --surface-invert: #102a63;
+  --surface-invert-hover: #173f96;
   --brand-link: #abd2fa;
-  --subtle-foreground: #a09ba4;
-  --disabled-foreground: #76717a;
+  --subtle-foreground: #9ca3af;
+  --disabled-foreground: #6b7280;
   --success: #5ee6a1;
   --success-foreground: #082617;
   --warning: #ffd37a;
@@ -170,49 +176,53 @@
 
   /* Stepper */
   --stepper-row-bg: linear-gradient(135deg, color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)), var(--color-card));
-  --stepper-inactive-bg: #28262b;
-  --stepper-inactive-fg: #c9c5cc;
+  --stepper-inactive-bg: #1d2939;
+  --stepper-inactive-fg: #d0d5dd;
   --stepper-active-bg: #abd2fa;
   --stepper-active-fg: #041344;
   --stepper-complete-bg: #abd2fa;
   --stepper-complete-fg: #041344;
   --stepper-dot: #041344;
   --stepper-connector: #abd2fa;
-  --gradient-brand: linear-gradient(135deg, #121010 0%, #0a245f 70%, #1b2cc1 100%);
-  --gradient-brand-soft: linear-gradient(135deg, #121010 0%, #1e1d20 100%);
+  --gradient-brand: linear-gradient(135deg, #090a0c 0%, #102a63 70%, #173f96 100%);
+  --gradient-brand-soft: linear-gradient(135deg, #090a0c 0%, #111419 100%);
 
-  --background: #121010;
-  --foreground: #ffffff;
-  --card: #1e1d20;
-  --card-foreground: #ffffff;
-  --popover: #28262b;
-  --popover-foreground: #ffffff;
+  --background: #090a0c;
+  --foreground: #f4f7fb;
+  --card: #111419;
+  --card-foreground: #f4f7fb;
+  --popover: #15191f;
+  --popover-foreground: #f4f7fb;
   --primary: #abd2fa;
   --primary-foreground: #041344;
-  --secondary: #28262b;
-  --secondary-foreground: #ffffff;
-  --muted: #28262b;
-  --muted-foreground: #c9c5cc;
-  --accent: #abd2fa;
-  --accent-foreground: #041344;
-  --destructive: #ff9b99;
-  --destructive-foreground: #3a0808;
-  --border: #4a474d;
-  --input: #4a474d;
+  --secondary: #1a1f27;
+  --secondary-foreground: #e5e7eb;
+  --muted: #161a20;
+  --muted-foreground: #9ca3af;
+  --accent: #1a1f27;
+  --accent-foreground: #f4f7fb;
+  --destructive: #f04438;
+  --destructive-foreground: #ffffff;
+  --border: #242932;
+  --input: #2a303a;
   --ring: #abd2fa;
   --chart-1: #abd2fa;
   --chart-2: #5ee6a1;
   --chart-3: #ffd37a;
-  --chart-4: #ff9b99;
+  --chart-4: #f97066;
   --chart-5: #d6a8ff;
-  --sidebar: #181719;
-  --sidebar-foreground: #ffffff;
+  --sidebar: #08090b;
+  --sidebar-foreground: #f4f7fb;
   --sidebar-primary: #abd2fa;
   --sidebar-primary-foreground: #041344;
-  --sidebar-accent: #28262b;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #4a474d;
+  --sidebar-accent: #1a1f27;
+  --sidebar-accent-foreground: #f4f7fb;
+  --sidebar-border: #242932;
   --sidebar-ring: #abd2fa;
+
+  /* Deep neutral elevation shadows for dark surfaces */
+  --shadow-brand: 0 16px 40px -24px rgba(0, 0, 0, 0.78);
+  --shadow-teal: 0 16px 32px -20px rgba(0, 0, 0, 0.72);
 }
 
 @layer base {
@@ -353,6 +363,10 @@
     background-color: transparent !important;
     background-image: none !important;
     background-attachment: scroll !important;
+  }
+
+  .dark .bg-white {
+    background-color: var(--card) !important;
   }
 }
 
