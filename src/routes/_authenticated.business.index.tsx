@@ -151,9 +151,21 @@ function BusinessOverview() {
             <p className="mt-3 break-all text-sm font-bold text-[color:var(--ink)]">
               /business/{organization.slug}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Public page coming after activation
-            </p>
+            {organization.status === "active" ? (
+              <a
+                href={`/business/${organization.slug}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
+              >
+                View public profile
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            ) : (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Public page goes live after activation
+              </p>
+            )}
           </div>
         </div>
 

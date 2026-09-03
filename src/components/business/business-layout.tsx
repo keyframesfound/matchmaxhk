@@ -92,9 +92,9 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
 
   return (
     <div className="flex min-h-screen bg-muted/40">
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
-        <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1FA8B6] text-sm font-bold text-white">
+      <aside className="sticky top-16 hidden h-fit w-64 shrink-0 self-start flex-col border-r border-border bg-card lg:flex">
+        <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1FA8B6] text-sm font-bold text-white">
             {initials || "MM"}
           </span>
           <div className="min-w-0">
@@ -105,7 +105,7 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3 py-4">
+        <nav className="flex-1 space-y-0.5 px-3 py-3">
           {NAV_ITEMS.map((item) => {
             const active = location.pathname === item.match;
             return (
@@ -137,8 +137,8 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
             </div>
           )}
           <Button asChild variant="outline" size="sm" className="w-full">
-            <a href="/courses" target="_blank" rel="noreferrer">
-              View public directory
+            <a href={`/business/${organization.slug}`} target="_blank" rel="noreferrer">
+              View public profile
             </a>
           </Button>
         </div>
@@ -157,9 +157,14 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
           <div className="hidden items-center gap-3 lg:flex">
             <PlanBadge plan={organization.plan} />
             <span className="h-4 w-px bg-border" />
-            <span className="text-xs text-muted-foreground">
+            <a
+              href={`/business/${organization.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-muted-foreground hover:text-[color:var(--brand-link)] hover:underline"
+            >
               matchmax.hk/business/{organization.slug}
-            </span>
+            </a>
           </div>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">

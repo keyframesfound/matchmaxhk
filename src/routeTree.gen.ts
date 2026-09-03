@@ -22,6 +22,7 @@ import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
+import { Route as BusinessSlugRouteImport } from './routes/business.$slug'
 import { Route as CoursesIndexRouteImport } from './routes/courses.index'
 import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
@@ -106,6 +107,11 @@ const AuthenticatedSavedPostsRoute = AuthenticatedSavedPostsRouteImport.update({
   id: '/saved-posts',
   path: '/saved-posts',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const BusinessSlugRoute = BusinessSlugRouteImport.update({
+  id: '/business/$slug',
+  path: '/business/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CoursesIndexRoute = CoursesIndexRouteImport.update({
   id: '/courses/',
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
+  '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses/': typeof CoursesIndexRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
+  '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses': typeof CoursesIndexRoute
@@ -301,6 +309,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
+  '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses/': typeof CoursesIndexRoute
@@ -337,6 +346,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/dashboard'
     | '/saved-posts'
+    | '/business/$slug'
     | '/courses/$courseId'
     | '/tutors/$tutorCode'
     | '/courses/'
@@ -371,6 +381,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/dashboard'
     | '/saved-posts'
+    | '/business/$slug'
     | '/courses/$courseId'
     | '/tutors/$tutorCode'
     | '/courses'
@@ -406,6 +417,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/dashboard'
     | '/_authenticated/saved-posts'
+    | '/business/$slug'
     | '/courses/$courseId'
     | '/tutors/$tutorCode'
     | '/courses/'
@@ -440,6 +452,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  BusinessSlugRoute: typeof BusinessSlugRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
   CoursesIndexRoute: typeof CoursesIndexRoute
@@ -541,6 +554,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/saved-posts'
       preLoaderRoute: typeof AuthenticatedSavedPostsRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/business/$slug': {
+      id: '/business/$slug'
+      path: '/business/$slug'
+      fullPath: '/business/$slug'
+      preLoaderRoute: typeof BusinessSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/courses/': {
       id: '/courses/'
@@ -737,6 +757,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  BusinessSlugRoute: BusinessSlugRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
   CoursesIndexRoute: CoursesIndexRoute,

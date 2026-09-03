@@ -199,9 +199,12 @@ function CourseDetail() {
                       </span>
                     )}
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-[color:var(--ink)]">
+                      <a
+                        href={`/business/${course.organization?.slug ?? ""}`}
+                        className="truncate text-sm font-bold text-[color:var(--ink)] hover:text-[color:var(--brand-link)] hover:underline"
+                      >
                         {course.organization?.name ?? "MatchMax partner"}
-                      </p>
+                      </a>
                       {course.organization?.district ? (
                         <p className="text-xs text-muted-foreground">
                           {course.organization.district}

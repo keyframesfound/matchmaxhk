@@ -60,7 +60,10 @@ const buttonVariants = cva(
   },
 );
 
-export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "color"> &
+export type ButtonProps = Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "color" | "prefix" | "suffix"
+> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
     /** Adds an accessible spinner while preserving the button label and width. */

@@ -64,15 +64,35 @@ function sanitizeFilterTerm(term: string): string {
   return term.replace(/[,()"\\]/g, " ").trim();
 }
 
+export type OrganizationPublic = {
+  id: string;
+  slug: string;
+  name: string;
+  tagline: string | null;
+  description: string | null;
+  website_url: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  whatsapp_number: string | null;
+  district: string | null;
+  logo_url: string | null;
+  cover_image_url: string | null;
+  plan: "business" | "enterprise";
+  status: "pending" | "active" | "suspended";
+  created_at: string;
+};
+
+function courseWithOrgSelect(): string {
+  return "*, organization:organizations!inner(id, slug, name, logo_url, district, whatsapp_number, contact_email, contact_phone)";
+}
+
 export async function fetchPublishedCourses(
   filters: CourseFilters = {},
   limit = 60,
 ): Promise<CourseWithOrganization[]> {
   let query = supabase
     .from("courses")
-    .select(
-      "*, organization:organizations!inner(id, slug, name, logo_url, district, whatsapp_number, contact_email, contact_phone)",
-    )
+    .select(courseWithOrgSelect())
     .eq("is_published", true)
     .eq("organizations.status", "active")
     .order("created_at", { ascending: false })
@@ -119,15 +139,42 @@ export async function fetchPublishedCourseSubjects(): Promise<string[]> {
 export async function fetchCourseById(id: string): Promise<CourseWithOrganization | null> {
   const { data, error } = await supabase
     .from("courses")
-    .select(
-      "*, organization:organizations!inner(id, slug, name, logo_url, district, whatsapp_number, contact_email, contact_phone)",
-    )
+    .select(courseWithOrgSelect())
     .eq("id", id)
     .eq("is_published", true)
     .eq("organizations.status", "active")
     .maybeSingle();
   if (error) throw new Error(error.message);
   return (data as unknown as CourseWithOrganization | null) ?? null;
+}
+
+export async function fetchOrganizationBySlug(slug: string): Promise<OrganizationPublic | null> {
+  const { data, error } = await supabase
+    .from("organizations")
+    .select(
+      "id, slug, name, tagline, description, website_url, contact_email, contact_phone, whatsapp_number, district, logo_url, cover_image_url, plan, status, created_at",
+    )
+    .eq("slug", slug)
+    .eq("status", "active")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data as unknown as OrganizationPublic | null) ?? null;
+}
+
+export async function fetchCoursesByOrganizationId(
+  orgId: string,
+  limit = 50,
+): Promise<CourseWithOrganization[]> {
+  const { data, error } = await supabase
+    .from("courses")
+    .select(courseWithOrgSelect())
+    .eq("organization_id", orgId)
+    .eq("is_published", true)
+    .eq("organizations.status", "active")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as unknown as CourseWithOrganization[];
 }
 
 export function courseModeLabel(mode: CourseMode): string {
