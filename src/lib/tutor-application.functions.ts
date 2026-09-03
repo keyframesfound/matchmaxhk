@@ -43,7 +43,7 @@ export const extractTranscriptQualification = createServerFn({ method: "POST" })
       },
       signal: AbortSignal.timeout(30_000),
       body: JSON.stringify({
-        model: "openrouter/auto",
+        model: "qwen/qwen3-vl-32b-instruct",
         temperature: 0,
         response_format: { type: "json_object" },
         messages: [

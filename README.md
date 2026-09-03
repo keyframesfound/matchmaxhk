@@ -9,8 +9,8 @@ MatchMax is a Hong Kong based Education-Tutor Startup aiming at IBDP , IGCSE, DS
 ### Transcript AI auto-fill
 
 Transcript image extraction uses OpenRouter. Add `OPENROUTER_API_KEY` to the local environment
-and the Vercel project environment variables before deploying. The feature accepts JPG and PNG
-images only.
+and the Vercel project environment variables before deploying. It uses Qwen3-VL for image OCR and
+accepts JPG and PNG images only.
 
 ### Cloudflare R2 (tutor profile images)
 
