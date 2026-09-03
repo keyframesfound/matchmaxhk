@@ -1,6 +1,6 @@
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Award, UserRound } from "lucide-react";
-import { getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
+import { getTutorCardHighlights, getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
 import {
   formatTutorCode,
   getTutorSubjectChips,
@@ -71,6 +71,7 @@ export function PublicTutorCard({
 }: PublicTutorCardProps) {
   const interactive = typeof onOpen === "function";
   const academicChips = useMemo(() => getTutorSubjectChips(tutor), [tutor]);
+  const cardHighlights = useMemo(() => getTutorCardHighlights(tutor), [tutor]);
   const academicChipsRef = useRef<HTMLDivElement | null>(null);
   const academicWidthRef = useRef<number | null>(null);
   const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
@@ -112,9 +113,7 @@ export function PublicTutorCard({
       const button = container.querySelector<HTMLElement>("[data-academic-more]");
       const rowOffsets = Array.from(
         new Set([...chips, ...(button ? [button] : [])].map((item) => item.offsetTop)),
-      ).sort(
-        (first, second) => first - second,
-      );
+      ).sort((first, second) => first - second);
 
       if (visibleAcademicChipCount === academicChips.length) {
         if (rowOffsets.length > 2) {
@@ -232,7 +231,7 @@ export function PublicTutorCard({
                 {academicChips
                   .slice(0, areAcademicChipsExpanded ? undefined : visibleAcademicChipCount)
                   .map((chip, index) => (
-                  <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
+                    <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
                   ))}
                 {!areAcademicChipsExpanded && visibleAcademicChipCount < academicChips.length ? (
                   <button
@@ -277,11 +276,19 @@ export function PublicTutorCard({
             </ul>
           ) : null}
 
-          <p className="mt-2 line-clamp-3 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--ink)] md:mt-2.5 md:text-[14px]">
-            {removeEmoji(
-              tutor.headline ?? "Experienced tutor matching students with tailored support",
-            )}
-          </p>
+          <div className="mt-2.5 space-y-1 md:mt-3" aria-label="Tutor card highlights">
+            {(cardHighlights.length > 0
+              ? cardHighlights
+              : ["Experienced tutor matching students with tailored support"]
+            ).map((highlight, index) => (
+              <p
+                key={`${highlight}-${index}`}
+                className="line-clamp-1 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--ink)] md:text-[14px]"
+              >
+                {removeEmoji(highlight)}
+              </p>
+            ))}
+          </div>
         </section>
       </div>
 

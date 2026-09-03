@@ -3,6 +3,8 @@ import { normalizeExamResults, type ExamResult } from "./examSystems";
 
 export const MAX_TUTOR_ACHIEVEMENTS = 3;
 export const TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT = 60;
+export const MAX_TUTOR_CARD_HIGHLIGHTS = 3;
+export const TUTOR_CARD_HIGHLIGHT_ROW_LIMIT = 40;
 export const IA_EE_TOK_SUPPORT_OPTIONS = ["IA", "EE", "TOK"] as const;
 
 export type TutorAchievement = {
@@ -10,12 +12,43 @@ export type TutorAchievement = {
   detail_text?: string;
 };
 
+export function normalizeTutorCardHighlights(
+  raw: unknown,
+  legacyHeadline: unknown = null,
+): string[] {
+  const values = Array.isArray(raw)
+    ? raw
+        .filter((value): value is string => typeof value === "string")
+        .map((value) => value.trim().slice(0, TUTOR_CARD_HIGHLIGHT_ROW_LIMIT))
+        .filter(Boolean)
+    : [];
+  if (values.length > 0) {
+    return values.slice(0, MAX_TUTOR_CARD_HIGHLIGHTS);
+  }
+
+  const legacy = typeof legacyHeadline === "string" ? legacyHeadline.trim() : "";
+  if (!legacy) return [];
+
+  return legacy
+    .split(/\r?\n|\s*\|\s*/)
+    .map((value) => value.trim().slice(0, TUTOR_CARD_HIGHLIGHT_ROW_LIMIT))
+    .filter(Boolean)
+    .slice(0, MAX_TUTOR_CARD_HIGHLIGHTS);
+}
+
+export function getTutorCardHighlights(
+  tutor: Pick<Tutor, "card_highlights" | "headline">,
+): string[] {
+  return normalizeTutorCardHighlights(tutor.card_highlights, tutor.headline);
+}
+
 export type IaEeTokSupport = (typeof IA_EE_TOK_SUPPORT_OPTIONS)[number];
 
 export type Tutor = {
   id: string;
   display_name: string;
   headline: string | null;
+  card_highlights: string[];
   academic_headline: string | null;
   university: string | null;
   secondary_school: string | null;
@@ -49,7 +82,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, academic_headline, university, secondary_school, target_students, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, photo_url, tutor_code, is_published, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
+  "id, display_name, headline, card_highlights, academic_headline, university, secondary_school, target_students, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, photo_url, tutor_code, is_published, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -172,6 +205,7 @@ function normalize(
   return {
     ...(row as unknown as Tutor),
     photo_url: resolvedPhotoUrl,
+    card_highlights: normalizeTutorCardHighlights(row.card_highlights, row.headline),
     academic_headline: typeof row.academic_headline === "string" ? row.academic_headline : null,
     university: typeof row.university === "string" ? row.university : null,
     secondary_school: typeof row.secondary_school === "string" ? row.secondary_school : null,

@@ -2,14 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  ExternalLink,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-  Users,
-} from "lucide-react";
+import { ExternalLink, Pencil, Plus, Search, Trash2, Users } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -30,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import {
   fetchAllTutors,
+  getTutorCardHighlights,
   getTutorGenderLabel,
   type Tutor,
 } from "@/features/tutors/queries";
@@ -74,7 +68,7 @@ function AdminTutors() {
         (r.display_name ?? "").toLowerCase().includes(q) ||
         (r.tutor_code ?? "").toLowerCase().includes(q) ||
         (r.subjects ?? []).some((s) => (s ?? "").toLowerCase().includes(q)) ||
-        (r.headline ?? "").toLowerCase().includes(q),
+        getTutorCardHighlights(r).some((highlight) => highlight.toLowerCase().includes(q)),
     );
   }, [tutors, search]);
 
@@ -167,7 +161,7 @@ function AdminTutors() {
                 <div className="relative w-full max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search by code, subject, headline..."
+                    placeholder="Search by code, subject, card highlight..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-9 h-10 bg-[color:var(--surface)] border-[color:var(--ink)]/15"
@@ -275,9 +269,17 @@ function AdminTutors() {
                                   </span>
                                 )}
                               </div>
-                              <p className="text-xs text-muted-foreground line-clamp-1 max-w-sm mt-0.5">
-                                {row.headline ?? "No headline added"}
-                              </p>
+                              <div className="mt-0.5 max-w-sm space-y-0.5 text-xs text-muted-foreground">
+                                {getTutorCardHighlights(row).length > 0 ? (
+                                  getTutorCardHighlights(row).map((highlight, index) => (
+                                    <p key={`${highlight}-${index}`} className="line-clamp-1">
+                                      {highlight}
+                                    </p>
+                                  ))
+                                ) : (
+                                  <p>No card highlights added</p>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -381,10 +383,7 @@ function AdminTutors() {
       <SiteFooter />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={Boolean(deletingId)}
-        onOpenChange={(open) => !open && setDeletingId(null)}
-      >
+      <AlertDialog open={Boolean(deletingId)} onOpenChange={(open) => !open && setDeletingId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Tutor Profile?</AlertDialogTitle>

@@ -304,6 +304,7 @@ export type Database = {
           exam_results: Json
           gender: string | null
           headline: string | null
+          card_highlights: string[]
           hourly_rate: number
           ia_ee_tok_notes: string | null
           ia_ee_tok_support: string[]
@@ -332,6 +333,7 @@ export type Database = {
           exam_results?: Json
           gender?: string | null
           headline?: string | null
+          card_highlights?: string[]
           hourly_rate?: number
           ia_ee_tok_notes?: string | null
           ia_ee_tok_support?: string[]
@@ -360,6 +362,7 @@ export type Database = {
           exam_results?: Json
           gender?: string | null
           headline?: string | null
+          card_highlights?: string[]
           hourly_rate?: number
           ia_ee_tok_notes?: string | null
           ia_ee_tok_support?: string[]

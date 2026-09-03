@@ -16,6 +16,7 @@ import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 import {
   fetchPublishedTutors,
+  getTutorCardHighlights,
   HK_DISTRICTS,
   matchesDistrictFilter,
   matchesLessonModeFilter,
@@ -137,7 +138,11 @@ function TutorsDirectory() {
     const query = (draft.q ?? "").trim().toLowerCase();
     const list = tutors.filter((tut) => {
       if (categoryFilter) {
-        const categorySource = [...tut.subjects, ...tut.target_students, tut.headline ?? ""]
+        const categorySource = [
+          ...tut.subjects,
+          ...tut.target_students,
+          ...getTutorCardHighlights(tut),
+        ]
           .join(" ")
           .toLowerCase();
         if (!categorySource.includes(categoryFilter)) return false;
@@ -155,7 +160,7 @@ function TutorsDirectory() {
         !(
           tut.tutor_code.toLowerCase().includes(query) ||
           tut.subjects.some((s) => matchesSubjectQuery(s, query)) ||
-          (tut.headline ?? "").toLowerCase().includes(query)
+          getTutorCardHighlights(tut).some((highlight) => highlight.toLowerCase().includes(query))
         )
       )
         return false;

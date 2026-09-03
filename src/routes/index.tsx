@@ -19,6 +19,7 @@ import {
   fetchTopWeeklyTutors,
   fetchLandingStats,
   fetchTutorByCode,
+  getTutorCardHighlights,
   HK_DISTRICTS,
 } from "@/features/tutors/queries";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
@@ -198,7 +199,7 @@ function Landing() {
   const tutorsForCategory = (category: string) =>
     publishedTutors
       .filter((tutor) =>
-        [...tutor.subjects, ...tutor.target_students, tutor.headline ?? ""]
+        [...tutor.subjects, ...tutor.target_students, ...getTutorCardHighlights(tutor)]
           .join(" ")
           .toLowerCase()
           .includes(category.toLowerCase()),
@@ -386,7 +387,11 @@ function Landing() {
                       variant="ghost"
                       className="h-11 w-11 shrink-0 rounded-full bg-[color:var(--surface)] hover:bg-[color:var(--surface-invert)] hover:text-white"
                     >
-                      <Link to="/tutors" search={{ category: value }} aria-label={`Browse all ${label} tutors`}>
+                      <Link
+                        to="/tutors"
+                        search={{ category: value }}
+                        aria-label={`Browse all ${label} tutors`}
+                      >
                         <ArrowRight className="h-5 w-5" aria-hidden="true" />
                       </Link>
                     </Button>
@@ -404,7 +409,10 @@ function Landing() {
                   ) : tutors.length > 0 ? (
                     <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:gap-6 md:px-0">
                       {tutors.map((tutor) => (
-                        <div key={tutor.id} className="w-[min(86vw,370px)] shrink-0 snap-start md:w-[350px] xl:w-[370px]">
+                        <div
+                          key={tutor.id}
+                          className="w-[min(86vw,370px)] shrink-0 snap-start md:w-[350px] xl:w-[370px]"
+                        >
                           <PublicTutorCard
                             tutor={tutor}
                             priceSuffix={t("featured.per_hour")}
@@ -416,7 +424,12 @@ function Landing() {
                                   asChild
                                   className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                                 >
-                                  <a href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>
+                                  <a
+                                    href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
                                     Request tutor
                                   </a>
                                 </Button>

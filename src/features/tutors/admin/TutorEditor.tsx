@@ -55,7 +55,10 @@ import {
   HK_DISTRICTS,
   IA_EE_TOK_SUPPORT_OPTIONS,
   MAX_TUTOR_ACHIEVEMENTS,
+  MAX_TUTOR_CARD_HIGHLIGHTS,
   TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT,
+  TUTOR_CARD_HIGHLIGHT_ROW_LIMIT,
+  normalizeTutorCardHighlights,
   type Tutor,
   type IaEeTokSupport,
   type TutorAchievement,
@@ -119,7 +122,11 @@ const achievementSchema = z.object({
 });
 
 export const tutorFormSchema = z.object({
-  headline: z.string().trim().min(1, "Headline is required").max(200),
+  headline: z.string().trim().max(200).optional().or(z.literal("")),
+  card_highlights: z
+    .array(z.string().trim().max(TUTOR_CARD_HIGHLIGHT_ROW_LIMIT))
+    .max(MAX_TUTOR_CARD_HIGHLIGHTS)
+    .refine((values) => values.some((value) => value.trim()), "Add at least one card highlight"),
   subjects: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one subject"),
   target_students: z.array(z.string().trim().min(1).max(80)),
   academic_headline: z.string().trim().max(120).optional().or(z.literal("")),
@@ -153,6 +160,7 @@ export type TutorFormData = z.infer<typeof tutorFormSchema>;
 
 export const emptyTutorForm: TutorFormData = {
   headline: "",
+  card_highlights: ["", "", ""],
   subjects: [],
   target_students: [],
   academic_headline: "",
@@ -178,6 +186,9 @@ export const emptyTutorForm: TutorFormData = {
 export function tutorToFormData(t: Tutor): TutorFormData {
   return {
     headline: t.headline ?? "",
+    card_highlights: normalizeTutorCardHighlights(t.card_highlights, t.headline)
+      .concat(["", "", ""])
+      .slice(0, MAX_TUTOR_CARD_HIGHLIGHTS),
     subjects: t.subjects ?? [],
     target_students: t.target_students ?? [],
     academic_headline: t.academic_headline ?? "",
@@ -245,7 +256,17 @@ export function formDataToPayload(v: TutorFormData) {
 
   return {
     display_name: v.tutor_code.trim(),
-    headline: v.headline.trim(),
+    headline:
+      v.card_highlights
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .join(" | ") ||
+      v.headline?.trim() ||
+      null,
+    card_highlights: v.card_highlights
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .slice(0, MAX_TUTOR_CARD_HIGHLIGHTS),
     academic_headline: v.academic_headline?.trim() || null,
     university: v.university?.trim() || null,
     secondary_school: v.secondary_school?.trim() || null,
@@ -602,7 +623,17 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
     () => ({
       id: initialData?.id ?? "preview-tutor",
       display_name: form.tutor_code.trim() || "MM-PREVIEW",
-      headline: form.headline.trim() || null,
+      headline:
+        form.card_highlights
+          .map((value) => value.trim())
+          .filter(Boolean)
+          .join(" | ") ||
+        form.headline?.trim() ||
+        null,
+      card_highlights: form.card_highlights
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .slice(0, MAX_TUTOR_CARD_HIGHLIGHTS),
       academic_headline: form.academic_headline?.trim() || null,
       university: form.university?.trim() || null,
       secondary_school: form.secondary_school?.trim() || null,
@@ -853,7 +884,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
             <EditorSection
               icon={User}
               title="Identity & Media"
-              description="Basic profile identification, headline, badge, and photo."
+              description="Basic profile identification, badge, and photo. Card highlights are edited in their own section below."
               id="identity"
             >
               <div className="grid gap-4 sm:grid-cols-3">
@@ -892,19 +923,6 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                   />
                 </FormField>
               </div>
-
-              <FormField
-                label="Headline"
-                required
-                error={errors.headline}
-                hint="Concise 3-line highlight"
-              >
-                <Input
-                  value={form.headline}
-                  onChange={(e) => setForm({ ...form, headline: e.target.value })}
-                  placeholder="e.g. IB 45/45 Scorer · Medicine Specialist & Biology Mentor"
-                />
-              </FormField>
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <FormField
@@ -1295,7 +1313,92 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
               </FormField>
             </EditorSection>
 
-            {/* 5. Biography & Mentoring */}
+            {/* 5. Tutor Card Highlights */}
+            <EditorSection
+              icon={Sparkles}
+              title="Tutor Card Highlights"
+              description="Three concise rows shown on tutor cards. The longer biography below remains profile-only."
+              id="card-highlights"
+            >
+              <div className="space-y-3">
+                {Array.from({ length: MAX_TUTOR_CARD_HIGHLIGHTS }).map((_, index) => {
+                  const value = form.card_highlights[index] ?? "";
+                  const reachedLimit = value.length >= TUTOR_CARD_HIGHLIGHT_ROW_LIMIT;
+                  return (
+                    <FormField
+                      key={`card-highlight-${index}`}
+                      label={`Card row ${index + 1}`}
+                      error={
+                        errors[`card_highlights.${index}`] ??
+                        (index === 0 ? errors.card_highlights : undefined)
+                      }
+                      hint={`${value.length}/${TUTOR_CARD_HIGHLIGHT_ROW_LIMIT}`}
+                    >
+                      <div className="relative">
+                        <Input
+                          value={value}
+                          maxLength={TUTOR_CARD_HIGHLIGHT_ROW_LIMIT}
+                          aria-label={`Tutor card row ${index + 1}`}
+                          onChange={(e) => {
+                            const nextValue = e.target.value.slice(
+                              0,
+                              TUTOR_CARD_HIGHLIGHT_ROW_LIMIT,
+                            );
+                            const wasAtLimit =
+                              (form.card_highlights[index] ?? "").length >=
+                              TUTOR_CARD_HIGHLIGHT_ROW_LIMIT;
+                            setForm((previous) => {
+                              const cardHighlights = [...previous.card_highlights];
+                              cardHighlights[index] = nextValue;
+                              return { ...previous, card_highlights: cardHighlights };
+                            });
+                            if (
+                              !wasAtLimit &&
+                              nextValue.length === TUTOR_CARD_HIGHLIGHT_ROW_LIMIT
+                            ) {
+                              toast.info(
+                                `Card row ${index + 1} reached the ${TUTOR_CARD_HIGHLIGHT_ROW_LIMIT}-character limit.`,
+                              );
+                            }
+                          }}
+                          placeholder={
+                            index === 0
+                              ? "e.g. IBDP Biology specialist"
+                              : index === 1
+                                ? "e.g. Medicine student at HKU"
+                                : "e.g. Patient, exam-focused teaching"
+                          }
+                          className={cn(
+                            "pr-16 text-xs",
+                            reachedLimit && "border-amber-500 focus-visible:ring-amber-500",
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-muted-foreground",
+                            reachedLimit && "text-amber-600",
+                          )}
+                          aria-live="polite"
+                        >
+                          {value.length}/{TUTOR_CARD_HIGHLIGHT_ROW_LIMIT}
+                        </span>
+                      </div>
+                      {reachedLimit ? (
+                        <p
+                          className="flex items-center gap-1 text-[11px] font-medium text-amber-600"
+                          role="status"
+                        >
+                          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                          Maximum length reached; shorten this row to edit it.
+                        </p>
+                      ) : null}
+                    </FormField>
+                  );
+                })}
+              </div>
+            </EditorSection>
+
+            {/* 6. Biography & Mentoring */}
             <EditorSection
               icon={Sparkles}
               title="Bio & Mentorship"
