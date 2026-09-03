@@ -1092,7 +1092,7 @@ export function ApplicationForm() {
                 <Input
                   value={base.name}
                   onChange={(event) => setBaseField("name", event.target.value)}
-                  placeholder="Hauzton Chan"
+                  placeholder="Chan Hau Yui Hauzton"
                 />
               </Field>
               <Input
