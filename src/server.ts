@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { setRuntimeBindings } from "./lib/runtime-env";
 
 const CANONICAL_ORIGIN = "https://matchmax.hk";
 const CANONICAL_HOST = new URL(CANONICAL_ORIGIN).hostname;
@@ -107,6 +108,7 @@ function getCanonicalRedirect(request: Request): Response | null {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      setRuntimeBindings(env);
       hydrateProcessEnvFromBindings(env);
 
       const canonicalRedirect = getCanonicalRedirect(request);

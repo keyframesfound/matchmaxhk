@@ -2,19 +2,23 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { CURRICULUM_OPTIONS, tutorApplicationSchema } from "./tutor-application.schema";
+import { getRuntimeEnv } from "./runtime-env";
 
 const transcriptExtractionSchema = z.object({
   overall: z.string().trim().max(200).default(""),
   best6: z.string().trim().max(200).default(""),
-  scores: z.array(
-    z.object({
-      subject: z.string().trim().min(1).max(200),
-      grade: z.string().trim().min(1).max(100),
-      detail: z.string().trim().max(500).default(""),
-      level: z.string().trim().max(100).default(""),
-      gradeSystem: z.string().trim().max(100).default(""),
-    }),
-  ).min(1).max(20),
+  scores: z
+    .array(
+      z.object({
+        subject: z.string().trim().min(1).max(200),
+        grade: z.string().trim().min(1).max(100),
+        detail: z.string().trim().max(500).default(""),
+        level: z.string().trim().max(100).default(""),
+        gradeSystem: z.string().trim().max(100).default(""),
+      }),
+    )
+    .min(1)
+    .max(20),
 });
 
 const transcriptInputSchema = z.object({
@@ -26,7 +30,7 @@ const transcriptInputSchema = z.object({
 export const extractTranscriptQualification = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => transcriptInputSchema.parse(input))
   .handler(async ({ data }) => {
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = getRuntimeEnv("OPENROUTER_API_KEY");
     if (!apiKey) throw new Error("Transcript auto-fill is not configured.");
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -34,6 +38,8 @@ export const extractTranscriptQualification = createServerFn({ method: "POST" })
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://matchmax.hk",
+        "X-Title": "MatchMax Tutor Application",
       },
       signal: AbortSignal.timeout(30_000),
       body: JSON.stringify({
@@ -65,19 +71,23 @@ export const extractTranscriptQualification = createServerFn({ method: "POST" })
       );
     }
 
-    const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    const payload = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
     const content = payload.choices?.[0]?.message?.content;
     if (!content) throw new Error("Transcript auto-fill could not read that image.");
-    return transcriptExtractionSchema.parse(JSON.parse(content.replace(/^```json\s*|\s*```$/g, "")));
+    return transcriptExtractionSchema.parse(
+      JSON.parse(content.replace(/^```json\s*|\s*```$/g, "")),
+    );
   });
 
 export const submitTutorApplication = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => tutorApplicationSchema.parse(input))
   .handler(async ({ data }) => {
     const { turnstileToken, ...application } = data;
-    const secret = process.env.TURNSTILE_SECRET;
+    const secret = getRuntimeEnv("TURNSTILE_SECRET");
     const expectedHostnames = new Set(
-      (process.env.TURNSTILE_HOSTNAMES ?? "")
+      (getRuntimeEnv("TURNSTILE_HOSTNAMES") ?? "")
         .split(",")
         .map((hostname) => hostname.trim())
         .filter(Boolean),
@@ -89,15 +99,12 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
 
     let result: { success?: boolean; action?: string; hostname?: string };
     try {
-      const response = await fetch(
-        "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          signal: AbortSignal.timeout(10_000),
-          body: new URLSearchParams({ secret, response: turnstileToken }),
-        },
-      );
+      const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        signal: AbortSignal.timeout(10_000),
+        body: new URLSearchParams({ secret, response: turnstileToken }),
+      });
       if (!response.ok) throw new Error(`siteverify ${response.status}`);
       result = await response.json();
     } catch {

@@ -11,11 +11,14 @@ import {
   getApplicationPath,
   type TutorApplication,
 } from "./tutor-application.schema";
+import { getRuntimeEnv } from "./runtime-env";
 
 const RECIPIENT = "matchmaxedu@gmail.com";
 const FROM = "MatchMax <noreply@matchmax.hk>";
 
-export async function sendTutorApplication(data: TutorApplication): Promise<void> {
+export async function sendTutorApplication(
+  data: Omit<TutorApplication, "turnstileToken">,
+): Promise<void> {
   let total = 0;
   const attachments = [
     ...data.achievements.flatMap((achievement) => (achievement.proof ? [achievement.proof] : [])),
@@ -38,10 +41,10 @@ export async function sendTutorApplication(data: TutorApplication): Promise<void
     throw new Error("Attachments exceed the 20 MB total limit.");
   }
 
-  const apiKey = process.env["RESEND_API_KEY"];
+  const apiKey = getRuntimeEnv("RESEND_API_KEY");
   if (!apiKey) throw new Error("Email is not configured. Please try again later.");
 
-  const rows = buildAnswerRows(data);
+  const rows = buildAnswerRows(data as TutorApplication);
   const element = React.createElement(TutorApplicationEmail, {
     applicantName: data.name,
     rows,
@@ -52,7 +55,7 @@ export async function sendTutorApplication(data: TutorApplication): Promise<void
   const { error } = await new Resend(apiKey).emails.send({
     from: FROM,
     to: RECIPIENT,
-    subject: `New ${getApplicationPath(data)} tutor application — ${data.name}`,
+    subject: `New ${getApplicationPath(data as TutorApplication)} tutor application — ${data.name}`,
     html,
     text,
     replyTo: data.email,

@@ -47,7 +47,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: subscription } = supabase.auth.onAuthStateChange((event, sess) => {
       if (!mounted) return;
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED" && event !== "INITIAL_SESSION") {
+      if (
+        event !== "SIGNED_IN" &&
+        event !== "SIGNED_OUT" &&
+        event !== "USER_UPDATED" &&
+        event !== "INITIAL_SESSION"
+      ) {
         return;
       }
       setSession(sess);
@@ -68,21 +73,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    withTimeout(supabase.auth.getSession(), 8000, { data: { session: null } }).then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
-      if (data.session?.user) {
-        withTimeout(fetchRoles(data.session.user.id), 8000, []).then((r) => {
-          if (mounted) setRoles(r);
-        });
-      } else {
-        setRoles([]);
-      }
-    }).catch(() => {
-      if (mounted) setLoading(false);
-    });
+    withTimeout(supabase.auth.getSession(), 8000, { data: { session: null }, error: null })
+      .then(({ data }) => {
+        if (!mounted) return;
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+        setLoading(false);
+        if (data.session?.user) {
+          withTimeout(fetchRoles(data.session.user.id), 8000, []).then((r) => {
+            if (mounted) setRoles(r);
+          });
+        } else {
+          setRoles([]);
+        }
+      })
+      .catch(() => {
+        if (mounted) setLoading(false);
+      });
 
     return () => {
       mounted = false;
