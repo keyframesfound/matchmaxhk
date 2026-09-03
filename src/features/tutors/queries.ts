@@ -4,7 +4,7 @@ import { normalizeExamResults, type ExamResult } from "./examSystems";
 export const MAX_TUTOR_ACHIEVEMENTS = 3;
 export const TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT = 60;
 export const MAX_TUTOR_CARD_HIGHLIGHTS = 3;
-export const TUTOR_CARD_HIGHLIGHT_ROW_LIMIT = 40;
+export const TUTOR_CARD_HIGHLIGHT_ROW_LIMIT = 60;
 export const IA_EE_TOK_SUPPORT_OPTIONS = ["IA", "EE", "TOK"] as const;
 
 export type TutorAchievement = {
