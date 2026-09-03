@@ -15,12 +15,6 @@ import { FormField } from "@/components/ui/form-field";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -179,10 +173,10 @@ function DocumentUpload({
     if (candidate) onSelect(candidate);
   };
   return (
-    <div className="grid gap-2">
+    <div className="grid min-w-0 gap-2">
       <label
         className={cn(
-          "flex min-h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-[color:var(--surface-subtle)] px-4 py-3 text-center text-sm text-muted-foreground transition-colors",
+          "flex min-h-24 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-[color:var(--surface-subtle)] px-4 py-3 text-center text-sm text-muted-foreground transition-colors",
           dragging && "border-[color:var(--brand-teal)] bg-[color:var(--brand-teal)]/10",
           disabled && "cursor-not-allowed opacity-60",
         )}
@@ -320,15 +314,7 @@ function SubjectPicker({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        {studiedSubjects.map((subject) => (
-          <span
-            key={subject}
-            className="inline-flex items-center rounded-md bg-[color:var(--ink)]/[0.07] px-2.5 py-1.5 text-xs font-semibold text-[color:var(--ink)]"
-          >
-            {subject}
-          </span>
-        ))}
-        {addedSubjects.map((subject) => (
+        {[...selectedSubjects].map((subject) => (
           <span
             key={subject}
             className="inline-flex items-center gap-1 rounded-md bg-[#77E8EE]/30 px-2.5 py-1.5 text-xs font-semibold text-[color:var(--ink)]"
@@ -347,25 +333,16 @@ function SubjectPicker({
         {selectedSubjects.size === 0 ? (
           <span className="text-sm text-muted-foreground">No subjects selected yet.</span>
         ) : null}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button type="button" variant="outline" size="sm">
-              <Plus /> Add subject
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="max-h-72 w-64">
-            {options.map((subject) => (
-              <DropdownMenuCheckboxItem
-                key={subject}
-                checked={selectedSubjects.has(subject)}
-                disabled={studiedSubjects.includes(subject)}
-                onCheckedChange={() => onToggle(subject)}
-              >
-                {subject}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="w-56">
+          <SearchableSelect
+            value=""
+            onChange={onToggle}
+            options={options.filter((subject) => !selectedSubjects.has(subject))}
+            placeholder="Add subject"
+            searchPlaceholder="Search subjects..."
+            emptyText="No additional subjects available."
+          />
+        </div>
       </div>
     </div>
   );
@@ -418,6 +395,7 @@ export function ApplicationForm() {
   const [roles, setRoles] = useState<string[]>([]);
   const [boards, setBoards] = useState<string[]>([]);
   const [credentials, setCredentials] = useState<string[]>([]);
+  const [removedStudiedSubjects, setRemovedStudiedSubjects] = useState<string[]>([]);
   const [qualifications, setQualifications] = useState<Qualification[]>([blankQualification()]);
   const professional = PROFESSIONAL_STATUSES.has(base.status);
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
@@ -515,6 +493,15 @@ export function ApplicationForm() {
       ),
     ],
     [qualifications],
+  );
+  const selectedTeachingSubjects = useMemo(
+    () => [
+      ...new Set([
+        ...allResultSubjects.filter((subject) => !removedStudiedSubjects.includes(subject)),
+        ...base.subjectsTaught,
+      ]),
+    ],
+    [allResultSubjects, base.subjectsTaught, removedStudiedSubjects],
   );
   const notice = professional
     ? "Please note: MatchMax's Professional tier is reserved for highly qualified educators. Teaching credentials or official examiner letters are required for verification, and your identity, CV, and current employment are kept strictly confidential."
@@ -642,7 +629,7 @@ export function ApplicationForm() {
     const subjectStep = professional ? 3 : 2;
     if (step === subjectStep) {
       if (professional)
-        required("subjectsTaught", [...new Set([...allResultSubjects, ...base.subjectsTaught])]);
+        required("subjectsTaught", selectedTeachingSubjects);
       else
         qualifications.forEach((qualification, qualificationIndex) =>
           qualification.scores.forEach((score, scoreIndex) => {
@@ -653,7 +640,7 @@ export function ApplicationForm() {
     }
     const taughtStep = professional ? 3 : 3;
     if (step === taughtStep)
-      required("subjectsTaught", [...new Set([...allResultSubjects, ...base.subjectsTaught])]);
+      required("subjectsTaught", selectedTeachingSubjects);
     const lessonStep = professional ? 4 : 4;
     if (step === lessonStep) {
       required("format", base.format);
@@ -754,9 +741,9 @@ export function ApplicationForm() {
         curriculum: primary.curriculum,
         curricula: qualifications.map((qualification) => qualification.curriculum),
         overallScore: primary.overall || "Professional pathway",
-        subjectsConfident: [...new Set([...allResultSubjects, ...base.subjectsTaught])].join(", "),
+        subjectsConfident: selectedTeachingSubjects.join(", "),
         subjectResults: professional
-          ? `Professional subjects: ${[...new Set([...allResultSubjects, ...base.subjectsTaught])].join(", ")}\n${base.achievements.map((achievement) => achievement.description).join("\n")}`
+          ? `Professional subjects: ${selectedTeachingSubjects.join(", ")}\n${base.achievements.map((achievement) => achievement.description).join("\n")}`
           : subjectResults,
         awards: "",
         achievements: await Promise.all(
@@ -1357,8 +1344,7 @@ export function ApplicationForm() {
                         </Field>
                       ) : null}
                       <Field label="Academic transcript / supporting document">
-                        <SingleChoice
-                          options={["File upload", "N/A", "Provide later"]}
+                        <Select
                           value={
                             qualification.transcriptStatus === "upload"
                               ? "File upload"
@@ -1366,7 +1352,7 @@ export function ApplicationForm() {
                                 ? "Provide later"
                                 : "N/A"
                           }
-                          onChange={(choice) =>
+                                onValueChange={(choice) =>
                             updateQualification(index, {
                               transcriptStatus:
                                 choice === "File upload"
@@ -1377,7 +1363,16 @@ export function ApplicationForm() {
                               transcript: choice === "File upload" ? qualification.transcript : null,
                             })
                           }
-                        />
+                        >
+                          <SelectTrigger aria-label="Academic document option">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {['File upload', 'N/A', 'Provide later'].map((option) => (
+                              <SelectItem key={option} value={option}>{option}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         {qualification.transcriptStatus === "upload" ? (
                           <div className="mt-3 grid gap-2">
                             <DocumentUpload
@@ -1459,12 +1454,22 @@ export function ApplicationForm() {
             error={fieldErrors.subjectsTaught}
           >
             <SubjectPicker
-              studiedSubjects={allResultSubjects}
+              studiedSubjects={allResultSubjects.filter(
+                (subject) => !removedStudiedSubjects.includes(subject),
+              )}
               addedSubjects={base.subjectsTaught}
               options={[...new Set([...DEFAULT_SUBJECT_OPTIONS, ...allResultSubjects])]}
-              onToggle={(subject) =>
-                setBaseField("subjectsTaught", updateArray(base.subjectsTaught, subject))
-              }
+              onToggle={(subject) => {
+                if (allResultSubjects.includes(subject)) {
+                  setRemovedStudiedSubjects((current) =>
+                    current.includes(subject)
+                      ? current.filter((item) => item !== subject)
+                      : [...current, subject],
+                  );
+                  return;
+                }
+                setBaseField("subjectsTaught", updateArray(base.subjectsTaught, subject));
+              }}
             />
           </Field>
         </Step>
@@ -1629,7 +1634,7 @@ export function ApplicationForm() {
           </Hint>
           <div className="mt-5 grid gap-4">
             {base.achievements.map((achievement, index) => (
-              <div key={index} className="grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(0,1fr)_auto]">
+              <div key={index} className="grid gap-3 rounded-lg border border-border p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(15rem,1fr)_auto]">
                 <Field label="Title" required error={fieldErrors[`achievement-title-${index}`]}>
                   <Input value={achievement.title} onChange={(event) => updateAchievement(index, { title: event.target.value })} placeholder="Award or role" />
                 </Field>
@@ -1637,11 +1642,19 @@ export function ApplicationForm() {
                   <Textarea value={achievement.description} onChange={(event) => updateAchievement(index, { description: event.target.value })} placeholder="Brief details" />
                 </Field>
                 <Field label="Evidence" error={fieldErrors[`achievement-proof-${index}`]}>
-                  <SingleChoice
-                    options={["File upload", "N/A", "Provide later"]}
+                  <Select
                     value={achievement.proofStatus === "upload" ? "File upload" : achievement.proofStatus === "provide_later" ? "Provide later" : "N/A"}
-                    onChange={(choice) => updateAchievement(index, { proofStatus: choice === "File upload" ? "upload" : choice === "Provide later" ? "provide_later" : "not_applicable", proof: choice === "File upload" ? achievement.proof : null })}
-                  />
+                    onValueChange={(choice) => updateAchievement(index, { proofStatus: choice === "File upload" ? "upload" : choice === "Provide later" ? "provide_later" : "not_applicable", proof: choice === "File upload" ? achievement.proof : null })}
+                  >
+                    <SelectTrigger aria-label="Achievement evidence option">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['File upload', 'N/A', 'Provide later'].map((option) => (
+                        <SelectItem key={option} value={option}>{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {achievement.proofStatus === "upload" ? (
                     <div className="mt-2">
                       <DocumentUpload
