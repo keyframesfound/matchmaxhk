@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, LocateFixed, Paperclip, Plus, Trash2, X } from "lucide-react";
+import { CheckCircle2, LocateFixed, Paperclip, Plus, Sparkles, Trash2, Upload, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Button } from "@/components/ui/button";
@@ -131,6 +131,69 @@ const Field = FormField;
 
 function Hint({ children }: { children: React.ReactNode }) {
   return <p className="text-xs italic leading-relaxed text-muted-foreground">{children}</p>;
+}
+
+function readableFileSize(bytes: number) {
+  if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function DocumentUpload({
+  file,
+  onSelect,
+  onRemove,
+  disabled,
+}: {
+  file: File | null;
+  onSelect: (file: File) => void;
+  onRemove: () => void;
+  disabled?: boolean;
+}) {
+  const [dragging, setDragging] = useState(false);
+  const selectFile = (candidate: File | undefined) => {
+    if (candidate) onSelect(candidate);
+  };
+  return (
+    <div className="grid gap-2">
+      <label
+        className={cn(
+          "flex min-h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-[color:var(--surface-subtle)] px-4 py-3 text-center text-sm text-muted-foreground transition-colors",
+          dragging && "border-[color:var(--brand-teal)] bg-[color:var(--brand-teal)]/10",
+          disabled && "cursor-not-allowed opacity-60",
+        )}
+        onDragEnter={(event) => {
+          event.preventDefault();
+          if (!disabled) setDragging(true);
+        }}
+        onDragOver={(event) => event.preventDefault()}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(event) => {
+          event.preventDefault();
+          setDragging(false);
+          if (!disabled) selectFile(event.dataTransfer.files[0]);
+        }}
+      >
+        <Upload className="h-4 w-4 text-[color:var(--brand-teal)]" />
+        <span>Drop a file here or choose a file</span>
+        <input
+          type="file"
+          className="sr-only"
+          accept={ACCEPT_ATTRIBUTE}
+          disabled={disabled}
+          onChange={(event) => {
+            selectFile(event.target.files?.[0]);
+            event.currentTarget.value = "";
+          }}
+        />
+      </label>
+      {file ? (
+        <div className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-xs text-muted-foreground">
+          <span className="flex min-w-0 items-center gap-2"><Paperclip className="h-3 w-3 shrink-0" /><span className="truncate">{file.name} ({readableFileSize(file.size)})</span></span>
+          <Button type="button" size="icon" variant="ghost" aria-label="Remove file" onClick={onRemove} disabled={disabled}><X /></Button>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function blankQualification(curriculum = "IBDP"): Qualification {
@@ -1284,23 +1347,35 @@ export function ApplicationForm() {
                         />
                         {qualification.transcriptStatus === "upload" ? (
                           <div className="mt-3 grid gap-2">
-                            <input
-                              type="file"
-                              accept={ACCEPT_ATTRIBUTE}
-                              onChange={(event) => {
-                                const file = event.target.files?.[0] ?? null;
-                                if (!file) return;
+                            <DocumentUpload
+                              file={qualification.transcript}
+                              disabled={transcriptStatus === "reading"}
+                              onRemove={() => updateQualification(index, { transcript: null })}
+                              onSelect={(file) => {
                                 if (!ACCEPTED_FILE_TYPES.includes(file.type) || file.size > MAX_FILE_BYTES) {
                                   setError("Choose a supported transcript file no larger than 5 MB.");
                                   return;
                                 }
                                 updateQualification(index, { transcript: file });
-                                if (["image/jpeg", "image/png"].includes(file.type)) {
-                                  void autoFillQualification(index, file);
-                                }
                               }}
                             />
-                            <Hint>Upload a JPG or PNG to auto-fill results with AI. Review every populated field before submitting.</Hint>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-fit"
+                              loading={transcriptStatus === "reading"}
+                              disabled={
+                                !qualification.transcript ||
+                                !["image/jpeg", "image/png"].includes(qualification.transcript.type) ||
+                                transcriptStatus === "reading"
+                              }
+                              onClick={() => {
+                                if (qualification.transcript) void autoFillQualification(index, qualification.transcript);
+                              }}
+                            >
+                              <Sparkles /> Auto-fill with AI
+                            </Button>
+                            <Hint>JPG and PNG transcripts can be read by AI. Review every populated field before submitting.</Hint>
                           </div>
                         ) : null}
                       </Field>
@@ -1531,13 +1606,11 @@ export function ApplicationForm() {
                     onChange={(choice) => updateAchievement(index, { proofStatus: choice === "File upload" ? "upload" : choice === "Provide later" ? "provide_later" : "not_applicable", proof: choice === "File upload" ? achievement.proof : null })}
                   />
                   {achievement.proofStatus === "upload" ? (
-                    <div className="mt-2 grid gap-1">
-                      <input
-                        type="file"
-                        accept={ACCEPT_ATTRIBUTE}
-                        onChange={(event) => {
-                          const file = event.target.files?.[0] ?? null;
-                          if (!file) return;
+                    <div className="mt-2">
+                      <DocumentUpload
+                        file={achievement.proof}
+                        onRemove={() => updateAchievement(index, { proof: null })}
+                        onSelect={(file) => {
                           if (!ACCEPTED_FILE_TYPES.includes(file.type) || file.size > MAX_FILE_BYTES) {
                             setError("Choose a supported evidence file no larger than 5 MB.");
                             return;
@@ -1545,7 +1618,6 @@ export function ApplicationForm() {
                           updateAchievement(index, { proof: file });
                         }}
                       />
-                      {achievement.proof ? <p className="flex items-center gap-2 text-xs text-muted-foreground"><Paperclip className="h-3 w-3" />{achievement.proof.name}</p> : null}
                     </div>
                   ) : null}
                 </Field>
