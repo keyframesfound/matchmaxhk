@@ -986,8 +986,12 @@ export function ApplicationForm() {
               />
               <div className="grid gap-2 sm:col-span-2">
                 {score.papers.map((paper, paperIndex) => (
-                  <div key={`${paper.label}-${paperIndex}`} className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+                  <div
+                    key={`${paper.label}-${paperIndex}`}
+                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+                  >
                     <Select
+                      className="col-span-2 sm:col-span-1"
                       value={paper.label}
                       onValueChange={(label) =>
                         updateScore(qualificationIndex, scoreIndex, {
@@ -1045,6 +1049,7 @@ export function ApplicationForm() {
                 <Button
                   type="button"
                   variant="outline"
+                  className="w-fit"
                   onClick={() =>
                     updateQualification(qualificationIndex, {
                       scores: qualification.scores.filter((_, index) => index !== scoreIndex),
