@@ -1043,7 +1043,7 @@ export function ApplicationForm() {
                     })
                   }
                 >
-                  <Plus /> Add paper or assessment score
+                  <Plus /> Add component score
                 </Button>
               </div>
               {qualification.scores.length > 1 ? (
