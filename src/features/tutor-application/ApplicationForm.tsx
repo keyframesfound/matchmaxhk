@@ -376,6 +376,8 @@ export function ApplicationForm() {
   const [captchaError, setCaptchaError] = useState<string | null>(null);
   const captchaRef = useRef<HTMLDivElement>(null);
   const captchaWidget = useRef<string | null>(null);
+  const stepperRef = useRef<HTMLDivElement>(null);
+  const shouldScrollToStepper = useRef(false);
   const [originStation, setOriginStation] = useState("");
   const [travelBudget, setTravelBudget] = useState("10");
   const [autoStations, setAutoStations] = useState<string[]>([]);
@@ -417,9 +419,20 @@ export function ApplicationForm() {
   const primary = qualifications[0];
 
   function changeStep(nextStep: number) {
+    shouldScrollToStepper.current = true;
     setStep(nextStep);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  useEffect(() => {
+    if (!shouldScrollToStepper.current) return;
+    shouldScrollToStepper.current = false;
+    window.requestAnimationFrame(() => {
+      const stepperTop = stepperRef.current?.getBoundingClientRect().top;
+      if (stepperTop === undefined) return;
+      const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
+      window.scrollTo({ top: window.scrollY + stepperTop - headerHeight, behavior: "smooth" });
+    });
+  }, [step]);
 
   async function addTravelSuggestions() {
     if (!originStation || suggestionStatus === "adding") return;
@@ -1093,19 +1106,20 @@ export function ApplicationForm() {
       <aside className="mb-8 rounded-lg border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/8 px-4 py-3 text-sm leading-relaxed text-foreground">
         {notice}
       </aside>
-      <Stepper
-        className="join-stepper"
-        scrollActiveIndicatorIntoView
-        currentStep={step}
-        onStepChange={changeStep}
-        onBeforeStepChange={() => validateCurrentStep()}
-        onFinalStepCompleted={() => void submitForm()}
-        renderStepIndicator={renderIndicator}
-        nextButtonText="Continue"
-        backButtonText="Previous"
-        completeButtonText="Submit application"
-        nextButtonProps={{ disabled: submitting }}
-      >
+      <div ref={stepperRef}>
+        <Stepper
+          className="join-stepper"
+          scrollActiveIndicatorIntoView
+          currentStep={step}
+          onStepChange={changeStep}
+          onBeforeStepChange={() => validateCurrentStep()}
+          onFinalStepCompleted={() => void submitForm()}
+          renderStepIndicator={renderIndicator}
+          nextButtonText="Continue"
+          backButtonText="Previous"
+          completeButtonText="Submit application"
+          nextButtonProps={{ disabled: submitting }}
+        >
         <Step>
           <Heading
             step={1}
@@ -1804,7 +1818,8 @@ export function ApplicationForm() {
             ) : null}
           </div>
         </Step>
-      </Stepper>
+        </Stepper>
+      </div>
     </form>
   );
 }
