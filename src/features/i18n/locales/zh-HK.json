@@ -7,7 +7,9 @@
     "sign_in": "登入",
     "sign_out": "登出",
     "dashboard": "控制台",
-    "admin": "管理後台"
+    "admin": "管理後台",
+    "courses": "課程",
+    "for_business": "商業服務"
   },
   "hero": {
     "eyebrow": "香港智能補習配對平台",

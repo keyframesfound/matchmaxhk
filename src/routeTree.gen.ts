@@ -17,17 +17,26 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as JoinRouteImport } from './routes/join'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
+import { Route as CoursesIndexRouteImport } from './routes/courses.index'
+import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
 import { Route as AuthenticatedAdminCasesRouteImport } from './routes/_authenticated.admin.cases'
+import { Route as AuthenticatedAdminOrganizationsRouteImport } from './routes/_authenticated.admin.organizations'
 import { Route as AuthenticatedAdminR2RouteImport } from './routes/_authenticated.admin.r2'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
 import { Route as AuthenticatedAdminTutorsRouteImport } from './routes/_authenticated.admin.tutors'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
+import { Route as AuthenticatedBusinessIndexRouteImport } from './routes/_authenticated.business.index'
+import { Route as AuthenticatedBusinessCoursesRouteImport } from './routes/_authenticated.business.courses'
+import { Route as AuthenticatedBusinessJoinRouteImport } from './routes/_authenticated.business.join'
+import { Route as AuthenticatedBusinessSettingsRouteImport } from './routes/_authenticated.business.settings'
+import { Route as AuthenticatedBusinessTeamRouteImport } from './routes/_authenticated.business.team'
 import { Route as AuthenticatedCasesIndexRouteImport } from './routes/_authenticated.cases.index'
 import { Route as AuthenticatedCasesCaseIdRouteImport } from './routes/_authenticated.cases.$caseId'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -73,6 +82,11 @@ const JoinRoute = JoinRouteImport.update({
   path: '/join',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
@@ -93,6 +107,16 @@ const AuthenticatedSavedPostsRoute = AuthenticatedSavedPostsRouteImport.update({
   path: '/saved-posts',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const CoursesIndexRoute = CoursesIndexRouteImport.update({
+  id: '/courses/',
+  path: '/courses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesCourseIdRoute = CoursesCourseIdRouteImport.update({
+  id: '/courses/$courseId',
+  path: '/courses/$courseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TutorsIndexRoute = TutorsIndexRouteImport.update({
   id: '/tutors/',
   path: '/tutors/',
@@ -108,6 +132,12 @@ const AuthenticatedAdminCasesRoute = AuthenticatedAdminCasesRouteImport.update({
   path: '/admin/cases',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminOrganizationsRoute =
+  AuthenticatedAdminOrganizationsRouteImport.update({
+    id: '/admin/organizations',
+    path: '/admin/organizations',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminR2Route = AuthenticatedAdminR2RouteImport.update({
   id: '/admin/r2',
   path: '/admin/r2',
@@ -130,6 +160,36 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedBusinessIndexRoute =
+  AuthenticatedBusinessIndexRouteImport.update({
+    id: '/business/',
+    path: '/business/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedBusinessCoursesRoute =
+  AuthenticatedBusinessCoursesRouteImport.update({
+    id: '/business/courses',
+    path: '/business/courses',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedBusinessJoinRoute =
+  AuthenticatedBusinessJoinRouteImport.update({
+    id: '/business/join',
+    path: '/business/join',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedBusinessSettingsRoute =
+  AuthenticatedBusinessSettingsRouteImport.update({
+    id: '/business/settings',
+    path: '/business/settings',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedBusinessTeamRoute =
+  AuthenticatedBusinessTeamRouteImport.update({
+    id: '/business/team',
+    path: '/business/team',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCasesIndexRoute = AuthenticatedCasesIndexRouteImport.update({
   id: '/cases/',
   path: '/cases/',
@@ -166,18 +226,27 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/join': typeof JoinRoute
+  '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
+  '/courses/$courseId': typeof CoursesCourseIdRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
+  '/courses/': typeof CoursesIndexRoute
   '/tutors/': typeof TutorsIndexRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
+  '/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/admin/r2': typeof AuthenticatedAdminR2Route
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/business/courses': typeof AuthenticatedBusinessCoursesRoute
+  '/business/join': typeof AuthenticatedBusinessJoinRoute
+  '/business/settings': typeof AuthenticatedBusinessSettingsRoute
+  '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
+  '/business/': typeof AuthenticatedBusinessIndexRoute
   '/cases/': typeof AuthenticatedCasesIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -191,18 +260,27 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/join': typeof JoinRoute
+  '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
+  '/courses/$courseId': typeof CoursesCourseIdRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
+  '/courses': typeof CoursesIndexRoute
   '/tutors': typeof TutorsIndexRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
+  '/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/admin/r2': typeof AuthenticatedAdminR2Route
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/business/courses': typeof AuthenticatedBusinessCoursesRoute
+  '/business/join': typeof AuthenticatedBusinessJoinRoute
+  '/business/settings': typeof AuthenticatedBusinessSettingsRoute
+  '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
+  '/business': typeof AuthenticatedBusinessIndexRoute
   '/cases': typeof AuthenticatedCasesIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -218,18 +296,27 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/join': typeof JoinRoute
+  '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
+  '/courses/$courseId': typeof CoursesCourseIdRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
+  '/courses/': typeof CoursesIndexRoute
   '/tutors/': typeof TutorsIndexRoute
   '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
+  '/_authenticated/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/_authenticated/admin/r2': typeof AuthenticatedAdminR2Route
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/business/courses': typeof AuthenticatedBusinessCoursesRoute
+  '/_authenticated/business/join': typeof AuthenticatedBusinessJoinRoute
+  '/_authenticated/business/settings': typeof AuthenticatedBusinessSettingsRoute
+  '/_authenticated/business/team': typeof AuthenticatedBusinessTeamRoute
   '/_authenticated/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
+  '/_authenticated/business/': typeof AuthenticatedBusinessIndexRoute
   '/_authenticated/cases/': typeof AuthenticatedCasesIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -245,18 +332,27 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/how-it-works'
     | '/join'
+    | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
     | '/dashboard'
     | '/saved-posts'
+    | '/courses/$courseId'
     | '/tutors/$tutorCode'
+    | '/courses/'
     | '/tutors/'
     | '/admin/cases'
+    | '/admin/organizations'
     | '/admin/r2'
     | '/admin/settings'
     | '/admin/tutors'
     | '/admin/users'
+    | '/business/courses'
+    | '/business/join'
+    | '/business/settings'
+    | '/business/team'
     | '/cases/$caseId'
+    | '/business/'
     | '/cases/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -270,18 +366,27 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/how-it-works'
     | '/join'
+    | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
     | '/dashboard'
     | '/saved-posts'
+    | '/courses/$courseId'
     | '/tutors/$tutorCode'
+    | '/courses'
     | '/tutors'
     | '/admin/cases'
+    | '/admin/organizations'
     | '/admin/r2'
     | '/admin/settings'
     | '/admin/tutors'
     | '/admin/users'
+    | '/business/courses'
+    | '/business/join'
+    | '/business/settings'
+    | '/business/team'
     | '/cases/$caseId'
+    | '/business'
     | '/cases'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -296,18 +401,27 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/how-it-works'
     | '/join'
+    | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
     | '/_authenticated/dashboard'
     | '/_authenticated/saved-posts'
+    | '/courses/$courseId'
     | '/tutors/$tutorCode'
+    | '/courses/'
     | '/tutors/'
     | '/_authenticated/admin/cases'
+    | '/_authenticated/admin/organizations'
     | '/_authenticated/admin/r2'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/tutors'
     | '/_authenticated/admin/users'
+    | '/_authenticated/business/courses'
+    | '/_authenticated/business/join'
+    | '/_authenticated/business/settings'
+    | '/_authenticated/business/team'
     | '/_authenticated/cases/$caseId'
+    | '/_authenticated/business/'
     | '/_authenticated/cases/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -323,9 +437,12 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HowItWorksRoute: typeof HowItWorksRoute
   JoinRoute: typeof JoinRoute
+  PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  CoursesCourseIdRoute: typeof CoursesCourseIdRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
+  CoursesIndexRoute: typeof CoursesIndexRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -390,6 +507,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy-policy': {
       id: '/privacy-policy'
       path: '/privacy-policy'
@@ -418,6 +542,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSavedPostsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/courses/': {
+      id: '/courses/'
+      path: '/courses'
+      fullPath: '/courses/'
+      preLoaderRoute: typeof CoursesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/$courseId': {
+      id: '/courses/$courseId'
+      path: '/courses/$courseId'
+      fullPath: '/courses/$courseId'
+      preLoaderRoute: typeof CoursesCourseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tutors/': {
       id: '/tutors/'
       path: '/tutors'
@@ -437,6 +575,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/cases'
       fullPath: '/admin/cases'
       preLoaderRoute: typeof AuthenticatedAdminCasesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/organizations': {
+      id: '/_authenticated/admin/organizations'
+      path: '/admin/organizations'
+      fullPath: '/admin/organizations'
+      preLoaderRoute: typeof AuthenticatedAdminOrganizationsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/r2': {
@@ -465,6 +610,41 @@ declare module '@tanstack/react-router' {
       path: '/admin/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/business/': {
+      id: '/_authenticated/business/'
+      path: '/business'
+      fullPath: '/business/'
+      preLoaderRoute: typeof AuthenticatedBusinessIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/business/courses': {
+      id: '/_authenticated/business/courses'
+      path: '/business/courses'
+      fullPath: '/business/courses'
+      preLoaderRoute: typeof AuthenticatedBusinessCoursesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/business/join': {
+      id: '/_authenticated/business/join'
+      path: '/business/join'
+      fullPath: '/business/join'
+      preLoaderRoute: typeof AuthenticatedBusinessJoinRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/business/settings': {
+      id: '/_authenticated/business/settings'
+      path: '/business/settings'
+      fullPath: '/business/settings'
+      preLoaderRoute: typeof AuthenticatedBusinessSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/business/team': {
+      id: '/_authenticated/business/team'
+      path: '/business/team'
+      fullPath: '/business/team'
+      preLoaderRoute: typeof AuthenticatedBusinessTeamRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/cases/': {
@@ -509,11 +689,17 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedSavedPostsRoute: typeof AuthenticatedSavedPostsRoute
   AuthenticatedAdminCasesRoute: typeof AuthenticatedAdminCasesRoute
+  AuthenticatedAdminOrganizationsRoute: typeof AuthenticatedAdminOrganizationsRoute
   AuthenticatedAdminR2Route: typeof AuthenticatedAdminR2Route
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTutorsRoute: typeof AuthenticatedAdminTutorsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedBusinessCoursesRoute: typeof AuthenticatedBusinessCoursesRoute
+  AuthenticatedBusinessJoinRoute: typeof AuthenticatedBusinessJoinRoute
+  AuthenticatedBusinessSettingsRoute: typeof AuthenticatedBusinessSettingsRoute
+  AuthenticatedBusinessTeamRoute: typeof AuthenticatedBusinessTeamRoute
   AuthenticatedCasesCaseIdRoute: typeof AuthenticatedCasesCaseIdRoute
+  AuthenticatedBusinessIndexRoute: typeof AuthenticatedBusinessIndexRoute
   AuthenticatedCasesIndexRoute: typeof AuthenticatedCasesIndexRoute
 }
 
@@ -521,11 +707,17 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedSavedPostsRoute: AuthenticatedSavedPostsRoute,
   AuthenticatedAdminCasesRoute: AuthenticatedAdminCasesRoute,
+  AuthenticatedAdminOrganizationsRoute: AuthenticatedAdminOrganizationsRoute,
   AuthenticatedAdminR2Route: AuthenticatedAdminR2Route,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTutorsRoute: AuthenticatedAdminTutorsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+  AuthenticatedBusinessCoursesRoute: AuthenticatedBusinessCoursesRoute,
+  AuthenticatedBusinessJoinRoute: AuthenticatedBusinessJoinRoute,
+  AuthenticatedBusinessSettingsRoute: AuthenticatedBusinessSettingsRoute,
+  AuthenticatedBusinessTeamRoute: AuthenticatedBusinessTeamRoute,
   AuthenticatedCasesCaseIdRoute: AuthenticatedCasesCaseIdRoute,
+  AuthenticatedBusinessIndexRoute: AuthenticatedBusinessIndexRoute,
   AuthenticatedCasesIndexRoute: AuthenticatedCasesIndexRoute,
 }
 
@@ -542,9 +734,12 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   HowItWorksRoute: HowItWorksRoute,
   JoinRoute: JoinRoute,
+  PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  CoursesCourseIdRoute: CoursesCourseIdRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
+  CoursesIndexRoute: CoursesIndexRoute,
   TutorsIndexRoute: TutorsIndexRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,

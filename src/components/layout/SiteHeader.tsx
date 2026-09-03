@@ -1,5 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { Bookmark, ChevronsUpDown, CircleHelp, LogOut, Moon, Settings, Sun, UserRound } from "lucide-react";
+import {
+  Bookmark,
+  BookOpen,
+  Building2,
+  ChevronsUpDown,
+  CircleHelp,
+  LogOut,
+  Moon,
+  Settings,
+  Sun,
+  UserRound,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
@@ -14,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/features/auth/useAuth";
+import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
 
 import { AnnouncementBanner } from "./AnnouncementBanner";
@@ -22,9 +34,12 @@ import { StaggeredMobileMenu } from "./StaggeredMobileMenu";
 export function SiteHeader({ className }: { className?: string }) {
   const { t } = useTranslation();
   const { user, signOut, hasAnyRole } = useAuth();
+  const { membership } = useMyOrganization();
+  const hasOrg = !!membership;
   const { theme, setTheme } = useTheme();
   const isAdmin = hasAnyRole(["admin", "super_admin"]);
-  const accountName = user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
+  const accountName =
+    user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
   const accountInitial = accountName.charAt(0).toUpperCase();
   const useDarkTheme = theme !== "dark";
   const brandLabelClassName = "text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
@@ -35,13 +50,25 @@ export function SiteHeader({ className }: { className?: string }) {
       ariaLabel: t("nav.find", { defaultValue: "Find" }),
       to: "/tutors",
     },
+    {
+      label: t("nav.courses", { defaultValue: "Courses" }),
+      ariaLabel: t("nav.courses", { defaultValue: "Courses" }),
+      to: "/courses",
+    },
     { label: "Saved Posts", ariaLabel: "Saved Posts", to: "/saved-posts" },
     { label: "Become a Tutor", ariaLabel: "Become a Tutor", to: "/join" },
+    {
+      label: t("nav.for_business", { defaultValue: "For Business" }),
+      ariaLabel: t("nav.for_business", { defaultValue: "For Business" }),
+      to: "/pricing",
+    },
+    ...(hasOrg ? [{ label: "My Business", ariaLabel: "My Business", to: "/business" }] : []),
     { label: "Help Centre", ariaLabel: "Help Centre", to: "/faq" },
     ...(user ? [{ label: "Settings", ariaLabel: "Settings", to: "/dashboard" }] : []),
     ...(isAdmin
       ? [
           { label: "Manage tutors", ariaLabel: "Manage tutors", to: "/admin/tutors" },
+          { label: "Organizations", ariaLabel: "Organizations", to: "/admin/organizations" },
           { label: t("nav.admin"), ariaLabel: t("nav.admin"), to: "/admin/users" },
           { label: "R2 images", ariaLabel: "R2 images", to: "/admin/r2" },
         ]
@@ -76,6 +103,13 @@ export function SiteHeader({ className }: { className?: string }) {
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
           <Link
+            to="/courses"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
+          >
+            {t("nav.courses", { defaultValue: "Courses" })}
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
+          </Link>
+          <Link
             to="/saved-posts"
             className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
@@ -87,6 +121,13 @@ export function SiteHeader({ className }: { className?: string }) {
             className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
             Become a Tutor
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
+          </Link>
+          <Link
+            to="/pricing"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
+          >
+            {t("nav.for_business", { defaultValue: "For Business" })}
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
           <Link
@@ -114,7 +155,9 @@ export function SiteHeader({ className }: { className?: string }) {
                       {accountInitial}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold leading-5">{accountName}</span>
+                      <span className="block truncate text-sm font-semibold leading-5">
+                        {accountName}
+                      </span>
                       <span className="block truncate text-xs font-normal leading-4 text-[color:var(--ink)]/55">
                         {user.email}
                       </span>
@@ -165,6 +208,15 @@ export function SiteHeader({ className }: { className?: string }) {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem
+                      asChild
+                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                    >
+                      <Link to={hasOrg ? "/business" : "/business/join"}>
+                        <Building2 aria-hidden="true" />
+                        {hasOrg ? "My Business" : "For Business"}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
                       onSelect={() => setTheme(useDarkTheme ? "dark" : "light")}
                       className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
                     >
@@ -186,24 +238,30 @@ export function SiteHeader({ className }: { className?: string }) {
                         <DropdownMenuLabel className="px-3 py-1 text-xs font-semibold text-[color:var(--ink)]/50">
                           Administration
                         </DropdownMenuLabel>
-                      <DropdownMenuItem
-                        asChild
-                        className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
-                      >
-                        <Link to="/admin/tutors">Manage tutors</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        asChild
-                        className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
-                      >
-                        <Link to="/admin/r2">R2 images</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        asChild
-                        className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
-                      >
-                        <Link to="/admin/users">{t("nav.admin")}</Link>
-                      </DropdownMenuItem>
+                        <DropdownMenuItem
+                          asChild
+                          className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
+                        >
+                          <Link to="/admin/tutors">Manage tutors</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          asChild
+                          className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
+                        >
+                          <Link to="/admin/organizations">Organizations</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          asChild
+                          className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
+                        >
+                          <Link to="/admin/r2">R2 images</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          asChild
+                          className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
+                        >
+                          <Link to="/admin/users">{t("nav.admin")}</Link>
+                        </DropdownMenuItem>
                       </>
                     )}
                     <DropdownMenuSeparator className="my-1.5" />
