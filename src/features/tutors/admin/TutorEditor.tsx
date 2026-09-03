@@ -877,7 +877,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
 
       {/* Main Two-Column Layout */}
       <form onSubmit={handleSubmit}>
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] items-start">
+        <div className="grid gap-8 items-start lg:grid-cols-[minmax(0,1fr)_calc((100vw_-_96px)/3_+_32px)] xl:grid-cols-[minmax(0,1fr)_427px]">
           {/* Left: Sections Canvas */}
           <div className="space-y-8">
             {/* 1. Identity & Credentials */}
