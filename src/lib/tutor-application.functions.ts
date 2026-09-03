@@ -4,17 +4,33 @@ import { z } from "zod";
 import { CURRICULUM_OPTIONS, tutorApplicationSchema } from "./tutor-application.schema";
 import { getRuntimeEnv } from "./runtime-env";
 
+function normalizeTranscriptValue(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) return value.map(normalizeTranscriptValue).filter(Boolean).join(", ");
+  if (value && typeof value === "object") {
+    return Object.entries(value)
+      .map(([key, item]) => `${key}: ${normalizeTranscriptValue(item)}`)
+      .join(", ");
+  }
+  return "";
+}
+
+function transcriptString(schema: z.ZodString) {
+  return z.preprocess(normalizeTranscriptValue, schema);
+}
+
 const transcriptExtractionSchema = z.object({
-  overall: z.string().trim().max(200).default(""),
-  best6: z.string().trim().max(200).default(""),
+  overall: transcriptString(z.string().trim().max(200)),
+  best6: transcriptString(z.string().trim().max(200)),
   scores: z
     .array(
       z.object({
-        subject: z.string().trim().min(1).max(200),
-        grade: z.string().trim().min(1).max(100),
-        detail: z.string().trim().max(500).default(""),
-        level: z.string().trim().max(100).default(""),
-        gradeSystem: z.string().trim().max(100).default(""),
+        subject: transcriptString(z.string().trim().min(1).max(200)),
+        grade: transcriptString(z.string().trim().min(1).max(100)),
+        detail: transcriptString(z.string().trim().max(500)),
+        level: transcriptString(z.string().trim().max(100)),
+        gradeSystem: transcriptString(z.string().trim().max(100)),
       }),
     )
     .min(1)
