@@ -23,11 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/business/empty-state";
 import { BusinessLayout } from "@/components/business/business-layout";
-import {
-  DeviceToggle,
-  ProfilePreview,
-  type ProfilePreviewData,
-} from "@/components/business/profile-preview";
+import { ProfilePreview, type ProfilePreviewData } from "@/components/business/profile-preview";
 import {
   updateOrganization,
   uploadOrganizationImage,
@@ -61,7 +57,6 @@ function BusinessSettingsPage() {
   });
   const [localLogo, setLocalLogo] = useState<string | null>(null);
   const [localCover, setLocalCover] = useState<string | null>(null);
-  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -584,17 +579,16 @@ function BusinessSettingsPage() {
             </div>
 
             <div className="mt-5">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1FA8B6] opacity-75 motion-reduce:hidden" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#1FA8B6]" />
-                  </span>
+              <div className="mb-3 flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1FA8B6] opacity-75 motion-reduce:hidden" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#1FA8B6]" />
+                </span>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Live preview
                 </p>
-                <DeviceToggle device={device} onChange={setDevice} />
               </div>
-              <ProfilePreview data={previewData} device={device} />
+              <ProfilePreview data={previewData} />
             </div>
           </aside>
         </div>

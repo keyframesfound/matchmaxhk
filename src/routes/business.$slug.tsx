@@ -16,7 +16,9 @@ import {
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/business/empty-state";
 import {
   courseModeLabel,
@@ -129,6 +131,9 @@ function BusinessPublicProfile() {
   const memberSince = org
     ? new Date(org.created_at).toLocaleDateString("en-HK", { month: "long", year: "numeric" })
     : null;
+  const memberSinceShort = org
+    ? new Date(org.created_at).toLocaleDateString("en-HK", { month: "short", year: "numeric" })
+    : null;
   const courseCount = courses?.length ?? 0;
 
   return (
@@ -138,7 +143,7 @@ function BusinessPublicProfile() {
         {orgLoading && (
           <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
             <div className="overflow-hidden rounded-xl border border-border bg-card">
-              <Skeleton className="h-40 w-full rounded-none sm:h-52" />
+              <Skeleton className="h-32 w-full rounded-none sm:h-44" />
               <div className="px-6 pb-6">
                 <Skeleton className="-mt-10 h-24 w-24 rounded-full ring-4 ring-card" />
                 <Skeleton className="mt-4 h-8 w-64" />
@@ -183,172 +188,178 @@ function BusinessPublicProfile() {
               </div>
             )}
 
-            {/* Header card — LinkedIn style */}
-            <section className="mt-4 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-              <div className="relative h-36 w-full sm:h-52">
-                {org.cover_image_url ? (
-                  <img src={org.cover_image_url} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="h-full w-full bg-gradient-to-r from-[#1FA8B6] via-[#2bbfcc] to-[#77E8EE]" />
-                )}
-              </div>
-              <div className="px-5 pb-6 sm:px-8">
-                <div className="-mt-12 flex items-end justify-between gap-4 sm:-mt-14">
-                  {org.logo_url ? (
-                    <img
-                      src={org.logo_url}
-                      alt=""
-                      className="h-24 w-24 rounded-full border-4 border-card object-cover shadow-md sm:h-28 sm:w-28"
-                    />
+            <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+              {/* Profile card — banner, avatar, stats, tabs */}
+              <section className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                <div className="relative h-32 w-full sm:h-44">
+                  {org.cover_image_url ? (
+                    <img src={org.cover_image_url} alt="" className="h-full w-full object-cover" />
                   ) : (
-                    <span className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-card bg-[#1FA8B6] text-2xl font-bold text-white shadow-md sm:h-28 sm:w-28">
-                      {initials || "MM"}
-                    </span>
+                    <div className="h-full w-full bg-gradient-to-r from-[#1FA8B6] via-[#2bbfcc] to-[#77E8EE]" />
                   )}
-                  <div className="hidden shrink-0 items-center gap-2 pb-1 sm:flex">
-                    {whatsappUrl && (
-                      <Button
-                        asChild
-                        className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                      >
-                        <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                          <MessageCircle className="mr-2 h-4 w-4" />
-                          WhatsApp
-                        </a>
-                      </Button>
-                    )}
-                    {org.contact_email && (
-                      <Button asChild variant="outline">
-                        <a href={`mailto:${org.contact_email}`}>
-                          <Mail className="mr-2 h-4 w-4" />
-                          Email
-                        </a>
-                      </Button>
-                    )}
-                    {org.website_url && (
-                      <Button asChild variant="ghost">
-                        <a href={org.website_url} target="_blank" rel="noreferrer">
-                          <Globe className="mr-2 h-4 w-4" />
-                          Website
-                        </a>
-                      </Button>
-                    )}
-                  </div>
                 </div>
 
-                <div className="mt-4">
-                  <h1 className="flex flex-wrap items-center gap-2 text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                    {org.name}
-                    <BadgeCheck
-                      className="h-6 w-6 shrink-0 text-[#1FA8B6]"
-                      aria-label="Verified business"
-                    />
-                  </h1>
-                  {org.tagline ? (
-                    <p className="mt-1.5 max-w-2xl text-[15px] font-medium text-muted-foreground">
-                      {org.tagline}
-                    </p>
-                  ) : null}
-                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
+                <div className="px-5 pb-6 sm:px-8">
+                  <div className="relative z-10 -mt-12 flex flex-wrap items-end justify-between gap-4 sm:-mt-14">
+                    {org.logo_url ? (
+                      <img
+                        src={org.logo_url}
+                        alt=""
+                        className="h-24 w-24 rounded-full border-4 border-card object-cover shadow-md sm:h-28 sm:w-28"
+                      />
+                    ) : (
+                      <span className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-card bg-[#1FA8B6] text-2xl font-bold text-white shadow-md sm:h-28 sm:w-28">
+                        {initials || "MM"}
+                      </span>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2 pb-1">
+                      {whatsappUrl && (
+                        <Button
+                          asChild
+                          className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                        >
+                          <a href={whatsappUrl} target="_blank" rel="noreferrer">
+                            <MessageCircle className="mr-2 h-4 w-4" />
+                            WhatsApp
+                          </a>
+                        </Button>
+                      )}
+                      {org.contact_email && (
+                        <Button asChild variant="outline">
+                          <a href={`mailto:${org.contact_email}`}>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Email
+                          </a>
+                        </Button>
+                      )}
+                      {org.website_url && (
+                        <Button asChild variant="ghost">
+                          <a href={org.website_url} target="_blank" rel="noreferrer">
+                            <Globe className="mr-2 h-4 w-4" />
+                            Website
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <h1 className="flex flex-wrap items-center gap-2 text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                      {org.name}
+                      <BadgeCheck
+                        className="h-6 w-6 shrink-0 text-[#1FA8B6]"
+                        aria-label="Verified business"
+                      />
+                    </h1>
+                    {org.tagline ? (
+                      <p className="mt-1.5 max-w-2xl text-[15px] font-medium text-muted-foreground">
+                        {org.tagline}
+                      </p>
+                    ) : null}
+                  </div>
+
+                  {/* Stats strip */}
+                  <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                    <span className="flex items-baseline gap-1.5">
+                      <span className="font-semibold tabular-nums text-[color:var(--ink)]">
+                        {coursesLoading ? "…" : courseCount}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {courseCount === 1 ? "Course" : "Courses"}
+                      </span>
+                    </span>
                     {org.district ? (
-                      <span className="inline-flex items-center gap-1.5">
-                        <MapPin className="h-4 w-4" />
-                        {org.district}
+                      <span className="flex items-baseline gap-1.5">
+                        <span className="font-semibold text-[color:var(--ink)]">
+                          {org.district}
+                        </span>
+                        <span className="text-muted-foreground">District</span>
                       </span>
                     ) : null}
-                    <span className="inline-flex items-center gap-1.5">
-                      <BookOpen className="h-4 w-4" />
-                      {coursesLoading ? "…" : courseCount}{" "}
-                      {courseCount === 1 ? "course" : "courses"}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <CalendarDays className="h-4 w-4" />
-                      Member since {memberSince}
+                    <span className="flex items-baseline gap-1.5">
+                      <span className="font-semibold text-[color:var(--ink)]">
+                        {memberSinceShort}
+                      </span>
+                      <span className="text-muted-foreground">member since</span>
                     </span>
                   </div>
-                </div>
 
-                {/* Mobile action buttons */}
-                <div className="mt-4 flex flex-wrap gap-2 sm:hidden">
-                  {whatsappUrl && (
-                    <Button
-                      asChild
-                      size="sm"
-                      className="flex-1 bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                    >
-                      <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                        <MessageCircle className="mr-2 h-4 w-4" />
-                        WhatsApp
-                      </a>
-                    </Button>
-                  )}
-                  {org.contact_email && (
-                    <Button asChild variant="outline" size="sm" className="flex-1">
-                      <a href={`mailto:${org.contact_email}`}>Email</a>
-                    </Button>
-                  )}
-                  {org.website_url && (
-                    <Button asChild variant="ghost" size="sm" className="flex-1">
-                      <a href={org.website_url} target="_blank" rel="noreferrer">
-                        Website
-                      </a>
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </section>
+                  <Tabs defaultValue="courses" className="mt-6 gap-5">
+                    <TabsList className="w-full">
+                      <TabsTrigger value="courses" className="flex-1">
+                        Courses
+                      </TabsTrigger>
+                      <TabsTrigger value="about" className="flex-1">
+                        About
+                      </TabsTrigger>
+                    </TabsList>
 
-            <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
-              {/* Main column */}
-              <div className="min-w-0 space-y-6">
-                {/* Courses — Carousell style listing grid */}
-                <section>
-                  <h2 className="text-lg font-black tracking-tight text-[color:var(--ink)]">
-                    Courses
-                  </h2>
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    {coursesLoading && (
-                      <>
-                        <Skeleton className="h-64 rounded-xl" />
-                        <Skeleton className="h-64 rounded-xl" />
-                      </>
-                    )}
-                    {!coursesLoading && courseCount === 0 && (
-                      <div className="sm:col-span-2">
-                        <EmptyState
-                          icon={BookOpen}
-                          title="No courses listed yet"
-                          description="This business hasn't published any courses — check back soon."
-                          secondaryAction={
-                            <Button variant="outline" asChild>
-                              <Link to="/courses">Browse other courses</Link>
-                            </Button>
-                          }
-                        />
+                    <TabsContent value="courses">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {coursesLoading && (
+                          <>
+                            <Skeleton className="h-64 rounded-xl" />
+                            <Skeleton className="h-64 rounded-xl" />
+                          </>
+                        )}
+                        {!coursesLoading && courseCount === 0 && (
+                          <div className="sm:col-span-2">
+                            <EmptyState
+                              icon={BookOpen}
+                              title="No courses listed yet"
+                              description="This business hasn't published any courses — check back soon."
+                              secondaryAction={
+                                <Button variant="outline" asChild>
+                                  <Link to="/courses">Browse other courses</Link>
+                                </Button>
+                              }
+                            />
+                          </div>
+                        )}
+                        {(courses ?? []).map((course) => (
+                          <ListingCard key={course.id} course={course} />
+                        ))}
                       </div>
-                    )}
-                    {(courses ?? []).map((course) => (
-                      <ListingCard key={course.id} course={course} />
-                    ))}
-                  </div>
-                </section>
+                    </TabsContent>
 
-                {/* About */}
-                <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
-                  <h2 className="text-lg font-black tracking-tight text-[color:var(--ink)]">
-                    About
-                  </h2>
-                  <div className="mt-3 space-y-3 text-[15px] leading-relaxed text-muted-foreground">
-                    {org.description ? (
-                      org.description
-                        .split(/\n{2,}/)
-                        .map((paragraph, i) => <p key={i}>{paragraph}</p>)
-                    ) : (
-                      <p>This business hasn't added a description yet.</p>
-                    )}
-                  </div>
-                </section>
-              </div>
+                    <TabsContent value="about" className="flex flex-col gap-4">
+                      <div className="space-y-3 text-[15px] leading-relaxed text-muted-foreground">
+                        {org.description ? (
+                          org.description
+                            .split(/\n{2,}/)
+                            .map((paragraph, i) => <p key={i}>{paragraph}</p>)
+                        ) : (
+                          <p>This business hasn't added a description yet.</p>
+                        )}
+                      </div>
+                      <Separator />
+                      <ul className="flex flex-col gap-2.5 text-sm text-muted-foreground">
+                        <li className="flex items-center gap-2.5">
+                          <MapPin className="h-4 w-4 shrink-0" />
+                          {org.district ?? "Hong Kong"}
+                        </li>
+                        <li className="flex items-center gap-2.5">
+                          <CalendarDays className="h-4 w-4 shrink-0" />
+                          Joined {memberSince}
+                        </li>
+                        {org.website_url ? (
+                          <li className="flex items-center gap-2.5">
+                            <Globe className="h-4 w-4 shrink-0" />
+                            <a
+                              href={org.website_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-medium text-[color:var(--brand-link)] hover:underline"
+                            >
+                              {org.website_url.replace(/^https?:\/\//, "")}
+                            </a>
+                          </li>
+                        ) : null}
+                      </ul>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </section>
 
               {/* Sidebar */}
               <aside>

@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BookOpen, ExternalLink, PlusCircle, UsersRound } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, BookOpen, Check, ExternalLink, UsersRound, X } from "lucide-react";
 
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { EmptyState } from "@/components/business/empty-state";
 import { BusinessLayout, UsageMeter } from "@/components/business/business-layout";
 import { useAuth } from "@/features/auth/useAuth";
@@ -13,6 +15,7 @@ import {
   fetchPublishedCourses,
   formatCoursePrice,
 } from "@/features/courses/queries";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/business/")({
   head: () => ({
@@ -25,12 +28,50 @@ function BusinessOverview() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { membership, organization, usage, isLoading } = useMyOrganization();
+  const [onboardingDismissed, setOnboardingDismissed] = useState(
+    () => typeof window !== "undefined" && localStorage.getItem("mm-onboarding-dismissed") === "1",
+  );
 
   const { data: publishedCourses } = useQuery({
     queryKey: ["my-organization-published", organization?.id],
     queryFn: () => fetchPublishedCourses({}, 100),
     enabled: !!organization,
   });
+
+  const showOnboarding = !!organization && !onboardingDismissed;
+
+  const onboardingSteps = organization
+    ? [
+        { label: "Create your account", done: true, to: "/business" },
+        {
+          label: "Complete your business profile",
+          done: !!(organization.tagline && organization.description && organization.district),
+          to: "/business/settings",
+        },
+        {
+          label: "Upload your logo & cover",
+          done: !!(organization.logo_url && organization.cover_image_url),
+          to: "/business/settings",
+        },
+        {
+          label: "Post your first course",
+          done: (usage?.coursesUsed ?? 0) > 0,
+          to: "/business/courses",
+        },
+        {
+          label: "Invite your team",
+          done: (usage?.memberCount ?? 1) > 1,
+          to: "/business/team",
+        },
+      ]
+    : [];
+  const completedSteps = onboardingSteps.filter((step) => step.done).length;
+  const onboardingPercent = Math.round((completedSteps / onboardingSteps.length) * 100);
+
+  const dismissOnboarding = () => {
+    setOnboardingDismissed(true);
+    localStorage.setItem("mm-onboarding-dismissed", "1");
+  };
 
   if (isLoading) {
     return (
@@ -163,36 +204,68 @@ function BusinessOverview() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-          <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
-            <h2 className="text-base font-bold text-[color:var(--ink)]">Quick actions</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <Button variant="outline" asChild className="justify-start">
-                <a href="/business/courses">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Post a new course
-                </a>
-              </Button>
-              <Button variant="outline" asChild className="justify-start">
-                <a href="/business/team">
-                  <UsersRound className="mr-2 h-4 w-4" />
-                  Invite a team admin
-                </a>
-              </Button>
-              <Button variant="outline" asChild className="justify-start">
-                <a href="/business/settings">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Edit business profile
-                </a>
-              </Button>
-              <Button variant="outline" asChild className="justify-start">
-                <a href="/courses" target="_blank" rel="noreferrer">
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  View public directory
-                </a>
-              </Button>
-            </div>
-          </section>
+        <div className={cn("mt-8 grid gap-4", showOnboarding && "lg:grid-cols-[1.5fr_1fr]")}>
+          {showOnboarding && (
+            <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+              <div className="flex items-start justify-between gap-3 border-b border-border p-6 pb-4">
+                <div className="flex flex-col gap-2">
+                  <h2 className="text-base font-bold text-[color:var(--ink)]">Getting started</h2>
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {completedSteps} of {onboardingSteps.length} complete
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={dismissOnboarding}
+                  aria-label="Dismiss getting started checklist"
+                  className="text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                </button>
+              </div>
+
+              <div className="px-6 pt-4">
+                <Progress
+                  value={onboardingPercent}
+                  className="h-1.5 bg-muted [&>div]:bg-[#1FA8B6]"
+                />
+              </div>
+
+              <ul className="flex flex-col p-2">
+                {onboardingSteps.map((step) => (
+                  <li key={step.label}>
+                    <button
+                      type="button"
+                      onClick={() => navigate({ to: step.to })}
+                      className="flex w-full items-center gap-3 rounded-md px-4 py-2.5 text-left text-sm transition-colors hover:bg-muted/60"
+                    >
+                      <span
+                        className={cn(
+                          "flex size-5 shrink-0 items-center justify-center rounded-full border",
+                          step.done ? "border-[#1FA8B6] bg-[#1FA8B6] text-white" : "border-border",
+                        )}
+                      >
+                        {step.done && <Check className="h-3 w-3" aria-hidden />}
+                      </span>
+                      <span
+                        className={cn(
+                          "flex-1",
+                          step.done
+                            ? "text-muted-foreground line-through"
+                            : "font-medium text-[color:var(--ink)]",
+                        )}
+                      >
+                        {step.label}
+                      </span>
+                      {!step.done && (
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" aria-hidden />
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
             <h2 className="text-base font-bold text-[color:var(--ink)]">Plan & usage</h2>

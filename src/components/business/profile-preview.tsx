@@ -6,13 +6,9 @@ import {
   Mail,
   MapPin,
   MessageCircle,
-  Monitor,
-  Smartphone,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-
-export type PreviewDevice = "desktop" | "mobile";
 
 export type ProfilePreviewData = {
   slug: string;
@@ -28,41 +24,6 @@ export type ProfilePreviewData = {
   courseCount: number;
   memberSince: string;
 };
-
-export function DeviceToggle({
-  device,
-  onChange,
-}: {
-  device: PreviewDevice;
-  onChange: (device: PreviewDevice) => void;
-}) {
-  return (
-    <div className="flex items-center rounded-md border border-border bg-muted/60 p-0.5">
-      {(
-        [
-          { value: "desktop", icon: Monitor, label: "Desktop" },
-          { value: "mobile", icon: Smartphone, label: "Mobile" },
-        ] as const
-      ).map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          aria-pressed={device === option.value}
-          onClick={() => onChange(option.value)}
-          className={cn(
-            "flex items-center gap-1.5 rounded-[5px] px-2.5 py-1 text-xs font-semibold transition-colors",
-            device === option.value
-              ? "bg-card text-[color:var(--ink)] shadow-sm"
-              : "text-muted-foreground hover:text-[color:var(--ink)]",
-          )}
-        >
-          <option.icon className="h-3.5 w-3.5" />
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 function buildWhatsAppUrl(number: string): string {
   const digits = number.replace(/[^0-9]/g, "");
@@ -115,7 +76,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
         )}
       </div>
       <div className="px-5 pb-6">
-        <div className="-mt-11">
+        <div className="relative z-10 -mt-11">
           {data.logoUrl ? (
             <img
               src={data.logoUrl}
@@ -208,26 +169,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
   );
 }
 
-export function ProfilePreview({
-  data,
-  device,
-}: {
-  data: ProfilePreviewData;
-  device: PreviewDevice;
-}) {
-  if (device === "mobile") {
-    return (
-      <div className="mx-auto w-[390px] max-w-full overflow-hidden rounded-[2.25rem] border-8 border-zinc-900 bg-card shadow-xl dark:border-zinc-700">
-        <div className="flex h-6 items-center justify-center bg-zinc-900 dark:bg-zinc-700">
-          <span className="h-1.5 w-16 rounded-full bg-white/30" />
-        </div>
-        <div className="p-3">
-          <PreviewBody data={data} />
-        </div>
-      </div>
-    );
-  }
-
+export function ProfilePreview({ data }: { data: ProfilePreviewData }) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-muted/60 shadow-sm">
       <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-2.5">
