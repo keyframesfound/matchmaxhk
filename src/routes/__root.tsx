@@ -8,7 +8,6 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
-import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { I18nProvider } from "@/features/i18n/I18nProvider";
@@ -17,6 +16,7 @@ import { ThemeProvider } from "@/features/theme/ThemeProvider";
 
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { WhatsAppFloatButton } from "@/components/layout/WhatsAppFloatButton";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (

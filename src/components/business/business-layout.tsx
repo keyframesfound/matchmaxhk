@@ -1,6 +1,14 @@
 import type { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { BookOpen, Building2, LayoutDashboard, LogOut, Settings, UsersRound } from "lucide-react";
+import {
+  BookOpen,
+  Building2,
+  ChevronRight,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  UsersRound,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -75,6 +83,7 @@ type BusinessLayoutProps = {
 export function BusinessLayout({ organization, usage, children }: BusinessLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const activeItem = NAV_ITEMS.find((item) => location.pathname === item.match) ?? NAV_ITEMS[0];
   const initials = organization.name
     .split(/\s+/)
     .slice(0, 2)
@@ -104,9 +113,9 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "bg-muted font-semibold text-[color:var(--ink)]"
+                    ? "bg-[color:var(--brand-teal)]/10 font-semibold text-[color:var(--ink)]"
                     : "text-muted-foreground hover:bg-muted/60 hover:text-[color:var(--ink)]",
                 )}
               >
@@ -147,6 +156,7 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
           </div>
           <div className="hidden items-center gap-3 lg:flex">
             <PlanBadge plan={organization.plan} />
+            <span className="h-4 w-px bg-border" />
             <span className="text-xs text-muted-foreground">
               matchmax.hk/business/{organization.slug}
             </span>
@@ -176,9 +186,9 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "bg-muted font-semibold text-[color:var(--ink)]"
+                    ? "bg-[color:var(--brand-teal)]/10 font-semibold text-[color:var(--ink)]"
                     : "text-muted-foreground",
                 )}
               >
@@ -189,8 +199,20 @@ export function BusinessLayout({ organization, usage, children }: BusinessLayout
           })}
         </nav>
 
-        <main className="flex-1 px-4 py-8 sm:px-8">
-          <div className="mx-auto max-w-5xl">{children}</div>
+        <main id="main-content" className="flex-1 px-4 py-8 sm:px-8">
+          <div className="mx-auto max-w-5xl">
+            <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-2 text-sm">
+              <Link
+                to="/business"
+                className="font-medium text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
+              >
+                Business
+              </Link>
+              <ChevronRight className="h-4 w-4 text-muted-foreground/60" />
+              <span className="font-medium text-[color:var(--ink)]">{activeItem.label}</span>
+            </nav>
+            {children}
+          </div>
         </main>
       </div>
     </div>

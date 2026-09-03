@@ -6,6 +6,16 @@ import { toast } from "sonner";
 
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/business/empty-state";
@@ -37,6 +47,7 @@ function BusinessCoursesPage() {
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [coursePendingDeletion, setCoursePendingDeletion] = useState<Course | null>(null);
 
   const orgId = organization?.id ?? null;
   const { data: courses, isLoading } = useQuery({
@@ -70,13 +81,13 @@ function BusinessCoursesPage() {
   };
 
   const handleDelete = async (course: Course) => {
-    if (!window.confirm(`Delete "${course.title}"? This cannot be undone.`)) return;
     const { error } = await supabase.from("courses").delete().eq("id", course.id);
     if (error) {
       toast.error(error.message);
       return;
     }
     toast.success("Course deleted");
+    setCoursePendingDeletion(null);
     invalidate();
   };
 
@@ -226,7 +237,7 @@ function BusinessCoursesPage() {
                       variant="outline"
                       size="icon"
                       aria-label="Delete course"
-                      onClick={() => void handleDelete(course)}
+                      onClick={() => setCoursePendingDeletion(course)}
                     >
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
@@ -234,6 +245,48 @@ function BusinessCoursesPage() {
                 </div>
               );
             })}
+          <CourseFormModal
+            open={formOpen}
+            onOpenChange={(open) => {
+              setFormOpen(open);
+              if (!open) setEditingCourse(null);
+            }}
+            organization={organization}
+            course={editingCourse}
+            onSaved={() => {
+              setFormOpen(false);
+              setEditingCourse(null);
+              invalidate();
+            }}
+          />
+          <AlertDialog
+            open={coursePendingDeletion !== null}
+            onOpenChange={(open) => {
+              if (!open) setCoursePendingDeletion(null);
+            }}
+          >
+            <AlertDialogContent className="max-w-md rounded-lg border-border bg-card p-6">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete course?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {coursePendingDeletion
+                    ? `"${coursePendingDeletion.title}" will be permanently removed from your business account.`
+                    : "This action cannot be undone."}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="mt-2 sm:justify-end">
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => {
+                    if (coursePendingDeletion) void handleDelete(coursePendingDeletion);
+                  }}
+                >
+                  Delete course
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </BusinessLayout>
     </div>
