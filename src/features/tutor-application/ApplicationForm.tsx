@@ -1092,7 +1092,7 @@ export function ApplicationForm() {
                 <Input
                   value={base.name}
                   onChange={(event) => setBaseField("name", event.target.value)}
-                  placeholder="Jayden Lau"
+                  placeholder="Hauzton Chan"
                 />
               </Field>
               <Input
@@ -1104,7 +1104,7 @@ export function ApplicationForm() {
                 type="email"
                 value={base.email}
                 onChange={(event) => setBaseField("email", event.target.value)}
-                placeholder="jayden.lau@example.com"
+                placeholder="hauzton.chan@matchmax.hk"
               />
               <Field label="Country / Region" required error={fieldErrors.country}>
                 <SearchableSelect
