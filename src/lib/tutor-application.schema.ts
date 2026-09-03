@@ -1,8 +1,9 @@
 import { z } from "zod";
 
 export const MAX_FILES = 5;
-export const MAX_FILE_BYTES = 10 * 1024 * 1024;
-export const MAX_TOTAL_BYTES = 20 * 1024 * 1024;
+export const MAX_ACHIEVEMENT_FILE_BYTES = 5 * 1024 * 1024;
+export const MAX_FILE_BYTES = MAX_ACHIEVEMENT_FILE_BYTES;
+export const MAX_TOTAL_BYTES = MAX_FILES * MAX_ACHIEVEMENT_FILE_BYTES;
 export const ACCEPTED_FILE_TYPES = [
   "application/pdf",
   "image/jpeg",
@@ -44,8 +45,29 @@ export const TEACHING_QUALIFICATION_OPTIONS = ["PGDE", "PGCE", "BEd", "MEd", "TE
 export const attachmentSchema = z.object({
   filename: z.string().min(1).max(200),
   contentType: z.string().min(1).max(120),
-  size: z.number().int().positive().max(MAX_FILE_BYTES),
+  size: z.number().int().positive().max(MAX_ACHIEVEMENT_FILE_BYTES),
   content: z.string().min(1),
+});
+
+export const achievementSchema = z.object({
+  title: z.string().trim().min(1, "Required").max(200),
+  description: z.string().trim().min(1, "Required").max(2000),
+  proof: attachmentSchema.optional(),
+  proofStatus: z.enum(["upload", "not_applicable", "provide_later"]),
+}).superRefine((achievement, context) => {
+  if (achievement.proofStatus === "upload" && !achievement.proof) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["proof"], message: "Choose an evidence file" });
+  }
+});
+
+export const academicDocumentSchema = z.object({
+  curriculum: z.enum(CURRICULUM_OPTIONS),
+  file: attachmentSchema.optional(),
+  status: z.enum(["upload", "not_applicable", "provide_later"]),
+}).superRefine((document, context) => {
+  if (document.status === "upload" && !document.file) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["file"], message: "Choose a transcript file" });
+  }
 });
 
 export const tutorApplicationSchema = z.object({
@@ -53,6 +75,8 @@ export const tutorApplicationSchema = z.object({
   name: z.string().trim().min(1, "Required").max(120),
   phone: z.string().trim().min(5, "Required").max(60),
   email: z.string().trim().email("Enter a valid email"),
+  country: z.string().trim().min(1, "Required").max(100),
+  graduationYear: z.string().trim().max(40).optional().default(""),
   startDate: z.string().trim().max(40).optional().default(""),
   status: z.enum(STATUS_OPTIONS),
   statusOther: z.string().trim().max(200).optional().default(""),
@@ -68,7 +92,9 @@ export const tutorApplicationSchema = z.object({
   subjectsConfident: z.string().trim().min(1, "Required").max(2000),
   subjectResults: z.string().trim().min(1, "Required").max(2000),
   awards: z.string().trim().max(2000).optional().default(""),
-  experience: z.string().trim().min(1, "Required").max(2000),
+  achievements: z.array(achievementSchema).max(MAX_FILES).default([]),
+  academicDocuments: z.array(academicDocumentSchema).max(MAX_FILES).default([]),
+  experience: z.string().trim().max(2000).optional().default(""),
   hourlyRate: z.string().trim().min(1, "Required").max(20),
   materials: z.enum(MATERIALS_OPTIONS),
   format: z.enum(FORMAT_OPTIONS),
@@ -79,7 +105,6 @@ export const tutorApplicationSchema = z.object({
   certificatesLater: z.boolean().default(false),
   commissionAck: z.literal(true),
   privacyAck: z.literal(true),
-  attachments: z.array(attachmentSchema).min(1, "Please attach your results").max(MAX_FILES),
 }).superRefine((data, context) => {
   const isProfessional = data.professionalRoles.length > 0 || [
     "Current school teacher",
@@ -133,6 +158,8 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     { label: "Name", value: data.name },
     { label: "Contact number / WhatsApp", value: data.phone },
     { label: "Email", value: data.email },
+    { label: "Country / region", value: data.country },
+    { label: "Graduation year", value: data.graduationYear || "—" },
     { label: "Earliest start date", value: data.startDate || "—" },
     { label: "Current status", value: status },
     ...(data.professionalRoles.length ? [{ label: "Professional roles", value: data.professionalRoles.join(", ") }] : []),
@@ -147,6 +174,25 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     { label: "Subjects and levels confident teaching", value: data.subjectsConfident },
     { label: "Relevant subject results / academic strengths", value: data.subjectResults },
     { label: "Awards / scholarships / achievements", value: data.awards || "—" },
+    {
+      label: "Achievement evidence",
+      value: data.achievements
+        .map(
+          (achievement) =>
+            `${achievement.title}: ${achievement.description} (${achievement.proof?.filename ?? (achievement.proofStatus === "provide_later" ? "Provide later" : "N/A")})`,
+        )
+        .join("\n"),
+    },
+    {
+      label: "Academic documents",
+      value:
+        data.academicDocuments
+          .map(
+            (document) =>
+              `${document.curriculum}: ${document.file?.filename ?? (document.status === "provide_later" ? "Provide later" : "N/A")}`,
+          )
+          .join("\n") || "—",
+    },
     { label: "Teaching / tutoring experience", value: data.experience },
     { label: "Normal hourly rate (HKD)", value: data.hourlyRate },
     { label: "Teaching materials available", value: data.materials },
@@ -155,8 +201,6 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     { label: "Preferred teaching location(s)", value: data.locations || "—" },
     { label: "Preferred medium of instruction", value: data.medium },
     { label: "Anything else / referral", value: data.notes || "—" },
-    { label: "Certificates to follow", value: data.certificatesLater ? "Yes" : "No" },
-    { label: "Attachments", value: data.attachments.map((f) => f.filename).join(", ") },
     { label: "Commission acknowledged", value: "Yes" },
     { label: "Privacy notice accepted", value: "Yes" },
   ];

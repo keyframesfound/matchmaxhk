@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, LocateFixed, Paperclip, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, LocateFixed, Paperclip, Plus, Trash2, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,12 @@ import { FormField } from "@/components/ui/form-field";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -24,7 +30,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import Stepper, { Step, type StepperIndicatorRenderArgs } from "@/components/ui/stepper";
 import { cn } from "@/lib/utils";
-import { submitTutorApplication } from "@/lib/tutor-application.functions";
+import {
+  extractTranscriptQualification,
+  submitTutorApplication,
+} from "@/lib/tutor-application.functions";
 import {
   ACCEPT_ATTRIBUTE,
   ACCEPTED_FILE_TYPES,
@@ -35,7 +44,6 @@ import {
   MATERIALS_OPTIONS,
   MAX_FILES,
   MAX_FILE_BYTES,
-  MAX_TOTAL_BYTES,
   PROFESSIONAL_ROLE_OPTIONS,
   PRIVACY_TEXT,
   STATUS_OPTIONS,
@@ -58,6 +66,7 @@ type ScoreRow = {
   detail: string;
   level: string;
   gradeSystem: string;
+  papers: { label: string; score: string }[];
 };
 type Qualification = {
   curriculum: string;
@@ -65,6 +74,14 @@ type Qualification = {
   boards: string[];
   scores: ScoreRow[];
   best6: string;
+  transcript: File | null;
+  transcriptStatus: "upload" | "not_applicable" | "provide_later";
+};
+type Achievement = {
+  title: string;
+  description: string;
+  proof: File | null;
+  proofStatus: "upload" | "not_applicable" | "provide_later";
 };
 
 const PROFESSIONAL_STATUSES = new Set([
@@ -80,6 +97,17 @@ const SYSTEM_IDS: Record<string, string> = {
   AP: "ap",
 };
 const LANGUAGES = ["English", "Cantonese", "Mandarin"];
+const COUNTRY_OPTIONS = [
+  "Hong Kong",
+  "Mainland China",
+  "Macau",
+  "Singapore",
+  "United Kingdom",
+  "United States",
+  "Canada",
+  "Australia",
+  "Other",
+];
 const ACADEMIC_STEPS = [
   "Basic Info",
   "Academics",
@@ -110,9 +138,19 @@ function blankQualification(curriculum = "IBDP"): Qualification {
     curriculum,
     overall: "",
     boards: [],
-    scores: [{ subject: "", grade: "", detail: "", level: "", gradeSystem: "" }],
+    scores: [{ subject: "", grade: "", detail: "", level: "", gradeSystem: "", papers: [] }],
     best6: "",
+    transcript: null,
+    transcriptStatus: "not_applicable",
   };
+}
+
+function paperOptions(curriculum: string) {
+  if (curriculum === "IBDP")
+    return ["Paper 1", "Paper 2", "Paper 3", "Internal Assessment (IA)", "Individual Oral (IO)"];
+  if (curriculum === "HKDSE") return ["Paper 1", "Paper 2", "Paper 3", "Paper 4", "School-based Assessment (SBA)"];
+  if (curriculum === "AP") return ["Multiple Choice", "Free Response", "Portfolio / Performance Task"];
+  return ["Paper 1", "Paper 2", "Paper 3", "Paper 4", "Coursework"];
 }
 
 function Choices({
@@ -173,14 +211,81 @@ function updateArray(values: string[], value: string) {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
 }
 
+function SubjectPicker({
+  studiedSubjects,
+  addedSubjects,
+  options,
+  onToggle,
+}: {
+  studiedSubjects: string[];
+  addedSubjects: string[];
+  options: readonly string[];
+  onToggle: (subject: string) => void;
+}) {
+  const selectedSubjects = new Set([...studiedSubjects, ...addedSubjects]);
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {studiedSubjects.map((subject) => (
+          <span
+            key={subject}
+            className="inline-flex items-center rounded-md bg-[color:var(--ink)]/[0.07] px-2.5 py-1.5 text-xs font-semibold text-[color:var(--ink)]"
+          >
+            {subject}
+          </span>
+        ))}
+        {addedSubjects.map((subject) => (
+          <span
+            key={subject}
+            className="inline-flex items-center gap-1 rounded-md bg-[#77E8EE]/30 px-2.5 py-1.5 text-xs font-semibold text-[color:var(--ink)]"
+          >
+            {subject}
+            <button
+              type="button"
+              aria-label={`Remove ${subject}`}
+              onClick={() => onToggle(subject)}
+              className="rounded-full p-0.5 text-[color:var(--ink)]/60 hover:bg-[color:var(--ink)]/10 hover:text-destructive"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
+        {selectedSubjects.size === 0 ? (
+          <span className="text-sm text-muted-foreground">No subjects selected yet.</span>
+        ) : null}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button type="button" variant="outline" size="sm">
+              <Plus /> Add subject
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="max-h-72 w-64">
+            {options.map((subject) => (
+              <DropdownMenuCheckboxItem
+                key={subject}
+                checked={selectedSubjects.has(subject)}
+                disabled={studiedSubjects.includes(subject)}
+                onCheckedChange={() => onToggle(subject)}
+              >
+                {subject}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
+}
+
 export function ApplicationForm() {
   const submit = useServerFn(submitTutorApplication);
+  const extractTranscript = useServerFn(extractTranscriptQualification);
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [files, setFiles] = useState<File[]>([]);
+  const [transcriptStatus, setTranscriptStatus] = useState<"idle" | "reading">("idle");
   const [captcha, setCaptcha] = useState<string | null>(null);
   const [captchaError, setCaptchaError] = useState<string | null>(null);
   const captchaRef = useRef<HTMLDivElement>(null);
@@ -196,6 +301,9 @@ export function ApplicationForm() {
     name: "",
     phone: "+852 ",
     email: "",
+    country: "Hong Kong",
+    countryOther: "",
+    graduationYear: "",
     status: "",
     statusOther: "",
     medium: [] as string[],
@@ -206,7 +314,7 @@ export function ApplicationForm() {
     subjectsTaught: [] as string[],
     format: "",
     stations: [] as string[],
-    experiences: [""] as string[],
+    achievements: [] as Achievement[],
     hourlyRate: "",
     materials: "",
     certificatesLater: false,
@@ -220,6 +328,11 @@ export function ApplicationForm() {
   const professional = PROFESSIONAL_STATUSES.has(base.status);
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
+
+  function changeStep(nextStep: number) {
+    setStep(nextStep);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   async function addTravelSuggestions() {
     if (!originStation || suggestionStatus === "adding") return;
@@ -300,10 +413,13 @@ export function ApplicationForm() {
   }
 
   const allResultSubjects = useMemo(
-    () =>
-      qualifications.flatMap((qualification) =>
-        qualification.scores.map((score) => score.subject).filter(Boolean),
+    () => [
+      ...new Set(
+        qualifications.flatMap((qualification) =>
+          qualification.scores.map((score) => score.subject.trim()).filter(Boolean),
+        ),
       ),
+    ],
     [qualifications],
   );
   const notice = professional
@@ -389,16 +505,26 @@ export function ApplicationForm() {
       ),
     );
   }
+  function updateAchievement(index: number, patch: Partial<Achievement>) {
+    setBaseField(
+      "achievements",
+      base.achievements.map((achievement, achievementIndex) =>
+        achievementIndex === index ? { ...achievement, ...patch } : achievement,
+      ),
+    );
+  }
 
   function validateCurrentStep() {
     const next: Record<string, string> = {};
-    const required = (key: string, value: string | string[] | boolean | unknown[]) => {
+    const required = (key: string, value: unknown) => {
       if (!value || (Array.isArray(value) && value.length === 0)) next[key] = "Required";
     };
     if (step === 1) {
       required("name", base.name.trim());
       required("phone", base.phone.replace("+852", "").trim());
       required("email", base.email.trim());
+      required("country", base.country.trim());
+      if (base.country === "Other") required("countryOther", base.countryOther.trim());
       required("status", base.status);
       required("medium", base.medium);
       if (base.status === "Other") required("statusOther", base.statusOther.trim());
@@ -421,7 +547,8 @@ export function ApplicationForm() {
     }
     const subjectStep = professional ? 3 : 2;
     if (step === subjectStep) {
-      if (professional) required("subjectsTaught", base.subjectsTaught);
+      if (professional)
+        required("subjectsTaught", [...new Set([...allResultSubjects, ...base.subjectsTaught])]);
       else
         qualifications.forEach((qualification, qualificationIndex) =>
           qualification.scores.forEach((score, scoreIndex) => {
@@ -431,21 +558,28 @@ export function ApplicationForm() {
         );
     }
     const taughtStep = professional ? 3 : 3;
-    if (step === taughtStep) required("subjectsTaught", base.subjectsTaught);
+    if (step === taughtStep)
+      required("subjectsTaught", [...new Set([...allResultSubjects, ...base.subjectsTaught])]);
     const lessonStep = professional ? 4 : 4;
     if (step === lessonStep) {
       required("format", base.format);
       if (base.format !== "Online") required("stations", base.stations);
     }
     const experienceStep = professional ? 5 : 5;
-    if (step === experienceStep) required("experiences", base.experiences.filter(Boolean));
+    if (step === experienceStep) {
+      base.achievements.forEach((achievement, index) => {
+        required(`achievement-title-${index}`, achievement.title.trim());
+        required(`achievement-description-${index}`, achievement.description.trim());
+        if (achievement.proofStatus === "upload")
+          required(`achievement-proof-${index}`, achievement.proof);
+      });
+    }
     const logisticsStep = professional ? 6 : 6;
     if (step === logisticsStep) {
       required("hourlyRate", base.hourlyRate.trim());
       required("materials", base.materials);
     }
     if (step === stepTitles.length) {
-      required("files", files);
       required("commission", base.commission);
       required("privacy", base.privacy);
       if (!captcha) next.captcha = "Complete the security check.";
@@ -465,6 +599,35 @@ export function ApplicationForm() {
       reader.readAsDataURL(file);
     });
   }
+  async function autoFillQualification(qualificationIndex: number, file: File) {
+    if (!["image/jpeg", "image/png"].includes(file.type) || file.size > MAX_FILE_BYTES) {
+      setError("Use a JPG or PNG transcript image no larger than 5 MB.");
+      return;
+    }
+    setTranscriptStatus("reading");
+    setError(null);
+    try {
+      const extracted = await extractTranscript({
+        data: {
+          curriculum: qualifications[qualificationIndex].curriculum as (typeof CURRICULUM_OPTIONS)[number],
+          contentType: file.type as "image/jpeg" | "image/png",
+          content: await fileData(file),
+        },
+      });
+      updateQualification(qualificationIndex, {
+        overall: extracted.overall,
+        best6: extracted.best6,
+        scores: extracted.scores.map((score) => ({
+          ...score,
+          papers: [],
+        })),
+      });
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Transcript auto-fill failed.");
+    } finally {
+      setTranscriptStatus("idle");
+    }
+  }
   async function submitForm() {
     if (!validateCurrentStep()) return;
     setSubmitting(true);
@@ -481,6 +644,8 @@ export function ApplicationForm() {
         name: base.name,
         phone: base.phone,
         email: base.email,
+        country: base.country === "Other" ? base.countryOther : base.country,
+        graduationYear: base.graduationYear,
         startDate: "",
         status: base.status,
         statusOther: base.statusOther,
@@ -493,12 +658,43 @@ export function ApplicationForm() {
         curriculum: primary.curriculum,
         curricula: qualifications.map((qualification) => qualification.curriculum),
         overallScore: primary.overall || "Professional pathway",
-        subjectsConfident: base.subjectsTaught.join(", "),
+        subjectsConfident: [...new Set([...allResultSubjects, ...base.subjectsTaught])].join(", "),
         subjectResults: professional
-          ? `Professional subjects: ${base.subjectsTaught.join(", ")}\n${base.experiences.filter(Boolean).join("\n")}`
+          ? `Professional subjects: ${[...new Set([...allResultSubjects, ...base.subjectsTaught])].join(", ")}\n${base.achievements.map((achievement) => achievement.description).join("\n")}`
           : subjectResults,
         awards: "",
-        experience: base.experiences.filter(Boolean).join("\n"),
+        achievements: await Promise.all(
+          base.achievements.map(async (achievement) => ({
+            title: achievement.title,
+            description: achievement.description,
+            proofStatus: achievement.proofStatus,
+            proof: achievement.proof
+              ? {
+                  filename: achievement.proof.name,
+                  contentType: achievement.proof.type,
+                  size: achievement.proof.size,
+                  content: await fileData(achievement.proof),
+                }
+              : undefined,
+          })),
+        ),
+        academicDocuments: await Promise.all(
+          qualifications.map(async (qualification) => ({
+            curriculum: qualification.curriculum,
+            status: qualification.transcriptStatus,
+            file: qualification.transcript
+              ? {
+                  filename: qualification.transcript.name,
+                  contentType: qualification.transcript.type,
+                  size: qualification.transcript.size,
+                  content: await fileData(qualification.transcript),
+                }
+              : undefined,
+          })),
+        ),
+        experience: base.achievements
+          .map((achievement) => `${achievement.title}: ${achievement.description}`)
+          .join("\n"),
         hourlyRate: base.hourlyRate,
         materials: base.materials,
         format: base.format,
@@ -509,14 +705,6 @@ export function ApplicationForm() {
         certificatesLater: base.certificatesLater,
         commissionAck: base.commission,
         privacyAck: base.privacy,
-        attachments: await Promise.all(
-          files.map(async (file) => ({
-            filename: file.name,
-            contentType: file.type,
-            size: file.size,
-            content: await fileData(file),
-          })),
-        ),
       });
       if (!parsed.success) {
         setError(parsed.error.issues[0]?.message ?? "Please check your application.");
@@ -683,6 +871,63 @@ export function ApplicationForm() {
                 }
                 placeholder="Specific paper grades / breakdown (optional)"
               />
+              <div className="grid gap-2 sm:col-span-2">
+                {score.papers.map((paper, paperIndex) => (
+                  <div key={`${paper.label}-${paperIndex}`} className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+                    <Select
+                      value={paper.label}
+                      onValueChange={(label) =>
+                        updateScore(qualificationIndex, scoreIndex, {
+                          papers: score.papers.map((item, itemIndex) =>
+                            itemIndex === paperIndex ? { ...item, label } : item,
+                          ),
+                        })
+                      }
+                    >
+                      <SelectTrigger aria-label="Assessment component">
+                        <SelectValue placeholder="Choose paper or assessment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {paperOptions(qualification.curriculum).map((option) => (
+                          <SelectItem key={option} value={option}>{option}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      value={paper.score}
+                      onChange={(event) =>
+                        updateScore(qualificationIndex, scoreIndex, {
+                          papers: score.papers.map((item, itemIndex) =>
+                            itemIndex === paperIndex ? { ...item, score: event.target.value } : item,
+                          ),
+                        })
+                      }
+                      placeholder="Specific score"
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      aria-label="Remove assessment component"
+                      onClick={() => updateScore(qualificationIndex, scoreIndex, { papers: score.papers.filter((_, itemIndex) => itemIndex !== paperIndex) })}
+                    >
+                      <Trash2 />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-fit"
+                  onClick={() =>
+                    updateScore(qualificationIndex, scoreIndex, {
+                      papers: [...score.papers, { label: "", score: "" }],
+                    })
+                  }
+                >
+                  <Plus /> Add paper or assessment score
+                </Button>
+              </div>
               {qualification.scores.length > 1 ? (
                 <Button
                   type="button"
@@ -707,7 +952,7 @@ export function ApplicationForm() {
             updateQualification(qualificationIndex, {
               scores: [
                 ...qualification.scores,
-                { subject: "", grade: "", detail: "", level: "", gradeSystem: "" },
+                { subject: "", grade: "", detail: "", level: "", gradeSystem: "", papers: [] },
               ],
             })
           }
@@ -733,7 +978,7 @@ export function ApplicationForm() {
         className="join-stepper"
         scrollActiveIndicatorIntoView
         currentStep={step}
-        onStepChange={setStep}
+        onStepChange={changeStep}
         onBeforeStepChange={() => validateCurrentStep()}
         onFinalStepCompleted={() => void submitForm()}
         renderStepIndicator={renderIndicator}
@@ -767,6 +1012,25 @@ export function ApplicationForm() {
                 onChange={(event) => setBaseField("email", event.target.value)}
                 placeholder="jayden.lau@example.com"
               />
+              <Field label="Country / Region" required error={fieldErrors.country}>
+                <SearchableSelect
+                  value={base.country}
+                  onChange={(country) => setBaseField("country", country)}
+                  options={COUNTRY_OPTIONS}
+                  placeholder="Choose country or region"
+                  searchPlaceholder="Search countries"
+                  emptyText="No matching country. Choose Other."
+                />
+                {base.country === "Other" ? (
+                  <Input
+                    className="mt-2"
+                    value={base.countryOther}
+                    onChange={(event) => setBaseField("countryOther", event.target.value)}
+                    placeholder="Enter country or region"
+                  />
+                ) : null}
+                {fieldErrors.countryOther ? <p className="mt-2 text-xs font-medium text-destructive">{fieldErrors.countryOther}</p> : null}
+              </Field>
             </div>
             <div className="grid content-start gap-6">
               <Field
@@ -788,6 +1052,13 @@ export function ApplicationForm() {
                   onToggle={(language) =>
                     setBaseField("medium", updateArray(base.medium, language))
                   }
+                />
+              </Field>
+              <Field label="Graduation Year">
+                <Input
+                  value={base.graduationYear}
+                  onChange={(event) => setBaseField("graduationYear", event.target.value)}
+                  placeholder="2023"
                 />
               </Field>
             </div>
@@ -989,6 +1260,50 @@ export function ApplicationForm() {
                           />
                         </Field>
                       ) : null}
+                      <Field label="Academic transcript / supporting document">
+                        <SingleChoice
+                          options={["File upload", "N/A", "Provide later"]}
+                          value={
+                            qualification.transcriptStatus === "upload"
+                              ? "File upload"
+                              : qualification.transcriptStatus === "provide_later"
+                                ? "Provide later"
+                                : "N/A"
+                          }
+                          onChange={(choice) =>
+                            updateQualification(index, {
+                              transcriptStatus:
+                                choice === "File upload"
+                                  ? "upload"
+                                  : choice === "Provide later"
+                                    ? "provide_later"
+                                    : "not_applicable",
+                              transcript: choice === "File upload" ? qualification.transcript : null,
+                            })
+                          }
+                        />
+                        {qualification.transcriptStatus === "upload" ? (
+                          <div className="mt-3 grid gap-2">
+                            <input
+                              type="file"
+                              accept={ACCEPT_ATTRIBUTE}
+                              onChange={(event) => {
+                                const file = event.target.files?.[0] ?? null;
+                                if (!file) return;
+                                if (!ACCEPTED_FILE_TYPES.includes(file.type) || file.size > MAX_FILE_BYTES) {
+                                  setError("Choose a supported transcript file no larger than 5 MB.");
+                                  return;
+                                }
+                                updateQualification(index, { transcript: file });
+                                if (["image/jpeg", "image/png"].includes(file.type)) {
+                                  void autoFillQualification(index, file);
+                                }
+                              }}
+                            />
+                            <Hint>Upload a JPG or PNG to auto-fill results with AI. Review every populated field before submitting.</Hint>
+                          </div>
+                        ) : null}
+                      </Field>
                     </div>
                     <div className="mt-5 border-t border-border pt-5">
                       <h3 className="text-base font-black text-[color:var(--ink)]">
@@ -1031,9 +1346,10 @@ export function ApplicationForm() {
             hint="Select subjects from your academic profile that you are confident and capable of teaching."
             error={fieldErrors.subjectsTaught}
           >
-            <Choices
+            <SubjectPicker
+              studiedSubjects={allResultSubjects}
+              addedSubjects={base.subjectsTaught}
               options={[...new Set([...DEFAULT_SUBJECT_OPTIONS, ...allResultSubjects])]}
-              values={base.subjectsTaught}
               onToggle={(subject) =>
                 setBaseField("subjectsTaught", updateArray(base.subjectsTaught, subject))
               }
@@ -1196,66 +1512,54 @@ export function ApplicationForm() {
         </Step>
         <Step>
           <Heading step={professional ? 5 : 5} title="Achievements and Experiences" />
-          <Field
-            label="Title / Description"
-            required
-            hint={
-              professional
-                ? "List anonymous student success statistics, examiner roles, or years at top-tier schools."
-                : "List competitions, awards, scholarships, university offers, or instructional track records."
-            }
-            error={fieldErrors.experiences}
-          >
-            <div className="grid gap-3">
-              {base.experiences.map((experience, index) => (
-                <div key={index} className="flex gap-2">
-                  <Textarea
-                    value={experience}
-                    onChange={(event) =>
-                      setBaseField(
-                        "experiences",
-                        base.experiences.map((item, itemIndex) =>
-                          itemIndex === index ? event.target.value : item,
-                        ),
-                      )
-                    }
-                    placeholder="Describe an achievement or experience"
+          <Hint>
+            Achievements and experience are optional. Add only items you would like MatchMax to consider.
+          </Hint>
+          <div className="mt-5 grid gap-4">
+            {base.achievements.map((achievement, index) => (
+              <div key={index} className="grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(0,1fr)_auto]">
+                <Field label="Title" required error={fieldErrors[`achievement-title-${index}`]}>
+                  <Input value={achievement.title} onChange={(event) => updateAchievement(index, { title: event.target.value })} placeholder="Award or role" />
+                </Field>
+                <Field label="Description" required error={fieldErrors[`achievement-description-${index}`]}>
+                  <Textarea value={achievement.description} onChange={(event) => updateAchievement(index, { description: event.target.value })} placeholder="Brief details" />
+                </Field>
+                <Field label="Evidence" error={fieldErrors[`achievement-proof-${index}`]}>
+                  <SingleChoice
+                    options={["File upload", "N/A", "Provide later"]}
+                    value={achievement.proofStatus === "upload" ? "File upload" : achievement.proofStatus === "provide_later" ? "Provide later" : "N/A"}
+                    onChange={(choice) => updateAchievement(index, { proofStatus: choice === "File upload" ? "upload" : choice === "Provide later" ? "provide_later" : "not_applicable", proof: choice === "File upload" ? achievement.proof : null })}
                   />
-                  {base.experiences.length > 1 ? (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="outline"
-                      onClick={() =>
-                        setBaseField(
-                          "experiences",
-                          base.experiences.filter((_, itemIndex) => itemIndex !== index),
-                        )
-                      }
-                    >
-                      <Trash2 />
-                    </Button>
+                  {achievement.proofStatus === "upload" ? (
+                    <div className="mt-2 grid gap-1">
+                      <input
+                        type="file"
+                        accept={ACCEPT_ATTRIBUTE}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0] ?? null;
+                          if (!file) return;
+                          if (!ACCEPTED_FILE_TYPES.includes(file.type) || file.size > MAX_FILE_BYTES) {
+                            setError("Choose a supported evidence file no larger than 5 MB.");
+                            return;
+                          }
+                          updateAchievement(index, { proof: file });
+                        }}
+                      />
+                      {achievement.proof ? <p className="flex items-center gap-2 text-xs text-muted-foreground"><Paperclip className="h-3 w-3" />{achievement.proof.name}</p> : null}
+                    </div>
                   ) : null}
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-fit"
-                onClick={() => setBaseField("experiences", [...base.experiences, ""])}
-              >
-                <Plus /> Add another experience
+                </Field>
+                <Button type="button" size="icon" variant="ghost" aria-label="Remove achievement" onClick={() => setBaseField("achievements", base.achievements.filter((_, itemIndex) => itemIndex !== index))}>
+                  <Trash2 />
+                </Button>
+              </div>
+            ))}
+            {base.achievements.length < MAX_FILES ? (
+              <Button type="button" variant="outline" className="w-fit" onClick={() => setBaseField("achievements", [...base.achievements, { title: "", description: "", proof: null, proofStatus: "not_applicable" }])}>
+                <Plus /> Add achievement or experience
               </Button>
-            </div>
-          </Field>
-          <label className="mt-5 flex items-start gap-3 text-sm text-muted-foreground">
-            <Checkbox
-              checked={base.certificatesLater}
-              onCheckedChange={(checked) => setBaseField("certificatesLater", checked === true)}
-            />
-            I will provide supporting official certificates later to expedite profile creation.
-            (Optional)
-          </label>
+            ) : null}
+          </div>
         </Step>
         <Step>
           <Heading step={professional ? 6 : 6} title="Logistics & Rate" />
@@ -1296,40 +1600,6 @@ export function ApplicationForm() {
         <Step>
           <Heading step={stepTitles.length} title="Acknowledgments" />
           <div className="grid gap-5">
-            <Field
-              label={
-                professional
-                  ? "Full CV and credentials"
-                  : "Academic transcript / supporting documents"
-              }
-              required
-              hint={`Up to ${MAX_FILES} files, 10 MB each.`}
-              error={fieldErrors.files}
-            >
-              <Input
-                type="file"
-                multiple
-                accept={ACCEPT_ATTRIBUTE}
-                onChange={(event) => {
-                  const picked = Array.from(event.target.files ?? [])
-                    .filter(
-                      (file) =>
-                        ACCEPTED_FILE_TYPES.includes(file.type) && file.size <= MAX_FILE_BYTES,
-                    )
-                    .slice(0, MAX_FILES);
-                  setFiles(picked);
-                }}
-              />
-              {files.map((file) => (
-                <p
-                  key={file.name}
-                  className="flex items-center gap-2 text-xs text-muted-foreground"
-                >
-                  <Paperclip className="h-3 w-3" />
-                  {file.name}
-                </p>
-              ))}
-            </Field>
             <label className="flex gap-3 text-sm text-muted-foreground">
               <Checkbox
                 checked={base.privacy}

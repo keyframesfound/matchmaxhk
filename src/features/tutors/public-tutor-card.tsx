@@ -219,7 +219,7 @@ export function PublicTutorCard({
       <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
         {academicChips.length > 0 ? (
           <section className="border-b border-[color:var(--brand-teal)]/20 pb-2.5 md:pb-3">
-            <h3 className="text-[13px] font-black tracking-tight text-[color:#000] md:text-[15px]">
+            <h3 className="text-[13px] font-black tracking-tight text-[color:var(--ink)] md:text-[15px]">
               Academic achievements
             </h3>
             <div className="relative mt-2">

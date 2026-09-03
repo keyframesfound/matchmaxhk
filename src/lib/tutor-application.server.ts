@@ -17,7 +17,11 @@ const FROM = "MatchMax <noreply@matchmax.hk>";
 
 export async function sendTutorApplication(data: TutorApplication): Promise<void> {
   let total = 0;
-  for (const file of data.attachments) {
+  const attachments = [
+    ...data.achievements.flatMap((achievement) => (achievement.proof ? [achievement.proof] : [])),
+    ...data.academicDocuments.flatMap((document) => (document.file ? [document.file] : [])),
+  ];
+  for (const file of attachments) {
     if (!ACCEPTED_FILE_TYPES.includes(file.contentType)) {
       throw new Error(`Unsupported file type: ${file.filename}`);
     }
@@ -52,7 +56,7 @@ export async function sendTutorApplication(data: TutorApplication): Promise<void
     html,
     text,
     replyTo: data.email,
-    attachments: data.attachments.map((file) => ({
+    attachments: attachments.map((file) => ({
       filename: file.filename,
       content: file.content,
     })),
