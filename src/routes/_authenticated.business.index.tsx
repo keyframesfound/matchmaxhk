@@ -45,7 +45,7 @@ function BusinessOverview() {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex h-screen flex-col overflow-hidden bg-background">
         <SiteHeader />
         <main className="flex flex-1 items-center justify-center px-4 py-16">
           <EmptyState
@@ -64,7 +64,7 @@ function BusinessOverview() {
 
   if (!membership || !organization) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex h-screen flex-col overflow-hidden bg-background">
         <SiteHeader />
         <main className="flex flex-1 items-center justify-center px-4 py-16">
           <div className="w-full max-w-lg">
@@ -93,7 +93,7 @@ function BusinessOverview() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
       <SiteHeader />
       <BusinessLayout organization={organization} usage={usage}>
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -151,21 +151,15 @@ function BusinessOverview() {
             <p className="mt-3 break-all text-sm font-bold text-[color:var(--ink)]">
               /business/{organization.slug}
             </p>
-            {organization.status === "active" ? (
-              <a
-                href={`/business/${organization.slug}`}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
-              >
-                View public profile
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            ) : (
-              <p className="mt-1 text-xs text-muted-foreground">
-                Public page goes live after activation
-              </p>
-            )}
+            <a
+              href={`/business/${organization.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
+            >
+              View public profile
+              <ExternalLink className="h-3 w-3" />
+            </a>
           </div>
         </div>
 

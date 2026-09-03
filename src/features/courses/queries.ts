@@ -149,13 +149,14 @@ export async function fetchCourseById(id: string): Promise<CourseWithOrganizatio
 }
 
 export async function fetchOrganizationBySlug(slug: string): Promise<OrganizationPublic | null> {
+  // RLS controls visibility: anon/authenticated visitors only match active orgs;
+  // owners and org admins also match their own pending/suspended org (preview mode).
   const { data, error } = await supabase
     .from("organizations")
     .select(
       "id, slug, name, tagline, description, website_url, contact_email, contact_phone, whatsapp_number, district, logo_url, cover_image_url, plan, status, created_at",
     )
     .eq("slug", slug)
-    .eq("status", "active")
     .maybeSingle();
   if (error) throw new Error(error.message);
   return (data as unknown as OrganizationPublic | null) ?? null;
@@ -165,12 +166,13 @@ export async function fetchCoursesByOrganizationId(
   orgId: string,
   limit = 50,
 ): Promise<CourseWithOrganization[]> {
+  // RLS controls visibility: public sees published courses of active orgs;
+  // org admins also see their own org's published courses while pending.
   const { data, error } = await supabase
     .from("courses")
     .select(courseWithOrgSelect())
     .eq("organization_id", orgId)
     .eq("is_published", true)
-    .eq("organizations.status", "active")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(error.message);

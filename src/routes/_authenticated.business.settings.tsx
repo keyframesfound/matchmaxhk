@@ -85,7 +85,7 @@ function BusinessSettingsPage() {
 
   if (!membership || !organization) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex h-screen flex-col overflow-hidden bg-background">
         <SiteHeader />
         <main className="flex flex-1 items-center justify-center px-4 py-16">
           <EmptyState
@@ -156,7 +156,7 @@ function BusinessSettingsPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
       <SiteHeader />
       <BusinessLayout organization={organization} usage={usage}>
         <h1 className="text-2xl font-black tracking-tight text-[color:var(--ink)]">Settings</h1>

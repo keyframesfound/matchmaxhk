@@ -117,7 +117,7 @@ function BusinessTeamPage() {
 
   if (!membership || !organization) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex h-screen flex-col overflow-hidden bg-background">
         <SiteHeader />
         <main className="flex flex-1 items-center justify-center px-4 py-16">
           <EmptyState
@@ -138,7 +138,7 @@ function BusinessTeamPage() {
   const atLimit = usage ? usage.memberCount >= usage.memberLimit : false;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
       <SiteHeader />
       <BusinessLayout organization={organization} usage={usage}>
         <div className="flex flex-wrap items-center justify-between gap-3">
