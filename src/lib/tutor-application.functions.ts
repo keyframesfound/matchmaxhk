@@ -20,9 +20,16 @@ function transcriptString(schema: z.ZodString) {
   return z.preprocess(normalizeTranscriptValue, schema);
 }
 
+function transcriptSummary(maximum: number) {
+  return z.preprocess(
+    (value) => normalizeTranscriptValue(value).slice(0, maximum),
+    z.string().trim().max(maximum),
+  );
+}
+
 const transcriptExtractionSchema = z.object({
-  overall: transcriptString(z.string().trim().max(200)),
-  best6: transcriptString(z.string().trim().max(200)),
+  overall: transcriptSummary(200),
+  best6: transcriptSummary(200),
   scores: z
     .array(
       z.object({
