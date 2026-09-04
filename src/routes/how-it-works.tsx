@@ -296,7 +296,7 @@ function HowItWorksPage() {
           icon={UserRoundCheck}
           steps={TUTOR_STEPS}
           link={{ to: "/join", label: "Apply as a tutor" }}
-          className="bg-[#041344] text-white dark:bg-[#041344] dark:text-white"
+          className="bg-[#041344] !text-white dark:bg-[#041344] dark:!text-white"
           numberClassName="bg-[#77E8EE]/15 text-[#77E8EE]"
           accentClassName="text-[#77E8EE]"
           bodyTextClassName="text-white"
