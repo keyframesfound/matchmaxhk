@@ -218,17 +218,12 @@ export function PublicTutorCard({
                 </div>
               )}
               {hasIbPerfectScore ? (
-                <span className="bg-brand-gradient-x absolute -bottom-1 left-1/2 z-10 flex min-w-[3rem] -translate-x-1/2 items-center justify-center rounded-[5px] px-1.5 py-[2px] text-[8px] font-black leading-none tracking-wide text-white shadow-md ring-2 ring-[color:var(--surface)] md:min-w-[3.5rem] md:text-[9px]">
-                  IBDP 45
+                <span className="bg-brand-gradient-x absolute -bottom-1 left-1/2 z-10 hidden min-w-[3.75rem] -translate-x-1/2 items-center justify-center rounded-[5px] px-2 py-[2px] text-[10px] font-black leading-none tracking-wide text-white shadow-md ring-2 ring-[color:var(--surface)] md:flex">
+                  IB 45
                 </span>
               ) : null}
             </div>
-            <p
-              className={cn(
-                "whitespace-nowrap text-[10px] font-bold tracking-wide text-muted-foreground md:text-[11px]",
-                hasIbPerfectScore && "mt-2 md:mt-2.5",
-              )}
-            >
+            <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-muted-foreground md:text-[11px]">
               {formatTutorCode(tutor.tutor_code)}
             </p>
           </div>
@@ -248,12 +243,22 @@ export function PublicTutorCard({
           </div>
 
           <div className="flex shrink-0 flex-col items-end gap-1 md:absolute md:right-4 md:top-3">
-            {genderLabel ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[9px] font-bold text-[color:var(--ink)] md:px-2.5 md:text-[10px]">
-                <UserRound className="h-3 w-3 text-[color:var(--brand-teal)]" aria-hidden="true" />
-                {genderLabel}
-              </span>
-            ) : null}
+            <div className="flex items-center gap-1.5 md:flex-col md:gap-1">
+              {genderLabel ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[9px] font-bold text-[color:var(--ink)] md:px-2.5 md:text-[10px]">
+                  <UserRound
+                    className="h-3 w-3 text-[color:var(--brand-teal)]"
+                    aria-hidden="true"
+                  />
+                  {genderLabel}
+                </span>
+              ) : null}
+              {hasIbPerfectScore ? (
+                <span className="bg-brand-gradient-x inline-flex min-w-[3.25rem] items-center justify-center rounded-[5px] px-2 py-[3px] text-[9px] font-black leading-none tracking-wide text-white shadow-md md:hidden">
+                  IB 45
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
       </header>
