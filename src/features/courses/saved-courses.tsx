@@ -129,6 +129,7 @@ export function CourseSaveButton({
   });
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
     event.stopPropagation();
     if (!user) {
       setDialogOpen(true);

@@ -345,10 +345,10 @@ function SettingsPage() {
                         <Icon className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
                         <span className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]">
                           {option.label}
-                          {option.value === "light" ? (
+                          {option.value === "dark" ? (
                             <Badge
-                              variant="secondary"
-                              className="border-0 bg-[color:var(--brand-teal)]/15 px-1.5 py-0 text-[10px] font-bold leading-5 text-[color:var(--brand-link)]"
+                              variant="destructive"
+                              className="px-1.5 py-0 text-[10px] font-bold leading-5"
                             >
                               Beta
                             </Badge>

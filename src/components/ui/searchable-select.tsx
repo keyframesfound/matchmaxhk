@@ -131,7 +131,7 @@ export function SearchableSelect({
           disabled={disabled}
           aria-expanded={open}
           className={cn(
-            "group flex h-11 w-full items-center justify-between gap-2 rounded-lg border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3.5 py-2 text-left text-sm font-medium text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-[#1FA8B6] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#77E8EE]/35 disabled:cursor-not-allowed disabled:opacity-50",
+            "group flex h-11 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3.5 py-2 text-left text-sm font-medium text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-[#1FA8B6] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#77E8EE]/35 disabled:cursor-not-allowed disabled:opacity-50",
             !value && !selected?.label && "text-[color:var(--ink)]/50",
             className,
           )}
@@ -148,7 +148,7 @@ export function SearchableSelect({
       <PopoverContent
         align="start"
         className={cn(
-          "w-(--radix-popover-trigger-width) min-w-[220px] p-0 shadow-[0_20px_45px_-18px_rgba(4,19,68,0.25)] backdrop-blur-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] text-[color:var(--ink)] z-[9999]",
+          "z-[9999] w-(--radix-popover-trigger-width) min-w-[220px] border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0 text-[color:var(--ink)] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.25)]",
           popoverClassName,
         )}
       >

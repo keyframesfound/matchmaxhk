@@ -222,42 +222,42 @@ function BusinessOverview() {
           </div>
         )}
 
-        {/* Engagement stats (last 30 days) */}
-        <div className="mt-6 grid grid-cols-2 divide-x divide-y divide-border rounded-lg border border-border bg-card shadow-sm sm:grid-cols-4 sm:divide-y-0">
-          <EngagementStat
-            icon={Eye}
-            label="Impressions"
-            value={analytics?.totals.impression.current ?? 0}
-            previous={analytics?.totals.impression.previous ?? 0}
-            loading={!analytics}
-          />
-          <EngagementStat
-            icon={BookOpen}
-            label="Profile views"
-            value={analytics?.totals.profile_view.current ?? 0}
-            previous={analytics?.totals.profile_view.previous ?? 0}
-            loading={!analytics}
-          />
-          <EngagementStat
-            icon={Tag}
-            label="Course views"
-            value={analytics?.totals.course_view.current ?? 0}
-            previous={analytics?.totals.course_view.previous ?? 0}
-            loading={!analytics}
-          />
-          <EngagementStat
-            icon={MousePointerClick}
-            label="Contact clicks"
-            value={analytics?.totals.contact_click.current ?? 0}
-            previous={analytics?.totals.contact_click.previous ?? 0}
-            loading={!analytics}
-          />
-        </div>
-
         <Tabs value={tab} onValueChange={switchTab} className="mt-8 gap-6">
           <TabsContent value="overview">
+            {/* Engagement stats (last 30 days) */}
+            <div className="grid grid-cols-2 divide-x divide-y divide-border rounded-lg border border-border bg-card shadow-sm sm:grid-cols-4 sm:divide-y-0">
+              <EngagementStat
+                icon={Eye}
+                label="Impressions"
+                value={analytics?.totals.impression.current ?? 0}
+                previous={analytics?.totals.impression.previous ?? 0}
+                loading={!analytics}
+              />
+              <EngagementStat
+                icon={BookOpen}
+                label="Profile views"
+                value={analytics?.totals.profile_view.current ?? 0}
+                previous={analytics?.totals.profile_view.previous ?? 0}
+                loading={!analytics}
+              />
+              <EngagementStat
+                icon={Tag}
+                label="Course views"
+                value={analytics?.totals.course_view.current ?? 0}
+                previous={analytics?.totals.course_view.previous ?? 0}
+                loading={!analytics}
+              />
+              <EngagementStat
+                icon={MousePointerClick}
+                label="Contact clicks"
+                value={analytics?.totals.contact_click.current ?? 0}
+                previous={analytics?.totals.contact_click.previous ?? 0}
+                loading={!analytics}
+              />
+            </div>
+
             {/* Traffic charts */}
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="mt-6 grid gap-4 lg:grid-cols-2">
               <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
                 <div>
                   <h2 className="text-base font-bold text-[color:var(--ink)]">Reach</h2>

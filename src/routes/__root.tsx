@@ -189,7 +189,7 @@ function RootComponent() {
             </main>
             <BackToTopButton />
             <WhatsAppFloatButton />
-            <Toaster richColors position="top-center" closeButton />
+            <Toaster />
           </ThemeProvider>
         </AuthProvider>
       </I18nProvider>

@@ -22,7 +22,7 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       className,
-      "group flex min-h-11 w-full items-center justify-between whitespace-nowrap rounded-lg border border-[color:var(--ink)]/15 bg-[color:var(--surface)]/95 px-4 py-2.5 text-sm font-semibold text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] ring-offset-background transition-[border-color,box-shadow,background-color] duration-150 cursor-pointer data-[placeholder]:text-[color:var(--ink)]/50 hover:border-[color:var(--ink)]/35 hover:bg-[color:var(--surface)] focus:outline-none focus:ring-4 focus:ring-[#77E8EE]/35 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "group flex min-h-11 w-full items-center justify-between whitespace-nowrap rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-4 py-2.5 text-sm font-semibold text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] ring-offset-background transition-[border-color,box-shadow,background-color] duration-150 cursor-pointer data-[placeholder]:text-[color:var(--ink)]/50 hover:border-[color:var(--ink)]/35 hover:bg-[color:var(--surface)] focus:outline-none focus:ring-4 focus:ring-[#77E8EE]/35 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
     )}
     {...props}
   >
@@ -70,7 +70,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)]/[0.96] text-[color:var(--ink)] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.28)] backdrop-blur-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1 origin-(--radix-select-content-transform-origin)",
+        "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)] text-[color:var(--ink)] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.28)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1 origin-(--radix-select-content-transform-origin)",
         position === "popper" &&
           "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
         className,

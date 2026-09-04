@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
@@ -61,6 +61,24 @@ const WEEKDAY_OPTIONS = [
   { code: "sat", label: "Sat" },
 ];
 
+function getInitialFormState(course: Course | null, duplicate: boolean): FormState {
+  return {
+    title: course?.title ?? "",
+    summary: course?.summary ?? "",
+    description: course?.description ?? "",
+    subject: course?.subject ?? "",
+    level: course?.level ?? "",
+    mode: course?.mode ?? "either",
+    price: course?.price !== null && course?.price !== undefined ? String(course.price) : "",
+    schedule_text: course?.schedule_text ?? "",
+    session_days: [...(course?.session_days ?? [])],
+    start_date: course?.start_date ?? "",
+    end_date: course?.end_date ?? "",
+    district: course?.district ?? "",
+    is_published: duplicate ? false : (course?.is_published ?? true),
+  };
+}
+
 export function CourseFormModal({
   open,
   onOpenChange,
@@ -77,21 +95,14 @@ export function CourseFormModal({
   const [removingImage, setRemovingImage] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(course?.image_url ?? null);
   const [imageKey, setImageKey] = useState<string | null>(null);
-  const [form, setForm] = useState<FormState>({
-    title: course?.title ?? "",
-    summary: course?.summary ?? "",
-    description: course?.description ?? "",
-    subject: course?.subject ?? "",
-    level: course?.level ?? "",
-    mode: course?.mode ?? "either",
-    price: course?.price !== null && course?.price !== undefined ? String(course.price) : "",
-    schedule_text: course?.schedule_text ?? "",
-    session_days: course?.session_days ?? [],
-    start_date: course?.start_date ?? "",
-    end_date: course?.end_date ?? "",
-    district: course?.district ?? "",
-    is_published: duplicate ? false : (course?.is_published ?? true),
-  });
+  const [form, setForm] = useState<FormState>(() => getInitialFormState(course, duplicate));
+
+  useEffect(() => {
+    if (!open) return;
+    setForm(getInitialFormState(course, duplicate));
+    setImageUrl(course?.image_url ?? null);
+    setImageKey(null);
+  }, [open, course, duplicate]);
 
   const setField = (patch: Partial<FormState>) => setForm((prev) => ({ ...prev, ...patch }));
 

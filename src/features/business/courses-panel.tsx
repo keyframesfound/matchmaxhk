@@ -575,7 +575,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
             </div>
           )}
 
-          <div className="mt-3 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <div className="mt-3 overflow-hidden rounded-lg border border-border bg-card shadow-sm">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
