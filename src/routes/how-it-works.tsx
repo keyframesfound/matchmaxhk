@@ -156,6 +156,7 @@ function AudienceSection({
   className,
   numberClassName,
   accentClassName,
+  bodyTextClassName = "text-current/70",
 }: {
   eyebrow: string;
   audience: string;
@@ -166,6 +167,7 @@ function AudienceSection({
   className: string;
   numberClassName: string;
   accentClassName: string;
+  bodyTextClassName?: string;
 }) {
   return (
     <section className={className}>
@@ -200,7 +202,7 @@ function AudienceSection({
                 </span>
                 <div>
                   <h4 className="text-xl font-black tracking-tight sm:text-2xl">{stepTitle}</h4>
-                  <p className="mt-3 max-w-2xl text-sm leading-7 text-current/70">{text}</p>
+                  <p className={`mt-3 max-w-2xl text-sm leading-7 ${bodyTextClassName}`}>{text}</p>
                 </div>
               </li>
             ))}
@@ -297,6 +299,7 @@ function HowItWorksPage() {
           className="bg-[#041344] text-white dark:bg-[#041344] dark:text-white"
           numberClassName="bg-[#77E8EE]/15 text-[#77E8EE]"
           accentClassName="text-[#77E8EE]"
+          bodyTextClassName="text-white"
         />
 
         <section

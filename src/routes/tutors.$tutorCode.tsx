@@ -30,6 +30,7 @@ import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
 import { getTutorSubjectGroups } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function buildTutorSeoMeta(tutor: Tutor, url: string) {
   const subjects = (tutor.subjects ?? []).filter(Boolean);
@@ -166,12 +167,87 @@ function AcademicQualification({ result }: { result: ExamResult }) {
   );
 }
 
+function TutorProfileSkeleton() {
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <SiteHeader />
+      <main className="flex-1" aria-busy="true" aria-label="Loading tutor profile">
+        <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
+          <div className="mx-auto max-w-5xl px-5 sm:px-8">
+            <Skeleton className="h-9 w-24 rounded-md" />
+            <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+              <Skeleton className="h-16 w-16 shrink-0 rounded-full sm:h-20 sm:w-20" />
+              <div className="min-w-0 flex-1 space-y-3">
+                <Skeleton className="h-7 w-44" />
+                <Skeleton className="h-5 w-2/3 max-w-md" />
+                <Skeleton className="h-5 w-1/2 max-w-sm" />
+              </div>
+              <div className="w-full space-y-3 sm:w-auto sm:text-right">
+                <Skeleton className="h-9 w-40 sm:ml-auto" />
+                <Skeleton className="h-10 w-full rounded-md sm:w-44" />
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="py-8 sm:py-10">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <div className="overflow-hidden rounded-lg border border-[color:var(--brand-teal)]/20">
+              {[0, 1, 2].map((section) => (
+                <div
+                  key={section}
+                  className="border-b border-[color:var(--brand-teal)]/20 px-5 py-5 last:border-b-0 sm:px-6"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Skeleton className="h-7 w-7 rounded-[3px]" />
+                    <Skeleton className="h-5 w-40" />
+                  </div>
+                  <div className="mt-4 space-y-2.5">
+                    <Skeleton className="h-4 w-full max-w-2xl" />
+                    <Skeleton className="h-4 w-5/6 max-w-xl" />
+                    <Skeleton className="h-4 w-2/3 max-w-lg" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-10">
+              <Skeleton className="h-7 w-64" />
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {[0, 1, 2].map((card) => (
+                  <div
+                    key={card}
+                    className="rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--surface)] p-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-11 w-11 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </div>
+                    <Skeleton className="mt-4 h-3 w-full" />
+                    <Skeleton className="mt-2 h-3 w-3/4" />
+                    <Skeleton className="mt-4 h-9 w-full rounded-md" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/tutors/$tutorCode")({
   loader: async ({ params }) => {
     const tutor = await fetchTutorByCode(params.tutorCode);
     if (!tutor) throw notFound();
     return { tutor };
   },
+  pendingComponent: TutorProfileSkeleton,
+  pendingMs: 0,
+  pendingMinMs: 400,
   head: ({ loaderData, params }) => {
     const url = `https://matchmax.hk/tutors/${params.tutorCode}`;
     if (!loaderData) {
@@ -292,6 +368,7 @@ function TutorDetail() {
     result.subjects.some((entry) => entry.subject.trim()),
   );
   const profileBio = t.qualifications_summary?.trim() ?? "";
+  const hasPerfectIbScore = /\b45\s*\/\s*45\b/.test(t.academic_headline ?? "");
   const lessonLocation = t.district ? `Hong Kong — ${t.district}` : "Hong Kong";
   const tutorLanguages = (t.languages ?? []).filter(Boolean);
   const lessonLanguages = tutorLanguages.length > 0 ? tutorLanguages.join(", ") : "Not specified";
@@ -403,7 +480,11 @@ function TutorDetail() {
                 {t.academic_headline || t.university || t.secondary_school ? (
                   <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
                     {t.academic_headline ? (
-                      <p className="break-words">{t.academic_headline}</p>
+                      <p
+                        className={`break-words ${hasPerfectIbScore ? "gold-sheen-text font-black" : ""}`}
+                      >
+                        {t.academic_headline}
+                      </p>
                     ) : null}
                     {t.university ? <p className="break-words">{t.university}</p> : null}
                     {t.secondary_school ? (

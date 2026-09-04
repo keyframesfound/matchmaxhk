@@ -1,5 +1,5 @@
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Award, Scale, UserRound } from "lucide-react";
+import { Award, Check, ListPlus, UserRound } from "lucide-react";
 import { getTutorCardHighlights, getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
 import {
   formatTutorCode,
@@ -197,7 +197,11 @@ export function PublicTutorCard({
                 : "border-[color:var(--ink)]/20 text-[color:var(--ink)]/55 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)]",
             )}
           >
-            <Scale className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden="true" />
+            {compareSelected ? (
+              <Check className="h-3.5 w-3.5" strokeWidth={2.8} aria-hidden="true" />
+            ) : (
+              <ListPlus className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden="true" />
+            )}
           </button>
         ) : null}
         <div className="flex items-start gap-2.5 md:gap-3.5">

@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import * as SliderPrimitive from "@radix-ui/react-slider";
-import { MessageCircle, Scale, Search } from "lucide-react";
+import { MessageCircle, ListChecks, Search } from "lucide-react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -43,6 +43,7 @@ import {
   matchesSubjectQuery,
 } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({
   category: z.string().optional(),
@@ -57,9 +58,13 @@ const searchSchema = z.object({
 });
 type SearchState = z.infer<typeof searchSchema>;
 
-const PRICE_MIN = 0;
-const PRICE_MAX = 600;
+const PRICE_MIN = 100;
+const PRICE_MAX = 1200;
 const PRICE_STEP = 10;
+
+function formatHKD(amount: number) {
+  return `HK$${amount.toLocaleString("en-HK")}`;
+}
 
 const MAX_COMPARE = 4;
 
@@ -121,8 +126,10 @@ function PriceRangeSlider({
   const lo = value.min ?? PRICE_MIN;
   const hi = value.max ?? PRICE_MAX;
   return (
-    <div className="flex items-center gap-3">
-      <span className="whitespace-nowrap text-xs font-bold text-[color:var(--ink)]">HK${lo}</span>
+    <div className="flex max-w-[16rem] items-center gap-3">
+      <span className="whitespace-nowrap text-xs font-bold text-[color:var(--ink)]">
+        {formatHKD(lo)}
+      </span>
       <SliderPrimitive.Root
         value={[lo, hi]}
         min={PRICE_MIN}
@@ -146,7 +153,7 @@ function PriceRangeSlider({
         />
       </SliderPrimitive.Root>
       <span className="whitespace-nowrap text-xs font-bold text-[color:var(--ink)]">
-        {hi >= PRICE_MAX ? `HK$${PRICE_MAX}+` : `HK$${hi}`}
+        {hi >= PRICE_MAX ? `${formatHKD(PRICE_MAX)}+` : formatHKD(hi)}
       </span>
     </div>
   );
@@ -166,7 +173,10 @@ function CompareBar({
     <div className="fixed bottom-20 left-1/2 z-40 w-[min(92vw,30rem)] -translate-x-1/2 sm:bottom-6">
       <div className="flex items-center justify-between gap-3 rounded-full border border-[color:var(--brand-teal)]/30 bg-[color:var(--surface)] px-4 py-2.5 shadow-[0_16px_40px_rgba(4,19,68,0.18)]">
         <div className="flex min-w-0 items-center gap-2">
-          <Scale className="h-4 w-4 shrink-0 text-[color:var(--brand-teal)]" aria-hidden="true" />
+          <ListChecks
+            className="h-4 w-4 shrink-0 text-[color:var(--brand-teal)]"
+            aria-hidden="true"
+          />
           <p className="truncate text-sm font-bold text-[color:var(--ink)]">
             {count} of {MAX_COMPARE} selected
             {count === 1 ? " — pick at least 2" : ""}
@@ -248,7 +258,12 @@ function CompareDialog({
             .map((line, index) => (
               <p
                 key={index}
-                className="text-[13px] font-semibold leading-snug text-[color:var(--ink)]"
+                className={cn(
+                  "text-[13px] font-semibold leading-snug text-[color:var(--ink)]",
+                  index === 0 && t.academic_headline && /\b45\s*\/\s*45\b/.test(t.academic_headline)
+                    ? "gold-sheen-text font-black"
+                    : "",
+                )}
               >
                 {line}
               </p>

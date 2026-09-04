@@ -1346,7 +1346,7 @@ export function ApplicationForm() {
                           }
                           placeholder={
                             qualification.curriculum === "IBDP"
-                              ? "43 / 45"
+                              ? "43"
                               : qualification.curriculum === "HKDSE"
                                 ? "32"
                                 : "A*AA"
