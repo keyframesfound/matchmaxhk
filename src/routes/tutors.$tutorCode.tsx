@@ -368,7 +368,6 @@ function TutorDetail() {
     result.subjects.some((entry) => entry.subject.trim()),
   );
   const profileBio = t.qualifications_summary?.trim() ?? "";
-  const hasPerfectIbScore = /\b45\s*\/\s*45\b/.test(t.academic_headline ?? "");
   const lessonLocation = t.district ? `Hong Kong — ${t.district}` : "Hong Kong";
   const tutorLanguages = (t.languages ?? []).filter(Boolean);
   const lessonLanguages = tutorLanguages.length > 0 ? tutorLanguages.join(", ") : "Not specified";
@@ -467,24 +466,11 @@ function TutorDetail() {
                       </>
                     ) : null}
                   </h1>
-                  {t.badge ? (
-                    <span className="inline-flex items-center rounded-full border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/8 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-[color:var(--ink)]">
-                      <Award
-                        className="mr-1 h-3.5 w-3.5 text-[color:var(--brand-teal)]"
-                        aria-hidden="true"
-                      />
-                      {t.badge}
-                    </span>
-                  ) : null}
                 </div>
                 {t.academic_headline || t.university || t.secondary_school ? (
                   <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
                     {t.academic_headline ? (
-                      <p
-                        className={`break-words ${hasPerfectIbScore ? "gold-sheen-text font-black" : ""}`}
-                      >
-                        {t.academic_headline}
-                      </p>
+                      <p className="break-words">{t.academic_headline}</p>
                     ) : null}
                     {t.university ? <p className="break-words">{t.university}</p> : null}
                     {t.secondary_school ? (
@@ -653,7 +639,6 @@ function TutorDetail() {
                     key={candidate.id}
                     tutor={candidate}
                     priceSuffix="/hr"
-                    badgeLabel={candidate.badge ?? undefined}
                     onOpen={(code) =>
                       void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
                     }

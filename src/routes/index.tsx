@@ -433,7 +433,6 @@ function Landing() {
                           <PublicTutorCard
                             tutor={tutor}
                             priceSuffix={t("featured.per_hour")}
-                            badgeLabel={tutor.badge ?? undefined}
                             onOpen={openTutorDetail}
                             footerAction={
                               <>

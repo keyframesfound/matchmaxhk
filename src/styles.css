@@ -780,8 +780,7 @@
   }
 }
 
-/* Dark theme adjustments for photographic/pattern backdrops */
-.dark .hero-startup-bg::before {
+/* Dark theme adjustments for photographic/pattern backdrops */.dark .hero-startup-bg::before {
   opacity: 0.18;
 }
 
@@ -799,37 +798,3 @@
   filter: brightness(0) invert(0.78) sepia(1) saturate(3.5) hue-rotate(165deg);
 }
 
-
-/* Prestige gold sheen for perfect-score academic headlines (e.g. IBDP 45/45) */
-@layer utilities {
-  .gold-sheen-text {
-    color: transparent;
-    background-image: linear-gradient(
-      100deg,
-      #a97b1f 0%,
-      #d4af37 18%,
-      #f9e08a 32%,
-      #fff7cc 40%,
-      #e3c14e 52%,
-      #b8860b 70%,
-      #e8c547 88%,
-      #a97b1f 100%
-    );
-    background-size: 220% auto;
-    background-clip: text;
-    -webkit-background-clip: text;
-    animation: gold-sheen-slide 4.5s linear infinite;
-  }
-
-  @keyframes gold-sheen-slide {
-    to {
-      background-position: 220% center;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .gold-sheen-text {
-      animation: none;
-    }
-  }
-}

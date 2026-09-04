@@ -238,17 +238,6 @@ function CompareDialog({
       ),
     },
     {
-      label: "Badge",
-      render: (t) =>
-        t.badge ? (
-          <span className="inline-flex rounded-full border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/8 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[color:var(--ink)]">
-            {t.badge}
-          </span>
-        ) : (
-          <span className="text-sm text-muted-foreground">—</span>
-        ),
-    },
-    {
       label: "Academic background",
       render: (t) => (
         <div className="space-y-0.5">
@@ -258,12 +247,7 @@ function CompareDialog({
             .map((line, index) => (
               <p
                 key={index}
-                className={cn(
-                  "text-[13px] font-semibold leading-snug text-[color:var(--ink)]",
-                  index === 0 && t.academic_headline && /\b45\s*\/\s*45\b/.test(t.academic_headline)
-                    ? "gold-sheen-text font-black"
-                    : "",
-                )}
+                className="text-[13px] font-semibold leading-snug text-[color:var(--ink)]"
               >
                 {line}
               </p>
@@ -765,7 +749,6 @@ function TutorsDirectory() {
                     key={tut.id}
                     tutor={tut}
                     priceSuffix={t("featured.per_hour")}
-                    badgeLabel={tut.badge ?? undefined}
                     onOpen={openTutorDetail}
                     onCompareToggle={() => toggleCompare(tut)}
                     compareSelected={compareIds.includes(tut.id)}

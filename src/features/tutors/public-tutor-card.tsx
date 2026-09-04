@@ -56,7 +56,6 @@ type PublicTutorCardProps = {
   footerAction: ReactNode;
   saveAction?: ReactNode;
   onOpen?: (tutorCode: string) => void;
-  badgeLabel?: string;
   className?: string;
   compareSelected?: boolean;
   onCompareToggle?: () => void;
@@ -68,7 +67,6 @@ export function PublicTutorCard({
   footerAction,
   saveAction,
   onOpen,
-  badgeLabel,
   className,
   compareSelected,
   onCompareToggle,
@@ -241,11 +239,6 @@ export function PublicTutorCard({
               <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[9px] font-bold text-[color:var(--ink)] md:px-2.5 md:text-[10px]">
                 <UserRound className="h-3 w-3 text-[color:var(--brand-teal)]" aria-hidden="true" />
                 {genderLabel}
-              </span>
-            ) : null}
-            {badgeLabel ? (
-              <span className="rounded-full border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/8 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wide text-[color:var(--ink)] md:text-[9px]">
-                {badgeLabel}
               </span>
             ) : null}
           </div>
