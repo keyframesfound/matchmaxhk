@@ -368,6 +368,7 @@ function TutorDetail() {
     result.subjects.some((entry) => entry.subject.trim()),
   );
   const profileBio = t.qualifications_summary?.trim() ?? "";
+  const hasIbPerfectScore = /\b45\s*\/\s*45\b/.test(t.academic_headline ?? "");
   const lessonLocation = t.district ? `Hong Kong — ${t.district}` : "Hong Kong";
   const tutorLanguages = (t.languages ?? []).filter(Boolean);
   const lessonLanguages = tutorLanguages.length > 0 ? tutorLanguages.join(", ") : "Not specified";
@@ -444,17 +445,24 @@ function TutorDetail() {
               Back
             </Button>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
-              {t.photo_url ? (
-                <img
-                  src={t.photo_url}
-                  alt={t.tutor_code}
-                  className="h-16 w-16 shrink-0 rounded-full object-cover sm:h-20 sm:w-20"
-                />
-              ) : (
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-xl font-semibold text-[color:var(--brand-teal)] sm:h-20 sm:w-20 sm:text-2xl">
-                  {t.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
-                </div>
-              )}
+              <div className="relative shrink-0">
+                {t.photo_url ? (
+                  <img
+                    src={t.photo_url}
+                    alt={t.tutor_code}
+                    className="h-16 w-16 rounded-full object-cover sm:h-20 sm:w-20"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-xl font-semibold text-[color:var(--brand-teal)] sm:h-20 sm:w-20 sm:text-2xl">
+                    {t.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
+                  </div>
+                )}
+                {hasIbPerfectScore ? (
+                  <span className="bg-brand-gradient-x absolute -bottom-1.5 left-1/2 z-10 -translate-x-1/2 rounded-md px-2 py-[3px] text-[9px] font-black leading-none tracking-wide text-white shadow-md ring-2 ring-[color:var(--surface)] sm:-bottom-2 sm:px-2.5 sm:text-[11px]">
+                    IB 45
+                  </span>
+                ) : null}
+              </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-xl font-black text-[color:var(--ink)] sm:text-2xl">

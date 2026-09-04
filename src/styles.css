@@ -150,6 +150,7 @@
 
   /* Gradients & shadows */
   --gradient-brand: linear-gradient(135deg, #041344 0%, #0a245f 45%, #1fa8b6 100%);
+  --gradient-brand-x: linear-gradient(90deg, #041344 0%, #0a245f 45%, #1fa8b6 100%);
   --gradient-brand-soft: linear-gradient(135deg, #f5fbfc 0%, #e8f8fa 100%);
   --shadow-brand: 0 10px 30px -18px color-mix(in oklab, #041344 24%, transparent);
   --shadow-teal: 0 12px 24px -16px color-mix(in oklab, #1fa8b6 28%, transparent);
@@ -189,6 +190,7 @@
   --stepper-dot: #041344;
   --stepper-connector: #abd2fa;
   --gradient-brand: linear-gradient(135deg, #090a0c 0%, #102a63 70%, #173f96 100%);
+  --gradient-brand-x: linear-gradient(90deg, #090a0c 0%, #102a63 70%, #173f96 100%);
   --gradient-brand-soft: linear-gradient(135deg, #090a0c 0%, #111419 100%);
 
   --background: #090a0c;
@@ -376,6 +378,10 @@
 
 @utility bg-brand-gradient {
   background-image: var(--gradient-brand);
+}
+
+@utility bg-brand-gradient-x {
+  background-image: var(--gradient-brand-x);
 }
 
 @utility bg-brand-gradient-soft {
