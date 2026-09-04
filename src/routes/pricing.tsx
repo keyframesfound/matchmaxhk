@@ -273,7 +273,7 @@ function PricingPage() {
 
             <p className="mt-8 text-center text-sm text-muted-foreground">
               Business and Enterprise plans are billed offline — create your account and our team
-              will contact you to activate it. Questions? Reach us via the Help Centre.
+              will contact you to activate it. Questions? Check the FAQ on the How it Works page.
             </p>
           </div>
         </section>

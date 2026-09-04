@@ -1,6 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { gsap } from "gsap";
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 
 import "./StaggeredMobileMenu.css";
@@ -9,6 +17,7 @@ export type StaggeredMobileMenuItem = {
   label: string;
   ariaLabel: string;
   to: string;
+  hash?: string;
 };
 
 export type StaggeredMobileMenuSocialItem = {
@@ -24,7 +33,11 @@ type StaggeredMobileMenuProps = {
 
 const LAYER_COLORS = ["#041344", "#0A245F", "#1FA8B6"];
 
-export function StaggeredMobileMenu({ items, socialItems, renderFooter }: StaggeredMobileMenuProps) {
+export function StaggeredMobileMenu({
+  items,
+  socialItems,
+  renderFooter,
+}: StaggeredMobileMenuProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const openRef = useRef(false);
@@ -147,7 +160,10 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
       if (event.key === "Escape") closeMenu(true);
     };
     const handleClickAway = (event: MouseEvent) => {
-      if (!panelRef.current?.contains(event.target as Node) && !toggleRef.current?.contains(event.target as Node)) {
+      if (
+        !panelRef.current?.contains(event.target as Node) &&
+        !toggleRef.current?.contains(event.target as Node)
+      ) {
         closeMenu();
       }
     };
@@ -193,8 +209,19 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
 
             <aside id={panelId} ref={panelRef} className="smm-panel" aria-hidden={!open}>
               <div className="smm-panel-header">
-                <Link to="/" className="smm-brand" aria-label="MatchMax home" onClick={() => closeMenu()}>
-                  <img src="/matchmax-logo.png" alt="" className="logo-dark-recolor" width={32} height={32} />
+                <Link
+                  to="/"
+                  className="smm-brand"
+                  aria-label="MatchMax home"
+                  onClick={() => closeMenu()}
+                >
+                  <img
+                    src="/matchmax-logo.png"
+                    alt=""
+                    className="logo-dark-recolor"
+                    width={32}
+                    height={32}
+                  />
                   <span>MatchMax</span>
                 </Link>
               </div>
@@ -204,7 +231,12 @@ export function StaggeredMobileMenu({ items, socialItems, renderFooter }: Stagge
                   <ol className="smm-menu-list">
                     {items.map((item) => (
                       <li key={item.to} className="smm-menu-item">
-                        <Link to={item.to} aria-label={item.ariaLabel} onClick={() => closeMenu()}>
+                        <Link
+                          to={item.to}
+                          hash={item.hash}
+                          aria-label={item.ariaLabel}
+                          onClick={() => closeMenu()}
+                        >
                           <span className="smm-item-label">{item.label}</span>
                         </Link>
                       </li>

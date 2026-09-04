@@ -15,17 +15,96 @@ export type ExamSystem = {
 };
 
 export const IB_BLOCKS = [
-  ["Group 1: Studies in Language and Literature", ["Eng A Lang Lit HL", "Eng A Lang Lit SL", "Eng A Lit HL", "Eng A Lit SL", "Chin A Lang Lit HL", "Chin A Lang Lit SL", "Chin A Lit HL", "Chin A Lit SL"]],
-  ["Group 2: Language Acquisition", ["Eng B HL", "Eng B SL", "Chin B HL", "Chin B SL", "French B HL", "French B SL", "Spanish B HL", "Spanish B SL", "German B HL", "German B SL", "Japanese B HL", "Japanese B SL", "Spanish Ab Initio SL"]],
-  ["Group 3: Individuals and Societies", ["Business Management HL", "Business Management SL", "Econ HL", "Econ SL", "Geog HL", "Geog SL", "Global Pol HL", "Global Pol SL", "Hist HL", "Hist SL", "Phil HL", "Phil SL", "Psych HL", "Psych SL", "ESS HL", "ESS SL"]],
-  ["Group 4: Sciences", ["Bio HL", "Bio SL", "Chem HL", "Chem SL", "CompSci HL", "CompSci SL", "Design Tech HL", "Design Tech SL", "Phys HL", "Phys SL", "SEHS HL", "SEHS SL"]],
+  [
+    "Group 1: Studies in Language and Literature",
+    [
+      "Eng A Lang Lit HL",
+      "Eng A Lang Lit SL",
+      "Eng A Lit HL",
+      "Eng A Lit SL",
+      "Chin A Lang Lit HL",
+      "Chin A Lang Lit SL",
+      "Chin A Lit HL",
+      "Chin A Lit SL",
+    ],
+  ],
+  [
+    "Group 2: Language Acquisition",
+    [
+      "Eng B HL",
+      "Eng B SL",
+      "Chin B HL",
+      "Chin B SL",
+      "French B HL",
+      "French B SL",
+      "Spanish B HL",
+      "Spanish B SL",
+      "German B HL",
+      "German B SL",
+      "Japanese B HL",
+      "Japanese B SL",
+      "Spanish Ab Initio SL",
+    ],
+  ],
+  [
+    "Group 3: Individuals and Societies",
+    [
+      "Business Management HL",
+      "Business Management SL",
+      "Econ HL",
+      "Econ SL",
+      "Geog HL",
+      "Geog SL",
+      "Global Pol HL",
+      "Global Pol SL",
+      "Hist HL",
+      "Hist SL",
+      "Phil HL",
+      "Phil SL",
+      "Psych HL",
+      "Psych SL",
+      "ESS HL",
+      "ESS SL",
+    ],
+  ],
+  [
+    "Group 4: Sciences",
+    [
+      "Bio HL",
+      "Bio SL",
+      "Chem HL",
+      "Chem SL",
+      "CompSci HL",
+      "CompSci SL",
+      "Design Tech HL",
+      "Design Tech SL",
+      "Phys HL",
+      "Phys SL",
+      "SEHS HL",
+      "SEHS SL",
+    ],
+  ],
   ["Group 5: Mathematics", ["Math AA HL", "Math AA SL", "Math AI HL", "Math AI SL"]],
-  ["Group 6: The Arts / Elective", ["Visual Arts HL", "Visual Arts SL", "Music HL", "Music SL", "Theatre HL", "Theatre SL", "Film HL", "Film SL", "Dance HL", "Dance SL"]],
+  [
+    "Group 6: The Arts / Elective",
+    [
+      "Visual Arts HL",
+      "Visual Arts SL",
+      "Music HL",
+      "Music SL",
+      "Theatre HL",
+      "Theatre SL",
+      "Film HL",
+      "Film SL",
+      "Dance HL",
+      "Dance SL",
+    ],
+  ],
   ["Theory of Knowledge (TOK)", ["TOK"]],
   ["Extended Essay (EE)", ["Extended Essay"]],
 ] as const;
 
-const IB_SUBJECTS = IB_BLOCKS.flatMap(([, subjects]) => subjects);
+export const IB_SUBJECTS = IB_BLOCKS.flatMap(([, subjects]) => subjects);
 
 const DSE_SUBJECTS = [
   "Chin Lang",
@@ -204,8 +283,20 @@ const satGradesFor = (subject: string): string[] => {
 };
 
 export const EXAM_SYSTEMS: ExamSystem[] = [
-  { id: "ib", label: "IB Diploma", subjects: IB_SUBJECTS, grades: IB_GRADES, gradesFor: ibGradesFor },
-  { id: "dse", label: "HKDSE", subjects: DSE_SUBJECTS, grades: DSE_GRADES, gradesFor: dseGradesFor },
+  {
+    id: "ib",
+    label: "IB Diploma",
+    subjects: IB_SUBJECTS,
+    grades: IB_GRADES,
+    gradesFor: ibGradesFor,
+  },
+  {
+    id: "dse",
+    label: "HKDSE",
+    subjects: DSE_SUBJECTS,
+    grades: DSE_GRADES,
+    gradesFor: dseGradesFor,
+  },
   { id: "alevel", label: "GCE A-Level", subjects: ALEVEL_SUBJECTS, grades: ALEVEL_GRADES },
   {
     id: "igcse",
@@ -281,4 +372,3 @@ export function normalizeExamResults(raw: unknown): ExamResult[] {
     .map((sys) => ({ system: sys, subjects: bySystem.get(sys) ?? [] }))
     .filter((r) => r.subjects.length > 0);
 }
-

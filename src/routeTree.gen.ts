@@ -13,7 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
-import { Route as FaqRouteImport } from './routes/faq'
+import { Route as CaseRequestRouteImport } from './routes/case-request'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as JoinRouteImport } from './routes/join'
@@ -63,9 +63,9 @@ const BecomeATutorRoute = BecomeATutorRouteImport.update({
   path: '/become-a-tutor',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FaqRoute = FaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
+const CaseRequestRoute = CaseRequestRouteImport.update({
+  id: '/case-request',
+  path: '/case-request',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -228,7 +228,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
-  '/faq': typeof FaqRoute
+  '/case-request': typeof CaseRequestRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/join': typeof JoinRoute
@@ -263,7 +263,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
-  '/faq': typeof FaqRoute
+  '/case-request': typeof CaseRequestRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/join': typeof JoinRoute
@@ -300,7 +300,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
-  '/faq': typeof FaqRoute
+  '/case-request': typeof CaseRequestRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/join': typeof JoinRoute
@@ -337,7 +337,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/become-a-tutor'
-    | '/faq'
+    | '/case-request'
     | '/forgot-password'
     | '/how-it-works'
     | '/join'
@@ -372,7 +372,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/become-a-tutor'
-    | '/faq'
+    | '/case-request'
     | '/forgot-password'
     | '/how-it-works'
     | '/join'
@@ -408,7 +408,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/become-a-tutor'
-    | '/faq'
+    | '/case-request'
     | '/forgot-password'
     | '/how-it-works'
     | '/join'
@@ -445,7 +445,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
-  FaqRoute: typeof FaqRoute
+  CaseRequestRoute: typeof CaseRequestRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HowItWorksRoute: typeof HowItWorksRoute
   JoinRoute: typeof JoinRoute
@@ -492,11 +492,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BecomeATutorRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/faq': {
-      id: '/faq'
-      path: '/faq'
-      fullPath: '/faq'
-      preLoaderRoute: typeof FaqRouteImport
+    '/case-request': {
+      id: '/case-request'
+      path: '/case-request'
+      fullPath: '/case-request'
+      preLoaderRoute: typeof CaseRequestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -750,7 +750,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
-  FaqRoute: FaqRoute,
+  CaseRequestRoute: CaseRequestRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HowItWorksRoute: HowItWorksRoute,
   JoinRoute: JoinRoute,

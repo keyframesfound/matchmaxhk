@@ -39,6 +39,7 @@ import {
   MAX_FILES,
   MAX_FILE_BYTES,
   PROFESSIONAL_ROLE_OPTIONS,
+  PROFESSIONAL_STATUS,
   PRIVACY_TEXT,
   STATUS_OPTIONS,
   TEACHING_QUALIFICATION_OPTIONS,
@@ -78,11 +79,6 @@ type Achievement = {
   proofStatus: "upload" | "not_applicable" | "provide_later";
 };
 
-const PROFESSIONAL_STATUSES = new Set([
-  "Current professional teacher",
-  "Former professional teacher",
-  "Official examiner / moderator",
-]);
 const SYSTEM_IDS: Record<string, string> = {
   IBDP: "ib",
   "A-Level": "alevel",
@@ -414,7 +410,7 @@ export function ApplicationForm() {
   const [credentials, setCredentials] = useState<string[]>([]);
   const [removedStudiedSubjects, setRemovedStudiedSubjects] = useState<string[]>([]);
   const [qualifications, setQualifications] = useState<Qualification[]>([blankQualification()]);
-  const professional = PROFESSIONAL_STATUSES.has(base.status);
+  const professional = base.status === PROFESSIONAL_STATUS;
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
 
@@ -783,7 +779,7 @@ export function ApplicationForm() {
         highSchool: professional ? base.highSchool || "Not provided" : base.highSchool,
         curriculum: primary.curriculum,
         curricula: qualifications.map((qualification) => qualification.curriculum),
-        overallScore: primary.overall || "Professional pathway",
+        overallScore: professional ? "Not applicable - professional pathway" : primary.overall,
         subjectsConfident: selectedTeachingSubjects.join(", "),
         subjectResults: professional
           ? `Professional subjects: ${selectedTeachingSubjects.join(", ")}\n${base.achievements.map((achievement) => achievement.description).join("\n")}`
@@ -1206,7 +1202,7 @@ export function ApplicationForm() {
                 value={base.status}
                 onChange={(status) => {
                   setBaseField("status", status);
-                  setRoles(PROFESSIONAL_STATUSES.has(status) ? [status] : []);
+                  setRoles(status === PROFESSIONAL_STATUS ? ["Official examiner / moderator"] : []);
                 }}
               />
               {base.status === "Other" ? (
@@ -1217,7 +1213,7 @@ export function ApplicationForm() {
                   placeholder="Please specify"
                 />
               ) : null}
-              {base.status === "Official examiner / moderator" ||
+              {base.status === PROFESSIONAL_STATUS ||
               roles.includes("Official examiner / moderator") ? (
                 <div className="mt-4">
                   <Label className="font-semibold text-foreground">

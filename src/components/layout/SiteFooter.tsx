@@ -7,19 +7,17 @@ import { LanguageToggle } from "@/components/brand/LanguageToggle";
 const productLinks = [
   { name: "Find tutors", to: "/tutors" },
   { name: "How it works", to: "/how-it-works" },
+  { name: "Request a match", to: "/case-request" },
   { name: "Saved Posts", to: "/saved-posts" },
   { name: "Join as tutor", to: "/join" },
 ] as const;
 
 const companyLinks = [
-  { name: "FAQ", to: "/faq" },
+  { name: "FAQ", to: "/how-it-works", hash: "faq" },
   { name: "Privacy policy", to: "/privacy-policy" },
 ] as const;
 
-const supportLinks = [
-  { name: "Home", to: "/" },
-  { name: "Help center", to: "/faq" },
-] as const;
+const supportLinks = [{ name: "Home", to: "/" }] as const;
 
 export function SiteFooter({
   className,
@@ -101,6 +99,7 @@ export function SiteFooter({
                     <Link
                       className="text-sm text-foreground/70 transition-colors hover:text-brand"
                       to={link.to}
+                      hash={"hash" in link ? link.hash : undefined}
                     >
                       {link.name}
                     </Link>

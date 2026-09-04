@@ -22,7 +22,11 @@ import {
   getTutorCardHighlights,
   HK_DISTRICTS,
 } from "@/features/tutors/queries";
-import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
+import {
+  DEFAULT_SUBJECT_OPTIONS,
+  getSubjectOptionsForCategory,
+  matchesCategoryFilter,
+} from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
 const OG_IMAGE =
@@ -199,10 +203,10 @@ function Landing() {
   const tutorsForCategory = (category: string) =>
     publishedTutors
       .filter((tutor) =>
-        [...tutor.subjects, ...tutor.target_students, ...getTutorCardHighlights(tutor)]
-          .join(" ")
-          .toLowerCase()
-          .includes(category.toLowerCase()),
+        matchesCategoryFilter(category, tutor.subjects, [
+          ...tutor.target_students,
+          ...getTutorCardHighlights(tutor),
+        ]),
       )
       .slice(0, 6);
 
@@ -210,7 +214,20 @@ function Landing() {
     navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
   };
 
-  const subjectOptions = DEFAULT_SUBJECT_OPTIONS;
+  const homeSubjectOptions = useMemo(
+    () => getSubjectOptionsForCategory(homeSearch.category) ?? DEFAULT_SUBJECT_OPTIONS,
+    [homeSearch.category],
+  );
+
+  const handleHomeCategoryChange = (category: string) => {
+    const nextSubjectOptions = getSubjectOptionsForCategory(category);
+    setHomeSearchParam({
+      category: category || undefined,
+      ...(homeSearch.subject && !nextSubjectOptions.includes(homeSearch.subject)
+        ? { subject: undefined }
+        : {}),
+    });
+  };
 
   const tutorSearchParams = useMemo(() => {
     const params: HomeTutorSearchState = {
@@ -324,7 +341,7 @@ function Landing() {
               </div>
               <SearchableSelect
                 value={homeSearch.category ?? ""}
-                onChange={(v) => setHomeSearchParam({ category: v || undefined })}
+                onChange={handleHomeCategoryChange}
                 options={HOME_CATEGORY_OPTIONS}
                 placeholder="Any category"
                 searchPlaceholder="Search category..."
@@ -335,7 +352,7 @@ function Landing() {
                 onChange={(v) => setHomeSearchParam({ subject: v || undefined })}
                 options={[
                   { value: "", label: "Any subject" },
-                  ...subjectOptions.map((s) => ({ value: s, label: s })),
+                  ...homeSubjectOptions.map((s) => ({ value: s, label: s })),
                 ]}
                 placeholder="Any subject"
                 searchPlaceholder="Search subject..."
@@ -416,6 +433,7 @@ function Landing() {
                           <PublicTutorCard
                             tutor={tutor}
                             priceSuffix={t("featured.per_hour")}
+                            badgeLabel={tutor.badge ?? undefined}
                             onOpen={openTutorDetail}
                             footerAction={
                               <>

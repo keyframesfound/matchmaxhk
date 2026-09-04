@@ -92,6 +92,7 @@ function SavedPostsPage() {
                   key={tutor.id}
                   tutor={tutor}
                   priceSuffix="/hr"
+                  badgeLabel={tutor.badge ?? undefined}
                   onOpen={(code) =>
                     void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
                   }

@@ -1,5 +1,5 @@
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Award, UserRound } from "lucide-react";
+import { Award, Scale, UserRound } from "lucide-react";
 import { getTutorCardHighlights, getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
 import {
   formatTutorCode,
@@ -58,6 +58,8 @@ type PublicTutorCardProps = {
   onOpen?: (tutorCode: string) => void;
   badgeLabel?: string;
   className?: string;
+  compareSelected?: boolean;
+  onCompareToggle?: () => void;
 };
 
 export function PublicTutorCard({
@@ -68,6 +70,8 @@ export function PublicTutorCard({
   onOpen,
   badgeLabel,
   className,
+  compareSelected,
+  onCompareToggle,
 }: PublicTutorCardProps) {
   const interactive = typeof onOpen === "function";
   const academicChips = useMemo(() => getTutorSubjectChips(tutor), [tutor]);
@@ -146,11 +150,18 @@ export function PublicTutorCard({
     setAreAcademicChipsExpanded((expanded) => !expanded);
   };
 
+  const handleCompareToggle = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onCompareToggle?.();
+  };
+
   return (
     <article
       className={cn(
-        "flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--surface)] shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[23rem]",
+        "relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--surface)] shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[23rem]",
         interactive && "cursor-pointer",
+        compareSelected &&
+          "border-[color:var(--brand-teal)] ring-2 ring-[color:var(--brand-teal)]/40",
         className,
       )}
       role={interactive ? "link" : undefined}
@@ -168,6 +179,27 @@ export function PublicTutorCard({
       }
     >
       <header className="relative border-b border-[color:var(--brand-teal)]/20 bg-[color:var(--surface)] px-3 py-2.5 md:px-4 md:py-3">
+        {onCompareToggle ? (
+          <button
+            type="button"
+            aria-pressed={compareSelected ?? false}
+            aria-label={
+              compareSelected
+                ? `Remove tutor ${formatTutorCode(tutor.tutor_code)} from comparison`
+                : `Add tutor ${formatTutorCode(tutor.tutor_code)} to comparison`
+            }
+            onClick={handleCompareToggle}
+            onKeyDown={(event) => event.stopPropagation()}
+            className={cn(
+              "absolute left-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border bg-[color:var(--surface)] shadow-sm transition-colors md:left-3 md:top-3",
+              compareSelected
+                ? "border-[color:var(--brand-teal)] bg-[color:var(--brand-teal)] text-white"
+                : "border-[color:var(--ink)]/20 text-[color:var(--ink)]/55 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)]",
+            )}
+          >
+            <Scale className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden="true" />
+          </button>
+        ) : null}
         <div className="flex items-start gap-2.5 md:gap-3.5">
           <div className="flex w-12 shrink-0 flex-col items-center gap-1.5 md:w-14">
             {tutor.photo_url ? (

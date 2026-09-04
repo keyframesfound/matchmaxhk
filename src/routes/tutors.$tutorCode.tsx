@@ -1,5 +1,6 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import {
   MapPin,
   MessageCircle,
@@ -9,14 +10,17 @@ import {
   Languages,
   Layers,
   LineChart,
+  Share2,
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  fetchPublishedTutors,
   fetchTutorByCode,
   getTutorGenderLabel,
   getTutorLessonModeLabel,
@@ -24,6 +28,7 @@ import {
 } from "@/features/tutors/queries";
 import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
 import { getTutorSubjectGroups } from "@/features/tutors/tutor-display";
+import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 
 function buildTutorSeoMeta(tutor: Tutor, url: string) {
@@ -225,6 +230,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
 
 function TutorDetail() {
   const { tutor } = Route.useLoaderData();
+  const navigate = useNavigate();
 
   const { data: whatsappNumber } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
@@ -245,6 +251,32 @@ function TutorDetail() {
     initialData: tutor,
   });
   const t: Tutor = liveTutor ?? tutor;
+
+  const { data: allPublished = [] } = useQuery({
+    queryKey: ["tutors", "published"],
+    queryFn: fetchPublishedTutors,
+  });
+
+  const suggestedTutors = useMemo(() => {
+    const currentSubjects = new Set(
+      (t.subjects ?? []).map((s) => s.trim().toLowerCase()).filter(Boolean),
+    );
+    return allPublished
+      .filter((candidate) => candidate.id !== t.id)
+      .map((candidate) => {
+        const sharedSubjects = (candidate.subjects ?? []).filter((s) =>
+          currentSubjects.has(s.trim().toLowerCase()),
+        ).length;
+        const sameDistrict = candidate.district && candidate.district === t.district ? 1 : 0;
+        return { tutor: candidate, score: sharedSubjects * 2 + sameDistrict };
+      })
+      .sort(
+        (a, b) =>
+          b.score - a.score || (b.tutor.experience_years ?? 0) - (a.tutor.experience_years ?? 0),
+      )
+      .slice(0, 3)
+      .map((entry) => entry.tutor);
+  }, [allPublished, t]);
 
   const waDigits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
   const waUrl = waDigits
@@ -268,6 +300,34 @@ function TutorDetail() {
     "",
   );
   const tutorSeoSummary = `Tutor ${t.tutor_code} offers ${subjectText || "tutoring"} support${t.district ? ` in ${t.district}` : " in Hong Kong"}. ${t.lesson_mode === "online" ? "Online lessons are available." : t.lesson_mode === "either" ? "Online and in-person lessons are available." : "In-person lessons are available."} Browse rates and availability on MatchMax.`;
+
+  const [isSharing, setIsSharing] = useState(false);
+  const handleShare = async () => {
+    const shareData = {
+      title: `Tutor ${t.tutor_code} | MatchMax`,
+      text: `Check out tutor ${t.tutor_code} on MatchMax — HK$${t.hourly_rate}/hr.`,
+      url: window.location.href,
+    };
+    try {
+      if (typeof navigator.share === "function") {
+        setIsSharing(true);
+        await navigator.share(shareData);
+        return;
+      }
+      await navigator.clipboard.writeText(shareData.url);
+      toast.success("Profile link copied");
+    } catch (error) {
+      if ((error as DOMException)?.name === "AbortError") return;
+      try {
+        await navigator.clipboard.writeText(shareData.url);
+        toast.success("Profile link copied");
+      } catch {
+        toast.error("Couldn't share this profile");
+      }
+    } finally {
+      setIsSharing(false);
+    }
+  };
   const tutorStructuredData = {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -320,15 +380,26 @@ function TutorDetail() {
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <h1 className="text-xl font-black text-[color:var(--ink)] sm:text-2xl">
-                  {t.tutor_code}
-                  {genderLabel ? (
-                    <>
-                      <strong> • </strong>
-                      {genderLabel}
-                    </>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-xl font-black text-[color:var(--ink)] sm:text-2xl">
+                    {t.tutor_code}
+                    {genderLabel ? (
+                      <>
+                        <strong> • </strong>
+                        {genderLabel}
+                      </>
+                    ) : null}
+                  </h1>
+                  {t.badge ? (
+                    <span className="inline-flex items-center rounded-full border border-[color:var(--brand-teal)]/25 bg-[color:var(--brand-teal)]/8 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-[color:var(--ink)]">
+                      <Award
+                        className="mr-1 h-3.5 w-3.5 text-[color:var(--brand-teal)]"
+                        aria-hidden="true"
+                      />
+                      {t.badge}
+                    </span>
                   ) : null}
-                </h1>
+                </div>
                 {t.academic_headline || t.university || t.secondary_school ? (
                   <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
                     {t.academic_headline ? (
@@ -348,6 +419,17 @@ function TutorDetail() {
                     <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
                   </p>
                   <TutorSaveButton tutorId={t.id} compact />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 shrink-0 rounded-full"
+                    aria-label="Share this tutor profile"
+                    disabled={isSharing}
+                    onClick={() => void handleShare()}
+                  >
+                    <Share2 className="h-4 w-4" aria-hidden="true" />
+                  </Button>
                 </div>
                 {waUrl ? (
                   <Button
@@ -469,6 +551,67 @@ function TutorDetail() {
             </div>
           </div>
         </section>
+
+        {suggestedTutors.length > 0 ? (
+          <section className="border-t border-border bg-muted/30 py-10 sm:py-12">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6">
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <p className="text-sm font-bold text-[color:var(--brand-teal)]">Keep exploring</p>
+                  <h2 className="mt-1 text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                    Suggested tutors you may like
+                  </h2>
+                </div>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/tutors">Browse all tutors</Link>
+                </Button>
+              </div>
+              <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {suggestedTutors.map((candidate) => (
+                  <PublicTutorCard
+                    key={candidate.id}
+                    tutor={candidate}
+                    priceSuffix="/hr"
+                    badgeLabel={candidate.badge ?? undefined}
+                    onOpen={(code) =>
+                      void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
+                    }
+                    footerAction={
+                      <Button
+                        asChild
+                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                      >
+                        <a
+                          href={`https://wa.me/${(whatsappNumber ?? "").replace(/[^\d]/g, "")}?text=${encodeURIComponent(`I would like to request tutor ${candidate.tutor_code}`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          Request tutor
+                        </a>
+                      </Button>
+                    }
+                  />
+                ))}
+              </div>
+              <div className="mt-8 rounded-sm border border-[color:var(--brand-teal)]/25 bg-[color:var(--surface)] px-5 py-4 sm:px-6">
+                <p className="text-sm text-muted-foreground sm:text-base">
+                  Can&rsquo;t find the right tutor?{" "}
+                  <span className="font-bold text-[color:var(--ink)]">
+                    Skip the manual filters — tell us what you need and we&rsquo;ll source a match
+                    for free.
+                  </span>
+                </p>
+                <Button
+                  asChild
+                  className="mt-3 bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                >
+                  <Link to="/case-request">Submit a Case Request</Link>
+                </Button>
+              </div>
+            </div>
+          </section>
+        ) : null}
       </main>
       <SiteFooter />
     </div>

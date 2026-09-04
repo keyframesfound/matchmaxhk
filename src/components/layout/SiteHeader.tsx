@@ -63,7 +63,8 @@ export function SiteHeader({ className }: { className?: string }) {
       to: "/pricing",
     },
     ...(hasOrg ? [{ label: "My Business", ariaLabel: "My Business", to: "/business" }] : []),
-    { label: "Help Centre", ariaLabel: "Help Centre", to: "/faq" },
+    { label: "Request a Match", ariaLabel: "Request a Match", to: "/case-request" },
+    { label: "FAQ", ariaLabel: "FAQ", to: "/how-it-works", hash: "faq" },
     ...(user ? [{ label: "Settings", ariaLabel: "Settings", to: "/dashboard" }] : []),
     ...(isAdmin
       ? [
@@ -131,10 +132,18 @@ export function SiteHeader({ className }: { className?: string }) {
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
           <Link
-            to="/faq"
+            to="/case-request"
             className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
-            Help Centre
+            Request a Match
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
+          </Link>
+          <Link
+            to="/how-it-works"
+            hash="faq"
+            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
+          >
+            FAQ
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
         </nav>
@@ -227,9 +236,9 @@ export function SiteHeader({ className }: { className?: string }) {
                       asChild
                       className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
                     >
-                      <Link to="/faq">
+                      <Link to="/how-it-works" hash="faq">
                         <CircleHelp aria-hidden="true" />
-                        Help Centre
+                        FAQ
                       </Link>
                     </DropdownMenuItem>
                     {isAdmin && (

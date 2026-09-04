@@ -14,10 +14,12 @@ export const ACCEPTED_FILE_TYPES = [
 export const ACCEPT_ATTRIBUTE = ".pdf,.jpg,.jpeg,.png,.doc,.docx";
 
 export const STATUS_OPTIONS = [
-  "Current professional teacher",
-  "Former professional teacher",
-  "Official examiner / moderator",
+  "Uni student",
+  "Full Time tutor",
+  "Part time tutor",
+  "Pro teacher / examiner",
 ] as const;
+export const PROFESSIONAL_STATUS = "Pro teacher / examiner" as const;
 
 export const CURRICULUM_OPTIONS = [
   "IBDP",
@@ -129,13 +131,7 @@ export const tutorApplicationSchema = z
     privacyAck: z.literal(true),
   })
   .superRefine((data, context) => {
-    const isProfessional =
-      data.professionalRoles.length > 0 ||
-      [
-        "Current professional teacher",
-        "Former professional teacher",
-        "Official examiner / moderator",
-      ].includes(data.status);
+    const isProfessional = data.status === PROFESSIONAL_STATUS;
 
     if (data.format !== "Online" && !data.locations) {
       context.addIssue({
@@ -144,14 +140,14 @@ export const tutorApplicationSchema = z
         message: "Select at least one teaching location",
       });
     }
-    if (data.curriculum === "IBDP" && !/^4[0-5]$/.test(data.overallScore)) {
+    if (!isProfessional && data.curriculum === "IBDP" && !/^4[0-5]$/.test(data.overallScore)) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["overallScore"],
         message: "Enter an IBDP score from 40 to 45",
       });
     }
-    if (data.curriculum === "HKDSE" && !/^\d+$/.test(data.overallScore)) {
+    if (!isProfessional && data.curriculum === "HKDSE" && !/^\d+$/.test(data.overallScore)) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["overallScore"],
@@ -192,7 +188,7 @@ export interface AnswerRow {
 }
 
 export function getApplicationPath(data: TutorApplication): string {
-  return data.professionalRoles.length > 0 ? "Professional / Examiner" : data.curriculum;
+  return data.status === PROFESSIONAL_STATUS ? "Professional / Examiner" : data.curriculum;
 }
 
 export function buildAnswerRows(data: TutorApplication): AnswerRow[] {

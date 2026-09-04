@@ -15,6 +15,7 @@ import { AuthProvider } from "@/features/auth/useAuth";
 import { ThemeProvider } from "@/features/theme/ThemeProvider";
 
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
+import { PageTransitionCurtain } from "@/components/layout/PageTransitionCurtain";
 import { WhatsAppFloatButton } from "@/components/layout/WhatsAppFloatButton";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -189,6 +190,7 @@ function RootComponent() {
             </main>
             <BackToTopButton />
             <WhatsAppFloatButton />
+            <PageTransitionCurtain />
             <Toaster />
           </ThemeProvider>
         </AuthProvider>
