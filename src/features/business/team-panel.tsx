@@ -4,7 +4,17 @@ import { LogOut, Trash2, UserPlus } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { buttonVariants, Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InviteMemberModal } from "@/features/business/invite-member-modal";
 import { removeMember } from "@/features/business/business.functions";
@@ -37,6 +47,9 @@ export function TeamPanel() {
   const queryClient = useQueryClient();
   const removeFn = useServerFn(removeMember);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<
+    { type: "remove"; member: OrgMember } | { type: "leave" } | null
+  >(null);
   const [busy, setBusy] = useState(false);
 
   const orgId = organization?.id ?? null;
@@ -59,7 +72,7 @@ export function TeamPanel() {
       toast.error("The organization owner cannot be removed.");
       return;
     }
-    if (!window.confirm(`Remove ${member.email} from this organization?`)) return;
+    setConfirmTarget(null);
     setBusy(true);
     try {
       await (removeFn({
@@ -75,7 +88,7 @@ export function TeamPanel() {
   };
 
   const handleLeave = async () => {
-    if (!window.confirm("Leave this organization? You'll lose admin access.")) return;
+    setConfirmTarget(null);
     if (!orgId) return;
     setBusy(true);
     try {
@@ -195,8 +208,8 @@ export function TeamPanel() {
                           }
                           onClick={() =>
                             isOwner && !isSelfRow(member)
-                              ? void handleRemove(member)
-                              : void handleLeave()
+                              ? setConfirmTarget({ type: "remove", member })
+                              : setConfirmTarget({ type: "leave" })
                           }
                         >
                           {isOwner && !isSelfRow(member) ? (
@@ -218,6 +231,45 @@ export function TeamPanel() {
         Invited admins can manage courses and settings once they sign up with their invited email.
         {isOwner ? " Only you can remove members." : ""}
       </p>
+
+      <AlertDialog
+        open={confirmTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmTarget?.type === "remove"
+                ? `Remove ${confirmTarget.member.email}?`
+                : "Leave this organization?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmTarget?.type === "remove"
+                ? "This admin will immediately lose access to your organization. This can't be undone."
+                : "You'll lose admin access to this organization. You can only rejoin with a new invitation. This can't be undone."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              className={buttonVariants({ variant: "destructive" })}
+              onClick={(event) => {
+                event.preventDefault();
+                if (confirmTarget?.type === "remove") {
+                  void handleRemove(confirmTarget.member);
+                } else {
+                  void handleLeave();
+                }
+              }}
+            >
+              {confirmTarget?.type === "remove" ? "Remove member" : "Leave organization"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {orgId && (
         <InviteMemberModal
