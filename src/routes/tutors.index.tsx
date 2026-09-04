@@ -4,10 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import * as SliderPrimitive from "@radix-ui/react-slider";
-import { MessageCircle, ListChecks, Search } from "lucide-react";
+import { ListChecks, Search } from "lucide-react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -568,10 +569,30 @@ function TutorsDirectory() {
             </h1>
 
             <div className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
-              <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
+              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border pb-4">
                 <p className="text-sm font-black uppercase tracking-wide text-[color:var(--ink)]">
                   Find tutor
                 </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  {hotlineUrl ? (
+                    <a
+                      href={hotlineUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex h-9 items-center gap-2 rounded-full bg-[#25D366] px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
+                    >
+                      <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
+                      WhatsApp
+                    </a>
+                  ) : null}
+                  <p className="text-xs text-muted-foreground sm:text-sm">
+                    Skip the manual filters — tell us what you need and we&rsquo;ll{" "}
+                    <span className="font-bold text-[color:var(--ink)]">
+                      source a match for free
+                    </span>
+                    .
+                  </p>
+                </div>
               </div>
 
               <div className="mt-4 grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
@@ -638,7 +659,7 @@ function TutorsDirectory() {
                 </Button>
               </div>
 
-              <div className="mt-4 grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
+              <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-end sm:gap-6">
                 <div>
                   <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
                     Hourly price range
@@ -653,48 +674,19 @@ function TutorsDirectory() {
                     }
                   />
                 </div>
-                <div className="flex items-end">
-                  <SearchableSelect
-                    value={draft.sort ?? ""}
-                    onChange={(v) =>
-                      navigate({
-                        search: (prev) => ({ ...prev, sort: v || undefined }) as SearchState,
-                      })
-                    }
-                    options={SORT_OPTIONS}
-                    placeholder="Sort: Recommended"
-                    searchPlaceholder="Search sorting..."
-                    className="h-11 w-full rounded-sm sm:max-w-xs"
-                  />
-                </div>
+                <SearchableSelect
+                  value={draft.sort ?? ""}
+                  onChange={(v) =>
+                    navigate({
+                      search: (prev) => ({ ...prev, sort: v || undefined }) as SearchState,
+                    })
+                  }
+                  options={SORT_OPTIONS}
+                  placeholder="Sort: Recommended"
+                  searchPlaceholder="Search sorting..."
+                  className="h-11 w-full rounded-sm sm:w-56"
+                />
               </div>
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-3">
-                {hotlineUrl ? (
-                  <a
-                    href={hotlineUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-10 items-center gap-2 rounded-full bg-[#25D366] px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
-                  >
-                    <MessageCircle className="h-4 w-4" aria-hidden="true" />
-                    WhatsApp hotline
-                  </a>
-                ) : null}
-                <p className="text-xs text-muted-foreground sm:text-sm">
-                  Skip the manual filters — tell us what you need and we&rsquo;ll{" "}
-                  <span className="font-bold text-[color:var(--ink)]">source a match for free</span>
-                  .
-                </p>
-              </div>
-              <Link
-                to="/case-request"
-                className="text-sm font-bold text-[color:var(--brand-link)] underline-offset-2 hover:underline"
-              >
-                Or submit a Case Request →
-              </Link>
             </div>
           </div>
         </section>

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
+import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 
 export const Route = createFileRoute("/case-request")({
@@ -132,6 +133,17 @@ function CaseRequestPage() {
   const [whatsappUrl, setWhatsappUrl] = useState("");
 
   const update = (patch: Partial<FormState>) => setForm((prev) => ({ ...prev, ...patch }));
+
+  const subjectOptions = getSubjectOptionsForCategory(form.examSystem);
+
+  const handleExamSystemChange = (value: string) => {
+    const nextOptions = getSubjectOptionsForCategory(value);
+    update({
+      examSystem: value,
+      subject1: nextOptions.includes(form.subject1) ? form.subject1 : "",
+      subject2: nextOptions.includes(form.subject2) ? form.subject2 : "",
+    });
+  };
 
   const buildMessage = (f: FormState) => {
     const lines = [
@@ -294,7 +306,7 @@ function CaseRequestPage() {
                   </label>
                   <SearchableSelect
                     value={form.examSystem}
-                    onChange={(v) => update({ examSystem: v })}
+                    onChange={handleExamSystemChange}
                     options={EXAM_SYSTEM_OPTIONS}
                     placeholder="Optional"
                     searchPlaceholder="Search curriculum..."
@@ -308,11 +320,11 @@ function CaseRequestPage() {
                   <SearchableSelect
                     value={form.subject1}
                     onChange={(v) => update({ subject1: v })}
-                    options={[]}
+                    options={subjectOptions}
                     allowCustom
                     placeholder="e.g. Math AA HL"
-                    searchPlaceholder="Type a subject..."
-                    emptyText="Type to enter a custom subject."
+                    searchPlaceholder="Search subject..."
+                    emptyText="No matches — type to enter a custom subject."
                     className={controlClassName}
                   />
                   {errors.subject1 ? (
@@ -326,11 +338,11 @@ function CaseRequestPage() {
                   <SearchableSelect
                     value={form.subject2}
                     onChange={(v) => update({ subject2: v })}
-                    options={[]}
+                    options={subjectOptions}
                     allowCustom
                     placeholder="e.g. Chemistry"
-                    searchPlaceholder="Type a subject..."
-                    emptyText="Type to enter a custom subject."
+                    searchPlaceholder="Search subject..."
+                    emptyText="No matches — type to enter a custom subject."
                     className={controlClassName}
                   />
                 </div>
