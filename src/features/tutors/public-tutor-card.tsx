@@ -79,6 +79,7 @@ export function PublicTutorCard({
   const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
   const [visibleAcademicChipCount, setVisibleAcademicChipCount] = useState(academicChips.length);
   const genderLabel = getTutorGenderLabel(tutor.gender);
+  const hasIbPerfectScore = /\b45\s*\/\s*45\b/.test(tutor.academic_headline ?? "");
   const primaryCredential = removeEmoji(
     tutor.academic_headline ??
       tutor.university ??
@@ -204,18 +205,30 @@ export function PublicTutorCard({
         ) : null}
         <div className="flex items-start gap-2.5 md:gap-3.5">
           <div className="flex w-12 shrink-0 flex-col items-center gap-1.5 md:w-14">
-            {tutor.photo_url ? (
-              <img
-                src={tutor.photo_url}
-                alt={`Tutor ${formatTutorCode(tutor.tutor_code)}`}
-                className="h-11 w-11 rounded-full border border-border bg-muted object-cover md:h-[3.25rem] md:w-[3.25rem]"
-              />
-            ) : (
-              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted text-sm font-bold text-[color:var(--ink)] md:h-[3.25rem] md:w-[3.25rem] md:text-base">
-                {getTutorInitials(tutor.tutor_code)}
-              </div>
-            )}
-            <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-muted-foreground md:text-[11px]">
+            <div className="relative">
+              {tutor.photo_url ? (
+                <img
+                  src={tutor.photo_url}
+                  alt={`Tutor ${formatTutorCode(tutor.tutor_code)}`}
+                  className="h-11 w-11 rounded-full border border-border bg-muted object-cover md:h-[3.25rem] md:w-[3.25rem]"
+                />
+              ) : (
+                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted text-sm font-bold text-[color:var(--ink)] md:h-[3.25rem] md:w-[3.25rem] md:text-base">
+                  {getTutorInitials(tutor.tutor_code)}
+                </div>
+              )}
+              {hasIbPerfectScore ? (
+                <span className="bg-brand-gradient-x absolute -bottom-1 left-1/2 z-10 flex min-w-[2.75rem] -translate-x-1/2 items-center justify-center rounded-[5px] px-1.5 py-[2px] text-[7px] font-black leading-none tracking-wide text-white shadow-md ring-2 ring-[color:var(--surface)] md:min-w-[3.25rem] md:text-[8px]">
+                  IB 45
+                </span>
+              ) : null}
+            </div>
+            <p
+              className={cn(
+                "whitespace-nowrap text-[10px] font-bold tracking-wide text-muted-foreground md:text-[11px]",
+                hasIbPerfectScore && "mt-2 md:mt-2.5",
+              )}
+            >
               {formatTutorCode(tutor.tutor_code)}
             </p>
           </div>
