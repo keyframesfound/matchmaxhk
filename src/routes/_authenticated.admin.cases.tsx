@@ -3,8 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -60,8 +58,7 @@ function AdminCases() {
   });
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
+    <div>
       <main className="flex-1">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
           <h1 className="text-3xl font-black tracking-tight text-[color:var(--ink)] sm:text-4xl">
@@ -159,7 +156,6 @@ function AdminCases() {
           )}
         </div>
       </main>
-      <SiteFooter />
     </div>
   );
 }

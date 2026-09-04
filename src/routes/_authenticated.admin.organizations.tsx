@@ -4,8 +4,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Building2, RefreshCw, Search } from "lucide-react";
 import { toast } from "sonner";
 
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -106,8 +104,7 @@ function AdminOrganizations() {
   const pendingCount = orgs.filter((o) => o.status === "pending").length;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
+    <div>
       <main className="flex-1 px-4 py-10 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -247,7 +244,6 @@ function AdminOrganizations() {
           </div>
         </div>
       </main>
-      <SiteFooter />
     </div>
   );
 }

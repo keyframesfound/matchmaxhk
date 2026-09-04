@@ -4,8 +4,6 @@ import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { X } from "lucide-react";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -168,8 +166,7 @@ function AdminSettings() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
+    <div>
       <main className="flex-1">
         <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
           <h1 className="text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
@@ -414,7 +411,6 @@ function AdminSettings() {
           )}
         </div>
       </main>
-      <SiteFooter />
     </div>
   );
 }

@@ -4,16 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import {
-  Users,
-  Search,
-  UserPlus,
-  RefreshCw,
-  Shield,
-  X,
-} from "lucide-react";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
+import { Users, Search, UserPlus, RefreshCw, Shield, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -141,14 +132,12 @@ function AdminUsers() {
       );
     } else if (sortBy === "oldest") {
       result.sort(
-        (a, b) =>
-          new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime(),
+        (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime(),
       );
     } else {
       // newest
       result.sort(
-        (a, b) =>
-          new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime(),
+        (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime(),
       );
     }
 
@@ -165,9 +154,7 @@ function AdminUsers() {
       toast.success("Role granted successfully");
       queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
       if (roleUser && roleUser.user_id === variables.userId) {
-        setRoleUser((prev) =>
-          prev ? { ...prev, roles: [...prev.roles, variables.role] } : null,
-        );
+        setRoleUser((prev) => (prev ? { ...prev, roles: [...prev.roles, variables.role] } : null));
       }
     },
     onError: (e: Error) => toast.error(`Failed to grant role: ${e.message}`),
@@ -231,8 +218,7 @@ function AdminUsers() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
+    <div>
       <main className="flex-1">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 space-y-8">
           {/* Top Page Header */}
@@ -247,7 +233,8 @@ function AdminUsers() {
                 </span>
               </div>
               <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-                Manage account access, assign platform security roles, and provision new user profiles.
+                Manage account access, assign platform security roles, and provision new user
+                profiles.
               </p>
             </div>
 
@@ -403,7 +390,6 @@ function AdminUsers() {
           />
         </div>
       </main>
-      <SiteFooter />
     </div>
   );
 }

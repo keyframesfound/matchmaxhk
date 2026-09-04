@@ -20,6 +20,7 @@ import { Route as JoinRouteImport } from './routes/join'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
 import { Route as BusinessSlugRouteImport } from './routes/business.$slug'
@@ -27,6 +28,7 @@ import { Route as CoursesIndexRouteImport } from './routes/courses.index'
 import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedAdminCasesRouteImport } from './routes/_authenticated.admin.cases'
 import { Route as AuthenticatedAdminOrganizationsRouteImport } from './routes/_authenticated.admin.organizations'
 import { Route as AuthenticatedAdminR2RouteImport } from './routes/_authenticated.admin.r2'
@@ -98,6 +100,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -133,38 +140,43 @@ const TutorsTutorCodeRoute = TutorsTutorCodeRouteImport.update({
   path: '/tutors/$tutorCode',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminCasesRoute = AuthenticatedAdminCasesRouteImport.update({
-  id: '/admin/cases',
-  path: '/admin/cases',
-  getParentRoute: () => AuthenticatedRoute,
+  id: '/cases',
+  path: '/cases',
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const AuthenticatedAdminOrganizationsRoute =
   AuthenticatedAdminOrganizationsRouteImport.update({
-    id: '/admin/organizations',
-    path: '/admin/organizations',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/organizations',
+    path: '/organizations',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminR2Route = AuthenticatedAdminR2RouteImport.update({
-  id: '/admin/r2',
-  path: '/admin/r2',
-  getParentRoute: () => AuthenticatedRoute,
+  id: '/r2',
+  path: '/r2',
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
-    id: '/admin/settings',
-    path: '/admin/settings',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminTutorsRoute =
   AuthenticatedAdminTutorsRouteImport.update({
-    id: '/admin/tutors',
-    path: '/admin/tutors',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/tutors',
+    path: '/tutors',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
-  id: '/admin/users',
-  path: '/admin/users',
-  getParentRoute: () => AuthenticatedRoute,
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const AuthenticatedBusinessIndexRoute =
   AuthenticatedBusinessIndexRouteImport.update({
@@ -235,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
@@ -253,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/business/': typeof AuthenticatedBusinessIndexRoute
   '/cases/': typeof AuthenticatedCasesIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -288,6 +302,7 @@ export interface FileRoutesByTo {
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/business': typeof AuthenticatedBusinessIndexRoute
   '/cases': typeof AuthenticatedCasesIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -307,6 +322,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
@@ -325,6 +341,7 @@ export interface FileRoutesById {
   '/_authenticated/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/_authenticated/business/team': typeof AuthenticatedBusinessTeamRoute
   '/_authenticated/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/business/': typeof AuthenticatedBusinessIndexRoute
   '/_authenticated/cases/': typeof AuthenticatedCasesIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -344,6 +361,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
+    | '/admin'
     | '/dashboard'
     | '/saved-posts'
     | '/business/$slug'
@@ -362,6 +380,7 @@ export interface FileRouteTypes {
     | '/business/settings'
     | '/business/team'
     | '/cases/$caseId'
+    | '/admin/'
     | '/business/'
     | '/cases/'
     | '/lovable/email/auth/preview'
@@ -397,6 +416,7 @@ export interface FileRouteTypes {
     | '/business/settings'
     | '/business/team'
     | '/cases/$caseId'
+    | '/admin'
     | '/business'
     | '/cases'
     | '/lovable/email/auth/preview'
@@ -415,6 +435,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
+    | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/saved-posts'
     | '/business/$slug'
@@ -433,6 +454,7 @@ export interface FileRouteTypes {
     | '/_authenticated/business/settings'
     | '/_authenticated/business/team'
     | '/_authenticated/cases/$caseId'
+    | '/_authenticated/admin/'
     | '/_authenticated/business/'
     | '/_authenticated/cases/'
     | '/lovable/email/auth/preview'
@@ -541,6 +563,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -590,47 +619,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TutorsTutorCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/cases': {
       id: '/_authenticated/admin/cases'
-      path: '/admin/cases'
+      path: '/cases'
       fullPath: '/admin/cases'
       preLoaderRoute: typeof AuthenticatedAdminCasesRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/organizations': {
       id: '/_authenticated/admin/organizations'
-      path: '/admin/organizations'
+      path: '/organizations'
       fullPath: '/admin/organizations'
       preLoaderRoute: typeof AuthenticatedAdminOrganizationsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/r2': {
       id: '/_authenticated/admin/r2'
-      path: '/admin/r2'
+      path: '/r2'
       fullPath: '/admin/r2'
       preLoaderRoute: typeof AuthenticatedAdminR2RouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/settings': {
       id: '/_authenticated/admin/settings'
-      path: '/admin/settings'
+      path: '/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/tutors': {
       id: '/_authenticated/admin/tutors'
-      path: '/admin/tutors'
+      path: '/tutors'
       fullPath: '/admin/tutors'
       preLoaderRoute: typeof AuthenticatedAdminTutorsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
-      path: '/admin/users'
+      path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/business/': {
       id: '/_authenticated/business/'
@@ -705,15 +741,33 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedRouteChildren {
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedSavedPostsRoute: typeof AuthenticatedSavedPostsRoute
+interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCasesRoute: typeof AuthenticatedAdminCasesRoute
   AuthenticatedAdminOrganizationsRoute: typeof AuthenticatedAdminOrganizationsRoute
   AuthenticatedAdminR2Route: typeof AuthenticatedAdminR2Route
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTutorsRoute: typeof AuthenticatedAdminTutorsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminCasesRoute: AuthenticatedAdminCasesRoute,
+  AuthenticatedAdminOrganizationsRoute: AuthenticatedAdminOrganizationsRoute,
+  AuthenticatedAdminR2Route: AuthenticatedAdminR2Route,
+  AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
+  AuthenticatedAdminTutorsRoute: AuthenticatedAdminTutorsRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedSavedPostsRoute: typeof AuthenticatedSavedPostsRoute
   AuthenticatedBusinessCoursesRoute: typeof AuthenticatedBusinessCoursesRoute
   AuthenticatedBusinessJoinRoute: typeof AuthenticatedBusinessJoinRoute
   AuthenticatedBusinessSettingsRoute: typeof AuthenticatedBusinessSettingsRoute
@@ -724,14 +778,9 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedSavedPostsRoute: AuthenticatedSavedPostsRoute,
-  AuthenticatedAdminCasesRoute: AuthenticatedAdminCasesRoute,
-  AuthenticatedAdminOrganizationsRoute: AuthenticatedAdminOrganizationsRoute,
-  AuthenticatedAdminR2Route: AuthenticatedAdminR2Route,
-  AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
-  AuthenticatedAdminTutorsRoute: AuthenticatedAdminTutorsRoute,
-  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedBusinessCoursesRoute: AuthenticatedBusinessCoursesRoute,
   AuthenticatedBusinessJoinRoute: AuthenticatedBusinessJoinRoute,
   AuthenticatedBusinessSettingsRoute: AuthenticatedBusinessSettingsRoute,

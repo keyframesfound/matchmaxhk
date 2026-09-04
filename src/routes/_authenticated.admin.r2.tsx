@@ -5,8 +5,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Copy, ExternalLink, Loader2, RefreshCw, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/features/auth/useAuth";
@@ -141,8 +139,7 @@ function AdminR2Images() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
+    <div>
       <main className="flex-1">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
@@ -282,7 +279,6 @@ function AdminR2Images() {
           </div>
         </div>
       </main>
-      <SiteFooter />
     </div>
   );
 }

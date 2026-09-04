@@ -176,7 +176,7 @@ function AudienceSection({
           <div className="h-fit lg:sticky lg:top-24">
             <Icon className={`h-7 w-7 ${accentClassName}`} />
             <p className={`mt-6 text-sm font-bold ${accentClassName}`}>{eyebrow}</p>
-            <h3 className="mt-3 text-5xl font-black leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+            <h3 className="mt-3 text-5xl font-black leading-[1.02] tracking-tight text-inherit sm:text-6xl lg:text-7xl">
               {audience}
             </h3>
             <p className="mt-4 max-w-md text-xl font-bold leading-snug tracking-tight sm:text-2xl">
@@ -201,7 +201,7 @@ function AudienceSection({
                   {number}
                 </span>
                 <div>
-                  <h4 className="text-xl font-black tracking-tight sm:text-2xl">{stepTitle}</h4>
+                  <h4 className="text-xl font-black tracking-tight text-inherit sm:text-2xl">{stepTitle}</h4>
                   <p className={`mt-3 max-w-2xl text-sm leading-7 ${bodyTextClassName}`}>{text}</p>
                 </div>
               </li>

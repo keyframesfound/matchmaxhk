@@ -1,20 +1,14 @@
 import type { ReactNode } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
-import {
-  BookOpen,
-  Building2,
-  ChevronRight,
-  LayoutDashboard,
-  LogOut,
-  Settings,
-  UsersRound,
-} from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { BookOpen, ExternalLink, LayoutDashboard, Settings, UsersRound } from "lucide-react";
 
+import { ConsoleShell, type ConsoleNavGroup } from "@/components/layout/console-shell";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/features/auth/useAuth";
 import type { Organization, OrgUsage } from "@/features/business/useMyOrganization";
 
-const NAV_ITEMS = [
+export const BUSINESS_TABS = [
   { label: "Overview", tab: "overview", icon: LayoutDashboard },
   { label: "Courses", tab: "courses", icon: BookOpen },
   { label: "Team", tab: "team", icon: UsersRound },
@@ -90,6 +84,7 @@ export function BusinessLayout({
   onTabChange,
 }: BusinessLayoutProps) {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const activeTabName = activeTab ?? "overview";
   const initials = organization.name
     .split(/\s+/)
@@ -105,161 +100,88 @@ export function BusinessLayout({
     }
   };
 
+  const groups: ConsoleNavGroup[] = [
+    {
+      label: "Console",
+      items: BUSINESS_TABS.map((item) => ({
+        label: item.label,
+        icon: item.icon,
+        active: activeTabName === item.tab,
+        onSelect: () => switchTab(item.tab),
+      })),
+    },
+  ];
+
+  const accountName =
+    user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Business account";
+
   return (
-    <div className="flex h-full min-h-0 flex-1 bg-muted/40">
-      <aside className="hidden h-full w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
-        <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
-          {organization.logo_url ? (
-            <img
-              src={organization.logo_url}
-              alt=""
-              className="h-8 w-8 rounded-lg border border-border object-cover"
-            />
-          ) : (
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1FA8B6] text-sm font-bold text-white">
-              {initials || "MM"}
-            </span>
-          )}
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-[color:var(--ink)]">
-              {organization.name}
-            </p>
-            <p className="text-xs text-muted-foreground">Business console</p>
-          </div>
-        </div>
-
-        <nav className="flex-1 space-y-0.5 px-3 py-3">
-          {NAV_ITEMS.map((item) => {
-            const active = activeTabName === item.tab;
-            return (
-              <button
-                key={item.tab}
-                type="button"
-                onClick={() => switchTab(item.tab)}
-                aria-current={active}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-[color:var(--brand-teal)]/10 font-semibold text-[color:var(--ink)]"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-[color:var(--ink)]",
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="border-t border-border p-4">
-          {usage && (
-            <div className="mb-4">
-              <UsageMeter
-                used={usage.coursesUsed}
-                limit={usage.courseLimit}
-                label="Courses posted"
-              />
-            </div>
-          )}
+    <ConsoleShell
+      className="min-h-[calc(100vh-64px)] flex-1"
+      brandMark={
+        organization.logo_url ? (
+          <img
+            src={organization.logo_url}
+            alt=""
+            className="size-6 rounded-md border border-border object-cover"
+          />
+        ) : (
+          <span className="flex size-6 items-center justify-center rounded-md bg-[#1FA8B6] text-[11px] font-bold text-white">
+            {initials || "MM"}
+          </span>
+        )
+      }
+      brandLabel={organization.name}
+      groups={groups}
+      title={activeTabName.charAt(0).toUpperCase() + activeTabName.slice(1)}
+      headerExtra={
+        <>
+          <PlanBadge plan={organization.plan} />
+          <a
+            href={`/business/${organization.slug}`}
+            target="_blank"
+            rel="noreferrer"
+            className="hidden text-xs text-muted-foreground hover:text-[color:var(--brand-link)] hover:underline md:inline"
+          >
+            matchmax.hk/business/{organization.slug}
+          </a>
+          <Button asChild variant="outline" size="sm">
+            <a href={`/business/${organization.slug}`} target="_blank" rel="noreferrer">
+              <ExternalLink className="mr-1.5 h-4 w-4" />
+              Public site
+            </a>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              navigate({ to: "/dashboard" });
+            }}
+          >
+            Account
+          </Button>
+        </>
+      }
+      sidebarExtra={
+        <div className="grid gap-3">
+          {usage ? (
+            <UsageMeter used={usage.coursesUsed} limit={usage.courseLimit} label="Courses posted" />
+          ) : null}
           <Button asChild variant="outline" size="sm" className="w-full">
             <a href={`/business/${organization.slug}`} target="_blank" rel="noreferrer">
               View public profile
             </a>
           </Button>
         </div>
-      </aside>
-
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-3 border-b border-border bg-card/95 px-4 backdrop-blur sm:px-8">
-          <div className="flex min-w-0 items-center gap-3 lg:hidden">
-            <Link to="/business" search={{ tab: undefined }} className="flex items-center gap-2">
-              {organization.logo_url ? (
-                <img
-                  src={organization.logo_url}
-                  alt=""
-                  className="h-6 w-6 rounded-md border border-border object-cover"
-                />
-              ) : (
-                <Building2 className="h-5 w-5 text-[#1FA8B6]" />
-              )}
-              <span className="truncate text-sm font-bold text-[color:var(--ink)]">
-                {organization.name}
-              </span>
-            </Link>
-          </div>
-          <div className="hidden items-center gap-3 lg:flex">
-            <PlanBadge plan={organization.plan} />
-            <span className="h-4 w-px bg-border" />
-            <a
-              href={`/business/${organization.slug}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs text-muted-foreground hover:text-[color:var(--brand-link)] hover:underline"
-            >
-              matchmax.hk/business/{organization.slug}
-            </a>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <a href={`/business/${organization.slug}`} target="_blank" rel="noreferrer">
-                Public site
-              </a>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                navigate({ to: "/dashboard" });
-              }}
-            >
-              <LogOut className="mr-1.5 h-4 w-4" />
-              Account
-            </Button>
-          </div>
-        </header>
-
-        <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-4 py-2 lg:hidden">
-          {NAV_ITEMS.map((item) => {
-            const active = activeTabName === item.tab;
-            return (
-              <button
-                key={item.tab}
-                type="button"
-                onClick={() => switchTab(item.tab)}
-                aria-current={active}
-                className={cn(
-                  "flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-[color:var(--brand-teal)]/10 font-semibold text-[color:var(--ink)]"
-                    : "text-muted-foreground",
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-
-        <main id="main-content" className="min-h-0 flex-1 overflow-y-auto px-4 py-8 sm:px-8">
-          <div className="mx-auto max-w-5xl">
-            <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-2 text-sm">
-              <Link
-                to="/business"
-                search={{ tab: undefined }}
-                className="font-medium text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
-              >
-                Business
-              </Link>
-              <ChevronRight className="h-4 w-4 text-muted-foreground/60" />
-              <span className="font-medium text-[color:var(--ink)]">
-                {activeTabName.charAt(0).toUpperCase() + activeTabName.slice(1)}
-              </span>
-            </nav>
-            {children}
-          </div>
-        </main>
-      </div>
-    </div>
+      }
+      account={{
+        name: accountName,
+        email: user?.email ?? "",
+        avatarUrl: (user?.user_metadata.avatar_url as string | undefined) ?? null,
+      }}
+      onSignOut={() => void signOut()}
+    >
+      {children}
+    </ConsoleShell>
   );
 }

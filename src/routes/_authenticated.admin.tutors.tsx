@@ -3,8 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, Pencil, Plus, Search, Trash2, Users } from "lucide-react";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -117,8 +115,7 @@ function AdminTutors() {
   const isEditorActive = isCreating || Boolean(editingTutor);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[color:var(--surface)]">
-      <SiteHeader />
+    <div>
       <main className="flex-1 bg-[color:var(--surface)]">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           {isEditorActive ? (
@@ -380,7 +377,6 @@ function AdminTutors() {
           )}
         </div>
       </main>
-      <SiteFooter />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={Boolean(deletingId)} onOpenChange={(open) => !open && setDeletingId(null)}>

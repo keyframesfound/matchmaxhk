@@ -7,6 +7,7 @@ import {
   LogOut,
   Moon,
   Settings,
+  ShieldCheck,
   Sun,
   UserRound,
 } from "lucide-react";
@@ -64,14 +65,7 @@ export function SiteHeader({ className }: { className?: string }) {
     ...(hasOrg ? [{ label: "My Business", ariaLabel: "My Business", to: "/business" }] : []),
     { label: "Request a Match", ariaLabel: "Request a Match", to: "/case-request" },
     ...(user ? [{ label: "Settings", ariaLabel: "Settings", to: "/dashboard" }] : []),
-    ...(isAdmin
-      ? [
-          { label: "Manage tutors", ariaLabel: "Manage tutors", to: "/admin/tutors" },
-          { label: "Organizations", ariaLabel: "Organizations", to: "/admin/organizations" },
-          { label: t("nav.admin"), ariaLabel: t("nav.admin"), to: "/admin/users" },
-          { label: "R2 images", ariaLabel: "R2 images", to: "/admin/r2" },
-        ]
-      : []),
+    ...(isAdmin ? [{ label: "Admin", ariaLabel: "Admin", to: "/admin" }] : []),
   ];
 
   return (
@@ -225,32 +219,14 @@ export function SiteHeader({ className }: { className?: string }) {
                     {isAdmin && (
                       <>
                         <DropdownMenuSeparator className="my-1.5" />
-                        <DropdownMenuLabel className="px-3 py-1 text-xs font-semibold text-[color:var(--ink)]/50">
-                          Administration
-                        </DropdownMenuLabel>
                         <DropdownMenuItem
                           asChild
-                          className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
+                          className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
                         >
-                          <Link to="/admin/tutors">Manage tutors</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          asChild
-                          className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
-                        >
-                          <Link to="/admin/organizations">Organizations</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          asChild
-                          className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
-                        >
-                          <Link to="/admin/r2">R2 images</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          asChild
-                          className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20"
-                        >
-                          <Link to="/admin/users">{t("nav.admin")}</Link>
+                          <Link to="/admin">
+                            <ShieldCheck aria-hidden="true" />
+                            Admin
+                          </Link>
                         </DropdownMenuItem>
                       </>
                     )}
