@@ -193,7 +193,7 @@ export function PublicTutorCard({
                 </div>
               )}
               {hasIbPerfectScore ? (
-                <span className="bg-brand-gradient-x absolute -bottom-1 left-1/2 z-10 hidden min-w-[3.25rem] -translate-x-1/2 items-center justify-center rounded-[5px] px-1.5 py-[2px] text-[10px] font-black leading-none tracking-wide text-white shadow-md ring-2 ring-[color:var(--surface)] md:flex">
+                <span className="bg-brand-gradient-x absolute -bottom-1 left-1/2 z-10 flex min-w-[3.25rem] -translate-x-1/2 items-center justify-center whitespace-nowrap rounded-[5px] px-1.5 py-[2px] text-[10px] font-black leading-none tracking-wide text-white shadow-md ring-2 ring-[color:var(--surface)]">
                   IBDP 45
                 </span>
               ) : null}
@@ -226,11 +226,6 @@ export function PublicTutorCard({
                     aria-hidden="true"
                   />
                   {genderLabel}
-                </span>
-              ) : null}
-              {hasIbPerfectScore ? (
-                <span className="bg-brand-gradient-x inline-flex min-w-[3rem] items-center justify-center rounded-[5px] px-1.5 py-[3px] text-[9px] font-black leading-none tracking-wide text-white shadow-md md:hidden">
-                  IBDP 45
                 </span>
               ) : null}
             </div>

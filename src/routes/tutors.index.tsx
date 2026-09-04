@@ -569,30 +569,10 @@ function TutorsDirectory() {
             </h1>
 
             <div className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
-              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border pb-4">
+              <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
                 <p className="text-sm font-black uppercase tracking-wide text-[color:var(--ink)]">
                   Find tutor
                 </p>
-                <div className="flex flex-wrap items-center gap-3">
-                  {hotlineUrl ? (
-                    <a
-                      href={hotlineUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex h-9 items-center gap-2 rounded-full bg-[#25D366] px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
-                    >
-                      <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
-                      WhatsApp
-                    </a>
-                  ) : null}
-                  <p className="text-xs text-muted-foreground sm:text-sm">
-                    Skip the manual filters — tell us what you need and we&rsquo;ll{" "}
-                    <span className="font-bold text-[color:var(--ink)]">
-                      source a match for free
-                    </span>
-                    .
-                  </p>
-                </div>
               </div>
 
               <div className="mt-4 grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
@@ -659,8 +639,8 @@ function TutorsDirectory() {
                 </Button>
               </div>
 
-              <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-end sm:gap-6">
-                <div>
+              <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-6">
+                <div className="shrink-0">
                   <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
                     Hourly price range
                   </p>
@@ -684,8 +664,28 @@ function TutorsDirectory() {
                   options={SORT_OPTIONS}
                   placeholder="Sort: Recommended"
                   searchPlaceholder="Search sorting..."
-                  className="h-11 w-full rounded-sm sm:w-56"
+                  className="h-11 w-full rounded-sm sm:w-56 sm:shrink-0"
                 />
+                <div className="flex flex-wrap items-center gap-3 sm:ml-auto">
+                  {hotlineUrl ? (
+                    <a
+                      href={hotlineUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex h-9 items-center gap-2 rounded-full bg-[#25D366] px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
+                    >
+                      <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
+                      WhatsApp
+                    </a>
+                  ) : null}
+                  <p className="text-xs text-muted-foreground sm:text-sm">
+                    Skip the manual filters — tell us what you need and we&rsquo;ll{" "}
+                    <span className="font-bold text-[color:var(--ink)]">
+                      source a match for free
+                    </span>
+                    .
+                  </p>
+                </div>
               </div>
             </div>
           </div>
