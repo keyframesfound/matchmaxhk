@@ -356,7 +356,7 @@ export const inviteMember = createServerFn({ method: "POST" })
           role: "admin",
           status: "pending",
           user_id: null,
-          invited_by: inviterEmail || null,
+          invited_by: context.userId,
           invited_at: new Date().toISOString(),
           claimed_at: null,
         },

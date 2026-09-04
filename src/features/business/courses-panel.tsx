@@ -238,6 +238,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
             }
             onCheckedChange={(checked) => table.toggleAllPageRowsSelected(checked === true)}
             aria-label="Select all courses on this page"
+            className="rounded-none"
           />
         ),
         cell: ({ row }) => (
@@ -245,6 +246,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
             checked={row.getIsSelected()}
             onCheckedChange={(checked) => row.toggleSelected(checked === true)}
             aria-label={`Select ${row.original.title}`}
+            className="rounded-none"
           />
         ),
       },
