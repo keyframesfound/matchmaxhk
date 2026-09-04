@@ -127,10 +127,11 @@ function PriceRangeSlider({
   const lo = value.min ?? PRICE_MIN;
   const hi = value.max ?? PRICE_MAX;
   return (
-    <div className="flex max-w-[16rem] items-center gap-3">
-      <span className="whitespace-nowrap text-xs font-bold text-[color:var(--ink)]">
-        {formatHKD(lo)}
-      </span>
+    <div className="grid w-full max-w-[16rem] gap-1.5">
+      <div className="flex items-center justify-between text-xs font-bold text-[color:var(--ink)]">
+        <span>{formatHKD(lo)}</span>
+        <span>{hi >= PRICE_MAX ? `${formatHKD(PRICE_MAX)}+` : formatHKD(hi)}</span>
+      </div>
       <SliderPrimitive.Root
         value={[lo, hi]}
         min={PRICE_MIN}
@@ -153,9 +154,6 @@ function PriceRangeSlider({
           className="block h-4 w-4 rounded-full border-2 border-[color:var(--brand-teal)] bg-white shadow transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#77E8EE]/40"
         />
       </SliderPrimitive.Root>
-      <span className="whitespace-nowrap text-xs font-bold text-[color:var(--ink)]">
-        {hi >= PRICE_MAX ? `${formatHKD(PRICE_MAX)}+` : formatHKD(hi)}
-      </span>
     </div>
   );
 }
