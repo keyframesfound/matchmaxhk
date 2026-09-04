@@ -4,7 +4,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft,
-  ArrowUp,
   BadgeCheck,
   BookOpen,
   Building2,
@@ -31,9 +30,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/business/empty-state";
 import { BackToTop } from "@/components/business/back-to-top";
+import { CourseCalendar } from "@/components/business/course-calendar";
 import { SocialLinks } from "@/components/business/social-links";
 import {
   OrgAboutDialog,
@@ -48,6 +47,7 @@ import {
   uploadOrganizationImage,
 } from "@/features/business/business.functions";
 import { useAuth } from "@/features/auth/useAuth";
+import { useBusinessTracker } from "@/features/business/use-analytics";
 import {
   courseModeLabel,
   fetchCoursesByOrganizationId,
@@ -177,11 +177,11 @@ function BusinessPublicProfile() {
   const roleFn = useServerFn(getOrganizationRoleForSlug);
   const updateOrgFn = useServerFn(updateOrganization);
   const uploadImageFn = useServerFn(uploadOrganizationImage);
+  const track = useBusinessTracker();
 
   const [identityOpen, setIdentityOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"about" | "courses">("about");
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState<"logo" | "cover" | null>(null);
@@ -214,8 +214,9 @@ function BusinessPublicProfile() {
   useEffect(() => {
     if (org) {
       document.title = `${org.name} | MatchMax`;
+      track([{ organizationId: org.id, type: "profile_view" }]);
     }
-  }, [org]);
+  }, [org, track]);
 
   const initials = (org?.name ?? "")
     .split(/\s+/)
@@ -290,6 +291,10 @@ function BusinessPublicProfile() {
     }
   };
 
+  const trackContactClick = () => {
+    if (org) track([{ organizationId: org.id, type: "contact_click" }]);
+  };
+
   const handleSaveContact = () => {
     if (!org) return;
     const socials: SocialUrls = {
@@ -311,7 +316,7 @@ function BusinessPublicProfile() {
         {orgLoading && (
           <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
             <div className="overflow-hidden rounded-xl border border-border bg-card">
-              <Skeleton className="h-32 w-full rounded-none sm:h-44" />
+              <Skeleton className="h-40 w-full rounded-none sm:h-56" />
               <div className="px-6 pb-6">
                 <Skeleton className="-mt-10 h-24 w-24 rounded-full ring-4 ring-card" />
                 <Skeleton className="mt-4 h-8 w-64" />
@@ -377,488 +382,488 @@ function BusinessPublicProfile() {
               </div>
             )}
 
-            <div className="sticky top-16 z-30 mt-4 flex w-fit items-center gap-1 rounded-full border border-border bg-card/95 p-1 shadow-sm backdrop-blur">
-              {(["about", "courses"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => {
-                    setActiveTab(tab);
-                    document
-                      .getElementById("business-main-card")
-                      ?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
-                    activeTab === tab
-                      ? "bg-[color:var(--surface-invert)] text-white"
-                      : "text-muted-foreground hover:text-[color:var(--ink)]"
-                  }`}
-                >
-                  {tab === "about" ? "About" : "Courses"}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab("about");
-                  requestAnimationFrame(() => {
-                    document
-                      .getElementById("contact-details")
-                      ?.scrollIntoView({ behavior: "smooth", block: "center" });
-                  });
-                }}
-                className="rounded-full px-4 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
-              >
-                Contact
-              </button>
-            </div>
+            {/* Hero */}
+            <section className="mt-4 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+              <div className="group relative h-40 w-full sm:h-56">
+                {org.cover_image_url ? (
+                  <img src={org.cover_image_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full bg-gradient-to-r from-[#1FA8B6] via-[#2bbfcc] to-[#77E8EE]" />
+                )}
+                {isOwner && (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Change cover image"
+                      disabled={uploadingImage !== null}
+                      onClick={() => coverInputRef.current?.click()}
+                      className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md bg-black/50 text-white opacity-0 transition-opacity hover:bg-black/70 focus-visible:opacity-100 group-hover:opacity-100"
+                    >
+                      <Camera className="h-4 w-4" />
+                    </button>
+                    <input
+                      ref={coverInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = "";
+                        if (file) void handleOwnerImage("cover", file);
+                      }}
+                    />
+                  </>
+                )}
+              </div>
 
-            <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-              <section
-                id="business-main-card"
-                className="min-w-0 scroll-mt-28 overflow-hidden rounded-xl border border-border bg-card shadow-sm"
-              >
-                {/* Banner */}
-                <div className="group relative h-32 w-full sm:h-44">
-                  {org.cover_image_url ? (
-                    <img src={org.cover_image_url} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="h-full w-full bg-gradient-to-r from-[#1FA8B6] via-[#2bbfcc] to-[#77E8EE]" />
-                  )}
-                  {isOwner && (
-                    <>
-                      <button
-                        type="button"
-                        aria-label="Change cover image"
-                        disabled={uploadingImage !== null}
-                        onClick={() => coverInputRef.current?.click()}
-                        className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md bg-black/50 text-white opacity-0 transition-opacity hover:bg-black/70 focus-visible:opacity-100 group-hover:opacity-100"
-                      >
-                        <Camera className="h-4 w-4" />
-                      </button>
-                      <input
-                        ref={coverInputRef}
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
-                        className="sr-only"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          e.target.value = "";
-                          if (file) void handleOwnerImage("cover", file);
-                        }}
+              <div className="px-5 pb-6 sm:px-8">
+                <div className="relative z-10 -mt-12 flex flex-wrap items-end justify-between gap-4 sm:-mt-14">
+                  <div className="group relative shrink-0">
+                    {org.logo_url ? (
+                      <img
+                        src={org.logo_url}
+                        alt=""
+                        className="h-24 w-24 rounded-full border-4 border-card object-cover shadow-md sm:h-28 sm:w-28"
                       />
-                    </>
-                  )}
-                </div>
-
-                <div className="px-5 pb-6 sm:px-8">
-                  <div className="relative z-10 -mt-12 flex flex-wrap items-end justify-between gap-4 sm:-mt-14">
-                    <div className="group relative shrink-0">
-                      {org.logo_url ? (
-                        <img
-                          src={org.logo_url}
-                          alt=""
-                          className="h-24 w-24 rounded-full border-4 border-card object-cover shadow-md sm:h-28 sm:w-28"
-                        />
-                      ) : (
-                        <span className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-card bg-[#1FA8B6] text-2xl font-bold leading-none text-white shadow-md sm:h-28 sm:w-28">
-                          {initials || "MM"}
-                        </span>
-                      )}
-                      {isOwner && (
-                        <>
-                          <button
-                            type="button"
-                            aria-label="Change logo"
-                            disabled={uploadingImage !== null}
-                            onClick={() => logoInputRef.current?.click()}
-                            className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 text-white opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100 group-hover:opacity-100"
-                          >
-                            <Camera className="h-5 w-5" />
-                          </button>
-                          <input
-                            ref={logoInputRef}
-                            type="file"
-                            accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
-                            className="sr-only"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              e.target.value = "";
-                              if (file) void handleOwnerImage("logo", file);
-                            }}
-                          />
-                        </>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2 pb-1">
-                      {whatsappUrl && (
-                        <Button
-                          asChild
-                          className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                        >
-                          <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                            <MessageCircle className="mr-2 h-4 w-4" />
-                            WhatsApp
-                          </a>
-                        </Button>
-                      )}
-                      {org.contact_email && (
-                        <Button asChild variant="outline">
-                          <a href={`mailto:${org.contact_email}`}>
-                            <Mail className="mr-2 h-4 w-4" />
-                            Email
-                          </a>
-                        </Button>
-                      )}
-                      {org.website_url && (
-                        <Button asChild variant="ghost">
-                          <a href={org.website_url} target="_blank" rel="noreferrer">
-                            <Globe className="mr-2 h-4 w-4" />
-                            Website
-                          </a>
-                        </Button>
-                      )}
-                      <Button variant="ghost" prefix={<Contact />} onClick={handleSaveContact}>
-                        Save contact
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h1 className="flex flex-wrap items-center gap-2 text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                        {org.name}
-                        <BadgeCheck
-                          className="h-6 w-6 shrink-0 text-[#1FA8B6]"
-                          aria-label="Verified business"
-                        />
-                      </h1>
-                      {org.tagline ? (
-                        <p className="mt-1.5 max-w-2xl text-[15px] font-medium text-muted-foreground">
-                          {org.tagline}
-                        </p>
-                      ) : null}
-                      <SocialLinks
-                        className="mt-3"
-                        urls={{
-                          youtube: org.youtube_url,
-                          linkedin: org.linkedin_url,
-                          x: org.x_url,
-                          rednote: org.rednote_url,
-                          instagram: org.instagram_url,
-                          facebook: org.facebook_url,
-                        }}
-                      />
-                    </div>
+                    ) : (
+                      <span className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-card bg-[#1FA8B6] text-2xl font-bold leading-none text-white shadow-md sm:h-28 sm:w-28">
+                        {initials || "MM"}
+                      </span>
+                    )}
                     {isOwner && (
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label="Edit business details"
-                        onClick={() => setIdentityOpen(true)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <>
+                        <button
+                          type="button"
+                          aria-label="Change logo"
+                          disabled={uploadingImage !== null}
+                          onClick={() => logoInputRef.current?.click()}
+                          className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 text-white opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100 group-hover:opacity-100"
+                        >
+                          <Camera className="h-5 w-5" />
+                        </button>
+                        <input
+                          ref={logoInputRef}
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                          className="sr-only"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            e.target.value = "";
+                            if (file) void handleOwnerImage("logo", file);
+                          }}
+                        />
+                      </>
                     )}
                   </div>
-
-                  {/* Stats strip */}
-                  <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-                    <span className="flex items-baseline gap-1.5">
-                      <span className="font-semibold tabular-nums text-[color:var(--ink)]">
-                        {coursesLoading ? "…" : courseCount}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {courseCount === 1 ? "Course" : "Courses"}
-                      </span>
-                    </span>
-                    {org.district ? (
-                      <span className="flex items-baseline gap-1.5">
-                        <span className="font-semibold text-[color:var(--ink)]">
-                          {org.district}
-                        </span>
-                        <span className="text-muted-foreground">District</span>
-                      </span>
-                    ) : null}
-                    <span className="flex items-baseline gap-1.5">
-                      <span className="font-semibold text-[color:var(--ink)]">
-                        {org.founded_year ?? "—"}
-                      </span>
-                      <span className="text-muted-foreground">Founded</span>
-                    </span>
-                    <span className="flex items-baseline gap-1.5">
-                      <span className="font-semibold text-[color:var(--ink)]">{memberSince}</span>
-                      <span className="text-muted-foreground">member since</span>
-                    </span>
-                  </div>
-
-                  <Tabs
-                    value={activeTab}
-                    onValueChange={(value) => setActiveTab(value as "about" | "courses")}
-                    className="mt-6 gap-5"
-                  >
-                    <TabsContent value="about">
-                      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,1fr)]">
-                        <div className="min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <h2 className="text-base font-black tracking-tight text-[color:var(--ink)]">
-                              About
-                            </h2>
-                            {isOwner && (
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label="Edit about section"
-                                onClick={() => setAboutOpen(true)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                          <div className="mt-2 space-y-3 text-[15px] leading-relaxed text-muted-foreground">
-                            {parseYouTubeUrl(org.intro_video_url) ? (
-                              <div className="pt-1">
-                                <YouTubePlayer
-                                  url={org.intro_video_url ?? ""}
-                                  title={`Intro video from ${org.name}`}
-                                />
-                              </div>
-                            ) : null}
-                            {org.description ? (
-                              org.description
-                                .split(/\n{2,}/)
-                                .map((paragraph, i) => <p key={i}>{paragraph}</p>)
-                            ) : !parseYouTubeUrl(org.intro_video_url) ? (
-                              <p>This business hasn't added a description yet.</p>
-                            ) : null}
-                          </div>
-
-                          {faqItems.length > 0 && (
-                            <div className="mt-6">
-                              <h3 className="text-sm font-bold text-[color:var(--ink)]">
-                                Frequently asked questions
-                              </h3>
-                              <Accordion type="single" collapsible className="mt-2">
-                                {faqItems.map((item, i) => (
-                                  <AccordionItem key={i} value={`faq-${i}`}>
-                                    <AccordionTrigger className="text-left text-sm font-medium">
-                                      {item.question}
-                                    </AccordionTrigger>
-                                    <AccordionContent className="text-sm text-muted-foreground">
-                                      {item.answer}
-                                    </AccordionContent>
-                                  </AccordionItem>
-                                ))}
-                              </Accordion>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Facts panel */}
-                        <div className="rounded-lg border border-border bg-muted/40 p-4">
-                          <h3 className="text-sm font-bold text-[color:var(--ink)]">Details</h3>
-                          <ul className="mt-3 flex flex-col gap-2.5 text-sm text-muted-foreground">
-                            <li className="flex items-center gap-2.5">
-                              <MapPin className="h-4 w-4 shrink-0" />
-                              {org.district ?? "Hong Kong"}
-                            </li>
-                            {org.founded_year ? (
-                              <li className="flex items-center gap-2.5">
-                                <CalendarDays className="h-4 w-4 shrink-0" />
-                                Founded {org.founded_year}
-                              </li>
-                            ) : null}
-                            {org.languages ? (
-                              <li className="flex items-center gap-2.5">
-                                <BookOpen className="h-4 w-4 shrink-0" />
-                                {org.languages}
-                              </li>
-                            ) : null}
-                            <li className="flex items-center gap-2.5">
-                              <BadgeCheck className="h-4 w-4 shrink-0" />
-                              Member since {memberSince}
-                            </li>
-                            {org.website_url ? (
-                              <li className="flex items-center gap-2.5">
-                                <Globe className="h-4 w-4 shrink-0" />
-                                <a
-                                  href={org.website_url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="truncate font-medium text-[color:var(--brand-link)] hover:underline"
-                                >
-                                  {org.website_url.replace(/^https?:\/\//, "")}
-                                </a>
-                              </li>
-                            ) : null}
-                          </ul>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="courses">
-                      {(levels.length > 0 || subjects.length > 0) && (
-                        <div className="mb-4 flex flex-wrap items-center gap-1.5">
-                          {levels.map((level) => (
-                            <button
-                              key={level}
-                              type="button"
-                              aria-pressed={levelFilter === level}
-                              onClick={() =>
-                                setLevelFilter((prev) => (prev === level ? null : level))
-                              }
-                              className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
-                                levelFilter === level
-                                  ? "bg-[#1FA8B6] text-white ring-[#1FA8B6]"
-                                  : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
-                              }`}
-                            >
-                              {level}
-                            </button>
-                          ))}
-                          {subjects.map((subject) => (
-                            <button
-                              key={subject}
-                              type="button"
-                              aria-pressed={subjectFilter === subject}
-                              onClick={() =>
-                                setSubjectFilter((prev) => (prev === subject ? null : subject))
-                              }
-                              className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
-                                subjectFilter === subject
-                                  ? "bg-[#0A245F] text-white ring-[#0A245F]"
-                                  : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
-                              }`}
-                            >
-                              {subject}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        {coursesLoading && (
-                          <>
-                            <Skeleton className="h-64 rounded-xl" />
-                            <Skeleton className="h-64 rounded-xl" />
-                          </>
-                        )}
-                        {!coursesLoading && filteredCourses.length === 0 && (
-                          <div className="sm:col-span-2">
-                            <EmptyState
-                              icon={BookOpen}
-                              title="No courses found"
-                              description={
-                                (courses ?? []).length === 0
-                                  ? "This business hasn't published any courses — check back soon."
-                                  : "No courses match the selected filters."
-                              }
-                              secondaryAction={
-                                (levelFilter || subjectFilter) && (courses ?? []).length > 0 ? (
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                      setLevelFilter(null);
-                                      setSubjectFilter(null);
-                                    }}
-                                  >
-                                    Clear filters
-                                  </Button>
-                                ) : (
-                                  <Button variant="outline" asChild>
-                                    <Link to="/courses">Browse other courses</Link>
-                                  </Button>
-                                )
-                              }
-                            />
-                          </div>
-                        )}
-                        {filteredCourses.map((course) => (
-                          <ListingCard key={course.id} course={course} />
-                        ))}
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </div>
-              </section>
-
-              {/* Sidebar */}
-              <aside>
-                <div className="sticky top-24 space-y-4">
-                  <div
-                    id="contact-details"
-                    className="scroll-mt-28 rounded-xl border border-border bg-card p-6 shadow-sm"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-base font-black tracking-tight text-[color:var(--ink)]">
-                        Get in touch
-                      </h3>
-                      {isOwner && (
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label="Edit contact details"
-                          onClick={() => setContactOpen(true)}
+                  <div className="flex flex-wrap items-center gap-2 pb-1">
+                    {whatsappUrl && (
+                      <Button
+                        asChild
+                        className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                      >
+                        <a
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={trackContactClick}
                         >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                    <div className="mt-4 flex flex-col gap-3 text-sm">
-                      {org.website_url && (
+                          <MessageCircle className="mr-2 h-4 w-4" />
+                          WhatsApp
+                        </a>
+                      </Button>
+                    )}
+                    {org.contact_email && (
+                      <Button asChild variant="outline">
+                        <a href={`mailto:${org.contact_email}`} onClick={trackContactClick}>
+                          <Mail className="mr-2 h-4 w-4" />
+                          Email
+                        </a>
+                      </Button>
+                    )}
+                    {org.website_url && (
+                      <Button asChild variant="ghost">
                         <a
                           href={org.website_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-2.5 font-medium text-[color:var(--brand-link)] hover:underline"
+                          onClick={trackContactClick}
                         >
-                          <Globe className="h-4 w-4 shrink-0 text-muted-foreground" />
-                          <span className="truncate">Visit website</span>
-                        </a>
-                      )}
-                      {org.contact_email && (
-                        <a
-                          href={`mailto:${org.contact_email}`}
-                          className="inline-flex items-center gap-2.5 font-medium text-[color:var(--ink)] hover:text-[color:var(--brand-link)]"
-                        >
-                          <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
-                          <span className="truncate">{org.contact_email}</span>
-                        </a>
-                      )}
-                      {org.contact_phone && (
-                        <a
-                          href={`tel:${org.contact_phone}`}
-                          className="inline-flex items-center gap-2.5 font-medium text-[color:var(--ink)] hover:text-[color:var(--brand-link)]"
-                        >
-                          <Phone className="h-4 w-4 shrink-0 text-muted-foreground" />
-                          {org.contact_phone}
-                        </a>
-                      )}
-                      {org.district && (
-                        <span className="inline-flex items-center gap-2.5 text-muted-foreground">
-                          <MapPin className="h-4 w-4 shrink-0" />
-                          {org.district}
-                        </span>
-                      )}
-                      {!org.website_url && !org.contact_email && !org.contact_phone && (
-                        <p className="text-muted-foreground">Contact details coming soon.</p>
-                      )}
-                    </div>
-
-                    {whatsappUrl && (
-                      <Button
-                        asChild
-                        className="mt-5 h-11 w-full bg-[#25D366] font-bold text-white hover:bg-[#1fb857]"
-                      >
-                        <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                          <MessageCircle className="mr-2 h-4 w-4" />
-                          WhatsApp enquiry
+                          <Globe className="mr-2 h-4 w-4" />
+                          Website
                         </a>
                       </Button>
                     )}
+                    <Button variant="ghost" prefix={<Contact />} onClick={handleSaveContact}>
+                      Save contact
+                    </Button>
                   </div>
                 </div>
-              </aside>
-            </div>
+
+                <div className="mt-4 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h1 className="flex flex-wrap items-center gap-2 text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                      {org.name}
+                      <BadgeCheck
+                        className="h-6 w-6 shrink-0 text-[#1FA8B6]"
+                        aria-label="Verified business"
+                      />
+                    </h1>
+                    {org.tagline ? (
+                      <p className="mt-1.5 max-w-2xl text-[15px] font-medium text-muted-foreground">
+                        {org.tagline}
+                      </p>
+                    ) : null}
+                    <SocialLinks
+                      className="mt-3"
+                      urls={{
+                        youtube: org.youtube_url,
+                        linkedin: org.linkedin_url,
+                        x: org.x_url,
+                        rednote: org.rednote_url,
+                        instagram: org.instagram_url,
+                        facebook: org.facebook_url,
+                      }}
+                    />
+                  </div>
+                  {isOwner && (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Edit business details"
+                      onClick={() => setIdentityOpen(true)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                  <span className="flex items-baseline gap-1.5">
+                    <span className="font-semibold tabular-nums text-[color:var(--ink)]">
+                      {coursesLoading ? "…" : courseCount}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {courseCount === 1 ? "Course" : "Courses"}
+                    </span>
+                  </span>
+                  {org.district ? (
+                    <span className="flex items-baseline gap-1.5">
+                      <span className="font-semibold text-[color:var(--ink)]">{org.district}</span>
+                      <span className="text-muted-foreground">District</span>
+                    </span>
+                  ) : null}
+                  <span className="flex items-baseline gap-1.5">
+                    <span className="font-semibold text-[color:var(--ink)]">
+                      {org.founded_year ?? "—"}
+                    </span>
+                    <span className="text-muted-foreground">Founded</span>
+                  </span>
+                  <span className="flex items-baseline gap-1.5">
+                    <span className="font-semibold text-[color:var(--ink)]">{memberSince}</span>
+                    <span className="text-muted-foreground">member since</span>
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            {/* About */}
+            <section id="about" className="mt-10 scroll-mt-24">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)]">About</h2>
+                {isOwner && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    prefix={<Pencil />}
+                    onClick={() => setAboutOpen(true)}
+                  >
+                    Edit
+                  </Button>
+                )}
+              </div>
+              <div className="mt-4 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,1fr)]">
+                  <div className="min-w-0">
+                    {parseYouTubeUrl(org.intro_video_url) ? (
+                      <div className="pb-1">
+                        <YouTubePlayer
+                          url={org.intro_video_url ?? ""}
+                          title={`Intro video from ${org.name}`}
+                        />
+                      </div>
+                    ) : null}
+                    <div className="space-y-3 text-[15px] leading-relaxed text-muted-foreground">
+                      {org.description ? (
+                        org.description
+                          .split(/\n{2,}/)
+                          .map((paragraph, i) => <p key={i}>{paragraph}</p>)
+                      ) : !parseYouTubeUrl(org.intro_video_url) ? (
+                        <p>This business hasn't added a description yet.</p>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-border bg-muted/40 p-4">
+                    <h3 className="text-sm font-bold text-[color:var(--ink)]">Details</h3>
+                    <ul className="mt-3 flex flex-col gap-2.5 text-sm text-muted-foreground">
+                      <li className="flex items-center gap-2.5">
+                        <MapPin className="h-4 w-4 shrink-0" />
+                        {org.district ?? "Hong Kong"}
+                      </li>
+                      {org.founded_year ? (
+                        <li className="flex items-center gap-2.5">
+                          <CalendarDays className="h-4 w-4 shrink-0" />
+                          Founded {org.founded_year}
+                        </li>
+                      ) : null}
+                      {org.languages ? (
+                        <li className="flex items-center gap-2.5">
+                          <BookOpen className="h-4 w-4 shrink-0" />
+                          {org.languages}
+                        </li>
+                      ) : null}
+                      <li className="flex items-center gap-2.5">
+                        <BadgeCheck className="h-4 w-4 shrink-0" />
+                        Member since {memberSince}
+                      </li>
+                      {org.website_url ? (
+                        <li className="flex items-center gap-2.5">
+                          <Globe className="h-4 w-4 shrink-0" />
+                          <a
+                            href={org.website_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={trackContactClick}
+                            className="truncate font-medium text-[color:var(--brand-link)] hover:underline"
+                          >
+                            {org.website_url.replace(/^https?:\/\//, "")}
+                          </a>
+                        </li>
+                      ) : null}
+                    </ul>
+                  </div>
+                </div>
+
+                {faqItems.length > 0 && (
+                  <div className="mt-6 border-t border-border pt-5">
+                    <h3 className="text-sm font-bold text-[color:var(--ink)]">
+                      Frequently asked questions
+                    </h3>
+                    <Accordion type="single" collapsible className="mt-2">
+                      {faqItems.map((item, i) => (
+                        <AccordionItem key={i} value={`faq-${i}`}>
+                          <AccordionTrigger className="text-left text-sm font-medium">
+                            {item.question}
+                          </AccordionTrigger>
+                          <AccordionContent className="text-sm text-muted-foreground">
+                            {item.answer}
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Courses */}
+            <section id="courses" className="mt-10 scroll-mt-24">
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)]">
+                  Courses
+                </h2>
+                <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-bold tabular-nums text-muted-foreground">
+                  {coursesLoading ? "…" : courseCount}
+                </span>
+              </div>
+              <div className="mt-4">
+                {(levels.length > 0 || subjects.length > 0) && (
+                  <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                    {levels.map((level) => (
+                      <button
+                        key={level}
+                        type="button"
+                        aria-pressed={levelFilter === level}
+                        onClick={() => setLevelFilter((prev) => (prev === level ? null : level))}
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
+                          levelFilter === level
+                            ? "bg-[#1FA8B6] text-white ring-[#1FA8B6]"
+                            : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
+                        }`}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                    {subjects.map((subject) => (
+                      <button
+                        key={subject}
+                        type="button"
+                        aria-pressed={subjectFilter === subject}
+                        onClick={() =>
+                          setSubjectFilter((prev) => (prev === subject ? null : subject))
+                        }
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
+                          subjectFilter === subject
+                            ? "bg-[#0A245F] text-white ring-[#0A245F]"
+                            : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
+                        }`}
+                      >
+                        {subject}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {coursesLoading && (
+                    <>
+                      <Skeleton className="h-64 rounded-xl" />
+                      <Skeleton className="h-64 rounded-xl" />
+                      <Skeleton className="h-64 rounded-xl" />
+                    </>
+                  )}
+                  {!coursesLoading && filteredCourses.length === 0 && (
+                    <div className="sm:col-span-2 lg:col-span-3">
+                      <EmptyState
+                        icon={BookOpen}
+                        title="No courses found"
+                        description={
+                          (courses ?? []).length === 0
+                            ? "This business hasn't published any courses — check back soon."
+                            : "No courses match the selected filters."
+                        }
+                        secondaryAction={
+                          (levelFilter || subjectFilter) && (courses ?? []).length > 0 ? (
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setLevelFilter(null);
+                                setSubjectFilter(null);
+                              }}
+                            >
+                              Clear filters
+                            </Button>
+                          ) : (
+                            <Button variant="outline" asChild>
+                              <Link to="/courses">Browse other courses</Link>
+                            </Button>
+                          )
+                        }
+                      />
+                    </div>
+                  )}
+                  {filteredCourses.map((course) => (
+                    <ListingCard key={course.id} course={course} />
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Class schedule */}
+            {courseCount > 0 && (
+              <section id="schedule" className="mt-10 scroll-mt-24">
+                <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)]">
+                  Class schedule
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Recurring class days from this business's published courses.
+                </p>
+                <div className="mt-4">
+                  <CourseCalendar courses={courses ?? []} />
+                </div>
+              </section>
+            )}
+
+            {/* Contact */}
+            <section id="contact" className="mt-10 scroll-mt-24">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)]">
+                  Get in touch
+                </h2>
+                {isOwner && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    prefix={<Pencil />}
+                    onClick={() => setContactOpen(true)}
+                  >
+                    Edit
+                  </Button>
+                )}
+              </div>
+              <div className="mt-4 grid gap-4 rounded-xl border border-border bg-card p-5 shadow-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-6">
+                <div className="flex flex-col gap-3 text-sm">
+                  {org.website_url && (
+                    <a
+                      href={org.website_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={trackContactClick}
+                      className="inline-flex items-center gap-2.5 font-medium text-[color:var(--brand-link)] hover:underline"
+                    >
+                      <Globe className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="truncate">
+                        {org.website_url.replace(/^https?:\/\//, "")}
+                      </span>
+                    </a>
+                  )}
+                  {org.contact_email && (
+                    <a
+                      href={`mailto:${org.contact_email}`}
+                      onClick={trackContactClick}
+                      className="inline-flex items-center gap-2.5 font-medium text-[color:var(--ink)] hover:text-[color:var(--brand-link)]"
+                    >
+                      <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="truncate">{org.contact_email}</span>
+                    </a>
+                  )}
+                  {org.contact_phone && (
+                    <a
+                      href={`tel:${org.contact_phone}`}
+                      onClick={trackContactClick}
+                      className="inline-flex items-center gap-2.5 font-medium text-[color:var(--ink)] hover:text-[color:var(--brand-link)]"
+                    >
+                      <Phone className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      {org.contact_phone}
+                    </a>
+                  )}
+                  {org.district && (
+                    <span className="inline-flex items-center gap-2.5 text-muted-foreground">
+                      <MapPin className="h-4 w-4 shrink-0" />
+                      {org.district}
+                    </span>
+                  )}
+                  {!org.website_url && !org.contact_email && !org.contact_phone && (
+                    <p className="text-muted-foreground">Contact details coming soon.</p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2 sm:w-56">
+                  {whatsappUrl && (
+                    <Button
+                      asChild
+                      className="h-11 w-full bg-[#25D366] font-bold text-white hover:bg-[#1fb857]"
+                    >
+                      <a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={trackContactClick}
+                      >
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        WhatsApp enquiry
+                      </a>
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    prefix={<Contact />}
+                    onClick={handleSaveContact}
+                  >
+                    Save contact card
+                  </Button>
+                </div>
+              </div>
+            </section>
           </div>
         )}
       </main>

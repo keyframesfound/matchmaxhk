@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Asterisk,
   ArrowRight,
-  Building2,
   Check,
   CircleDollarSign,
   Clock3,
@@ -42,11 +41,6 @@ const DIFFERENCE = [
     icon: CircleDollarSign,
     title: "The most transparent fees in Hong Kong",
     text: "Traditional agencies typically charge tutors half of their first month's tuition—up to a full two weeks of pay. MatchMax charges a radically transparent, one-time flat fee of just 1.5 lessons, so top talent keeps more of what they earn.",
-  },
-  {
-    icon: Building2,
-    title: "Zero-cost B2B placements",
-    text: "MatchMax charges educational partners $0, delivering elite, verified staffing solutions at unprecedented speed and zero risk.",
   },
   {
     icon: Handshake,

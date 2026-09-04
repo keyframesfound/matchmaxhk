@@ -14,6 +14,9 @@ export type Course = {
   price: number | null;
   currency: string;
   schedule_text: string | null;
+  session_days: string[];
+  start_date: string | null;
+  end_date: string | null;
   district: string | null;
   image_url: string | null;
   is_published: boolean;

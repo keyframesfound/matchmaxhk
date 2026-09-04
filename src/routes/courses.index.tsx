@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { CourseCard } from "@/features/courses/course-card";
+import { useBusinessTracker } from "@/features/business/use-analytics";
 import {
   COURSE_LEVEL_OPTIONS,
   COURSE_MODE_OPTIONS,
@@ -71,6 +72,16 @@ function CoursesDirectory() {
     queryKey: ["courses", "published", search],
     queryFn: () => fetchPublishedCourses(search),
   });
+
+  const track = useBusinessTracker();
+  useEffect(() => {
+    if (!courses?.length) return;
+    const orgIds = Array.from(
+      new Set(courses.map((course) => course.organization?.id).filter(Boolean)),
+    ) as string[];
+    if (orgIds.length === 0) return;
+    track(orgIds.map((organizationId) => ({ organizationId, type: "impression" as const })));
+  }, [courses, track]);
   const { data: subjects } = useQuery({
     queryKey: ["courses", "published-subjects"],
     queryFn: fetchPublishedCourseSubjects,

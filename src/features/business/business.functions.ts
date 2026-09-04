@@ -548,3 +548,184 @@ export const listMyOrganization = createServerFn({ method: "POST" })
       },
     };
   });
+
+const ANALYTICS_EVENT_TYPES = [
+  "profile_view",
+  "impression",
+  "course_view",
+  "contact_click",
+] as const;
+export type AnalyticsEventType = (typeof ANALYTICS_EVENT_TYPES)[number];
+
+// Hong Kong has no DST, so a fixed +08:00 offset is safe for day bucketing.
+const HK_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+function hkDateString(date: Date): string {
+  return new Date(date.getTime() + HK_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+function hkDayStartUtc(dateStr: string): Date {
+  return new Date(`${dateStr}T00:00:00.000+08:00`);
+}
+
+export const trackBusinessEvents = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        events: z
+          .array(
+            z.object({
+              organizationId: z.string().uuid(),
+              type: z.enum(ANALYTICS_EVENT_TYPES),
+              courseId: z.string().uuid().nullish(),
+              sessionId: z.string().max(64).optional().default(""),
+            }),
+          )
+          .min(1)
+          .max(25),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    try {
+      const today = hkDateString(new Date());
+      const dayStart = hkDayStartUtc(today);
+      const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+
+      const orgIds = Array.from(new Set(data.events.map((event) => event.organizationId)));
+      const sessionIds = Array.from(
+        new Set(data.events.map((event) => event.sessionId).filter(Boolean)),
+      );
+
+      // Backstop dedupe: skip events already recorded for the same session and day.
+      let existing = new Set<string>();
+      if (sessionIds.length > 0) {
+        const { data: rows } = await supabaseAdmin
+          .from("business_analytics_events")
+          .select("organization_id, event_type, course_id, session_id")
+          .in("organization_id", orgIds)
+          .in("session_id", sessionIds)
+          .gte("created_at", dayStart.toISOString())
+          .lt("created_at", dayEnd.toISOString());
+        existing = new Set(
+          (rows ?? []).map(
+            (row) =>
+              `${row.organization_id}:${row.event_type}:${row.course_id ?? "-"}:${row.session_id}`,
+          ),
+        );
+      }
+
+      const inserts = data.events
+        .filter((event) => {
+          const key = `${event.organizationId}:${event.type}:${event.courseId ?? "-"}:${event.sessionId}`;
+          return !existing.has(key);
+        })
+        .map((event) => ({
+          organization_id: event.organizationId,
+          event_type: event.type,
+          course_id: event.courseId ?? null,
+          session_id: event.sessionId,
+        }));
+
+      if (inserts.length > 0) {
+        const { error } = await supabaseAdmin.from("business_analytics_events").insert(inserts);
+        if (error) throw new Error(error.message);
+      }
+      return { ok: true };
+    } catch {
+      // Analytics must never break the visitor experience.
+      return { ok: false };
+    }
+  });
+
+export type BusinessAnalytics = {
+  totals: Record<AnalyticsEventType, { current: number; previous: number }>;
+  daily: Array<{
+    date: string;
+    impression: number;
+    profile_view: number;
+    course_view: number;
+    contact_click: number;
+  }>;
+  courseViews: Array<{ courseId: string; title: string; views: number }>;
+};
+
+export const getBusinessAnalytics = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ organizationId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }): Promise<BusinessAnalytics> => {
+    const client = context.supabase as unknown as DbClient;
+    const role = await getOrgRole(client, data.organizationId);
+    if (!role) throw new Error("You don't have access to this organization");
+
+    const now = Date.now();
+    const currentStart = new Date(now - 30 * 24 * 60 * 60 * 1000);
+    const previousStart = new Date(now - 60 * 24 * 60 * 60 * 1000);
+
+    const { data: rows, error } = await supabaseAdmin
+      .from("business_analytics_events")
+      .select("event_type, course_id, created_at")
+      .eq("organization_id", data.organizationId)
+      .gte("created_at", previousStart.toISOString())
+      .order("created_at", { ascending: true })
+      .limit(100_000);
+    if (error) throw new Error(error.message);
+
+    const totals: BusinessAnalytics["totals"] = {
+      profile_view: { current: 0, previous: 0 },
+      impression: { current: 0, previous: 0 },
+      course_view: { current: 0, previous: 0 },
+      contact_click: { current: 0, previous: 0 },
+    };
+    const dailyMap = new Map<string, BusinessAnalytics["daily"][number]>();
+    for (let i = 29; i >= 0; i -= 1) {
+      const date = hkDateString(new Date(now - i * 24 * 60 * 60 * 1000));
+      dailyMap.set(date, {
+        date,
+        impression: 0,
+        profile_view: 0,
+        course_view: 0,
+        contact_click: 0,
+      });
+    }
+    const courseViewCounts = new Map<string, number>();
+
+    for (const row of rows ?? []) {
+      const type = row.event_type as AnalyticsEventType;
+      const createdAt = new Date(row.created_at);
+      if (type in totals) {
+        if (createdAt >= currentStart) {
+          totals[type].current += 1;
+        } else {
+          totals[type].previous += 1;
+        }
+      }
+      if (createdAt >= currentStart) {
+        const bucket = dailyMap.get(hkDateString(createdAt));
+        if (bucket) {
+          bucket[type] += 1;
+        }
+        if (type === "course_view" && row.course_id) {
+          courseViewCounts.set(row.course_id, (courseViewCounts.get(row.course_id) ?? 0) + 1);
+        }
+      }
+    }
+
+    let courseViews: BusinessAnalytics["courseViews"] = [];
+    const courseIds = Array.from(courseViewCounts.keys());
+    if (courseIds.length > 0) {
+      const { data: courseRows } = await supabaseAdmin
+        .from("courses")
+        .select("id, title")
+        .in("id", courseIds);
+      courseViews = courseIds
+        .map((courseId) => ({
+          courseId,
+          title: courseRows?.find((course) => course.id === courseId)?.title ?? "Course",
+          views: courseViewCounts.get(courseId) ?? 0,
+        }))
+        .sort((first, second) => second.views - first.views);
+    }
+
+    return { totals, daily: Array.from(dailyMap.values()), courseViews };
+  });

@@ -1,7 +1,32 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { ArrowRight, BookOpen, Check, ExternalLink, X } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  Check,
+  ExternalLink,
+  Eye,
+  MousePointerClick,
+  Tag,
+  TrendingDown,
+  TrendingUp,
+  X,
+} from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { format } from "date-fns";
 
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
@@ -15,8 +40,12 @@ import { ProfilePanel } from "@/features/business/profile-panel";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import {
+  getBusinessAnalytics,
+  type BusinessAnalytics,
+} from "@/features/business/business.functions";
+import {
   courseModeLabel,
-  fetchPublishedCourses,
+  fetchCoursesByOrganizationId,
   formatCoursePrice,
 } from "@/features/courses/queries";
 import { cn } from "@/lib/utils";
@@ -49,9 +78,17 @@ function BusinessOverview() {
     () => typeof window !== "undefined" && localStorage.getItem("mm-onboarding-dismissed") === "1",
   );
 
-  const { data: publishedCourses } = useQuery({
-    queryKey: ["my-organization-published", organization?.id],
-    queryFn: () => fetchPublishedCourses({}, 100),
+  const { data: recentCourses } = useQuery({
+    queryKey: ["my-organization-recent-courses", organization?.id],
+    queryFn: () => fetchCoursesByOrganizationId(organization!.id, 3),
+    enabled: !!organization,
+  });
+
+  const analyticsFn = useServerFn(getBusinessAnalytics);
+  const { data: analytics } = useQuery({
+    queryKey: ["business-analytics", organization?.id],
+    queryFn: () =>
+      analyticsFn({ data: { organizationId: organization!.id } }) as Promise<BusinessAnalytics>,
     enabled: !!organization,
   });
 
@@ -185,34 +222,186 @@ function BusinessOverview() {
           </div>
         )}
 
-        {/* Stats strip */}
-        <div className="mt-6 grid grid-cols-2 divide-x divide-border rounded-lg border border-border bg-card shadow-sm sm:grid-cols-4">
-          <StatCell value={usage?.coursesUsed ?? 0} label="Courses posted" />
-          <StatCell
-            value={usage?.memberCount ?? 1}
-            label={usage?.memberLimit ? `of ${usage.memberLimit} seats` : "team members"}
+        {/* Engagement stats (last 30 days) */}
+        <div className="mt-6 grid grid-cols-2 divide-x divide-y divide-border rounded-lg border border-border bg-card shadow-sm sm:grid-cols-4 sm:divide-y-0">
+          <EngagementStat
+            icon={Eye}
+            label="Impressions"
+            value={analytics?.totals.impression.current ?? 0}
+            previous={analytics?.totals.impression.previous ?? 0}
+            loading={!analytics}
           />
-          <StatCell
-            value={organization.founded_year ? String(organization.founded_year) : "—"}
-            label="Founded"
+          <EngagementStat
+            icon={BookOpen}
+            label="Profile views"
+            value={analytics?.totals.profile_view.current ?? 0}
+            previous={analytics?.totals.profile_view.previous ?? 0}
+            loading={!analytics}
           />
-          <div className="flex flex-col justify-center gap-0.5 px-4 py-4">
-            <a
-              href={`/business/${organization.slug}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-sm font-bold text-[color:var(--brand-link)] hover:underline"
-            >
-              /business/{organization.slug}
-              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-            </a>
-            <span className="text-xs text-muted-foreground">Public profile</span>
-          </div>
+          <EngagementStat
+            icon={Tag}
+            label="Course views"
+            value={analytics?.totals.course_view.current ?? 0}
+            previous={analytics?.totals.course_view.previous ?? 0}
+            loading={!analytics}
+          />
+          <EngagementStat
+            icon={MousePointerClick}
+            label="Contact clicks"
+            value={analytics?.totals.contact_click.current ?? 0}
+            previous={analytics?.totals.contact_click.previous ?? 0}
+            loading={!analytics}
+          />
         </div>
 
         <Tabs value={tab} onValueChange={switchTab} className="mt-8 gap-6">
           <TabsContent value="overview">
-            <div className={cn("grid gap-4", showOnboarding && "lg:grid-cols-[1.5fr_1fr]")}>
+            {/* Traffic charts */}
+            <div className="grid gap-4 lg:grid-cols-2">
+              <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+                <div>
+                  <h2 className="text-base font-bold text-[color:var(--ink)]">Reach</h2>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Directory impressions and public profile views over the last 30 days
+                  </p>
+                </div>
+                <div className="mt-4 h-60">
+                  {analytics ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={analytics.daily}
+                        margin={{ top: 4, right: 8, bottom: 0, left: -18 }}
+                      >
+                        <defs>
+                          <linearGradient id="mmImpressions" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#1FA8B6" stopOpacity={0.25} />
+                            <stop offset="100%" stopColor="#1FA8B6" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="mmProfileViews" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#0A245F" stopOpacity={0.25} />
+                            <stop offset="100%" stopColor="#0A245F" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis
+                          dataKey="date"
+                          tickFormatter={(value: string) =>
+                            format(new Date(`${value}T00:00:00`), "MMM d")
+                          }
+                          tickLine={false}
+                          axisLine={false}
+                          minTickGap={28}
+                          tick={{ fontSize: 11, fill: "#64748b" }}
+                        />
+                        <YAxis
+                          allowDecimals={false}
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{ fontSize: 11, fill: "#64748b" }}
+                        />
+                        <Tooltip
+                          labelFormatter={(value) =>
+                            format(new Date(`${String(value)}T00:00:00`), "EEE, MMM d")
+                          }
+                          contentStyle={{
+                            borderRadius: 10,
+                            border: "1px solid #e2e8f0",
+                            fontSize: 12,
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 12 }} />
+                        <Area
+                          type="monotone"
+                          dataKey="impression"
+                          name="Impressions"
+                          stroke="#1FA8B6"
+                          strokeWidth={2}
+                          fill="url(#mmImpressions)"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="profile_view"
+                          name="Profile views"
+                          stroke="#0A245F"
+                          strokeWidth={2}
+                          fill="url(#mmProfileViews)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                      Loading analytics…
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+                <div>
+                  <h2 className="text-base font-bold text-[color:var(--ink)]">Engagement</h2>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Course views and contact clicks over the last 30 days
+                  </p>
+                </div>
+                <div className="mt-4 h-60">
+                  {analytics ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={analytics.daily}
+                        margin={{ top: 4, right: 8, bottom: 0, left: -18 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis
+                          dataKey="date"
+                          tickFormatter={(value: string) =>
+                            format(new Date(`${value}T00:00:00`), "MMM d")
+                          }
+                          tickLine={false}
+                          axisLine={false}
+                          minTickGap={28}
+                          tick={{ fontSize: 11, fill: "#64748b" }}
+                        />
+                        <YAxis
+                          allowDecimals={false}
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{ fontSize: 11, fill: "#64748b" }}
+                        />
+                        <Tooltip
+                          labelFormatter={(value) =>
+                            format(new Date(`${String(value)}T00:00:00`), "EEE, MMM d")
+                          }
+                          contentStyle={{
+                            borderRadius: 10,
+                            border: "1px solid #e2e8f0",
+                            fontSize: 12,
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 12 }} />
+                        <Bar
+                          dataKey="course_view"
+                          name="Course views"
+                          fill="#1FA8B6"
+                          radius={[3, 3, 0, 0]}
+                        />
+                        <Bar
+                          dataKey="contact_click"
+                          name="Contact clicks"
+                          fill="#0A245F"
+                          radius={[3, 3, 0, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                      Loading analytics…
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+
+            <div className={cn("mt-4 grid gap-4", showOnboarding && "lg:grid-cols-[1.5fr_1fr]")}>
               {showOnboarding && (
                 <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                   <div className="flex items-start justify-between gap-3 border-b border-border p-6 pb-4">
@@ -302,16 +491,19 @@ function BusinessOverview() {
             </div>
 
             <section className="mt-8">
-              <h2 className="text-base font-bold text-[color:var(--ink)]">
-                Your published courses
-              </h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-base font-bold text-[color:var(--ink)]">Recent posts</h2>
+                <Button variant="outline" size="sm" onClick={() => switchTab("courses")}>
+                  Manage courses
+                </Button>
+              </div>
               <div className="mt-4 space-y-3">
-                {(publishedCourses ?? []).length === 0 ? (
+                {(recentCourses ?? []).length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
                     No published courses yet — post your first course to appear in the directory.
                   </div>
                 ) : (
-                  (publishedCourses ?? []).map((course) => {
+                  (recentCourses ?? []).map((course) => {
                     const price = formatCoursePrice(course.price, course.currency);
                     return (
                       <a
@@ -319,15 +511,28 @@ function BusinessOverview() {
                         href={`/courses/${course.id}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50"
+                        className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50"
                       >
-                        <div className="min-w-0">
+                        {course.image_url ? (
+                          <img
+                            src={course.image_url}
+                            alt=""
+                            className="h-14 w-20 shrink-0 rounded-md border border-border object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span className="flex h-14 w-20 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">
+                            <BookOpen className="h-5 w-5" />
+                          </span>
+                        )}
+                        <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
                             {course.title}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="mt-0.5 truncate text-xs text-muted-foreground">
                             {course.level ?? "General"} · {courseModeLabel(course.mode)}
                             {price ? ` · ${price}` : ""}
+                            {` · Posted ${format(new Date(course.created_at), "d MMM yyyy")}`}
                           </p>
                         </div>
                         <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -356,11 +561,46 @@ function BusinessOverview() {
   );
 }
 
-function StatCell({ value, label }: { value: number | string; label: string }) {
+function EngagementStat({
+  icon: Icon,
+  label,
+  value,
+  previous,
+  loading,
+}: {
+  icon: typeof Eye;
+  label: string;
+  value: number;
+  previous: number;
+  loading: boolean;
+}) {
+  const delta =
+    previous > 0 ? Math.round(((value - previous) / previous) * 100) : value > 0 ? null : 0;
   return (
-    <div className="flex flex-col items-center gap-0.5 px-2 py-4 text-center">
-      <span className="text-xl font-black tabular-nums text-[color:var(--ink)]">{value}</span>
-      <span className="text-xs text-muted-foreground">{label}</span>
+    <div className="flex flex-col gap-0.5 px-4 py-4">
+      <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+        {label}
+      </span>
+      <span className="text-xl font-black tabular-nums text-[color:var(--ink)]">
+        {loading ? "…" : value.toLocaleString("en-HK")}
+      </span>
+      <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+        last 30 days
+        {delta !== null && (
+          <span
+            className={cn(
+              "inline-flex items-center gap-0.5 font-semibold",
+              delta > 0 ? "text-emerald-600" : delta < 0 ? "text-red-500" : "text-muted-foreground",
+            )}
+          >
+            {delta > 0 ? <TrendingUp className="h-3 w-3" /> : null}
+            {delta < 0 ? <TrendingDown className="h-3 w-3" /> : null}
+            {delta > 0 ? `+${delta}%` : delta === 0 ? "0%" : `${delta}%`}
+          </span>
+        )}
+        {delta === null && <span className="font-medium text-emerald-600">new</span>}
+      </span>
     </div>
   );
 }

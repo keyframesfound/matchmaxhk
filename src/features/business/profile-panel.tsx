@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { ProfilePreview, type ProfilePreviewData } from "@/components/business/profile-preview";
 import { SOCIAL_NETWORKS, SocialInput } from "@/components/business/social-links";
@@ -32,10 +33,10 @@ import { useMyOrganization, type Organization } from "@/features/business/useMyO
 import { cn } from "@/lib/utils";
 
 const SECTIONS = [
-  { id: "branding", label: "Branding", icon: ImagePlus },
-  { id: "details", label: "Business details", icon: Building2 },
-  { id: "about", label: "About & FAQ", icon: Sparkles },
-  { id: "contact", label: "Contact", icon: Phone },
+  { id: "branding", label: "Branding" },
+  { id: "details", label: "Business details" },
+  { id: "about", label: "About & FAQ" },
+  { id: "contact", label: "Contact" },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -80,6 +81,54 @@ function formFromOrganization(organization: Organization): ProfileForm {
     founded_year: organization.founded_year ? String(organization.founded_year) : "",
     languages: organization.languages ?? "",
   };
+}
+
+function SettingsRow({
+  htmlFor,
+  label,
+  description,
+  children,
+}: {
+  htmlFor?: string;
+  label: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+      <div className="min-w-0 sm:max-w-md">
+        <Label htmlFor={htmlFor} className="text-sm font-medium text-[color:var(--ink)]">
+          {label}
+        </Label>
+        {description ? (
+          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{description}</p>
+        ) : null}
+      </div>
+      <div className="shrink-0 sm:w-60">{children}</div>
+    </div>
+  );
+}
+
+function SettingsCard({
+  id,
+  title,
+  description,
+  children,
+}: {
+  id: string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} className="scroll-mt-24 rounded-lg border border-border bg-card shadow-sm">
+      <div className="border-b border-border px-6 py-4">
+        <h3 className="text-base font-bold tracking-tight text-[color:var(--ink)]">{title}</h3>
+        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+      </div>
+      <div className="flex flex-col gap-4 px-6 py-5">{children}</div>
+    </section>
+  );
 }
 
 function DropZone({
@@ -167,7 +216,6 @@ export function ProfilePanel() {
   const uploadImageFn = useServerFn(uploadOrganizationImage);
   const { organization, usage } = useMyOrganization();
 
-  const [section, setSection] = useState<SectionId>("branding");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<"logo" | "cover" | null>(null);
   const [form, setForm] = useState<ProfileForm>({
@@ -407,374 +455,380 @@ export function ProfilePanel() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px] xl:grid-cols-[minmax(0,1fr)_440px]">
-      <div className="min-w-0">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-[12rem_minmax(0,1fr)]">
-          {/* Section nav */}
-          <nav
-            className="flex flex-row gap-1 overflow-x-auto md:flex-col md:gap-1"
-            aria-label="Profile sections"
-          >
-            {SECTIONS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setSection(item.id)}
-                aria-current={section === item.id}
-                className={cn(
-                  "flex shrink-0 items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors",
-                  section === item.id
-                    ? "bg-muted font-medium text-[color:var(--ink)]"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-[color:var(--ink)]",
-                )}
-              >
-                <item.icon className="h-4 w-4 shrink-0" aria-hidden />
-                {item.label}
-              </button>
-            ))}
-
-            <div className="mt-2 hidden rounded-lg border border-border bg-card p-4 md:block">
-              <p className="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Strength
-                <span className={completeness.pct === 100 ? "text-emerald-600" : "text-[#1FA8B6]"}>
-                  {strengthLabel}
-                </span>
-              </p>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-all duration-300",
-                    completeness.pct === 100 ? "bg-emerald-500" : "bg-[#1FA8B6]",
-                  )}
-                  style={{ width: `${completeness.pct}%` }}
-                />
-              </div>
-              <p className="mt-1.5 text-[11px] text-muted-foreground">
-                {completeness.filled} of {completeness.total} complete
+      <div className="min-w-0 space-y-6">
+        <SettingsCard
+          id="branding"
+          title="Branding"
+          description="Your logo and cover image across MatchMax."
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <div>
+              <Label className="text-sm font-medium text-[color:var(--ink)]">Logo</Label>
+              <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                PNG, JPG, WEBP or GIF. Shown as a circle.
               </p>
             </div>
-          </nav>
+            <div className="flex items-center gap-4">
+              <DropZone
+                currentUrl={displayLogoUrl}
+                uploading={uploading === "logo"}
+                className="h-16 w-16 shrink-0 rounded-full"
+                fallback={<Building2 className="h-5 w-5" />}
+                onFile={(file) => void handleImageUpload("logo", file)}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                prefix={<Upload />}
+                loading={uploading === "logo"}
+                disabled={uploading !== null}
+                onClick={() => logoInputRef.current?.click()}
+              >
+                {displayLogoUrl ? "Replace" : "Upload"}
+              </Button>
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                className="sr-only"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (file) void handleImageUpload("logo", file);
+                }}
+              />
+            </div>
+          </div>
 
-          {/* Active section */}
-          <div className="min-w-0">
-            {section === "branding" && (
-              <div className="space-y-6">
-                <div>
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Logo
-                  </Label>
-                  <div className="mt-2 flex items-center gap-4">
-                    <DropZone
-                      currentUrl={displayLogoUrl}
-                      uploading={uploading === "logo"}
-                      className="h-24 w-24 shrink-0 rounded-full"
-                      fallback={<Building2 className="h-6 w-6" />}
-                      onFile={(file) => void handleImageUpload("logo", file)}
-                    />
-                    <div>
+          <Separator />
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <div>
+              <Label className="text-sm font-medium text-[color:var(--ink)]">Cover image</Label>
+              <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                Wide banner shown at the top of your public profile.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 sm:w-60">
+              <DropZone
+                currentUrl={displayCoverUrl}
+                uploading={uploading === "cover"}
+                className="aspect-[4/1] w-full"
+                fallback={<span className="text-xs">Drag an image here or click to upload</span>}
+                onFile={(file) => void handleImageUpload("cover", file)}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                prefix={<Upload />}
+                loading={uploading === "cover"}
+                disabled={uploading !== null}
+                onClick={() => coverInputRef.current?.click()}
+              >
+                {displayCoverUrl ? "Replace" : "Upload"}
+              </Button>
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                className="sr-only"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (file) void handleImageUpload("cover", file);
+                }}
+              />
+            </div>
+          </div>
+        </SettingsCard>
+
+        <SettingsCard
+          id="details"
+          title="Business details"
+          description="How your business appears across the directory."
+        >
+          <SettingsRow
+            htmlFor="pp-name"
+            label="Business name"
+            description="The name shown across your public profile and courses."
+          >
+            <Input
+              id="pp-name"
+              required
+              maxLength={120}
+              value={form.name}
+              onChange={(e) => setField({ name: e.target.value })}
+            />
+          </SettingsRow>
+
+          <Separator />
+
+          <SettingsRow
+            htmlFor="pp-tagline"
+            label="Tagline"
+            description="One line under your name, e.g. IB & DSE maths specialists in Causeway Bay."
+          >
+            <Input
+              id="pp-tagline"
+              maxLength={160}
+              value={form.tagline}
+              onChange={(e) => setField({ tagline: e.target.value })}
+            />
+          </SettingsRow>
+
+          <Separator />
+
+          <SettingsRow label="District" description="Where parents can find you in Hong Kong.">
+            <SearchableSelect
+              value={form.district}
+              onChange={(v) => setField({ district: v })}
+              options={[
+                { value: "", label: "No district" },
+                ...HK_DISTRICTS.map((d) => ({ value: d, label: d })),
+              ]}
+              placeholder="No district"
+              searchPlaceholder="Search district..."
+            />
+          </SettingsRow>
+
+          <Separator />
+
+          <SettingsRow
+            htmlFor="pp-founded"
+            label="Founded year"
+            description="When your organization was established."
+          >
+            <Input
+              id="pp-founded"
+              type="number"
+              min={1900}
+              max={2100}
+              placeholder="e.g. 2015"
+              value={form.founded_year}
+              onChange={(e) => setField({ founded_year: e.target.value })}
+            />
+          </SettingsRow>
+
+          <Separator />
+
+          <SettingsRow
+            htmlFor="pp-languages"
+            label="Languages of instruction"
+            description="Comma separated, e.g. English, Cantonese, Mandarin."
+          >
+            <Input
+              id="pp-languages"
+              maxLength={200}
+              placeholder="e.g. English, Cantonese, Mandarin"
+              value={form.languages}
+              onChange={(e) => setField({ languages: e.target.value })}
+            />
+          </SettingsRow>
+        </SettingsCard>
+
+        <SettingsCard
+          id="about"
+          title="About & FAQ"
+          description="Tell parents who you are and answer common questions."
+        >
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="pp-description">About your organization</Label>
+            <Textarea
+              id="pp-description"
+              rows={6}
+              value={form.description}
+              onChange={(e) => setField({ description: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground">
+              Separate paragraphs with a blank line. This appears in the About section of your
+              public page.
+            </p>
+          </div>
+
+          <Separator />
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="pp-intro-video">Intro video (YouTube)</Label>
+            <Input
+              id="pp-intro-video"
+              type="url"
+              placeholder="https://www.youtube.com/watch?v=..."
+              value={form.intro_video_url}
+              onChange={(e) => setField({ intro_video_url: e.target.value })}
+            />
+            {form.intro_video_url.trim() && !parseYouTubeUrl(form.intro_video_url) ? (
+              <p className="text-xs text-red-500">
+                That doesn't look like a YouTube link. Paste a youtube.com/watch, youtu.be or
+                /shorts URL.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                A short intro video builds trust. It shows at the top of your About section.
+              </p>
+            )}
+          </div>
+
+          <Separator />
+
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium text-[color:var(--ink)]">
+                  Frequently asked questions
+                </Label>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Up to 8 questions, shown as an accordion on your public page.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                prefix={<Plus />}
+                disabled={faqItems.length >= 8}
+                onClick={() => setFaqItems((prev) => [...prev, { question: "", answer: "" }])}
+              >
+                Add question
+              </Button>
+            </div>
+            {faqItems.length === 0 ? (
+              <p className="rounded-md border border-dashed border-border px-3 py-3 text-sm text-muted-foreground">
+                Add common parent questions here.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {faqItems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="space-y-2 rounded-lg border border-border bg-muted/30 p-4"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-semibold text-muted-foreground">
+                        Question {index + 1}
+                      </p>
                       <Button
                         type="button"
-                        variant="outline"
-                        size="sm"
-                        prefix={<Upload />}
-                        loading={uploading === "logo"}
-                        disabled={uploading !== null}
-                        onClick={() => logoInputRef.current?.click()}
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label="Remove question"
+                        onClick={() => setFaqItems((prev) => prev.filter((_, i) => i !== index))}
                       >
-                        {displayLogoUrl ? "Replace logo" : "Upload logo"}
+                        <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
-                      <p className="mt-1.5 text-xs text-muted-foreground">
-                        PNG, JPG, WEBP or GIF. Shown as a circle.
-                      </p>
-                      <input
-                        ref={logoInputRef}
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
-                        className="sr-only"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          e.target.value = "";
-                          if (file) void handleImageUpload("logo", file);
-                        }}
-                      />
                     </div>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Cover image
-                  </Label>
-                  <div className="mt-2 space-y-2">
-                    <DropZone
-                      currentUrl={displayCoverUrl}
-                      uploading={uploading === "cover"}
-                      className="aspect-[4/1] w-full"
-                      fallback={
-                        <span className="text-xs">Drag an image here or click to upload</span>
-                      }
-                      onFile={(file) => void handleImageUpload("cover", file)}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      prefix={<Upload />}
-                      loading={uploading === "cover"}
-                      disabled={uploading !== null}
-                      onClick={() => coverInputRef.current?.click()}
-                    >
-                      {displayCoverUrl ? "Replace cover" : "Upload cover"}
-                    </Button>
-                    <input
-                      ref={coverInputRef}
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
-                      className="sr-only"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        e.target.value = "";
-                        if (file) void handleImageUpload("cover", file);
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {section === "details" && (
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="pp-name">Business / centre name *</Label>
-                  <Input
-                    id="pp-name"
-                    required
-                    maxLength={120}
-                    value={form.name}
-                    onChange={(e) => setField({ name: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="pp-tagline">Tagline</Label>
-                  <Input
-                    id="pp-tagline"
-                    maxLength={160}
-                    value={form.tagline}
-                    onChange={(e) => setField({ tagline: e.target.value })}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    One line under your name, e.g. "IB & DSE maths specialists in Causeway Bay".
-                  </p>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label>District</Label>
-                    <SearchableSelect
-                      value={form.district}
-                      onChange={(v) => setField({ district: v })}
-                      options={[
-                        { value: "", label: "No district" },
-                        ...HK_DISTRICTS.map((d) => ({ value: d, label: d })),
-                      ]}
-                      placeholder="No district"
-                      searchPlaceholder="Search district..."
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="pp-founded">Founded year</Label>
                     <Input
-                      id="pp-founded"
-                      type="number"
-                      min={1900}
-                      max={2100}
-                      placeholder="e.g. 2015"
-                      value={form.founded_year}
-                      onChange={(e) => setField({ founded_year: e.target.value })}
+                      placeholder="Question, e.g. Do you offer trial lessons?"
+                      maxLength={200}
+                      value={item.question}
+                      onChange={(e) => updateFaqItem(index, { question: e.target.value })}
+                    />
+                    <Textarea
+                      placeholder="Answer"
+                      rows={2}
+                      maxLength={1000}
+                      value={item.answer}
+                      onChange={(e) => updateFaqItem(index, { answer: e.target.value })}
                     />
                   </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="pp-languages">Languages of instruction</Label>
-                  <Input
-                    id="pp-languages"
-                    maxLength={200}
-                    placeholder="e.g. English, Cantonese, Mandarin"
-                    value={form.languages}
-                    onChange={(e) => setField({ languages: e.target.value })}
-                  />
-                </div>
-              </div>
-            )}
-
-            {section === "about" && (
-              <div className="space-y-6">
-                <div className="space-y-1.5">
-                  <Label htmlFor="pp-description">About your organization</Label>
-                  <Textarea
-                    id="pp-description"
-                    rows={6}
-                    value={form.description}
-                    onChange={(e) => setField({ description: e.target.value })}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Separate paragraphs with a blank line. This appears in the About tab of your
-                    public page.
-                  </p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="pp-intro-video">Intro video (YouTube)</Label>
-                  <Input
-                    id="pp-intro-video"
-                    type="url"
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    value={form.intro_video_url}
-                    onChange={(e) => setField({ intro_video_url: e.target.value })}
-                  />
-                  {form.intro_video_url.trim() && !parseYouTubeUrl(form.intro_video_url) ? (
-                    <p className="text-xs text-red-500">
-                      That doesn't look like a YouTube link. Paste a youtube.com/watch, youtu.be or
-                      /shorts URL.
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">
-                      A short intro video builds trust. It shows at the top of your About tab.
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label>Frequently asked questions</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      prefix={<Plus />}
-                      disabled={faqItems.length >= 8}
-                      onClick={() => setFaqItems((prev) => [...prev, { question: "", answer: "" }])}
-                    >
-                      Add question
-                    </Button>
-                  </div>
-                  {faqItems.length === 0 ? (
-                    <p className="rounded-md border border-dashed border-border px-3 py-3 text-sm text-muted-foreground">
-                      Add common parent questions here. They appear as an accordion on your public
-                      page.
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {faqItems.map((item, index) => (
-                        <div
-                          key={index}
-                          className="space-y-2 rounded-lg border border-border bg-card p-4"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-xs font-semibold text-muted-foreground">
-                              Question {index + 1}
-                            </p>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label="Remove question"
-                              onClick={() =>
-                                setFaqItems((prev) => prev.filter((_, i) => i !== index))
-                              }
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </div>
-                          <Input
-                            placeholder="Question, e.g. Do you offer trial lessons?"
-                            maxLength={200}
-                            value={item.question}
-                            onChange={(e) => updateFaqItem(index, { question: e.target.value })}
-                          />
-                          <Textarea
-                            placeholder="Answer"
-                            rows={2}
-                            maxLength={1000}
-                            value={item.answer}
-                            onChange={(e) => updateFaqItem(index, { answer: e.target.value })}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {section === "contact" && (
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="pp-website">Website</Label>
-                  <Input
-                    id="pp-website"
-                    type="url"
-                    value={form.website_url}
-                    onChange={(e) => setField({ website_url: e.target.value })}
-                  />
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="pp-email">
-                      <Mail className="mr-1 inline h-3.5 w-3.5" />
-                      Contact email
-                    </Label>
-                    <Input
-                      id="pp-email"
-                      type="email"
-                      value={form.contact_email}
-                      onChange={(e) => setField({ contact_email: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="pp-phone">Contact phone</Label>
-                    <Input
-                      id="pp-phone"
-                      value={form.contact_phone}
-                      onChange={(e) => setField({ contact_phone: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="pp-whatsapp">WhatsApp number</Label>
-                  <Input
-                    id="pp-whatsapp"
-                    placeholder="e.g. 85291234567"
-                    value={form.whatsapp_number}
-                    onChange={(e) => setField({ whatsapp_number: e.target.value })}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Course enquiries can be sent straight to WhatsApp.
-                  </p>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Social links</Label>
-                  <div className="space-y-2">
-                    {SOCIAL_NETWORKS.map((network) => {
-                      const field = `${network.id}_url` as keyof ProfileForm;
-                      return (
-                        <SocialInput
-                          key={network.id}
-                          network={network}
-                          id={`pp-${network.id}`}
-                          value={form[field]}
-                          onChange={(value) => setField({ [field]: value } as Partial<ProfileForm>)}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
+                ))}
               </div>
             )}
           </div>
-        </div>
+        </SettingsCard>
 
-        {/* Sticky save bar */}
+        <SettingsCard
+          id="contact"
+          title="Contact"
+          description="How parents reach you and where to follow your business."
+        >
+          <SettingsRow
+            htmlFor="pp-website"
+            label="Website"
+            description="Link to your own site or booking page."
+          >
+            <Input
+              id="pp-website"
+              type="url"
+              value={form.website_url}
+              onChange={(e) => setField({ website_url: e.target.value })}
+            />
+          </SettingsRow>
+
+          <Separator />
+
+          <SettingsRow
+            htmlFor="pp-email"
+            label="Contact email"
+            description="Shown as an Email button on your profile."
+          >
+            <Input
+              id="pp-email"
+              type="email"
+              value={form.contact_email}
+              onChange={(e) => setField({ contact_email: e.target.value })}
+            />
+          </SettingsRow>
+
+          <Separator />
+
+          <SettingsRow
+            htmlFor="pp-phone"
+            label="Contact phone"
+            description="Tap-to-call link on your public profile."
+          >
+            <Input
+              id="pp-phone"
+              value={form.contact_phone}
+              onChange={(e) => setField({ contact_phone: e.target.value })}
+            />
+          </SettingsRow>
+
+          <Separator />
+
+          <SettingsRow
+            htmlFor="pp-whatsapp"
+            label="WhatsApp number"
+            description="Course enquiries can be sent straight to WhatsApp, e.g. 85291234567."
+          >
+            <Input
+              id="pp-whatsapp"
+              placeholder="e.g. 85291234567"
+              value={form.whatsapp_number}
+              onChange={(e) => setField({ whatsapp_number: e.target.value })}
+            />
+          </SettingsRow>
+
+          <Separator />
+
+          <div className="flex flex-col gap-3">
+            <div>
+              <Label className="text-sm font-medium text-[color:var(--ink)]">Social links</Label>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Icon buttons shown under your tagline.
+              </p>
+            </div>
+            <div className="space-y-2">
+              {SOCIAL_NETWORKS.map((network) => {
+                const field = `${network.id}_url` as keyof ProfileForm;
+                return (
+                  <SocialInput
+                    key={network.id}
+                    network={network}
+                    id={`pp-${network.id}`}
+                    value={form[field]}
+                    onChange={(value) => setField({ [field]: value } as Partial<ProfileForm>)}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </SettingsCard>
+
         <div
           className={cn(
-            "sticky bottom-4 z-30 mt-8 rounded-xl border bg-card/95 p-4 shadow-lg backdrop-blur transition-colors",
+            "sticky bottom-4 z-30 rounded-xl border bg-card/95 p-4 shadow-lg backdrop-blur transition-colors",
             isDirty ? "border-[#1FA8B6]/40" : "border-border",
           )}
         >
@@ -823,13 +877,26 @@ export function ProfilePanel() {
           <p className="mt-2 text-xs text-muted-foreground">
             {completeness.filled} of {completeness.total} sections complete
           </p>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+            <div
+              className={cn(
+                "h-full rounded-full transition-all duration-300",
+                completeness.pct === 100 ? "bg-emerald-500" : "bg-[#1FA8B6]",
+              )}
+              style={{ width: `${completeness.pct}%` }}
+            />
+          </div>
           {missingTips.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {missingTips.map((tip) => (
                 <button
                   key={tip.label}
                   type="button"
-                  onClick={() => setSection(tip.section)}
+                  onClick={() =>
+                    document
+                      .getElementById(tip.section)
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
                   className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-[#1FA8B6]/10 hover:text-[color:var(--ink)]"
                 >
                   <Check className="h-3 w-3 opacity-40" />

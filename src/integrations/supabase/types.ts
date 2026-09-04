@@ -84,6 +84,7 @@ export type Database = {
           currency: string;
           description: string | null;
           district: string | null;
+          end_date: string | null;
           id: string;
           image_url: string | null;
           is_published: boolean;
@@ -92,6 +93,8 @@ export type Database = {
           organization_id: string;
           price: number | null;
           schedule_text: string | null;
+          session_days: string[];
+          start_date: string | null;
           subject: string | null;
           summary: string | null;
           title: string;
@@ -103,6 +106,7 @@ export type Database = {
           currency?: string;
           description?: string | null;
           district?: string | null;
+          end_date?: string | null;
           id?: string;
           image_url?: string | null;
           is_published?: boolean;
@@ -111,6 +115,8 @@ export type Database = {
           organization_id: string;
           price?: number | null;
           schedule_text?: string | null;
+          session_days?: string[];
+          start_date?: string | null;
           subject?: string | null;
           summary?: string | null;
           title: string;
@@ -122,6 +128,7 @@ export type Database = {
           currency?: string;
           description?: string | null;
           district?: string | null;
+          end_date?: string | null;
           id?: string;
           image_url?: string | null;
           is_published?: boolean;
@@ -130,6 +137,8 @@ export type Database = {
           organization_id?: string;
           price?: number | null;
           schedule_text?: string | null;
+          session_days?: string[];
+          start_date?: string | null;
           subject?: string | null;
           summary?: string | null;
           title?: string;
@@ -282,6 +291,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      business_analytics_events: {
+        Row: {
+          course_id: string | null;
+          created_at: string;
+          event_type: string;
+          id: string;
+          organization_id: string;
+          session_id: string;
+        };
+        Insert: {
+          course_id?: string | null;
+          created_at?: string;
+          event_type: string;
+          id?: string;
+          organization_id: string;
+          session_id?: string;
+        };
+        Update: {
+          course_id?: string | null;
+          created_at?: string;
+          event_type?: string;
+          id?: string;
+          organization_id?: string;
+          session_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "business_analytics_events_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "business_analytics_events_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;
@@ -317,6 +368,35 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      saved_courses: {
+        Row: {
+          course_id: string;
+          created_at: string;
+          id: string;
+          user_id: string;
+        };
+        Insert: {
+          course_id: string;
+          created_at?: string;
+          id?: string;
+          user_id: string;
+        };
+        Update: {
+          course_id?: string;
+          created_at?: string;
+          id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "saved_courses_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       saved_tutors: {
         Row: {

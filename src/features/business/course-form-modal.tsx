@@ -44,9 +44,22 @@ type FormState = {
   mode: "online" | "in_person" | "either";
   price: string;
   schedule_text: string;
+  session_days: string[];
+  start_date: string;
+  end_date: string;
   district: string;
   is_published: boolean;
 };
+
+const WEEKDAY_OPTIONS = [
+  { code: "sun", label: "Sun" },
+  { code: "mon", label: "Mon" },
+  { code: "tue", label: "Tue" },
+  { code: "wed", label: "Wed" },
+  { code: "thu", label: "Thu" },
+  { code: "fri", label: "Fri" },
+  { code: "sat", label: "Sat" },
+];
 
 export function CourseFormModal({
   open,
@@ -73,6 +86,9 @@ export function CourseFormModal({
     mode: course?.mode ?? "either",
     price: course?.price !== null && course?.price !== undefined ? String(course.price) : "",
     schedule_text: course?.schedule_text ?? "",
+    session_days: course?.session_days ?? [],
+    start_date: course?.start_date ?? "",
+    end_date: course?.end_date ?? "",
     district: course?.district ?? "",
     is_published: duplicate ? false : (course?.is_published ?? true),
   });
@@ -139,6 +155,9 @@ export function CourseFormModal({
       mode: form.mode,
       price: form.price.trim() === "" ? null : Number(form.price),
       schedule_text: form.schedule_text.trim() || null,
+      session_days: form.session_days,
+      start_date: form.start_date || null,
+      end_date: form.end_date || null,
       district: form.district || null,
       image_url: imageUrl,
       is_published: form.is_published,
@@ -293,14 +312,70 @@ export function CourseFormModal({
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label>Schedule</Label>
-            <Input
-              maxLength={200}
-              placeholder="e.g. Every Sat 2–4pm, 12 weeks"
-              value={form.schedule_text}
-              onChange={(e) => setField({ schedule_text: e.target.value })}
-            />
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Class days</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {WEEKDAY_OPTIONS.map((day) => {
+                  const active = form.session_days.includes(day.code);
+                  return (
+                    <button
+                      key={day.code}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() =>
+                        setField({
+                          session_days: active
+                            ? form.session_days.filter((code) => code !== day.code)
+                            : [...form.session_days, day.code],
+                        })
+                      }
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
+                        active
+                          ? "bg-[#1FA8B6] text-white ring-[#1FA8B6]"
+                          : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
+                      }`}
+                    >
+                      {day.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Selected days appear on the class calendar of your public profile.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="course-start-date">First class</Label>
+                <Input
+                  id="course-start-date"
+                  type="date"
+                  value={form.start_date}
+                  onChange={(e) => setField({ start_date: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="course-end-date">Last class</Label>
+                <Input
+                  id="course-end-date"
+                  type="date"
+                  min={form.start_date || undefined}
+                  value={form.end_date}
+                  onChange={(e) => setField({ end_date: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="course-schedule">Schedule notes</Label>
+              <Input
+                id="course-schedule"
+                maxLength={200}
+                placeholder="e.g. Every Sat 2–4pm, 12 weeks"
+                value={form.schedule_text}
+                onChange={(e) => setField({ schedule_text: e.target.value })}
+              />
+            </div>
           </div>
 
           <div className="space-y-1.5">

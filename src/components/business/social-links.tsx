@@ -102,7 +102,7 @@ export function SocialLinks({
             aria-label={`${network.label} of this business`}
             title={network.label}
             className={cn(
-              "flex items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors",
+              "flex items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors",
               network.hoverClass,
               size === "sm" ? "h-8 w-8" : "h-9 w-9",
             )}

@@ -1,6 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bookmark, CircleUserRound, KeyRound, Monitor, Moon, Palette, Sun, Trash2 } from "lucide-react";
+import {
+  Bookmark,
+  CircleUserRound,
+  KeyRound,
+  Monitor,
+  Moon,
+  Palette,
+  Sun,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -14,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -194,7 +204,6 @@ function SettingsPage() {
                   Appearance
                 </a>
                 <a
-
                   href="#danger-zone"
                   className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--ink)]/70 transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
                 >
@@ -334,8 +343,16 @@ function SettingsPage() {
                         }`}
                       >
                         <Icon className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
-                        <span className="text-sm font-bold text-[color:var(--ink)]">
+                        <span className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]">
                           {option.label}
+                          {option.value === "light" ? (
+                            <Badge
+                              variant="secondary"
+                              className="border-0 bg-[color:var(--brand-teal)]/15 px-1.5 py-0 text-[10px] font-bold leading-5 text-[color:var(--brand-link)]"
+                            >
+                              Beta
+                            </Badge>
+                          ) : null}
                         </span>
                         <span className="text-xs text-[color:var(--ink)]/60">
                           {option.description}
@@ -345,8 +362,6 @@ function SettingsPage() {
                   })}
                 </div>
               </section>
-
-
 
               <section
                 id="danger-zone"
@@ -402,16 +417,10 @@ function SettingsPage() {
               </section>
 
               <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-[color:var(--ink)]/10 pt-5 text-sm">
-                <Link
-                  to="/saved-posts"
-                  className="font-semibold text-[color:var(--ink)] underline"
-                >
+                <Link to="/saved-posts" className="font-semibold text-[color:var(--ink)] underline">
                   View saved posts
                 </Link>
-                <Link
-                  to="/tutors"
-                  className="font-semibold text-[color:var(--ink)] underline"
-                >
+                <Link to="/tutors" className="font-semibold text-[color:var(--ink)] underline">
                   Browse tutors
                 </Link>
               </div>

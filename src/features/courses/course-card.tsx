@@ -1,6 +1,7 @@
 import { ArrowRight, Clock, MapPin } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
+import { CourseSaveButton } from "./saved-courses";
 import { courseModeLabel, formatCoursePrice, type CourseWithOrganization } from "./queries";
 
 const LEVEL_BADGE_CLASSES: Record<string, string> = {
@@ -98,6 +99,7 @@ export function CourseCard({ course }: CourseCardProps) {
       </div>
 
       <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border pt-4 sm:min-w-28 sm:flex-col sm:items-end sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
+        <CourseSaveButton courseId={course.id} compact />
         {price ? (
           <span className="text-lg font-bold text-[color:var(--ink)]">{price}</span>
         ) : (

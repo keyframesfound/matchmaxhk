@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -19,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SocialLinks } from "@/components/business/social-links";
 import { CourseLevelBadge } from "@/features/courses/course-card";
+import { CourseSaveButton } from "@/features/courses/saved-courses";
+import { useBusinessTracker } from "@/features/business/use-analytics";
 import {
   fetchCourseById,
   fetchCoursesByOrganizationId,
@@ -200,6 +203,7 @@ function MoreFromCentre({ orgId, currentCourseId }: { orgId: string; currentCour
 
 function CourseDetail() {
   const { courseId } = Route.useParams();
+  const track = useBusinessTracker();
   const {
     data: course,
     isLoading,
@@ -209,6 +213,12 @@ function CourseDetail() {
     queryFn: () => fetchCourseById(courseId),
     retry: false,
   });
+
+  useEffect(() => {
+    if (course) {
+      track([{ organizationId: course.organization_id, type: "course_view", courseId: course.id }]);
+    }
+  }, [course, track]);
 
   const price = course ? formatCoursePrice(course.price, course.currency) : null;
   const whatsappUrl = course
@@ -269,6 +279,9 @@ function CourseDetail() {
                     {course.summary}
                   </p>
                 ) : null}
+                <div className="mt-4">
+                  <CourseSaveButton courseId={course.id} />
+                </div>
               </div>
             )}
           </div>
