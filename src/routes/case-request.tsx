@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { CheckCircle2, MessageCircle } from "lucide-react";
+import { useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { CheckCircle2, Send } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -10,9 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { submitCaseRequest } from "@/lib/cases.functions";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
-import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 
 export const Route = createFileRoute("/case-request")({
   head: () => ({
@@ -129,8 +130,9 @@ const INITIAL_FORM: FormState = {
 function CaseRequestPage() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
-  const [submitted, setSubmitted] = useState(false);
-  const [whatsappUrl, setWhatsappUrl] = useState("");
+  const [result, setResult] = useState<{ caseCode: string; duplicate: boolean } | null>(null);
+  const honeypot = useRef<HTMLInputElement>(null);
+  const startedAt = useRef(Date.now());
 
   const update = (patch: Partial<FormState>) => setForm((prev) => ({ ...prev, ...patch }));
 
@@ -145,32 +147,36 @@ function CaseRequestPage() {
     });
   };
 
-  const buildMessage = (f: FormState) => {
-    const lines = [
-      "Hi MatchMax! I'd like to request a tutor match (case request).",
-      "",
-      `• Parent: ${f.parentName.trim()}`,
-      `• Contact: ${f.contactPhone.trim()}`,
-      `• Student level: ${f.level}`,
-      f.examSystem ? `• Curriculum: ${f.examSystem}` : "",
-      `• Subjects: ${[f.subject1, f.subject2].filter(Boolean).join(", ")}`,
-      `• Lesson mode: ${MODE_OPTIONS.find((m) => m.value === f.mode)?.label ?? f.mode}`,
-      f.district ? `• District: ${f.district}` : "",
-      f.frequency
-        ? `• Frequency: ${FREQUENCY_OPTIONS.find((o) => o.value === f.frequency)?.label ?? f.frequency}`
-        : "",
-      f.lengthMinutes
-        ? `• Lesson length: ${LENGTH_OPTIONS.find((o) => o.value === f.lengthMinutes)?.label ?? f.lengthMinutes}`
-        : "",
-      f.budgetMin || f.budgetMax
-        ? `• Budget: HK$${f.budgetMin || "?"}–HK$${f.budgetMax || "?"}/hr`
-        : "",
-      `• Tutor gender: ${GENDER_OPTIONS.find((g) => g.value === f.gender)?.label ?? "No preference"}`,
-      f.start ? `• Start: ${START_OPTIONS.find((o) => o.value === f.start)?.label ?? f.start}` : "",
-      f.notes.trim() ? `• Notes: ${f.notes.trim()}` : "",
-    ];
-    return lines.filter(Boolean).join("\n");
-  };
+  const submitMutation = useMutation({
+    mutationFn: async () => {
+      const subjects = [form.subject1, form.subject2]
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 4);
+      return submitCaseRequest({
+        data: {
+          parentName: form.parentName,
+          contactPhone: form.contactPhone,
+          level: form.level,
+          examSystem: form.examSystem || null,
+          subjects,
+          mode: form.mode as "online" | "in_person" | "either",
+          district: form.district || null,
+          sessionsPerWeek: form.frequency ? Number(form.frequency) : null,
+          sessionLengthMinutes: form.lengthMinutes ? Number(form.lengthMinutes) : null,
+          budgetMin: form.budgetMin ? Number(form.budgetMin) : null,
+          budgetMax: form.budgetMax ? Number(form.budgetMax) : null,
+          preferredGender: (form.gender || "any") as "any" | "male" | "female",
+          startTiming: (form.start || null) as "asap" | "two_weeks" | "flexible" | null,
+          notes: form.notes.trim() || null,
+          website: honeypot.current?.value || null,
+          elapsedMs: Date.now() - startedAt.current,
+        },
+      });
+    },
+    onSuccess: (data) => setResult(data),
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -185,16 +191,14 @@ function CaseRequestPage() {
       toast.error("Please fill in the highlighted fields.");
       return;
     }
+    submitMutation.mutate();
+  };
 
-    const digits = (form.contactPhone ?? "").replace(/[^\d]/g, "");
-    const message = buildMessage(form);
-    const url = digits
-      ? `https://wa.me/${digits}?text=${encodeURIComponent(message)}`
-      : buildTutorWhatsAppUrl("", "");
-    setWhatsappUrl(url);
-    setSubmitted(true);
-    toast.success("Case request ready — opening WhatsApp.");
-    window.open(url, "_blank", "noopener,noreferrer");
+  const resetForm = () => {
+    setForm(INITIAL_FORM);
+    setErrors({});
+    setResult(null);
+    startedAt.current = Date.now();
   };
 
   return (
@@ -209,35 +213,28 @@ function CaseRequestPage() {
 
       <section className="pb-16 pt-10 sm:pb-20">
         <PageContainer width="default">
-          {submitted ? (
+          {result ? (
             <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-8 text-center shadow-[var(--shadow-brand)] sm:p-12">
               <CheckCircle2
                 className="mx-auto h-12 w-12 text-[color:var(--brand-teal)]"
                 aria-hidden="true"
               />
               <h2 className="mt-4 text-3xl font-black text-[color:var(--ink)]">
-                Case request ready
+                Case request received
               </h2>
               <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-                WhatsApp should have opened with your requirements pre-filled. If it didn&rsquo;t,
-                use the button below — our team replies within one business day.
+                {result.duplicate
+                  ? "We already received a request from this number. Your reference:"
+                  : "Keep this reference for your records. Our team replies within one business day."}
               </p>
-              <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Button
-                  asChild
-                  className="h-11 rounded-sm bg-[#25D366] px-6 font-bold text-white hover:bg-[#1ebe57]"
-                >
-                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                    <MessageCircle className="mr-2 h-4 w-4" /> Open WhatsApp
-                  </a>
-                </Button>
+              <p className="mt-4 font-mono text-2xl font-black tracking-tight text-[color:var(--ink)]">
+                {result.caseCode}
+              </p>
+              <div className="mt-8 flex justify-center">
                 <Button
                   variant="outline"
                   className="h-11 rounded-sm px-6 font-bold"
-                  onClick={() => {
-                    setForm(INITIAL_FORM);
-                    setSubmitted(false);
-                  }}
+                  onClick={resetForm}
                 >
                   Submit another request
                 </Button>
@@ -469,16 +466,33 @@ function CaseRequestPage() {
                 </div>
               </div>
 
+              {/* Honeypot: hidden from humans, filled by bots */}
+              <input
+                ref={honeypot}
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="hidden"
+              />
+
               <div className="mt-6 flex flex-col items-center gap-3 border-t border-border pt-6">
                 <Button
                   type="submit"
+                  disabled={submitMutation.isPending}
                   className="h-12 w-full rounded-sm bg-[color:var(--surface-invert)] px-8 text-base font-bold text-white hover:bg-[color:var(--surface-invert-hover)] sm:w-auto"
                 >
-                  <MessageCircle className="mr-2 h-5 w-5" /> Send case request via WhatsApp
+                  {submitMutation.isPending ? (
+                    "Submitting…"
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-5 w-5" /> Submit case request
+                    </>
+                  )}
                 </Button>
                 <p className="text-center text-xs text-muted-foreground sm:text-sm">
-                  Free for parents — you&rsquo;ll receive matched tutor profiles within one business
-                  day.
+                  Free for parents, our team replies within one business day.
                 </p>
               </div>
             </form>
