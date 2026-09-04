@@ -346,6 +346,7 @@ function AdminTutors() {
                     <tr>
                       <th className="px-5 py-3.5">
                         <Checkbox
+                          className="rounded-[4px] shadow-none"
                           checked={allFilteredSelected}
                           onCheckedChange={toggleAll}
                           aria-label="Select all tutors"
@@ -425,6 +426,7 @@ function AdminTutors() {
                       >
                         <td className="px-5 py-4">
                           <Checkbox
+                            className="rounded-[4px] shadow-none"
                             checked={selectedIds.has(row.id)}
                             onCheckedChange={() => toggleOne(row.id)}
                             aria-label={`Select ${row.tutor_code || "tutor"}`}
