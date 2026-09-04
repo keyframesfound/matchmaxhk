@@ -218,7 +218,7 @@ export function PublicTutorCard({
                 </div>
               )}
               {hasIbPerfectScore ? (
-                <span className="bg-brand-gradient-x absolute -bottom-1 left-1/2 z-10 flex min-w-[2.75rem] -translate-x-1/2 items-center justify-center rounded-[5px] px-1.5 py-[2px] text-[7px] font-black leading-none tracking-wide text-white shadow-md ring-2 ring-[color:var(--surface)] md:min-w-[3.25rem] md:text-[8px]">
+                <span className="bg-brand-gradient-x absolute -bottom-1 left-1/2 z-10 flex min-w-[3rem] -translate-x-1/2 items-center justify-center rounded-[5px] px-1.5 py-[2px] text-[8px] font-black leading-none tracking-wide text-white shadow-md ring-2 ring-[color:var(--surface)] md:min-w-[3.5rem] md:text-[9px]">
                   IBDP 45
                 </span>
               ) : null}
