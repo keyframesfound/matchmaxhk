@@ -2,8 +2,20 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ExternalLink, Pencil, Plus, Search, Trash2, Users } from "lucide-react";
+import {
+  Download,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  Users,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import {
@@ -46,6 +58,8 @@ function AdminTutors() {
   const [editingTutor, setEditingTutor] = useState<Tutor | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [confirmBatchDelete, setConfirmBatchDelete] = useState(false);
 
   useEffect(() => {
     if (!loading && !hasAnyRole(["admin", "super_admin"])) {
@@ -114,6 +128,111 @@ function AdminTutors() {
 
   const isEditorActive = isCreating || Boolean(editingTutor);
 
+  const allFilteredSelected =
+    filtered.length > 0 && filtered.every((row) => selectedIds.has(row.id));
+
+  const toggleAll = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allFilteredSelected) {
+        filtered.forEach((row) => next.delete(row.id));
+      } else {
+        filtered.forEach((row) => next.add(row.id));
+      }
+      return next;
+    });
+  };
+
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const invalidateTutorQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin", "tutors"] });
+    queryClient.invalidateQueries({ queryKey: ["landing", "featured_tutors"] });
+    queryClient.invalidateQueries({ queryKey: ["tutors", "published"] });
+  };
+
+  const publishMutation = useMutation({
+    mutationFn: async ({ ids, isPublished }: { ids: string[]; isPublished: boolean }) => {
+      const { error } = await supabase
+        .from("tutors")
+        .update({ is_published: isPublished } as never)
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_data, variables) => {
+      toast.success(
+        `${variables.isPublished ? "Published" : "Hidden"} ${variables.ids.length} tutor${
+          variables.ids.length === 1 ? "" : "s"
+        }`,
+      );
+      invalidateTutorQueries();
+      setSelectedIds(new Set());
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const batchRemoveMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("tutors").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_data, ids) => {
+      toast.success(`Deleted ${ids.length} tutor${ids.length === 1 ? "" : "s"}`);
+      invalidateTutorQueries();
+      setSelectedIds(new Set());
+      setConfirmBatchDelete(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const downloadCsv = () => {
+    const rows =
+      selectedIds.size > 0 ? filtered.filter((row) => selectedIds.has(row.id)) : filtered;
+    if (rows.length === 0) return;
+    const columns: { label: string; value: (row: Tutor) => string }[] = [
+      { label: "Tutor code", value: (row) => row.tutor_code },
+      { label: "Name", value: (row) => row.display_name },
+      { label: "Gender", value: (row) => getTutorGenderLabel(row.gender) ?? "" },
+      { label: "Subjects", value: (row) => (row.subjects ?? []).join("; ") },
+      { label: "Format", value: (row) => row.lesson_mode },
+      { label: "District", value: (row) => row.district ?? "" },
+      { label: "Hourly rate (HKD)", value: (row) => String(row.hourly_rate) },
+      {
+        label: "Experience (years)",
+        value: (row) => (row.experience_years === null ? "" : String(row.experience_years)),
+      },
+      { label: "Languages", value: (row) => (row.languages ?? []).join("; ") },
+      { label: "Academic headline", value: (row) => row.academic_headline ?? "" },
+      { label: "University", value: (row) => row.university ?? "" },
+      { label: "Secondary school", value: (row) => row.secondary_school ?? "" },
+      { label: "Badge", value: (row) => row.badge ?? "" },
+      { label: "Card highlights", value: (row) => getTutorCardHighlights(row).join(" | ") },
+      { label: "Published", value: (row) => (row.is_published ? "yes" : "no") },
+    ];
+    const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+    const csv = [
+      columns.map((column) => escape(column.label)).join(","),
+      ...rows.map((row) => columns.map((column) => escape(column.value(row))).join(",")),
+    ].join("\r\n");
+    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `matchmax-tutors-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
       <main className="flex-1 bg-[color:var(--surface)]">
@@ -166,11 +285,72 @@ function AdminTutors() {
                 </div>
               </div>
 
+              {/* Batch actions */}
+              {selectedIds.size > 0 ? (
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/5 px-4 py-3">
+                  <span className="text-sm font-bold text-[color:var(--ink)]">
+                    {selectedIds.size} selected
+                  </span>
+                  <div className="ml-auto flex flex-wrap items-center gap-2">
+                    <Button size="sm" variant="outline" onClick={downloadCsv}>
+                      <Download className="mr-1.5 h-3.5 w-3.5" />
+                      Download CSV
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={publishMutation.isPending}
+                      onClick={() =>
+                        publishMutation.mutate({ ids: [...selectedIds], isPublished: true })
+                      }
+                    >
+                      <Eye className="mr-1.5 h-3.5 w-3.5" />
+                      Publish
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={publishMutation.isPending}
+                      onClick={() =>
+                        publishMutation.mutate({ ids: [...selectedIds], isPublished: false })
+                      }
+                    >
+                      <EyeOff className="mr-1.5 h-3.5 w-3.5" />
+                      Unpublish
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      disabled={batchRemoveMutation.isPending}
+                      onClick={() => setConfirmBatchDelete(true)}
+                    >
+                      <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                      Delete
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      aria-label="Clear selection"
+                      onClick={() => setSelectedIds(new Set())}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+
               {/* Table Container */}
               <div className="overflow-hidden rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
                 <table className="w-full text-sm">
                   <thead className="bg-[color:var(--surface-subtle)]/60 text-left text-xs font-bold uppercase tracking-wider text-[color:var(--ink)]/60 border-b border-[color:var(--ink)]/10">
                     <tr>
+                      <th className="px-5 py-3.5">
+                        <Checkbox
+                          checked={allFilteredSelected}
+                          onCheckedChange={toggleAll}
+                          aria-label="Select all tutors"
+                        />
+                      </th>
                       <th className="px-5 py-3.5">Tutor Profile</th>
                       <th className="px-5 py-3.5">Subjects</th>
                       <th className="px-5 py-3.5">Format & District</th>
@@ -183,6 +363,9 @@ function AdminTutors() {
                     {isLoading &&
                       Array.from({ length: 5 }).map((_, index) => (
                         <tr key={index}>
+                          <td className="px-5 py-4">
+                            <Skeleton className="h-4 w-4" />
+                          </td>
                           <td className="px-5 py-4">
                             <Skeleton className="h-4 w-28" />
                             <Skeleton className="mt-2 h-3 w-48" />
@@ -207,7 +390,7 @@ function AdminTutors() {
 
                     {!isLoading && filtered.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="px-5 py-12 text-center text-muted-foreground">
+                        <td colSpan={7} className="px-5 py-12 text-center text-muted-foreground">
                           <Users className="mx-auto h-8 w-8 text-muted-foreground/50 mb-2" />
                           <p className="font-semibold text-sm text-[color:var(--ink)]">
                             No tutors found
@@ -235,8 +418,18 @@ function AdminTutors() {
                     {filtered.map((row) => (
                       <tr
                         key={row.id}
-                        className="transition-colors hover:bg-[color:var(--surface-subtle)]/40"
+                        className={cn(
+                          "transition-colors hover:bg-[color:var(--surface-subtle)]/40",
+                          selectedIds.has(row.id) && "bg-[color:var(--brand-teal)]/5",
+                        )}
                       >
+                        <td className="px-5 py-4">
+                          <Checkbox
+                            checked={selectedIds.has(row.id)}
+                            onCheckedChange={() => toggleOne(row.id)}
+                            aria-label={`Select ${row.tutor_code || "tutor"}`}
+                          />
+                        </td>
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
                             {row.photo_url ? (
@@ -377,6 +570,30 @@ function AdminTutors() {
           )}
         </div>
       </main>
+
+      {/* Batch Delete Confirmation Dialog */}
+      <AlertDialog open={confirmBatchDelete} onOpenChange={setConfirmBatchDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete {selectedIds.size} Tutor Profile{selectedIds.size === 1 ? "" : "s"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the selected tutors? This action cannot be undone and
+              will remove them from search, bookings, and public pages.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => batchRemoveMutation.mutate([...selectedIds])}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete {selectedIds.size}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={Boolean(deletingId)} onOpenChange={(open) => !open && setDeletingId(null)}>

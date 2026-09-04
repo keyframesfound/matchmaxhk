@@ -71,8 +71,7 @@ function AdminLayout() {
 
   return (
     <ConsoleShell
-      defaultOpen={false}
-      collapsible="offcanvas"
+      fitViewport
       brandMark={<Logo className="h-5 w-auto" />}
       brandLabel="MatchMax Admin"
       groups={ADMIN_GROUPS}

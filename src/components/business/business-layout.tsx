@@ -118,6 +118,7 @@ export function BusinessLayout({
   return (
     <ConsoleShell
       className="min-h-[calc(100vh-64px)] flex-1"
+      size="comfortable"
       brandMark={
         organization.logo_url ? (
           <img

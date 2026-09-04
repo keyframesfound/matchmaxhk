@@ -458,7 +458,7 @@ function TutorDetail() {
                   </div>
                 )}
                 {hasIbPerfectScore ? (
-                  <span className="bg-brand-gradient-x absolute -bottom-1.5 left-1/2 z-10 flex min-w-[4rem] -translate-x-1/2 items-center justify-center rounded-md px-3 py-1 text-[11px] font-black leading-none tracking-wide text-white shadow-md ring-2 ring-[color:var(--surface)] sm:-bottom-2 sm:min-w-[5.25rem] sm:px-3.5 sm:text-sm">
+                  <span className="bg-brand-gradient-x absolute -bottom-1.5 left-1/2 z-10 flex min-w-[3.5rem] -translate-x-1/2 items-center justify-center rounded-md px-2.5 py-1 text-[11px] font-black leading-none tracking-wide text-white shadow-md ring-2 ring-[color:var(--surface)] sm:-bottom-2 sm:min-w-[4.25rem] sm:px-3 sm:text-sm">
                     IBDP 45
                   </span>
                 ) : null}
