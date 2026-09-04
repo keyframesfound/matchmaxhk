@@ -445,7 +445,7 @@ function TutorDetail() {
               Back
             </Button>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
-              <div className="relative shrink-0">
+              <div className="relative shrink-0 self-start">
                 {t.photo_url ? (
                   <img
                     src={t.photo_url}
