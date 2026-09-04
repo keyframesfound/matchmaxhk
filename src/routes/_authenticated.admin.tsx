@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { ConsoleShell, type ConsoleNavGroup } from "@/components/layout/console-shell";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/useAuth";
@@ -70,28 +71,31 @@ function AdminLayout() {
   if (loading) return null;
 
   return (
-    <ConsoleShell
-      fitViewport
-      brandMark={<Logo className="h-5 w-auto" />}
-      brandLabel="MatchMax Admin"
-      groups={ADMIN_GROUPS}
-      title={title}
-      headerExtra={
-        <Button asChild variant="outline" size="sm">
-          <a href="/" target="_blank" rel="noreferrer">
-            <ExternalLink className="mr-1.5 h-4 w-4" />
-            View site
-          </a>
-        </Button>
-      }
-      account={{
-        name: accountName,
-        email: user?.email ?? "",
-        avatarUrl: (user?.user_metadata.avatar_url as string | undefined) ?? null,
-      }}
-      onSignOut={() => void signOut()}
-    >
-      <Outlet />
-    </ConsoleShell>
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
+      <SiteHeader />
+      <ConsoleShell
+        className="min-h-0 flex-1"
+        brandMark={<Logo className="h-5 w-auto" />}
+        brandLabel="MatchMax Admin"
+        groups={ADMIN_GROUPS}
+        title={title}
+        headerExtra={
+          <Button asChild variant="outline" size="sm">
+            <a href="/" target="_blank" rel="noreferrer">
+              <ExternalLink className="mr-1.5 h-4 w-4" />
+              View site
+            </a>
+          </Button>
+        }
+        account={{
+          name: accountName,
+          email: user?.email ?? "",
+          avatarUrl: (user?.user_metadata.avatar_url as string | undefined) ?? null,
+        }}
+        onSignOut={() => void signOut()}
+      >
+        <Outlet />
+      </ConsoleShell>
+    </div>
   );
 }

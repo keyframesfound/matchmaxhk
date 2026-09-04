@@ -190,7 +190,7 @@ export function PublicTutorCard({
             onClick={handleCompareToggle}
             onKeyDown={(event) => event.stopPropagation()}
             className={cn(
-              "absolute left-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border bg-[color:var(--surface)] shadow-sm transition-colors md:left-3 md:top-3",
+              "absolute left-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-md border bg-[color:var(--surface)] transition-colors md:left-3 md:top-3",
               compareSelected
                 ? "border-[color:var(--brand-teal)] bg-[color:var(--brand-teal)] text-white"
                 : "border-[color:var(--ink)]/20 text-[color:var(--ink)]/55 hover:border-[color:var(--brand-teal)] hover:text-[color:var(--brand-teal)]",
