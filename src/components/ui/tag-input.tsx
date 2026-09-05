@@ -1,11 +1,7 @@
 import { Plus, Search, X } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export type TagOption = {
   value: string;
@@ -164,7 +160,7 @@ export function TagInput({
                     removeTag(value[value.length - 1]);
                   }
                 }}
-                className="min-w-[120px] flex-1 bg-transparent px-2 py-1 text-sm font-medium text-[color:var(--ink)] outline-none placeholder:text-[color:var(--ink)]/40"
+                className="min-w-[120px] flex-1 bg-transparent px-2 py-1 text-sm font-medium text-[color:var(--ink)] outline-none placeholder:text-muted-foreground"
               />
             </PopoverTrigger>
           )}

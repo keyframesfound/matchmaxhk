@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/base/toggle/toggle";
 import { Textarea } from "@/components/ui/textarea";
 import {
   deleteOrganizationImage,
@@ -410,15 +410,10 @@ export function CourseFormModal({
             />
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border border-border p-3">
-            <div>
-              <Label htmlFor="course-published">Published</Label>
-              <p className="text-xs text-muted-foreground">
-                Visible on the public courses directory
-              </p>
-            </div>
-            <Switch
-              id="course-published"
+          <div className="rounded-lg border border-border p-3">
+            <Toggle
+              label="Published"
+              hint="Visible on the public courses directory"
               checked={form.is_published}
               onCheckedChange={(checked) => setField({ is_published: checked })}
             />

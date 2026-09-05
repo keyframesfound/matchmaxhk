@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/base/toggle/toggle";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -1470,18 +1470,10 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
             </EditorSection>
 
             {/* 6. Publication Settings */}
-            <div className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-6 flex items-center justify-between shadow-sm">
-              <div className="space-y-0.5">
-                <Label htmlFor="pub-switch" className="text-sm font-bold text-[color:var(--ink)]">
-                  Public Directory Visibility
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  When enabled, this tutor is discoverable in the MatchMax directory and search
-                  filters.
-                </p>
-              </div>
-              <Switch
-                id="pub-switch"
+            <div className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-6 shadow-sm">
+              <Toggle
+                label="Public Directory Visibility"
+                hint="When enabled, this tutor is discoverable in the MatchMax directory and search filters."
                 checked={form.is_published}
                 onCheckedChange={(v) => setForm({ ...form, is_published: v })}
               />

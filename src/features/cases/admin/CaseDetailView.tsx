@@ -20,7 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/base/toggle/toggle";
 import { Textarea } from "@/components/ui/textarea";
 import { TagInput } from "@/components/ui/tag-input";
 import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
@@ -475,20 +475,17 @@ export function CaseDetailView({
                 <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit request
               </Button>
             </div>
-            <div className="mt-3 flex items-start justify-between gap-3 rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3.5 py-3">
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-[color:var(--ink)]">Show on public board</p>
-                <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
-                  {caseRow.board_published_at
+            <div className="mt-3 rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3.5 py-3">
+              <Toggle
+                label="Show on public board"
+                hint={
+                  caseRow.board_published_at
                     ? `Live at /tutor-requests since ${format(new Date(caseRow.board_published_at), "d MMM yyyy")}. Matched or closed cases are hidden automatically.`
-                    : "Not published. Tutors can't see this case yet."}
-                </p>
-              </div>
-              <Switch
+                    : "Not published. Tutors can't see this case yet."
+                }
                 checked={caseRow.board_published_at !== null}
                 disabled={boardPublishMutation.isPending}
                 onCheckedChange={(checked) => boardPublishMutation.mutate(checked)}
-                aria-label="Publish case to the tutor request board"
               />
             </div>
             {caseRow.board_published_at ? (

@@ -1,11 +1,7 @@
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export type SearchableOption = { value: string; label?: string; description?: string };
 
@@ -67,7 +63,9 @@ export function SearchableSelect({
       const label = (opt.label ?? "").toLowerCase();
       const val = (opt.value ?? "").toLowerCase();
       const desc = (opt.description ?? "").toLowerCase();
-      return label.includes(trimmedQuery) || val.includes(trimmedQuery) || desc.includes(trimmedQuery);
+      return (
+        label.includes(trimmedQuery) || val.includes(trimmedQuery) || desc.includes(trimmedQuery)
+      );
     });
   }, [normalized, trimmedQuery]);
 
@@ -167,7 +165,7 @@ export function SearchableSelect({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-xs font-medium text-[color:var(--ink)] placeholder:text-[color:var(--ink)]/40 transition-[border-color,background-color,box-shadow] focus:border-[#1FA8B6] focus:bg-[color:var(--surface)] focus:ring-2 focus:ring-[#77E8EE]/20"
+              className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-xs font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color,box-shadow] focus:border-[#1FA8B6] focus:bg-[color:var(--surface)] focus:ring-2 focus:ring-[#77E8EE]/20"
             />
             {query && (
               <button
@@ -224,7 +222,9 @@ export function SearchableSelect({
                 className="flex w-full items-center justify-between rounded-md px-3 py-2 text-xs font-semibold text-[#1FA8B6] hover:bg-[#77E8EE]/20 text-left"
               >
                 <span>Add &ldquo;{query.trim()}&rdquo;</span>
-                <span className="text-[10px] uppercase font-bold text-muted-foreground">Custom</span>
+                <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                  Custom
+                </span>
               </button>
             </div>
           )}

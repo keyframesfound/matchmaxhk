@@ -250,7 +250,7 @@ function SettingsPage() {
                       maxLength={80}
                       disabled={loadingProfile || saving}
                       autoComplete="name"
-                      className="bg-[color:var(--surface)] placeholder:text-[color:var(--ink)]/35"
+                      className="bg-[color:var(--surface)]"
                     />
                   </div>
                   <div className="space-y-2">

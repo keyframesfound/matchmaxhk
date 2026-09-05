@@ -308,8 +308,8 @@ function Landing() {
               </p>
             </div>
 
-            <div className="mt-2.5 grid gap-2 sm:gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
-              <div className="relative">
+            <div className="mt-2.5 grid gap-2 sm:gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+              <div className="relative lg:col-span-5">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground md:h-4 md:w-4" />
                 <Input
                   className="h-9 rounded-sm pl-9 text-xs md:h-11 md:text-sm"
