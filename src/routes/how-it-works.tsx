@@ -159,65 +159,36 @@ const VALUE_PROPS: ValueProp[] = [
 const PARENT_STEPS: [string, string, string][] = [
   [
     "01",
-    "Search or connect",
-    "Browse using advanced filters, or send your exact requirements to our WhatsApp hotline.",
+    "Browse verified profiles like an online store",
+    "Filter by curriculum (IB/DSE/A-Level), target subjects, and specific MTR stations. Review verified component scores and secondary school backgrounds directly on each candidate card. Or send your exact requirements to our WhatsApp hotline.",
   ],
   [
     "02",
-    "Review the best",
-    "Within one business day, our team curates and sends profiles of elite, verified candidates. Review their subjects taught, achievements, and experience independently.",
+    "Shortlist & request matches",
+    "Add preferred educators to your shortlist and submit a match request with your schedule and lesson preferences.",
   ],
-  ["03", "Seamless connection", "Once you select a tutor, simply provide your WhatsApp contact."],
   [
-    "04",
-    "Instant group chat setup",
-    "We immediately open a dedicated WhatsApp group with you and the tutor to coordinate logistics—no middleman delays.",
+    "03",
+    "Confirm & start learning",
+    "Connect directly via WhatsApp with the tutor to align on lesson goals, confirm details, and schedule your first session.",
   ],
 ];
 
 const TUTOR_STEPS: [string, string, string][] = [
   [
     "01",
-    "Apply & prove your worth",
-    "Submit your application online. We strictly verify academic credentials and notify you of acceptance within one business day.",
+    "Build your profile",
+    "Submit your academic records (transcripts, diplomas, and component scores) alongside your secondary school and reachable MTR stations.",
   ],
   [
     "02",
-    "Anonymous promotion",
-    "Once accepted, you receive a unique identification code. We market your profile across our website, social media, and elite B2B partner networks while keeping your real name private.",
+    "Verification & anonymous listing",
+    "We review and verify your credentials before your card goes live. Your full name and sensitive personal data remain strictly confidential.",
   ],
   [
     "03",
-    "Receive premium case cards",
-    "We bring opportunities to you: detailed case cards for top-tier private and centre-based jobs. You always have the freedom to accept or decline.",
-  ],
-  [
-    "04",
-    "A fair commission",
-    "Our service is free until you secure a client. Then, the fee is a simple 1.5-lesson flat rate—no hidden fees or ongoing percentage cuts.",
-  ],
-];
-
-const AGENCY_STEPS: [string, string, string][] = [
-  [
-    "01",
-    "Submit your vacancies",
-    "Contact our business team with your specific staffing requirements for part-time or full-time instructional roles.",
-  ],
-  [
-    "02",
-    "Rapid 24-hour shortlisting",
-    "We leverage our active pool of heavily vetted, top-percentile tutors (IB 40+, DSE 30+) to send you a curated shortlist of highly qualified profiles within one business day.",
-  ],
-  [
-    "03",
-    "Review & interview",
-    "Instantly assess a candidate's subjects taught, achievements and experiences, and proceed directly to interviewing your chosen applicants.",
-  ],
-  [
-    "04",
-    "Zero placement fees",
-    "We handle the recruitment and matching at exactly no cost to your business, offering a completely risk-free scaling solution for your centre.",
+    "Receive requests & teach",
+    "Review inbound student match requests matching your commute preferences and accept sessions on your own terms with a fair 1.5-lesson platform fee.",
   ],
 ];
 
@@ -277,7 +248,7 @@ function AudienceSection({
   title,
   icon: Icon,
   steps,
-  link,
+  links,
   className,
   numberClassName,
   accentClassName,
@@ -288,7 +259,7 @@ function AudienceSection({
   title: string;
   icon: typeof Search;
   steps: [string, string, string][];
-  link: { to: "/tutors" | "/join" | "/tutor-requests"; label: string };
+  links: { to: "/tutors" | "/join" | "/tutor-requests"; label: string; search?: { post?: true } }[];
   className: string;
   numberClassName: string;
   accentClassName: string;
@@ -307,12 +278,17 @@ function AudienceSection({
             <p className="mt-4 max-w-md text-xl font-bold leading-snug tracking-tight sm:text-2xl">
               {title}
             </p>
-            <Link
-              to={link.to}
-              className="mt-8 inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
-            >
-              {link.label} <ArrowRight className={`ml-2 h-4 w-4 ${accentClassName}`} />
-            </Link>
+            <div className="mt-8 space-y-3">
+              {links.map((link) => (
+                <Link
+                  key={link.label}
+                  to={link.to}
+                  className="inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
+                >
+                  {link.label} <ArrowRight className={`ml-2 h-4 w-4 ${accentClassName}`} />
+                </Link>
+              ))}
+            </div>
           </div>
           <ol className="border-t border-current/20">
             {steps.map(([number, stepTitle, text]) => (
@@ -389,7 +365,7 @@ function HowItWorksPage() {
           <p className="text-sm font-bold text-[color:var(--brand-teal)]">How MatchMax works</p>
           <div className="relative mt-5 w-fit">
             <h1 className="max-w-2xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
-              Built by Students Who’ve Been There: Why MatchMax Works Better
+              Built By Students: Why MatchMax Works Better
             </h1>
             <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--brand-teal)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
           </div>
@@ -468,7 +444,14 @@ function HowItWorksPage() {
           title="The highest calibre of educational matching, completely free."
           icon={Search}
           steps={PARENT_STEPS}
-          link={{ to: "/tutors", label: "Find a tutor" }}
+          links={[
+            { to: "/tutors", label: "Find a tutor" },
+            {
+              to: "/tutor-requests",
+              search: { post: true },
+              label: "Submit a tutor request",
+            },
+          ]}
           className="bg-[#E7F6F8] text-[#041344] dark:bg-[#0C2B4E] dark:text-white"
           numberClassName="bg-[#1FA8B6]/15 text-[#1FA8B6]"
           accentClassName="text-[#1FA8B6]"
@@ -480,23 +463,14 @@ function HowItWorksPage() {
           title="Maximise your earning potential with Hong Kong's most tutor-friendly platform."
           icon={UserRoundCheck}
           steps={TUTOR_STEPS}
-          link={{ to: "/join", label: "Apply as a tutor" }}
+          links={[
+            { to: "/tutor-requests", label: "Browse open cases" },
+            { to: "/join", label: "Apply as a tutor" },
+          ]}
           className="bg-[#041344] !text-white dark:bg-[#041344] dark:!text-white"
           numberClassName="bg-[#77E8EE]/15 text-[#77E8EE]"
           accentClassName="text-[#77E8EE]"
           bodyTextClassName="text-white"
-        />
-
-        <AudienceSection
-          eyebrow="For agencies & educational centres"
-          audience="For Centres"
-          title="Access Hong Kong's most elite tutoring database for your centre, absolutely free."
-          icon={Building2}
-          steps={AGENCY_STEPS}
-          link={{ to: "/tutor-requests", label: "Contact our business team" }}
-          className="text-[color:var(--ink)]"
-          numberClassName="bg-[color:var(--brand-teal)]/15 text-[color:var(--brand-teal)]"
-          accentClassName="text-[color:var(--brand-teal)]"
         />
 
         <section

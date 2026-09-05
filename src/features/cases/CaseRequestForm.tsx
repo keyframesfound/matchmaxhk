@@ -11,6 +11,7 @@ import { submitCaseRequest } from "@/lib/cases.functions";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { EXAM_SYSTEM_OPTIONS, LEVEL_OPTIONS } from "@/features/cases/case-options";
+import { cn } from "@/lib/utils";
 
 const MODE_OPTIONS = [
   { value: "online", label: "Online" },
@@ -47,6 +48,16 @@ const START_OPTIONS = [
 const labelClassName =
   "mb-1.5 block text-sm font-bold text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--brand-teal)]";
 const controlClassName = "h-11 w-full rounded-sm";
+const invalidInputClassName =
+  "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30";
+
+function RequiredFlag() {
+  return (
+    <span className="ml-2 align-middle text-xs font-bold uppercase tracking-wide text-destructive">
+      Required
+    </span>
+  );
+}
 
 const PHONE_REGEX = /^[+(\d][\d\s()./+-]{4,19}\d$/;
 
@@ -117,7 +128,16 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const honeypot = useRef<HTMLInputElement>(null);
   const startedAt = useRef(Date.now());
 
-  const update = (patch: Partial<FormState>) => setForm((prev) => ({ ...prev, ...patch }));
+  const update = (patch: Partial<FormState>) => {
+    setForm((prev) => ({ ...prev, ...patch }));
+    setErrors((prev) => {
+      const keys = Object.keys(patch) as (keyof FormState)[];
+      if (!keys.some((key) => prev[key])) return prev;
+      const next = { ...prev };
+      keys.forEach((key) => delete next[key]);
+      return next;
+    });
+  };
 
   const subjectOptions = getSubjectOptionsForCategory(form.examSystem);
 
@@ -180,15 +200,15 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const nextErrors: Partial<Record<keyof FormState, string>> = {};
-    if (!form.parentName.trim()) nextErrors.parentName = "Please enter your name.";
+    if (!form.parentName.trim()) nextErrors.parentName = "Required";
     if (!form.contactPhone.trim()) {
-      nextErrors.contactPhone = "Please enter your WhatsApp number.";
+      nextErrors.contactPhone = "Required";
     } else if (!PHONE_REGEX.test(form.contactPhone.trim())) {
       nextErrors.contactPhone = "Please enter a valid WhatsApp number (e.g. +852 9123 4567).";
     }
-    if (!form.level) nextErrors.level = "Please select the student level.";
-    if (!form.subject1.trim()) nextErrors.subject1 = "Please tell us at least one subject.";
-    if (!form.mode) nextErrors.mode = "Please choose a lesson mode.";
+    if (!form.level) nextErrors.level = "Required";
+    if (!form.subject1.trim()) nextErrors.subject1 = "Required";
+    if (!form.mode) nextErrors.mode = "Required";
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       toast.error("Please fill in the highlighted fields.");
@@ -243,37 +263,42 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         <div>
           <label className={labelClassName} htmlFor={`${idPrefix}-name`}>
             Your name
+            {errors.parentName === "Required" ? <RequiredFlag /> : null}
           </label>
           <Input
             id={`${idPrefix}-name`}
-            className={controlClassName}
+            className={cn(controlClassName, errors.parentName && invalidInputClassName)}
+            aria-invalid={errors.parentName ? true : undefined}
             placeholder="e.g. Mrs. Chan"
             value={form.parentName}
             onChange={(e) => update({ parentName: e.target.value })}
           />
-          {errors.parentName ? (
+          {errors.parentName && errors.parentName !== "Required" ? (
             <p className="mt-1 text-xs font-semibold text-destructive">{errors.parentName}</p>
           ) : null}
         </div>
         <div>
           <label className={labelClassName} htmlFor={`${idPrefix}-phone`}>
             WhatsApp number
+            {errors.contactPhone === "Required" ? <RequiredFlag /> : null}
           </label>
           <Input
             id={`${idPrefix}-phone`}
-            className={controlClassName}
+            className={cn(controlClassName, errors.contactPhone && invalidInputClassName)}
+            aria-invalid={errors.contactPhone ? true : undefined}
             placeholder="e.g. +852 9123 4567"
             inputMode="tel"
             value={form.contactPhone}
             onChange={(e) => update({ contactPhone: e.target.value })}
           />
-          {errors.contactPhone ? (
+          {errors.contactPhone && errors.contactPhone !== "Required" ? (
             <p className="mt-1 text-xs font-semibold text-destructive">{errors.contactPhone}</p>
           ) : null}
         </div>
         <div>
           <label className={labelClassName} htmlFor={`${idPrefix}-level`}>
             Student level
+            {errors.level === "Required" ? <RequiredFlag /> : null}
           </label>
           <SearchableSelect
             value={form.level}
@@ -282,8 +307,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             placeholder="Select level"
             searchPlaceholder="Search level..."
             className={controlClassName}
+            invalid={Boolean(errors.level)}
           />
-          {errors.level ? (
+          {errors.level && errors.level !== "Required" ? (
             <p className="mt-1 text-xs font-semibold text-destructive">{errors.level}</p>
           ) : null}
         </div>
@@ -303,6 +329,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         <div>
           <label className={labelClassName} htmlFor={`${idPrefix}-subject1`}>
             Subject(s) needed
+            {errors.subject1 === "Required" ? <RequiredFlag /> : null}
           </label>
           <SearchableSelect
             value={form.subject1}
@@ -313,8 +340,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             searchPlaceholder="Search subject..."
             emptyText="No matches — type to enter a custom subject."
             className={controlClassName}
+            invalid={Boolean(errors.subject1)}
           />
-          {errors.subject1 ? (
+          {errors.subject1 && errors.subject1 !== "Required" ? (
             <p className="mt-1 text-xs font-semibold text-destructive">{errors.subject1}</p>
           ) : null}
         </div>
@@ -336,6 +364,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         <div>
           <label className={labelClassName} htmlFor={`${idPrefix}-mode`}>
             Lesson mode
+            {errors.mode === "Required" ? <RequiredFlag /> : null}
           </label>
           <SearchableSelect
             value={form.mode}
@@ -344,8 +373,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             placeholder="Select mode"
             searchPlaceholder="Search mode..."
             className={controlClassName}
+            invalid={Boolean(errors.mode)}
           />
-          {errors.mode ? (
+          {errors.mode && errors.mode !== "Required" ? (
             <p className="mt-1 text-xs font-semibold text-destructive">{errors.mode}</p>
           ) : null}
         </div>

@@ -19,6 +19,7 @@ type Props = {
   disabled?: boolean;
   /** Allow the user's typed input as a free-form value (for "Other"). */
   allowCustom?: boolean;
+  invalid?: boolean;
   className?: string;
   popoverClassName?: string;
 };
@@ -32,6 +33,7 @@ export function SearchableSelect({
   emptyText = "No matches found.",
   disabled = false,
   allowCustom = false,
+  invalid = false,
   className,
   popoverClassName,
 }: Props) {
@@ -130,8 +132,11 @@ export function SearchableSelect({
           type="button"
           disabled={disabled}
           aria-expanded={open}
+          aria-invalid={invalid || undefined}
           className={cn(
             "group flex h-11 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3.5 py-2 text-left text-sm font-medium text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-[#1FA8B6] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#77E8EE]/35 disabled:cursor-not-allowed disabled:opacity-50",
+            invalid &&
+              "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30",
             !value && !selected?.label && "text-[color:var(--ink)]/50",
             className,
           )}

@@ -17,7 +17,7 @@ export function FormField({ label, required, error, hint, className, children }:
   const isInput = isValidElement(children) && children.type === Input;
   const control = isInput
     ? cloneElement(children as React.ReactElement<{ hint?: ReactNode; isInvalid?: boolean }>, {
-        hint: error,
+        hint: error && error !== "Required" ? error : undefined,
         isInvalid: Boolean(error),
       })
     : children;
@@ -27,10 +27,17 @@ export function FormField({ label, required, error, hint, className, children }:
       <Label className="font-semibold text-foreground">
         {label}
         {required ? <span className="ml-1 text-destructive">*</span> : null}
+        {error === "Required" ? (
+          <span className="ml-2 align-middle text-xs font-bold uppercase tracking-wide text-destructive">
+            Required
+          </span>
+        ) : null}
       </Label>
       {control}
       {hint ? <p className="text-xs italic leading-relaxed text-muted-foreground">{hint}</p> : null}
-      {error && !isInput ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
+      {error && error !== "Required" && !isInput ? (
+        <p className="text-xs font-medium text-destructive">{error}</p>
+      ) : null}
     </div>
   );
 }

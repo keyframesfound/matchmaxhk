@@ -228,6 +228,7 @@ function DocumentUpload({
   disabled,
   accept = ACCEPT_ATTRIBUTE,
   prompt = "Drop a file here or choose a file",
+  invalid,
 }: {
   file: File | null;
   onSelect: (file: File) => void;
@@ -235,6 +236,7 @@ function DocumentUpload({
   disabled?: boolean;
   accept?: string;
   prompt?: string;
+  invalid?: boolean;
 }) {
   const [dragging, setDragging] = useState(false);
   const [progress, setProgress] = useState(file ? 100 : 0);
@@ -263,9 +265,11 @@ function DocumentUpload({
       <label
         className={cn(
           "flex min-h-24 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-[color:var(--surface-subtle)] px-4 py-3 text-center text-sm text-muted-foreground transition-colors",
+          invalid && "border-destructive",
           dragging && "border-[color:var(--brand-teal)] bg-[color:var(--brand-teal)]/10",
           disabled && "cursor-not-allowed opacity-60",
         )}
+        aria-invalid={invalid || undefined}
         onDragEnter={(event) => {
           event.preventDefault();
           if (!disabled) setDragging(true);
@@ -355,11 +359,13 @@ function Choices({
   values,
   onToggle,
   hint = "You can choose more than one.",
+  invalid,
 }: {
   options: readonly string[];
   values: string[];
   onToggle: (value: string) => void;
   hint?: string;
+  invalid?: boolean;
 }) {
   return (
     <div className="grid gap-2">
@@ -369,7 +375,12 @@ function Choices({
             key={option}
             className="flex min-h-11 cursor-pointer items-center gap-2 py-1 text-sm text-foreground"
           >
-            <Checkbox checked={values.includes(option)} onCheckedChange={() => onToggle(option)} />
+            <Checkbox
+              checked={values.includes(option)}
+              onCheckedChange={() => onToggle(option)}
+              aria-invalid={invalid || undefined}
+              className={invalid ? "border-destructive" : undefined}
+            />
             <span>{option}</span>
           </label>
         ))}
@@ -383,10 +394,12 @@ function SingleChoice({
   options,
   value,
   onChange,
+  invalid,
 }: {
   options: readonly string[];
   value: string;
   onChange: (value: string) => void;
+  invalid?: boolean;
 }) {
   return (
     <div className="flex flex-wrap items-start gap-2">
@@ -400,6 +413,7 @@ function SingleChoice({
             value === option
               ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-white"
               : "border-border bg-card text-foreground",
+            invalid && value !== option && "border-destructive",
           )}
         >
           {option}
@@ -418,11 +432,13 @@ function SubjectPicker({
   addedSubjects,
   options,
   onToggle,
+  invalid,
 }: {
   studiedSubjects: string[];
   addedSubjects: string[];
   options: readonly string[];
   onToggle: (subject: string) => void;
+  invalid?: boolean;
 }) {
   const selectedSubjects = new Set([...studiedSubjects, ...addedSubjects]);
   return (
@@ -455,6 +471,7 @@ function SubjectPicker({
             placeholder="Add subject"
             searchPlaceholder="Search subjects..."
             emptyText="No additional subjects available."
+            invalid={invalid}
           />
         </div>
       </div>
@@ -556,7 +573,7 @@ export function ApplicationForm() {
       ]),
     ]);
     setAutoStations(suggestions);
-    setFieldErrors((current) => ({ ...current, stations: "" }));
+    clearFieldError("stations");
     setSuggestionStatus("done");
   }
 
@@ -698,11 +715,21 @@ export function ApplicationForm() {
 
   function setBaseField<Key extends keyof typeof base>(key: Key, value: (typeof base)[Key]) {
     setBase((previous) => ({ ...previous, [key]: value }));
+    clearFieldError(key);
+  }
+  function clearFieldError(key: string) {
+    setFieldErrors((current) => {
+      if (!current[key]) return current;
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
   }
   function updateQualification(index: number, patch: Partial<Qualification>) {
     setQualifications((previous) =>
       previous.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)),
     );
+    Object.keys(patch).forEach((patchKey) => clearFieldError(`${patchKey}-${index}`));
   }
   function updateScore(qualificationIndex: number, scoreIndex: number, patch: Partial<ScoreRow>) {
     setQualifications((previous) =>
@@ -717,6 +744,8 @@ export function ApplicationForm() {
           : qualification,
       ),
     );
+    if (patch.subject !== undefined) clearFieldError(`subject-${qualificationIndex}-${scoreIndex}`);
+    if (patch.grade !== undefined) clearFieldError(`grade-${qualificationIndex}-${scoreIndex}`);
   }
   function updateAchievement(index: number, patch: Partial<Achievement>) {
     setBaseField(
@@ -725,6 +754,7 @@ export function ApplicationForm() {
         achievementIndex === index ? { ...achievement, ...patch } : achievement,
       ),
     );
+    Object.keys(patch).forEach((patchKey) => clearFieldError(`achievement-${patchKey}-${index}`));
   }
   function setCountry(country: string) {
     const dialCode = COUNTRY_DIAL_CODES[country];
@@ -734,6 +764,7 @@ export function ApplicationForm() {
       country,
       phone: dialCode ? `${dialCode} ${phoneWithoutDialCode}`.trimEnd() : phoneWithoutDialCode,
     }));
+    clearFieldError("country");
   }
 
   function validateCurrentStep() {
@@ -1041,6 +1072,7 @@ export function ApplicationForm() {
                       })
                     }
                     placeholder="Subject name"
+                    isInvalid={Boolean(fieldErrors[`subject-${qualificationIndex}-${scoreIndex}`])}
                   />
                 ) : (
                   <SearchableSelect
@@ -1052,6 +1084,7 @@ export function ApplicationForm() {
                     placeholder="Choose subject"
                     searchPlaceholder="Search subjects..."
                     emptyText="No matching subjects."
+                    invalid={Boolean(fieldErrors[`subject-${qualificationIndex}-${scoreIndex}`])}
                   />
                 )}
                 {fieldErrors[`subject-${qualificationIndex}-${scoreIndex}`] ? (
@@ -1083,6 +1116,7 @@ export function ApplicationForm() {
                       updateScore(qualificationIndex, scoreIndex, { grade: event.target.value })
                     }
                     placeholder="Grade / result"
+                    isInvalid={Boolean(fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`])}
                   />
                 ) : (
                   <Select
@@ -1092,7 +1126,16 @@ export function ApplicationForm() {
                     }
                     disabled={!score.subject}
                   >
-                    <SelectTrigger aria-label="Overall grade">
+                    <SelectTrigger
+                      aria-label="Overall grade"
+                      aria-invalid={
+                        fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`] ? true : undefined
+                      }
+                      className={cn(
+                        fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`] &&
+                          "border-destructive hover:border-destructive focus:border-destructive focus:ring-destructive/30",
+                      )}
+                    >
                       <SelectValue placeholder="Choose grade" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1303,17 +1346,19 @@ export function ApplicationForm() {
                     placeholder="Chan Hau Yui Hauzton"
                   />
                 </Field>
-                <Input
-                  isRequired
-                  isInvalid={Boolean(fieldErrors.email)}
+                <Field
                   label="Email"
-                  hint={fieldErrors.email || "Add your personal email"}
-                  tooltip="Use an email address you check regularly."
-                  type="email"
-                  value={base.email}
-                  onChange={(event) => setBaseField("email", event.target.value)}
-                  placeholder="hauzton.chan@gmail.com"
-                />
+                  required
+                  error={fieldErrors.email}
+                  hint="Use an email address you check regularly."
+                >
+                  <Input
+                    type="email"
+                    value={base.email}
+                    onChange={(event) => setBaseField("email", event.target.value)}
+                    placeholder="hauzton.chan@gmail.com"
+                  />
+                </Field>
                 <Field label="Country / Region" required error={fieldErrors.country}>
                   <SearchableSelect
                     value={base.country}
@@ -1322,19 +1367,17 @@ export function ApplicationForm() {
                     placeholder="Choose country or region"
                     searchPlaceholder="Search countries"
                     emptyText="No matching country. Choose Other."
+                    invalid={Boolean(fieldErrors.country)}
                   />
                   {base.country === "Other" ? (
                     <Input
                       className="mt-2"
+                      isInvalid={Boolean(fieldErrors.countryOther)}
+                      hint={fieldErrors.countryOther || undefined}
                       value={base.countryOther}
                       onChange={(event) => setBaseField("countryOther", event.target.value)}
                       placeholder="Enter country or region"
                     />
-                  ) : null}
-                  {fieldErrors.countryOther ? (
-                    <p className="mt-2 text-xs font-medium text-destructive">
-                      {fieldErrors.countryOther}
-                    </p>
                   ) : null}
                 </Field>
               </div>
@@ -1353,6 +1396,7 @@ export function ApplicationForm() {
                     onToggle={(language) =>
                       setBaseField("medium", updateArray(base.medium, language))
                     }
+                    invalid={Boolean(fieldErrors.medium)}
                   />
                 </Field>
                 <Field label="Graduation Year">
@@ -1378,19 +1422,17 @@ export function ApplicationForm() {
                       status === PROFESSIONAL_STATUS ? ["Official examiner / moderator"] : [],
                     );
                   }}
+                  invalid={Boolean(fieldErrors.status)}
                 />
                 {base.status === "Other" ? (
                   <Input
                     className="mt-2"
+                    isInvalid={Boolean(fieldErrors.statusOther)}
+                    hint={fieldErrors.statusOther || undefined}
                     value={base.statusOther}
                     onChange={(event) => setBaseField("statusOther", event.target.value)}
                     placeholder="Please specify"
                   />
-                ) : null}
-                {fieldErrors.statusOther ? (
-                  <p className="mt-2 text-xs font-medium text-destructive">
-                    {fieldErrors.statusOther}
-                  </p>
                 ) : null}
                 {base.status === PROFESSIONAL_STATUS ||
                 roles.includes("Official examiner / moderator") ? (
@@ -1398,19 +1440,23 @@ export function ApplicationForm() {
                     <Label className="font-semibold text-foreground">
                       Examining Board(s)
                       <span className="ml-1 text-destructive">*</span>
+                      {fieldErrors.boards ? (
+                        <span className="ml-2 align-middle text-xs font-bold uppercase tracking-wide text-destructive">
+                          Required
+                        </span>
+                      ) : null}
                     </Label>
                     <div className="mt-2">
                       <Choices
                         options={EXAMINING_BOARD_OPTIONS}
                         values={boards}
-                        onToggle={(board) => setBoards(updateArray(boards, board))}
+                        onToggle={(board) => {
+                          setBoards(updateArray(boards, board));
+                          clearFieldError("boards");
+                        }}
+                        invalid={Boolean(fieldErrors.boards)}
                       />
                     </div>
-                    {fieldErrors.boards ? (
-                      <p className="mt-2 text-xs font-medium text-destructive">
-                        {fieldErrors.boards}
-                      </p>
-                    ) : null}
                   </div>
                 ) : null}
               </Field>
@@ -1429,7 +1475,11 @@ export function ApplicationForm() {
                   <Choices
                     options={TEACHING_QUALIFICATION_OPTIONS}
                     values={credentials}
-                    onToggle={(credential) => setCredentials(updateArray(credentials, credential))}
+                    onToggle={(credential) => {
+                      setCredentials(updateArray(credentials, credential));
+                      clearFieldError("credentials");
+                    }}
+                    invalid={Boolean(fieldErrors.credentials)}
                   />
                 </Field>
               ) : (
@@ -1486,6 +1536,7 @@ export function ApplicationForm() {
                               onChange={(curriculum) =>
                                 updateQualification(index, blankQualification(curriculum))
                               }
+                              invalid={Boolean(fieldErrors[`curriculum-${index}`])}
                             />
                             {index > 0 ? (
                               <Button
@@ -1559,6 +1610,7 @@ export function ApplicationForm() {
                                   boards: updateArray(qualification.boards, board),
                                 })
                               }
+                              invalid={Boolean(fieldErrors[`boards-${index}`])}
                             />
                           </Field>
                         ) : null}
@@ -1725,6 +1777,7 @@ export function ApplicationForm() {
                 )}
                 addedSubjects={base.subjectsTaught}
                 options={[...new Set([...DEFAULT_SUBJECT_OPTIONS, ...allResultSubjects])]}
+                invalid={Boolean(fieldErrors.subjectsTaught)}
                 onToggle={(subject) => {
                   if (allResultSubjects.includes(subject)) {
                     setRemovedStudiedSubjects((current) =>
@@ -1752,6 +1805,7 @@ export function ApplicationForm() {
                   options={FORMAT_OPTIONS}
                   value={base.format}
                   onChange={(format) => setBaseField("format", format)}
+                  invalid={Boolean(fieldErrors.format)}
                 />
               </Field>
               {base.format !== "Online" ? (
@@ -1761,7 +1815,12 @@ export function ApplicationForm() {
                   hint="Suggestions use estimated MTR rail and transfer time, not straight-line station distance. Walking time and delays are not included. You can choose more than one station."
                   error={fieldErrors.stations}
                 >
-                  <div className="grid gap-3 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4">
+                  <div
+                    className={cn(
+                      "grid gap-3 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4",
+                      fieldErrors.stations && "border-destructive",
+                    )}
+                  >
                     <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
                       <div className="grid gap-2">
                         <Label className="text-sm font-semibold">Starting MTR station</Label>
@@ -1929,6 +1988,13 @@ export function ApplicationForm() {
                         updateAchievement(index, { description: event.target.value })
                       }
                       placeholder="Brief details"
+                      aria-invalid={
+                        fieldErrors[`achievement-description-${index}`] ? true : undefined
+                      }
+                      className={cn(
+                        fieldErrors[`achievement-description-${index}`] &&
+                          "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30",
+                      )}
                     />
                   </Field>
                   <Field label="Evidence" error={fieldErrors[`achievement-proof-${index}`]}>
@@ -1967,6 +2033,7 @@ export function ApplicationForm() {
                       <div className="mt-2">
                         <DocumentUpload
                           file={achievement.proof}
+                          invalid={Boolean(fieldErrors[`achievement-proof-${index}`])}
                           onRemove={() => updateAchievement(index, { proof: null })}
                           onSelect={(file) => {
                             if (
@@ -2047,6 +2114,7 @@ export function ApplicationForm() {
                   options={MATERIALS_OPTIONS}
                   value={base.materials}
                   onChange={(materials) => setBaseField("materials", materials)}
+                  invalid={Boolean(fieldErrors.materials)}
                 />
               </Field>
             </div>
@@ -2059,26 +2127,38 @@ export function ApplicationForm() {
                   <Checkbox
                     checked={base.privacy}
                     onCheckedChange={(checked) => setBaseField("privacy", checked === true)}
+                    aria-invalid={fieldErrors.privacy ? true : undefined}
+                    className={fieldErrors.privacy ? "border-destructive" : undefined}
                   />
-                  {professional
-                    ? "I consent to MatchMax using my credentials and CV to verify my professional status, promote my teaches profile, and protect my anonymity."
-                    : PRIVACY_TEXT}
+                  <span>
+                    {professional
+                      ? "I consent to MatchMax using my credentials and CV to verify my professional status, promote my teaches profile, and protect my anonymity."
+                      : PRIVACY_TEXT}
+                    {fieldErrors.privacy ? (
+                      <span className="ml-2 align-middle text-xs font-bold uppercase tracking-wide text-destructive">
+                        Required
+                      </span>
+                    ) : null}
+                  </span>
                 </label>
-                {fieldErrors.privacy ? (
-                  <p className="text-xs font-medium text-destructive">{fieldErrors.privacy}</p>
-                ) : null}
               </div>
               <div className="grid gap-1.5">
                 <label className="flex gap-3 text-sm text-muted-foreground">
                   <Checkbox
                     checked={base.commission}
                     onCheckedChange={(checked) => setBaseField("commission", checked === true)}
+                    aria-invalid={fieldErrors.commission ? true : undefined}
+                    className={fieldErrors.commission ? "border-destructive" : undefined}
                   />
-                  {COMMISSION_TEXT}
+                  <span>
+                    {COMMISSION_TEXT}
+                    {fieldErrors.commission ? (
+                      <span className="ml-2 align-middle text-xs font-bold uppercase tracking-wide text-destructive">
+                        Required
+                      </span>
+                    ) : null}
+                  </span>
                 </label>
-                {fieldErrors.commission ? (
-                  <p className="text-xs font-medium text-destructive">{fieldErrors.commission}</p>
-                ) : null}
               </div>
               <div ref={captchaRef} className="min-h-[65px]" />
               {captchaError ? (
