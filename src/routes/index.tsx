@@ -481,67 +481,6 @@ function Landing() {
         </div>
       </section>
 
-      <section className="pb-12 md:pb-22">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <h2 className="mt-2 text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
-            Save your shortlist
-          </h2>
-
-          <div className="mt-4">
-            <article className="saved-posts-reserve-card overflow-hidden rounded-3xl md:rounded-sm">
-              <div className="grid min-h-[430px] gap-0 md:min-h-[520px]">
-                <div className="flex flex-col justify-between gap-4 p-4 sm:p-6 md:p-10">
-                  <div>
-                    <h2 className="mt-2 max-w-xl text-xl font-black leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-2xl md:mt-5 md:text-[2.75rem]">
-                      Keep your favorite tutors close
-                    </h2>
-                    <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm md:mt-5 md:text-[1.04rem]">
-                      Bookmark tutors from the directory so you can compare your shortlist and come
-                      back when you are ready to request a lesson.
-                    </p>
-
-                    <div className="mt-4 grid gap-2.5 sm:mt-6 sm:grid-cols-2">
-                      <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
-                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                          Save profiles
-                        </p>
-                        <p className="mt-1 text-sm font-black text-[color:var(--ink)] sm:text-lg">
-                          Build your shortlist
-                        </p>
-                        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-sm">
-                          Keep promising tutor profiles in one place while you decide.
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
-                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                          Return anytime
-                        </p>
-                        <p className="mt-1 text-sm font-black text-[color:var(--ink)] sm:text-lg">
-                          Request when ready
-                        </p>
-                        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-sm">
-                          Open a saved profile and contact the tutor when the time is right.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                    <Button
-                      asChild
-                      size="lg"
-                      className="h-11 w-full rounded-xl bg-[color:var(--surface-invert)] px-4 text-sm font-bold text-white hover:bg-[color:var(--surface-invert-hover)] md:h-12 md:w-auto md:rounded-sm md:px-8 md:text-base"
-                    >
-                      <Link to="/saved-posts">View saved posts</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
       {/* FINDING A TUTOR / TUTOR CTA */}
       <section id="how" className="py-12 md:py-24">
         <div className="mx-auto max-w-7xl space-y-8 px-4 md:space-y-12 md:px-6">
