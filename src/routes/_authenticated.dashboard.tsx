@@ -250,7 +250,7 @@ function SettingsPage() {
                       maxLength={80}
                       disabled={loadingProfile || saving}
                       autoComplete="name"
-                      className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] placeholder:text-[color:var(--ink)]/35 focus-visible:ring-[color:var(--ink)]"
+                      className="bg-[color:var(--surface)] placeholder:text-[color:var(--ink)]/35"
                     />
                   </div>
                   <div className="space-y-2">
@@ -301,7 +301,7 @@ function SettingsPage() {
                       minLength={6}
                       required
                       autoComplete="new-password"
-                      className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] focus-visible:ring-[color:var(--ink)]"
+                      className="bg-[color:var(--surface)]"
                     />
                   </div>
                   <div className="space-y-2">
@@ -316,7 +316,7 @@ function SettingsPage() {
                       minLength={6}
                       required
                       autoComplete="new-password"
-                      className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] focus-visible:ring-[color:var(--ink)]"
+                      className="bg-[color:var(--surface)]"
                     />
                   </div>
                   <Button
@@ -349,11 +349,12 @@ function SettingsPage() {
                         type="button"
                         onClick={() => setTheme(option.value)}
                         aria-pressed={active}
-                        className={`flex flex-col items-start gap-2 rounded-xl border px-4 py-4 text-left transition-colors ${
+                        className={cn(
+                          "flex flex-col items-start gap-2 rounded-xl border px-4 py-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
                           active
-                            ? "border-[color:var(--brand-link)] bg-[color:var(--ink)]/5"
-                            : "border-[color:var(--ink)]/12 hover:bg-[color:var(--ink)]/5"
-                        }`}
+                            ? "border-[color:var(--ring)] bg-[color:var(--ink)]/5"
+                            : "border-[color:var(--ink)]/10 hover:bg-[color:var(--ink)]/5",
+                        )}
                       >
                         <Icon className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
                         <span className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]">
@@ -396,7 +397,7 @@ function SettingsPage() {
                       <Button
                         type="button"
                         disabled={deleting}
-                        className="shrink-0 bg-red-600 font-bold text-white hover:bg-red-700"
+                        className="shrink-0 bg-destructive font-bold text-[color:var(--destructive-foreground)] hover:bg-destructive/90"
                       >
                         Delete account
                       </Button>
