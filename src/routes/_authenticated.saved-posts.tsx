@@ -62,11 +62,11 @@ function SavedPostsPage() {
             </Button>
           </div>
 
-          <div className="mt-8 rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-6 sm:p-8">
+          <div className="mt-8 p-0 sm:p-2">
             {savedTutorsQuery.isLoading ? (
               <div className="text-sm text-muted-foreground">Loading saved tutors...</div>
             ) : savedTutorsQuery.isError ? (
-              <div className="rounded-sm border border-dashed border-border bg-card p-12 text-center">
+              <div className="p-12 text-center">
                 <p className="text-lg font-bold text-[color:var(--ink)]">
                   We couldn't load your saved tutors
                 </p>
@@ -101,7 +101,7 @@ function SavedPostsPage() {
                     footerAction={
                       <Button
                         asChild
-                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert)]"
+                          className="h-9 rounded-sm bg-transparent px-4 text-[13px] font-bold text-[color:var(--brand-teal)] shadow-none hover:bg-transparent hover:text-[color:var(--brand-link)]"
                       >
                         <a
                           href={buildTutorWhatsAppUrl("", tutor.tutor_code)}

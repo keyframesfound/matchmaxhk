@@ -424,7 +424,7 @@ function Landing() {
                                 <TutorSaveButton tutorId={tutor.id} compact />
                                 <Button
                                   asChild
-                                  className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                                  className="h-9 rounded-sm bg-transparent px-4 text-[13px] font-bold text-[color:var(--brand-teal)] shadow-none hover:bg-transparent hover:text-[color:var(--brand-link)]"
                                 >
                                   <a
                                     href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}
