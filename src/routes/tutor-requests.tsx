@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CaseRequestForm } from "@/features/cases/CaseRequestForm";
 import { CASE_MODE_LABEL, formatCaseBudget, formatCaseSchedule } from "@/features/cases/display";
-import { LEVEL_OPTIONS } from "@/features/cases/case-options";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
 export const Route = createFileRoute("/tutor-requests")({
@@ -43,6 +42,14 @@ export const Route = createFileRoute("/tutor-requests")({
 
 function rowTitle(item: PublicCaseBoardItem): string {
   return item.subjects.filter(Boolean).slice(0, 2).join(", ") || item.title;
+}
+
+const CASE_SECTION_ORDER = ["IB", "DSE", "IGCSE", "AP", "A-Level", "Not sure yet", "Other"];
+
+function caseSectionLabel(examSystem: string | null): string {
+  const value = examSystem?.trim();
+  if (!value || value === "Other") return "Other";
+  return value === "IB" ? "IBDP" : value;
 }
 
 function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
@@ -79,7 +86,7 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
           </div>
         </div>
         <span className="flex shrink-0 items-center gap-1 text-sm font-semibold text-[color:var(--ink)]">
-          Apply
+          View details
           <ArrowRight
             className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
             aria-hidden="true"
@@ -147,19 +154,23 @@ function TutorRequestsPage() {
     }
   }, [initialPost]);
 
-  // Group the board by student level, in the canonical level order first.
+  // Group the board by exam system, keeping the most common curricula first.
   const groups = useMemo(() => {
-    const byLevel = new Map<string, PublicCaseBoardItem[]>();
+    const byExamSystem = new Map<string, PublicCaseBoardItem[]>();
     for (const item of cases) {
-      const list = byLevel.get(item.studentLevel) ?? [];
+      const section = item.examSystem?.trim() || "Other";
+      const list = byExamSystem.get(section) ?? [];
       list.push(item);
-      byLevel.set(item.studentLevel, list);
+      byExamSystem.set(section, list);
     }
-    const known = LEVEL_OPTIONS.map((o) => o.value).filter((v) => byLevel.has(v));
-    const extra = [...byLevel.keys()]
-      .filter((v) => !known.includes(v))
+    const known = CASE_SECTION_ORDER.filter((section) => byExamSystem.has(section));
+    const extra = [...byExamSystem.keys()]
+      .filter((section) => !known.includes(section))
       .sort((a, b) => a.localeCompare(b));
-    return [...known, ...extra].map((level) => ({ level, items: byLevel.get(level)! }));
+    return [...known, ...extra].map((section) => ({
+      section,
+      items: byExamSystem.get(section)!,
+    }));
   }, [cases]);
 
   return (
@@ -253,10 +264,10 @@ function TutorRequestsPage() {
             ) : (
               <div className="flex flex-col gap-8">
                 {groups.map((group) => (
-                  <div key={group.level} className="flex flex-col gap-3">
+                  <div key={group.section} className="flex flex-col gap-3">
                     <div className="flex items-center gap-2">
                       <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        {group.level}
+                        {caseSectionLabel(group.section)}
                       </h3>
                       <span className="text-xs tabular-nums text-muted-foreground">
                         {group.items.length}
