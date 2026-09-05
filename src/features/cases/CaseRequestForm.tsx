@@ -107,13 +107,13 @@ const INITIAL_FORM: FormState = {
 
 type CaseRequestFormProps = {
   idPrefix?: string;
-  onSubmitted?: (result: { caseCode: string; duplicate: boolean }) => void;
+  onSubmitted?: (result: { caseCode: string }) => void;
 };
 
 export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFormProps) {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
-  const [result, setResult] = useState<{ caseCode: string; duplicate: boolean } | null>(null);
+  const [result, setResult] = useState<{ caseCode: string } | null>(null);
   const honeypot = useRef<HTMLInputElement>(null);
   const startedAt = useRef(Date.now());
 
@@ -213,9 +213,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         />
         <h2 className="mt-4 text-3xl font-black text-[color:var(--ink)]">Case request received</h2>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-          {result.duplicate
-            ? "We already received a request from this number. Your reference:"
-            : "Keep this reference for your records."}
+          Keep this reference for your records.
         </p>
         <p className="mt-4 font-mono text-2xl font-black tracking-tight text-[color:var(--ink)]">
           {result.caseCode}

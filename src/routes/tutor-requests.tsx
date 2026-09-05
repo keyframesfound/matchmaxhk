@@ -104,7 +104,7 @@ function TutorRequestsPage() {
       {formOpen ? (
         <div
           ref={formSectionRef}
-          className="scroll-mt-24 border-b border-border bg-[color:var(--surface-subtle)]/40"
+          className="scroll-mt-24 border-b border-[color:var(--brand-teal)]/20 bg-brand-gradient-soft"
         >
           <PageContainer width="default" className="py-10 sm:py-12">
             <div className="mb-6">

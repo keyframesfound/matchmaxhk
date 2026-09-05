@@ -109,20 +109,8 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const now = Date.now();
 
-    const { data: recent, error: recentError } = await supabaseAdmin
-      .from("tutoring_cases")
-      .select("id, case_code, created_at")
-      .eq("contact_phone", data.contactPhone)
-      .gte("created_at", new Date(now - 10 * 60 * 1000).toISOString())
-      .order("created_at", { ascending: false })
-      .limit(1);
-    if (recentError) throw new Error(recentError.message);
-    if (recent && recent.length > 0) {
-      return { caseCode: recent[0].case_code as string, duplicate: true };
-    }
-
+    // Every submission creates a new case — no duplicate collapsing by phone number.
     const { count: totalCount, error: countError } = await supabaseAdmin
       .from("tutoring_cases")
       .select("id", { count: "exact", head: true })
@@ -161,7 +149,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    return { caseCode: row.case_code as string, duplicate: false };
+    return { caseCode: row.case_code as string };
   });
 
 async function assertAdmin(supabase: unknown, userId: string) {
