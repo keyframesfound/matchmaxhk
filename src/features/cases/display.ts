@@ -26,3 +26,30 @@ export function buildCaseApplyWhatsAppUrl(whatsappNumber: string, caseCode: stri
   // message and lets the user pick the MatchMax chat.
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
+
+export const CASE_MODE_LABEL: Record<string, string> = {
+  online: "Online",
+  in_person: "In-person",
+  either: "Online & in-person",
+};
+
+export const CASE_GENDER_LABEL: Record<string, string> = {
+  any: "No preference",
+  female: "Female tutor",
+  male: "Male tutor",
+};
+
+export const CASE_START_LABEL: Record<string, string> = {
+  asap: "Starts ASAP",
+  two_weeks: "Within 2 weeks",
+  flexible: "Flexible start",
+};
+
+export function formatCaseBudget(min: number | null, max: number | null): string {
+  if (min === null && max === null) return "Budget open";
+  return `HK$${min ?? "?"}–${max ?? "?"}/hr`;
+}
+
+export function formatCaseSchedule(sessionsPerWeek: number, sessionLengthMinutes: number): string {
+  return `${sessionsPerWeek}x/week · ${sessionLengthMinutes} min`;
+}

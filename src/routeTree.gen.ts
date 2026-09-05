@@ -27,6 +27,7 @@ import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authentic
 import { Route as BusinessSlugRouteImport } from './routes/business.$slug'
 import { Route as CoursesIndexRouteImport } from './routes/courses.index'
 import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
+import { Route as TutorRequestsCaseCodeRouteImport } from './routes/tutor-requests.$caseCode'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
@@ -134,6 +135,11 @@ const CoursesCourseIdRoute = CoursesCourseIdRouteImport.update({
   path: '/courses/$courseId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TutorRequestsCaseCodeRoute = TutorRequestsCaseCodeRouteImport.update({
+  id: '/$caseCode',
+  path: '/$caseCode',
+  getParentRoute: () => TutorRequestsRoute,
+} as any)
 const TutorsIndexRoute = TutorsIndexRouteImport.update({
   id: '/tutors/',
   path: '/tutors/',
@@ -240,12 +246,13 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tutor-requests': typeof TutorRequestsRoute
+  '/tutor-requests': typeof TutorRequestsRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/tutor-requests/$caseCode': typeof TutorRequestsCaseCodeRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses/': typeof CoursesIndexRoute
   '/tutors/': typeof TutorsIndexRoute
@@ -276,11 +283,12 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tutor-requests': typeof TutorRequestsRoute
+  '/tutor-requests': typeof TutorRequestsRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/tutor-requests/$caseCode': typeof TutorRequestsCaseCodeRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses': typeof CoursesIndexRoute
   '/tutors': typeof TutorsIndexRoute
@@ -313,12 +321,13 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tutor-requests': typeof TutorRequestsRoute
+  '/tutor-requests': typeof TutorRequestsRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/tutor-requests/$caseCode': typeof TutorRequestsCaseCodeRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses/': typeof CoursesIndexRoute
   '/tutors/': typeof TutorsIndexRoute
@@ -357,6 +366,7 @@ export interface FileRouteTypes {
     | '/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
+    | '/tutor-requests/$caseCode'
     | '/tutors/$tutorCode'
     | '/courses/'
     | '/tutors/'
@@ -392,6 +402,7 @@ export interface FileRouteTypes {
     | '/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
+    | '/tutor-requests/$caseCode'
     | '/tutors/$tutorCode'
     | '/courses'
     | '/tutors'
@@ -429,6 +440,7 @@ export interface FileRouteTypes {
     | '/_authenticated/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
+    | '/tutor-requests/$caseCode'
     | '/tutors/$tutorCode'
     | '/courses/'
     | '/tutors/'
@@ -461,7 +473,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  TutorRequestsRoute: typeof TutorRequestsRoute
+  TutorRequestsRoute: typeof TutorRequestsRouteWithChildren
   BusinessSlugRoute: typeof BusinessSlugRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
@@ -599,6 +611,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/courses/$courseId'
       preLoaderRoute: typeof CoursesCourseIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/tutor-requests/$caseCode': {
+      id: '/tutor-requests/$caseCode'
+      path: '/$caseCode'
+      fullPath: '/tutor-requests/$caseCode'
+      preLoaderRoute: typeof TutorRequestsCaseCodeRouteImport
+      parentRoute: typeof TutorRequestsRoute
     }
     '/tutors/': {
       id: '/tutors/'
@@ -771,6 +790,18 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface TutorRequestsRouteChildren {
+  TutorRequestsCaseCodeRoute: typeof TutorRequestsCaseCodeRoute
+}
+
+const TutorRequestsRouteChildren: TutorRequestsRouteChildren = {
+  TutorRequestsCaseCodeRoute: TutorRequestsCaseCodeRoute,
+}
+
+const TutorRequestsRouteWithChildren = TutorRequestsRoute._addFileChildren(
+  TutorRequestsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
@@ -783,7 +814,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  TutorRequestsRoute: TutorRequestsRoute,
+  TutorRequestsRoute: TutorRequestsRouteWithChildren,
   BusinessSlugRoute: BusinessSlugRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,

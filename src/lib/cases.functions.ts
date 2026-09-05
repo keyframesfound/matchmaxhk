@@ -45,17 +45,40 @@ export type PublicCaseBoardItem = {
   createdAt: string;
 };
 
+const PUBLIC_CASE_COLUMNS =
+  "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, preferred_gender, start_timing, budget_min, budget_max, board_published_at, created_at";
+
+// Never contact_name / contact_phone / student_school / student_grade_current.
+function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
+  return {
+    id: row.id as string,
+    caseCode: row.case_code as string,
+    title: row.title as string,
+    description: (row.description as string | null) ?? null,
+    subjects: (row.subjects as string[] | null) ?? [],
+    studentLevel: row.student_level as string,
+    examSystem: (row.exam_system as string | null) ?? null,
+    district: (row.district as string | null) ?? null,
+    mode: row.mode as "online" | "in_person" | "either",
+    sessionsPerWeek: (row.sessions_per_week as number | null) ?? 1,
+    sessionLengthMinutes: (row.session_length_minutes as number | null) ?? 60,
+    preferredGender: (row.preferred_gender as "any" | "male" | "female") ?? "any",
+    startTiming: (row.start_timing as string | null) ?? null,
+    budgetMin: (row.budget_min as number | null) ?? null,
+    budgetMax: (row.budget_max as number | null) ?? null,
+    boardPublishedAt: (row.board_published_at as string | null) ?? null,
+    createdAt: row.created_at as string,
+  };
+}
+
 // Public board read: admin client + explicit safe columns only
-// (never contact_name / contact_phone / student_school / student_grade_current)
 // Also returns the MatchMax WhatsApp number so Apply links render server-side.
 export const getPublicCaseBoard = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const [casesResult, settingsResult] = await Promise.all([
     supabaseAdmin
       .from("tutoring_cases")
-      .select(
-        "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, preferred_gender, start_timing, budget_min, budget_max, board_published_at, created_at",
-      )
+      .select(PUBLIC_CASE_COLUMNS)
       .not("board_published_at", "is", null)
       .not("status", "in", "(matched,closed,rejected)")
       .order("board_published_at", { ascending: false })
@@ -66,28 +89,37 @@ export const getPublicCaseBoard = createServerFn({ method: "GET" }).handler(asyn
   const rows = (casesResult.data ?? []) as Array<Record<string, unknown>>;
   const settingsValue = settingsResult.data?.value;
   return {
-    items: rows.map((row): PublicCaseBoardItem => ({
-      id: row.id as string,
-      caseCode: row.case_code as string,
-      title: row.title as string,
-      description: (row.description as string | null) ?? null,
-      subjects: (row.subjects as string[] | null) ?? [],
-      studentLevel: row.student_level as string,
-      examSystem: (row.exam_system as string | null) ?? null,
-      district: (row.district as string | null) ?? null,
-      mode: row.mode as "online" | "in_person" | "either",
-      sessionsPerWeek: (row.sessions_per_week as number | null) ?? 1,
-      sessionLengthMinutes: (row.session_length_minutes as number | null) ?? 60,
-      preferredGender: (row.preferred_gender as "any" | "male" | "female") ?? "any",
-      startTiming: (row.start_timing as string | null) ?? null,
-      budgetMin: (row.budget_min as number | null) ?? null,
-      budgetMax: (row.budget_max as number | null) ?? null,
-      boardPublishedAt: (row.board_published_at as string | null) ?? null,
-      createdAt: row.created_at as string,
-    })),
+    items: rows.map(mapPublicCaseRow),
     whatsappNumber: typeof settingsValue === "string" ? settingsValue.trim() : "",
   };
 });
+
+// Single public case detail, same safe columns as the board.
+export const getPublicCaseByCode = createServerFn({ method: "GET" })
+  .inputValidator((data: unknown) =>
+    z.object({ caseCode: z.string().trim().min(1).max(40) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [caseResult, settingsResult] = await Promise.all([
+      supabaseAdmin
+        .from("tutoring_cases")
+        .select(PUBLIC_CASE_COLUMNS)
+        .eq("case_code", data.caseCode)
+        .not("board_published_at", "is", null)
+        .not("status", "in", "(matched,closed,rejected)")
+        .maybeSingle(),
+      supabaseAdmin.from("app_settings").select("value").eq("key", "whatsapp_number").maybeSingle(),
+    ]);
+    if (caseResult.error) throw new Error(caseResult.error.message);
+    const row = caseResult.data as Record<string, unknown> | null;
+    if (!row) return null;
+    const settingsValue = settingsResult.data?.value;
+    return {
+      item: mapPublicCaseRow(row),
+      whatsappNumber: typeof settingsValue === "string" ? settingsValue.trim() : "",
+    };
+  });
 
 function buildCaseTitle(subjects: string[], level: string): string {
   const subjectPart = subjects.slice(0, 2).join(", ");
