@@ -48,6 +48,27 @@ const labelClassName =
   "mb-1.5 block text-sm font-bold text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--brand-teal)]";
 const controlClassName = "h-11 w-full rounded-sm";
 
+const PHONE_REGEX = /^[+(\d][\d\s()./+-]{4,19}\d$/;
+
+type ValidationIssue = { path?: unknown[]; message: string };
+
+function parseValidationIssues(message: string): ValidationIssue[] | null {
+  if (!message.startsWith("[")) return null;
+  try {
+    const parsed: unknown = JSON.parse(message);
+    if (
+      Array.isArray(parsed) &&
+      parsed.length > 0 &&
+      typeof (parsed[0] as ValidationIssue)?.message === "string"
+    ) {
+      return parsed as ValidationIssue[];
+    }
+  } catch {
+    // Not a validation issue payload
+  }
+  return null;
+}
+
 type FormState = {
   parentName: string;
   contactPhone: string;
@@ -140,14 +161,31 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       setResult(data);
       onSubmitted?.(data);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      const issues = parseValidationIssues(e.message);
+      if (issues) {
+        const first = issues[0];
+        const field =
+          typeof first?.path?.[0] === "string" && first.path[0] in form
+            ? (first.path[0] as keyof FormState)
+            : null;
+        if (field) setErrors({ [field]: first.message });
+        toast.error(first?.message ?? "Please check the highlighted fields.");
+        return;
+      }
+      toast.error(e.message);
+    },
   });
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const nextErrors: Partial<Record<keyof FormState, string>> = {};
     if (!form.parentName.trim()) nextErrors.parentName = "Please enter your name.";
-    if (!form.contactPhone.trim()) nextErrors.contactPhone = "Please enter your WhatsApp number.";
+    if (!form.contactPhone.trim()) {
+      nextErrors.contactPhone = "Please enter your WhatsApp number.";
+    } else if (!PHONE_REGEX.test(form.contactPhone.trim())) {
+      nextErrors.contactPhone = "Please enter a valid WhatsApp number (e.g. +852 9123 4567).";
+    }
     if (!form.level) nextErrors.level = "Please select the student level.";
     if (!form.subject1.trim()) nextErrors.subject1 = "Please tell us at least one subject.";
     if (!form.mode) nextErrors.mode = "Please choose a lesson mode.";
@@ -177,10 +215,13 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
           {result.duplicate
             ? "We already received a request from this number. Your reference:"
-            : "Keep this reference for your records. Our team replies within one business day."}
+            : "Keep this reference for your records."}
         </p>
         <p className="mt-4 font-mono text-2xl font-black tracking-tight text-[color:var(--ink)]">
           {result.caseCode}
+        </p>
+        <p className="mx-auto mt-4 max-w-md text-sm font-bold text-[color:var(--ink)]">
+          The MatchMax team will contact you shortly on WhatsApp.
         </p>
         <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-muted-foreground">
           Our team reviews every request — once approved, your case appears on this board so
@@ -443,7 +484,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           )}
         </Button>
         <p className="text-center text-xs text-muted-foreground sm:text-sm">
-          Free for parents, our team replies within one business day.
+          Free for parents — our team will contact you on WhatsApp within one business day.
         </p>
       </div>
     </form>

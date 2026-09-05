@@ -22,5 +22,7 @@ export function formatCaseTitle(studentLevel: string, subjects: string[]): strin
 export function buildCaseApplyWhatsAppUrl(whatsappNumber: string, caseCode: string): string {
   const digits = whatsappNumber.replace(/[^\d]/g, "");
   const message = `Hi MatchMax! I'd like to apply for case ${caseCode}.`;
+  // With no configured number, wa.me still opens WhatsApp with the prefilled
+  // message and lets the user pick the MatchMax chat.
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }

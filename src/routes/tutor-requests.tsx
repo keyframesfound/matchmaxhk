@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Inbox } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
@@ -45,24 +44,13 @@ function TutorRequestsPage() {
   const [formOpen, setFormOpen] = useState(Boolean(initialPost));
   const formSectionRef = useRef<HTMLDivElement>(null);
 
-  const { data: cases = [], isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["cases", "board"],
     queryFn: () => getPublicCaseBoard(),
   });
-
-  const { data: whatsappNumber = "" } = useQuery({
-    queryKey: ["settings", "whatsapp_number"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "whatsapp_number")
-        .maybeSingle();
-      if (error) throw error;
-      const value = data?.value;
-      return typeof value === "string" ? value.trim() : "";
-    },
-  });
+  const cases = data?.items ?? [];
+  const whatsappNumber = data?.whatsappNumber ?? "";
+  const isLoading = !data;
 
   const openForm = () => {
     setFormOpen(true);

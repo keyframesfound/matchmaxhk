@@ -60,7 +60,6 @@ export function PublicCaseCard({
       ? "Budget open"
       : `HK$${item.budgetMin ?? "?"}–${item.budgetMax ?? "?"}`;
   const curriculum = item.examSystem && item.examSystem !== "Not sure yet" ? item.examSystem : null;
-  const hasWhatsApp = whatsappNumber.replace(/[^\d]/g, "").length > 0;
   const applyUrl = buildCaseApplyWhatsAppUrl(whatsappNumber, item.caseCode);
 
   return (
@@ -125,17 +124,16 @@ export function PublicCaseCard({
             Posted {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
           </p>
         </div>
-        {hasWhatsApp ? (
-          <a
-            href={applyUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white transition-colors hover:bg-[color:var(--surface-invert-hover)]"
-          >
-            <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
-            Apply
-          </a>
-        ) : null}
+        <a
+          href={applyUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Apply for case ${item.caseCode} via WhatsApp`}
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white transition-colors hover:bg-[color:var(--surface-invert-hover)]"
+        >
+          <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
+          Apply
+        </a>
       </footer>
     </article>
   );
