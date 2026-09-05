@@ -30,7 +30,7 @@ function ForgotPasswordPage() {
     setSending(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}/tutors`,
       });
       if (error) throw error;
       setSent(true);

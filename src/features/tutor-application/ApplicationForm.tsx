@@ -68,7 +68,6 @@ import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 type ScoreRow = {
   subject: string;
   grade: string;
-  detail: string;
   level: string;
   gradeSystem: string;
   papers: { label: string; score: string }[];
@@ -263,7 +262,7 @@ function blankQualification(curriculum = "IBDP"): Qualification {
     curriculum,
     overall: "",
     boards: [],
-    scores: [{ subject: "", grade: "", detail: "", level: "", gradeSystem: "", papers: [] }],
+    scores: [{ subject: "", grade: "", level: "", gradeSystem: "", papers: [] }],
     best6: "",
     transcript: null,
     transcriptStatus: "upload",
@@ -790,7 +789,7 @@ export function ApplicationForm() {
       const subjectResults = qualifications
         .map(
           (qualification) =>
-            `${qualification.curriculum}${qualification.overall ? ` (${qualification.overall})` : ""}\n${qualification.scores.map((score) => `${score.subject}: ${score.grade}${score.detail ? ` - ${score.detail}` : ""}`).join("\n")}`,
+            `${qualification.curriculum}${qualification.overall ? ` (${qualification.overall})` : ""}\n${qualification.scores.map((score) => `${score.subject}: ${score.grade}`).join("\n")}`,
         )
         .join("\n\n");
       const parsed = tutorApplicationSchema.safeParse({
@@ -1019,14 +1018,6 @@ export function ApplicationForm() {
                   </SelectContent>
                 </Select>
               )}
-              <Input
-                className="sm:col-span-2"
-                value={score.detail}
-                onChange={(event) =>
-                  updateScore(qualificationIndex, scoreIndex, { detail: event.target.value })
-                }
-                placeholder="Specific paper grades / breakdown (optional)"
-              />
               <div className="grid gap-2 sm:col-span-2">
                 {score.papers.map((paper, paperIndex) => (
                   <div
@@ -1122,7 +1113,7 @@ export function ApplicationForm() {
             updateQualification(qualificationIndex, {
               scores: [
                 ...qualification.scores,
-                { subject: "", grade: "", detail: "", level: "", gradeSystem: "", papers: [] },
+                { subject: "", grade: "", level: "", gradeSystem: "", papers: [] },
               ],
             })
           }

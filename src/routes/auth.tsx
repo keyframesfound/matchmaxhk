@@ -77,7 +77,7 @@ function AuthPage() {
     import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAEiLema3uiveM5pp";
 
   useEffect(() => {
-    if (user) navigate({ to: "/dashboard", replace: true });
+    if (user) navigate({ to: "/tutors", replace: true });
   }, [user, navigate]);
 
   useEffect(() => {
@@ -156,13 +156,13 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Welcome back to MatchMax.");
-        router.navigate({ to: "/dashboard", replace: true });
+        router.navigate({ to: "/tutors", replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${window.location.origin}/tutors`,
             data: { display_name: name },
             captchaToken,
           },
@@ -189,7 +189,7 @@ function AuthPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/tutors`,
         },
       });
       if (error) throw error;
