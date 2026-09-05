@@ -97,7 +97,7 @@ function TutorRequestsPage() {
           className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between sm:py-6"
         >
           <p className="max-w-3xl text-sm leading-relaxed text-[color:var(--ink)] sm:text-[15px]">
-            Requesting a tutor to satisfy your requirements?{" "}
+            Requesting a tutor that meets your requirements?{" "}
             <span className="font-bold">
               Fill in this form and tutors who&rsquo;re qualified and interested can apply for your
               case!

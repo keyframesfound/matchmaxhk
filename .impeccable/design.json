@@ -326,7 +326,7 @@
       "kind": "button",
       "refersTo": "button-accent",
       "description": "shape=\"pill\" accent for promotional CTAs.",
-      "html": "<button class=\"ds-btn-pill\">Request a match</button>",
+      "html": "<button class=\"ds-btn-pill\">Request a Tutor</button>",
       "css": ".ds-btn-pill { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 8px 32px; border: none; border-radius: 9999px; background: #1FA8B6; color: #ffffff; font-family: 'Uber Move', 'Uber Move Text', 'DM Sans', ui-sans-serif, system-ui, sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; box-shadow: 0 12px 24px -16px rgb(31 168 182 / 0.28); transition: background-color 150ms ease-out, transform 150ms ease-out; } .ds-btn-pill:hover { background: #168590; } .ds-btn-pill:active { transform: scale(0.97); } .ds-btn-pill:focus-visible { outline: none; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgb(31 168 182 / 0.4); }"
     },
     {

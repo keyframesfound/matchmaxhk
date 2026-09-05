@@ -63,7 +63,7 @@ export function SiteHeader({ className }: { className?: string }) {
       to: "/pricing",
     },
     ...(hasOrg ? [{ label: "My Business", ariaLabel: "My Business", to: "/business" }] : []),
-    { label: "Request a Match", ariaLabel: "Request a Match", to: "/tutor-requests" },
+    { label: "Request a Tutor", ariaLabel: "Request a Tutor", to: "/tutor-requests" },
     ...(user ? [{ label: "Settings", ariaLabel: "Settings", to: "/dashboard" }] : []),
     ...(isAdmin ? [{ label: "Admin", ariaLabel: "Admin", to: "/admin" }] : []),
   ];
@@ -127,7 +127,7 @@ export function SiteHeader({ className }: { className?: string }) {
             to="/tutor-requests"
             className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
-            Request a Match
+            Request a Tutor
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
         </nav>
