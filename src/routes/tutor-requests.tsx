@@ -94,7 +94,7 @@ function ListSkeleton({ rows }: { rows: number }) {
   return (
     <div className="flex flex-col gap-3">
       <Skeleton className="h-3 w-28" />
-      <div className="overflow-hidden rounded-xl border border-border">
+      <div>
         <div className="flex flex-col divide-y divide-border">
           {Array.from({ length: rows }).map((_, i) => (
             <div key={i} className="flex items-center justify-between gap-4 px-4 py-4">
@@ -165,7 +165,7 @@ function TutorRequestsPage() {
   return (
     <PublicPage mainClassName="bg-[color:var(--surface-subtle)]">
       {/* Request banner */}
-      <section className="border-b border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/8">
+      <section>
         <PageContainer
           width="wide"
           className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between sm:py-6"
@@ -190,7 +190,7 @@ function TutorRequestsPage() {
       {formOpen ? (
         <div
           ref={formSectionRef}
-          className="scroll-mt-24 border-b border-[color:var(--brand-teal)]/20 bg-brand-gradient-soft"
+          className="scroll-mt-24"
         >
           <PageContainer width="default" className="py-10 sm:py-12">
             <div className="mb-6">
@@ -223,15 +223,15 @@ function TutorRequestsPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-6 sm:p-8">
+          <div className="p-0 sm:p-2">
             {isLoading ? (
               <div className="flex flex-col gap-8">
                 <ListSkeleton rows={3} />
                 <ListSkeleton rows={2} />
               </div>
             ) : cases.length === 0 ? (
-              <div className="rounded-xl border border-border bg-card p-8 text-center sm:p-12">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/8">
+              <div className="p-8 text-center sm:p-12">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center">
                   <Inbox className="h-5 w-5 text-[color:var(--brand-teal)]" aria-hidden="true" />
                 </div>
                 <h3 className="mt-4 text-xl font-black tracking-tight text-[color:var(--ink)] sm:text-2xl">
@@ -262,7 +262,7 @@ function TutorRequestsPage() {
                         {group.items.length}
                       </span>
                     </div>
-                    <ul className="flex flex-col overflow-hidden rounded-xl border border-border">
+                    <ul className="flex flex-col">
                       {group.items.map((item) => (
                         <CaseListRow key={item.id} item={item} />
                       ))}

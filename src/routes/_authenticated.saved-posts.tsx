@@ -75,7 +75,7 @@ function SavedPostsPage() {
                 </p>
               </div>
             ) : savedTutorsQuery.data?.length === 0 ? (
-              <div className="rounded-sm border border-dashed border-border bg-card p-12 text-center">
+              <div className="p-12 text-center">
                 <Bookmark
                   className="mx-auto h-8 w-8 text-[color:var(--brand-teal)]"
                   aria-hidden="true"
@@ -101,7 +101,7 @@ function SavedPostsPage() {
                     footerAction={
                       <Button
                         asChild
-                          className="h-9 rounded-sm bg-transparent px-4 text-[13px] font-bold text-[color:var(--brand-teal)] shadow-none hover:bg-transparent hover:text-[color:var(--brand-link)]"
+                        className="h-9 rounded-sm bg-transparent px-4 text-[13px] font-bold text-[color:var(--brand-teal)] shadow-none hover:bg-transparent hover:text-[color:var(--brand-link)]"
                       >
                         <a
                           href={buildTutorWhatsAppUrl("", tutor.tutor_code)}
@@ -126,7 +126,7 @@ function SavedPostsPage() {
                 {savedCoursesQuery.isLoading ? (
                   <div className="mt-6 text-sm text-muted-foreground">Loading saved courses...</div>
                 ) : savedCourses.length === 0 ? (
-                  <div className="mt-6 rounded-sm border border-dashed border-border bg-card p-10 text-center">
+                  <div className="mt-6 p-10 text-center">
                     <BookOpen
                       className="mx-auto h-8 w-8 text-[color:var(--brand-teal)]"
                       aria-hidden="true"
@@ -148,7 +148,7 @@ function SavedPostsPage() {
                       return (
                         <div
                           key={course.id}
-                          className="flex items-center gap-4 rounded-lg border border-border bg-card p-4"
+                          className="flex items-center gap-4 p-4"
                         >
                           {course.image_url ? (
                             <img
