@@ -199,10 +199,7 @@ function TutorRequestsPage() {
 
       {/* Collapsible request form */}
       {formOpen ? (
-        <div
-          ref={formSectionRef}
-          className="scroll-mt-24"
-        >
+        <div ref={formSectionRef} className="scroll-mt-24">
           <PageContainer width="default" className="py-10 sm:py-12">
             <div className="mb-6">
               <h2 className="text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">

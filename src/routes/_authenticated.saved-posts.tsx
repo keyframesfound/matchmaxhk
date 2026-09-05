@@ -101,7 +101,7 @@ function SavedPostsPage() {
                     footerAction={
                       <Button
                         asChild
-                        className="h-9 rounded-sm bg-transparent px-4 text-[13px] font-bold text-[color:var(--brand-teal)] shadow-none hover:bg-transparent hover:text-[color:var(--brand-link)]"
+                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white shadow-none hover:bg-[color:var(--surface-invert-hover)]"
                       >
                         <a
                           href={buildTutorWhatsAppUrl("", tutor.tutor_code)}
@@ -146,10 +146,7 @@ function SavedPostsPage() {
                     {savedCourses.map((course) => {
                       const price = formatCoursePrice(course.price, course.currency);
                       return (
-                        <div
-                          key={course.id}
-                          className="flex items-center gap-4 p-4"
-                        >
+                        <div key={course.id} className="flex items-center gap-4 p-4">
                           {course.image_url ? (
                             <img
                               src={course.image_url}

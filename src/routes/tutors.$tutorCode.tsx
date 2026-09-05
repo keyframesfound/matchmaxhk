@@ -513,7 +513,7 @@ function TutorDetail() {
                 {waUrl ? (
                   <Button
                     asChild
-                    className="mt-3 w-full bg-transparent font-bold text-[color:var(--brand-teal)] shadow-none hover:bg-transparent hover:text-[color:var(--brand-link)] sm:w-auto"
+                    className="mt-3 w-full rounded-sm bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert-hover)] sm:w-auto"
                   >
                     <a href={waUrl} target="_blank" rel="noopener noreferrer">
                       <MessageCircle className="mr-2 h-4 w-4" /> Request tutor
@@ -657,7 +657,7 @@ function TutorDetail() {
                     footerAction={
                       <Button
                         asChild
-                        className="h-9 rounded-sm bg-transparent px-4 text-[13px] font-bold text-[color:var(--brand-teal)] shadow-none hover:bg-transparent hover:text-[color:var(--brand-link)]"
+                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white shadow-none hover:bg-[color:var(--surface-invert-hover)]"
                       >
                         <a
                           href={`https://wa.me/${(whatsappNumber ?? "").replace(/[^\d]/g, "")}?text=${encodeURIComponent(`I would like to request tutor ${candidate.tutor_code}`)}`}
