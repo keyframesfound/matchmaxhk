@@ -3,10 +3,7 @@ import {
   Asterisk,
   ArrowRight,
   Check,
-  CircleDollarSign,
   Clock3,
-  GraduationCap,
-  Handshake,
   MessageCircle,
   Search,
   UserRoundCheck,
@@ -20,6 +17,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
@@ -36,21 +34,88 @@ export const Route = createFileRoute("/how-it-works")({
   component: HowItWorksPage,
 });
 
-const DIFFERENCE = [
+type ComparisonRow = {
+  aspect: string;
+  oldWay: string;
+  advantage: string;
+  detail: string;
+};
+
+const EDUCATOR_COMPARISON: ComparisonRow[] = [
   {
-    icon: GraduationCap,
-    title: "Top 1% elite screening",
-    text: "We demand academic excellence. Our network consists of top-tier talent, including candidates with IB 40+, DSE Best 5 30+, and official examiners. Every profile is rigorously verified so parents are paired with authentic, high-calibre educators.",
+    aspect: "Agency Commission",
+    oldWay: "Take 2 full weeks of your pay (up to 4–8 lessons).",
+    advantage: "Fair 1.5-Lesson Fee",
+    detail:
+      "You only pay for 1.5 lessons per successful match. You keep 100% of everything you earn after that.",
   },
   {
-    icon: CircleDollarSign,
-    title: "The most transparent fees in Hong Kong",
-    text: "Traditional agencies typically charge tutors half of their first month's tuition—up to a full two weeks of pay. MatchMax charges a radically transparent, one-time flat fee of just 1.5 lessons, so top talent keeps more of what they earn.",
+    aspect: "Travel & Commute",
+    oldWay: "Assign cases by broad districts, making you travel an hour for a single lesson.",
+    advantage: "MTR Station Selection",
+    detail:
+      "You pick the exact MTR stations you can reach. We only send you students along your line.",
   },
   {
-    icon: Handshake,
-    title: "Student-founded expertise",
-    text: "Built by university students, we understand the logistics of private tutoring. We consider every application individually and provide personalised, manual guidance to ensure the perfect fit.",
+    aspect: "Academic Credibility Showcase",
+    oldWay:
+      "Squash your achievements into generic bullet points that make top scorers blend in with average applicants.",
+    advantage: "Granular Component Highlights",
+    detail:
+      "Showcase your exact strengths—including 7s in specific HL subjects, IA scores, and 5** paper breakdowns—so parents see your real value.",
+  },
+  {
+    aspect: "Your Voice & Needs",
+    oldWay:
+      "Run by corporate agents who never took your syllabus and do not care about your study schedule.",
+    advantage: "Run by IB & DSE Grads",
+    detail: "We understand university workloads, exam stress, and what your prep time is worth.",
+  },
+  {
+    aspect: "Complete Privacy Protection",
+    oldWay: "Blast full names, phone numbers, or school affiliations across public groups.",
+    advantage: "Zero Public Name Leaks",
+    detail:
+      "Full names and sensitive personal details remain private. Tutors and school teachers alike can instruct safely without public exposure.",
+  },
+];
+
+const PARENT_COMPARISON: ComparisonRow[] = [
+  {
+    aspect: "Browsing Experience",
+    oldWay:
+      "Cluttered, messy profiles that are painful to navigate. Crucial details are hidden away or missing, making direct comparison impossible.",
+    advantage: "Clean, E-Commerce Style Cards",
+    detail:
+      "Key credentials—verified scores, secondary schools, and target subjects—are visible right on the preview card. Browse, compare, and shortlist educators effortlessly like online shopping, with no lost profiles.",
+  },
+  {
+    aspect: "Tutor Screening (Authenticity)",
+    oldWay: "Anyone can sign up. They rarely verify if reported grades or degrees are genuine.",
+    advantage: "100% Verified Credentials",
+    detail:
+      "We manually check official transcripts, diplomas, and exam certificates before an educator profile goes live.",
+  },
+  {
+    aspect: "Tutor Quality (The Bar)",
+    oldWay: "Accept average scorers just to fill slots and collect a booking cut.",
+    advantage: "Strict Top-Scorer Standards",
+    detail:
+      "Every educator must clear our minimum academic bar (such as IB 40+, DSE 30+, or A*AA).",
+  },
+  {
+    aspect: "Score Details",
+    oldWay: "Give you a vague one-line summary about the tutor’s background.",
+    advantage: "Detailed Paper Breakdowns",
+    detail:
+      "See exact component marks for IAs, essays, and individual exam papers before you choose.",
+  },
+  {
+    aspect: "Alumni & School Fit",
+    oldWay: "Pair your child with random tutors who do not know their school’s curriculum style.",
+    advantage: "School & Major Matches",
+    detail:
+      "Find tutors who graduated from your child’s exact secondary school or study their target degree.",
   },
 ];
 
@@ -201,7 +266,9 @@ function AudienceSection({
                   {number}
                 </span>
                 <div>
-                  <h4 className="text-xl font-black tracking-tight text-inherit sm:text-2xl">{stepTitle}</h4>
+                  <h4 className="text-xl font-black tracking-tight text-inherit sm:text-2xl">
+                    {stepTitle}
+                  </h4>
                   <p className={`mt-3 max-w-2xl text-sm leading-7 ${bodyTextClassName}`}>{text}</p>
                 </div>
               </li>
@@ -213,51 +280,89 @@ function AudienceSection({
   );
 }
 
+function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[] }) {
+  return (
+    <div>
+      <h2 className="text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
+      <div className="mt-8 hidden gap-x-10 border-b border-[color:var(--ink)]/20 pb-4 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
+        <p className="text-sm font-bold text-[color:var(--ink)]/55">What Matters</p>
+        <p className="text-sm font-bold text-[color:var(--ink)]/55">Old-School Agencies</p>
+        <p className="text-sm font-bold text-[color:var(--brand-link)]">MatchMax</p>
+      </div>
+      <ul>
+        {rows.map((row) => (
+          <li
+            key={row.aspect}
+            className="grid gap-x-10 gap-y-4 border-b border-[color:var(--ink)]/12 py-7 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-y-0 md:py-9"
+          >
+            <h3 className="text-lg font-black tracking-tight">{row.aspect}</h3>
+            <div>
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--ink)]/45 md:hidden">
+                Old-school agencies
+              </p>
+              <p className="text-sm leading-6 text-[color:var(--ink)]/60">{row.oldWay}</p>
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--brand-teal)] md:hidden">
+                MatchMax
+              </p>
+              <p className="text-sm leading-6 text-[color:var(--ink)]">
+                <strong className="font-bold text-[color:var(--brand-link)]">
+                  {row.advantage}:
+                </strong>{" "}
+                {row.detail}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function HowItWorksPage() {
   return (
     <div className="how-it-works-paper flex min-h-screen flex-col text-[color:var(--ink)]">
       <SiteHeader className="!border-b-0 !bg-white/95 dark:!bg-[color:var(--surface)]" />
       <main className="flex-1">
         <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,4fr)] lg:gap-20">
-            <div className="h-fit lg:sticky lg:top-24">
-              <p className="text-sm font-bold text-[color:var(--brand-teal)]">How MatchMax works</p>
-              <div className="relative mt-5 w-fit">
-                <h1 className="max-w-lg text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
-                  A better way to make the right introduction.
-                </h1>
-                <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--brand-teal)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
-              </div>
-              <p className="mt-6 max-w-md text-base leading-7 text-[color:var(--ink)]/65">
-                We remove the uncertainty from finding exceptional tutors, courses, and education
-                partners in Hong Kong.
-              </p>
-              <Link
-                to="/tutors"
-                className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-[color:var(--ink)] transition-transform hover:translate-x-1"
-              >
-                Find a tutor <ArrowRight className="h-4 w-4 text-[color:var(--brand-teal)]" />
+          <p className="text-sm font-bold text-[color:var(--brand-teal)]">How MatchMax works</p>
+          <div className="relative mt-5 w-fit">
+            <h1 className="max-w-2xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
+              Built by Students Who’ve Been There: Why MatchMax Works Better
+            </h1>
+            <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--brand-teal)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
+          </div>
+          <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/65">
+            We founded MatchMax as university students who sat the IB and DSE exams ourselves. We
+            know traditional agencies treat educators like numbers and leave parents guessing. Here
+            is how we make matching simple, fair, and transparent for both sides.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Button asChild size="lg" variant="solid" color="accent">
+              <Link to="/tutors">
+                Browse Educator Profiles <ArrowRight />
               </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link to="/join">Apply to Teach</Link>
+            </Button>
+          </div>
+
+          <div className="mt-16 sm:mt-24">
+            <p className="text-sm font-bold text-[color:var(--brand-teal)]">
+              01 / Why MatchMax works better
+            </p>
+            <div className="mt-10 space-y-16 sm:mt-12 sm:space-y-20">
+              <ComparisonTable
+                title="For Educators: Fair Rules, Built by Students Who Understand You"
+                rows={EDUCATOR_COMPARISON}
+              />
+              <ComparisonTable
+                title="For Parents: Real Scores, Verified Credentials"
+                rows={PARENT_COMPARISON}
+              />
             </div>
-            <ol className="border-t border-[color:var(--ink)]/15">
-              {DIFFERENCE.map(({ icon: Icon, title, text }, index) => (
-                <li
-                  key={title}
-                  className="group relative grid gap-5 border-b border-[color:var(--ink)]/15 py-8 sm:grid-cols-[3.5rem_minmax(0,1fr)] sm:gap-8 sm:py-10"
-                >
-                  <div className="flex items-center justify-between sm:block">
-                    <span className="flex h-11 w-11 items-center justify-center bg-[color:var(--brand-teal)]/10 text-sm font-black text-[color:var(--brand-link)]">
-                      0{index + 1}
-                    </span>
-                    <Icon className="h-5 w-5 text-[color:var(--brand-teal)] transition-transform duration-300 group-hover:-translate-y-1 sm:mt-5" />
-                  </div>
-                  <div className="max-w-2xl">
-                    <h2 className="text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
-                    <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/68">{text}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
           </div>
         </section>
 

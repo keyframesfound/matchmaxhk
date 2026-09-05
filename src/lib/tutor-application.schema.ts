@@ -27,6 +27,7 @@ export const CURRICULUM_OPTIONS = [
   "IGCSE / GCSE",
   "HKDSE",
   "AP",
+  "SAT",
   "Foundation / other",
 ] as const;
 export const MATERIALS_OPTIONS = ["Yes", "No", "In progress"] as const;
@@ -153,6 +154,16 @@ export const tutorApplicationSchema = z
         path: ["overallScore"],
         message: "Enter a numeric Best 5 score",
       });
+    }
+    if (!isProfessional && data.curriculum === "SAT") {
+      const satScore = Number(data.overallScore);
+      if (!Number.isInteger(satScore) || satScore < 400 || satScore > 1600) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["overallScore"],
+          message: "Enter an SAT total score from 400 to 1600",
+        });
+      }
     }
     if (isProfessional && data.teachingQualifications.length === 0) {
       context.addIssue({

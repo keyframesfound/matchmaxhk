@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
+  AlertTriangle,
   CheckCircle2,
   LocateFixed,
   Paperclip,
   Plus,
+  Scale,
+  ShieldCheck,
   Sparkles,
   Trash2,
   Upload,
@@ -94,6 +97,7 @@ const SYSTEM_IDS: Record<string, string> = {
   "IGCSE / GCSE": "igcse",
   HKDSE: "dse",
   AP: "ap",
+  SAT: "sat",
 };
 const LANGUAGES = ["English", "Cantonese", "Mandarin"];
 const COUNTRY_OPTIONS = [
@@ -140,6 +144,26 @@ const Field = FormField;
 
 function Hint({ children }: { children: React.ReactNode }) {
   return <p className="text-xs italic leading-relaxed text-muted-foreground">{children}</p>;
+}
+
+function EvidenceNote({ className }: { className?: string }) {
+  return (
+    <p
+      className={cn(
+        "flex gap-2.5 rounded-lg border border-border bg-[color:var(--surface-subtle)] px-3 py-2.5 text-xs leading-relaxed text-muted-foreground",
+        className,
+      )}
+    >
+      <ShieldCheck
+        className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-teal)]"
+        aria-hidden="true"
+      />
+      <span>
+        Uploaded credentials and evidence are used strictly for verification. They are kept secure
+        and will not be displayed directly to the public on your profile.
+      </span>
+    </p>
+  );
 }
 
 function readableFileSize(bytes: number) {
@@ -276,6 +300,7 @@ function paperOptions(curriculum: string) {
     return ["Paper 1", "Paper 2", "Paper 3", "Paper 4", "School-based Assessment (SBA)"];
   if (curriculum === "AP")
     return ["Multiple Choice", "Free Response", "Portfolio / Performance Task"];
+  if (curriculum === "SAT") return ["Reading & Writing", "Math"];
   return ["Paper 1", "Paper 2", "Paper 3", "Paper 4", "Coursework"];
 }
 
@@ -283,22 +308,27 @@ function Choices({
   options,
   values,
   onToggle,
+  hint = "You can choose more than one.",
 }: {
   options: readonly string[];
   values: string[];
   onToggle: (value: string) => void;
+  hint?: string;
 }) {
   return (
-    <div className="flex flex-wrap gap-x-5 gap-y-3">
-      {options.map((option) => (
-        <label
-          key={option}
-          className="flex min-h-11 cursor-pointer items-center gap-2 py-1 text-sm text-foreground"
-        >
-          <Checkbox checked={values.includes(option)} onCheckedChange={() => onToggle(option)} />
-          <span>{option}</span>
-        </label>
-      ))}
+    <div className="grid gap-2">
+      <div className="flex flex-wrap gap-x-5 gap-y-3">
+        {options.map((option) => (
+          <label
+            key={option}
+            className="flex min-h-11 cursor-pointer items-center gap-2 py-1 text-sm text-foreground"
+          >
+            <Checkbox checked={values.includes(option)} onCheckedChange={() => onToggle(option)} />
+            <span>{option}</span>
+          </label>
+        ))}
+      </div>
+      <Hint>{hint}</Hint>
     </div>
   );
 }
@@ -1058,7 +1088,7 @@ export function ApplicationForm() {
                           ),
                         })
                       }
-                      placeholder="Specific score"
+                      placeholder="Specific score (18/25)"
                     />
                     <Button
                       type="button"
@@ -1132,6 +1162,35 @@ export function ApplicationForm() {
       }}
       className="join-stepper-form"
     >
+      <aside
+        aria-label="Display rules and legal warning"
+        className="mb-4 grid gap-3 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
+      >
+        <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--ink)]">
+          <Scale className="h-4 w-4" aria-hidden="true" />
+          Display Rules &amp; Legal Warning
+        </p>
+        <p className="flex gap-2.5 text-sm leading-relaxed text-foreground">
+          <CheckCircle2
+            className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-teal)]"
+            aria-hidden="true"
+          />
+          <span>
+            <span className="font-semibold">Achievements and Experiences</span> will only be
+            displayed on your profile after supporting evidence has been uploaded. Exceptions apply
+            to claims that cannot be documented, such as private tutoring experience or student
+            feedback.
+          </span>
+        </p>
+        <p className="flex gap-2.5 rounded-md border-l-2 border-destructive bg-destructive/5 px-3 py-2 text-sm leading-relaxed text-foreground">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden="true" />
+          <span>
+            <span className="font-bold text-destructive">Legal warning:</span> Providing fake
+            credentials is a violation of Hong Kong law. MatchMax bears no responsibility for
+            falsified evidence provided by the user, and offenders may face legal action.
+          </span>
+        </p>
+      </aside>
       <aside className="mb-8 rounded-lg border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/8 px-4 py-3 text-sm leading-relaxed text-foreground">
         {notice}
       </aside>
@@ -1372,7 +1431,8 @@ export function ApplicationForm() {
                           label={
                             qualification.curriculum === "HKDSE"
                               ? "Best 5 Score"
-                              : qualification.curriculum === "IBDP"
+                              : qualification.curriculum === "IBDP" ||
+                                  qualification.curriculum === "SAT"
                                 ? "Overall Achieved Score"
                                 : "Overall Achieved Grades"
                           }
@@ -1382,7 +1442,8 @@ export function ApplicationForm() {
                           <Input
                             type={
                               qualification.curriculum === "IBDP" ||
-                              qualification.curriculum === "HKDSE"
+                              qualification.curriculum === "HKDSE" ||
+                              qualification.curriculum === "SAT"
                                 ? "number"
                                 : "text"
                             }
@@ -1395,7 +1456,9 @@ export function ApplicationForm() {
                                 ? "43"
                                 : qualification.curriculum === "HKDSE"
                                   ? "32"
-                                  : "A*AA"
+                                  : qualification.curriculum === "SAT"
+                                    ? "1450"
+                                    : "A*AA"
                             }
                           />
                         </Field>
@@ -1536,6 +1599,7 @@ export function ApplicationForm() {
                               ) : null}
                             </div>
                           ) : null}
+                          <EvidenceNote />
                         </Field>
                       </div>
                       <div className="mt-5 border-t border-border pt-5">
@@ -1576,7 +1640,7 @@ export function ApplicationForm() {
             <Field
               label="Subjects Willing to Teach"
               required
-              hint="Select subjects from your academic profile that you are confident and capable of teaching."
+              hint="Select subjects from your academic profile that you are confident and capable of teaching. You can choose more than one."
               error={fieldErrors.subjectsTaught}
             >
               <SubjectPicker
@@ -1618,7 +1682,7 @@ export function ApplicationForm() {
                 <Field
                   label="Possible Teaching Locations (MTR Network)"
                   required
-                  hint="Suggestions use estimated MTR rail and transfer time, not straight-line station distance. Walking time and delays are not included."
+                  hint="Suggestions use estimated MTR rail and transfer time, not straight-line station distance. Walking time and delays are not included. You can choose more than one station."
                   error={fieldErrors.stations}
                 >
                   <div className="grid gap-3 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4">
@@ -1760,8 +1824,11 @@ export function ApplicationForm() {
             <Heading step={professional ? 5 : 5} title="Achievements and Experiences" />
             <Hint>
               Achievements and experience are optional. Add only items you would like MatchMax to
-              consider.
+              consider. Items without uploaded evidence will not be shown on your public profile,
+              except claims that cannot be documented, such as private tutoring experience or
+              student feedback.
             </Hint>
+            <EvidenceNote className="mt-2" />
             <div className="mt-5 grid gap-4">
               {base.achievements.map((achievement, index) => (
                 <div
