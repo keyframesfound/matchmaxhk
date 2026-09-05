@@ -837,7 +837,7 @@ export function ApplicationForm() {
     }
     setFieldErrors(next);
     const failed = Object.keys(next).length > 0;
-    setError(failed ? "Complete the highlighted fields before continuing." : null);
+    if (!failed) setError(null);
     if (failed) scrollToStepperTop();
     return !failed;
   }
