@@ -206,7 +206,7 @@
     "browse_tutors": "Browse tutors"
   },
   "directory": {
-    "subtitle": "Every profile is transcript-checked and team-reviewed before it goes live.",
+    "subtitle": "",
     "empty_title": "No tutors match these filters yet",
     "empty_desc": "Widen the price range or clear a filter to see more profiles — or let our team match one for you, free.",
     "empty_clear": "Clear all filters",
