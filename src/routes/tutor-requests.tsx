@@ -101,7 +101,7 @@ function ListSkeleton({ rows }: { rows: number }) {
   return (
     <div className="flex flex-col gap-3">
       <Skeleton className="h-3 w-28" />
-      <div>
+      <div className="overflow-hidden rounded-xl border border-border">
         <div className="flex flex-col divide-y divide-border">
           {Array.from({ length: rows }).map((_, i) => (
             <div key={i} className="flex items-center justify-between gap-4 px-4 py-4">
@@ -273,7 +273,7 @@ function TutorRequestsPage() {
                         {group.items.length}
                       </span>
                     </div>
-                    <ul className="flex flex-col">
+                    <ul className="flex flex-col overflow-hidden rounded-xl border border-border divide-y divide-border">
                       {group.items.map((item) => (
                         <CaseListRow key={item.id} item={item} />
                       ))}
