@@ -1,5 +1,6 @@
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -26,13 +27,15 @@ export function SearchableSelect({
   options,
   placeholder = "Select…",
   searchPlaceholder = "Search…",
-  emptyText = "No matches found.",
+  emptyText,
   disabled = false,
   allowCustom = false,
   invalid = false,
   className,
   popoverClassName,
 }: Props) {
+  const { t } = useTranslation();
+  const emptyLabel = emptyText ?? t("search_panel.no_matches");
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [highlightedIndex, setHighlightedIndex] = React.useState<number>(0);
@@ -132,7 +135,7 @@ export function SearchableSelect({
           aria-expanded={open}
           aria-invalid={invalid || undefined}
           className={cn(
-            "group flex h-11 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3.5 py-2 text-left text-sm font-medium text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-[#1FA8B6] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#77E8EE]/35 disabled:cursor-not-allowed disabled:opacity-50",
+            "group flex h-11 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3.5 py-2 text-left text-sm font-medium text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50",
             invalid &&
               "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30",
             !value && !selected?.label && "text-[color:var(--ink)]/50",
@@ -162,15 +165,17 @@ export function SearchableSelect({
               ref={inputRef}
               type="text"
               placeholder={searchPlaceholder}
+              aria-label={searchPlaceholder}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-xs font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color,box-shadow] focus:border-[#1FA8B6] focus:bg-[color:var(--surface)] focus:ring-2 focus:ring-[#77E8EE]/20"
+              className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-base font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color,box-shadow] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40 sm:text-sm"
             />
             {query && (
               <button
                 type="button"
                 onClick={() => setQuery("")}
+                aria-label={t("search_panel.clear_search")}
                 className="absolute right-2 p-0.5 rounded text-[color:var(--ink)]/40 hover:text-[color:var(--ink)]"
               >
                 <X className="h-3.5 w-3.5" />
@@ -181,7 +186,7 @@ export function SearchableSelect({
 
         <div ref={listRef} className="max-h-60 overflow-y-auto p-1 text-sm">
           {filteredOptions.length === 0 && !canUseCustom && (
-            <div className="py-4 text-center text-xs text-muted-foreground">{emptyText}</div>
+            <div className="py-4 text-center text-xs text-muted-foreground">{emptyLabel}</div>
           )}
 
           {filteredOptions.map((option, idx) => {
@@ -194,21 +199,21 @@ export function SearchableSelect({
                 onClick={() => handleSelect(option.value)}
                 onMouseEnter={() => setHighlightedIndex(idx)}
                 className={cn(
-                  "flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-xs font-medium text-[color:var(--ink)] transition-colors",
-                  isHighlighted ? "bg-[#77E8EE]/20" : "hover:bg-[color:var(--surface-subtle)]",
-                  isSelected && "font-semibold text-[#156B73]",
+                  "flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium text-[color:var(--ink)] transition-colors",
+                  isHighlighted ? "bg-brand-teal/10" : "hover:bg-[color:var(--surface-subtle)]",
+                  isSelected && "font-semibold",
                 )}
               >
                 <div className="flex flex-col min-w-0 pr-2">
                   <span className="truncate">{option.label || "(Empty)"}</span>
                   {option.description ? (
-                    <span className="truncate text-[11px] text-muted-foreground font-normal">
+                    <span className="truncate text-xs text-muted-foreground font-normal">
                       {option.description}
                     </span>
                   ) : null}
                 </div>
                 {isSelected && (
-                  <Check className="h-3.5 w-3.5 shrink-0 text-[#1FA8B6]" strokeWidth={2.5} />
+                  <Check className="h-3.5 w-3.5 shrink-0 text-brand-teal" strokeWidth={2.5} />
                 )}
               </button>
             );
@@ -219,12 +224,10 @@ export function SearchableSelect({
               <button
                 type="button"
                 onClick={() => handleSelect(query.trim())}
-                className="flex w-full items-center justify-between rounded-md px-3 py-2 text-xs font-semibold text-[#1FA8B6] hover:bg-[#77E8EE]/20 text-left"
+                className="flex w-full items-center justify-between rounded-md px-3 py-2 text-xs font-semibold text-[color:var(--brand-link)] hover:bg-brand-teal/10 text-left"
               >
                 <span>Add &ldquo;{query.trim()}&rdquo;</span>
-                <span className="text-[10px] uppercase font-bold text-muted-foreground">
-                  Custom
-                </span>
+                <span className="text-xs uppercase font-bold text-muted-foreground">Custom</span>
               </button>
             </div>
           )}

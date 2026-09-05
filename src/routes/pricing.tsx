@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowRight, Check, Sparkles, X } from "lucide-react";
 
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -15,8 +15,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 export const Route = createFileRoute("/pricing")({
+  beforeLoad: () => {
+    if (!CENTRE_MARKET_ENABLED) throw notFound();
+  },
   head: () => ({
     meta: [
       { title: "Plans for Tutoring Businesses | MatchMax" },

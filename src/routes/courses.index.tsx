@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
@@ -19,6 +19,7 @@ import {
   fetchPublishedCourses,
 } from "@/features/courses/queries";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
+import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 const searchSchema = z.object({
   subject: z.string().optional(),
@@ -30,6 +31,9 @@ const searchSchema = z.object({
 type SearchState = z.infer<typeof searchSchema>;
 
 export const Route = createFileRoute("/courses/")({
+  beforeLoad: () => {
+    if (!CENTRE_MARKET_ENABLED) throw notFound();
+  },
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [

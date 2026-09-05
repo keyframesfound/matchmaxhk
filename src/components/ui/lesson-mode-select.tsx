@@ -1,5 +1,6 @@
 /** MatchMax selector system: the lesson-mode flow shares the reference dropdown’s spring and selection animation language. */
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Check, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
@@ -26,12 +27,7 @@ type Props = {
   className?: string;
 };
 
-const MODE_LABELS: Record<LessonMode, string> = {
-  "": "Any lesson mode",
-  online: "Online",
-  in_person: "In-person",
-  either: "Open to discussion",
-};
+const MODE_KEYS = [{ key: "" }, { key: "online" }, { key: "either" }] as const;
 
 function AnimatedCheck({ selected }: { selected: boolean }) {
   const shouldReduceMotion = useReducedMotion();
@@ -66,14 +62,26 @@ export function LessonModeSelect({
   disabled = false,
   className,
 }: Props) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [submenu, setSubmenu] = useState<"mode" | "district">("mode");
   const shouldReduceMotion = useReducedMotion();
 
+  const modeLabels = useMemo<Record<LessonMode, string>>(
+    () => ({
+      "": t("search_panel.any_mode"),
+      online: t("search_panel.mode_online"),
+      in_person: t("search_panel.mode_in_person"),
+      either: t("search_panel.mode_open"),
+    }),
+    [t],
+  );
+  const anyDistrictLabel = t("search_panel.any_district");
+
   const triggerLabel = useMemo(() => {
-    if (mode === "in_person" && district) return `In-person · ${district}`;
-    return MODE_LABELS[mode] || placeholder;
-  }, [district, mode, placeholder]);
+    if (mode === "in_person" && district) return `${modeLabels.in_person} · ${district}`;
+    return modeLabels[mode] || placeholder;
+  }, [district, mode, modeLabels, placeholder]);
 
   const openDistrictSubmenu = () => {
     setSubmenu("district");
@@ -102,7 +110,7 @@ export function LessonModeSelect({
           disabled={disabled}
           className={cn(
             className,
-            "group h-11 w-full justify-between rounded-sm border-[color:var(--ink)]/15 bg-[color:var(--surface)]/95 px-4 text-left font-semibold text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[color:var(--ink)]/35 hover:bg-[color:var(--surface)] focus-visible:border-[#1FA8B6] focus-visible:ring-4 focus-visible:ring-[#77E8EE]/35",
+            "group h-11 w-full justify-between rounded-sm border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-4 text-left font-semibold text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40",
             !mode && "text-[color:var(--ink)]/50",
           )}
         >
@@ -142,11 +150,7 @@ export function LessonModeSelect({
               <Command shouldFilter={false} className="bg-transparent text-[color:var(--ink)]">
                 <CommandList>
                   <CommandGroup>
-                    {[
-                      { key: "", label: MODE_LABELS[""] },
-                      { key: "online", label: MODE_LABELS.online },
-                      { key: "either", label: MODE_LABELS.either },
-                    ].map((option, index) => (
+                    {MODE_KEYS.map((option, index) => (
                       <motion.div
                         key={option.key}
                         initial={
@@ -171,8 +175,8 @@ export function LessonModeSelect({
                               }
                         }
                       >
-                        <CommandItem onSelect={() => commit(option.key as LessonMode, undefined)}>
-                          {option.label}
+                        <CommandItem onSelect={() => commit(option.key, undefined)}>
+                          {modeLabels[option.key]}
                           <AnimatedCheck selected={mode === option.key} />
                         </CommandItem>
                       </motion.div>
@@ -196,7 +200,7 @@ export function LessonModeSelect({
                     >
                       <CommandItem onSelect={openDistrictSubmenu}>
                         <span className="flex flex-1 items-center justify-between">
-                          {MODE_LABELS.in_person}
+                          {modeLabels.in_person}
                           <ChevronRight className="h-4 w-4 opacity-60" />
                         </span>
                         <AnimatedCheck selected={mode === "in_person"} />
@@ -212,16 +216,18 @@ export function LessonModeSelect({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 rounded-md text-[color:var(--ink)] hover:bg-[#77E8EE]/25"
+                    className="h-8 w-8 rounded-md text-[color:var(--ink)] hover:bg-brand-teal/10"
                     onClick={() => setSubmenu("mode")}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <span className="text-sm font-bold text-[color:var(--ink)]">Choose district</span>
+                  <span className="text-sm font-bold text-[color:var(--ink)]">
+                    {t("search_panel.choose_district")}
+                  </span>
                 </div>
-                <CommandInput placeholder="Search district..." />
+                <CommandInput placeholder={t("search_panel.search_district")} />
                 <CommandList className="max-h-64 overflow-y-auto p-1.5">
-                  <CommandEmpty>No district found.</CommandEmpty>
+                  <CommandEmpty>{t("search_panel.no_district")}</CommandEmpty>
                   <CommandGroup>
                     {["", ...districts].map((item, index) => (
                       <motion.div
@@ -249,10 +255,10 @@ export function LessonModeSelect({
                         }
                       >
                         <CommandItem
-                          value={item || "Any district"}
+                          value={item || anyDistrictLabel}
                           onSelect={() => commit("in_person", item || undefined)}
                         >
-                          {item || "Any district"}
+                          {item || anyDistrictLabel}
                           <AnimatedCheck selected={district === item} />
                         </CommandItem>
                       </motion.div>

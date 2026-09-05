@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -15,8 +15,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { createOrganization } from "@/features/business/business.functions";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
+import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 export const Route = createFileRoute("/_authenticated/business/join")({
+  beforeLoad: () => {
+    if (!CENTRE_MARKET_ENABLED) throw notFound();
+  },
   validateSearch: z.object({ plan: z.string().optional() }),
   head: () => ({
     meta: [{ title: "Create your business account | MatchMax" }],

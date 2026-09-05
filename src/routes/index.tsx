@@ -40,24 +40,6 @@ type HomeTutorSearchState = {
   q?: string;
 };
 
-const HOME_CATEGORY_OPTIONS = [
-  { value: "", label: "Any category" },
-  { value: "IB", label: "IB" },
-  { value: "DSE", label: "DSE" },
-  { value: "IGCSE", label: "IGCSE" },
-  { value: "AP", label: "AP" },
-  { value: "A-Level", label: "A-Level" },
-  { value: "Primary", label: "Primary" },
-  { value: "Secondary", label: "Secondary" },
-  { value: "International", label: "International" },
-];
-
-const HOME_GENDER_OPTIONS = [
-  { value: "", label: "Any gender" },
-  { value: "female", label: "Female" },
-  { value: "male", label: "Male" },
-];
-
 const CURRICULUM_CATEGORIES = [
   { label: "IBDP", value: "IB" },
   { label: "DSE", value: "DSE" },
@@ -198,6 +180,30 @@ function Landing() {
     [homeSearch.category],
   );
 
+  const homeCategoryOptions = useMemo(
+    () => [
+      { value: "", label: t("search_panel.any_category") },
+      { value: "IB", label: "IB" },
+      { value: "DSE", label: "DSE" },
+      { value: "IGCSE", label: "IGCSE" },
+      { value: "AP", label: "AP" },
+      { value: "A-Level", label: "A-Level" },
+      { value: "Primary", label: t("search_panel.category_primary") },
+      { value: "Secondary", label: t("search_panel.category_secondary") },
+      { value: "International", label: t("search_panel.category_international") },
+    ],
+    [t],
+  );
+
+  const homeGenderOptions = useMemo(
+    () => [
+      { value: "", label: t("search_panel.any_gender") },
+      { value: "female", label: t("search_panel.gender_female") },
+      { value: "male", label: t("search_panel.gender_male") },
+    ],
+    [t],
+  );
+
   const handleHomeCategoryChange = (category: string) => {
     const nextSubjectOptions = getSubjectOptionsForCategory(category);
     setHomeSearchParam({
@@ -301,19 +307,26 @@ function Landing() {
 
       <section className="relative -mt-4 pb-14 md:-mt-7 md:pb-16">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="relative rounded-sm border border-border bg-card p-2.5 shadow-sm sm:p-5">
-            <div className="flex items-center justify-between gap-2 border-b border-border pb-2.5 sm:pb-4">
-              <p className="text-xs font-black uppercase tracking-wide text-[color:var(--ink)] sm:text-sm">
-                Find tutor
+          <div className="relative rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
+            <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
+              <p className="text-sm font-black uppercase tracking-wide text-[color:var(--ink)]">
+                {t("search_panel.find_tutor")}
               </p>
             </div>
 
-            <div className="mt-2.5 grid gap-2 sm:gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+            <form
+              className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]"
+              onSubmit={(event) => {
+                event.preventDefault();
+                navigate({ to: "/tutors", search: tutorSearchParams });
+              }}
+            >
               <div className="relative lg:col-span-5">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground md:h-4 md:w-4" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  className="h-9 rounded-sm pl-9 text-xs md:h-11 md:text-sm"
-                  placeholder="Search tutor code, subject, keyword…"
+                  className="h-11 rounded-sm pl-9"
+                  placeholder={t("search_panel.keyword_placeholder")}
+                  aria-label={t("search_panel.keyword_aria")}
                   value={homeSearch.q ?? ""}
                   onChange={(e) => setHomeSearchParam({ q: e.target.value })}
                 />
@@ -321,21 +334,21 @@ function Landing() {
               <SearchableSelect
                 value={homeSearch.category ?? ""}
                 onChange={handleHomeCategoryChange}
-                options={HOME_CATEGORY_OPTIONS}
-                placeholder="Any category"
-                searchPlaceholder="Search category..."
-                className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+                options={homeCategoryOptions}
+                placeholder={t("search_panel.any_category")}
+                searchPlaceholder={t("search_panel.search_category")}
+                className="h-11 rounded-sm"
               />
               <SearchableSelect
                 value={homeSearch.subject ?? ""}
                 onChange={(v) => setHomeSearchParam({ subject: v || undefined })}
                 options={[
-                  { value: "", label: "Any subject" },
+                  { value: "", label: t("search_panel.any_subject") },
                   ...homeSubjectOptions.map((s) => ({ value: s, label: s })),
                 ]}
-                placeholder="Any subject"
-                searchPlaceholder="Search subject..."
-                className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+                placeholder={t("search_panel.any_subject")}
+                searchPlaceholder={t("search_panel.search_subject")}
+                className="h-11 rounded-sm"
               />
               <LessonModeSelect
                 mode={(homeSearch.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
@@ -347,24 +360,21 @@ function Landing() {
                     district: mode === "in_person" ? district : undefined,
                   })
                 }
-                placeholder="Any lesson mode"
-                className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+                placeholder={t("search_panel.any_mode")}
+                className="h-11 rounded-sm"
               />
               <SearchableSelect
                 value={homeSearch.gender ?? ""}
                 onChange={(v) => setHomeSearchParam({ gender: v || undefined })}
-                options={HOME_GENDER_OPTIONS}
-                placeholder="Any gender"
-                className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+                options={homeGenderOptions}
+                placeholder={t("search_panel.any_gender")}
+                className="h-11 rounded-sm"
               />
-              <Button
-                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-xs font-bold text-white hover:bg-[color:var(--surface-invert-hover)] md:h-11 md:px-6 md:text-base"
-                onClick={() => navigate({ to: "/tutors", search: tutorSearchParams })}
-              >
-                <Search className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4" />
-                Search
+              <Button type="submit" className="h-11 rounded-sm px-6 font-bold">
+                <Search className="mr-1.5 h-4 w-4" />
+                {t("search_panel.search")}
               </Button>
-            </div>
+            </form>
           </div>
 
           <div className="mt-8 space-y-10 md:mt-10 md:space-y-12">

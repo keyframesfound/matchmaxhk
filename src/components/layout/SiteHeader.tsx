@@ -27,6 +27,7 @@ import {
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
+import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 import { AnnouncementBanner } from "./AnnouncementBanner";
 import { StaggeredMobileMenu } from "./StaggeredMobileMenu";
@@ -50,18 +51,26 @@ export function SiteHeader({ className }: { className?: string }) {
       ariaLabel: t("nav.find", { defaultValue: "Find" }),
       to: "/tutors",
     },
-    {
-      label: t("nav.courses", { defaultValue: "Courses" }),
-      ariaLabel: t("nav.courses", { defaultValue: "Courses" }),
-      to: "/courses",
-    },
+    ...(CENTRE_MARKET_ENABLED
+      ? [
+          {
+            label: t("nav.courses", { defaultValue: "Courses" }),
+            ariaLabel: t("nav.courses", { defaultValue: "Courses" }),
+            to: "/courses",
+          },
+        ]
+      : []),
     { label: "Saved Posts", ariaLabel: "Saved Posts", to: "/saved-posts" },
     { label: "Become a Tutor", ariaLabel: "Become a Tutor", to: "/join" },
-    {
-      label: t("nav.for_business", { defaultValue: "For Business" }),
-      ariaLabel: t("nav.for_business", { defaultValue: "For Business" }),
-      to: "/pricing",
-    },
+    ...(CENTRE_MARKET_ENABLED
+      ? [
+          {
+            label: t("nav.for_business", { defaultValue: "For Business" }),
+            ariaLabel: t("nav.for_business", { defaultValue: "For Business" }),
+            to: "/pricing",
+          },
+        ]
+      : []),
     ...(hasOrg ? [{ label: "My Business", ariaLabel: "My Business", to: "/business" }] : []),
     { label: "Request a Tutor", ariaLabel: "Request a Tutor", to: "/tutor-requests" },
     ...(user ? [{ label: "Settings", ariaLabel: "Settings", to: "/dashboard" }] : []),
@@ -95,13 +104,15 @@ export function SiteHeader({ className }: { className?: string }) {
             {t("nav.find", { defaultValue: "Find" })}
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
-          <Link
-            to="/courses"
-            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
-          >
-            {t("nav.courses", { defaultValue: "Courses" })}
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
-          </Link>
+          {CENTRE_MARKET_ENABLED && (
+            <Link
+              to="/courses"
+              className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
+            >
+              {t("nav.courses", { defaultValue: "Courses" })}
+              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
+            </Link>
+          )}
           <Link
             to="/saved-posts"
             className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
@@ -116,13 +127,15 @@ export function SiteHeader({ className }: { className?: string }) {
             Become a Tutor
             <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
           </Link>
-          <Link
-            to="/pricing"
-            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
-          >
-            {t("nav.for_business", { defaultValue: "For Business" })}
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
-          </Link>
+          {CENTRE_MARKET_ENABLED && (
+            <Link
+              to="/pricing"
+              className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
+            >
+              {t("nav.for_business", { defaultValue: "For Business" })}
+              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
+            </Link>
+          )}
           <Link
             to="/tutor-requests"
             className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
@@ -200,15 +213,17 @@ export function SiteHeader({ className }: { className?: string }) {
                         Saved posts
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      asChild
-                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
-                    >
-                      <Link to={hasOrg ? "/business" : "/business/join"}>
-                        <Building2 aria-hidden="true" />
-                        {hasOrg ? "My Business" : "For Business"}
-                      </Link>
-                    </DropdownMenuItem>
+                    {(CENTRE_MARKET_ENABLED || hasOrg) && (
+                      <DropdownMenuItem
+                        asChild
+                        className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                      >
+                        <Link to={hasOrg ? "/business" : "/business/join"}>
+                          <Building2 aria-hidden="true" />
+                          {hasOrg ? "My Business" : "For Business"}
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
                       onSelect={() => setTheme(useDarkTheme ? "dark" : "light")}
                       className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"

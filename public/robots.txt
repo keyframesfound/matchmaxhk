@@ -9,6 +9,9 @@ Disallow: /auth
 Disallow: /my-cases
 Disallow: /post-case
 Disallow: /cases
+Disallow: /courses
+Disallow: /business
+Disallow: /pricing
 Disallow: /lovable/
 
 Sitemap: https://matchmax.hk/sitemap.xml

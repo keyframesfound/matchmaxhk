@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -30,8 +30,12 @@ import {
   formatCoursePrice,
 } from "@/features/courses/queries";
 import type { CourseWithOrganization } from "@/features/courses/queries";
+import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 export const Route = createFileRoute("/courses/$courseId")({
+  beforeLoad: () => {
+    if (!CENTRE_MARKET_ENABLED) throw notFound();
+  },
   head: () => ({
     meta: [{ title: "Course | MatchMax" }, { name: "robots", content: "index, follow" }],
   }),

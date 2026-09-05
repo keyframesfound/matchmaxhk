@@ -45,6 +45,7 @@ import {
 } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { setCompareBarVisible } from "@/lib/compare-bar";
 
 const searchSchema = z.object({
   category: z.string().optional(),
@@ -93,30 +94,6 @@ export const Route = createFileRoute("/tutors/")({
   component: TutorsDirectory,
 });
 
-const GENDER_OPTIONS = [
-  { value: "", label: "Any gender" },
-  { value: "female", label: "Female" },
-  { value: "male", label: "Male" },
-];
-
-const CATEGORY_OPTIONS = [
-  { value: "", label: "Any category" },
-  { value: "IB", label: "IB" },
-  { value: "DSE", label: "DSE" },
-  { value: "IGCSE", label: "IGCSE" },
-  { value: "AP", label: "AP" },
-  { value: "A-Level", label: "A-Level" },
-  { value: "Primary", label: "Primary" },
-  { value: "Secondary", label: "Secondary" },
-  { value: "International", label: "International" },
-];
-
-const SORT_OPTIONS = [
-  { value: "", label: "Sort: Recommended" },
-  { value: "price_asc", label: "Price: Low to High" },
-  { value: "price_desc", label: "Price: High to Low" },
-];
-
 function PriceRangeSlider({
   value,
   onChange,
@@ -147,11 +124,11 @@ function PriceRangeSlider({
         </SliderPrimitive.Track>
         <SliderPrimitive.Thumb
           aria-label="Minimum hourly price"
-          className="block h-4 w-4 rounded-full border-2 border-[color:var(--brand-teal)] bg-white shadow transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#77E8EE]/40"
+          className="block h-4 w-4 rounded-full border-2 border-[color:var(--brand-teal)] bg-white shadow transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         />
         <SliderPrimitive.Thumb
           aria-label="Maximum hourly price"
-          className="block h-4 w-4 rounded-full border-2 border-[color:var(--brand-teal)] bg-white shadow transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#77E8EE]/40"
+          className="block h-4 w-4 rounded-full border-2 border-[color:var(--brand-teal)] bg-white shadow transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         />
       </SliderPrimitive.Root>
     </div>
@@ -402,6 +379,8 @@ function CompareDialog({
   );
 }
 
+const CATEGORY_VALUES = ["IB", "DSE", "IGCSE", "AP", "A-Level"];
+
 function TutorsDirectory() {
   const { t } = useTranslation();
   const search = Route.useSearch();
@@ -409,6 +388,35 @@ function TutorsDirectory() {
   const [draft, setDraft] = useState<SearchState>(search);
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
+
+  const genderOptions = useMemo(
+    () => [
+      { value: "", label: t("search_panel.any_gender") },
+      { value: "female", label: t("search_panel.gender_female") },
+      { value: "male", label: t("search_panel.gender_male") },
+    ],
+    [t],
+  );
+
+  const categoryOptions = useMemo(
+    () => [
+      { value: "", label: t("search_panel.any_category") },
+      ...CATEGORY_VALUES.map((value) => ({ value, label: value })),
+      { value: "Primary", label: t("search_panel.category_primary") },
+      { value: "Secondary", label: t("search_panel.category_secondary") },
+      { value: "International", label: t("search_panel.category_international") },
+    ],
+    [t],
+  );
+
+  const sortOptions = useMemo(
+    () => [
+      { value: "", label: t("search_panel.sort_recommended") },
+      { value: "price_asc", label: t("search_panel.sort_price_asc") },
+      { value: "price_desc", label: t("search_panel.sort_price_desc") },
+    ],
+    [t],
+  );
 
   useEffect(() => {
     setDraft(search);
@@ -545,6 +553,13 @@ function TutorsDirectory() {
     });
   };
 
+  const compareBarVisible = compareTutors.length > 0 && !compareOpen;
+
+  useEffect(() => {
+    setCompareBarVisible(compareBarVisible);
+    return () => setCompareBarVisible(false);
+  }, [compareBarVisible]);
+
   const clearAll = () => {
     setDraft({});
     navigate({ search: {} as SearchState });
@@ -572,16 +587,28 @@ function TutorsDirectory() {
             <div className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
               <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
                 <p className="text-sm font-black uppercase tracking-wide text-[color:var(--ink)]">
-                  Find tutor
+                  {t("search_panel.find_tutor")}
                 </p>
               </div>
 
-              <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+              <form
+                className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  navigate({
+                    search: {
+                      ...draft,
+                      district: draft.mode === "in_person" ? draft.district : undefined,
+                    },
+                  });
+                }}
+              >
                 <div className="relative lg:col-span-5">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     className="h-11 rounded-sm pl-9"
-                    placeholder="Search tutor code, subject, keyword…"
+                    placeholder={t("search_panel.keyword_placeholder")}
+                    aria-label={t("search_panel.keyword_aria")}
                     value={draft.q ?? ""}
                     onChange={(e) => setDraftParam({ q: e.target.value })}
                   />
@@ -589,20 +616,20 @@ function TutorsDirectory() {
                 <SearchableSelect
                   value={draft.category ?? ""}
                   onChange={handleCategoryChange}
-                  options={CATEGORY_OPTIONS}
-                  placeholder="Any category"
-                  searchPlaceholder="Search category..."
+                  options={categoryOptions}
+                  placeholder={t("search_panel.any_category")}
+                  searchPlaceholder={t("search_panel.search_category")}
                   className="h-11 rounded-sm"
                 />
                 <SearchableSelect
                   value={draft.subject ?? ""}
                   onChange={(v) => setDraftParam({ subject: v || undefined })}
                   options={[
-                    { value: "", label: "Any subject" },
+                    { value: "", label: t("search_panel.any_subject") },
                     ...subjectOptions.map((s) => ({ value: s, label: s })),
                   ]}
-                  placeholder="Any subject"
-                  searchPlaceholder="Search subject..."
+                  placeholder={t("search_panel.any_subject")}
+                  searchPlaceholder={t("search_panel.search_subject")}
                   className="h-11 rounded-sm"
                 />
                 <LessonModeSelect
@@ -615,35 +642,26 @@ function TutorsDirectory() {
                       district: mode === "in_person" ? district : undefined,
                     })
                   }
-                  placeholder="Any lesson mode"
+                  placeholder={t("search_panel.any_mode")}
                   className="h-11 rounded-sm"
                 />
                 <SearchableSelect
                   value={draft.gender ?? ""}
                   onChange={(v) => setDraftParam({ gender: v || undefined })}
-                  options={GENDER_OPTIONS}
-                  placeholder="Any gender"
+                  options={genderOptions}
+                  placeholder={t("search_panel.any_gender")}
                   className="h-11 rounded-sm"
                 />
-                <Button
-                  className="h-11 rounded-sm bg-[color:var(--surface-invert)] px-6 font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                  onClick={() =>
-                    navigate({
-                      search: {
-                        ...draft,
-                        district: draft.mode === "in_person" ? draft.district : undefined,
-                      },
-                    })
-                  }
-                >
-                  Search
+                <Button type="submit" className="h-11 rounded-sm px-6 font-bold">
+                  <Search className="mr-1.5 h-4 w-4" />
+                  {t("search_panel.search")}
                 </Button>
-              </div>
+              </form>
 
               <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-6">
                 <div className="shrink-0">
                   <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                    Hourly price range
+                    {t("search_panel.price_range")}
                   </p>
                   <PriceRangeSlider
                     value={{ min: draft.min_price, max: draft.max_price }}
@@ -662,9 +680,9 @@ function TutorsDirectory() {
                       search: (prev) => ({ ...prev, sort: v || undefined }) as SearchState,
                     })
                   }
-                  options={SORT_OPTIONS}
-                  placeholder="Sort: Recommended"
-                  searchPlaceholder="Search sorting..."
+                  options={sortOptions}
+                  placeholder={t("search_panel.sort_recommended")}
+                  searchPlaceholder={t("search_panel.search_sorting")}
                   className="h-11 w-full rounded-sm sm:w-56 sm:shrink-0"
                 />
                 <div className="flex flex-wrap items-center gap-3 sm:ml-auto">
@@ -680,11 +698,11 @@ function TutorsDirectory() {
                     </a>
                   ) : null}
                   <p className="text-xs text-muted-foreground sm:text-sm">
-                    Skip the manual filters — tell us what you need and we&rsquo;ll{" "}
+                    {t("search_panel.skip_prefix")}{" "}
                     <span className="font-bold text-[color:var(--ink)]">
-                      source a match for free
+                      {t("search_panel.skip_highlight")}
                     </span>
-                    .
+                    {t("search_panel.skip_suffix")}
                   </p>
                 </div>
               </div>

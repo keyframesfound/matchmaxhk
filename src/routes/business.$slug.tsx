@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -59,6 +59,7 @@ import { downloadVCard } from "@/lib/vcard";
 import type { SocialUrls } from "@/components/business/social-links";
 import { YouTubePlayer } from "@/components/business/youtube-player";
 import { parseYouTubeUrl } from "@/lib/youtube";
+import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 type OrganizationSeoMeta = {
   name: string;
@@ -69,6 +70,9 @@ type OrganizationSeoMeta = {
 } | null;
 
 export const Route = createFileRoute("/business/$slug")({
+  beforeLoad: () => {
+    if (!CENTRE_MARKET_ENABLED) throw notFound();
+  },
   loader: async ({ params }): Promise<OrganizationSeoMeta> => {
     try {
       return (await fetchOrganizationSeoMeta({

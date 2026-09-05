@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -49,6 +49,7 @@ import {
   formatCoursePrice,
 } from "@/features/courses/queries";
 import { cn } from "@/lib/utils";
+import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 export const Route = createFileRoute("/_authenticated/business/")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -141,6 +142,8 @@ function BusinessOverview() {
       </div>
     );
   }
+
+  if (!CENTRE_MARKET_ENABLED && !membership) throw notFound();
 
   if (!user) {
     return (

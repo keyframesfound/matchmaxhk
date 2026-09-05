@@ -1,9 +1,11 @@
 import { useRouterState } from "@tanstack/react-router";
 import { ArrowUp } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useCompareBarVisible } from "@/lib/compare-bar";
 
 export function BackToTopButton() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const compareBarVisible = useCompareBarVisible();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -15,7 +17,7 @@ export function BackToTopButton() {
     return () => window.removeEventListener("scroll", updateVisibility);
   }, []);
 
-  if (pathname === "/join" || !isVisible) return null;
+  if (pathname === "/join" || !isVisible || compareBarVisible) return null;
 
   return (
     <button

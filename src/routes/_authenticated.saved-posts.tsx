@@ -11,6 +11,7 @@ import { TutorSaveButton, fetchSavedTutors } from "@/features/tutors/saved-tutor
 import { CourseSaveButton, fetchSavedCourses } from "@/features/courses/saved-courses";
 import { courseModeLabel, formatCoursePrice } from "@/features/courses/queries";
 import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
+import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 export const Route = createFileRoute("/_authenticated/saved-posts")({
   ssr: false,
@@ -35,7 +36,7 @@ function SavedPostsPage() {
   const savedCoursesQuery = useQuery({
     queryKey: ["saved-courses-posts", user?.id],
     queryFn: () => fetchSavedCourses(user!.id),
-    enabled: Boolean(user),
+    enabled: Boolean(user) && CENTRE_MARKET_ENABLED,
   });
   const savedCourses = savedCoursesQuery.data ?? [];
 
@@ -116,69 +117,71 @@ function SavedPostsPage() {
             </div>
           )}
 
-          <div className="mt-14">
-            <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)]">
-              Saved courses
-            </h2>
-            {savedCoursesQuery.isLoading ? (
-              <div className="mt-6 text-sm text-muted-foreground">Loading saved courses...</div>
-            ) : savedCourses.length === 0 ? (
-              <div className="mt-6 rounded-sm border border-dashed border-border bg-card p-10 text-center">
-                <BookOpen
-                  className="mx-auto h-8 w-8 text-[color:var(--brand-teal)]"
-                  aria-hidden="true"
-                />
-                <p className="mt-4 text-base font-bold text-[color:var(--ink)]">
-                  You haven't saved any courses yet
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Bookmark courses from the directory to build your shortlist.
-                </p>
-                <Button variant="outline" className="mt-5" asChild>
-                  <a href="/courses">Browse courses</a>
-                </Button>
-              </div>
-            ) : (
-              <div className="mt-6 space-y-3">
-                {savedCourses.map((course) => {
-                  const price = formatCoursePrice(course.price, course.currency);
-                  return (
-                    <div
-                      key={course.id}
-                      className="flex items-center gap-4 rounded-lg border border-border bg-card p-4"
-                    >
-                      {course.image_url ? (
-                        <img
-                          src={course.image_url}
-                          alt=""
-                          className="h-14 w-20 shrink-0 rounded-md border border-border object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <span className="flex h-14 w-20 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">
-                          <BookOpen className="h-5 w-5" />
-                        </span>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <a
-                          href={`/courses/${course.id}`}
-                          className="block truncate text-sm font-bold text-[color:var(--ink)] hover:text-[color:var(--brand-link)]"
-                        >
-                          {course.title}
-                        </a>
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {course.organization?.name ?? "MatchMax partner"} ·{" "}
-                          {course.level ?? "General"} · {courseModeLabel(course.mode)}
-                          {price ? ` · ${price}` : ""}
-                        </p>
+          {CENTRE_MARKET_ENABLED && (
+            <div className="mt-14">
+              <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)]">
+                Saved courses
+              </h2>
+              {savedCoursesQuery.isLoading ? (
+                <div className="mt-6 text-sm text-muted-foreground">Loading saved courses...</div>
+              ) : savedCourses.length === 0 ? (
+                <div className="mt-6 rounded-sm border border-dashed border-border bg-card p-10 text-center">
+                  <BookOpen
+                    className="mx-auto h-8 w-8 text-[color:var(--brand-teal)]"
+                    aria-hidden="true"
+                  />
+                  <p className="mt-4 text-base font-bold text-[color:var(--ink)]">
+                    You haven't saved any courses yet
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Bookmark courses from the directory to build your shortlist.
+                  </p>
+                  <Button variant="outline" className="mt-5" asChild>
+                    <a href="/courses">Browse courses</a>
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-6 space-y-3">
+                  {savedCourses.map((course) => {
+                    const price = formatCoursePrice(course.price, course.currency);
+                    return (
+                      <div
+                        key={course.id}
+                        className="flex items-center gap-4 rounded-lg border border-border bg-card p-4"
+                      >
+                        {course.image_url ? (
+                          <img
+                            src={course.image_url}
+                            alt=""
+                            className="h-14 w-20 shrink-0 rounded-md border border-border object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span className="flex h-14 w-20 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">
+                            <BookOpen className="h-5 w-5" />
+                          </span>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <a
+                            href={`/courses/${course.id}`}
+                            className="block truncate text-sm font-bold text-[color:var(--ink)] hover:text-[color:var(--brand-link)]"
+                          >
+                            {course.title}
+                          </a>
+                          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                            {course.organization?.name ?? "MatchMax partner"} ·{" "}
+                            {course.level ?? "General"} · {courseModeLabel(course.mode)}
+                            {price ? ` · ${price}` : ""}
+                          </p>
+                        </div>
+                        <CourseSaveButton courseId={course.id} />
                       </div>
-                      <CourseSaveButton courseId={course.id} />
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
       <SiteFooter />
