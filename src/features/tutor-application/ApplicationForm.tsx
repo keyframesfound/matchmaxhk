@@ -23,6 +23,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/base/input/input";
 import { FormField } from "@/components/ui/form-field";
 import { Label } from "@/components/ui/label";
@@ -402,24 +403,21 @@ function SingleChoice({
   invalid?: boolean;
 }) {
   return (
-    <div className="flex flex-wrap items-start gap-2">
+    <RadioGroup value={value} onValueChange={onChange} className="flex flex-wrap gap-x-5 gap-y-3">
       {options.map((option) => (
-        <button
+        <Label
           key={option}
-          type="button"
-          onClick={() => onChange(option)}
-          className={cn(
-            "rounded-lg border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
-            value === option
-              ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-white"
-              : "border-border bg-card text-foreground",
-            invalid && value !== option && "border-destructive",
-          )}
+          className="flex min-h-11 cursor-pointer items-center gap-2 py-1 text-sm font-normal text-foreground"
         >
-          {option}
-        </button>
+          <RadioGroupItem
+            value={option}
+            aria-invalid={invalid || undefined}
+            className={invalid ? "border-destructive" : undefined}
+          />
+          <span>{option}</span>
+        </Label>
       ))}
-    </div>
+    </RadioGroup>
   );
 }
 

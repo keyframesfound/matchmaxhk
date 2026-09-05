@@ -103,9 +103,15 @@
   object-fit: contain;
 }
 
+.smm-search {
+  flex: 0 0 auto;
+  position: relative;
+  margin: 1rem 1.25rem 0.25rem;
+}
+
 .smm-panel-content {
   display: flex;
-  min-height: calc(100dvh - 64px);
+  min-height: calc(100dvh - 64px - 4rem);
   flex: 1;
   flex-direction: column;
   padding: 1.75rem 1.25rem;
@@ -190,7 +196,9 @@
   font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
-  transition: color 180ms ease, opacity 180ms ease;
+  transition:
+    color 180ms ease,
+    opacity 180ms ease;
 }
 
 .smm-socials:hover .smm-social-link {
@@ -206,6 +214,10 @@
 @media (min-width: 640px) {
   .smm-panel-header {
     padding: 0 2rem;
+  }
+
+  .smm-search {
+    margin: 1.25rem 2rem 0.25rem;
   }
 
   .smm-panel-content {
