@@ -280,7 +280,7 @@ function SettingsPage() {
 
               <section
                 id="security"
-                className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]"
+                className="scroll-mt-28 rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]"
               >
                 <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
                   <h2 className="text-lg font-bold text-[color:var(--ink)]">Password</h2>
@@ -331,7 +331,7 @@ function SettingsPage() {
 
               <section
                 id="appearance"
-                className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]"
+                className="scroll-mt-28 rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]"
               >
                 <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
                   <h2 className="text-lg font-bold text-[color:var(--ink)]">Appearance</h2>
@@ -378,7 +378,7 @@ function SettingsPage() {
 
               <section
                 id="danger-zone"
-                className="rounded-2xl border border-[color:var(--ink)]/15 bg-[color:var(--surface)]"
+                className="scroll-mt-28 rounded-2xl border border-[color:var(--ink)]/15 bg-[color:var(--surface)]"
               >
                 <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
                   <h2 className="text-lg font-bold text-[color:var(--ink)]">Danger zone</h2>
