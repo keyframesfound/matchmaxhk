@@ -454,6 +454,14 @@ function AdminCases() {
                                 ASAP
                               </span>
                             )}
+                            {row.board_published_at && (
+                              <span
+                                className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400"
+                                title="Live on the public tutor request board"
+                              >
+                                On board
+                              </span>
+                            )}
                           </div>
                           <p className="mt-0.5 max-w-xs truncate text-xs text-muted-foreground">
                             {row.title}

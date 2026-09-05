@@ -684,7 +684,9 @@ function TutorDetail() {
                   asChild
                   className="mt-3 bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                 >
-                  <Link to="/case-request">Submit a Case Request</Link>
+                  <Link to="/tutor-requests" search={{ post: true }}>
+                    Submit a Case Request
+                  </Link>
                 </Button>
               </div>
             </div>

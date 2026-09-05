@@ -7,7 +7,7 @@ import { LanguageToggle } from "@/components/brand/LanguageToggle";
 const productLinks = [
   { name: "Find tutors", to: "/tutors" },
   { name: "How it works", to: "/how-it-works" },
-  { name: "Request a match", to: "/case-request" },
+  { name: "Request a match", to: "/tutor-requests" },
   { name: "Saved Posts", to: "/saved-posts" },
   { name: "Join as tutor", to: "/join" },
 ] as const;

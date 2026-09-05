@@ -743,7 +743,9 @@ function TutorsDirectory() {
                     asChild
                     className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                   >
-                    <Link to="/case-request">{t("directory.empty_case")}</Link>
+                    <Link to="/tutor-requests" search={{ post: true }}>
+                      {t("directory.empty_case")}
+                    </Link>
                   </Button>
                 </div>
               </div>

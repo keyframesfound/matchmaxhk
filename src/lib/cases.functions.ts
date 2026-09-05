@@ -25,6 +25,62 @@ const CaseRequestInput = z.object({
 
 export type CaseRequestPayload = z.infer<typeof CaseRequestInput>;
 
+export type PublicCaseBoardItem = {
+  id: string;
+  caseCode: string;
+  title: string;
+  description: string | null;
+  subjects: string[];
+  studentLevel: string;
+  examSystem: string | null;
+  district: string | null;
+  mode: "online" | "in_person" | "either";
+  sessionsPerWeek: number;
+  sessionLengthMinutes: number;
+  preferredGender: "any" | "male" | "female";
+  startTiming: string | null;
+  budgetMin: number | null;
+  budgetMax: number | null;
+  boardPublishedAt: string | null;
+  createdAt: string;
+};
+
+// Public board read: admin client + explicit safe columns only
+// (never contact_name / contact_phone / student_school / student_grade_current)
+export const getPublicCaseBoard = createServerFn({ method: "GET" }).handler(async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("tutoring_cases")
+    .select(
+      "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, preferred_gender, start_timing, budget_min, budget_max, board_published_at, created_at",
+    )
+    .not("board_published_at", "is", null)
+    .not("status", "in", "(matched,closed,rejected)")
+    .order("board_published_at", { ascending: false })
+    .limit(60);
+  if (error) throw new Error(error.message);
+  const rows = (data ?? []) as Array<Record<string, unknown>>;
+  return rows.map((row): PublicCaseBoardItem => ({
+    id: row.id as string,
+    caseCode: row.case_code as string,
+    title: row.title as string,
+    description: (row.description as string | null) ?? null,
+    subjects: (row.subjects as string[] | null) ?? [],
+    studentLevel: row.student_level as string,
+    examSystem: (row.exam_system as string | null) ?? null,
+    district: (row.district as string | null) ?? null,
+    mode: row.mode as "online" | "in_person" | "either",
+    sessionsPerWeek: (row.sessions_per_week as number | null) ?? 1,
+    sessionLengthMinutes: (row.session_length_minutes as number | null) ?? 60,
+    preferredGender: (row.preferred_gender as "any" | "male" | "female") ?? "any",
+    startTiming: (row.start_timing as string | null) ?? null,
+    budgetMin: (row.budget_min as number | null) ?? null,
+    budgetMax: (row.budget_max as number | null) ?? null,
+    boardPublishedAt: (row.board_published_at as string | null) ?? null,
+    createdAt: row.created_at as string,
+  }));
+});
+
 function buildCaseTitle(subjects: string[], level: string): string {
   const subjectPart = subjects.slice(0, 2).join(", ");
   const extra = subjects.length > 2 ? ` +${subjects.length - 2} more` : "";

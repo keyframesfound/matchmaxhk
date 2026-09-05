@@ -27,6 +27,7 @@ export type CaseRow = {
   tags: string[];
   source: string;
   last_contacted_at: string | null;
+  board_published_at: string | null;
   created_at: string;
   updated_at: string;
 };

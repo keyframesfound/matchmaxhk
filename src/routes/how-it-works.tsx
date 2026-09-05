@@ -1,5 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Clock3, MessageCircle, Search, UserRoundCheck } from "lucide-react";
+import {
+  ArrowRight,
+  Asterisk,
+  BadgeCheck,
+  Building2,
+  Check,
+  Clock3,
+  GraduationCap,
+  HandCoins,
+  MessageCircle,
+  Search,
+  UserRoundCheck,
+} from "lucide-react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -111,6 +123,39 @@ const PARENT_COMPARISON: ComparisonRow[] = [
   },
 ];
 
+type ValueProp = {
+  icon: typeof Search;
+  title: string;
+  detail: string;
+};
+
+const VALUE_PROPS: ValueProp[] = [
+  {
+    icon: BadgeCheck,
+    title: "Top 1% Elite Screening",
+    detail:
+      "Our network strictly consists of top-tier talent: IB 40+, DSE Best 5 30+, and official examiners. Every profile is rigorously verified to guarantee parents are paired with authentic, high-calibre educators.",
+  },
+  {
+    icon: HandCoins,
+    title: "The Most Transparent Fees in Hong Kong",
+    detail:
+      "Traditional agencies typically charge tutors half of their first month's tuition—up to a full two weeks of pay. MatchMax charges a radically transparent, one-time flat fee of just the first 1.5 lessons (100% of the 1st lesson and 50% of the 2nd lesson's wage), so top talent keeps more of what they earn.",
+  },
+  {
+    icon: Building2,
+    title: "Zero-Cost B2B Placements",
+    detail:
+      "Standard platforms charge tutoring centres massive upfront recruitment fees. MatchMax charges educational partners $0, delivering elite, verified staffing solutions at unprecedented speed and zero risk.",
+  },
+  {
+    icon: GraduationCap,
+    title: "Student-Founded Expertise",
+    detail:
+      "Built by university students, we inherently understand the logistics of private tutoring. We do not use automated, robotic matchmaking; we treat every application individually and provide personalized, manual guidance to ensure the perfect fit.",
+  },
+];
+
 const PARENT_STEPS: [string, string, string][] = [
   [
     "01",
@@ -150,6 +195,29 @@ const TUTOR_STEPS: [string, string, string][] = [
     "04",
     "A fair commission",
     "Our service is free until you secure a client. Then, the fee is a simple 1.5-lesson flat rate—no hidden fees or ongoing percentage cuts.",
+  ],
+];
+
+const AGENCY_STEPS: [string, string, string][] = [
+  [
+    "01",
+    "Submit your vacancies",
+    "Contact our business team with your specific staffing requirements for part-time or full-time instructional roles.",
+  ],
+  [
+    "02",
+    "Rapid 24-hour shortlisting",
+    "We leverage our active pool of heavily vetted, top-percentile tutors (IB 40+, DSE 30+) to send you a curated shortlist of highly qualified profiles within one business day.",
+  ],
+  [
+    "03",
+    "Review & interview",
+    "Instantly assess a candidate's subjects taught, achievements and experiences, and proceed directly to interviewing your chosen applicants.",
+  ],
+  [
+    "04",
+    "Zero placement fees",
+    "We handle the recruitment and matching at exactly no cost to your business, offering a completely risk-free scaling solution for your centre.",
   ],
 ];
 
@@ -220,7 +288,7 @@ function AudienceSection({
   title: string;
   icon: typeof Search;
   steps: [string, string, string][];
-  link: { to: "/tutors" | "/join"; label: string };
+  link: { to: "/tutors" | "/join" | "/tutor-requests"; label: string };
   className: string;
   numberClassName: string;
   accentClassName: string;
@@ -319,9 +387,12 @@ function HowItWorksPage() {
       <main className="flex-1">
         <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
           <p className="text-sm font-bold text-[color:var(--brand-teal)]">How MatchMax works</p>
-          <h1 className="mt-5 max-w-2xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
-            Built by Students Who’ve Been There: Why MatchMax Works Better
-          </h1>
+          <div className="relative mt-5 w-fit">
+            <h1 className="max-w-2xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
+              Built by Students Who’ve Been There: Why MatchMax Works Better
+            </h1>
+            <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--brand-teal)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
+          </div>
           <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/65">
             We founded MatchMax as university students who sat the IB and DSE exams ourselves. We
             know traditional agencies treat educators like numbers and leave parents guessing. Here
@@ -341,7 +412,27 @@ function HowItWorksPage() {
 
         <section className="mx-auto max-w-[1440px] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
           <p className="text-sm font-bold text-[color:var(--brand-teal)]">
-            01 / Why MatchMax works better
+            01 / What makes us different
+          </p>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 sm:gap-8">
+            {VALUE_PROPS.map(({ icon: Icon, title, detail }) => (
+              <article
+                key={title}
+                className="rounded-[var(--radius-panel)] border border-[color:var(--ink)]/12 bg-[color:var(--surface)] p-6 shadow-[var(--shadow-brand)] sm:p-8"
+              >
+                <span className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-panel)] bg-[color:var(--brand-teal)]/10">
+                  <Icon className="h-6 w-6 text-[color:var(--brand-teal)]" aria-hidden="true" />
+                </span>
+                <h3 className="mt-5 text-xl font-black tracking-tight sm:text-2xl">{title}</h3>
+                <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">{detail}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-[1440px] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
+          <p className="text-sm font-bold text-[color:var(--brand-teal)]">
+            02 / Why MatchMax works better
           </p>
           <div className="mt-10 space-y-16 sm:mt-12 sm:space-y-20">
             <ComparisonTable
@@ -359,7 +450,7 @@ function HowItWorksPage() {
           <div className="mx-auto max-w-[1440px]">
             <div className="grid gap-6 md:grid-cols-[0.7fr_1.3fr] md:items-end">
               <div>
-                <p className="text-sm font-bold text-[#1FA8B6]">02 / The matching flow</p>
+                <p className="text-sm font-bold text-[#1FA8B6]">03 / The matching flow</p>
                 <div className="mt-5 flex items-center gap-3 text-sm font-bold">
                   <Clock3 className="h-5 w-5" /> Within one business day
                 </div>
@@ -396,12 +487,24 @@ function HowItWorksPage() {
           bodyTextClassName="text-white"
         />
 
+        <AudienceSection
+          eyebrow="For agencies & educational centres"
+          audience="For Centres"
+          title="Access Hong Kong's most elite tutoring database for your centre, absolutely free."
+          icon={Building2}
+          steps={AGENCY_STEPS}
+          link={{ to: "/tutor-requests", label: "Contact our business team" }}
+          className="text-[color:var(--ink)]"
+          numberClassName="bg-[color:var(--brand-teal)]/15 text-[color:var(--brand-teal)]"
+          accentClassName="text-[color:var(--brand-teal)]"
+        />
+
         <section
           id="faq"
           className="mx-auto max-w-[1440px] scroll-mt-20 px-5 py-20 sm:px-8 sm:py-28 lg:px-12"
         >
           <div className="mx-auto max-w-4xl">
-            <p className="text-sm font-bold text-[color:var(--brand-teal)]">03 / Good to know</p>
+            <p className="text-sm font-bold text-[color:var(--brand-teal)]">04 / Good to know</p>
             <h2 className="mt-3 text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
               Frequently Asked Questions
             </h2>

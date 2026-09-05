@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import {
   ArrowLeft,
   CalendarClock,
   Clock,
+  ExternalLink,
   Loader2,
   MessageCircle,
   NotebookPen,
+  Pencil,
   Phone,
   Sparkles,
   Trash2,
@@ -18,8 +20,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { TagInput } from "@/components/ui/tag-input";
+import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
+import { formatStudentLevel } from "@/features/cases/display";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,6 +96,7 @@ export function CaseDetailView({
   const queryClient = useQueryClient();
   const [noteBody, setNoteBody] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const invalidateCase = () => {
     queryClient.invalidateQueries({ queryKey: ["admin", "cases"] });
@@ -190,6 +196,27 @@ export function CaseDetailView({
     updateMutation.mutate(patch);
   };
 
+  const boardPublishMutation = useMutation({
+    mutationFn: async (publish: boolean) => {
+      const { error } = await supabase
+        .from("tutoring_cases")
+        .update({
+          board_published_at: publish ? new Date().toISOString() : null,
+        } as never)
+        .eq("id", caseRow.id);
+      if (error) throw error;
+    },
+    onSuccess: (_data, publish) => {
+      toast.success(
+        publish
+          ? `Case ${caseRow.case_code} published to the tutor request board`
+          : `Case ${caseRow.case_code} removed from the board`,
+      );
+      invalidateCase();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const handleAddNote = () => {
     const trimmed = noteBody.trim();
     if (!trimmed) return;
@@ -240,7 +267,10 @@ export function CaseDetailView({
               Requirements
             </h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
-              <DetailRow label="Student level" value={caseRow.student_level} />
+              <DetailRow
+                label="Student level"
+                value={formatStudentLevel(caseRow.student_level) || caseRow.student_level}
+              />
               <DetailRow
                 label="Current grade"
                 value={caseRow.student_grade_current ?? "Not provided"}
@@ -432,6 +462,48 @@ export function CaseDetailView({
           </section>
 
           <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Board listing
+              </h2>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs"
+                onClick={() => setEditOpen(true)}
+              >
+                <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit request
+              </Button>
+            </div>
+            <div className="mt-3 flex items-start justify-between gap-3 rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3.5 py-3">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-[color:var(--ink)]">Show on public board</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                  {caseRow.board_published_at
+                    ? `Live at /tutor-requests since ${format(new Date(caseRow.board_published_at), "d MMM yyyy")}. Matched or closed cases are hidden automatically.`
+                    : "Not published. Tutors can't see this case yet."}
+                </p>
+              </div>
+              <Switch
+                checked={caseRow.board_published_at !== null}
+                disabled={boardPublishMutation.isPending}
+                onCheckedChange={(checked) => boardPublishMutation.mutate(checked)}
+                aria-label="Publish case to the tutor request board"
+              />
+            </div>
+            {caseRow.board_published_at ? (
+              <a
+                href="/tutor-requests"
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[color:var(--brand-link)] hover:underline"
+              >
+                View board <ExternalLink className="h-3 w-3" aria-hidden="true" />
+              </a>
+            ) : null}
+          </section>
+
+          <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Tags
             </h2>
@@ -514,6 +586,8 @@ export function CaseDetailView({
           </section>
         </div>
       </div>
+
+      <CaseEditDialog caseRow={caseRow} open={editOpen} onOpenChange={setEditOpen} />
 
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent>

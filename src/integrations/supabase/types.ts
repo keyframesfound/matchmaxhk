@@ -471,6 +471,7 @@ export type Database = {
       tutoring_cases: {
         Row: {
           assigned_to: string | null;
+          board_published_at: string | null;
           budget_max: number | null;
           budget_min: number | null;
           case_code: string;
@@ -503,6 +504,7 @@ export type Database = {
         };
         Insert: {
           assigned_to?: string | null;
+          board_published_at?: string | null;
           budget_max?: number | null;
           budget_min?: number | null;
           case_code?: string;
@@ -535,6 +537,7 @@ export type Database = {
         };
         Update: {
           assigned_to?: string | null;
+          board_published_at?: string | null;
           budget_max?: number | null;
           budget_min?: number | null;
           case_code?: string;

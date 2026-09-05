@@ -20,6 +20,7 @@ import { Route as JoinRouteImport } from './routes/join'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TutorRequestsRouteImport } from './routes/tutor-requests'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
@@ -96,6 +97,11 @@ const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TutorRequestsRoute = TutorRequestsRouteImport.update({
+  id: '/tutor-requests',
+  path: '/tutor-requests',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tutor-requests': typeof TutorRequestsRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
@@ -269,6 +276,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tutor-requests': typeof TutorRequestsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
@@ -305,6 +313,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tutor-requests': typeof TutorRequestsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
@@ -342,6 +351,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
+    | '/tutor-requests'
     | '/admin'
     | '/dashboard'
     | '/saved-posts'
@@ -377,6 +387,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
+    | '/tutor-requests'
     | '/dashboard'
     | '/saved-posts'
     | '/business/$slug'
@@ -412,6 +423,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
+    | '/tutor-requests'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/saved-posts'
@@ -449,6 +461,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TutorRequestsRoute: typeof TutorRequestsRoute
   BusinessSlugRoute: typeof BusinessSlugRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
@@ -536,6 +549,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tutor-requests': {
+      id: '/tutor-requests'
+      path: '/tutor-requests'
+      fullPath: '/tutor-requests'
+      preLoaderRoute: typeof TutorRequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -763,6 +783,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TutorRequestsRoute: TutorRequestsRoute,
   BusinessSlugRoute: BusinessSlugRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
