@@ -371,7 +371,6 @@ function TutorDetail() {
     result.subjects.some((entry) => entry.subject.trim()),
   );
   const profileBio = t.qualifications_summary?.trim() ?? "";
-  const hasIbPerfectScore = /\b45\s*\/\s*45\b/.test(t.academic_headline ?? "");
   const lessonLocation = t.district ? `Hong Kong — ${t.district}` : "Hong Kong";
   const tutorLanguages = (t.languages ?? []).filter(Boolean);
   const lessonLanguages = tutorLanguages.length > 0 ? tutorLanguages.join(", ") : "Not specified";
@@ -460,11 +459,6 @@ function TutorDetail() {
                     {t.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
                   </div>
                 )}
-                {hasIbPerfectScore ? (
-                  <span className="bg-brand-gradient-x absolute -bottom-1.5 left-1/2 z-10 flex min-w-[3.5rem] -translate-x-1/2 items-center justify-center whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-black leading-none tracking-wide text-white shadow-md ring-2 ring-[color:var(--surface)] sm:-bottom-2 sm:min-w-[4rem] sm:px-2.5 sm:text-[12px]">
-                    IBDP 45
-                  </span>
-                ) : null}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">

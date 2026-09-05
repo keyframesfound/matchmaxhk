@@ -167,8 +167,54 @@ function EvidenceNote({ className }: { className?: string }) {
 }
 
 function readableFileSize(bytes: number) {
-  if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} KB`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} MB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  name: "Full Name",
+  phone: "Phone / WhatsApp Number",
+  email: "Email",
+  country: "Country / Region",
+  countryOther: "Country / Region — specify",
+  status: "Current Status",
+  statusOther: "Current Status — specify",
+  medium: "Medium of Instruction",
+  roles: "Professional Role",
+  boards: "Examining Board(s)",
+  credentials: "Teaching Qualifications",
+  highSchool: "Secondary School Attended",
+  subjectsTaught: "Subjects Willing to Teach",
+  format: "Mode of Lesson",
+  stations: "Possible Teaching Locations (MTR Network)",
+  hourlyRate: "Proposed Hourly Rate",
+  materials: "Teaching materials",
+  commission: "Commission acknowledgment (final step)",
+  privacy: "Privacy consent (final step)",
+  captcha: "Security check (final step)",
+};
+
+function describeFieldError(key: string): string {
+  if (FIELD_LABELS[key]) return FIELD_LABELS[key];
+  let match = key.match(/^curriculum-(\d+)$/);
+  if (match) return `Qualification ${Number(match[1]) + 1} — Curriculum`;
+  match = key.match(/^overall-(\d+)$/);
+  if (match) return `Qualification ${Number(match[1]) + 1} — Overall achieved score/grades`;
+  match = key.match(/^boards-(\d+)$/);
+  if (match) return `Qualification ${Number(match[1]) + 1} — Exam Board(s)`;
+  match = key.match(/^subject-(\d+)-(\d+)$/);
+  if (match)
+    return `Qualification ${Number(match[1]) + 1} — subject scores row ${Number(match[2]) + 1}: subject`;
+  match = key.match(/^grade-(\d+)-(\d+)$/);
+  if (match)
+    return `Qualification ${Number(match[1]) + 1} — subject scores row ${Number(match[2]) + 1}: grade`;
+  match = key.match(/^achievement-title-(\d+)$/);
+  if (match) return `Achievement ${Number(match[1]) + 1} — Title`;
+  match = key.match(/^achievement-description-(\d+)$/);
+  if (match) return `Achievement ${Number(match[1]) + 1} — Description`;
+  match = key.match(/^achievement-proof-(\d+)$/);
+  if (match) return `Achievement ${Number(match[1]) + 1} — Evidence file`;
+  return key;
 }
 
 function isTranscriptImage(file: File) {
@@ -985,28 +1031,35 @@ export function ApplicationForm() {
               key={scoreIndex}
               className="grid gap-3 rounded-md border border-border/70 p-3 sm:grid-cols-2"
             >
-              {isFreeformQualification ? (
-                <Input
-                  value={score.subject}
-                  onChange={(event) =>
-                    updateScore(qualificationIndex, scoreIndex, {
-                      subject: event.target.value,
-                    })
-                  }
-                  placeholder="Subject name"
-                />
-              ) : (
-                <SearchableSelect
-                  value={score.subject}
-                  onChange={(subject) =>
-                    updateScore(qualificationIndex, scoreIndex, { subject, grade: "" })
-                  }
-                  options={availableSubjects ?? []}
-                  placeholder="Choose subject"
-                  searchPlaceholder="Search subjects..."
-                  emptyText="No matching subjects."
-                />
-              )}
+              <div className="grid gap-1.5">
+                {isFreeformQualification ? (
+                  <Input
+                    value={score.subject}
+                    onChange={(event) =>
+                      updateScore(qualificationIndex, scoreIndex, {
+                        subject: event.target.value,
+                      })
+                    }
+                    placeholder="Subject name"
+                  />
+                ) : (
+                  <SearchableSelect
+                    value={score.subject}
+                    onChange={(subject) =>
+                      updateScore(qualificationIndex, scoreIndex, { subject, grade: "" })
+                    }
+                    options={availableSubjects ?? []}
+                    placeholder="Choose subject"
+                    searchPlaceholder="Search subjects..."
+                    emptyText="No matching subjects."
+                  />
+                )}
+                {fieldErrors[`subject-${qualificationIndex}-${scoreIndex}`] ? (
+                  <p className="text-xs font-medium text-destructive">
+                    {fieldErrors[`subject-${qualificationIndex}-${scoreIndex}`]}
+                  </p>
+                ) : null}
+              </div>
               {qualification.curriculum === "A-Level" ? (
                 <SingleChoice
                   options={["A-Level", "AS-Level"]}
@@ -1022,32 +1075,41 @@ export function ApplicationForm() {
                   }
                 />
               ) : null}
-              {isFreeformQualification ? (
-                <Input
-                  value={score.grade}
-                  onChange={(event) =>
-                    updateScore(qualificationIndex, scoreIndex, { grade: event.target.value })
-                  }
-                  placeholder="Grade / result"
-                />
-              ) : (
-                <Select
-                  value={score.grade}
-                  onValueChange={(grade) => updateScore(qualificationIndex, scoreIndex, { grade })}
-                  disabled={!score.subject}
-                >
-                  <SelectTrigger aria-label="Overall grade">
-                    <SelectValue placeholder="Choose grade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {gradeOptions.map((grade) => (
-                      <SelectItem key={grade} value={grade}>
-                        {grade}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+              <div className="grid gap-1.5">
+                {isFreeformQualification ? (
+                  <Input
+                    value={score.grade}
+                    onChange={(event) =>
+                      updateScore(qualificationIndex, scoreIndex, { grade: event.target.value })
+                    }
+                    placeholder="Grade / result"
+                  />
+                ) : (
+                  <Select
+                    value={score.grade}
+                    onValueChange={(grade) =>
+                      updateScore(qualificationIndex, scoreIndex, { grade })
+                    }
+                    disabled={!score.subject}
+                  >
+                    <SelectTrigger aria-label="Overall grade">
+                      <SelectValue placeholder="Choose grade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {gradeOptions.map((grade) => (
+                        <SelectItem key={grade} value={grade}>
+                          {grade}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`] ? (
+                  <p className="text-xs font-medium text-destructive">
+                    {fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`]}
+                  </p>
+                ) : null}
+              </div>
               <div className="grid gap-2 sm:col-span-2">
                 {score.papers.map((paper, paperIndex) => (
                   <div
@@ -1201,7 +1263,16 @@ export function ApplicationForm() {
             className="mb-6 flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium leading-relaxed text-destructive"
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span>{error}</span>
+            <div className="min-w-0">
+              <span>{error}</span>
+              {Object.keys(fieldErrors).length > 0 ? (
+                <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-semibold">
+                  {Object.keys(fieldErrors).map((key) => (
+                    <li key={key}>{describeFieldError(key)}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
           </div>
         ) : null}
         <Stepper
@@ -1315,6 +1386,11 @@ export function ApplicationForm() {
                     onChange={(event) => setBaseField("statusOther", event.target.value)}
                     placeholder="Please specify"
                   />
+                ) : null}
+                {fieldErrors.statusOther ? (
+                  <p className="mt-2 text-xs font-medium text-destructive">
+                    {fieldErrors.statusOther}
+                  </p>
                 ) : null}
                 {base.status === PROFESSIONAL_STATUS ||
                 roles.includes("Official examiner / moderator") ? (
@@ -1978,26 +2054,41 @@ export function ApplicationForm() {
           <Step>
             <Heading step={stepTitles.length} title="Acknowledgments" />
             <div className="grid gap-5">
-              <label className="flex gap-3 text-sm text-muted-foreground">
-                <Checkbox
-                  checked={base.privacy}
-                  onCheckedChange={(checked) => setBaseField("privacy", checked === true)}
-                />
-                {professional
-                  ? "I consent to MatchMax using my credentials and CV to verify my professional status, promote my teaches profile, and protect my anonymity."
-                  : PRIVACY_TEXT}
-              </label>
-              <label className="flex gap-3 text-sm text-muted-foreground">
-                <Checkbox
-                  checked={base.commission}
-                  onCheckedChange={(checked) => setBaseField("commission", checked === true)}
-                />
-                {COMMISSION_TEXT}
-              </label>
+              <div className="grid gap-1.5">
+                <label className="flex gap-3 text-sm text-muted-foreground">
+                  <Checkbox
+                    checked={base.privacy}
+                    onCheckedChange={(checked) => setBaseField("privacy", checked === true)}
+                  />
+                  {professional
+                    ? "I consent to MatchMax using my credentials and CV to verify my professional status, promote my teaches profile, and protect my anonymity."
+                    : PRIVACY_TEXT}
+                </label>
+                {fieldErrors.privacy ? (
+                  <p className="text-xs font-medium text-destructive">{fieldErrors.privacy}</p>
+                ) : null}
+              </div>
+              <div className="grid gap-1.5">
+                <label className="flex gap-3 text-sm text-muted-foreground">
+                  <Checkbox
+                    checked={base.commission}
+                    onCheckedChange={(checked) => setBaseField("commission", checked === true)}
+                  />
+                  {COMMISSION_TEXT}
+                </label>
+                {fieldErrors.commission ? (
+                  <p className="text-xs font-medium text-destructive">{fieldErrors.commission}</p>
+                ) : null}
+              </div>
               <div ref={captchaRef} className="min-h-[65px]" />
               {captchaError ? (
                 <p className="text-xs font-medium text-destructive" role="alert">
                   {captchaError}
+                </p>
+              ) : null}
+              {fieldErrors.captcha ? (
+                <p className="text-xs font-medium text-destructive" role="alert">
+                  {fieldErrors.captcha}
                 </p>
               ) : null}
             </div>

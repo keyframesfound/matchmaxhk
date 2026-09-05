@@ -1,13 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  Asterisk,
-  ArrowRight,
-  Check,
-  Clock3,
-  MessageCircle,
-  Search,
-  UserRoundCheck,
-} from "lucide-react";
+import { ArrowRight, Check, Clock3, MessageCircle, Search, UserRoundCheck } from "lucide-react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -327,12 +319,9 @@ function HowItWorksPage() {
       <main className="flex-1">
         <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
           <p className="text-sm font-bold text-[color:var(--brand-teal)]">How MatchMax works</p>
-          <div className="relative mt-5 w-fit">
-            <h1 className="max-w-2xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
-              Built by Students Who’ve Been There: Why MatchMax Works Better
-            </h1>
-            <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--brand-teal)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
-          </div>
+          <h1 className="mt-5 max-w-2xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
+            Built by Students Who’ve Been There: Why MatchMax Works Better
+          </h1>
           <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/65">
             We founded MatchMax as university students who sat the IB and DSE exams ourselves. We
             know traditional agencies treat educators like numbers and leave parents guessing. Here
@@ -348,21 +337,21 @@ function HowItWorksPage() {
               <Link to="/join">Apply to Teach</Link>
             </Button>
           </div>
+        </section>
 
-          <div className="mt-16 sm:mt-24">
-            <p className="text-sm font-bold text-[color:var(--brand-teal)]">
-              01 / Why MatchMax works better
-            </p>
-            <div className="mt-10 space-y-16 sm:mt-12 sm:space-y-20">
-              <ComparisonTable
-                title="For Educators: Fair Rules, Built by Students Who Understand You"
-                rows={EDUCATOR_COMPARISON}
-              />
-              <ComparisonTable
-                title="For Parents: Real Scores, Verified Credentials"
-                rows={PARENT_COMPARISON}
-              />
-            </div>
+        <section className="mx-auto max-w-[1440px] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
+          <p className="text-sm font-bold text-[color:var(--brand-teal)]">
+            01 / Why MatchMax works better
+          </p>
+          <div className="mt-10 space-y-16 sm:mt-12 sm:space-y-20">
+            <ComparisonTable
+              title="For Educators: Fair Rules, Built by Students Who Understand You"
+              rows={EDUCATOR_COMPARISON}
+            />
+            <ComparisonTable
+              title="For Parents: Real Scores, Verified Credentials"
+              rows={PARENT_COMPARISON}
+            />
           </div>
         </section>
 

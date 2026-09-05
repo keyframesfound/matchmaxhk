@@ -79,7 +79,6 @@ export function PublicTutorCard({
   const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
   const [visibleAcademicChipCount, setVisibleAcademicChipCount] = useState(academicChips.length);
   const genderLabel = getTutorGenderLabel(tutor.gender);
-  const hasIbPerfectScore = /\b45\s*\/\s*45\b/.test(tutor.academic_headline ?? "");
   const primaryCredential = removeEmoji(
     tutor.academic_headline ??
       tutor.university ??
@@ -192,11 +191,6 @@ export function PublicTutorCard({
                   {getTutorInitials(tutor.tutor_code)}
                 </div>
               )}
-              {hasIbPerfectScore ? (
-                <span className="bg-brand-gradient-x absolute -bottom-1 left-1/2 z-10 flex min-w-[3.25rem] -translate-x-1/2 items-center justify-center whitespace-nowrap rounded-[5px] px-1.5 py-[2px] text-[10px] font-black leading-none tracking-wide text-white shadow-md ring-2 ring-[color:var(--surface)]">
-                  IBDP 45
-                </span>
-              ) : null}
             </div>
             <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-muted-foreground md:text-[11px]">
               {formatTutorCode(tutor.tutor_code)}
