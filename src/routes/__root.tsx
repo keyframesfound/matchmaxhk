@@ -18,7 +18,7 @@ import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { WhatsAppFloatButton } from "@/components/layout/WhatsAppFloatButton";
 import { Toaster } from "@/components/ui/sonner";
 
-function NotFoundComponent() {
+export function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">

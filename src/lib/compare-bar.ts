@@ -17,5 +17,9 @@ function subscribe(listener: () => void) {
 }
 
 export function useCompareBarVisible() {
-  return useSyncExternalStore(subscribe, () => visible);
+  return useSyncExternalStore(
+    subscribe,
+    () => visible,
+    () => visible,
+  );
 }
