@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, LocateFixed, Paperclip, Plus, Sparkles, Trash2, Upload, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, LocateFixed, Paperclip, Plus, Sparkles, Trash2, Upload, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Button } from "@/components/ui/button";
@@ -292,7 +292,7 @@ function SingleChoice({
           type="button"
           onClick={() => onChange(option)}
           className={cn(
-            "rounded-lg border px-3 py-2 text-sm font-semibold",
+            "rounded-lg border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
             value === option
               ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-white"
               : "border-border bg-card text-foreground",
@@ -419,15 +419,19 @@ export function ApplicationForm() {
     setStep(nextStep);
   }
 
-  useEffect(() => {
-    if (!shouldScrollToStepper.current) return;
-    shouldScrollToStepper.current = false;
+  function scrollToStepperTop() {
     window.requestAnimationFrame(() => {
       const stepperTop = stepperRef.current?.getBoundingClientRect().top;
       if (stepperTop === undefined) return;
       const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
       window.scrollTo({ top: window.scrollY + stepperTop - headerHeight, behavior: "smooth" });
     });
+  }
+
+  useEffect(() => {
+    if (!shouldScrollToStepper.current) return;
+    shouldScrollToStepper.current = false;
+    scrollToStepperTop();
   }, [step]);
 
   async function addTravelSuggestions() {
@@ -699,10 +703,10 @@ export function ApplicationForm() {
       if (!captcha) next.captcha = "Complete the security check.";
     }
     setFieldErrors(next);
-    setError(
-      Object.keys(next).length ? "Complete the highlighted fields before continuing." : null,
-    );
-    return Object.keys(next).length === 0;
+    const failed = Object.keys(next).length > 0;
+    setError(failed ? "Complete the highlighted fields before continuing." : null);
+    if (failed) scrollToStepperTop();
+    return !failed;
   }
 
   async function fileData(file: File) {
@@ -830,6 +834,7 @@ export function ApplicationForm() {
       });
       if (!parsed.success) {
         setError(parsed.error.issues[0]?.message ?? "Please check your application.");
+        scrollToStepperTop();
         return;
       }
       await submit({ data: parsed.data });
@@ -839,6 +844,7 @@ export function ApplicationForm() {
       setError(
         reason instanceof Error ? reason.message : "Something went wrong. Please try again.",
       );
+      scrollToStepperTop();
     } finally {
       setSubmitting(false);
     }
@@ -1103,6 +1109,15 @@ export function ApplicationForm() {
         {notice}
       </aside>
       <div ref={stepperRef}>
+        {error ? (
+          <div
+            role="alert"
+            className="mb-6 flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium leading-relaxed text-destructive"
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>{error}</span>
+          </div>
+        ) : null}
         <Stepper
           className="join-stepper"
           scrollActiveIndicatorIntoView
@@ -1113,7 +1128,8 @@ export function ApplicationForm() {
           renderStepIndicator={renderIndicator}
           nextButtonText="Continue"
           backButtonText="Previous"
-          completeButtonText="Submit application"
+          completeButtonText={submitting ? "Submitting…" : "Submit application"}
+          backButtonProps={{ disabled: submitting }}
           nextButtonProps={{ disabled: submitting }}
         >
         <Step>
@@ -1165,7 +1181,6 @@ export function ApplicationForm() {
               <Field
                 label="Phone / WhatsApp Number"
                 required
-                hint="Whatsapp Number"
                 error={fieldErrors.phone}
               >
                 <Input
@@ -1604,7 +1619,7 @@ export function ApplicationForm() {
                             setSuggestionStatus("idle");
                           }}
                           className={cn(
-                            "rounded-lg border px-3 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                            "rounded-lg border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
                             travelBudget === budget && originStation
                               ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-white"
                               : "border-border bg-card text-foreground hover:border-[color:var(--brand-teal)]/50",

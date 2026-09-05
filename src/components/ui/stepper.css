@@ -233,11 +233,11 @@
   }
 
   .join-stepper .join-stepper-indicator {
-    width: 9rem;
+    width: 6.5rem;
   }
 
   .join-stepper .stepper-connector {
-    flex: 0 0 2.5rem;
+    flex: 0 0 1rem;
     margin: 0 0 1.75rem;
   }
 }
@@ -258,7 +258,7 @@
   }
 
   .join-stepper .join-stepper-indicator {
-    width: 8rem;
+    width: 7.5rem;
   }
 
   .join-stepper .stepper-connector {

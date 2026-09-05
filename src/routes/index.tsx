@@ -17,7 +17,6 @@ import { blurActive } from "@/lib/dom";
 import {
   fetchPublishedTutors,
   fetchTopWeeklyTutors,
-  fetchLandingStats,
   fetchTutorByCode,
   getTutorCardHighlights,
   HK_DISTRICTS,
@@ -134,26 +133,6 @@ function Landing() {
   const { data: featuredTutors = [], isLoading: featuredLoading } = useQuery({
     queryKey: ["landing", "featured_tutors"],
     queryFn: () => fetchTopWeeklyTutors(3),
-  });
-
-  const { data: liveStats } = useQuery({
-    queryKey: ["landing", "stats"],
-    queryFn: () => fetchLandingStats(),
-  });
-
-  const { data: studentsMatchedSetting } = useQuery({
-    queryKey: ["settings", "students_matched"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "students_matched")
-        .maybeSingle();
-      if (error) throw error;
-      const v = data?.value;
-      const n = typeof v === "string" ? parseInt(v, 10) : typeof v === "number" ? v : 0;
-      return Number.isFinite(n) ? n : 0;
-    },
   });
 
   const { data: heroTutorCode } = useQuery({
@@ -298,9 +277,6 @@ function Landing() {
               <br />
               <span className="text-[color:var(--ink)]">{t("hero.title_b")}</span>
             </h1>
-            <p className="mt-4 max-w-md text-sm font-medium leading-relaxed text-muted-foreground md:mt-5 md:text-base">
-              {t("hero.subtitle")}
-            </p>
             <div className="mt-6 flex flex-wrap gap-3 md:mt-8">
               <Button
                 asChild
@@ -319,24 +295,6 @@ function Landing() {
                 </Link>
               </Button>
             </div>
-            {liveStats && studentsMatchedSetting !== undefined ? (
-              <div className="mt-8 grid grid-cols-3 gap-4 border-t border-[color:var(--ink)]/10 pt-5 md:mt-10 md:max-w-lg">
-                {[
-                  { value: studentsMatchedSetting, label: t("hero.stat_students") },
-                  { value: liveStats.activeTutors, label: t("hero.stat_tutors") },
-                  { value: liveStats.subjectsCovered, label: t("hero.stat_subjects") },
-                ].map(({ value, label }) => (
-                  <div key={label}>
-                    <p className="text-xl font-black tracking-tight text-[color:var(--ink)] md:text-3xl">
-                      {value.toLocaleString("en-HK")}
-                    </p>
-                    <p className="mt-1 text-[11px] font-semibold leading-snug text-muted-foreground md:text-xs">
-                      {label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
           </div>
         </div>
       </section>

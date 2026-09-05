@@ -32,6 +32,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteMyAccount } from "@/lib/account.functions";
+import { cn } from "@/lib/utils";
 import { useTheme, type ThemePreference } from "@/features/theme/ThemeProvider";
 
 const THEME_OPTIONS: {
@@ -43,6 +44,13 @@ const THEME_OPTIONS: {
   { value: "system", label: "System", description: "Match your device setting", icon: Monitor },
   { value: "light", label: "Light", description: "Always use the light theme", icon: Sun },
   { value: "dark", label: "Dark", description: "Deep navy dark theme", icon: Moon },
+];
+
+const SETTINGS_SECTIONS = [
+  { id: "profile", label: "Profile", icon: CircleUserRound },
+  { id: "security", label: "Password", icon: KeyRound },
+  { id: "appearance", label: "Appearance", icon: Palette },
+  { id: "danger-zone", label: "Danger zone", icon: Trash2 },
 ];
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -67,6 +75,23 @@ function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [activeSection, setActiveSection] = useState("profile");
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
+        }
+      },
+      { rootMargin: "-20% 0px -65% 0px" },
+    );
+    for (const { id } of SETTINGS_SECTIONS) {
+      const section = document.getElementById(id);
+      if (section) observer.observe(section);
+    }
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -171,17 +196,7 @@ function SettingsPage() {
 
           <div className="grid gap-10 pt-10 lg:grid-cols-[190px_minmax(0,1fr)] lg:gap-16">
             <aside className="lg:sticky lg:top-24 lg:self-start">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--ink)]/55">
-                Settings
-              </p>
-              <nav className="mt-3 space-y-1" aria-label="Settings sections">
-                <a
-                  href="#profile"
-                  className="flex items-center gap-2 rounded-lg bg-[color:var(--ink)]/5 px-3 py-2 text-sm font-semibold text-[color:var(--ink)]"
-                >
-                  <CircleUserRound className="h-4 w-4" aria-hidden="true" />
-                  Profile
-                </a>
+              <nav className="space-y-1" aria-label="Settings sections">
                 <Link
                   to="/saved-posts"
                   className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--ink)]/70 transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
@@ -189,34 +204,32 @@ function SettingsPage() {
                   <Bookmark className="h-4 w-4" aria-hidden="true" />
                   Saved Posts
                 </Link>
-                <a
-                  href="#security"
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--ink)]/70 transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
-                >
-                  <KeyRound className="h-4 w-4" aria-hidden="true" />
-                  Password
-                </a>
-                <a
-                  href="#appearance"
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--ink)]/70 transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
-                >
-                  <Palette className="h-4 w-4" aria-hidden="true" />
-                  Appearance
-                </a>
-                <a
-                  href="#danger-zone"
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--ink)]/70 transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
-                >
-                  <Trash2 className="h-4 w-4" aria-hidden="true" />
-                  Danger zone
-                </a>
+                {SETTINGS_SECTIONS.map(({ id, label, icon: Icon }) => {
+                  const active = activeSection === id;
+                  return (
+                    <a
+                      key={id}
+                      href={`#${id}`}
+                      aria-current={active ? "true" : undefined}
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
+                        active
+                          ? "bg-[color:var(--ink)]/5 font-semibold text-[color:var(--ink)]"
+                          : "font-medium text-[color:var(--ink)]/70 hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]",
+                      )}
+                    >
+                      <Icon className="h-4 w-4" aria-hidden="true" />
+                      {label}
+                    </a>
+                  );
+                })}
               </nav>
             </aside>
 
             <div className="min-w-0 max-w-3xl space-y-6">
               <section
                 id="profile"
-                className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]"
+                className="scroll-mt-28 rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]"
               >
                 <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
                   <h2 className="text-lg font-bold text-[color:var(--ink)]">Profile</h2>

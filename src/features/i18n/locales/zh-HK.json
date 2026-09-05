@@ -15,12 +15,8 @@
     "eyebrow": "香港智能補習配對平台",
     "title_a": "搵到最適合",
     "title_b": "你嘅導師",
-    "subtitle": "按科目、程度同預算，幫你快速配對合適導師，幾分鐘就可以開始",
     "cta_primary": "瀏覽導師",
-    "cta_secondary": "瀏覽導師",
-    "stat_students": "已配對學生",
-    "stat_tutors": "已核實導師",
-    "stat_subjects": "涵蓋科目"
+    "cta_secondary": "瀏覽導師"
   },
   "trust": {
     "students": "成功配對學生",

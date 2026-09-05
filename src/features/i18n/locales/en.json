@@ -13,11 +13,7 @@
   "hero": {
     "title_a": "Match with your",
     "title_b": "perfect tutor",
-    "cta_primary": "Browse tutors",
-    "subtitle": "Filter by subject, level and budget — get matched in minutes.",
-    "stat_students": "students matched",
-    "stat_tutors": "verified tutors",
-    "stat_subjects": "subjects covered"
+    "cta_primary": "Browse tutors"
   },
   "trust": {
     "students": "Students matched",
