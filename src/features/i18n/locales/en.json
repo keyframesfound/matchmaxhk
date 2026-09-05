@@ -13,7 +13,13 @@
   "hero": {
     "title_a": "Match with your",
     "title_b": "perfect tutor",
-    "cta_primary": "Browse tutors"
+    "cta_primary": "Browse tutors",
+    "subtitle": "Filter by subject, level and budget — get matched in minutes.",
+    "featured_label": "Featured verified tutor",
+    "view_profile": "View profile",
+    "stat_students": "students matched",
+    "stat_tutors": "verified tutors",
+    "stat_subjects": "subjects covered"
   },
   "trust": {
     "students": "Students matched",
@@ -193,5 +199,16 @@
     "success_message": "Thanks for applying to MatchMax. Our team reviews every application and will contact you by email or WhatsApp if there is a suitable case.",
     "back_home": "Back home",
     "browse_tutors": "Browse tutors"
+  },
+  "directory": {
+    "subtitle": "Every profile is transcript-checked and team-reviewed before it goes live.",
+    "empty_title": "No tutors match these filters yet",
+    "empty_desc": "Widen the price range or clear a filter to see more profiles — or let our team match one for you, free.",
+    "empty_clear": "Clear all filters",
+    "empty_case": "Request a free match",
+    "empty_whatsapp": "Ask on WhatsApp"
+  },
+  "profile": {
+    "verified": "Verified"
   }
 }

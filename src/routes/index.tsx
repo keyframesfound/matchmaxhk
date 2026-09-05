@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Search, UserPlus } from "lucide-react";
+import { ArrowRight, BadgeCheck, Search, UserPlus } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -200,6 +200,8 @@ function Landing() {
     return defaultHeroTutor;
   }, [defaultHeroTutor]);
 
+  const heroTutorBadge = /\b45\s*\/\s*45\b/.test(heroTutor?.academic_headline ?? "");
+
   const tutorsForCategory = (category: string) =>
     publishedTutors
       .filter((tutor) =>
@@ -298,7 +300,10 @@ function Landing() {
               <br />
               <span className="text-[color:var(--ink)]">{t("hero.title_b")}</span>
             </h1>
-            <div className="mt-6 flex flex-wrap gap-3 md:mt-10">
+            <p className="mt-4 max-w-md text-sm font-medium leading-relaxed text-muted-foreground md:mt-5 md:text-base">
+              {t("hero.subtitle")}
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3 md:mt-8">
               <Button
                 asChild
                 size="lg"
@@ -316,7 +321,86 @@ function Landing() {
                 </Link>
               </Button>
             </div>
+            {liveStats && studentsMatchedSetting !== undefined ? (
+              <div className="mt-8 grid grid-cols-3 gap-4 border-t border-[color:var(--ink)]/10 pt-5 md:mt-10 md:max-w-lg">
+                {[
+                  { value: studentsMatchedSetting, label: t("hero.stat_students") },
+                  { value: liveStats.activeTutors, label: t("hero.stat_tutors") },
+                  { value: liveStats.subjectsCovered, label: t("hero.stat_subjects") },
+                ].map(({ value, label }) => (
+                  <div key={label}>
+                    <p className="text-xl font-black tracking-tight text-[color:var(--ink)] md:text-3xl">
+                      {value.toLocaleString("en-HK")}
+                    </p>
+                    <p className="mt-1 text-[11px] font-semibold leading-snug text-muted-foreground md:text-xs">
+                      {label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
+          {heroTutor ? (
+            <aside className="flex flex-col justify-center">
+              <div className="relative rounded-sm border border-[color:var(--brand-teal)]/25 bg-card p-4 shadow-brand sm:p-5">
+                <div className="flex items-center justify-between gap-2 border-b border-[color:var(--brand-teal)]/20 pb-3">
+                  <p className="text-xs font-black uppercase tracking-wide text-muted-foreground sm:text-sm">
+                    {t("hero.featured_label")}
+                  </p>
+                  <span className="bg-brand-gradient-x inline-flex items-center gap-1 rounded-[5px] px-2 py-1 text-[10px] font-black uppercase leading-none tracking-wide text-white shadow-sm">
+                    <BadgeCheck className="h-3 w-3" aria-hidden="true" />
+                    {t("profile.verified")}
+                  </span>
+                </div>
+                <div className="mt-4 flex items-start gap-3">
+                  {heroTutor.photo_url ? (
+                    <img
+                      src={heroTutor.photo_url}
+                      alt=""
+                      className="h-14 w-14 shrink-0 rounded-full border border-border object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-base font-bold text-[color:var(--ink)]">
+                      {(heroTutor.tutor_code ?? "")
+                        .replace(/[^a-zA-Z0-9]/g, "")
+                        .slice(0, 2)
+                        .toUpperCase() || "MM"}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-2 text-xs font-bold tracking-wide text-muted-foreground">
+                      {heroTutor.tutor_code}
+                      {heroTutorBadge ? (
+                        <span className="bg-brand-gradient-x rounded-[4px] px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-wide text-white">
+                          IBDP 45
+                        </span>
+                      ) : null}
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-sm font-black leading-snug tracking-tight text-[color:var(--ink)] md:text-[15px]">
+                      {heroTutor.academic_headline ?? heroTutor.university ?? ""}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="mt-4 h-9 justify-between rounded-sm px-2 text-sm font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]"
+                >
+                  <Link
+                    to="/tutors/$tutorCode"
+                    params={{ tutorCode: heroTutor.tutor_code }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      blurActive();
+                    }}
+                  >
+                    {t("hero.view_profile")}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+              </div>
+            </aside>
+          ) : null}
         </div>
       </section>
 
@@ -330,8 +414,8 @@ function Landing() {
             </div>
 
             <div className="mt-2.5 grid gap-2 sm:gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
-              <div className="relative hidden md:block">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground md:h-4 md:w-4" />
                 <Input
                   className="h-9 rounded-sm pl-9 text-xs md:h-11 md:text-sm"
                   placeholder="Search tutor code, subject, keyword…"
@@ -400,16 +484,12 @@ function Landing() {
                     </h2>
                     <Button
                       asChild
-                      size="icon"
                       variant="ghost"
-                      className="h-11 w-11 shrink-0 rounded-full bg-[color:var(--surface)] hover:bg-[color:var(--surface-invert)] hover:text-white"
+                      className="h-9 shrink-0 rounded-full px-3 text-sm font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:px-4"
                     >
-                      <Link
-                        to="/tutors"
-                        search={{ category: value }}
-                        aria-label={`Browse all ${label} tutors`}
-                      >
-                        <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                      <Link to="/tutors" search={{ category: value }}>
+                        {t("featured.view_all")}
+                        <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
                       </Link>
                     </Button>
                   </div>

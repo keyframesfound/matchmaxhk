@@ -16,8 +16,13 @@
     "title_a": "搵到最適合",
     "title_b": "你嘅導師",
     "subtitle": "按科目、程度同預算，幫你快速配對合適導師，幾分鐘就可以開始",
-    "cta_primary": "免費發佈補習需求",
-    "cta_secondary": "瀏覽導師"
+    "cta_primary": "瀏覽導師",
+    "cta_secondary": "瀏覽導師",
+    "featured_label": "精選已核實導師",
+    "view_profile": "查看導師",
+    "stat_students": "已配對學生",
+    "stat_tutors": "已核實導師",
+    "stat_subjects": "涵蓋科目"
   },
   "trust": {
     "students": "成功配對學生",
@@ -221,5 +226,16 @@
     "success_message": "感謝你申請加入 MatchMax。我哋會逐一審閱申請，如有合適個案會以電郵或 WhatsApp 聯絡你。",
     "back_home": "返回首頁",
     "browse_tutors": "瀏覽導師"
+  },
+  "directory": {
+    "subtitle": "每位導師均經成績表核實同團隊審批後先會上架。",
+    "empty_title": "未搵到符合條件嘅導師",
+    "empty_desc": "試下放寬價格範圍或者清除篩選，又或者等我哋團隊免費幫你配對。",
+    "empty_clear": "清除所有篩選",
+    "empty_case": "免費提出配對",
+    "empty_whatsapp": "WhatsApp 查詢"
+  },
+  "profile": {
+    "verified": "已核實"
   }
 }

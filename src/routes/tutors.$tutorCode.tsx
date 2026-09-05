@@ -6,6 +6,7 @@ import {
   MessageCircle,
   ArrowLeft,
   Award,
+  BadgeCheck,
   Globe,
   Languages,
   Layers,
@@ -15,6 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -307,6 +309,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
 function TutorDetail() {
   const { tutor } = Route.useLoaderData();
   const navigate = useNavigate();
+  const { t: translate } = useTranslation();
 
   const { data: whatsappNumber } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
@@ -474,6 +477,13 @@ function TutorDetail() {
                       </>
                     ) : null}
                   </h1>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--brand-teal)]/35 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-bold leading-none text-[color:var(--ink)]">
+                    <BadgeCheck
+                      className="h-3.5 w-3.5 text-[color:var(--brand-teal)]"
+                      aria-hidden="true"
+                    />
+                    {translate("profile.verified")}
+                  </span>
                 </div>
                 {t.academic_headline || t.university || t.secondary_school ? (
                   <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">

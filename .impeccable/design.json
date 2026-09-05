@@ -1,0 +1,425 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-05T00:00:00Z",
+  "title": "Design System: MatchMax",
+  "extensions": {
+    "colorMeta": {
+      "harbour-midnight": {
+        "role": "primary",
+        "displayName": "Harbour Midnight",
+        "canonical": "#041344",
+        "tonalRamp": [
+          "oklch(0.15 0.06 265)",
+          "oklch(0.21 0.09 265)",
+          "oklch(0.28 0.1 265)",
+          "oklch(0.36 0.11 265)",
+          "oklch(0.46 0.11 265)",
+          "oklch(0.58 0.1 265)",
+          "oklch(0.72 0.08 265)",
+          "oklch(0.88 0.05 265)"
+        ]
+      },
+      "royal-navy": {
+        "role": "primary",
+        "displayName": "Royal Navy",
+        "canonical": "#0A245F",
+        "tonalRamp": [
+          "oklch(0.18 0.08 265)",
+          "oklch(0.24 0.1 265)",
+          "oklch(0.3 0.12 265)",
+          "oklch(0.38 0.12 265)",
+          "oklch(0.48 0.12 265)",
+          "oklch(0.6 0.11 265)",
+          "oklch(0.74 0.08 265)",
+          "oklch(0.9 0.04 265)"
+        ]
+      },
+      "royal-blue": {
+        "role": "tertiary",
+        "displayName": "Royal Blue",
+        "canonical": "#1B2CC1",
+        "tonalRamp": [
+          "oklch(0.2 0.1 275)",
+          "oklch(0.28 0.14 275)",
+          "oklch(0.36 0.17 275)",
+          "oklch(0.45 0.19 275)",
+          "oklch(0.55 0.19 275)",
+          "oklch(0.65 0.17 275)",
+          "oklch(0.78 0.13 275)",
+          "oklch(0.9 0.06 275)"
+        ]
+      },
+      "island-line-teal": {
+        "role": "secondary",
+        "displayName": "Island Line Teal",
+        "canonical": "#1FA8B6",
+        "tonalRamp": [
+          "oklch(0.2 0.05 197)",
+          "oklch(0.3 0.07 197)",
+          "oklch(0.4 0.09 197)",
+          "oklch(0.5 0.1 197)",
+          "oklch(0.58 0.11 197)",
+          "oklch(0.66 0.11 197)",
+          "oklch(0.78 0.1 197)",
+          "oklch(0.9 0.06 197)"
+        ]
+      },
+      "signal-periwinkle": {
+        "role": "tertiary",
+        "displayName": "Signal Periwinkle",
+        "canonical": "#ABD2FA",
+        "tonalRamp": [
+          "oklch(0.3 0.08 250)",
+          "oklch(0.42 0.09 250)",
+          "oklch(0.54 0.09 250)",
+          "oklch(0.64 0.08 250)",
+          "oklch(0.74 0.07 250)",
+          "oklch(0.84 0.06 250)",
+          "oklch(0.9 0.05 250)",
+          "oklch(0.96 0.02 250)"
+        ]
+      },
+      "link-blue": {
+        "role": "tertiary",
+        "displayName": "Link Blue",
+        "canonical": "#0D47A1",
+        "tonalRamp": [
+          "oklch(0.2 0.08 260)",
+          "oklch(0.28 0.1 260)",
+          "oklch(0.36 0.12 260)",
+          "oklch(0.44 0.14 260)",
+          "oklch(0.53 0.15 260)",
+          "oklch(0.62 0.14 260)",
+          "oklch(0.76 0.1 260)",
+          "oklch(0.9 0.05 260)"
+        ]
+      },
+      "paper-white": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "oklch(0.55 0.01 250)",
+          "oklch(0.65 0.01 250)",
+          "oklch(0.74 0.008 250)",
+          "oklch(0.82 0.008 250)",
+          "oklch(0.88 0.006 250)",
+          "oklch(0.93 0.008 250)",
+          "oklch(0.97 0.005 250)",
+          "oklch(1 0 0)"
+        ]
+      },
+      "paper-tint": {
+        "role": "neutral",
+        "displayName": "Paper Tint",
+        "canonical": "#F8FAFC",
+        "tonalRamp": [
+          "oklch(0.55 0.01 250)",
+          "oklch(0.65 0.01 250)",
+          "oklch(0.74 0.008 250)",
+          "oklch(0.82 0.008 250)",
+          "oklch(0.88 0.006 250)",
+          "oklch(0.93 0.008 250)",
+          "oklch(0.97 0.005 250)",
+          "oklch(0.99 0.003 250)"
+        ]
+      },
+      "ink-on-light": {
+        "role": "neutral",
+        "displayName": "Ink on Light",
+        "canonical": "oklch(0.16 0.09 265)",
+        "tonalRamp": [
+          "oklch(0.16 0.09 265)",
+          "oklch(0.24 0.09 265)",
+          "oklch(0.32 0.08 265)",
+          "oklch(0.42 0.06 265)",
+          "oklch(0.55 0.05 265)",
+          "oklch(0.68 0.04 265)",
+          "oklch(0.82 0.03 265)",
+          "oklch(0.94 0.01 265)"
+        ]
+      },
+      "muted-ink": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "oklch(0.45 0.03 260)",
+        "tonalRamp": [
+          "oklch(0.3 0.04 260)",
+          "oklch(0.38 0.035 260)",
+          "oklch(0.45 0.03 260)",
+          "oklch(0.56 0.025 260)",
+          "oklch(0.68 0.02 260)",
+          "oklch(0.8 0.015 260)",
+          "oklch(0.9 0.01 260)",
+          "oklch(0.97 0.005 250)"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(0.93 0.008 250)",
+        "tonalRamp": [
+          "oklch(0.6 0.01 250)",
+          "oklch(0.7 0.01 250)",
+          "oklch(0.78 0.008 250)",
+          "oklch(0.85 0.008 250)",
+          "oklch(0.89 0.008 250)",
+          "oklch(0.93 0.008 250)",
+          "oklch(0.95 0.006 250)",
+          "oklch(0.98 0.004 250)"
+        ]
+      },
+      "dark-canvas": {
+        "role": "neutral",
+        "displayName": "Night Canvas",
+        "canonical": "#090A0C",
+        "tonalRamp": [
+          "#090A0C",
+          "#0C0E11",
+          "#111419",
+          "#161A20",
+          "#1A1F27",
+          "#242932",
+          "#2A303A",
+          "#3A4150"
+        ]
+      },
+      "dark-card": {
+        "role": "neutral",
+        "displayName": "Night Card",
+        "canonical": "#111419",
+        "tonalRamp": [
+          "#090A0C",
+          "#0C0E11",
+          "#111419",
+          "#161A20",
+          "#1A1F27",
+          "#242932",
+          "#2A303A",
+          "#3A4150"
+        ]
+      },
+      "dark-border": {
+        "role": "neutral",
+        "displayName": "Night Border",
+        "canonical": "#242932",
+        "tonalRamp": [
+          "#111419",
+          "#161A20",
+          "#1A1F27",
+          "#242932",
+          "#2A303A",
+          "#3A4150",
+          "#4D5565",
+          "#6B7280"
+        ]
+      },
+      "dark-muted-ink": {
+        "role": "neutral",
+        "displayName": "Night Muted Ink",
+        "canonical": "#9CA3AF",
+        "tonalRamp": [
+          "#4B5563",
+          "#6B7280",
+          "#9CA3AF",
+          "#B3BAC5",
+          "#C8CDD6",
+          "#DDE1E7",
+          "#EBEEF3",
+          "#F4F7FB"
+        ]
+      },
+      "status-destructive": {
+        "role": "neutral",
+        "displayName": "Alert Red",
+        "canonical": "oklch(0.577 0.245 27.325)",
+        "tonalRamp": [
+          "oklch(0.25 0.1 27)",
+          "oklch(0.35 0.15 27)",
+          "oklch(0.45 0.2 27)",
+          "oklch(0.577 0.245 27.325)",
+          "oklch(0.65 0.21 27)",
+          "oklch(0.74 0.17 27)",
+          "oklch(0.8 0.1 27)",
+          "oklch(0.92 0.04 27)"
+        ]
+      },
+      "status-success": {
+        "role": "neutral",
+        "displayName": "Verified Green",
+        "canonical": "oklch(0.627 0.194 149.214)",
+        "tonalRamp": [
+          "oklch(0.25 0.08 149)",
+          "oklch(0.35 0.11 149)",
+          "oklch(0.45 0.13 149)",
+          "oklch(0.54 0.16 149)",
+          "oklch(0.627 0.194 149.214)",
+          "oklch(0.72 0.16 149)",
+          "oklch(0.82 0.12 149)",
+          "oklch(0.92 0.06 149)"
+        ]
+      },
+      "status-warning": {
+        "role": "neutral",
+        "displayName": "Caution Amber",
+        "canonical": "oklch(0.666 0.179 58.318)",
+        "tonalRamp": [
+          "oklch(0.3 0.07 58)",
+          "oklch(0.4 0.1 58)",
+          "oklch(0.5 0.14 58)",
+          "oklch(0.59 0.17 58)",
+          "oklch(0.666 0.179 58.318)",
+          "oklch(0.76 0.15 58)",
+          "oklch(0.85 0.11 58)",
+          "oklch(0.93 0.06 58)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headlines and footer wordmark; renders at 700 when DM Sans is the active fallback." },
+      "headline": { "displayName": "Headline", "purpose": "Page h1 outside the hero." },
+      "title": { "displayName": "Title", "purpose": "Section h2 headings." },
+      "subtitle": { "displayName": "Subtitle", "purpose": "h3 card and subsection titles." },
+      "body": { "displayName": "Body", "purpose": "All running text; controls sit at 500 weight." },
+      "label": { "displayName": "Label", "purpose": "Uppercase eyebrows, footer columns, step indicators." }
+    },
+    "shadows": [
+      { "name": "shadow-brand", "value": "0 10px 30px -18px color-mix(in oklab, #041344 24%, transparent)", "purpose": "Hero CTAs and floating shells on light theme." },
+      { "name": "shadow-teal", "value": "0 12px 24px -16px color-mix(in oklab, #1FA8B6 28%, transparent)", "purpose": "Teal accents that hover or float." },
+      { "name": "focus-ring", "value": "0 0 0 3px color-mix(in oklab, var(--ring) 32%, transparent)", "purpose": "Keyboard focus glow." },
+      { "name": "night-elevation", "value": "0 16px 40px -24px rgba(0, 0, 0, 0.78)", "purpose": "Dark-theme cards and popovers." },
+      { "name": "stepper-shell", "value": "0 24px 60px -36px color-mix(in oklab, #041344 35%, transparent)", "purpose": "Join-stepper panel shell." }
+    ],
+    "motion": [
+      { "name": "state-fast", "value": "150ms ease-out", "purpose": "Button/link state transitions." },
+      { "name": "step", "value": "240ms ease", "purpose": "Stepper connector and slide transitions." },
+      { "name": "reveal", "value": "560ms/720ms cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Blur-highlight text reveal and highlighter sweep, staggered 130ms per phrase." },
+      { "name": "marquee", "value": "42s linear infinite", "purpose": "Landing tutor card marquee; paused under prefers-reduced-motion." },
+      { "name": "press", "value": "scale(0.97) on :active", "purpose": "Tactile button press; disabled under motion-reduce." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default navy action: Royal Navy fill that deepens to Harbour Midnight on hover.",
+      "html": "<button class=\"ds-btn-primary\">Request tutor <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 8px 16px; border: none; border-radius: 8px; background: #0A245F; color: #ffffff; font-family: 'Uber Move', 'Uber Move Text', 'DM Sans', ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); transition: background-color 150ms ease-out, transform 150ms ease-out; } .ds-btn-primary:hover { background: #041344; } .ds-btn-primary:active { transform: scale(0.97); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgb(31 168 182 / 0.4); }"
+    },
+    {
+      "name": "Accent Teal Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "Teal solid action — the motion colour as a button.",
+      "html": "<button class=\"ds-btn-accent\">Find a tutor</button>",
+      "css": ".ds-btn-accent { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 8px 16px; border: none; border-radius: 8px; background: #1FA8B6; color: #ffffff; font-family: 'Uber Move', 'Uber Move Text', 'DM Sans', ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); transition: background-color 150ms ease-out, transform 150ms ease-out; } .ds-btn-accent:hover { background: #168590; } .ds-btn-accent:active { transform: scale(0.97); } .ds-btn-accent:focus-visible { outline: none; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgb(31 168 182 / 0.4); }"
+    },
+    {
+      "name": "Pill Teal Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "shape=\"pill\" accent for promotional CTAs.",
+      "html": "<button class=\"ds-btn-pill\">Request a match</button>",
+      "css": ".ds-btn-pill { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 8px 32px; border: none; border-radius: 9999px; background: #1FA8B6; color: #ffffff; font-family: 'Uber Move', 'Uber Move Text', 'DM Sans', ui-sans-serif, system-ui, sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; box-shadow: 0 12px 24px -16px rgb(31 168 182 / 0.28); transition: background-color 150ms ease-out, transform 150ms ease-out; } .ds-btn-pill:hover { background: #168590; } .ds-btn-pill:active { transform: scale(0.97); } .ds-btn-pill:focus-visible { outline: none; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgb(31 168 182 / 0.4); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "White fill, hairline ink border; border shifts teal on hover.",
+      "html": "<button class=\"ds-btn-outline\">View profile</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 8px 16px; border: 1px solid rgb(4 19 68 / 0.15); border-radius: 8px; background: #ffffff; color: #041344; font-family: 'Uber Move', 'Uber Move Text', 'DM Sans', ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); transition: border-color 150ms ease-out, background-color 150ms ease-out, transform 150ms ease-out; } .ds-btn-outline:hover { border-color: rgb(31 168 182 / 0.4); background: rgb(31 168 182 / 0.08); } .ds-btn-outline:active { transform: scale(0.97); } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgb(31 168 182 / 0.4); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Borderless ink text with teal wash hover.",
+      "html": "<button class=\"ds-btn-ghost\">Saved Posts</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 8px 16px; border: none; border-radius: 8px; background: transparent; color: #041344; font-family: 'Uber Move', 'Uber Move Text', 'DM Sans', ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out; } .ds-btn-ghost:hover { background: rgb(31 168 182 / 0.1); color: #1FA8B6; } .ds-btn-ghost:active { transform: scale(0.97); } .ds-btn-ghost:focus-visible { outline: none; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgb(31 168 182 / 0.4); }"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "44px transparent field with hairline stroke; teal focus border + ring.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Search tutor code, subject, keyword…\" />",
+      "css": ".ds-input { height: 44px; width: 100%; padding: 4px 12px; border: 1px solid rgb(148 163 184 / 0.55); border-radius: 8px; background: transparent; color: #041344; font-family: 'Uber Move', 'Uber Move Text', 'DM Sans', ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; transition: border-color 150ms ease-out, box-shadow 150ms ease-out; } .ds-input::placeholder { color: rgb(4 19 68 / 0.45); } .ds-input:focus-visible { outline: none; border-color: #1FA8B6; box-shadow: 0 0 0 2px rgb(31 168 182 / 0.4); } .ds-input:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Standard surface: rounded-xl, hairline border, flat with soft rest shadow.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Jayden Lau</h3><p class=\"ds-card-text\">HKU · DSE 5** in Mathematics — transcript verified by the MatchMax team.</p></div>",
+      "css": ".ds-card { border: 1px solid rgb(148 163 184 / 0.35); border-radius: 15px; background: #ffffff; color: #041344; padding: 24px; font-family: 'Uber Move', 'Uber Move Text', 'DM Sans', ui-sans-serif, system-ui, sans-serif; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); } .ds-card-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 8px; } .ds-card-text { font-size: 0.95rem; font-weight: 400; line-height: 1.6; margin: 0; color: rgb(4 19 68 / 0.7); }"
+    },
+    {
+      "name": "Badge (teal tint)",
+      "kind": "chip",
+      "refersTo": "badge-secondary",
+      "description": "Verification-style tag using the teal tint language.",
+      "html": "<span class=\"ds-badge\">Verified top scorer</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border: none; border-radius: 9px; background: rgb(31 168 182 / 0.1); color: #041344; font-family: 'Uber Move', 'Uber Move Text', 'DM Sans', ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; line-height: 1.45; }"
+    },
+    {
+      "name": "Nav Link",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Header wayfinding link: ink at 85%, Link Blue on hover with sweeping underline.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Primary\"><a class=\"ds-nav-link\" href=\"#\">Find tutors</a><a class=\"ds-nav-link\" href=\"#\">Courses</a><a class=\"ds-nav-link is-active\" href=\"#\">How it works</a></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 36px; } .ds-nav-link { position: relative; color: rgb(4 19 68 / 0.85); font-family: 'Uber Move', 'Uber Move Text', 'DM Sans', ui-sans-serif, system-ui, sans-serif; font-size: 15px; font-weight: 600; text-decoration: none; transition: color 200ms ease; } .ds-nav-link::after { content: \"\"; position: absolute; left: 0; bottom: -8px; height: 2px; width: 0; border-radius: 9999px; background: #0A245F; transition: width 200ms ease; } .ds-nav-link:hover, .ds-nav-link.is-active { color: #0D47A1; } .ds-nav-link:hover::after, .ds-nav-link.is-active::after { width: 100%; } .ds-nav-link:focus-visible { outline: none; color: #0D47A1; }"
+    },
+    {
+      "name": "Brand Gradient Wordmark",
+      "kind": "custom",
+      "refersTo": "text-brand-gradient",
+      "description": "The MatchMax wordmark: navy→teal gradient clipped to text.",
+      "html": "<span class=\"ds-wordmark\">MatchMax</span>",
+      "css": ".ds-wordmark { font-family: 'Uber Move', 'Uber Move Text', 'DM Sans', ui-sans-serif, system-ui, sans-serif; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; background-image: linear-gradient(135deg, #041344 0%, #0A245F 45%, #1FA8B6 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Hong Kong Rapid Transit",
+    "overview": "MatchMax borrows the grammar of the city's transit system: a trusted network that moves you from where you are to where you need to be, with every stop clearly signed. Harbour Midnight (#041344) is the official ink — wayfinding signage, verification stamps, the authority of the network. Island Line Teal (#1FA8B6) is the moving line — the colour of progress, connectors, focus rings, and the actions that carry a parent from search to match. The system is confident, crisp, and proof-backed: real numbers set in heavy type, hairline borders instead of heavy chrome, and a navy-to-teal gradient that reads as the line map connecting navy authority to teal motion. Density is product-like rather than editorial. Public pages persuade with bold black-weight display type and generous section rhythm; authenticated consoles compress into compact, sharply-cornered controls. Everything is bilingual-first — the Latin type stack hands off to system CJK fonts for Traditional Chinese, so layouts must survive wider glyphs and never assume Latin-only line heights.",
+    "keyCharacteristics": [
+      "Two brand voices on every surface: navy ink for authority, teal for motion and progress",
+      "Navy→teal brand gradient reserved for brand moments (wordmark, hero backdrops, key CTAs)",
+      "Flat, hairline-bordered surfaces by default; soft brand-tinted ambient shadows on hero moments only",
+      "Heavy display type (700–900) with tight tracking against a light 0.95rem body",
+      "Compact control heights (36px buttons, 44px inputs) with tactile press (scale 0.97)",
+      "Full dark theme that flips the primary to Signal Periwinkle (#ABD2FA) on deep navy text"
+    ],
+    "rules": [
+      { "name": "The Signal Rule", "body": "Teal means motion: actions, progress, focus, and completion. It never paints static decoration, and it never carries small body text on white — links on light surfaces use Link Blue.", "section": "colors" },
+      { "name": "The Inverted Signal Rule", "body": "Dark mode flips the network, not just the lights: primary becomes Signal Periwinkle carrying Harbour Midnight text. Never reuse light-theme navy-on-white pairings in dark mode.", "section": "colors" },
+      { "name": "The Single Signage Rule", "body": "One font family everywhere; hierarchy is weight + size + tracking. Do not introduce display serifs or second sans families.", "section": "typography" },
+      { "name": "The Two-Script Rule", "body": "Every type decision must hold for Traditional Chinese system-font fallback: no fixed-height text containers narrower than the zh-HK glyph, no letter-spacing tricks on CJK, always test EN/zh-HK parity.", "section": "typography" },
+      { "name": "The 1440 Rail Rule", "body": "Header and hero rails stop at 1440px; inner content stops at max-w-7xl. Nothing stretches edge-to-edge except full-bleed tinted sections.", "section": "layout" },
+      { "name": "The Hairline First Rule", "body": "Reach for a 1px border before a shadow. Shadows are a response to state or prominence (hero, hover, overlay), never the resting look of ordinary cards.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do reserve the navy→teal brand gradient for brand moments: the wordmark, hero backdrops, and primary marketing CTAs — one gradient voice per viewport.",
+      "Do keep interactive surfaces tactile: 150ms transitions, active:scale-[0.97] press, visible focus-visible teal rings.",
+      "Do honour prefers-reduced-motion for every custom animation (blur reveal, marquee, stepper, press) — the incumbent code always pairs them.",
+      "Do verify both EN and zh-HK renderings of any new copy or component; layouts must not assume Latin widths.",
+      "Do use Link Blue (#0D47A1) for small text links on light surfaces; teal only for larger/secondary affordances and dark-mode links (periwinkle).",
+      "Do dim photographic backdrops in dark mode (opacity ≈0.18) and recolor the logo with .logo-dark-recolor."
+    ],
+    "donts": [
+      "Don't use teal as small body text or static decoration on white — it is the motion colour (actions, progress, focus).",
+      "Don't add new accent hues; the sanctioned extra colours are the button palette (green/amber) and the three statuses.",
+      "Don't use pure black shadows in light theme — shadows are navy/teal color-mix washes; neutral deep shadows belong to dark mode only.",
+      "Don't introduce a second type family; hierarchy is weight/size/tracking within the Uber Move → DM Sans stack.",
+      "Don't fix text to containers that break with CJK fallback fonts, and don't apply letter-spacing to Chinese text.",
+      "Don't exceed the rails: 1440px for header/hero, max-w-7xl for content; no edge-to-edge text columns."
+    ]
+  }
+}

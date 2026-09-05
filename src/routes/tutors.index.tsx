@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import * as SliderPrimitive from "@radix-ui/react-slider";
-import { ListChecks, Search } from "lucide-react";
+import { ListChecks, Search, SearchX } from "lucide-react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -565,6 +565,9 @@ function TutorsDirectory() {
             <h1 className="text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
               Find verified tutors
             </h1>
+            <p className="mt-3 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:text-base">
+              {t("directory.subtitle")}
+            </p>
 
             <div className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
               <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
@@ -705,28 +708,42 @@ function TutorsDirectory() {
             {isLoading && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className="h-64 rounded-sm border border-border" />
+                  <Skeleton key={i} className="h-[23rem] rounded-sm border border-border" />
                 ))}
               </div>
             )}
 
             {!isLoading && filtered.length === 0 && (
-              <div className="rounded-sm border border-dashed border-border bg-card p-12 text-center">
-                <p className="text-lg font-bold text-[color:var(--ink)]">
-                  No tutors match your filters yet
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Try widening your search, or clear filters to see everyone.
+              <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/8">
+                  <SearchX className="h-5 w-5 text-[color:var(--brand-teal)]" aria-hidden="true" />
+                </div>
+                <h2 className="mt-4 text-xl font-black tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                  {t("directory.empty_title")}
+                </h2>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                  {t("directory.empty_desc")}
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
                   <Button variant="outline" onClick={clearAll}>
-                    Clear filters
+                    {t("directory.empty_clear")}
                   </Button>
+                  {hotlineUrl ? (
+                    <Button asChild variant="ghost">
+                      <a href={hotlineUrl} target="_blank" rel="noreferrer">
+                        <WhatsAppIcon
+                          className="mr-2 h-4 w-4 text-[color:var(--brand-teal)]"
+                          aria-hidden="true"
+                        />
+                        {t("directory.empty_whatsapp")}
+                      </a>
+                    </Button>
+                  ) : null}
                   <Button
                     asChild
                     className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                   >
-                    <Link to="/case-request">Request a match for free</Link>
+                    <Link to="/case-request">{t("directory.empty_case")}</Link>
                   </Button>
                 </div>
               </div>
