@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, Search, UserPlus } from "lucide-react";
+import { ArrowRight, Search, UserPlus } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -200,8 +200,6 @@ function Landing() {
     return defaultHeroTutor;
   }, [defaultHeroTutor]);
 
-  const heroTutorBadge = /\b45\s*\/\s*45\b/.test(heroTutor?.academic_headline ?? "");
-
   const tutorsForCategory = (category: string) =>
     publishedTutors
       .filter((tutor) =>
@@ -340,67 +338,6 @@ function Landing() {
               </div>
             ) : null}
           </div>
-          {heroTutor ? (
-            <aside className="flex flex-col justify-center">
-              <div className="relative rounded-sm border border-[color:var(--brand-teal)]/25 bg-card p-4 shadow-brand sm:p-5">
-                <div className="flex items-center justify-between gap-2 border-b border-[color:var(--brand-teal)]/20 pb-3">
-                  <p className="text-xs font-black uppercase tracking-wide text-muted-foreground sm:text-sm">
-                    {t("hero.featured_label")}
-                  </p>
-                  <span className="bg-brand-gradient-x inline-flex items-center gap-1 rounded-[5px] px-2 py-1 text-[10px] font-black uppercase leading-none tracking-wide text-white shadow-sm">
-                    <BadgeCheck className="h-3 w-3" aria-hidden="true" />
-                    {t("profile.verified")}
-                  </span>
-                </div>
-                <div className="mt-4 flex items-start gap-3">
-                  {heroTutor.photo_url ? (
-                    <img
-                      src={heroTutor.photo_url}
-                      alt=""
-                      className="h-14 w-14 shrink-0 rounded-full border border-border object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-base font-bold text-[color:var(--ink)]">
-                      {(heroTutor.tutor_code ?? "")
-                        .replace(/[^a-zA-Z0-9]/g, "")
-                        .slice(0, 2)
-                        .toUpperCase() || "MM"}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="flex flex-wrap items-center gap-2 text-xs font-bold tracking-wide text-muted-foreground">
-                      {heroTutor.tutor_code}
-                      {heroTutorBadge ? (
-                        <span className="bg-brand-gradient-x rounded-[4px] px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-wide text-white">
-                          IBDP 45
-                        </span>
-                      ) : null}
-                    </p>
-                    <p className="mt-1 line-clamp-2 text-sm font-black leading-snug tracking-tight text-[color:var(--ink)] md:text-[15px]">
-                      {heroTutor.academic_headline ?? heroTutor.university ?? ""}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  asChild
-                  variant="ghost"
-                  className="mt-4 h-9 justify-between rounded-sm px-2 text-sm font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]"
-                >
-                  <Link
-                    to="/tutors/$tutorCode"
-                    params={{ tutorCode: heroTutor.tutor_code }}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      blurActive();
-                    }}
-                  >
-                    {t("hero.view_profile")}
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
-                </Button>
-              </div>
-            </aside>
-          ) : null}
         </div>
       </section>
 
