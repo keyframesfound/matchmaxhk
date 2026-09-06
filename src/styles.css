@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -73,13 +73,16 @@
   --radius: 0.7rem;
   --radius-control: 0.5rem;
   --radius-panel: 0.75rem;
-  /* Fraunces for headlines (warm serif, "academic credibility"); Inter for body/UI. */
+  /* Uber Move is Uber's proprietary typeface; DM Sans is the web fallback. */
   --font-sans:
-    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
   --font-heading:
-    "Fraunces", "Iowan Old Style", Georgia, serif;
+    "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
   --font-body:
-    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
 
   /* Brand raw */
   --brand-navy: #091540;
