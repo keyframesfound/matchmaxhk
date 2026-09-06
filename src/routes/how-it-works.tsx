@@ -15,12 +15,7 @@ import {
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Accordion05 } from "@/components/ui/accordion-05";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/how-it-works")({
@@ -241,6 +236,18 @@ const FAQ_FOR_PARENTS = [
     a: "Tuition is paid directly to the tutor based on the agreed hourly rate and schedule. MatchMax does not hold or handle your tuition fees, keeping the payment process direct and transparent.",
   },
 ];
+
+const TUTOR_FAQ_ITEMS = FAQ_FOR_TUTORS.map((item, index) => ({
+  id: String(index + 1),
+  title: item.q,
+  content: item.a,
+}));
+
+const PARENT_FAQ_ITEMS = FAQ_FOR_PARENTS.map((item, index) => ({
+  id: String(index + 1),
+  title: item.q,
+  content: item.a,
+}));
 
 function AudienceSection({
   eyebrow,
@@ -500,24 +507,7 @@ function HowItWorksPage() {
                 />
                 For Tutors
               </h3>
-              <div className="mt-5 rounded-[var(--radius-panel)] border border-[color:var(--ink)]/12 bg-[color:var(--surface)] px-5 py-2 shadow-[var(--shadow-brand)] sm:px-8">
-                <Accordion type="single" collapsible className="w-full">
-                  {FAQ_FOR_TUTORS.map((item, index) => (
-                    <AccordionItem
-                      key={item.q}
-                      value={`tutor-faq-${index}`}
-                      className="border-[color:var(--ink)]/10"
-                    >
-                      <AccordionTrigger className="py-5 text-left text-lg font-bold text-[color:var(--ink)] hover:no-underline sm:text-xl">
-                        {item.q}
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-5 text-base leading-relaxed text-[color:var(--ink)]/70">
-                        {item.a}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </div>
+              <Accordion05 className="mt-5" items={TUTOR_FAQ_ITEMS} defaultValue="1" />
             </div>
 
             <div className="mt-14">
@@ -528,24 +518,7 @@ function HowItWorksPage() {
                 />
                 For Parents
               </h3>
-              <div className="mt-5 rounded-[var(--radius-panel)] border border-[color:var(--ink)]/12 bg-[color:var(--surface)] px-5 py-2 shadow-[var(--shadow-brand)] sm:px-8">
-                <Accordion type="single" collapsible className="w-full">
-                  {FAQ_FOR_PARENTS.map((item, index) => (
-                    <AccordionItem
-                      key={item.q}
-                      value={`parent-faq-${index}`}
-                      className="border-[color:var(--ink)]/10"
-                    >
-                      <AccordionTrigger className="py-5 text-left text-lg font-bold text-[color:var(--ink)] hover:no-underline sm:text-xl">
-                        {item.q}
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-5 text-base leading-relaxed text-[color:var(--ink)]/70">
-                        {item.a}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </div>
+              <Accordion05 className="mt-5" items={PARENT_FAQ_ITEMS} defaultValue="1" />
             </div>
           </div>
         </section>

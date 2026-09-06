@@ -17,6 +17,9 @@
  */
 
 @theme inline {
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -67,6 +70,24 @@
   --color-brand-teal: var(--brand-teal);
   --color-brand-cyan: var(--brand-cyan);
   --color-brand-aqua: var(--brand-aqua);
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
 }
 
 :root {
@@ -144,7 +165,11 @@
   --brand-link: #1d9bf0;
 
   /* Stepper */
-  --stepper-row-bg: linear-gradient(135deg, color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)), var(--color-card));
+  --stepper-row-bg: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)),
+    var(--color-card)
+  );
   --stepper-inactive-bg: #eff3f4;
   --stepper-inactive-fg: #536471;
   --stepper-active-bg: #1d9bf0;
@@ -185,7 +210,11 @@
   --warning-foreground: #201200;
 
   /* Stepper */
-  --stepper-row-bg: linear-gradient(135deg, color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)), var(--color-card));
+  --stepper-row-bg: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)),
+    var(--color-card)
+  );
   --stepper-inactive-bg: #202327;
   --stepper-inactive-fg: #71767b;
   --stepper-active-bg: #1d9bf0;
@@ -273,7 +302,6 @@
     overflow-x: clip;
     -webkit-tap-highlight-color: color-mix(in oklab, var(--ink) 12%, transparent);
   }
-
 
   .hero-startup-bg {
     position: relative;
@@ -428,7 +456,12 @@
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(100deg, rgba(15, 20, 25, 0.98) 8%, rgba(15, 20, 25, 0.82) 52%, rgba(15, 20, 25, 0.55)),
+      linear-gradient(
+        100deg,
+        rgba(15, 20, 25, 0.98) 8%,
+        rgba(15, 20, 25, 0.82) 52%,
+        rgba(15, 20, 25, 0.55)
+      ),
       url("/tutor-matching-network.jpeg") center / cover no-repeat;
     filter: saturate(0.78) contrast(1.1);
   }
@@ -444,7 +477,13 @@
     background-color: #f7fafc;
     background-image:
       radial-gradient(circle at 88% 28%, rgba(29, 161, 242, 0.16), transparent 22rem),
-      repeating-linear-gradient(90deg, transparent 0, transparent calc(8.333% - 1px), rgba(15, 20, 25, 0.05) calc(8.333% - 1px), rgba(15, 20, 25, 0.05) 8.333%),
+      repeating-linear-gradient(
+        90deg,
+        transparent 0,
+        transparent calc(8.333% - 1px),
+        rgba(15, 20, 25, 0.05) calc(8.333% - 1px),
+        rgba(15, 20, 25, 0.05) 8.333%
+      ),
       url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
     background-attachment: fixed;
   }
@@ -541,7 +580,11 @@
     align-items: flex-start;
     gap: 0.25rem;
     padding: 1.25rem 1rem 0;
-    background: linear-gradient(135deg, color-mix(in oklab, var(--brand-teal) 8%, var(--surface)), var(--surface));
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--brand-teal) 8%, var(--surface)),
+      var(--surface)
+    );
   }
 
   .join-stepper-indicator-group {
@@ -798,7 +841,8 @@
   }
 }
 
-/* Dark theme adjustments for photographic/pattern backdrops */.dark .hero-startup-bg::before {
+/* Dark theme adjustments for photographic/pattern backdrops */
+.dark .hero-startup-bg::before {
   opacity: 0.18;
 }
 
@@ -815,4 +859,3 @@
 .dark .logo-dark-recolor {
   filter: brightness(0) invert(0.78) sepia(1) saturate(3.5) hue-rotate(165deg);
 }
-

@@ -31,6 +31,18 @@
     "step3_title": "Start learning",
     "step3_desc": "Connect with your tutor and get started with your lessons."
   },
+  "how_accordion": {
+    "item1_title": "Finding a tutor?",
+    "item1_desc": "From HKDSE to IBDP MatchMax has you covered, we've got top scoring students from across Hong Kong. Explore subject teachers, lesson modes and more in our list of tutors.",
+    "item2_title": "Get matched",
+    "item2_desc": "Share your Tutor Code with our team and we'll connect you with your tutor.",
+    "item3_title": "Start learning",
+    "item3_desc": "Connect with your tutor and get started with your lessons.",
+    "item4_title": "You teach, we match",
+    "item4_desc": "MatchMax provides an excellent platform for tutors to find students. While you focus on teaching, we help you find the students.",
+    "item5_title": "Why MatchMax",
+    "item5_desc": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them—through tailored 1-on-1 tutoring."
+  },
   "featured": {
     "title": "Explore the tutors MatchMax offers",
     "subtitle": "Top scorering tutors across Hong Kong",

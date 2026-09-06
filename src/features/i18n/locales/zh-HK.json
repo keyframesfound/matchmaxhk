@@ -35,6 +35,18 @@
     "step3_title": "開始上堂",
     "step3_desc": "確認時間後即可開始補習，簡單又方便"
   },
+  "how_accordion": {
+    "item1_title": "想搵導師？",
+    "item1_desc": "由 HKDSE 到 IBDP，MatchMax 都幫到你。我哋集合全港高分導師，按科目、授課模式等條件，快速揀到合適導師。",
+    "item2_title": "聯絡我哋",
+    "item2_desc": "將導師編號經 WhatsApp 發俾我哋，其餘安排交俾我哋跟進",
+    "item3_title": "開始上堂",
+    "item3_desc": "確認時間後即可開始補習，簡單又方便",
+    "item4_title": "你教書，我配對",
+    "item4_desc": "MatchMax 為導師提供高質素平台搵學生。你專注教學，我哋幫你持續配對合適學生。",
+    "item5_title": "點解揀 MatchMax",
+    "item5_desc": "我哋會按你嘅需要，配對喺各大公開考試及學科中取得優異成績嘅導師，透過一對一補習，陪你一步一步進步"
+  },
   "featured": {
     "title": "精選導師",
     "subtitle": "香港各區人氣導師",
