@@ -61,7 +61,7 @@ function ForgotPasswordPage() {
                 </p>
                 <Link
                   to="/auth"
-                  className="inline-block text-sm font-bold text-[color:var(--brand-teal)] hover:underline"
+                  className="inline-block text-sm font-bold text-[color:var(--brand-link)] hover:underline"
                 >
                   Back to log in
                 </Link>
@@ -80,11 +80,7 @@ function ForgotPasswordPage() {
                     autoFocus
                   />
                 </div>
-                <Button
-                  type="submit"
-                  disabled={sending}
-                  className="h-11 w-full bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                >
+                <Button type="submit" disabled={sending} className="h-11 w-full font-bold">
                   {sending ? "Sending..." : "Send reset link"}
                 </Button>
               </form>

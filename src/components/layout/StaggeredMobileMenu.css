@@ -20,7 +20,7 @@
 .smm-toggle:focus-visible,
 .smm-social-link:focus-visible,
 .smm-menu-item a:focus-visible {
-  outline: 2px solid #1fa8b6;
+  outline: 2px solid var(--ring);
   outline-offset: 4px;
 }
 
@@ -149,7 +149,7 @@
   top: 0.9rem;
   right: 0;
   content: counter(menu-item, decimal-leading-zero);
-  color: #1fa8b6;
+  color: var(--muted-foreground);
   font-size: 0.75rem;
   font-weight: 700;
   opacity: var(--smm-number-opacity, 0);
@@ -157,7 +157,7 @@
 
 .smm-menu-item a:hover,
 .smm-menu-item a:active {
-  color: #1fa8b6;
+  color: var(--brand-link);
 }
 
 .smm-item-label {
@@ -176,7 +176,7 @@
 
 .smm-socials-title {
   margin: 0 0 0.65rem;
-  color: #1fa8b6;
+  color: var(--muted-foreground);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -207,7 +207,7 @@
 
 .smm-socials:hover .smm-social-link:hover,
 .smm-socials:focus-within .smm-social-link:focus-visible {
-  color: #1fa8b6;
+  color: var(--brand-link);
   opacity: 1;
 }
 

@@ -47,7 +47,7 @@ function SavedPostsPage() {
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-sm font-bold uppercase tracking-widest text-[color:var(--brand-teal)]">
+              <p className="text-sm font-bold uppercase tracking-widest text-[color:var(--muted-foreground)]">
                 Your collection
               </p>
               <h1 className="mt-2 text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
@@ -77,7 +77,7 @@ function SavedPostsPage() {
             ) : savedTutorsQuery.data?.length === 0 ? (
               <div className="p-12 text-center">
                 <Bookmark
-                  className="mx-auto h-8 w-8 text-[color:var(--brand-teal)]"
+                  className="mx-auto h-8 w-8 text-[color:var(--muted-foreground)]"
                   aria-hidden="true"
                 />
                 <p className="mt-4 text-lg font-bold text-[color:var(--ink)]">
@@ -101,7 +101,7 @@ function SavedPostsPage() {
                     footerAction={
                       <Button
                         asChild
-                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white shadow-none hover:bg-[color:var(--surface-invert-hover)]"
+                        className="h-9 rounded-sm px-4 text-[13px] font-bold shadow-none"
                       >
                         <a
                           href={buildTutorWhatsAppUrl("", tutor.tutor_code)}
@@ -128,7 +128,7 @@ function SavedPostsPage() {
                 ) : savedCourses.length === 0 ? (
                   <div className="mt-6 p-10 text-center">
                     <BookOpen
-                      className="mx-auto h-8 w-8 text-[color:var(--brand-teal)]"
+                      className="mx-auto h-8 w-8 text-[color:var(--muted-foreground)]"
                       aria-hidden="true"
                     />
                     <p className="mt-4 text-base font-bold text-[color:var(--ink)]">

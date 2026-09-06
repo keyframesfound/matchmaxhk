@@ -245,7 +245,7 @@ function AdminSettings() {
                   {form.hero_tutor_code && (
                     <button
                       type="button"
-                      className="text-xs font-semibold text-[color:var(--brand-teal)] hover:underline"
+                      className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
                       onClick={() => setForm({ ...form, hero_tutor_code: "" })}
                     >
                       Clear
@@ -264,7 +264,7 @@ function AdminSettings() {
                     {form.subject_options.map((s) => (
                       <span
                         key={s}
-                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-teal)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)]"
+                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--foreground)]/[0.04] px-3 py-1 text-xs font-semibold text-[color:var(--ink)]"
                       >
                         {s}
                         <button
@@ -316,7 +316,7 @@ function AdminSettings() {
                 <div className="flex gap-3 pt-1">
                   <button
                     type="button"
-                    className="text-xs font-semibold text-[color:var(--brand-teal)] hover:underline"
+                    className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
                     onClick={() => setForm({ ...form, subject_options: DEFAULT_SUBJECT_OPTIONS })}
                   >
                     Reset to defaults
@@ -385,7 +385,7 @@ function AdminSettings() {
                 <div className="flex gap-3 pt-1">
                   <button
                     type="button"
-                    className="text-xs font-semibold text-[color:var(--brand-teal)] hover:underline"
+                    className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
                     onClick={() => setForm({ ...form, popular_subjects: DEFAULT_POPULAR_SUBJECTS })}
                   >
                     Reset to defaults
@@ -400,11 +400,7 @@ function AdminSettings() {
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                loading={save.isPending}
-                className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-              >
+              <Button type="submit" loading={save.isPending} className="font-bold">
                 {t("admin.save")}
               </Button>
             </form>

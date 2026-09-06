@@ -181,7 +181,9 @@ function BusinessOverview() {
               action={
                 <Button
                   onClick={() => navigate({ to: "/business/join" })}
-                  className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                  variant="solid"
+                  color="blue"
+                  className="font-bold"
                 >
                   Create a business account
                 </Button>
@@ -449,7 +451,7 @@ function BusinessOverview() {
                             className={cn(
                               "flex size-5 shrink-0 items-center justify-center rounded-full border",
                               step.done
-                                ? "border-[#1FA8B6] bg-[#1FA8B6] text-white"
+                                ? "border-[color:var(--btn-accent)] bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
                                 : "border-border",
                             )}
                           >

@@ -339,7 +339,7 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
               <p className="text-sm leading-6 text-[color:var(--ink)]/60">{row.oldWay}</p>
             </div>
             <div>
-              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--brand-teal)] md:hidden">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--muted-foreground)] md:hidden">
                 MatchMax
               </p>
               <p className="text-sm leading-6 text-[color:var(--ink)]">
@@ -362,12 +362,14 @@ function HowItWorksPage() {
       <SiteHeader className="!border-b-0 !bg-white/95 dark:!bg-[color:var(--surface)]" />
       <main className="flex-1">
         <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
-          <p className="text-sm font-bold text-[color:var(--brand-teal)]">How MatchMax works</p>
+          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+            How MatchMax works
+          </p>
           <div className="relative mt-5 w-fit">
             <h1 className="max-w-2xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
               Built By Students: Why MatchMax Works Better
             </h1>
-            <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--brand-teal)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
+            <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--muted-foreground)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
           </div>
           <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/65">
             We founded MatchMax as university students who sat the IB and DSE exams ourselves. We
@@ -387,7 +389,7 @@ function HowItWorksPage() {
         </section>
 
         <section className="mx-auto max-w-[1440px] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
-          <p className="text-sm font-bold text-[color:var(--brand-teal)]">
+          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
             01 / What makes us different
           </p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 sm:gap-8">
@@ -396,8 +398,11 @@ function HowItWorksPage() {
                 key={title}
                 className="rounded-[var(--radius-panel)] border border-[color:var(--ink)]/12 bg-[color:var(--surface)] p-6 shadow-[var(--shadow-brand)] sm:p-8"
               >
-                <span className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-panel)] bg-[color:var(--brand-teal)]/10">
-                  <Icon className="h-6 w-6 text-[color:var(--brand-teal)]" aria-hidden="true" />
+                <span className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-panel)] bg-[color:var(--foreground)]/[0.04]">
+                  <Icon
+                    className="h-6 w-6 text-[color:var(--muted-foreground)]"
+                    aria-hidden="true"
+                  />
                 </span>
                 <h3 className="mt-5 text-xl font-black tracking-tight sm:text-2xl">{title}</h3>
                 <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">{detail}</p>
@@ -407,7 +412,7 @@ function HowItWorksPage() {
         </section>
 
         <section className="mx-auto max-w-[1440px] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
-          <p className="text-sm font-bold text-[color:var(--brand-teal)]">
+          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
             02 / Why MatchMax works better
           </p>
           <div className="mt-10 space-y-16 sm:mt-12 sm:space-y-20">
@@ -426,7 +431,9 @@ function HowItWorksPage() {
           <div className="mx-auto max-w-[1440px]">
             <div className="grid gap-6 md:grid-cols-[0.7fr_1.3fr] md:items-end">
               <div>
-                <p className="text-sm font-bold text-[#1FA8B6]">03 / The matching flow</p>
+                <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+                  03 / The matching flow
+                </p>
                 <div className="mt-5 flex items-center gap-3 text-sm font-bold">
                   <Clock3 className="h-5 w-5" /> Within one business day
                 </div>
@@ -453,8 +460,8 @@ function HowItWorksPage() {
             },
           ]}
           className="bg-[#E7F6F8] text-[#041344] dark:bg-[#0C2B4E] dark:text-white"
-          numberClassName="bg-[#1FA8B6]/15 text-[#1FA8B6]"
-          accentClassName="text-[#1FA8B6]"
+          numberClassName="bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
+          accentClassName="text-[color:var(--muted-foreground)]"
         />
 
         <AudienceSection
@@ -468,8 +475,8 @@ function HowItWorksPage() {
             { to: "/join", label: "Apply as a tutor" },
           ]}
           className="bg-[#041344] !text-white dark:bg-[#041344] dark:!text-white"
-          numberClassName="bg-[#77E8EE]/15 text-[#77E8EE]"
-          accentClassName="text-[#77E8EE]"
+          numberClassName="bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
+          accentClassName="text-[color:var(--muted-foreground)]"
           bodyTextClassName="text-white"
         />
 
@@ -478,7 +485,9 @@ function HowItWorksPage() {
           className="mx-auto max-w-[1440px] scroll-mt-20 px-5 py-20 sm:px-8 sm:py-28 lg:px-12"
         >
           <div className="mx-auto max-w-4xl">
-            <p className="text-sm font-bold text-[color:var(--brand-teal)]">04 / Good to know</p>
+            <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+              04 / Good to know
+            </p>
             <h2 className="mt-3 text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
               Frequently Asked Questions
             </h2>
@@ -486,7 +495,7 @@ function HowItWorksPage() {
             <div className="mt-14">
               <h3 className="flex items-center gap-2 text-2xl font-black tracking-tight">
                 <UserRoundCheck
-                  className="h-6 w-6 text-[color:var(--brand-teal)]"
+                  className="h-6 w-6 text-[color:var(--muted-foreground)]"
                   aria-hidden="true"
                 />
                 For Tutors
@@ -513,7 +522,10 @@ function HowItWorksPage() {
 
             <div className="mt-14">
               <h3 className="flex items-center gap-2 text-2xl font-black tracking-tight">
-                <Search className="h-6 w-6 text-[color:var(--brand-teal)]" aria-hidden="true" />
+                <Search
+                  className="h-6 w-6 text-[color:var(--muted-foreground)]"
+                  aria-hidden="true"
+                />
                 For Parents
               </h3>
               <div className="mt-5 rounded-[var(--radius-panel)] border border-[color:var(--ink)]/12 bg-[color:var(--surface)] px-5 py-2 shadow-[var(--shadow-brand)] sm:px-8">
@@ -541,7 +553,7 @@ function HowItWorksPage() {
         <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
           <div className="grid gap-10 sm:grid-cols-[1fr_auto] sm:items-end">
             <div>
-              <MessageCircle className="h-7 w-7 text-[color:var(--brand-teal)]" />
+              <MessageCircle className="h-7 w-7 text-[color:var(--muted-foreground)]" />
               <h2 className="mt-7 max-w-4xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
                 The right match starts with a conversation.
               </h2>
@@ -551,8 +563,8 @@ function HowItWorksPage() {
               </p>
             </div>
             <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]/70">
-              <Check className="h-4 w-4 text-[color:var(--brand-teal)]" /> Personal guidance, never
-              robotic matching.
+              <Check className="h-4 w-4 text-[color:var(--muted-foreground)]" /> Personal guidance,
+              never robotic matching.
             </div>
           </div>
         </section>

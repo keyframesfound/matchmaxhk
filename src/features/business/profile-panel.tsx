@@ -172,7 +172,9 @@ function DropZone({
       }}
       className={cn(
         "group relative cursor-pointer overflow-hidden rounded-lg border border-border transition-colors",
-        dragging ? "border-[#1FA8B6] bg-[#1FA8B6]/5" : "hover:border-[#1FA8B6]/40",
+        dragging
+          ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.05]"
+          : "hover:border-[color:var(--foreground)]/25",
         className,
       )}
     >
@@ -829,7 +831,7 @@ export function ProfilePanel() {
         <div
           className={cn(
             "sticky bottom-4 z-30 rounded-xl border bg-card/95 p-4 shadow-lg backdrop-blur transition-colors",
-            isDirty ? "border-[#1FA8B6]/40" : "border-border",
+            isDirty ? "border-[color:var(--ring)]/40" : "border-border",
           )}
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -858,7 +860,7 @@ export function ProfilePanel() {
                 loading={saving}
                 disabled={!isDirty || saving}
                 onClick={() => void saveProfile()}
-                className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                className="font-bold"
               >
                 Save changes
               </Button>
@@ -871,7 +873,7 @@ export function ProfilePanel() {
       <aside className="min-w-0 self-start lg:sticky lg:top-6">
         <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            <Sparkles className="h-3.5 w-3.5 text-[#1FA8B6]" />
+            <Sparkles className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]" />
             Improve your profile
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
@@ -897,7 +899,7 @@ export function ProfilePanel() {
                       .getElementById(tip.section)
                       ?.scrollIntoView({ behavior: "smooth", block: "start" })
                   }
-                  className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-[#1FA8B6]/10 hover:text-[color:var(--ink)]"
+                  className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
                 >
                   <Check className="h-3 w-3 opacity-40" />
                   Add {tip.label.toLowerCase()}

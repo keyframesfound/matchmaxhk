@@ -156,7 +156,7 @@ function EvidenceNote({ className }: { className?: string }) {
       )}
     >
       <ShieldCheck
-        className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-teal)]"
+        className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
         aria-hidden="true"
       />
       <span>
@@ -267,7 +267,7 @@ function DocumentUpload({
         className={cn(
           "flex min-h-24 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-[color:var(--surface-subtle)] px-4 py-3 text-center text-sm text-muted-foreground transition-colors",
           invalid && "border-destructive",
-          dragging && "border-[color:var(--brand-teal)] bg-[color:var(--brand-teal)]/10",
+          dragging && "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.05]",
           disabled && "cursor-not-allowed opacity-60",
         )}
         aria-invalid={invalid || undefined}
@@ -283,7 +283,7 @@ function DocumentUpload({
           if (!disabled) selectFile(event.dataTransfer.files[0]);
         }}
       >
-        <Upload className="h-4 w-4 text-[color:var(--brand-teal)]" />
+        <Upload className="h-4 w-4 text-[color:var(--muted-foreground)]" />
         <span>{prompt}</span>
         <input
           type="file"
@@ -445,7 +445,7 @@ function SubjectPicker({
         {[...selectedSubjects].map((subject) => (
           <span
             key={subject}
-            className="inline-flex items-center gap-1 rounded-md bg-[#77E8EE]/30 px-2.5 py-1.5 text-xs font-semibold text-[color:var(--ink)]"
+            className="inline-flex items-center gap-1 rounded-md bg-[color:var(--foreground)]/[0.08] px-2.5 py-1.5 text-xs font-semibold text-[color:var(--ink)]"
           >
             {subject}
             <button
@@ -1014,7 +1014,7 @@ export function ApplicationForm() {
   if (done)
     return (
       <div className="py-20 text-center">
-        <CheckCircle2 className="mx-auto h-12 w-12 text-[color:var(--brand-teal)]" />
+        <CheckCircle2 className="mx-auto h-12 w-12 text-[color:var(--success)]" />
         <h1 className="mt-4 text-3xl font-black text-[color:var(--ink)]">Application received</h1>
         <p className="mx-auto mt-3 max-w-lg text-muted-foreground">
           Your application has been received{professional ? " securely" : ""}! Parents can directly
@@ -1275,7 +1275,7 @@ export function ApplicationForm() {
         </p>
         <p className="flex gap-2.5 text-sm leading-relaxed text-foreground">
           <CheckCircle2
-            className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-teal)]"
+            className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
             aria-hidden="true"
           />
           <span>
@@ -1294,7 +1294,7 @@ export function ApplicationForm() {
           </span>
         </p>
       </aside>
-      <aside className="mb-8 rounded-lg border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/8 px-4 py-3 text-sm leading-relaxed text-foreground">
+      <aside className="mb-8 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] px-4 py-3 text-sm leading-relaxed text-foreground">
         {notice}
       </aside>
       <div ref={stepperRef}>
@@ -1712,7 +1712,7 @@ export function ApplicationForm() {
                                   className={cn(
                                     "text-xs font-medium",
                                     transcriptStatus === "reading"
-                                      ? "animate-pulse text-[color:var(--brand-teal)]"
+                                      ? "animate-pulse text-[color:var(--muted-foreground)]"
                                       : transcriptMessage.startsWith("Added")
                                         ? "text-emerald-700"
                                         : "text-destructive",
@@ -1862,7 +1862,7 @@ export function ApplicationForm() {
                               "rounded-lg border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
                               travelBudget === budget && originStation
                                 ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-white"
-                                : "border-border bg-card text-foreground hover:border-[color:var(--brand-teal)]/50",
+                                : "border-border bg-card text-foreground hover:border-[color:var(--foreground)]/25",
                             )}
                           >
                             Within {budget} min
@@ -1893,7 +1893,7 @@ export function ApplicationForm() {
                           className={cn(
                             "text-sm font-semibold transition-colors",
                             suggestionStatus === "adding"
-                              ? "animate-pulse text-[color:var(--brand-teal)]"
+                              ? "animate-pulse text-[color:var(--muted-foreground)]"
                               : "text-emerald-700",
                           )}
                           role="status"
@@ -2180,7 +2180,7 @@ export function ApplicationForm() {
 function Heading({ step, title }: { step: number; title: string }) {
   return (
     <div className="mb-6">
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--brand-teal)]">
+      <p className="text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--muted-foreground)]">
         Step {step}
       </p>
       <h2 className="mt-2 text-2xl font-black text-[color:var(--ink)] sm:text-3xl">{title}</h2>

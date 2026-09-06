@@ -485,7 +485,9 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
             setIsDuplicating(false);
             setFormOpen(true);
           }}
-          className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+          variant="solid"
+          color="blue"
+          className="font-bold"
         >
           <PlusCircle className="mr-2 h-4 w-4" />
           New course
@@ -514,7 +516,9 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
             action={
               <Button
                 onClick={() => setFormOpen(true)}
-                className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                variant="solid"
+                color="blue"
+                className="font-bold"
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Post your first course
@@ -545,7 +549,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
           </div>
 
           {selectedCount > 0 && (
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#1FA8B6]/30 bg-[#1FA8B6]/5 px-4 py-2.5">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] px-4 py-2.5">
               <span className="text-sm font-medium text-[color:var(--ink)] tabular-nums">
                 {selectedCount} selected
               </span>

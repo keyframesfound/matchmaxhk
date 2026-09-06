@@ -64,34 +64,43 @@ function PrivacyPolicyPage() {
       <section className="py-14 sm:py-20">
         <PageContainer width="narrow">
           <div className="space-y-12">
-          <div className="border-b border-border pb-12 text-base leading-7 text-muted-foreground">
-            <p>{INTRO_TEXT}</p>
-          </div>
+            <div className="border-b border-border pb-12 text-base leading-7 text-muted-foreground">
+              <p>{INTRO_TEXT}</p>
+            </div>
 
-          {SECTIONS.map((section) => (
-            <article key={section.title} className="border-b border-border pb-12 last:border-b-0 last:pb-0">
-              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{section.title}</h2>
-              <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">
-                {section.intro && <p>{section.intro}</p>}
-                {section.points.length > 0 && (
-                  <ul className="list-disc space-y-3 pl-5 marker:text-[color:var(--brand-link)]">
-                    {section.points.map((point) => (
-                      <li key={point} className="pl-1">
-                        {point}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {section.closing && <p className="whitespace-pre-wrap">{section.closing}</p>}
-              </div>
-            </article>
-          ))}
+            {SECTIONS.map((section) => (
+              <article
+                key={section.title}
+                className="border-b border-border pb-12 last:border-b-0 last:pb-0"
+              >
+                <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{section.title}</h2>
+                <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">
+                  {section.intro && <p>{section.intro}</p>}
+                  {section.points.length > 0 && (
+                    <ul className="list-disc space-y-3 pl-5 marker:text-[color:var(--brand-link)]">
+                      {section.points.map((point) => (
+                        <li key={point} className="pl-1">
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {section.closing && <p className="whitespace-pre-wrap">{section.closing}</p>}
+                </div>
+              </article>
+            ))}
 
             <article className="border-t border-border pt-12">
-              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Questions About Privacy?</h2>
+              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
+                Questions About Privacy?
+              </h2>
               <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
-                For questions about how we handle your data, or to submit a data access or correction request, contact us at{" "}
-                <a className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4" href="mailto:contact@matchmax.hk">
+                For questions about how we handle your data, or to submit a data access or
+                correction request, contact us at{" "}
+                <a
+                  className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+                  href="mailto:contact@matchmax.hk"
+                >
                   contact@matchmax.hk
                 </a>
                 .

@@ -46,7 +46,7 @@ const START_OPTIONS = [
 ];
 
 const labelClassName =
-  "mb-1.5 block text-sm font-bold text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--brand-teal)]";
+  "mb-1.5 block text-sm font-bold text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--muted-foreground)]";
 const controlClassName = "h-11 w-full rounded-sm";
 const invalidInputClassName =
   "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30";
@@ -228,7 +228,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     return (
       <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-8 text-center shadow-[var(--shadow-brand)] sm:p-12">
         <CheckCircle2
-          className="mx-auto h-12 w-12 text-[color:var(--brand-teal)]"
+          className="mx-auto h-12 w-12 text-[color:var(--muted-foreground)]"
           aria-hidden="true"
         />
         <h2 className="mt-4 text-3xl font-black text-[color:var(--ink)]">Case request received</h2>
@@ -501,7 +501,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         <Button
           type="submit"
           disabled={submitMutation.isPending}
-          className="h-12 w-full rounded-sm bg-[color:var(--surface-invert)] px-8 text-base font-bold text-white hover:bg-[color:var(--surface-invert-hover)] sm:w-auto"
+          variant="solid"
+          color="blue"
+          className="h-12 w-full rounded-sm px-8 text-base font-bold sm:w-auto"
         >
           {submitMutation.isPending ? (
             "Submitting…"

@@ -50,7 +50,8 @@ export function UserStatsOverview({ users, isLoading }: UserStatsOverviewProps) 
       value: isLoading ? "—" : tutorCount.toLocaleString(),
       subtitle: `${tutorPct}% of user base`,
       icon: GraduationCap,
-      color: "text-[color:var(--brand-teal)] bg-[color:var(--brand-teal)]/10 border-[color:var(--brand-teal)]/20",
+      color:
+        "text-[color:var(--foreground)] bg-[color:var(--foreground)]/[0.06] border-[color:var(--foreground)]/15",
       barColor: "bg-[color:var(--brand-teal)]",
       pct: tutorPct,
     },

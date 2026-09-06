@@ -6,20 +6,341 @@ export type MtrLine = {
 };
 
 export const MTR_LINES: MtrLine[] = [
-  { id: "island", label: "Island Line", stations: ["Kennedy Town", "HKU", "Sai Ying Pun", "Sheung Wan", "Central", "Admiralty", "Wan Chai", "Causeway Bay", "Tin Hau", "Fortress Hill", "North Point", "Quarry Bay", "Tai Koo", "Sai Wan Ho", "Shau Kei Wan", "Heng Fa Chuen", "Chai Wan"], routes: [{ stations: ["Kennedy Town", "HKU", "Sai Ying Pun", "Sheung Wan", "Central", "Admiralty", "Wan Chai", "Causeway Bay", "Tin Hau", "Fortress Hill", "North Point", "Quarry Bay", "Tai Koo", "Sai Wan Ho", "Shau Kei Wan", "Heng Fa Chuen", "Chai Wan"], minutes: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2] }] },
-  { id: "tsuen-wan", label: "Tsuen Wan Line", stations: ["Central", "Admiralty", "Tsim Sha Tsui", "Jordan", "Yau Ma Tei", "Mong Kok", "Prince Edward", "Sham Shui Po", "Cheung Sha Wan", "Lai Chi Kok", "Mei Foo", "Lai King", "Kwai Fong", "Kwai Hing", "Tai Wo Hau", "Tsuen Wan"], routes: [{ stations: ["Central", "Admiralty", "Tsim Sha Tsui", "Jordan", "Yau Ma Tei", "Mong Kok", "Prince Edward", "Sham Shui Po", "Cheung Sha Wan", "Lai Chi Kok", "Mei Foo", "Lai King", "Kwai Fong", "Kwai Hing", "Tai Wo Hau", "Tsuen Wan"], minutes: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3] }] },
-  { id: "kwun-tong", label: "Kwun Tong Line", stations: ["Whampoa", "Ho Man Tin", "Yau Ma Tei", "Mong Kok", "Prince Edward", "Shek Kip Mei", "Kowloon Tong", "Lok Fu", "Wong Tai Sin", "Diamond Hill", "Choi Hung", "Kowloon Bay", "Ngau Tau Kok", "Kwun Tong", "Lam Tin", "Yau Tong", "Tiu Keng Leng"], routes: [{ stations: ["Whampoa", "Ho Man Tin", "Yau Ma Tei", "Mong Kok", "Prince Edward", "Shek Kip Mei", "Kowloon Tong", "Lok Fu", "Wong Tai Sin", "Diamond Hill", "Choi Hung", "Kowloon Bay", "Ngau Tau Kok", "Kwun Tong", "Lam Tin", "Yau Tong", "Tiu Keng Leng"], minutes: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2] }] },
-  { id: "tseung-kwan-o", label: "Tseung Kwan O Line", stations: ["North Point", "Quarry Bay", "Yau Tong", "Tiu Keng Leng", "Tseung Kwan O", "Hang Hau", "Po Lam", "LOHAS Park"], routes: [{ stations: ["North Point", "Quarry Bay", "Yau Tong", "Tiu Keng Leng", "Tseung Kwan O", "Hang Hau", "Po Lam"], minutes: [2, 3, 2, 3, 2, 3] }, { stations: ["Tseung Kwan O", "LOHAS Park"], minutes: [5] }] },
-  { id: "south-island", label: "South Island Line", stations: ["Admiralty", "Ocean Park", "Wong Chuk Hang", "Lei Tung", "South Horizons"], routes: [{ stations: ["Admiralty", "Ocean Park", "Wong Chuk Hang", "Lei Tung", "South Horizons"], minutes: [4, 2, 3, 2] }] },
-  { id: "east-rail", label: "East Rail Line", stations: ["Admiralty", "Exhibition Centre", "Hung Hom", "Mong Kok East", "Kowloon Tong", "Tai Wai", "Sha Tin", "Fo Tan", "University", "Tai Po Market", "Tai Wo", "Fanling", "Sheung Shui", "Lo Wu", "Lok Ma Chau"], routes: [{ stations: ["Admiralty", "Exhibition Centre", "Hung Hom", "Mong Kok East", "Kowloon Tong", "Tai Wai", "Sha Tin", "Fo Tan", "University", "Tai Po Market", "Tai Wo", "Fanling", "Sheung Shui", "Lo Wu"], minutes: [3, 2, 2, 3, 3, 3, 2, 4, 4, 3, 4, 3, 8] }, { stations: ["Sheung Shui", "Lok Ma Chau"], minutes: [9] }] },
-  { id: "tuen-ma", label: "Tuen Ma Line", stations: ["Tuen Mun", "Siu Hong", "Tin Shui Wai", "Long Ping", "Yuen Long", "Kam Sheung Road", "Tsuen Wan West", "Mei Foo", "Austin", "East Tsim Sha Tsui", "Hung Hom", "Ho Man Tin", "To Kwa Wan", "Sung Wong Toi", "Kai Tak", "Diamond Hill", "Hin Keng", "Tai Wai", "Che Kung Temple", "Sha Tin Wai", "City One", "Shek Mun", "Tai Shui Hang", "Heng On", "Ma On Shan", "Wu Kai Sha"], routes: [{ stations: ["Tuen Mun", "Siu Hong", "Tin Shui Wai", "Long Ping", "Yuen Long", "Kam Sheung Road", "Tsuen Wan West", "Mei Foo", "Austin", "East Tsim Sha Tsui", "Hung Hom", "Ho Man Tin", "To Kwa Wan", "Sung Wong Toi", "Kai Tak", "Diamond Hill", "Hin Keng", "Tai Wai", "Che Kung Temple", "Sha Tin Wai", "City One", "Shek Mun", "Tai Shui Hang", "Heng On", "Ma On Shan", "Wu Kai Sha"], minutes: [4, 4, 3, 3, 7, 8, 3, 4, 3, 3, 2, 2, 2, 2, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 3] }] },
-  { id: "tung-chung", label: "Tung Chung Line", stations: ["Hong Kong", "Kowloon", "Olympic", "Nam Cheong", "Lai King", "Tsing Yi", "Sunny Bay", "Tung Chung", "Disneyland Resort"], routes: [{ stations: ["Hong Kong", "Kowloon", "Olympic", "Nam Cheong", "Lai King", "Tsing Yi", "Sunny Bay", "Tung Chung"], minutes: [3, 3, 3, 4, 3, 5, 6] }, { stations: ["Sunny Bay", "Disneyland Resort"], minutes: [4] }] },
-  { id: "other", label: "Other Areas", stations: ["Light Rail areas", "Airport", "Outlying Islands", "Discovery Bay", "Remote / flexible location"] },
+  {
+    id: "island",
+    label: "Island Line",
+    stations: [
+      "Kennedy Town",
+      "HKU",
+      "Sai Ying Pun",
+      "Sheung Wan",
+      "Central",
+      "Admiralty",
+      "Wan Chai",
+      "Causeway Bay",
+      "Tin Hau",
+      "Fortress Hill",
+      "North Point",
+      "Quarry Bay",
+      "Tai Koo",
+      "Sai Wan Ho",
+      "Shau Kei Wan",
+      "Heng Fa Chuen",
+      "Chai Wan",
+    ],
+    routes: [
+      {
+        stations: [
+          "Kennedy Town",
+          "HKU",
+          "Sai Ying Pun",
+          "Sheung Wan",
+          "Central",
+          "Admiralty",
+          "Wan Chai",
+          "Causeway Bay",
+          "Tin Hau",
+          "Fortress Hill",
+          "North Point",
+          "Quarry Bay",
+          "Tai Koo",
+          "Sai Wan Ho",
+          "Shau Kei Wan",
+          "Heng Fa Chuen",
+          "Chai Wan",
+        ],
+        minutes: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+      },
+    ],
+  },
+  {
+    id: "tsuen-wan",
+    label: "Tsuen Wan Line",
+    stations: [
+      "Central",
+      "Admiralty",
+      "Tsim Sha Tsui",
+      "Jordan",
+      "Yau Ma Tei",
+      "Mong Kok",
+      "Prince Edward",
+      "Sham Shui Po",
+      "Cheung Sha Wan",
+      "Lai Chi Kok",
+      "Mei Foo",
+      "Lai King",
+      "Kwai Fong",
+      "Kwai Hing",
+      "Tai Wo Hau",
+      "Tsuen Wan",
+    ],
+    routes: [
+      {
+        stations: [
+          "Central",
+          "Admiralty",
+          "Tsim Sha Tsui",
+          "Jordan",
+          "Yau Ma Tei",
+          "Mong Kok",
+          "Prince Edward",
+          "Sham Shui Po",
+          "Cheung Sha Wan",
+          "Lai Chi Kok",
+          "Mei Foo",
+          "Lai King",
+          "Kwai Fong",
+          "Kwai Hing",
+          "Tai Wo Hau",
+          "Tsuen Wan",
+        ],
+        minutes: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3],
+      },
+    ],
+  },
+  {
+    id: "kwun-tong",
+    label: "Kwun Tong Line",
+    stations: [
+      "Whampoa",
+      "Ho Man Tin",
+      "Yau Ma Tei",
+      "Mong Kok",
+      "Prince Edward",
+      "Shek Kip Mei",
+      "Kowloon Tong",
+      "Lok Fu",
+      "Wong Tai Sin",
+      "Diamond Hill",
+      "Choi Hung",
+      "Kowloon Bay",
+      "Ngau Tau Kok",
+      "Kwun Tong",
+      "Lam Tin",
+      "Yau Tong",
+      "Tiu Keng Leng",
+    ],
+    routes: [
+      {
+        stations: [
+          "Whampoa",
+          "Ho Man Tin",
+          "Yau Ma Tei",
+          "Mong Kok",
+          "Prince Edward",
+          "Shek Kip Mei",
+          "Kowloon Tong",
+          "Lok Fu",
+          "Wong Tai Sin",
+          "Diamond Hill",
+          "Choi Hung",
+          "Kowloon Bay",
+          "Ngau Tau Kok",
+          "Kwun Tong",
+          "Lam Tin",
+          "Yau Tong",
+          "Tiu Keng Leng",
+        ],
+        minutes: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+      },
+    ],
+  },
+  {
+    id: "tseung-kwan-o",
+    label: "Tseung Kwan O Line",
+    stations: [
+      "North Point",
+      "Quarry Bay",
+      "Yau Tong",
+      "Tiu Keng Leng",
+      "Tseung Kwan O",
+      "Hang Hau",
+      "Po Lam",
+      "LOHAS Park",
+    ],
+    routes: [
+      {
+        stations: [
+          "North Point",
+          "Quarry Bay",
+          "Yau Tong",
+          "Tiu Keng Leng",
+          "Tseung Kwan O",
+          "Hang Hau",
+          "Po Lam",
+        ],
+        minutes: [2, 3, 2, 3, 2, 3],
+      },
+      { stations: ["Tseung Kwan O", "LOHAS Park"], minutes: [5] },
+    ],
+  },
+  {
+    id: "south-island",
+    label: "South Island Line",
+    stations: ["Admiralty", "Ocean Park", "Wong Chuk Hang", "Lei Tung", "South Horizons"],
+    routes: [
+      {
+        stations: ["Admiralty", "Ocean Park", "Wong Chuk Hang", "Lei Tung", "South Horizons"],
+        minutes: [4, 2, 3, 2],
+      },
+    ],
+  },
+  {
+    id: "east-rail",
+    label: "East Rail Line",
+    stations: [
+      "Admiralty",
+      "Exhibition Centre",
+      "Hung Hom",
+      "Mong Kok East",
+      "Kowloon Tong",
+      "Tai Wai",
+      "Sha Tin",
+      "Fo Tan",
+      "University",
+      "Tai Po Market",
+      "Tai Wo",
+      "Fanling",
+      "Sheung Shui",
+      "Lo Wu",
+      "Lok Ma Chau",
+    ],
+    routes: [
+      {
+        stations: [
+          "Admiralty",
+          "Exhibition Centre",
+          "Hung Hom",
+          "Mong Kok East",
+          "Kowloon Tong",
+          "Tai Wai",
+          "Sha Tin",
+          "Fo Tan",
+          "University",
+          "Tai Po Market",
+          "Tai Wo",
+          "Fanling",
+          "Sheung Shui",
+          "Lo Wu",
+        ],
+        minutes: [3, 2, 2, 3, 3, 3, 2, 4, 4, 3, 4, 3, 8],
+      },
+      { stations: ["Sheung Shui", "Lok Ma Chau"], minutes: [9] },
+    ],
+  },
+  {
+    id: "tuen-ma",
+    label: "Tuen Ma Line",
+    stations: [
+      "Tuen Mun",
+      "Siu Hong",
+      "Tin Shui Wai",
+      "Long Ping",
+      "Yuen Long",
+      "Kam Sheung Road",
+      "Tsuen Wan West",
+      "Mei Foo",
+      "Austin",
+      "East Tsim Sha Tsui",
+      "Hung Hom",
+      "Ho Man Tin",
+      "To Kwa Wan",
+      "Sung Wong Toi",
+      "Kai Tak",
+      "Diamond Hill",
+      "Hin Keng",
+      "Tai Wai",
+      "Che Kung Temple",
+      "Sha Tin Wai",
+      "City One",
+      "Shek Mun",
+      "Tai Shui Hang",
+      "Heng On",
+      "Ma On Shan",
+      "Wu Kai Sha",
+    ],
+    routes: [
+      {
+        stations: [
+          "Tuen Mun",
+          "Siu Hong",
+          "Tin Shui Wai",
+          "Long Ping",
+          "Yuen Long",
+          "Kam Sheung Road",
+          "Tsuen Wan West",
+          "Mei Foo",
+          "Austin",
+          "East Tsim Sha Tsui",
+          "Hung Hom",
+          "Ho Man Tin",
+          "To Kwa Wan",
+          "Sung Wong Toi",
+          "Kai Tak",
+          "Diamond Hill",
+          "Hin Keng",
+          "Tai Wai",
+          "Che Kung Temple",
+          "Sha Tin Wai",
+          "City One",
+          "Shek Mun",
+          "Tai Shui Hang",
+          "Heng On",
+          "Ma On Shan",
+          "Wu Kai Sha",
+        ],
+        minutes: [4, 4, 3, 3, 7, 8, 3, 4, 3, 3, 2, 2, 2, 2, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 3],
+      },
+    ],
+  },
+  {
+    id: "tung-chung",
+    label: "Tung Chung Line",
+    stations: [
+      "Hong Kong",
+      "Kowloon",
+      "Olympic",
+      "Nam Cheong",
+      "Lai King",
+      "Tsing Yi",
+      "Sunny Bay",
+      "Tung Chung",
+      "Disneyland Resort",
+    ],
+    routes: [
+      {
+        stations: [
+          "Hong Kong",
+          "Kowloon",
+          "Olympic",
+          "Nam Cheong",
+          "Lai King",
+          "Tsing Yi",
+          "Sunny Bay",
+          "Tung Chung",
+        ],
+        minutes: [3, 3, 3, 4, 3, 5, 6],
+      },
+      { stations: ["Sunny Bay", "Disneyland Resort"], minutes: [4] },
+    ],
+  },
+  {
+    id: "other",
+    label: "Other Areas",
+    stations: [
+      "Light Rail areas",
+      "Airport",
+      "Outlying Islands",
+      "Discovery Bay",
+      "Remote / flexible location",
+    ],
+  },
 ];
 
 export function toggleLineStations(selectedStations: string[], line: MtrLine): string[] {
   const includesEveryStation = line.stations.every((station) => selectedStations.includes(station));
-  if (includesEveryStation) return selectedStations.filter((station) => !line.stations.includes(station));
+  if (includesEveryStation)
+    return selectedStations.filter((station) => !line.stations.includes(station));
   return [...new Set([...selectedStations, ...line.stations])];
 }
 
@@ -68,7 +389,7 @@ const STATION_COORDINATES: Record<string, MtrStationCoordinate> = {
   "Mei Foo": { latitude: 22.337, longitude: 114.14 },
   "Hong Kong": { latitude: 22.2849, longitude: 114.158 },
   Kowloon: { latitude: 22.3048, longitude: 114.161 },
-  "Olympic": { latitude: 22.318, longitude: 114.16 },
+  Olympic: { latitude: 22.318, longitude: 114.16 },
   "Tung Chung": { latitude: 22.29, longitude: 113.943 },
 };
 
@@ -112,7 +433,8 @@ function lineNeighbors(line: MtrLine, station: string) {
   const neighbors: Array<{ station: string; minutes: number }> = [];
   for (const route of line.routes ?? []) {
     const index = route.stations.indexOf(station);
-    if (index > 0) neighbors.push({ station: route.stations[index - 1], minutes: route.minutes[index - 1] });
+    if (index > 0)
+      neighbors.push({ station: route.stations[index - 1], minutes: route.minutes[index - 1] });
     if (index >= 0 && index < route.stations.length - 1)
       neighbors.push({ station: route.stations[index + 1], minutes: route.minutes[index] });
   }
@@ -149,7 +471,11 @@ export function getReachableMtrStations(origin: string, maxMinutes: number): str
     }
 
     for (const interchangeLine of ROUTING_LINES) {
-      if (interchangeLine.id === line.id || !interchangeLine.stations.includes(current.state.station)) continue;
+      if (
+        interchangeLine.id === line.id ||
+        !interchangeLine.stations.includes(current.state.station)
+      )
+        continue;
       const next = { station: current.state.station, lineId: interchangeLine.id };
       const minutes = current.minutes + (INTERCHANGE_MINUTES[current.state.station] ?? 4);
       const key = stateKey(next);
@@ -173,12 +499,13 @@ export function getReachableMtrStations(origin: string, maxMinutes: number): str
     }
   }
 
-  return MTR_STATION_OPTIONS.filter((station) =>
-    station === origin ||
-    [...distances].some(
-      ([key, minutes]) =>
-        key.endsWith(`:${station}`) && minutes + PLATFORM_AND_WAIT_MINUTES <= maxMinutes,
-    ),
+  return MTR_STATION_OPTIONS.filter(
+    (station) =>
+      station === origin ||
+      [...distances].some(
+        ([key, minutes]) =>
+          key.endsWith(`:${station}`) && minutes + PLATFORM_AND_WAIT_MINUTES <= maxMinutes,
+      ),
   );
 }
 
@@ -191,14 +518,13 @@ function distanceSquared(a: MtrStationCoordinate, b: MtrStationCoordinate) {
 export function getNearestMtrStation(latitude: number, longitude: number): string | null {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
   const origin = { latitude, longitude };
-  return MTR_STATION_OPTIONS.filter((station) => STATION_COORDINATES[station]).reduce<string | null>(
-    (nearest, station) => {
-      if (!nearest) return station;
-      return distanceSquared(origin, STATION_COORDINATES[station]) <
-        distanceSquared(origin, STATION_COORDINATES[nearest])
-        ? station
-        : nearest;
-    },
-    null,
-  );
+  return MTR_STATION_OPTIONS.filter((station) => STATION_COORDINATES[station]).reduce<
+    string | null
+  >((nearest, station) => {
+    if (!nearest) return station;
+    return distanceSquared(origin, STATION_COORDINATES[station]) <
+      distanceSquared(origin, STATION_COORDINATES[nearest])
+      ? station
+      : nearest;
+  }, null);
 }

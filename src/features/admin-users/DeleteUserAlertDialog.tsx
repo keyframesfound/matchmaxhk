@@ -54,16 +54,15 @@ export function DeleteUserAlertDialog({
           </p>
           <ul className="list-disc pl-4 space-y-1 text-[11px] opacity-90">
             <li>User profile and Auth credentials will be permanently removed.</li>
-            <li>All associated tutor profiles and records created by this account will be erased.</li>
+            <li>
+              All associated tutor profiles and records created by this account will be erased.
+            </li>
             <li>All granted system roles will be revoked instantly.</li>
           </ul>
         </div>
 
         <AlertDialogFooter className="gap-2 sm:gap-0">
-          <AlertDialogCancel
-            disabled={isDeleting}
-            className="h-9 text-xs font-bold"
-          >
+          <AlertDialogCancel disabled={isDeleting} className="h-9 text-xs font-bold">
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction

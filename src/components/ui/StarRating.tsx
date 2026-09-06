@@ -21,16 +21,13 @@ export function StarRating({ value, onChange, size = 20, readOnly = false, class
             type={readOnly ? undefined : "button"}
             onClick={readOnly ? undefined : () => onChange?.(n)}
             aria-label={readOnly ? undefined : `${n} star${n === 1 ? "" : "s"}`}
-            className={cn(
-              "transition-transform",
-              !readOnly && "hover:scale-110 cursor-pointer",
-            )}
+            className={cn("transition-transform", !readOnly && "hover:scale-110 cursor-pointer")}
           >
             <Star
               style={{ width: size, height: size }}
               className={cn(
                 filled
-                  ? "fill-[color:var(--brand-teal)] text-[color:var(--brand-teal)]"
+                  ? "fill-[color:var(--foreground)] text-[color:var(--muted-foreground)]"
                   : "text-muted-foreground/40",
               )}
             />

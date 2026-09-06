@@ -2,12 +2,7 @@ import * as React from "react";
 import { Info } from "lucide-react";
 
 import { Label } from "@/components/ui/label";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 type InputProps = React.ComponentProps<"input"> & {
@@ -73,7 +68,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           aria-required={isRequired || undefined}
           className={cn(
             "flex h-11 w-full rounded-[var(--radius-control)] border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-[border-color,box-shadow] file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm",
-            isInvalid && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/40",
+            isInvalid &&
+              "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/40",
             className,
           )}
         />

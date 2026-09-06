@@ -180,7 +180,9 @@ function CoursesDirectory() {
                 />
                 <Button
                   type="submit"
-                  className="h-11 rounded-sm bg-[color:var(--surface-invert)] px-6 font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                  variant="solid"
+                  color="blue"
+                  className="h-11 rounded-sm px-6 font-bold"
                 >
                   Search
                 </Button>

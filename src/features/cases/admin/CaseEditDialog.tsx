@@ -271,7 +271,7 @@ export function CaseEditDialog({
           <Button
             onClick={() => saveMutation.mutate()}
             disabled={saveMutation.isPending}
-            className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+            className="font-bold"
           >
             {saveMutation.isPending ? "Saving…" : "Save changes"}
           </Button>

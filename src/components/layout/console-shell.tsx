@@ -190,7 +190,7 @@ export function ConsoleShell({
               ) : null}
               <AvatarFallback
                 className={cn(
-                  "bg-[#1FA8B6] font-bold text-white",
+                  "bg-[color:var(--foreground)] text-[color:var(--background)]",
                   comfortable ? "text-sm" : "text-xs",
                 )}
               >

@@ -292,7 +292,7 @@ function AdminCases() {
 
               {/* Batch actions */}
               {selectedIds.size > 0 ? (
-                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/5 px-4 py-3">
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-4 py-3">
                   <span className="text-sm font-bold text-[color:var(--ink)]">
                     {selectedIds.size} selected
                   </span>
@@ -432,7 +432,7 @@ function AdminCases() {
                         key={row.id}
                         className={cn(
                           "transition-colors hover:bg-[color:var(--surface-subtle)]/40",
-                          selectedIds.has(row.id) && "bg-[color:var(--brand-teal)]/5",
+                          selectedIds.has(row.id) && "bg-[color:var(--foreground)]/[0.04]",
                         )}
                       >
                         <td className="px-5 py-4">
@@ -478,7 +478,7 @@ function AdminCases() {
                             href={whatsappUrl(row.contact_phone)}
                             target="_blank"
                             rel="noreferrer"
-                            className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-[color:var(--brand-teal)]"
+                            className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-[color:var(--ink)]"
                           >
                             <MessageCircle className="h-3 w-3" aria-hidden="true" />
                             {row.contact_phone}
@@ -543,7 +543,7 @@ function AdminCases() {
                                 {(row.tags ?? []).slice(0, 2).map((t) => (
                                   <span
                                     key={t}
-                                    className="inline-flex items-center rounded-full border border-[color:var(--brand-teal)]/40 bg-[color:var(--brand-teal)]/10 px-2 py-0.5 text-[10px] font-bold text-[#156B73]"
+                                    className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-0.5 text-[10px] font-bold text-[color:var(--foreground)]"
                                   >
                                     {t}
                                   </span>

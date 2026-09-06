@@ -5,7 +5,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function assertAdmin(supabase: unknown, userId: string) {
   const roles: Array<"admin" | "super_admin"> = ["admin", "super_admin"];
-  const client = supabase as { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }> };
+  const client = supabase as {
+    rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>;
+  };
   for (const r of roles) {
     const { data } = await client.rpc("has_role", { _user_id: userId, _role: r });
     if (data === true) return;

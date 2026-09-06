@@ -343,7 +343,7 @@ export function CourseFormModal({
                       }
                       className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
                         active
-                          ? "bg-[#1FA8B6] text-white ring-[#1FA8B6]"
+                          ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)] ring-[color:var(--btn-accent)]"
                           : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
                       }`}
                     >
@@ -426,7 +426,9 @@ export function CourseFormModal({
             <Button
               type="submit"
               disabled={saving}
-              className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+              variant="solid"
+              color="blue"
+              className="font-bold"
             >
               {saving ? "Saving…" : course ? "Save changes" : "Create course"}
             </Button>

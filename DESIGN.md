@@ -125,13 +125,14 @@ components:
 
 **Creative North Star: "Hong Kong Rapid Transit"**
 
-MatchMax borrows the grammar of the city's transit system: a trusted network that moves you from where you are to where you need to be, with every stop clearly signed. Harbour Midnight (`#041344`) is the official ink — wayfinding signage, verification stamps, the authority of the network. Island Line Teal (`#1FA8B6`) is the moving line — the colour of progress, connectors, focus rings, and the actions that carry a parent from search to match. The system is confident, crisp, and proof-backed: real numbers set in heavy type, hairline borders instead of heavy chrome, and a navy-to-teal gradient that reads as the line map connecting navy authority to teal motion.
+MatchMax borrows the grammar of the city's transit system: a trusted network that moves you from where you are to where you need to be, with every stop clearly signed. The interface is monochrome by default — Paper White, hairline greys, and Harbour Midnight (`#041344`) ink — so that **Royal Navy** (`#0A245F`) reads instantly as *the one action that matters*, the way a line's interchange station is the only lit sign on a dark platform. Island Line Teal (`#1FA8B6`) survives only as the moving line itself: brand moments (wordmark gradient, hero backdrops) and progress meters (steppers, progress bars). The system is confident, crisp, and proof-backed: real numbers set in heavy type, hairline borders instead of heavy chrome.
 
 Density is product-like rather than editorial. Public pages persuade with bold black-weight display type and generous section rhythm; authenticated consoles compress into compact, sharply-cornered controls. Everything is bilingual-first — the Latin type stack (Uber Move, with DM Sans as the loaded web fallback) hands off to system CJK fonts for Traditional Chinese, so layouts must survive wider glyphs and never assume Latin-only line heights.
 
 **Key Characteristics:**
-- Two brand voices on every surface: navy ink for authority, teal for motion and progress
-- Navy→teal brand gradient reserved for brand moments (wordmark, hero backdrops, key CTAs)
+- Scarcity of accent: navy fills appear on ~10% of buttons; everything else is white/grey monochrome
+- Teal lives only in brand moments (wordmark gradient, hero backdrops) and progress meters — never in buttons, links, badges, hovers, or focus
+- Navy→teal brand gradient reserved for brand moments (wordmark, hero backdrops)
 - Flat, hairline-bordered surfaces by default; soft brand-tinted ambient shadows on hero moments only
 - Heavy display type (700–900) with tight tracking against a light 0.95rem body
 - Compact control heights (36px buttons, 44px inputs) with tactile press (scale 0.97)
@@ -139,31 +140,33 @@ Density is product-like rather than editorial. Public pages persuade with bold b
 
 ## Colors
 
-The palette is a signed transit map: deep navy infrastructure, teal as the active line, periwinkle as the night-mode signal. Statuses (green/amber/red) exist only for real states, never decoration.
+The palette is a signed transit map in monochrome: navy ink and hairline greys carry the network, one navy accent marks the interchange, teal survives only as the moving line. Statuses (green/amber/red) exist only for real states, never decoration.
 
 ### Primary
-- **Harbour Midnight** (`#041344`): The ink of the system. Body and heading text on light surfaces (`--ink`), inverted primary surfaces (`--surface-invert`), primary buttons (hover end-state), the dark start of the brand gradient, and stepper "active" fills. The dark-theme text equivalent is `oklch(0.16 0.09 265)`.
-- **Royal Navy** (`#0A245F`): Midnight's one-step-lighter sibling. Default primary-button rest state (`--surface-invert-hover`), gradient midpoint, dark-surface hovers. **Royal Blue** (`#1B2CC1`, `--brand-royal`) exists as a raw brand token but is rarely applied directly — treat as reserve.
+- **Harbour Midnight** (`#041344`): The ink of the system. Body and heading text on light surfaces (`--ink`), ghost/neutral button hover end-states, the dark start of the brand gradient, and neutral "black button" fills (`color="neutral"`). The dark-theme text equivalent is `oklch(0.16 0.09 265)`.
+- **Royal Navy** (`#0A245F`): **The one accent.** Money-CTA fills (`--btn-accent`), focus rings (`--ring`), and selected/active states. **Royal Blue** (`#1B2CC1`, `--brand-royal`) exists as a raw brand token but is rarely applied directly — treat as reserve.
 
 ### Secondary
-- **Island Line Teal** (`#1FA8B6`): The active line. Secondary buttons, focus rings (`--ring`), in-app links' hover targets, progress connectors, completed-step fills, and 8–20% colour-mix tints for soft backgrounds (`bg-teal/10`, `saved-posts-reserve-card`). Its dark-mode hover deepens to `#168590`.
+- **Island Line Teal** (`#1FA8B6`): Retired from interaction. Survives only as brand/progress: the wordmark gradient, hero backdrops, stepper/progress fills (`--brand-teal` tokens), and data-viz series colours. Never in buttons, links, badges, soft fills, hover states, or focus rings.
 
 ### Tertiary
-- **Signal Periwinkle** (`#ABD2FA`): The night signal. Dark theme's primary (`--primary`), dark focus rings, dark link colour, and the logo's dark-mode recolor target. Also registered as `--brand-cyan`/`--brand-aqua` (same value, two names — do not treat as two colours).
-- **Link Blue** (`#0D47A1`): Text links on light surfaces (`--brand-link`); nav links settle here on hover because teal-on-white fails contrast for small text.
+- **Signal Periwinkle** (`#ABD2FA`): The night signal. Dark theme's accent (`--btn-accent` in `.dark`, carrying Harbour Midnight text), dark focus rings, dark link colour, and the logo's dark-mode recolor target. Also registered as `--brand-cyan`/`--brand-aqua` (same value, two names — do not treat as two colours).
+- **Link Blue** (`#0D47A1`): Text links on light surfaces (`--brand-link`); nav links settle here on hover.
+- **WhatsApp Green** (`#25D366`, `--brand-whatsapp`): The single sanctioned non-palette colour, for the WhatsApp contact affordances only (float button, WhatsApp CTAs). Hover `#1EBE57`.
 
 ### Neutral
-- **Paper White** (`#FFFFFF`, `--surface`): Canvas and cards on light theme.
+- **Paper White** (`#FFFFFF`, `--surface`): Canvas, cards, and the default button fill on light theme.
 - **Paper Tint** (`#F8FAFC`, `--surface-subtle`): Subtle wells, header account pill, dot-grid visual grounds.
+- **Grey Fill** (`--secondary` ≈ `oklch(0.96 0.005 250)` / hover `--accent` ≈ `oklch(0.945)`): Secondary-button and menu-hover washes; true neutrals, never navy- or teal-tinted.
 - **Muted Ink** (`oklch(0.45 0.03 260)`): Secondary text on light.
 - **Hairline** (`oklch(0.93 0.008 250)`): Borders and input strokes on light.
 - **Night Canvas** (`#090A0C`) / **Night Card** (`#111419`) / **Night Border** (`#242932`): Dark-theme canvas, cards, and hairlines ("Untitled UI"-style cool darks).
 - **Statuses**: destructive `oklch(0.577 0.245 27.325)` (dark `#F04438`), success `oklch(0.627 0.194 149.214)` (dark `#5EE6A1`), warning `oklch(0.666 0.179 58.318)` (dark `#FFD37A`).
 
 ### Named Rules
-**The Signal Rule.** Teal means *motion*: actions, progress, focus, and completion. It never paints static decoration, and it never carries small body text on white — links on light surfaces use Link Blue.
+**The Scarcity Rule.** Royal Navy (`--btn-accent`/`--ring`) is the only accent, and it owns exactly three things: (1) money-CTA fills — the ~10% of buttons that start a conversion flow, (2) text links (Link Blue), (3) focus rings and selected/active states. Everything else is true neutral grey. Test: *does this button start a conversion flow?* If not, it is neutral. Teal never appears in interactive states.
 
-**The Inverted Signal Rule.** Dark mode flips the network, not just the lights: primary becomes Signal Periwinkle carrying Harbour Midnight text. Never reuse light-theme navy-on-white pairings in dark mode.
+**The Inverted Signal Rule.** Dark mode flips the network, not just the lights: the accent becomes Signal Periwinkle (`--btn-accent` in `.dark`) carrying Harbour Midnight text, and links go periwinkle. Never reuse light-theme navy-on-white pairings in dark mode.
 
 ## Typography
 
@@ -201,7 +204,7 @@ Flat by default, ambient lift on heroes. Light-theme separation is hairline bord
 
 ### Shadow Vocabulary
 - **Brand wash** (`--shadow-brand`: `0 10px 30px -18px color-mix(in oklab, #041344 24%, transparent)`): Hero CTAs, floating shells (join-stepper uses a stronger `0 24px 60px -36px` at 35%).
-- **Teal wash** (`--shadow-teal`: `0 12px 24px -16px color-mix(in oklab, #1FA8B6 28%, transparent)`): Teal accents that hover/float.
+- **Teal wash** (`--shadow-teal`): Legacy token, kept for progress/brand accents only — do not apply to interactive elements.
 - **Focus ring** (`--focus-ring`: `0 0 0 3px` ring at 32%): Keyboard focus glow.
 - **Night elevation** (dark: `0 16px 40px -24px rgba(0,0,0,0.78)` / `0 16px 32px -20px rgba(0,0,0,0.72)`): Dark-theme cards and popovers.
 - **Component default**: `shadow-sm` on buttons/inputs; `shadow` on standard cards.
@@ -219,13 +222,14 @@ For each component: confident signage — bold labels, one clear primary action,
 
 ### Buttons
 - **Shape:** Rounded rectangles at `--radius-control` (8px) by default; `shape="pill"` (full) and square offered; hero CTAs may override to `rounded-xl/md`. Compact landing variants use `rounded-sm`.
-- **Primary** (`variant="default"`): Royal Navy fill, white text, `shadow-sm`; hovers deepen to Harbour Midnight. Hero variant starts at Harbour Midnight and lightens on hover. Height 36px (`h-9`), 40px (`lg`), 56px for hero CTAs.
-- **Colour axis** (`color` prop sets `--btn/--btn-fg/--btn-hover`): accent teal `#1FA8B6→#168590`, blue `#0A245F→#041344`, green `#15803D→#166534`, amber `#B45309→#92400E`, neutral (ink), destructive. `variant="solid"` renders the colour flat; `variant="candy"` adds a vertical gradient, white/25 border, ring, and drop-shadow for marquee CTAs; `variant="soft"` renders the colour as a 12→18% tint.
-- **Ghost / Link / Outline / Secondary:** Ghost = ink text, teal 10% hover wash with teal text; Link = teal, underlined on hover; Outline = white fill, ink/15 border that shifts to teal/40 border + teal/8 wash on hover; Secondary = teal/10 fill deepening to /20.
-- **States:** All buttons press with `active:scale-[0.97]`, transition 150ms ease-out, focus-visible ring-2 teal/40 + offset, disabled at 50% opacity, optional animated loading spinner. `motion-reduce` disables the press.
+- **Neutral default** (`variant="default"`): white fill, ink text, hairline `foreground/15` border, `shadow-sm`; hovers wash to grey (`--muted`) and deepen the border. This is the resting state of ~90% of buttons — the Twitter-model monochrome mass.
+- **Accent** (`variant="solid" color="blue"` — `color="accent"` is an alias): the money CTA. `--btn-accent` fill (`#0A245F` light / `#ABD2FA` dark) with `--btn-accent-fg` text (white / `#041344`), hover `--btn-accent-hover`. Reserved for the conversion list: hero Find a Tutor, directory Search, Post your request (+ submit), Join as Tutor (+ final submit), Contact/Request Tutor, header Sign up, auth continue, pricing highlighted CTA, dashboard/case CTAs, Publish course, business signup.
+- **Colour axis** (`color` prop sets `--btn/--btn-fg/--btn-hover`): blue/accent (navy tokens), neutral (ink fill), green `#15803D→#166534`, amber `#B45309→#92400E`, destructive. `variant="candy"` adds a vertical gradient for marquee CTAs; `variant="soft"` renders the colour as a 12→18% tint.
+- **Ghost / Link / Outline / Secondary:** Ghost = ink text, neutral 6% hover wash (text stays ink); Link = Link Blue, underlined on hover; Outline = white fill, `foreground/15` border shifting to `/25` + 4% wash on hover; Secondary = grey fill (`--secondary`) deepening to `--accent` on hover.
+- **States:** All buttons press with `active:scale-[0.97]`, transition 150ms ease-out, focus-visible ring-2 navy (`--ring`) at 40% + offset, disabled at 50% opacity, optional animated loading spinner. `motion-reduce` disables the press.
 
 ### Badges / Chips
-- **Style:** `rounded-md`, `px-2.5 py-0.5`, 0.75rem semibold. Default = navy fill/white text; Secondary = teal fill/white; Outline = hairline border, foreground text. Filter chips in product views follow the compact `rounded-sm` control language.
+- **Style:** `rounded-md`, `px-2.5 py-0.5`, 0.75rem semibold. Default = navy fill/white text; Secondary = grey fill (`--secondary`); Outline = hairline border, foreground text. Filter chips in product views follow the compact `rounded-sm` control language; selected chips use the navy accent.
 
 ### Cards / Containers
 - **Corner Style:** `rounded-xl` (≈15px) standard; `rounded-sm` on dense landing panels.
@@ -240,28 +244,31 @@ For each component: confident signage — bold labels, one clear primary action,
 - **Error / Disabled:** Destructive styling per shadcn form wiring; disabled at 50% opacity, cursor-not-allowed.
 
 ### Navigation
-- Sticky 64px header: `bg-[color:var(--surface)]/95` with `backdrop-blur-sm`, hairline bottom border ink/10. Logo (32px) + "MatchMax" wordmark in `text-brand-gradient` at 700–900. Desktop links: 15px/600 ink at 85%, hover/focus shifts to Link Blue with a 2px navy underline sweeping in from the left (200ms). Account affordance is a bordered `surface-subtle` pill with a teal-initial avatar. Mobile uses the staggered full-screen menu; footer mirrors the header at `max-w-7xl` with uppercase 14px column headings, `foreground/70` links hovering to teal, and a 4xl/5xl black-weight "MatchMax" sign-off.
+- Sticky 64px header: `bg-[color:var(--surface)]/95` with `backdrop-blur-sm`, hairline bottom border ink/10. Logo (32px) + "MatchMax" wordmark in `text-brand-gradient` at 700–900. Desktop links: 15px/600 ink at 85%, hover/focus shifts to Link Blue with a 2px ink underline sweeping in from the left (200ms). Account affordance is a bordered `surface-subtle` pill with an ink-initial avatar; header Sign up is a navy money CTA. Mobile uses the staggered full-screen menu; footer mirrors the header at `max-w-7xl` with uppercase 14px column headings, `foreground/70` links hovering to Link Blue, and a 4xl/5xl black-weight "MatchMax" sign-off.
 
 ### Signature Components
 - **Brand-gradient wordmark & text** (`text-brand-gradient`): navy→royal→teal at 135°, clipped to text; the one sanctioned place for gradient text.
 - **Blur-highlight reveal** (`blur-highlight-text`): words arrive blurred (7px, 42% opacity) then snap sharp while an aqua highlighter sweeps beneath key phrases (560ms/720ms, cubic-bezier(0.22,1,0.36,1), staggered 130ms); fully disabled under `prefers-reduced-motion`.
-- **Join stepper**: 36px circular steps with teal fill for active/complete, animated connector bars (240ms), card shell at 24px radius with the join-stepper's deep navy shadow; slide-forward/backward content transitions.
-- **Hero backdrops**: patterned/photographic scrims (education pattern, tutor-network photo at `saturate(0.78) contrast(1.1)` with navy gradient overlays and a teal radial hotspot); dark mode dims imagery to 18% opacity and recolors the logo via the `.logo-dark-recolor` filter.
-- **WhatsApp float button**: persistent circular teal-navy contact affordance on public pages.
+- **Join stepper**: 36px circular steps with navy/periwinkle fill for active, teal for complete, animated connector bars (240ms), card shell at 24px radius with the join-stepper's deep navy shadow; slide-forward/backward content transitions. Stepper fills and connectors are part of teal's progress whitelist.
+- **Hero backdrops**: patterned/photographic scrims (education pattern, tutor-network photo at `saturate(0.78) contrast(1.1)` with navy gradient overlays and a teal radial hotspot); dark mode dims imagery to 18% opacity and recolors the logo via the `.logo-dark-recolor` filter. Teal here is brand backdrop, not interaction.
+- **WhatsApp float button**: persistent circular WhatsApp-green (`--brand-whatsapp`) contact affordance on public pages — the one brand-exception colour.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** reserve the navy→teal brand gradient for brand moments: the wordmark, hero backdrops, and primary marketing CTAs — one gradient voice per viewport.
-- **Do** keep interactive surfaces tactile: 150ms transitions, `active:scale-[0.97]` press, visible `focus-visible` teal rings.
+- **Do** reserve the navy→teal brand gradient for brand moments: the wordmark and hero backdrops — one gradient voice per viewport.
+- **Do** ration navy: before adding `variant="solid" color="blue"`, apply the conversion test — if the button doesn't start a conversion flow (Find a Tutor, Post a request, Join, Contact, Sign up, Publish), ship it neutral.
+- **Do** keep interactive surfaces tactile: 150ms transitions, `active:scale-[0.97]` press, visible `focus-visible` navy rings.
 - **Do** honour `prefers-reduced-motion` for every custom animation (blur reveal, marquee, stepper, press) — the incumbent code always pairs them.
 - **Do** verify both EN and zh-HK renderings of any new copy or component; layouts must not assume Latin widths.
-- **Do** use Link Blue (`#0D47A1`) for small text links on light surfaces; teal only for larger/secondary affordances and dark-mode links (periwinkle).
+- **Do** use Link Blue (`#0D47A1`) for small text links on light surfaces; dark-mode links flip to periwinkle.
 - **Do** dim photographic backdrops in dark mode (opacity ≈0.18) and recolor the logo with `.logo-dark-recolor`.
 
 ### Don't:
-- **Don't** use teal as small body text or static decoration on white — it is the motion colour (actions, progress, focus).
-- **Don't** add new accent hues; the sanctioned extra colours are the button palette (green/amber) and the three statuses.
+- **Don't** use teal in any interactive state — no teal buttons, links, badges, hovers, soft fills, or focus rings. Teal's only homes are the wordmark gradient, hero backdrops, and progress/data-viz fills.
+- **Don't** make grey buttons navy "for emphasis" — emphasis is hierarchy (size, weight, position), and navy is spent on ~10% of buttons.
+- **Don't** add new accent hues; the sanctioned extras are the button palette (green/amber), the three statuses, and WhatsApp Green for WhatsApp affordances only.
+- **Don't** use navy-tinted greys — neutral washes (`--muted`, `--secondary`, `--accent`) are true neutrals.
 - **Don't** use pure black shadows in light theme — shadows are navy/teal `color-mix` washes; neutral deep shadows belong to dark mode only.
 - **Don't** introduce a second type family; hierarchy is weight/size/tracking within the Uber Move → DM Sans stack.
 - **Don't** fix text to containers that break with CJK fallback fonts, and don't apply letter-spacing to Chinese text.

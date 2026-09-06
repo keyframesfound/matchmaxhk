@@ -59,7 +59,7 @@ function CheckItem({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex gap-2.5">
       <Check
-        className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-teal)]"
+        className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
         aria-hidden="true"
       />
       <span>{children}</span>
@@ -147,7 +147,7 @@ function CaseDetailPage() {
                 Posted {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
               </p>
             </div>
-            <Button asChild size="lg" className="shrink-0">
+            <Button asChild size="lg" variant="solid" color="blue" className="shrink-0">
               <a href={applyUrl} target="_blank" rel="noreferrer">
                 <WhatsAppIcon aria-hidden="true" />
                 Apply now
@@ -195,7 +195,7 @@ function CaseDetailPage() {
                 tutors, and we reply within one business day.
               </p>
             </div>
-            <Button asChild className="shrink-0">
+            <Button asChild variant="solid" color="blue" className="shrink-0">
               <a href={applyUrl} target="_blank" rel="noreferrer">
                 <WhatsAppIcon aria-hidden="true" />
                 Apply now

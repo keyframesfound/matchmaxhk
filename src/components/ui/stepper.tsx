@@ -125,8 +125,16 @@ export default function Stepper({
     void updateStep(totalSteps + 1);
   };
 
-  const { className: backButtonClassName, onClick: onBackClick, ...backButtonRest } = backButtonProps;
-  const { className: nextButtonClassName, onClick: onNextClick, ...nextButtonRest } = nextButtonProps;
+  const {
+    className: backButtonClassName,
+    onClick: onBackClick,
+    ...backButtonRest
+  } = backButtonProps;
+  const {
+    className: nextButtonClassName,
+    onClick: onNextClick,
+    ...nextButtonRest
+  } = nextButtonProps;
 
   return (
     <div className={cn("stepper-outer-container", className)} {...rest}>
@@ -176,7 +184,12 @@ export default function Stepper({
 
         {!isCompleted ? (
           <div className={cn("stepper-footer-container", footerClassName)}>
-            <div className={cn("stepper-footer-nav", currentStep !== 1 ? "stepper-footer-nav--spread" : "stepper-footer-nav--end")}>
+            <div
+              className={cn(
+                "stepper-footer-nav",
+                currentStep !== 1 ? "stepper-footer-nav--spread" : "stepper-footer-nav--end",
+              )}
+            >
               {currentStep !== 1 ? (
                 <button
                   {...backButtonRest}
@@ -311,15 +324,33 @@ function StepIndicator({
       <motion.span
         className="stepper-indicator-inner"
         variants={{
-          inactive: { scale: 1, backgroundColor: "var(--stepper-inactive-bg)", color: "var(--stepper-inactive-fg)" },
-          active: { scale: 1.04, backgroundColor: "var(--stepper-active-bg)", color: "var(--stepper-active-fg)" },
-          complete: { scale: 1, backgroundColor: "var(--stepper-complete-bg)", color: "var(--stepper-complete-fg)" },
+          inactive: {
+            scale: 1,
+            backgroundColor: "var(--stepper-inactive-bg)",
+            color: "var(--stepper-inactive-fg)",
+          },
+          active: {
+            scale: 1.04,
+            backgroundColor: "var(--stepper-active-bg)",
+            color: "var(--stepper-active-fg)",
+          },
+          complete: {
+            scale: 1,
+            backgroundColor: "var(--stepper-complete-bg)",
+            color: "var(--stepper-complete-fg)",
+          },
         }}
         transition={{ duration: 0.3 }}
         animate={status}
         initial={false}
       >
-        {status === "complete" ? <Check className="stepper-check-icon" /> : status === "active" ? <span className="stepper-active-dot" /> : step}
+        {status === "complete" ? (
+          <Check className="stepper-check-icon" />
+        ) : status === "active" ? (
+          <span className="stepper-active-dot" />
+        ) : (
+          step
+        )}
       </motion.span>
     </button>
   );

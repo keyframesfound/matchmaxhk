@@ -53,7 +53,7 @@ export function CourseCard({ course }: CourseCardProps) {
     <Link
       to="/courses/$courseId"
       params={{ courseId: course.id }}
-      className="group grid gap-4 rounded-lg border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-[color:var(--brand-teal)]/45 hover:shadow-md sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-6"
+      className="group grid gap-4 rounded-lg border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-[color:var(--foreground)]/25 hover:shadow-md sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-6"
     >
       {course.organization?.logo_url ? (
         <img
@@ -63,7 +63,7 @@ export function CourseCard({ course }: CourseCardProps) {
           loading="lazy"
         />
       ) : (
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#1FA8B6]/10 text-sm font-bold text-[#1FA8B6]">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]">
           {initials || "MM"}
         </span>
       )}
@@ -105,7 +105,7 @@ export function CourseCard({ course }: CourseCardProps) {
         ) : (
           <span className="text-sm font-semibold text-muted-foreground">Enquire</span>
         )}
-        <span className="inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand-link)] group-hover:text-[color:var(--brand-teal)]">
+        <span className="inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand-link)] group-hover:text-[color:var(--ink)]">
           View course
           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
         </span>

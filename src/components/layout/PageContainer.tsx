@@ -13,5 +13,10 @@ const widthClasses = {
 };
 
 export function PageContainer({ className, width = "default", ...props }: PageContainerProps) {
-  return <div className={cn("mx-auto w-full min-w-0 px-4 sm:px-6", widthClasses[width], className)} {...props} />;
+  return (
+    <div
+      className={cn("mx-auto w-full min-w-0 px-4 sm:px-6", widthClasses[width], className)}
+      {...props}
+    />
+  );
 }

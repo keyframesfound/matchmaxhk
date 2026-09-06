@@ -8,11 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  ROLE_DEFINITIONS,
-  ROLE_DISPLAY_NAMES,
-  ROLE_BADGE_STYLES,
-} from "@/features/auth/roleLabel";
+import { ROLE_DEFINITIONS, ROLE_DISPLAY_NAMES, ROLE_BADGE_STYLES } from "@/features/auth/roleLabel";
 import type { AppRole } from "@/features/auth/useAuth";
 import type { UserRow } from "./UserStatsOverview";
 
@@ -40,7 +36,7 @@ export function RoleManagementDialog({
       <DialogContent className="max-w-xl border-border bg-card">
         <DialogHeader className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[color:var(--brand-teal)]/10 text-[color:var(--brand-teal)]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]">
               <Shield className="h-5 w-5" />
             </div>
             <div>
@@ -128,7 +124,7 @@ export function RoleManagementDialog({
                       size="sm"
                       disabled={isMutating}
                       onClick={() => onGrantRole(user.user_id, def.role)}
-                      className="h-8 bg-[color:var(--surface-invert)] text-xs font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                      className="h-8 text-xs font-bold"
                     >
                       <Plus className="mr-1 h-3.5 w-3.5" /> Grant Role
                     </Button>

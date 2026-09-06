@@ -120,15 +120,15 @@ function PriceRangeSlider({
         aria-label="Price range"
       >
         <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-[color:var(--ink)]/15">
-          <SliderPrimitive.Range className="absolute h-full bg-[color:var(--brand-teal)]" />
+          <SliderPrimitive.Range className="absolute h-full bg-[color:var(--ring)]" />
         </SliderPrimitive.Track>
         <SliderPrimitive.Thumb
           aria-label="Minimum hourly price"
-          className="block h-4 w-4 rounded-full border-2 border-[color:var(--brand-teal)] bg-white shadow transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="block h-4 w-4 rounded-full border-2 border-[color:var(--ring)] bg-white shadow transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         />
         <SliderPrimitive.Thumb
           aria-label="Maximum hourly price"
-          className="block h-4 w-4 rounded-full border-2 border-[color:var(--brand-teal)] bg-white shadow transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="block h-4 w-4 rounded-full border-2 border-[color:var(--ring)] bg-white shadow transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         />
       </SliderPrimitive.Root>
     </div>
@@ -147,10 +147,10 @@ function CompareBar({
   const count = selectedTutors.length;
   return (
     <div className="fixed bottom-20 left-1/2 z-40 w-[min(92vw,30rem)] -translate-x-1/2 sm:bottom-6">
-      <div className="flex items-center justify-between gap-3 rounded-full border border-[color:var(--brand-teal)]/30 bg-[color:var(--surface)] px-4 py-2.5 shadow-[0_16px_40px_rgba(4,19,68,0.18)]">
+      <div className="flex items-center justify-between gap-3 rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 py-2.5 shadow-[0_16px_40px_rgba(4,19,68,0.18)]">
         <div className="flex min-w-0 items-center gap-2">
           <ListChecks
-            className="h-4 w-4 shrink-0 text-[color:var(--brand-teal)]"
+            className="h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
             aria-hidden="true"
           />
           <p className="truncate text-sm font-bold text-[color:var(--ink)]">
@@ -161,7 +161,7 @@ function CompareBar({
         <div className="flex shrink-0 items-center gap-2">
           <Button
             size="sm"
-            className="h-9 rounded-full bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+            className="h-9 rounded-full px-4 text-[13px] font-bold"
             disabled={count < 2}
             onClick={onOpenCompare}
           >
@@ -308,11 +308,7 @@ function CompareDialog({
     {
       label: "",
       render: (t) => (
-        <Button
-          asChild
-          size="sm"
-          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white shadow-none hover:bg-[color:var(--surface-invert-hover)]"
-        >
+        <Button asChild size="sm" className="h-9 rounded-sm px-4 text-[13px] font-bold shadow-none">
           <a
             href={buildTutorWhatsAppUrl(whatsappNumber, t.tutor_code)}
             target="_blank"
@@ -648,7 +644,12 @@ function TutorsDirectory() {
                   placeholder={t("search_panel.any_gender")}
                   className="h-11 rounded-sm"
                 />
-                <Button type="submit" className="h-11 rounded-sm px-6 font-bold">
+                <Button
+                  type="submit"
+                  variant="solid"
+                  color="blue"
+                  className="h-11 rounded-sm px-6 font-bold"
+                >
                   <Search className="mr-1.5 h-4 w-4" />
                   {t("search_panel.search")}
                 </Button>
@@ -687,7 +688,7 @@ function TutorsDirectory() {
                       href={hotlineUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex h-9 items-center gap-2 rounded-full bg-[#25D366] px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1ebe57]"
+                      className="inline-flex h-9 items-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
                     >
                       <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
                       WhatsApp
@@ -722,18 +723,18 @@ function TutorsDirectory() {
             {isLoading && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    className="h-[23rem] rounded-[10px] border border-[color:var(--brand-teal)]/25"
-                  />
+                  <Skeleton key={i} className="h-[23rem] rounded-[10px] border border-border" />
                 ))}
               </div>
             )}
 
             {!isLoading && filtered.length === 0 && (
               <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/8">
-                  <SearchX className="h-5 w-5 text-[color:var(--brand-teal)]" aria-hidden="true" />
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
+                  <SearchX
+                    className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                    aria-hidden="true"
+                  />
                 </div>
                 <h2 className="mt-4 text-xl font-black tracking-tight text-[color:var(--ink)] sm:text-2xl">
                   {t("directory.empty_title")}
@@ -749,17 +750,14 @@ function TutorsDirectory() {
                     <Button asChild variant="ghost">
                       <a href={hotlineUrl} target="_blank" rel="noreferrer">
                         <WhatsAppIcon
-                          className="mr-2 h-4 w-4 text-[color:var(--brand-teal)]"
+                          className="mr-2 h-4 w-4 text-[color:var(--muted-foreground)]"
                           aria-hidden="true"
                         />
                         {t("directory.empty_whatsapp")}
                       </a>
                     </Button>
                   ) : null}
-                  <Button
-                    asChild
-                    className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                  >
+                  <Button asChild variant="solid" color="blue" className="font-bold">
                     <Link to="/tutor-requests" search={{ post: true }}>
                       {t("directory.empty_case")}
                     </Link>
@@ -783,7 +781,7 @@ function TutorsDirectory() {
                         <TutorSaveButton tutorId={tut.id} compact />
                         <Button
                           asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white shadow-none hover:bg-[color:var(--surface-invert-hover)]"
+                          className="h-9 rounded-sm px-4 text-[13px] font-bold shadow-none"
                         >
                           <a
                             href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}

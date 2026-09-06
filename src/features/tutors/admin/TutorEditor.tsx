@@ -496,7 +496,7 @@ function ModernPhotoUpload({
                     className={cn(
                       "overflow-hidden rounded-lg border-2 transition-all block w-full aspect-square",
                       value === item.url
-                        ? "border-[#1FA8B6] ring-2 ring-[#77E8EE]/40"
+                        ? "border-[color:var(--ring)] ring-2 ring-[color:var(--ring)]/30"
                         : "border-transparent hover:border-[color:var(--ink)]/20",
                     )}
                   >
@@ -819,7 +819,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                 className={cn(
                   "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold",
                   form.is_published
-                    ? "bg-[#77E8EE]/30 text-[#156B73]"
+                    ? "bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
                     : "bg-muted text-muted-foreground",
                 )}
               >
@@ -858,7 +858,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
             type="button"
             onClick={handleSubmit}
             disabled={isSaving}
-            className="h-9 bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)] text-xs shadow-sm"
+            className="h-9 font-bold text-xs shadow-sm"
           >
             {isSaving ? (
               <>
@@ -1274,7 +1274,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                   </FormField>
                 ) : (
                   <div className="rounded-xl border border-dashed border-border bg-[color:var(--surface-subtle)]/40 p-3 text-xs text-muted-foreground flex items-center gap-2">
-                    <Info className="h-4 w-4 shrink-0 text-[#1FA8B6]" />
+                    <Info className="h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]" />
                     Online tutoring is available territory-wide; no district required.
                   </div>
                 )}
@@ -1438,7 +1438,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                       className={cn(
                         "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors",
                         form.ia_ee_tok_support.includes(item)
-                          ? "border-[#1FA8B6] bg-[#77E8EE]/15 text-[#156B73]"
+                          ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
                           : "border-border bg-background text-[color:var(--ink)] hover:bg-muted/40",
                       )}
                     >
@@ -1514,7 +1514,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
               <Button
                 type="submit"
                 disabled={isSaving}
-                className="w-full h-11 bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)] text-sm shadow-md"
+                className="w-full h-11 font-bold text-sm shadow-md"
               >
                 {isSaving ? (
                   <>

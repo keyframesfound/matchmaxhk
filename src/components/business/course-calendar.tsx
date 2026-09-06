@@ -231,7 +231,9 @@ export function CourseCalendar({ courses }: { courses: CalendarCourse[] }) {
                         <span
                           className={cn(
                             "flex size-6 items-center justify-center self-end rounded-md text-xs font-medium",
-                            todayCell ? "bg-[#1FA8B6] text-white" : "text-[color:var(--ink)]",
+                            todayCell
+                              ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
+                              : "text-[color:var(--ink)]",
                           )}
                         >
                           {day}
@@ -285,7 +287,9 @@ export function CourseCalendar({ courses }: { courses: CalendarCourse[] }) {
                     <span
                       className={cn(
                         "flex size-7 items-center justify-center self-start rounded-md text-sm font-semibold",
-                        todayCell ? "bg-[#1FA8B6] text-white" : "text-[color:var(--ink)]",
+                        todayCell
+                          ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
+                          : "text-[color:var(--ink)]",
                       )}
                     >
                       {d.getDate()}

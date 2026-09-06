@@ -252,7 +252,7 @@ function AdminUsers() {
               <Button
                 size="sm"
                 onClick={() => setIsInviteOpen(true)}
-                className="h-9 gap-1.5 bg-[color:var(--surface-invert)] font-bold text-xs text-white hover:bg-[color:var(--surface-invert-hover)]"
+                className="h-9 gap-1.5 font-bold text-xs"
               >
                 <UserPlus className="h-4 w-4" />
                 Invite User

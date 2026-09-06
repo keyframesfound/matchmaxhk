@@ -152,7 +152,7 @@ function AdminR2Images() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-md bg-[color:var(--surface-invert)] px-4 text-sm font-bold text-white hover:bg-[color:var(--surface-invert-hover)]">
+              <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 text-sm font-bold text-[color:var(--foreground)] hover:bg-[color:var(--muted)]">
                 {upload.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (

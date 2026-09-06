@@ -100,11 +100,11 @@
   --popover-foreground: oklch(0.16 0.09 265);
   --primary: oklch(0.16 0.09 265); /* Deep navy */
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.66 0.11 197); /* Teal */
-  --secondary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.96 0.005 250); /* Neutral grey fill */
+  --secondary-foreground: oklch(0.16 0.09 265);
   --muted: oklch(0.97 0.005 250);
   --muted-foreground: oklch(0.45 0.03 260);
-  --accent: oklch(0.78 0.13 195); /* Cyan */
+  --accent: oklch(0.945 0.005 250); /* Neutral hover wash */
   --accent-foreground: oklch(0.16 0.09 265);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
@@ -112,7 +112,7 @@
   --warning: oklch(0.666 0.179 58.318); /* amber-600 */
   --border: oklch(0.93 0.008 250);
   --input: oklch(0.93 0.008 250);
-  --ring: oklch(0.66 0.11 197);
+  --ring: #0a245f; /* Royal Navy — the one accent */
 
   --chart-1: oklch(0.66 0.11 197);
   --chart-2: oklch(0.78 0.13 195);
@@ -124,10 +124,19 @@
   --sidebar-foreground: oklch(0.16 0.09 265);
   --sidebar-primary: oklch(0.16 0.09 265);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.96 0.02 197);
+  --sidebar-accent: oklch(0.96 0.003 250);
   --sidebar-accent-foreground: oklch(0.16 0.09 265);
   --sidebar-border: oklch(0.93 0.008 250);
-  --sidebar-ring: oklch(0.66 0.11 197);
+  --sidebar-ring: #0a245f;
+
+  /* Accent button (money CTAs) — navy in light, flips to Signal Periwinkle in dark */
+  --btn-accent: #0a245f;
+  --btn-accent-fg: #ffffff;
+  --btn-accent-hover: #041344;
+
+  /* WhatsApp brand exception */
+  --brand-whatsapp: #25d366;
+  --brand-whatsapp-hover: #1ebe57;
 
   /* Themed app surfaces */
   --ink: #041344;
@@ -226,6 +235,15 @@
   --sidebar-border: #242932;
   --sidebar-ring: #abd2fa;
 
+  /* Accent button in dark — Signal Periwinkle on navy text (Inverted Signal Rule) */
+  --btn-accent: #abd2fa;
+  --btn-accent-fg: #041344;
+  --btn-accent-hover: #cfe1fb;
+
+  /* WhatsApp brand exception */
+  --brand-whatsapp: #25d366;
+  --brand-whatsapp-hover: #1ebe57;
+
   /* Deep neutral elevation shadows for dark surfaces */
   --shadow-brand: 0 16px 40px -24px rgba(0, 0, 0, 0.78);
   --shadow-teal: 0 16px 32px -20px rgba(0, 0, 0, 0.72);
@@ -257,7 +275,7 @@
 
   body {
     overflow-x: clip;
-    -webkit-tap-highlight-color: color-mix(in oklab, var(--brand-teal) 20%, transparent);
+    -webkit-tap-highlight-color: color-mix(in oklab, var(--ink) 12%, transparent);
   }
 
 
@@ -489,7 +507,7 @@
   }
 
   .saved-posts-reserve-card {
-    background: color-mix(in oklab, var(--brand-teal) 10%, var(--surface));
+    background: color-mix(in oklab, var(--foreground) 4%, var(--surface));
   }
 
   .saved-posts-hero-visual {
@@ -554,7 +572,7 @@
 
   .join-stepper-indicator:focus-visible {
     border-radius: 0.75rem;
-    outline: 2px solid var(--brand-teal);
+    outline: 2px solid var(--ring);
     outline-offset: 0.25rem;
   }
 

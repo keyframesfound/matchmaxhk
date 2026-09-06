@@ -27,7 +27,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           title: "group-[.toast]:text-sm group-[.toast]:font-semibold!",
           description: "group-[.toast]:text-xs group-[.toast]:text-muted-foreground!",
           actionButton:
-            "group-[.toast]:h-8 group-[.toast]:rounded-md group-[.toast]:bg-[color:var(--surface-invert)] group-[.toast]:px-3 group-[.toast]:text-xs group-[.toast]:font-semibold group-[.toast]:text-white",
+            "group-[.toast]:h-8 group-[.toast]:rounded-md group-[.toast]:bg-[color:var(--foreground)] group-[.toast]:px-3 group-[.toast]:text-xs group-[.toast]:font-semibold group-[.toast]:text-[color:var(--background)]",
           cancelButton:
             "group-[.toast]:h-8 group-[.toast]:rounded-md group-[.toast]:border group-[.toast]:border-border group-[.toast]:bg-card group-[.toast]:px-3 group-[.toast]:text-xs group-[.toast]:font-semibold group-[.toast]:text-[color:var(--ink)]",
           closeButton:

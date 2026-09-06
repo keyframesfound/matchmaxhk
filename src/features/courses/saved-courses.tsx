@@ -152,8 +152,8 @@ export function CourseSaveButton({
           onKeyDown={(event) => event.stopPropagation()}
           className={
             compact
-              ? "h-10 w-8 shrink-0 rounded-sm border-0 bg-transparent p-0 text-[color:var(--ink)] shadow-none hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--ink)]"
-              : "h-9 w-9 shrink-0 rounded-sm border-0 bg-transparent text-[color:var(--ink)] shadow-none hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--ink)]"
+              ? "h-10 w-8 shrink-0 rounded-sm border-0 bg-transparent p-0 text-[color:var(--ink)] shadow-none hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
+              : "h-9 w-9 shrink-0 rounded-sm border-0 bg-transparent text-[color:var(--ink)] shadow-none hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
           }
         >
           <Bookmark
@@ -177,7 +177,7 @@ export function CourseSaveButton({
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-sm rounded-2xl border-[color:var(--brand-teal)]/20 bg-[color:var(--surface)] p-6 shadow-xl">
+        <DialogContent className="max-w-sm rounded-2xl border-border bg-[color:var(--surface)] p-6 shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-black text-[color:var(--ink)]">
               Sign up to save posts
@@ -194,7 +194,7 @@ export function CourseSaveButton({
             </DialogClose>
             <Button
               type="button"
-              className="rounded-sm bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+              className="rounded-sm font-bold"
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();

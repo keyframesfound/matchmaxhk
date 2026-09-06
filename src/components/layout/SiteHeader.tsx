@@ -95,14 +95,14 @@ export function SiteHeader({ className }: { className?: string }) {
             className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
             {t("How it works")}
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
           </a>
           <Link
             to="/tutors"
             className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
             {t("nav.find", { defaultValue: "Find" })}
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
           </Link>
           {CENTRE_MARKET_ENABLED && (
             <Link
@@ -110,7 +110,7 @@ export function SiteHeader({ className }: { className?: string }) {
               className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
             >
               {t("nav.courses", { defaultValue: "Courses" })}
-              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
+              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
             </Link>
           )}
           <Link
@@ -118,14 +118,14 @@ export function SiteHeader({ className }: { className?: string }) {
             className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
             Saved Posts
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
           </Link>
           <Link
             to="/join"
             className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
             Become a Tutor
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
           </Link>
           {CENTRE_MARKET_ENABLED && (
             <Link
@@ -133,7 +133,7 @@ export function SiteHeader({ className }: { className?: string }) {
               className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
             >
               {t("nav.for_business", { defaultValue: "For Business" })}
-              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
+              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
             </Link>
           )}
           <Link
@@ -141,7 +141,7 @@ export function SiteHeader({ className }: { className?: string }) {
             className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
           >
             Request a Tutor
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--surface-invert-hover)] transition-all duration-200 group-hover:w-full" />
+            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
           </Link>
         </nav>
 
@@ -157,7 +157,7 @@ export function SiteHeader({ className }: { className?: string }) {
                     variant="ghost"
                     className="relative h-auto w-60 justify-start gap-3 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-2 text-left text-[color:var(--ink)] shadow-sm transition-colors hover:bg-[color:var(--surface)] hover:text-[color:var(--ink)]"
                   >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1FA8B6] text-sm font-bold text-white">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--foreground)] text-[color:var(--background)] text-sm font-bold">
                       {accountInitial}
                     </span>
                     <span className="min-w-0 flex-1">
@@ -188,7 +188,7 @@ export function SiteHeader({ className }: { className?: string }) {
                   <div className="p-1.5">
                     <DropdownMenuItem
                       asChild
-                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
                     >
                       <a href="/dashboard#profile">
                         <UserRound aria-hidden="true" />
@@ -197,7 +197,7 @@ export function SiteHeader({ className }: { className?: string }) {
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       asChild
-                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
                     >
                       <a href="/dashboard">
                         <Settings aria-hidden="true" />
@@ -206,7 +206,7 @@ export function SiteHeader({ className }: { className?: string }) {
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       asChild
-                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
                     >
                       <Link to="/saved-posts">
                         <Bookmark aria-hidden="true" />
@@ -216,7 +216,7 @@ export function SiteHeader({ className }: { className?: string }) {
                     {(CENTRE_MARKET_ENABLED || hasOrg) && (
                       <DropdownMenuItem
                         asChild
-                        className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                        className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
                       >
                         <Link to={hasOrg ? "/business" : "/business/join"}>
                           <Building2 aria-hidden="true" />
@@ -226,7 +226,7 @@ export function SiteHeader({ className }: { className?: string }) {
                     )}
                     <DropdownMenuItem
                       onSelect={() => setTheme(useDarkTheme ? "dark" : "light")}
-                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
                     >
                       {useDarkTheme ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
                       {useDarkTheme ? "Dark mode" : "Light mode"}
@@ -236,7 +236,7 @@ export function SiteHeader({ className }: { className?: string }) {
                         <DropdownMenuSeparator className="my-1.5" />
                         <DropdownMenuItem
                           asChild
-                          className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[#77E8EE]/20 focus:text-[color:var(--ink)]"
+                          className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
                         >
                           <Link to="/admin">
                             <ShieldCheck aria-hidden="true" />
@@ -265,12 +265,16 @@ export function SiteHeader({ className }: { className?: string }) {
             <>
               <Link
                 to="/auth"
-                className="hidden text-[15px] font-semibold text-[color:var(--ink)] transition-colors hover:text-[#1FA8B6] sm:inline"
+                className="hidden text-[15px] font-semibold text-[color:var(--ink)] transition-colors hover:text-[color:var(--brand-link)] sm:inline"
               >
                 {t("nav.sign_in")}
               </Link>
               <Link to="/auth" search={{ mode: "sign_up" }} className="hidden sm:block">
-                <Button className="h-11 rounded-full bg-[color:var(--surface-invert)] px-6 text-[15px] font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[color:var(--surface-invert)] hover:shadow-md">
+                <Button
+                  variant="solid"
+                  color="blue"
+                  className="h-11 rounded-full px-6 text-[15px] font-semibold shadow-sm transition-all duration-200 hover:shadow-md"
+                >
                   Sign up
                 </Button>
               </Link>
@@ -290,13 +294,17 @@ export function SiteHeader({ className }: { className?: string }) {
                     <Link to="/auth" onClick={closeMenu}>
                       <Button
                         variant="outline"
-                        className="h-10 w-full rounded-full border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[#77E8EE]/20 hover:text-[color:var(--ink)]"
+                        className="h-10 w-full rounded-full border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
                       >
                         {t("nav.sign_in")}
                       </Button>
                     </Link>
                     <Link to="/auth" search={{ mode: "sign_up" }} onClick={closeMenu}>
-                      <Button className="h-10 w-full rounded-full bg-[color:var(--surface-invert)] text-sm font-semibold text-white shadow-sm hover:bg-[color:var(--surface-invert)]">
+                      <Button
+                        variant="solid"
+                        color="blue"
+                        className="h-10 w-full rounded-full text-sm font-semibold shadow-sm"
+                      >
                         Sign up
                       </Button>
                     </Link>

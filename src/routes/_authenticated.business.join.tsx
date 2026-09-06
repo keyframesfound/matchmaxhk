@@ -186,7 +186,9 @@ function BusinessJoinPage() {
             <Button
               type="submit"
               disabled={submitting}
-              className="h-11 w-full bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+              variant="solid"
+              color="blue"
+              className="h-11 w-full font-bold"
             >
               {submitting ? "Creating account…" : "Create business account"}
             </Button>

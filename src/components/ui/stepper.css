@@ -65,7 +65,7 @@
 
 .stepper-indicator:focus-visible {
   border-radius: 0.75rem;
-  outline: 2px solid var(--brand-teal);
+  outline: 2px solid var(--ring);
   outline-offset: 0.25rem;
 }
 
@@ -184,7 +184,7 @@
 
 .stepper-back-button:focus-visible,
 .stepper-next-button:focus-visible {
-  outline: 2px solid var(--brand-teal);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 

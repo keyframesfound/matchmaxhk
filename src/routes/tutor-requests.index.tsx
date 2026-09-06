@@ -190,7 +190,9 @@ function TutorRequestsPage() {
           </p>
           <Button
             onClick={toggleForm}
-            className="h-11 shrink-0 rounded-sm bg-[color:var(--surface-invert)] px-6 font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+            variant="solid"
+            color="blue"
+            className="h-11 shrink-0 rounded-sm px-6 font-bold"
           >
             {formOpen ? "Hide form" : "Post your request"}
           </Button>
@@ -240,7 +242,10 @@ function TutorRequestsPage() {
             ) : cases.length === 0 ? (
               <div className="p-8 text-center sm:p-12">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center">
-                  <Inbox className="h-5 w-5 text-[color:var(--brand-teal)]" aria-hidden="true" />
+                  <Inbox
+                    className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                    aria-hidden="true"
+                  />
                 </div>
                 <h3 className="mt-4 text-xl font-black tracking-tight text-[color:var(--ink)] sm:text-2xl">
                   No open requests right now
@@ -252,7 +257,9 @@ function TutorRequestsPage() {
                 <div className="mt-6 flex justify-center">
                   <Button
                     onClick={openForm}
-                    className="h-11 rounded-sm bg-[color:var(--surface-invert)] px-6 font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                    variant="solid"
+                    color="blue"
+                    className="h-11 rounded-sm px-6 font-bold"
                   >
                     Post your request
                   </Button>

@@ -268,11 +268,7 @@ function SettingsPage() {
                       Your email address is managed by your sign-in provider.
                     </p>
                   </div>
-                  <Button
-                    type="submit"
-                    disabled={loadingProfile || saving}
-                    className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                  >
+                  <Button type="submit" disabled={loadingProfile || saving} className="font-bold">
                     {saving ? "Saving…" : "Save changes"}
                   </Button>
                 </form>
@@ -319,11 +315,7 @@ function SettingsPage() {
                       className="bg-[color:var(--surface)]"
                     />
                   </div>
-                  <Button
-                    type="submit"
-                    disabled={changingPassword}
-                    className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                  >
+                  <Button type="submit" disabled={changingPassword} className="font-bold">
                     {changingPassword ? "Updating..." : "Update password"}
                   </Button>
                 </form>
@@ -420,7 +412,7 @@ function SettingsPage() {
                             void deleteAccount();
                           }}
                           disabled={deleting}
-                          className="bg-[color:var(--surface-invert)] text-white hover:bg-[color:var(--surface-invert-hover)]"
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                           {deleting ? "Deleting…" : "Delete permanently"}
                         </AlertDialogAction>

@@ -74,7 +74,7 @@ function BusinessProfileCard({
             className="size-16 shrink-0 rounded-full border border-border object-cover"
           />
         ) : (
-          <span className="flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-[#1FA8B6]/10 text-base font-bold text-[#1FA8B6]">
+          <span className="flex size-16 shrink-0 items-center justify-center rounded-full border border-border bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]">
             {organization.name.slice(0, 2).toUpperCase()}
           </span>
         )}
@@ -82,7 +82,7 @@ function BusinessProfileCard({
           <h3 className="flex items-center gap-1.5 text-base font-bold tracking-tight text-[color:var(--ink)]">
             <span className="max-w-[220px] truncate">{organization.name}</span>
             <BadgeCheck
-              className="h-4.5 w-4.5 shrink-0 text-[#1FA8B6]"
+              className="h-4.5 w-4.5 shrink-0 text-[color:var(--muted-foreground)]"
               aria-label="Verified business"
             />
           </h3>
@@ -383,7 +383,9 @@ function CourseDetail() {
                         <Button
                           asChild
                           prefix={<MessageCircle />}
-                          className="h-11 bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                          variant="solid"
+                          color="blue"
+                          className="h-11 font-bold"
                         >
                           <a href={whatsappUrl} target="_blank" rel="noreferrer">
                             Chat on WhatsApp

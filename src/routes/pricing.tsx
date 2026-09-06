@@ -111,11 +111,14 @@ function Cell({ value, highlighted }: { value: CellValue; highlighted: boolean }
       <span
         className={cn(
           "mx-auto flex size-5 items-center justify-center rounded-md",
-          highlighted ? "bg-[#1FA8B6]" : "bg-[#1FA8B6]/15",
+          highlighted ? "bg-[color:var(--foreground)]" : "bg-[color:var(--foreground)]/10",
         )}
       >
         <Check
-          className={cn("size-3.5", highlighted ? "text-white" : "text-[#1FA8B6]")}
+          className={cn(
+            "size-3.5",
+            highlighted ? "text-[color:var(--background)]" : "text-[color:var(--foreground)]",
+          )}
           aria-hidden
         />
         <span className="sr-only">Included</span>
@@ -161,7 +164,10 @@ function PricingPage() {
           <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
             <div className="mb-10 max-w-2xl">
               <Badge variant="outline" className="mb-4 gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-[#1FA8B6]" aria-hidden />
+                <Sparkles
+                  className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
+                  aria-hidden
+                />
                 Compare plans
               </Badge>
               <h2 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
@@ -174,7 +180,7 @@ function PricingPage() {
             </div>
 
             <div className="relative">
-              <Badge className="absolute bottom-full left-[68%] z-20 mb-2 -translate-x-1/2 border-none bg-[#1FA8B6] font-bold text-white">
+              <Badge className="absolute bottom-full left-[68%] z-20 mb-2 -translate-x-1/2 border-none bg-[color:var(--foreground)] font-bold text-[color:var(--background)]">
                 Most popular
               </Badge>
               <div className="overflow-x-auto rounded-lg border border-border">
@@ -191,7 +197,9 @@ function PricingPage() {
                           key={plan.name}
                           className={cn(
                             "sticky top-0 z-20 border-b border-border text-center align-bottom",
-                            plan.highlighted ? "bg-[#1FA8B6]/5" : "bg-background",
+                            plan.highlighted
+                              ? "bg-[color:var(--foreground)]/[0.03]"
+                              : "bg-background",
                           )}
                         >
                           <div className="flex flex-col items-center gap-1 py-3">
@@ -231,7 +239,7 @@ function PricingPage() {
                                 key={`${feature.label}-${plans[i].name}`}
                                 className={cn(
                                   "py-3 text-center",
-                                  plans[i].highlighted && "bg-[#1FA8B6]/5",
+                                  plans[i].highlighted && "bg-[color:var(--foreground)]/[0.03]",
                                 )}
                               >
                                 <Cell value={value} highlighted={plans[i].highlighted} />
@@ -247,12 +255,16 @@ function PricingPage() {
                       {plans.map((plan) => (
                         <TableCell
                           key={`cta-${plan.name}`}
-                          className={cn("py-4 text-center", plan.highlighted && "bg-[#1FA8B6]/5")}
+                          className={cn(
+                            "py-4 text-center",
+                            plan.highlighted && "bg-[color:var(--foreground)]/[0.03]",
+                          )}
                         >
                           <Button
                             asChild
                             size="sm"
-                            variant={plan.highlighted ? "default" : "outline"}
+                            variant={plan.highlighted ? "solid" : "outline"}
+                            color={plan.highlighted ? "blue" : undefined}
                             className="w-full font-bold"
                           >
                             {plan.name === "Enterprise" ? (

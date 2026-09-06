@@ -74,8 +74,7 @@ export const extractTranscriptQualification = createServerFn({ method: "POST" })
         messages: [
           {
             role: "system",
-            content:
-              `Extract academic results from the image. Return only JSON with overall, best6, and scores. Each score must have subject, grade, detail, level, gradeSystem. Use empty strings when unavailable. Only include results visible in the document.${data.curriculum === "IBDP" ? ` For IBDP, use only these exact subject names: ${IB_BLOCKS.flatMap(([, subjects]) => subjects).join(", ")}. Use grades 7, 6, 5, 4, 3, 2, or 1 for subjects; use A, B, C, D, or E only for TOK and Extended Essay.` : ""}`,
+            content: `Extract academic results from the image. Return only JSON with overall, best6, and scores. Each score must have subject, grade, detail, level, gradeSystem. Use empty strings when unavailable. Only include results visible in the document.${data.curriculum === "IBDP" ? ` For IBDP, use only these exact subject names: ${IB_BLOCKS.flatMap(([, subjects]) => subjects).join(", ")}. Use grades 7, 6, 5, 4, 3, 2, or 1 for subjects; use A, B, C, D, or E only for TOK and Extended Essay.` : ""}`,
           },
           {
             role: "user",

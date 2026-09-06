@@ -127,7 +127,7 @@ export function BusinessLayout({
             className="size-6 rounded-md border border-border object-cover"
           />
         ) : (
-          <span className="flex size-6 items-center justify-center rounded-md bg-[#1FA8B6] text-[11px] font-bold text-white">
+          <span className="flex size-6 items-center justify-center rounded-md bg-[color:var(--foreground)] text-[color:var(--background)] text-[11px] font-bold">
             {initials || "MM"}
           </span>
         )

@@ -54,9 +54,7 @@ export function RolesMatrixTab({ users }: RolesMatrixTabProps) {
                   </span>
                 </div>
 
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {def.description}
-                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{def.description}</p>
 
                 <div className="border-t border-border/50 pt-3">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -74,7 +72,9 @@ export function RolesMatrixTab({ users }: RolesMatrixTabProps) {
               </div>
 
               <div className="mt-5 border-t border-border/40 pt-3 text-[11px] font-mono text-muted-foreground flex items-center justify-between">
-                <span>Slug: <code className="text-xs">{def.role}</code></span>
+                <span>
+                  Slug: <code className="text-xs">{def.role}</code>
+                </span>
                 <span className="text-[10px] uppercase font-bold text-muted-foreground/80">
                   {def.role === "super_admin" ? "System Core" : "Application Role"}
                 </span>

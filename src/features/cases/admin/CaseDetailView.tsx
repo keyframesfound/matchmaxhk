@@ -371,7 +371,7 @@ export function CaseDetailView({
                   size="sm"
                   disabled={!noteBody.trim() || noteMutation.isPending}
                   onClick={() => noteMutation.mutate(noteBody.trim())}
-                  className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                  className="font-bold"
                 >
                   {noteMutation.isPending ? (
                     <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -523,7 +523,10 @@ export function CaseDetailView({
               <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Suggested tutors
               </h2>
-              <Sparkles className="h-4 w-4 text-[color:var(--brand-teal)]" aria-hidden="true" />
+              <Sparkles
+                className="h-4 w-4 text-[color:var(--muted-foreground)]"
+                aria-hidden="true"
+              />
             </div>
             <div className="mt-3 space-y-2">
               {suggestionsLoading ? (
@@ -559,7 +562,7 @@ export function CaseDetailView({
                         {t.district ? ` · ${t.district}` : ""}
                       </p>
                     </div>
-                    <span className="rounded-md bg-[#77E8EE]/20 px-1.5 py-0.5 text-[10px] font-black text-[#156B73]">
+                    <span className="rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[10px] font-black text-[color:var(--foreground)]">
                       {Number(t.score).toFixed(0)}
                     </span>
                   </div>

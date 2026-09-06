@@ -376,7 +376,7 @@ function BusinessPublicProfile() {
             )}
 
             {isOwner && (
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#1FA8B6]/30 bg-[#1FA8B6]/5 p-3 text-sm">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] p-3 text-sm">
                 <p className="font-medium text-[color:var(--ink)]">
                   You're viewing your public profile — edit it inline or in the console.
                 </p>
@@ -430,7 +430,7 @@ function BusinessPublicProfile() {
                         className="h-24 w-24 rounded-full border-4 border-card object-cover shadow-md sm:h-28 sm:w-28"
                       />
                     ) : (
-                      <span className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-card bg-[#1FA8B6] text-2xl font-bold leading-none text-white shadow-md sm:h-28 sm:w-28">
+                      <span className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-card bg-[color:var(--foreground)] text-[color:var(--background)] text-2xl font-bold leading-none shadow-md sm:h-28 sm:w-28">
                         {initials || "MM"}
                       </span>
                     )}
@@ -461,10 +461,7 @@ function BusinessPublicProfile() {
                   </div>
                   <div className="flex flex-wrap items-center gap-2 pb-1">
                     {whatsappUrl && (
-                      <Button
-                        asChild
-                        className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                      >
+                      <Button asChild variant="solid" color="blue" className="font-bold">
                         <a
                           href={whatsappUrl}
                           target="_blank"
@@ -508,7 +505,7 @@ function BusinessPublicProfile() {
                     <h1 className="flex flex-wrap items-center gap-2 text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
                       {org.name}
                       <BadgeCheck
-                        className="h-6 w-6 shrink-0 text-[#1FA8B6]"
+                        className="h-6 w-6 shrink-0 text-[color:var(--muted-foreground)]"
                         aria-label="Verified business"
                       />
                     </h1>
@@ -691,7 +688,7 @@ function BusinessPublicProfile() {
                         onClick={() => setLevelFilter((prev) => (prev === level ? null : level))}
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
                           levelFilter === level
-                            ? "bg-[#1FA8B6] text-white ring-[#1FA8B6]"
+                            ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)] ring-[color:var(--btn-accent)]"
                             : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
                         }`}
                       >
@@ -708,7 +705,7 @@ function BusinessPublicProfile() {
                         }
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
                           subjectFilter === subject
-                            ? "bg-[#0A245F] text-white ring-[#0A245F]"
+                            ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)] ring-[color:var(--btn-accent)]"
                             : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
                         }`}
                       >
@@ -844,7 +841,7 @@ function BusinessPublicProfile() {
                   {whatsappUrl && (
                     <Button
                       asChild
-                      className="h-11 w-full bg-[#25D366] font-bold text-white hover:bg-[#1fb857]"
+                      className="h-11 w-full bg-[color:var(--brand-whatsapp)] font-bold text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
                     >
                       <a
                         href={whatsappUrl}

@@ -1,41 +1,40 @@
-import * as React from 'react'
-import { render } from '@react-email/render'
-import { Resend } from 'resend'
-import { TEMPLATES } from './registry'
+import * as React from "react";
+import { render } from "@react-email/render";
+import { Resend } from "resend";
+import { TEMPLATES } from "./registry";
 
 // Server-only: reads RESEND_API_KEY. Never import from client components.
 
 // Configuration baked in at scaffold time
-const SITE_NAME = "matchmaxhk"
+const SITE_NAME = "matchmaxhk";
 // FROM_DOMAIN is the domain shown in the From: header. Must be a domain you've
 // verified in your Resend account (Resend -> Domains).
-const FROM_DOMAIN = "matchmax.hk"
+const FROM_DOMAIN = "matchmax.hk";
 
 // Lazy singleton — mirrors the supabaseAdmin Proxy pattern in client.server.ts.
 // Constructing Resend eagerly at module scope means a missing RESEND_API_KEY
 // throws the moment this file is imported, which crashes every page (not just
 // email sends) since route modules are loaded eagerly at server startup.
-let _resend: Resend | undefined
+let _resend: Resend | undefined;
 function getResend(): Resend {
   if (!_resend) {
-    const apiKey = process.env.RESEND_API_KEY
+    const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      throw new Error('RESEND_API_KEY is not configured')
+      throw new Error("RESEND_API_KEY is not configured");
     }
-    _resend = new Resend(apiKey)
+    _resend = new Resend(apiKey);
   }
-  return _resend
+  return _resend;
 }
 
 export type SendTemplateEmailResult =
-  | { sent: true }
-  | { sent: false; reason: 'recipient_suppressed' }
+  { sent: true } | { sent: false; reason: "recipient_suppressed" };
 
 export interface SendTemplateEmailOptions {
-  templateData?: Record<string, any>
+  templateData?: Record<string, any>;
   /** Dedupes retries of the same logical send; defaults to a random UUID (no dedupe). */
-  idempotencyKey?: string
-  replyTo?: string
+  idempotencyKey?: string;
+  replyTo?: string;
 }
 
 /**
@@ -53,30 +52,28 @@ export interface SendTemplateEmailOptions {
 export async function sendTemplateEmail(
   templateName: string,
   to: string,
-  options: SendTemplateEmailOptions = {}
+  options: SendTemplateEmailOptions = {},
 ): Promise<SendTemplateEmailResult> {
-  const template = TEMPLATES[templateName]
+  const template = TEMPLATES[templateName];
   if (!template) {
     throw new Error(
-      `Template '${templateName}' not found. Available: ${Object.keys(TEMPLATES).join(', ')}`
-    )
+      `Template '${templateName}' not found. Available: ${Object.keys(TEMPLATES).join(", ")}`,
+    );
   }
 
   // Template-level `to` takes precedence — notification templates always
   // send to their fixed address.
-  const recipient = template.to || to
+  const recipient = template.to || to;
   if (!recipient) {
-    throw new Error('Recipient is required (the template defines no fixed recipient)')
+    throw new Error("Recipient is required (the template defines no fixed recipient)");
   }
 
-  const templateData = options.templateData ?? {}
-  const element = React.createElement(template.component, templateData)
-  const html = await render(element)
-  const text = await render(element, { plainText: true })
+  const templateData = options.templateData ?? {};
+  const element = React.createElement(template.component, templateData);
+  const html = await render(element);
+  const text = await render(element, { plainText: true });
   const subject =
-    typeof template.subject === 'function'
-      ? template.subject(templateData)
-      : template.subject
+    typeof template.subject === "function" ? template.subject(templateData) : template.subject;
 
   const { error } = await getResend().emails.send({
     from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
@@ -85,14 +82,12 @@ export async function sendTemplateEmail(
     html,
     text,
     replyTo: options.replyTo,
-    headers: options.idempotencyKey
-      ? { 'Idempotency-Key': options.idempotencyKey }
-      : undefined,
-  })
+    headers: options.idempotencyKey ? { "Idempotency-Key": options.idempotencyKey } : undefined,
+  });
 
   if (error) {
-    throw new Error(`Resend send failed: ${error.message}`)
+    throw new Error(`Resend send failed: ${error.message}`);
   }
 
-  return { sent: true }
+  return { sent: true };
 }

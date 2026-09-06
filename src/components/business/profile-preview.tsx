@@ -88,7 +88,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
               className="h-20 w-20 rounded-full border-4 border-card object-cover shadow-md"
             />
           ) : (
-            <span className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-card bg-[#1FA8B6] text-xl font-bold text-white shadow-md">
+            <span className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-card bg-[color:var(--foreground)] text-[color:var(--background)] text-xl font-bold shadow-md">
               {initials || "MM"}
             </span>
           )}
@@ -98,7 +98,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
           <h1 className="flex flex-wrap items-center gap-2 text-xl font-black tracking-tight text-[color:var(--ink)]">
             {data.name || <span className="text-muted-foreground/60">Your business name</span>}
             <BadgeCheck
-              className="h-5 w-5 shrink-0 text-[#1FA8B6]"
+              className="h-5 w-5 shrink-0 text-[color:var(--muted-foreground)]"
               aria-label="Verified business"
             />
           </h1>

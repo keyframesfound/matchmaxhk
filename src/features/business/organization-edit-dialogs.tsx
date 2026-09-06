@@ -64,11 +64,7 @@ function SaveFooter({
       <Button type="button" variant="ghost" onClick={onCancel} disabled={saving}>
         Cancel
       </Button>
-      <Button
-        type="submit"
-        loading={saving}
-        className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-      >
+      <Button type="submit" loading={saving} className="font-bold">
         Save changes
       </Button>
     </DialogFooter>

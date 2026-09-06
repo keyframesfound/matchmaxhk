@@ -69,7 +69,7 @@ export function InviteUserDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader className="space-y-1">
             <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[color:var(--surface-invert)] text-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]">
                 <UserPlus className="h-5 w-5" />
               </div>
               <div>
@@ -130,9 +130,7 @@ export function InviteUserDialog({
             <div className="space-y-1.5">
               <Label className="text-xs font-bold text-[color:var(--ink)]">
                 Password{" "}
-                <span className="text-muted-foreground font-normal">
-                  (Auto-generated if empty)
-                </span>
+                <span className="text-muted-foreground font-normal">(Auto-generated if empty)</span>
               </Label>
               <Input
                 type="password"
@@ -158,7 +156,7 @@ export function InviteUserDialog({
             <Button
               type="submit"
               disabled={isPending || !email.trim()}
-              className="h-9 bg-[color:var(--surface-invert)] font-bold text-xs text-white hover:bg-[color:var(--surface-invert-hover)]"
+              className="h-9 font-bold text-xs"
             >
               <Sparkles className="mr-1.5 h-3.5 w-3.5" />
               {isPending ? "Creating..." : "Provision Account"}

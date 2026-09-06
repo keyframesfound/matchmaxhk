@@ -119,11 +119,7 @@ export function TeamPanel() {
         <p className="text-sm text-muted-foreground">
           {usage?.memberCount ?? members?.length ?? 1} of {usage?.memberLimit ?? 2} seats used
         </p>
-        <Button
-          disabled={atLimit}
-          onClick={() => setInviteOpen(true)}
-          className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-        >
+        <Button disabled={atLimit} onClick={() => setInviteOpen(true)} className="font-bold">
           <UserPlus className="mr-2 h-4 w-4" />
           Invite admin
         </Button>
@@ -164,7 +160,7 @@ export function TeamPanel() {
                   <tr key={member.id} className="border-b border-border last:border-0">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1FA8B6]/10 text-xs font-bold text-[#1FA8B6]">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]">
                           {(member.email || "?").charAt(0).toUpperCase()}
                         </span>
                         <div className="min-w-0">

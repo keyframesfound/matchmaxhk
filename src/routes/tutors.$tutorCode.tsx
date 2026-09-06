@@ -54,7 +54,7 @@ function ProfileSection({
   icon: Icon,
   title,
   children,
-  iconClassName = "text-[color:var(--brand-teal)]",
+  iconClassName = "text-[color:var(--muted-foreground)]",
 }: {
   icon: LucideIcon;
   title: string;
@@ -62,9 +62,9 @@ function ProfileSection({
   iconClassName?: string;
 }) {
   return (
-    <section className="border-b border-[color:var(--brand-teal)]/20 px-5 py-5 last:border-b-0 sm:px-6">
+    <section className="border-b border-border px-5 py-5 last:border-b-0 sm:px-6">
       <div className="flex items-center gap-2.5">
-        <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/8">
+        <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
           <Icon className={`h-4 w-4 ${iconClassName}`} strokeWidth={2.1} />
         </span>
         <h2 className="text-base font-black tracking-tight text-[color:var(--ink)] sm:text-lg">
@@ -141,12 +141,12 @@ function AcademicQualification({ result }: { result: ExamResult }) {
           return (
             <li
               key={`${entry.subject}-${subjectIndex}`}
-              className="border-l-2 border-[color:var(--brand-teal)] pl-3"
+              className="border-l-2 border-[color:var(--foreground)]/20 pl-3"
             >
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-bold text-[color:var(--ink)]">{entry.subject}</span>
                 {entry.grade.trim() ? (
-                  <span className="text-sm font-bold text-[color:var(--brand-teal)]">
+                  <span className="text-sm font-bold text-[color:var(--muted-foreground)]">
                     – Grade {entry.grade.replace(/^grade\s+/i, "")}
                   </span>
                 ) : null}
@@ -193,11 +193,11 @@ function TutorProfileSkeleton() {
         </section>
         <section className="py-8 sm:py-10">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <div className="overflow-hidden rounded-lg border border-[color:var(--brand-teal)]/20">
+            <div className="overflow-hidden rounded-lg border border-border">
               {[0, 1, 2].map((section) => (
                 <div
                   key={section}
-                  className="border-b border-[color:var(--brand-teal)]/20 px-5 py-5 last:border-b-0 sm:px-6"
+                  className="border-b border-border px-5 py-5 last:border-b-0 sm:px-6"
                 >
                   <div className="flex items-center gap-2.5">
                     <Skeleton className="h-7 w-7 rounded-[3px]" />
@@ -217,7 +217,7 @@ function TutorProfileSkeleton() {
                 {[0, 1, 2].map((card) => (
                   <div
                     key={card}
-                    className="rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--surface)] p-4"
+                    className="rounded-[10px] border border-border bg-[color:var(--surface)] p-4"
                   >
                     <div className="flex items-center gap-3">
                       <Skeleton className="h-11 w-11 rounded-full" />
@@ -455,7 +455,7 @@ function TutorDetail() {
                     className="h-16 w-16 rounded-full object-cover sm:h-20 sm:w-20"
                   />
                 ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--brand-teal)]/20 bg-[color:var(--brand-teal)]/10 text-xl font-semibold text-[color:var(--brand-teal)] sm:h-20 sm:w-20 sm:text-2xl">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] text-xl font-semibold text-[color:var(--muted-foreground)] sm:h-20 sm:w-20 sm:text-2xl">
                     {t.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
                   </div>
                 )}
@@ -471,9 +471,9 @@ function TutorDetail() {
                       </>
                     ) : null}
                   </h1>
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--brand-teal)]/35 bg-[color:var(--brand-teal)]/10 px-2.5 py-1 text-xs font-bold leading-none text-[color:var(--ink)]">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2.5 py-1 text-xs font-bold leading-none text-[color:var(--ink)]">
                     <BadgeCheck
-                      className="h-3.5 w-3.5 text-[color:var(--brand-teal)]"
+                      className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
                       aria-hidden="true"
                     />
                     {translate("profile.verified")}
@@ -513,7 +513,9 @@ function TutorDetail() {
                 {waUrl ? (
                   <Button
                     asChild
-                    className="mt-3 w-full rounded-sm bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert-hover)] sm:w-auto"
+                    variant="solid"
+                    color="blue"
+                    className="mt-3 w-full rounded-sm font-bold sm:w-auto"
                   >
                     <a href={waUrl} target="_blank" rel="noopener noreferrer">
                       <MessageCircle className="mr-2 h-4 w-4" /> Request tutor
@@ -522,7 +524,9 @@ function TutorDetail() {
                 ) : (
                   <Button
                     disabled
-                    className="mt-3 w-full bg-[color:var(--surface-invert)] font-bold text-white shadow-teal hover:bg-[color:var(--surface-invert)] sm:w-auto"
+                    variant="solid"
+                    color="blue"
+                    className="mt-3 w-full font-bold sm:w-auto"
                   >
                     <MessageCircle className="mr-2 h-4 w-4" /> Contact coming soon
                   </Button>
@@ -558,7 +562,7 @@ function TutorDetail() {
                         {t.achievements.map((achievement, index) => (
                           <li key={`${achievement.short_text}-${index}`} className="flex gap-2.5">
                             <Sparkles
-                              className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-teal)]"
+                              className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
                               strokeWidth={2.1}
                             />
                             <div className="min-w-0">
@@ -636,7 +640,9 @@ function TutorDetail() {
             <div className="mx-auto max-w-5xl px-4 sm:px-6">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold text-[color:var(--brand-teal)]">Keep exploring</p>
+                  <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+                    Keep exploring
+                  </p>
                   <h2 className="mt-1 text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
                     Suggested tutors you may like
                   </h2>
@@ -657,7 +663,7 @@ function TutorDetail() {
                     footerAction={
                       <Button
                         asChild
-                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white shadow-none hover:bg-[color:var(--surface-invert-hover)]"
+                        className="h-9 rounded-sm px-4 text-[13px] font-bold shadow-none"
                       >
                         <a
                           href={`https://wa.me/${(whatsappNumber ?? "").replace(/[^\d]/g, "")}?text=${encodeURIComponent(`I would like to request tutor ${candidate.tutor_code}`)}`}
@@ -672,7 +678,7 @@ function TutorDetail() {
                   />
                 ))}
               </div>
-              <div className="mt-8 rounded-sm border border-[color:var(--brand-teal)]/25 bg-[color:var(--surface)] px-5 py-4 sm:px-6">
+              <div className="mt-8 rounded-sm border border-border bg-[color:var(--surface)] px-5 py-4 sm:px-6">
                 <p className="text-sm text-muted-foreground sm:text-base">
                   Can&rsquo;t find the right tutor?{" "}
                   <span className="font-bold text-[color:var(--ink)]">
@@ -680,10 +686,7 @@ function TutorDetail() {
                     for free.
                   </span>
                 </p>
-                <Button
-                  asChild
-                  className="mt-3 bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                >
+                <Button asChild variant="solid" color="blue" className="mt-3 font-bold">
                   <Link to="/tutor-requests" search={{ post: true }}>
                     Submit a Case Request
                   </Link>

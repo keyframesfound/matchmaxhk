@@ -264,10 +264,7 @@ function AdminTutors() {
                     Add, edit, and organize verified tutors and their public profiles.
                   </p>
                 </div>
-                <Button
-                  onClick={() => setIsCreating(true)}
-                  className="bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)] shadow-sm"
-                >
+                <Button onClick={() => setIsCreating(true)} className="font-bold shadow-sm">
                   <Plus className="mr-2 h-4 w-4" /> Add New Tutor
                 </Button>
               </div>
@@ -287,7 +284,7 @@ function AdminTutors() {
 
               {/* Batch actions */}
               {selectedIds.size > 0 ? (
-                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--brand-teal)]/30 bg-[color:var(--brand-teal)]/5 px-4 py-3">
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-4 py-3">
                   <span className="text-sm font-bold text-[color:var(--ink)]">
                     {selectedIds.size} selected
                   </span>
@@ -421,7 +418,7 @@ function AdminTutors() {
                         key={row.id}
                         className={cn(
                           "transition-colors hover:bg-[color:var(--surface-subtle)]/40",
-                          selectedIds.has(row.id) && "bg-[color:var(--brand-teal)]/5",
+                          selectedIds.has(row.id) && "bg-[color:var(--foreground)]/[0.04]",
                         )}
                       >
                         <td className="px-5 py-4">
@@ -456,7 +453,7 @@ function AdminTutors() {
                                   </span>
                                 )}
                                 {row.badge && (
-                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#77E8EE]/20 text-[#156B73]">
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]">
                                     {row.badge}
                                   </span>
                                 )}

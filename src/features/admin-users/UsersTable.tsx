@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  MoreHorizontal,
-  Shield,
-  Trash2,
-  Copy,
-  Check,
-  User,
-  Calendar,
-} from "lucide-react";
+import { MoreHorizontal, Shield, Trash2, Copy, Check, User, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,10 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  ROLE_DISPLAY_NAMES,
-  ROLE_BADGE_STYLES,
-} from "@/features/auth/roleLabel";
+import { ROLE_DISPLAY_NAMES, ROLE_BADGE_STYLES } from "@/features/auth/roleLabel";
 import type { UserRow } from "./UserStatsOverview";
 
 interface UsersTableProps {
@@ -50,12 +39,7 @@ function getAvatarColor(id: string) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-export function UsersTable({
-  users,
-  isLoading,
-  onManageRoles,
-  onDeleteUser,
-}: UsersTableProps) {
+export function UsersTable({ users, isLoading, onManageRoles, onDeleteUser }: UsersTableProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopyId = (id: string) => {

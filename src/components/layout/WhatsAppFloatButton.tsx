@@ -41,7 +41,7 @@ export function WhatsAppFloatButton() {
       target="_blank"
       rel="noreferrer"
       aria-label="Contact MatchMax support on WhatsApp"
-      className="fixed bottom-4 right-4 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_14px_28px_rgba(0,0,0,0.24)] transition-transform duration-200 hover:scale-105 hover:bg-[#1ebe57] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ink)] focus-visible:ring-offset-2 sm:bottom-6 sm:right-6"
+      className="fixed bottom-4 right-4 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--brand-whatsapp)] text-white shadow-[0_14px_28px_rgba(0,0,0,0.24)] transition-transform duration-200 hover:scale-105 hover:bg-[color:var(--brand-whatsapp-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ink)] focus-visible:ring-offset-2 sm:bottom-6 sm:right-6"
     >
       <WhatsAppIcon className="h-7 w-7" aria-hidden="true" />
       <span className="sr-only">WhatsApp support</span>

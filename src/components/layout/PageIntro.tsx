@@ -26,8 +26,17 @@ export function PageIntro({
   return (
     <section className="border-b border-border py-14 sm:py-20">
       <PageContainer width={width} className={cn(centered && "text-center")}>
-        {eyebrow ? <p className="text-sm font-semibold text-[color:var(--brand-link)]">{eyebrow}</p> : null}
-        <h1 className={cn("mt-3 text-balance text-4xl font-bold text-foreground sm:text-5xl", !eyebrow && "mt-0")}>{title}</h1>
+        {eyebrow ? (
+          <p className="text-sm font-semibold text-[color:var(--brand-link)]">{eyebrow}</p>
+        ) : null}
+        <h1
+          className={cn(
+            "mt-3 text-balance text-4xl font-bold text-foreground sm:text-5xl",
+            !eyebrow && "mt-0",
+          )}
+        >
+          {title}
+        </h1>
         {description ? (
           <p
             className={cn(
@@ -38,7 +47,11 @@ export function PageIntro({
             {description}
           </p>
         ) : null}
-        {meta ? <div className={cn("mt-5 text-sm text-muted-foreground", centered && "mx-auto")}>{meta}</div> : null}
+        {meta ? (
+          <div className={cn("mt-5 text-sm text-muted-foreground", centered && "mx-auto")}>
+            {meta}
+          </div>
+        ) : null}
       </PageContainer>
     </section>
   );

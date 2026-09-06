@@ -23,12 +23,11 @@ export const ROLE_DISPLAY_NAMES: Record<AppRole, string> = {
 export const ROLE_BADGE_STYLES: Record<AppRole, string> = {
   super_admin:
     "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20 hover:bg-indigo-500/15",
-  admin:
-    "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20 hover:bg-blue-500/15",
+  admin: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20 hover:bg-blue-500/15",
   staff:
     "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20 hover:bg-emerald-500/15",
   tutor:
-    "bg-[color:var(--brand-teal)]/10 text-[color:var(--brand-teal)] border-[color:var(--brand-teal)]/20 hover:bg-[color:var(--brand-teal)]/15",
+    "bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)] border-[color:var(--foreground)]/15 hover:bg-[color:var(--foreground)]/[0.08]",
   parent:
     "bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20 hover:bg-slate-500/15",
 };
@@ -45,7 +44,8 @@ export const ROLE_DEFINITIONS: RoleDefinition[] = [
   {
     role: "super_admin",
     title: "Super Admin",
-    description: "Full, unrestricted platform access including system permissions, user roles management, and destructive operations.",
+    description:
+      "Full, unrestricted platform access including system permissions, user roles management, and destructive operations.",
     badgeStyle: ROLE_BADGE_STYLES.super_admin,
     capabilities: [
       "Grant and revoke user roles across all levels",
@@ -81,7 +81,8 @@ export const ROLE_DEFINITIONS: RoleDefinition[] = [
   {
     role: "tutor",
     title: "Tutor",
-    description: "Verified tutor account authorized to create profile listings and express interest in open cases.",
+    description:
+      "Verified tutor account authorized to create profile listings and express interest in open cases.",
     badgeStyle: ROLE_BADGE_STYLES.tutor,
     capabilities: [
       "Manage personal public tutor profile",

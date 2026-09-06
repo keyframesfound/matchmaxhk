@@ -216,7 +216,7 @@ export function LessonModeSelect({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 rounded-md text-[color:var(--ink)] hover:bg-brand-teal/10"
+                    className="h-8 w-8 rounded-md text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06]"
                     onClick={() => setSubmenu("mode")}
                   >
                     <ChevronLeft className="h-4 w-4" />

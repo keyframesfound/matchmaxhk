@@ -19,7 +19,7 @@ export function BackToTop() {
       size="icon"
       aria-label="Back to top"
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      className={`fixed bottom-6 right-6 z-40 rounded-full bg-[color:var(--surface-invert)] text-white shadow-lg transition-all duration-200 hover:bg-[color:var(--surface-invert-hover)] ${
+      className={`fixed bottom-6 right-6 z-40 rounded-full bg-[color:var(--ink)] text-[color:var(--surface)] shadow-lg transition-all duration-200 hover:opacity-90 ${
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"
       }`}
     >

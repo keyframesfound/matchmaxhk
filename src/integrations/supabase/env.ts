@@ -15,11 +15,7 @@ export function resolveSupabaseEnv(env: RuntimeEnv = {}) {
   const mergedEnv = { ...metaEnv, ...processEnv, ...env };
 
   return {
-    url: getEnvValue(mergedEnv, [
-      "SUPABASE_URL",
-      "VITE_SUPABASE_URL",
-      "NEXT_PUBLIC_SUPABASE_URL",
-    ]),
+    url: getEnvValue(mergedEnv, ["SUPABASE_URL", "VITE_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"]),
     publishableKey: getEnvValue(mergedEnv, [
       "SUPABASE_PUBLISHABLE_KEY",
       "SUPABASE_ANON_KEY",

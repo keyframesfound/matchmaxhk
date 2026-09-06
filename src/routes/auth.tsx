@@ -73,8 +73,7 @@ function AuthPage() {
   const captchaWidgetIdRef = useRef<string | null>(null);
   // Keep the public sitekey available even if the Cloudflare Git build omits the VITE_* variable.
   // The corresponding secret remains server-side in Supabase and is never bundled.
-  const siteKey =
-    import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAEiLema3uiveM5pp";
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAEiLema3uiveM5pp";
 
   useEffect(() => {
     if (user) navigate({ to: "/tutors", replace: true });
@@ -291,22 +290,20 @@ function AuthPage() {
                 {mode === "sign_in" ? (
                   <Link
                     to="/forgot-password"
-                    className="text-xs font-semibold text-[color:var(--brand-teal)] hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+                    className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Forgot password?
                   </Link>
                 ) : null}
               </div>
-              <div
-                ref={captchaContainerRef}
-                className="min-h-[65px]"
-                aria-label="Security check"
-              />
+              <div ref={captchaContainerRef} className="min-h-[65px]" aria-label="Security check" />
               {captchaError ? <p className="text-sm text-destructive">{captchaError}</p> : null}
               <Button
                 type="submit"
                 disabled={busy || !captchaToken}
-                className="h-11 w-full bg-[color:var(--surface-invert)] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                variant="solid"
+                color="blue"
+                className="h-11 w-full font-bold"
               >
                 {busy ? t("auth.signing_in") : t("auth.continue")}
               </Button>
@@ -317,7 +314,7 @@ function AuthPage() {
               <button
                 type="button"
                 onClick={() => setMode(mode === "sign_in" ? "sign_up" : "sign_in")}
-                className="font-bold text-[color:var(--brand-teal)] hover:underline"
+                className="font-bold text-[color:var(--brand-link)] hover:underline"
               >
                 {mode === "sign_in" ? t("auth.sign_up") : t("auth.sign_in")}
               </button>
