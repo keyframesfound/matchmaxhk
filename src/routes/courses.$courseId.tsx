@@ -189,9 +189,9 @@ function MoreFromCentre({ orgId, currentCourseId }: { orgId: string; currentCour
               </div>
               <div className="p-3">
                 {coursePrice ? (
-                  <p className="text-sm font-black text-[color:var(--ink)]">{coursePrice}</p>
+                  <p className="text-sm font-bold text-[color:var(--ink)]">{coursePrice}</p>
                 ) : (
-                  <p className="text-xs font-semibold text-muted-foreground">Enquire for pricing</p>
+                  <p className="text-xs font-medium text-muted-foreground">Enquire for pricing</p>
                 )}
                 <p className="mt-1 line-clamp-2 text-sm font-medium text-[color:var(--ink)] group-hover:text-[color:var(--brand-link)]">
                   {course.title}
@@ -275,7 +275,7 @@ function CourseDetail() {
                     </span>
                   ) : null}
                 </div>
-                <h1 className="mt-3 text-3xl font-black tracking-tight text-[color:var(--ink)] sm:text-4xl">
+                <h1 className="mt-3 text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
                   {course.title}
                 </h1>
                 {course.summary ? (
@@ -316,7 +316,7 @@ function CourseDetail() {
 
                 <dl className="mt-8 grid gap-4 sm:grid-cols-2">
                   <div className="rounded-lg border border-border bg-card p-4">
-                    <dt className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                       <Clock className="h-4 w-4" />
                       Lesson mode
                     </dt>
@@ -326,7 +326,7 @@ function CourseDetail() {
                   </div>
                   {course.schedule_text ? (
                     <div className="rounded-lg border border-border bg-card p-4">
-                      <dt className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                         <CalendarDays className="h-4 w-4" />
                         Schedule
                       </dt>
@@ -337,7 +337,7 @@ function CourseDetail() {
                   ) : null}
                   {course.district ? (
                     <div className="rounded-lg border border-border bg-card p-4">
-                      <dt className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                         <MapPin className="h-4 w-4" />
                         Location
                       </dt>
@@ -348,7 +348,7 @@ function CourseDetail() {
                   ) : null}
                   {course.subject ? (
                     <div className="rounded-lg border border-border bg-card p-4">
-                      <dt className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                         <GraduationCap className="h-4 w-4" />
                         Subject
                       </dt>
@@ -366,16 +366,14 @@ function CourseDetail() {
 
               <aside>
                 <div className="sticky top-24 space-y-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Offered by
-                  </p>
+                  <p className="text-xs font-medium text-muted-foreground">Offered by</p>
                   {course.organization ? (
                     <BusinessProfileCard organization={course.organization} />
                   ) : null}
 
                   <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
                     {price ? (
-                      <p className="text-2xl font-black text-[color:var(--ink)]">{price}</p>
+                      <p className="text-2xl font-bold text-[color:var(--ink)]">{price}</p>
                     ) : null}
 
                     <div className={price ? "mt-5 flex flex-col gap-3" : "flex flex-col gap-3"}>

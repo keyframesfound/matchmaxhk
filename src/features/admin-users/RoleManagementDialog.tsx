@@ -40,7 +40,7 @@ export function RoleManagementDialog({
               <Shield className="h-5 w-5" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-black text-[color:var(--ink)]">
+              <DialogTitle className="text-xl font-bold text-[color:var(--ink)]">
                 Manage Roles & Access
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">

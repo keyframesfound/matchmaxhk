@@ -34,7 +34,7 @@ export function SiteFooter({
       <div className="mx-auto max-w-7xl px-6 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <h3 className="text-4xl font-black tracking-tight text-foreground sm:text-5xl">
+            <h3 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
               MatchMax
             </h3>
             <p className="mt-4 max-w-md text-sm leading-relaxed text-foreground/70">
@@ -72,9 +72,7 @@ export function SiteFooter({
 
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 lg:col-span-3">
             <div>
-              <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-foreground">
-                Product
-              </h4>
+              <h4 className="mb-4 text-sm font-semibold text-foreground">Product</h4>
               <ul className="space-y-3">
                 {productLinks.map((link) => (
                   <li key={link.to}>
@@ -90,9 +88,7 @@ export function SiteFooter({
             </div>
 
             <div>
-              <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-foreground">
-                Company
-              </h4>
+              <h4 className="mb-4 text-sm font-semibold text-foreground">Company</h4>
               <ul className="space-y-3">
                 {companyLinks.map((link) => (
                   <li key={link.to}>
@@ -109,9 +105,7 @@ export function SiteFooter({
             </div>
 
             <div>
-              <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-foreground">
-                Support
-              </h4>
+              <h4 className="mb-4 text-sm font-semibold text-foreground">Support</h4>
               <ul className="space-y-3">
                 {supportLinks.map((link) => (
                   <li key={link.to}>

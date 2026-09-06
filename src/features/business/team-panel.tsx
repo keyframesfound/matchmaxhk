@@ -134,7 +134,7 @@ export function TeamPanel() {
 
       <div className="mt-4 overflow-hidden rounded-lg border border-border bg-card shadow-sm">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-border bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
+          <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
             <tr>
               <th className="px-4 py-3 font-semibold">Member</th>
               <th className="px-4 py-3 font-semibold">Role</th>

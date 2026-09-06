@@ -178,7 +178,7 @@ export function TutorSaveButton({
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-sm rounded-2xl border-border bg-[color:var(--surface)] p-6 shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black text-[color:var(--ink)]">
+            <DialogTitle className="text-xl font-bold text-[color:var(--ink)]">
               Sign up to save posts
             </DialogTitle>
             <DialogDescription className="pt-2 leading-relaxed">

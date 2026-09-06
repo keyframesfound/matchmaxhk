@@ -28,9 +28,7 @@ export function FormField({ label, required, error, hint, className, children }:
         {label}
         {required ? <span className="ml-1 text-destructive">*</span> : null}
         {error === "Required" ? (
-          <span className="ml-2 align-middle text-xs font-bold uppercase tracking-wide text-destructive">
-            Required
-          </span>
+          <span className="ml-2 align-middle text-xs font-medium text-destructive">Required</span>
         ) : null}
       </Label>
       {control}

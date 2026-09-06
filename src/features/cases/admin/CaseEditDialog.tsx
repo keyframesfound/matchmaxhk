@@ -27,8 +27,7 @@ import { EXAM_SYSTEM_OPTIONS, LEVEL_OPTIONS } from "@/features/cases/case-option
 import type { CaseRow } from "./shared";
 
 const controlClassName = "h-10 w-full rounded-sm";
-const labelClassName =
-  "mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground";
+const labelClassName = "mb-1.5 block text-[11px] font-medium text-muted-foreground";
 
 type EditFormState = {
   title: string;

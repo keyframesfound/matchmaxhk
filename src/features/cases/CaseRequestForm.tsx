@@ -52,11 +52,7 @@ const invalidInputClassName =
   "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30";
 
 function RequiredFlag() {
-  return (
-    <span className="ml-2 align-middle text-xs font-bold uppercase tracking-wide text-destructive">
-      Required
-    </span>
-  );
+  return <span className="ml-2 align-middle text-xs font-medium text-destructive">Required</span>;
 }
 
 const PHONE_REGEX = /^[+(\d][\d\s()./+-]{4,19}\d$/;
@@ -231,11 +227,11 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           className="mx-auto h-12 w-12 text-[color:var(--muted-foreground)]"
           aria-hidden="true"
         />
-        <h2 className="mt-4 text-3xl font-black text-[color:var(--ink)]">Case request received</h2>
+        <h2 className="mt-4 text-3xl font-bold text-[color:var(--ink)]">Case request received</h2>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
           Keep this reference for your records.
         </p>
-        <p className="mt-4 font-mono text-2xl font-black tracking-tight text-[color:var(--ink)]">
+        <p className="mt-4 font-mono text-2xl font-bold tracking-tight text-[color:var(--ink)]">
           {result.caseCode}
         </p>
         <p className="mx-auto mt-4 max-w-md text-sm font-bold text-[color:var(--ink)]">

@@ -150,7 +150,7 @@ function PricingPage() {
       <main className="flex-1">
         <section className="hero-startup-bg border-b border-border py-16">
           <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
-            <h1 className="text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
+            <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
               For tutoring businesses
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
@@ -188,7 +188,7 @@ function PricingPage() {
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="sticky top-0 z-20 w-[36%] border-b border-border bg-background align-bottom">
-                        <span className="inline-block pb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                        <span className="inline-block pb-3 text-sm font-semibold text-muted-foreground">
                           Features
                         </span>
                       </TableHead>
@@ -224,7 +224,7 @@ function PricingPage() {
                         <TableRow className="bg-muted/40 hover:bg-muted/40">
                           <TableCell
                             colSpan={4}
-                            className="py-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--ink)]"
+                            className="py-2 text-xs font-semibold text-[color:var(--ink)]"
                           >
                             {group.section}
                           </TableCell>

@@ -142,7 +142,7 @@ function ListingCard({
       </div>
       <div className="flex flex-1 flex-col gap-1.5 p-4">
         {price ? (
-          <p className="text-base font-black text-[color:var(--ink)]">{price}</p>
+          <p className="text-base font-bold text-[color:var(--ink)]">{price}</p>
         ) : (
           <p className="text-sm font-semibold text-muted-foreground">Enquire for pricing</p>
         )}
@@ -502,7 +502,7 @@ function BusinessPublicProfile() {
 
                 <div className="mt-4 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h1 className="flex flex-wrap items-center gap-2 text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                    <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                       {org.name}
                       <BadgeCheck
                         className="h-6 w-6 shrink-0 text-[color:var(--muted-foreground)]"
@@ -570,7 +570,7 @@ function BusinessPublicProfile() {
             {/* About */}
             <section id="about" className="mt-10 scroll-mt-24">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)]">About</h2>
+                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">About</h2>
                 {isOwner && (
                   <Button
                     variant="ghost"
@@ -670,7 +670,7 @@ function BusinessPublicProfile() {
             {/* Courses */}
             <section id="courses" className="mt-10 scroll-mt-24">
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)]">
+                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
                   Courses
                 </h2>
                 <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-bold tabular-nums text-muted-foreground">
@@ -762,7 +762,7 @@ function BusinessPublicProfile() {
             {/* Class schedule */}
             {courseCount > 0 && (
               <section id="schedule" className="mt-10 scroll-mt-24">
-                <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)]">
+                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
                   Class schedule
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -777,7 +777,7 @@ function BusinessPublicProfile() {
             {/* Contact */}
             <section id="contact" className="mt-10 scroll-mt-24">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)]">
+                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
                   Get in touch
                 </h2>
                 {isOwner && (

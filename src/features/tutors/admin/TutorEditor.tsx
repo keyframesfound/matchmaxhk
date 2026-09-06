@@ -812,7 +812,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black tracking-tight text-[color:var(--ink)]">
+              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)]">
                 {isEditing ? `Edit Tutor — ${initialData?.tutor_code}` : "New Tutor Profile"}
               </h1>
               <span

@@ -233,7 +233,7 @@ function AdminCases() {
               <div className="flex flex-col gap-4 border-b border-[color:var(--ink)]/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h1 className="text-3xl font-black tracking-tight text-[color:var(--ink)] sm:text-4xl">
+                    <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
                       Case Requests
                     </h1>
                     <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-bold text-[color:var(--ink)]">
@@ -356,7 +356,7 @@ function AdminCases() {
               {/* Table Container */}
               <div className="overflow-hidden rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
                 <table className="w-full text-sm">
-                  <thead className="border-b border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)]/60 text-left text-xs font-bold uppercase tracking-wider text-[color:var(--ink)]/60">
+                  <thead className="border-b border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)]/60 text-left text-xs font-medium text-[color:var(--ink)]/60">
                     <tr>
                       <th className="px-5 py-3.5">
                         <Checkbox
@@ -445,7 +445,7 @@ function AdminCases() {
                         </td>
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-mono text-sm font-black text-[color:var(--ink)]">
+                            <span className="font-mono text-sm font-bold text-[color:var(--ink)]">
                               {row.case_code}
                             </span>
                             {row.start_timing === "asap" && (

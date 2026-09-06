@@ -57,9 +57,9 @@ typography:
   label:
     fontFamily: "Open Sans, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "0.75rem"
-    fontWeight: 600
+    fontWeight: 500
     lineHeight: 1.2
-    letterSpacing: "0.025em"
+    letterSpacing: "normal"
 rounded:
   sm: "calc(1.3rem - 4px)"
   md: "calc(1.3rem - 2px)"
@@ -135,7 +135,8 @@ Density is product-like rather than editorial. Public pages persuade with bold 7
 - Azure owns interaction: accent fills, links, focus rings, selected/active states, progress meters, data-viz series
 - Ink→Azure→Sky brand gradient reserved for brand moments (wordmark, hero backdrops)
 - Flat, hairline-bordered surfaces; soft azure-tinted ambient shadows on hero moments only
-- Heavy display type (700–800) at 0em tracking against a light 0.95rem body
+- Twitter-style weight ladder — Display 800 / Title 700 / Emphasis 600 / UI 500 / Body 400 — at 0em tracking; no uniform black-type mass
+- Sentence-case labels throughout; no full-caps eyebrows, table headers, or column headings
 - Round geometry: `--radius: 1.3rem` base scale; inputs and compact controls tighten to 0.5rem
 - Full dark theme: true-black canvas (`#000000`), `#17181C` cards, and azure stays the signal in both themes
 
@@ -174,15 +175,15 @@ The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairli
 **Body Font:** Same stack as display — one voice throughout
 **Label/Mono Font:** None distinct; labels are the same sans, uppercase. Code snippets use Tailwind's default `font-mono`.
 
-**Character:** A single humanist sans carries everything, the way one product's UI voice runs every screen. Authority comes from weight (700–800 headings) at 0em tracking (the theme's `--letter-spacing: 0em`), not from a second typeface.
+**Character:** A single humanist sans carries everything, the way one product's UI voice runs every screen. Authority comes from a clear weight ladder (800 heroes, 700 titles, 600 emphasis, 500 UI labels, 400 body) at 0em tracking (the theme's `--letter-spacing: 0em`), not from a second typeface — and never from full caps.
 
-### Hierarchy
-- **Display** (800, `text-4xl→7xl` ≈ clamp(2.25rem, 5vw, 4.5rem), 1.05): Hero headlines and the footer wordmark.
-- **Headline** (700, clamp(1.75rem, 2vw + 1.1rem, 2.45rem), 1.15): Page `h1` outside the hero.
-- **Title** (700, clamp(1.35rem, 1.1vw + 1rem, 1.75rem), 1.15): Section `h2`s (e.g. "DSE tutors").
-- **Subtitle** (700, clamp(1.1rem, 0.85vw + 0.9rem, 1.3rem), 1.15): `h3` card and subsection titles; `h4` drops to 1rem/600.
-- **Body** (400, 0.95rem, 1.6): All running text; slightly compact base size keeps dense product views scannable. Controls and buttons sit at 500.
-- **Label** (600–800, 0.7–0.75rem, wide tracking, uppercase): Eyebrows ("FIND TUTOR"), footer column headings (`text-sm`), step indicators.
+### Hierarchy (the weight ladder)
+- **Display** (800, `text-4xl→7xl`, 1.05): Marketing heroes only — landing h1, how-it-works display headings, footer wordmark.
+- **Title** (700, clamp(1.75rem, 2vw + 1.1rem, 2.45rem) and below, 1.15): Page `h1`s, section `h2`s, card `h3`s, dialog titles, prices, stat numbers.
+- **Emphasis** (600, small sizes): `h4` (1rem), footer column headings, card section captions at `h2/h3` level, step circles.
+- **UI medium** (500, 0.7–0.75rem): Buttons and controls (already 500), chips, table headers, form-label captions, eyebrows/kickers — always sentence case.
+- **Body** (400, 0.95rem, 1.6): All running text.
+- **Label** (500–600, 0.7–0.75rem, sentence case, no forced tracking): Eyebrows ("For parents & students"), footer column headings (`text-sm`), step indicators, table headers. Data-faithful text (case codes) may stay uppercase.
 
 ### Named Rules
 **The Single Signage Rule.** One font family everywhere; hierarchy is weight + size. Do not introduce display serifs or second sans families.
@@ -244,7 +245,7 @@ For each component: confident signage — bold labels, one clear primary action,
 - **Error / Disabled:** Destructive styling per shadcn form wiring; disabled at 50% opacity, cursor-not-allowed.
 
 ### Navigation
-- Sticky 64px header: `bg-[color:var(--surface)]/95` with `backdrop-blur-sm`, hairline bottom border ink/10. Logo (32px) + "MatchMax" wordmark in `text-brand-gradient` at 700–800. Desktop links: 15px/600 ink at 85%, hover/focus shifts to Azure with a 2px ink underline sweeping in from the left (200ms). Account affordance is a bordered `surface-subtle` pill with an ink-initial avatar; header Sign up is an azure money CTA. Mobile uses the staggered full-screen menu (ink→azure→sky layer colours); footer mirrors the header at `max-w-7xl` with uppercase 14px column headings, `foreground/70` links hovering to Azure, and a 4xl/5xl heavy "MatchMax" sign-off.
+- Sticky 64px header: `bg-[color:var(--surface)]/95` with `backdrop-blur-sm`, hairline bottom border ink/10. Logo (32px) + "MatchMax" wordmark in `text-brand-gradient` at 700–800. Desktop links: 15px/600 ink at 85%, hover/focus shifts to Azure with a 2px ink underline sweeping in from the left (200ms). Account affordance is a bordered `surface-subtle` pill with an ink-initial avatar; header Sign up is an azure money CTA. Mobile uses the staggered full-screen menu (ink→azure→sky layer colours); footer mirrors the header at `max-w-7xl` with sentence-case semibold 14px column headings, `foreground/70` links hovering to Azure, and a 4xl/5xl heavy "MatchMax" sign-off.
 
 ### Signature Components
 - **Brand-gradient wordmark & text** (`text-brand-gradient`): ink→azure→sky at 135°, clipped to text (dark mode: sky→azure); the one sanctioned place for gradient text.

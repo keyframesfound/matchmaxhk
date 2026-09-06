@@ -211,7 +211,7 @@ function BusinessOverview() {
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-black tracking-tight text-[color:var(--ink)]">Overview</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)]">Overview</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {organization.tagline ?? "Your business account on MatchMax"}
             </p>
@@ -591,7 +591,7 @@ function EngagementStat({
         <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
         {label}
       </span>
-      <span className="text-xl font-black tabular-nums text-[color:var(--ink)]">
+      <span className="text-xl font-bold tabular-nums text-[color:var(--ink)]">
         {loading ? "…" : value.toLocaleString("en-HK")}
       </span>
       <span className="flex items-center gap-1 text-[11px] text-muted-foreground">

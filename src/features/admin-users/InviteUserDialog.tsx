@@ -73,7 +73,7 @@ export function InviteUserDialog({
                 <UserPlus className="h-5 w-5" />
               </div>
               <div>
-                <DialogTitle className="text-xl font-black text-[color:var(--ink)]">
+                <DialogTitle className="text-xl font-bold text-[color:var(--ink)]">
                   Provision New User
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">

@@ -47,10 +47,10 @@ function SavedPostsPage() {
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-sm font-bold uppercase tracking-widest text-[color:var(--muted-foreground)]">
+              <p className="text-sm font-medium text-[color:var(--muted-foreground)]">
                 Your collection
               </p>
-              <h1 className="mt-2 text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
+              <h1 className="mt-2 text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
                 Saved Posts
               </h1>
               <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
@@ -120,7 +120,7 @@ function SavedPostsPage() {
 
             {CENTRE_MARKET_ENABLED && (
               <div className="mt-14">
-                <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)]">
+                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
                   Saved courses
                 </h2>
                 {savedCoursesQuery.isLoading ? (

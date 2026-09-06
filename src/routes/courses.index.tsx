@@ -115,7 +115,7 @@ function CoursesDirectory() {
         <section className="hero-startup-bg border-b border-border py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <p className="text-sm font-semibold text-[color:var(--brand-link)]">Course directory</p>
-            <h1 className="mt-2 text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
               Find the right course
             </h1>
             <p className="mt-3 max-w-2xl text-base text-muted-foreground sm:text-lg">

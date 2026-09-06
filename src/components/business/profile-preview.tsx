@@ -95,7 +95,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
         </div>
 
         <div className="mt-3">
-          <h1 className="flex flex-wrap items-center gap-2 text-xl font-black tracking-tight text-[color:var(--ink)]">
+          <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold tracking-tight text-[color:var(--ink)]">
             {data.name || <span className="text-muted-foreground/60">Your business name</span>}
             <BadgeCheck
               className="h-5 w-5 shrink-0 text-[color:var(--muted-foreground)]"
@@ -154,7 +154,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
 
       {/* About */}
       <div className="border-t border-border px-5 py-5">
-        <h2 className="text-base font-black tracking-tight text-[color:var(--ink)]">About</h2>
+        <h2 className="text-base font-bold tracking-tight text-[color:var(--ink)]">About</h2>
         {data.introVideoUrl ? (
           <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-lg border border-border bg-black">
             <img

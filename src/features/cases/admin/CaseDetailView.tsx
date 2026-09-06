@@ -75,9 +75,7 @@ type SuggestedTutor = {
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </dt>
+      <dt className="text-[11px] font-medium text-muted-foreground">{label}</dt>
       <dd className="mt-0.5 text-sm font-medium text-[color:var(--ink)]">{value}</dd>
     </div>
   );
@@ -237,10 +235,10 @@ export function CaseDetailView({
             <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> All cases
           </Button>
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="rounded-lg bg-[color:var(--ink)]/[0.06] px-2.5 py-1 font-mono text-sm font-black text-[color:var(--ink)]">
+            <span className="rounded-lg bg-[color:var(--ink)]/[0.06] px-2.5 py-1 font-mono text-sm font-bold text-[color:var(--ink)]">
               {caseRow.case_code}
             </span>
-            <h1 className="text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
               {caseRow.title}
             </h1>
             <span
@@ -263,9 +261,7 @@ export function CaseDetailView({
         {/* Left column: requirements + contact + notes */}
         <div className="space-y-6 lg:col-span-2">
           <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Requirements
-            </h2>
+            <h2 className="text-xs font-semibold text-muted-foreground">Requirements</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
               <DetailRow
                 label="Student level"
@@ -309,9 +305,7 @@ export function CaseDetailView({
             </div>
             {caseRow.description ? (
               <div className="mt-5 border-t border-[color:var(--ink)]/[0.07] pt-4">
-                <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Parent notes
-                </h3>
+                <h3 className="text-[11px] font-medium text-muted-foreground">Parent notes</h3>
                 <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-[color:var(--ink)]">
                   {caseRow.description}
                 </p>
@@ -319,18 +313,14 @@ export function CaseDetailView({
             ) : null}
             {caseRow.schedule_note ? (
               <div className="mt-4 border-t border-[color:var(--ink)]/[0.07] pt-4">
-                <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Schedule notes
-                </h3>
+                <h3 className="text-[11px] font-medium text-muted-foreground">Schedule notes</h3>
                 <p className="mt-1.5 text-sm text-[color:var(--ink)]">{caseRow.schedule_note}</p>
               </div>
             ) : null}
           </section>
 
           <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Parent contact
-            </h2>
+            <h2 className="text-xs font-semibold text-muted-foreground">Parent contact</h2>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-bold text-[color:var(--ink)]">{caseRow.contact_name}</p>
@@ -353,9 +343,7 @@ export function CaseDetailView({
 
           <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Internal notes
-              </h2>
+              <h2 className="text-xs font-semibold text-muted-foreground">Internal notes</h2>
               <NotebookPen className="h-4 w-4 text-muted-foreground/60" aria-hidden="true" />
             </div>
             <div className="mt-3 space-y-2">
@@ -414,9 +402,7 @@ export function CaseDetailView({
         {/* Right column: handling */}
         <div className="space-y-6">
           <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Handling
-            </h2>
+            <h2 className="text-xs font-semibold text-muted-foreground">Handling</h2>
             <div className="mt-3 space-y-3">
               <Select
                 value={caseRow.status}
@@ -463,9 +449,7 @@ export function CaseDetailView({
 
           <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Board listing
-              </h2>
+              <h2 className="text-xs font-semibold text-muted-foreground">Board listing</h2>
               <Button
                 size="sm"
                 variant="outline"
@@ -501,9 +485,7 @@ export function CaseDetailView({
           </section>
 
           <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Tags
-            </h2>
+            <h2 className="text-xs font-semibold text-muted-foreground">Tags</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               Track pipeline state: follow-up, premium, matched-source.
             </p>
@@ -520,9 +502,7 @@ export function CaseDetailView({
 
           <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Suggested tutors
-              </h2>
+              <h2 className="text-xs font-semibold text-muted-foreground">Suggested tutors</h2>
               <Sparkles
                 className="h-4 w-4 text-[color:var(--muted-foreground)]"
                 aria-hidden="true"
@@ -562,7 +542,7 @@ export function CaseDetailView({
                         {t.district ? ` · ${t.district}` : ""}
                       </p>
                     </div>
-                    <span className="rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[10px] font-black text-[color:var(--foreground)]">
+                    <span className="rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[10px] font-bold text-[color:var(--foreground)]">
                       {Number(t.score).toFixed(0)}
                     </span>
                   </div>
@@ -572,9 +552,7 @@ export function CaseDetailView({
           </section>
 
           <section className="rounded-2xl border border-destructive/20 bg-[color:var(--surface)] p-5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Danger zone
-            </h2>
+            <h2 className="text-xs font-semibold text-muted-foreground">Danger zone</h2>
             <Button
               variant="destructive"
               size="sm"

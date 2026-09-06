@@ -207,7 +207,7 @@ function AuthPage() {
       <main className="flex flex-1 items-center justify-center p-4 py-8 lg:p-8">
         <div className="w-full max-w-[420px]">
           <div className="w-full rounded-3xl border border-border bg-card p-6 shadow-brand sm:p-8">
-            <h1 className="text-3xl font-black tracking-tight text-[color:var(--ink)]">
+            <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)]">
               {t(mode === "sign_in" ? "auth.sign_in_title" : "auth.sign_up_title")}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -246,9 +246,7 @@ function AuthPage() {
 
             <div className="my-6 flex items-center gap-3">
               <Separator className="flex-1" />
-              <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                {t("auth.or")}
-              </span>
+              <span className="text-xs text-muted-foreground">{t("auth.or")}</span>
               <Separator className="flex-1" />
             </div>
 

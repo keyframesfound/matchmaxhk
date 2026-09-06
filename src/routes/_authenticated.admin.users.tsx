@@ -225,7 +225,7 @@ function AdminUsers() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-border/60">
             <div>
               <div className="flex items-center gap-2.5">
-                <h1 className="text-3xl font-black tracking-tight text-[color:var(--ink)] sm:text-4xl">
+                <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
                   User Directory & Access
                 </h1>
                 <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-bold text-[color:var(--ink)]">

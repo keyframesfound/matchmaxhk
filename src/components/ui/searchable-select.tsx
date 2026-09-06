@@ -232,7 +232,7 @@ export function SearchableSelect({
                 className="flex w-full items-center justify-between rounded-md px-3 py-2 text-xs font-semibold text-[color:var(--brand-link)] hover:bg-[color:var(--foreground)]/[0.06] text-left"
               >
                 <span>Add &ldquo;{query.trim()}&rdquo;</span>
-                <span className="text-xs uppercase font-bold text-muted-foreground">Custom</span>
+                <span className="text-xs font-semibold text-muted-foreground">Custom</span>
               </button>
             </div>
           )}

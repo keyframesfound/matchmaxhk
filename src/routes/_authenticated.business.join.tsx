@@ -82,7 +82,7 @@ function BusinessJoinPage() {
               <Building2 className="h-3.5 w-3.5" />
               {search.plan === "enterprise" ? "Enterprise plan selected" : "Business account"}
             </span>
-            <h1 className="mt-4 text-3xl font-black tracking-tight text-[color:var(--ink)]">
+            <h1 className="mt-4 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
               Create your business account
             </h1>
             <p className="mt-3 text-sm text-muted-foreground sm:text-base">

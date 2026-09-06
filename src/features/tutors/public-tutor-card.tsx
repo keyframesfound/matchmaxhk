@@ -41,7 +41,7 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
       {grade ? (
         <>
           <span className="mx-0.5 shrink-0 text-muted-foreground">:</span>
-          <span className="shrink-0 font-black">
+          <span className="shrink-0 font-bold">
             {grade.prefix}
             {grade.value}
           </span>
@@ -210,7 +210,7 @@ export function PublicTutorCard({
           <div className="min-w-0 flex-1 pt-0.5">
             <p
               className={cn(
-                "line-clamp-2 text-[14px] font-black leading-tight tracking-tight text-[color:var(--ink)] md:text-[17px]",
+                "line-clamp-2 text-[14px] font-bold leading-tight tracking-tight text-[color:var(--ink)] md:text-[17px]",
                 genderLabel ? "md:pr-20" : "md:pr-0",
               )}
             >
@@ -243,7 +243,7 @@ export function PublicTutorCard({
       <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
         {academicChips.length > 0 ? (
           <section className="border-b border-border pb-2.5 md:pb-3">
-            <h3 className="text-[13px] font-black tracking-tight text-[color:var(--ink)] md:text-[15px]">
+            <h3 className="text-[13px] font-bold tracking-tight text-[color:var(--ink)] md:text-[15px]">
               {t("tutor_card.academic_achievements")}
             </h3>
             <div className="relative mt-2">
@@ -278,7 +278,7 @@ export function PublicTutorCard({
         <section
           className={cn("flex flex-1 flex-col", academicChips.length > 0 ? "pt-2.5" : "pt-0")}
         >
-          <h3 className="flex items-center gap-1.5 text-[11px] font-black tracking-tight text-[color:var(--ink)] md:text-[12px]">
+          <h3 className="flex items-center gap-1.5 text-[11px] font-bold tracking-tight text-[color:var(--ink)] md:text-[12px]">
             <Award
               className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
               aria-hidden="true"
@@ -320,7 +320,7 @@ export function PublicTutorCard({
       </div>
 
       <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-[color:var(--surface)] px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
-        <p className="text-xl font-black leading-none tracking-tight text-[color:var(--ink)] md:text-3xl">
+        <p className="text-xl font-bold leading-none tracking-tight text-[color:var(--ink)] md:text-3xl">
           HK${tutor.hourly_rate}
           <span className="ml-1 text-[10px] font-semibold text-muted-foreground md:text-[13px]">
             {priceSuffix}

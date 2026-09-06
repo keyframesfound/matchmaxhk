@@ -67,7 +67,7 @@ function ProfileSection({
         <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
           <Icon className={`h-4 w-4 ${iconClassName}`} strokeWidth={2.1} />
         </span>
-        <h2 className="text-base font-black tracking-tight text-[color:var(--ink)] sm:text-lg">
+        <h2 className="text-base font-bold tracking-tight text-[color:var(--ink)] sm:text-lg">
           {title}
         </h2>
       </div>
@@ -95,7 +95,7 @@ function LessonDetailRow({
         strokeWidth={2.35}
       />
       <p className="text-sm leading-relaxed sm:text-base">
-        <span className="font-black text-[color:var(--ink)]">{label}:</span>{" "}
+        <span className="font-bold text-[color:var(--ink)]">{label}:</span>{" "}
         <span className="text-muted-foreground">{value}</span>
       </p>
     </li>
@@ -132,9 +132,7 @@ function AcademicQualification({ result }: { result: ExamResult }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[color:var(--ink)]">
-        {label}
-      </p>
+      <p className="text-[11px] font-medium text-[color:var(--ink)]">{label}</p>
       <ul className="space-y-1.5">
         {subjects.map((entry, subjectIndex) => {
           const papers = (entry.papers ?? []).filter((p) => p.label.trim() && p.score.trim());
@@ -282,7 +280,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-24 text-center">
-        <h1 className="text-3xl font-black text-[color:var(--ink)]">Tutor not found</h1>
+        <h1 className="text-3xl font-bold text-[color:var(--ink)]">Tutor not found</h1>
         <p className="mt-3 text-muted-foreground">
           This tutor code doesn’t match any published tutor.
         </p>
@@ -462,7 +460,7 @@ function TutorDetail() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl font-black text-[color:var(--ink)] sm:text-2xl">
+                  <h1 className="text-xl font-bold text-[color:var(--ink)] sm:text-2xl">
                     {t.tutor_code}
                     {genderLabel ? (
                       <>
@@ -493,7 +491,7 @@ function TutorDetail() {
               </div>
               <div className="w-full sm:w-auto sm:text-right">
                 <div className="flex items-center justify-start gap-1.5 sm:justify-end">
-                  <p className="text-3xl font-black text-[color:var(--ink)]">
+                  <p className="text-3xl font-bold text-[color:var(--ink)]">
                     HK${t.hourly_rate}
                     <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
                   </p>
@@ -643,7 +641,7 @@ function TutorDetail() {
                   <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
                     Keep exploring
                   </p>
-                  <h2 className="mt-1 text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                  <h2 className="mt-1 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                     Suggested tutors you may like
                   </h2>
                 </div>

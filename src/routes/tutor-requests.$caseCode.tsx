@@ -126,7 +126,7 @@ function CaseDetailPage() {
               <span className="w-fit rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-semibold text-muted-foreground">
                 {item.caseCode}
               </span>
-              <h1 className="text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                 {title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">

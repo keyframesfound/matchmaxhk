@@ -257,7 +257,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
           <button
             type="button"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="-mx-1 inline-flex items-center gap-1 rounded-md px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
+            className="-mx-1 inline-flex items-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
           >
             Course
             <SortIcon sorted={column.getIsSorted()} />
@@ -305,11 +305,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
       {
         accessorKey: "is_published",
         enableSorting: false,
-        header: () => (
-          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Status
-          </span>
-        ),
+        header: () => <span className="text-xs font-medium text-muted-foreground">Status</span>,
         cell: ({ row }) => (
           <span
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
@@ -333,7 +329,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
           <button
             type="button"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="-mx-1 inline-flex items-center gap-1 rounded-md px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
+            className="-mx-1 inline-flex items-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
           >
             Price
             <SortIcon sorted={column.getIsSorted()} />
@@ -353,7 +349,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
           <button
             type="button"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="-mx-1 inline-flex items-center gap-1 rounded-md px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
+            className="-mx-1 inline-flex items-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
           >
             Views
             <SortIcon sorted={column.getIsSorted()} />
@@ -373,7 +369,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
           <button
             type="button"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="-mx-1 inline-flex items-center gap-1 rounded-md px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
+            className="-mx-1 inline-flex items-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
           >
             Posted
             <SortIcon sorted={column.getIsSorted()} />

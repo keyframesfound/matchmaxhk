@@ -204,7 +204,7 @@ function TutorRequestsPage() {
         <div ref={formSectionRef} className="scroll-mt-24">
           <PageContainer width="default" className="py-10 sm:py-12">
             <div className="mb-6">
-              <h2 className="text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
+              <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                 Post your request
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -224,7 +224,7 @@ function TutorRequestsPage() {
             <Badge variant="outline" className="mb-4">
               Tutor requests
             </Badge>
-            <h2 className="text-2xl font-black tracking-tight text-[color:var(--ink)] sm:text-3xl">
+            <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
               Open requests
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -247,7 +247,7 @@ function TutorRequestsPage() {
                     aria-hidden="true"
                   />
                 </div>
-                <h3 className="mt-4 text-xl font-black tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                <h3 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
                   No open requests right now
                 </h3>
                 <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -270,7 +270,7 @@ function TutorRequestsPage() {
                 {groups.map((group) => (
                   <div key={group.section} className="flex flex-col gap-3">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      <h3 className="text-xs font-semibold text-muted-foreground">
                         {caseSectionLabel(group.section)}
                       </h3>
                       <span className="text-xs tabular-nums text-muted-foreground">

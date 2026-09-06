@@ -76,9 +76,7 @@ export function UserStatsOverview({ users, isLoading }: UserStatsOverviewProps) 
             className="group relative overflow-hidden rounded-xl border border-border/70 bg-card p-5 shadow-xs transition-all duration-200 hover:border-border hover:shadow-sm"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {stat.title}
-              </span>
+              <span className="text-xs font-semibold text-muted-foreground">{stat.title}</span>
               <div
                 className={`flex h-9 w-9 items-center justify-center rounded-lg border ${stat.color} transition-transform duration-200 group-hover:scale-105`}
               >
@@ -87,7 +85,7 @@ export function UserStatsOverview({ users, isLoading }: UserStatsOverviewProps) 
             </div>
 
             <div className="mt-3 flex items-baseline justify-between">
-              <span className="text-3xl font-black tracking-tight text-[color:var(--ink)]">
+              <span className="text-3xl font-bold tracking-tight text-[color:var(--ink)]">
                 {stat.value}
               </span>
               <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground">

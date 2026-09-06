@@ -37,7 +37,7 @@ export function DeleteUserAlertDialog({
               <AlertTriangle className="h-5 w-5" />
             </div>
             <div>
-              <AlertDialogTitle className="text-lg font-black text-[color:var(--ink)]">
+              <AlertDialogTitle className="text-lg font-bold text-[color:var(--ink)]">
                 Delete User Account?
               </AlertDialogTitle>
               <AlertDialogDescription className="text-xs text-muted-foreground">

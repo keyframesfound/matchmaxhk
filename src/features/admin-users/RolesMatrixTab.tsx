@@ -21,7 +21,7 @@ export function RolesMatrixTab({ users }: RolesMatrixTabProps) {
     <div className="space-y-6">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-lg font-black tracking-tight text-[color:var(--ink)]">
+          <h3 className="text-lg font-bold tracking-tight text-[color:var(--ink)]">
             Roles & Capabilities Matrix
           </h3>
           <p className="text-xs text-muted-foreground">
@@ -57,7 +57,7 @@ export function RolesMatrixTab({ users }: RolesMatrixTabProps) {
                 <p className="text-xs text-muted-foreground leading-relaxed">{def.description}</p>
 
                 <div className="border-t border-border/50 pt-3">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <span className="text-[11px] font-medium text-muted-foreground">
                     Capabilities
                   </span>
                   <ul className="mt-2 space-y-1.5 text-xs text-[color:var(--ink)]">
@@ -75,7 +75,7 @@ export function RolesMatrixTab({ users }: RolesMatrixTabProps) {
                 <span>
                   Slug: <code className="text-xs">{def.role}</code>
                 </span>
-                <span className="text-[10px] uppercase font-bold text-muted-foreground/80">
+                <span className="text-[10px] font-semibold text-muted-foreground/80">
                   {def.role === "super_admin" ? "System Core" : "Application Role"}
                 </span>
               </div>

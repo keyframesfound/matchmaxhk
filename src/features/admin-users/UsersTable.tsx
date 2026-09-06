@@ -53,7 +53,7 @@ export function UsersTable({ users, isLoading, onManageRoles, onDeleteUser }: Us
     <div className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-xs">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="border-b border-border/70 bg-muted/40 font-bold uppercase tracking-wider text-muted-foreground">
+          <thead className="border-b border-border/70 bg-muted/40 font-medium text-muted-foreground">
             <tr>
               <th className="px-4 py-3.5">User</th>
               <th className="px-4 py-3.5">User ID</th>

@@ -872,7 +872,7 @@ export function ProfilePanel() {
       {/* Live preview rail */}
       <aside className="min-w-0 self-start lg:sticky lg:top-6">
         <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]" />
             Improve your profile
           </p>
@@ -920,9 +920,7 @@ export function ProfilePanel() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1d9bf0] opacity-75 motion-reduce:hidden" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[#1d9bf0]" />
             </span>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Live preview
-            </p>
+            <p className="text-xs font-semibold text-muted-foreground">Live preview</p>
           </div>
           <ProfilePreview data={previewData} />
         </div>

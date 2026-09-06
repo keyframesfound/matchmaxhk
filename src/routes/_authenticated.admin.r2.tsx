@@ -144,7 +144,7 @@ function AdminR2Images() {
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h1 className="text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
+              <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
                 R2 tutor images
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">

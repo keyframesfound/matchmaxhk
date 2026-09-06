@@ -153,7 +153,7 @@ function CompareBar({
             className="h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
             aria-hidden="true"
           />
-          <p className="truncate text-sm font-bold text-[color:var(--ink)]">
+          <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
             {count} of {MAX_COMPARE} selected
             {count === 1 ? " — pick at least 2" : ""}
           </p>
@@ -207,7 +207,7 @@ function CompareDialog({
     {
       label: "Rate",
       render: (t) => (
-        <p className="text-lg font-black text-[color:var(--ink)]">
+        <p className="text-lg font-bold text-[color:var(--ink)]">
           HK${t.hourly_rate}
           <span className="ml-1 text-xs font-semibold text-muted-foreground">/hr</span>
         </p>
@@ -325,7 +325,7 @@ function CompareDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] w-[95vw] max-w-6xl overflow-y-auto rounded-sm p-0 sm:rounded-sm">
         <DialogHeader className="border-b border-border px-5 py-4 text-left sm:px-6">
-          <DialogTitle className="text-lg font-black tracking-tight text-[color:var(--ink)]">
+          <DialogTitle className="text-lg font-bold tracking-tight text-[color:var(--ink)]">
             Compare tutors
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -344,18 +344,18 @@ function CompareDialog({
                     className="mx-auto h-12 w-12 rounded-full border border-border object-cover"
                   />
                 ) : (
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border bg-muted text-sm font-bold text-[color:var(--ink)]">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold text-[color:var(--ink)]">
                     {formatTutorCode(t.tutor_code).slice(0, 2)}
                   </div>
                 )}
-                <p className="mt-1.5 text-sm font-black text-[color:var(--ink)]">
+                <p className="mt-1.5 text-sm font-semibold text-[color:var(--ink)]">
                   {formatTutorCode(t.tutor_code)}
                 </p>
               </div>
             ))}
             {rows.map(({ label, render }) => (
               <div key={label || "actions"} className="contents">
-                <div className="border-t border-border/70 px-2 py-3 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                <div className="border-t border-border/70 px-2 py-3 text-[11px] font-medium text-muted-foreground">
                   {label}
                 </div>
                 {tutors.map((t) => (
@@ -573,12 +573,12 @@ function TutorsDirectory() {
       <main className="flex-1">
         <section className="hero-startup-bg border-b border-border py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <h1 className="text-4xl font-black tracking-tight text-[color:var(--ink)] sm:text-5xl">
+            <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
               Find verified tutors
             </h1>
             <div className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
               <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
-                <p className="text-sm font-black uppercase tracking-wide text-[color:var(--ink)]">
+                <p className="text-sm font-semibold text-[color:var(--ink)]">
                   {t("search_panel.find_tutor")}
                 </p>
               </div>
@@ -657,7 +657,7 @@ function TutorsDirectory() {
 
               <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-6">
                 <div className="shrink-0">
-                  <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <p className="mb-2 text-xs font-medium text-muted-foreground">
                     {t("search_panel.price_range")}
                   </p>
                   <PriceRangeSlider
@@ -736,7 +736,7 @@ function TutorsDirectory() {
                     aria-hidden="true"
                   />
                 </div>
-                <h2 className="mt-4 text-xl font-black tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
                   {t("directory.empty_title")}
                 </h2>
                 <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">

@@ -109,7 +109,7 @@ function AdminOrganizations() {
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-[color:var(--ink)]">
+              <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[color:var(--ink)]">
                 <Building2 className="h-6 w-6 text-[color:var(--muted-foreground)]" />
                 Organizations
               </h1>
@@ -142,7 +142,7 @@ function AdminOrganizations() {
 
           <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-card shadow-sm">
             <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="border-b border-border bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
+              <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Organization</th>
                   <th className="px-4 py-3 font-semibold">Plan</th>

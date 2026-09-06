@@ -1015,7 +1015,7 @@ export function ApplicationForm() {
     return (
       <div className="py-20 text-center">
         <CheckCircle2 className="mx-auto h-12 w-12 text-[color:var(--success)]" />
-        <h1 className="mt-4 text-3xl font-black text-[color:var(--ink)]">Application received</h1>
+        <h1 className="mt-4 text-3xl font-bold text-[color:var(--ink)]">Application received</h1>
         <p className="mx-auto mt-3 max-w-lg text-muted-foreground">
           Your application has been received{professional ? " securely" : ""}! Parents can directly
           request you through the MatchMax WhatsApp hotline. Keep an eye on your messages.
@@ -1269,7 +1269,7 @@ export function ApplicationForm() {
         aria-label="Display rules and legal warning"
         className="mb-4 grid gap-3 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
       >
-        <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--ink)]">
+        <p className="flex items-center gap-2 text-xs font-medium text-[color:var(--ink)]">
           <Scale className="h-4 w-4" aria-hidden="true" />
           Display Rules &amp; Legal Warning
         </p>
@@ -1439,7 +1439,7 @@ export function ApplicationForm() {
                       Examining Board(s)
                       <span className="ml-1 text-destructive">*</span>
                       {fieldErrors.boards ? (
-                        <span className="ml-2 align-middle text-xs font-bold uppercase tracking-wide text-destructive">
+                        <span className="ml-2 align-middle text-xs font-medium text-destructive">
                           Required
                         </span>
                       ) : null}
@@ -1729,7 +1729,7 @@ export function ApplicationForm() {
                         </Field>
                       </div>
                       <div className="mt-5 border-t border-border pt-5">
-                        <h3 className="text-base font-black text-[color:var(--ink)]">
+                        <h3 className="text-base font-bold text-[color:var(--ink)]">
                           Subject Scores
                         </h3>
                         <Hint>
@@ -2133,7 +2133,7 @@ export function ApplicationForm() {
                       ? "I consent to MatchMax using my credentials and CV to verify my professional status, promote my teaches profile, and protect my anonymity."
                       : PRIVACY_TEXT}
                     {fieldErrors.privacy ? (
-                      <span className="ml-2 align-middle text-xs font-bold uppercase tracking-wide text-destructive">
+                      <span className="ml-2 align-middle text-xs font-medium text-destructive">
                         Required
                       </span>
                     ) : null}
@@ -2151,7 +2151,7 @@ export function ApplicationForm() {
                   <span>
                     {COMMISSION_TEXT}
                     {fieldErrors.commission ? (
-                      <span className="ml-2 align-middle text-xs font-bold uppercase tracking-wide text-destructive">
+                      <span className="ml-2 align-middle text-xs font-medium text-destructive">
                         Required
                       </span>
                     ) : null}
@@ -2180,10 +2180,8 @@ export function ApplicationForm() {
 function Heading({ step, title }: { step: number; title: string }) {
   return (
     <div className="mb-6">
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-[color:var(--muted-foreground)]">
-        Step {step}
-      </p>
-      <h2 className="mt-2 text-2xl font-black text-[color:var(--ink)] sm:text-3xl">{title}</h2>
+      <p className="text-xs font-medium text-[color:var(--muted-foreground)]">Step {step}</p>
+      <h2 className="mt-2 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">{title}</h2>
     </div>
   );
 }

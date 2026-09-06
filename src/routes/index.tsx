@@ -278,7 +278,7 @@ function Landing() {
       <section className="hero-startup-bg relative overflow-hidden">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col justify-center">
-            <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-5xl md:text-6xl lg:text-7xl">
               {t("hero.title_a")}
               <br />
               <span className="text-[color:var(--ink)]">{t("hero.title_b")}</span>
@@ -311,7 +311,7 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="relative rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
-              <p className="text-sm font-black uppercase tracking-wide text-[color:var(--ink)]">
+              <p className="text-sm font-semibold text-[color:var(--ink)]">
                 {t("search_panel.find_tutor")}
               </p>
             </div>
@@ -391,7 +391,7 @@ function Landing() {
               return (
                 <section key={value}>
                   <div className="mb-4 flex items-center justify-between gap-4">
-                    <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
+                    <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
                       {label} tutors
                     </h2>
                     <Button
@@ -461,7 +461,7 @@ function Landing() {
         <div className="mx-auto max-w-7xl space-y-8 px-4 md:space-y-12 md:px-6">
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div className="order-2 lg:order-1">
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--ink)] md:text-4xl">
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-[color:var(--ink)] md:text-4xl">
                 {t("how.step1_title")}
               </h2>
               <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
@@ -497,7 +497,7 @@ function Landing() {
               </div>
             </div>
             <div>
-              <h3 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--ink)] md:text-4xl">
+              <h3 className="mt-2 text-2xl font-bold tracking-tight text-[color:var(--ink)] md:text-4xl">
                 {t("tutors_cta.title")}
               </h3>
               <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">

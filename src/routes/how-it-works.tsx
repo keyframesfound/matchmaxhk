@@ -272,7 +272,7 @@ function AudienceSection({
           <div className="h-fit lg:sticky lg:top-24">
             <Icon className={`h-7 w-7 ${accentClassName}`} />
             <p className={`mt-6 text-sm font-bold ${accentClassName}`}>{eyebrow}</p>
-            <h3 className="mt-3 text-5xl font-black leading-[1.02] tracking-tight text-inherit sm:text-6xl lg:text-7xl">
+            <h3 className="mt-3 text-5xl font-extrabold leading-[1.02] tracking-tight text-inherit sm:text-6xl lg:text-7xl">
               {audience}
             </h3>
             <p className="mt-4 max-w-md text-xl font-bold leading-snug tracking-tight sm:text-2xl">
@@ -297,12 +297,12 @@ function AudienceSection({
                 className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-5 border-b border-current/20 py-7 sm:gap-8 sm:py-9"
               >
                 <span
-                  className={`flex h-11 w-11 items-center justify-center text-sm font-black ${numberClassName}`}
+                  className={`flex h-11 w-11 items-center justify-center text-sm font-bold ${numberClassName}`}
                 >
                   {number}
                 </span>
                 <div>
-                  <h4 className="text-xl font-black tracking-tight text-inherit sm:text-2xl">
+                  <h4 className="text-xl font-bold tracking-tight text-inherit sm:text-2xl">
                     {stepTitle}
                   </h4>
                   <p className={`mt-3 max-w-2xl text-sm leading-7 ${bodyTextClassName}`}>{text}</p>
@@ -319,7 +319,7 @@ function AudienceSection({
 function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[] }) {
   return (
     <div>
-      <h2 className="text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
+      <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
       <div className="mt-8 hidden gap-x-10 border-b border-[color:var(--ink)]/20 pb-4 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
         <p className="text-sm font-bold text-[color:var(--ink)]/55">What Matters</p>
         <p className="text-sm font-bold text-[color:var(--ink)]/55">Old-School Agencies</p>
@@ -331,15 +331,15 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
             key={row.aspect}
             className="grid gap-x-10 gap-y-4 border-b border-[color:var(--ink)]/12 py-7 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-y-0 md:py-9"
           >
-            <h3 className="text-lg font-black tracking-tight">{row.aspect}</h3>
+            <h3 className="text-lg font-bold tracking-tight">{row.aspect}</h3>
             <div>
-              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--ink)]/45 md:hidden">
+              <p className="mb-1 text-xs font-medium text-[color:var(--ink)]/45 md:hidden">
                 Old-school agencies
               </p>
               <p className="text-sm leading-6 text-[color:var(--ink)]/60">{row.oldWay}</p>
             </div>
             <div>
-              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--muted-foreground)] md:hidden">
+              <p className="mb-1 text-xs font-medium text-[color:var(--muted-foreground)] md:hidden">
                 MatchMax
               </p>
               <p className="text-sm leading-6 text-[color:var(--ink)]">
@@ -366,7 +366,7 @@ function HowItWorksPage() {
             How MatchMax works
           </p>
           <div className="relative mt-5 w-fit">
-            <h1 className="max-w-2xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
+            <h1 className="max-w-2xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
               Built By Students: Why MatchMax Works Better
             </h1>
             <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--muted-foreground)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
@@ -404,7 +404,7 @@ function HowItWorksPage() {
                     aria-hidden="true"
                   />
                 </span>
-                <h3 className="mt-5 text-xl font-black tracking-tight sm:text-2xl">{title}</h3>
+                <h3 className="mt-5 text-xl font-bold tracking-tight sm:text-2xl">{title}</h3>
                 <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">{detail}</p>
               </article>
             ))}
@@ -438,7 +438,7 @@ function HowItWorksPage() {
                   <Clock3 className="h-5 w-5" /> Within one business day
                 </div>
               </div>
-              <h2 className="max-w-3xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
+              <h2 className="max-w-3xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
                 One thoughtful process, for every side of the match.
               </h2>
             </div>
@@ -488,12 +488,12 @@ function HowItWorksPage() {
             <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
               04 / Good to know
             </p>
-            <h2 className="mt-3 text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
+            <h2 className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
               Frequently Asked Questions
             </h2>
 
             <div className="mt-14">
-              <h3 className="flex items-center gap-2 text-2xl font-black tracking-tight">
+              <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
                 <UserRoundCheck
                   className="h-6 w-6 text-[color:var(--muted-foreground)]"
                   aria-hidden="true"
@@ -521,7 +521,7 @@ function HowItWorksPage() {
             </div>
 
             <div className="mt-14">
-              <h3 className="flex items-center gap-2 text-2xl font-black tracking-tight">
+              <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
                 <Search
                   className="h-6 w-6 text-[color:var(--muted-foreground)]"
                   aria-hidden="true"
@@ -554,7 +554,7 @@ function HowItWorksPage() {
           <div className="grid gap-10 sm:grid-cols-[1fr_auto] sm:items-end">
             <div>
               <MessageCircle className="h-7 w-7 text-[color:var(--muted-foreground)]" />
-              <h2 className="mt-7 max-w-4xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
+              <h2 className="mt-7 max-w-4xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
                 The right match starts with a conversation.
               </h2>
               <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/68">
