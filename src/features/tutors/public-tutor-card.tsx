@@ -80,6 +80,9 @@ export function PublicTutorCard({
   const academicWidthRef = useRef<number | null>(null);
   const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
   const [visibleAcademicChipCount, setVisibleAcademicChipCount] = useState(academicChips.length);
+  const [hasPhotoError, setHasPhotoError] = useState(false);
+  useEffect(() => setHasPhotoError(false), [tutor.photo_url]);
+  const showPhoto = Boolean(tutor.photo_url) && !hasPhotoError;
   const genderLabel = t(`tutor_card.gender_${(tutor.gender ?? "").toLowerCase()}`, {
     defaultValue: "",
   }) as string;
@@ -172,6 +175,7 @@ export function PublicTutorCard({
       onKeyDown={
         interactive
           ? (event) => {
+              if ((event.target as HTMLElement).closest("a, button")) return;
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
                 onOpen(tutor.tutor_code);
@@ -184,12 +188,13 @@ export function PublicTutorCard({
         <div className="flex items-start gap-2.5 md:gap-3.5">
           <div className="flex w-12 shrink-0 flex-col items-center gap-1.5 md:w-14">
             <div className="relative">
-              {tutor.photo_url ? (
+              {showPhoto ? (
                 <img
-                  src={tutor.photo_url}
+                  src={tutor.photo_url ?? ""}
                   alt={t("tutor_card.tutor_alt", { code: formatTutorCode(tutor.tutor_code) })}
                   loading="lazy"
                   decoding="async"
+                  onError={() => setHasPhotoError(true)}
                   className="h-11 w-11 rounded-full border border-border bg-muted object-cover md:h-[3.25rem] md:w-[3.25rem]"
                 />
               ) : (
@@ -222,19 +227,14 @@ export function PublicTutorCard({
             ))}
           </div>
 
-          <div className="flex shrink-0 flex-col items-end gap-1 md:absolute md:right-4 md:top-3">
-            <div className="flex items-center gap-1.5 md:flex-col md:gap-1">
-              {genderLabel ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[9px] font-bold text-[color:var(--ink)] md:px-2.5 md:text-[10px]">
-                  <UserRound
-                    className="h-3 w-3 text-[color:var(--brand-teal)]"
-                    aria-hidden="true"
-                  />
-                  {genderLabel}
-                </span>
-              ) : null}
+          {genderLabel ? (
+            <div className="flex shrink-0 flex-col items-end gap-1 md:absolute md:right-4 md:top-3">
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[9px] font-bold text-[color:var(--ink)] md:px-2.5 md:text-[10px]">
+                <UserRound className="h-3 w-3 text-[color:var(--brand-teal)]" aria-hidden="true" />
+                {genderLabel}
+              </span>
             </div>
-          </div>
+          ) : null}
         </div>
       </header>
 
@@ -248,7 +248,7 @@ export function PublicTutorCard({
               <div
                 id={`academic-achievements-${tutor.tutor_code}`}
                 ref={academicChipsRef}
-                className="flex flex-wrap items-start gap-2 overflow-hidden transition-[max-height,opacity] duration-300 ease-out"
+                className="flex flex-wrap items-start gap-2 overflow-hidden"
               >
                 {academicChips
                   .slice(0, areAcademicChipsExpanded ? undefined : visibleAcademicChipCount)

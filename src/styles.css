@@ -3,6 +3,22 @@
 @source "../src";
 @import "tw-animate-css";
 
+/* Uber Move (Uber's typeface), self-hosted; DM Sans is the web fallback. */
+@font-face {
+  font-family: "Uber Move";
+  font-style: normal;
+  font-weight: 300 500;
+  font-display: swap;
+  src: url("/fonts/UberMoveMedium.woff") format("woff");
+}
+@font-face {
+  font-family: "Uber Move";
+  font-style: normal;
+  font-weight: 600 900;
+  font-display: swap;
+  src: url("/fonts/UberMoveBold.woff") format("woff");
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /*

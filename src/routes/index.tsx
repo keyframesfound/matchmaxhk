@@ -404,7 +404,7 @@ function Landing() {
                       {Array.from({ length: 3 }).map((_, index) => (
                         <Skeleton
                           key={index}
-                          className="h-[23rem] w-[min(86vw,370px)] shrink-0 rounded-sm border border-border"
+                          className="h-[23rem] w-[min(86vw,370px)] shrink-0 rounded-[10px] border border-[color:var(--brand-teal)]/25"
                         />
                       ))}
                     </div>

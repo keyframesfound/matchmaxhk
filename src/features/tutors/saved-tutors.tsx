@@ -168,7 +168,7 @@ export function TutorSaveButton({
             aria-hidden="true"
           />
         </Button>
-        {compact ? (
+        {compact && saveCount > 0 ? (
           <span className="min-w-4 shrink-0 whitespace-nowrap text-right text-sm font-bold leading-none text-[color:var(--ink)]">
             {formatSavedTutorCount(saveCount)}
           </span>

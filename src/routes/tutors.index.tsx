@@ -722,7 +722,10 @@ function TutorsDirectory() {
             {isLoading && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className="h-[23rem] rounded-sm border border-border" />
+                  <Skeleton
+                    key={i}
+                    className="h-[23rem] rounded-[10px] border border-[color:var(--brand-teal)]/25"
+                  />
                 ))}
               </div>
             )}
