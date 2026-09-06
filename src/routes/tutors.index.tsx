@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import * as SliderPrimitive from "@radix-ui/react-slider";
 import { ListChecks, Search, SearchX } from "lucide-react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -14,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
+import { PriceRangeSlider } from "@/components/ui/range-slider";
 import {
   Dialog,
   DialogContent,
@@ -44,7 +44,6 @@ import {
   matchesSubjectQuery,
 } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
 import { setCompareBarVisible } from "@/lib/compare-bar";
 
 const searchSchema = z.object({
@@ -63,10 +62,6 @@ type SearchState = z.infer<typeof searchSchema>;
 const PRICE_MIN = 100;
 const PRICE_MAX = 1200;
 const PRICE_STEP = 10;
-
-function formatHKD(amount: number) {
-  return `HK$${amount.toLocaleString("en-HK")}`;
-}
 
 const MAX_COMPARE = 4;
 
@@ -93,47 +88,6 @@ export const Route = createFileRoute("/tutors/")({
   }),
   component: TutorsDirectory,
 });
-
-function PriceRangeSlider({
-  value,
-  onChange,
-}: {
-  value: { min?: number; max?: number };
-  onChange: (min: number, max: number) => void;
-}) {
-  const lo = value.min ?? PRICE_MIN;
-  const hi = value.max ?? PRICE_MAX;
-  return (
-    <div className="grid w-full max-w-[16rem] gap-1.5">
-      <div className="flex items-center justify-between text-xs font-bold text-[color:var(--ink)]">
-        <span>{formatHKD(lo)}</span>
-        <span>{hi >= PRICE_MAX ? `${formatHKD(PRICE_MAX)}+` : formatHKD(hi)}</span>
-      </div>
-      <SliderPrimitive.Root
-        value={[lo, hi]}
-        min={PRICE_MIN}
-        max={PRICE_MAX}
-        step={PRICE_STEP}
-        minStepsBetweenThumbs={1}
-        onValueChange={(next) => onChange(next[0] ?? PRICE_MIN, next[1] ?? PRICE_MAX)}
-        className="relative flex h-5 w-full touch-none select-none items-center"
-        aria-label="Price range"
-      >
-        <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-[color:var(--ink)]/15">
-          <SliderPrimitive.Range className="absolute h-full bg-[color:var(--ring)]" />
-        </SliderPrimitive.Track>
-        <SliderPrimitive.Thumb
-          aria-label="Minimum hourly price"
-          className="block h-4 w-4 rounded-full border-2 border-[color:var(--ring)] bg-white shadow transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-        />
-        <SliderPrimitive.Thumb
-          aria-label="Maximum hourly price"
-          className="block h-4 w-4 rounded-full border-2 border-[color:var(--ring)] bg-white shadow transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-        />
-      </SliderPrimitive.Root>
-    </div>
-  );
-}
 
 function CompareBar({
   selectedTutors,
@@ -435,6 +389,22 @@ function TutorsDirectory() {
     queryFn: fetchPublishedTutors,
   });
 
+  // Hourly-rate distribution for the search panel's histogram slider.
+  const rateHistogram = useMemo(() => {
+    const BUCKETS = 32;
+    const counts = Array.from({ length: BUCKETS }, () => 0);
+    for (const tut of tutors) {
+      const rate = Math.min(Math.max(tut.hourly_rate, PRICE_MIN), PRICE_MAX);
+      const index = Math.min(
+        BUCKETS - 1,
+        Math.floor(((rate - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * BUCKETS),
+      );
+      counts[index] += 1;
+    }
+    const peak = Math.max(...counts, 1);
+    return counts.map((count) => Math.max(count / peak, 0.05));
+  }, [tutors]);
+
   const { data: whatsappNumber = "" } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
     queryFn: async () => {
@@ -577,14 +547,8 @@ function TutorsDirectory() {
               Find verified tutors
             </h1>
             <div className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
-              <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
-                <p className="text-sm font-semibold text-[color:var(--ink)]">
-                  {t("search_panel.find_tutor")}
-                </p>
-              </div>
-
               <form
-                className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]"
+                className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]"
                 onSubmit={(event) => {
                   event.preventDefault();
                   navigate({
@@ -656,13 +620,18 @@ function TutorsDirectory() {
               </form>
 
               <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-6">
-                <div className="shrink-0">
+                <div className="w-full max-w-xs shrink-0">
                   <p className="mb-2 text-xs font-medium text-muted-foreground">
                     {t("search_panel.price_range")}
                   </p>
                   <PriceRangeSlider
-                    value={{ min: draft.min_price, max: draft.max_price }}
-                    onChange={(min, max) =>
+                    className="px-0"
+                    data={rateHistogram}
+                    min={PRICE_MIN}
+                    max={PRICE_MAX}
+                    step={PRICE_STEP}
+                    value={[draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX]}
+                    onValueChange={([min, max]) =>
                       setDraftParam({
                         min_price: min > PRICE_MIN ? min : undefined,
                         max_price: max < PRICE_MAX ? max : undefined,

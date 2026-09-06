@@ -11,11 +11,10 @@ import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import { AmountReadout, AmountSlider } from "@/components/ui/amount-slider";
-import { Accordion05 } from "@/components/ui/accordion-05";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
+import Hero08, { type Hero08Avatar, type Hero08Card } from "@/components/ui/hero-08";
 import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
-import { blurActive } from "@/lib/dom";
 import {
   fetchPublishedTutors,
   fetchTopWeeklyTutors,
@@ -179,6 +178,52 @@ function Landing() {
       )
       .slice(0, 6);
 
+  const heroAvatars = useMemo<Hero08Avatar[]>(
+    () =>
+      featuredTutors
+        .filter((tutor) => tutor.photo_url)
+        .slice(0, 3)
+        .map((tutor) => ({
+          src: tutor.photo_url as string,
+          fallback: (tutor.display_name || tutor.tutor_code).slice(0, 2).toUpperCase(),
+        })),
+    [featuredTutors],
+  );
+
+  const heroCards = useMemo<Hero08Card[]>(
+    () => [
+      {
+        title: t("search_panel.find_tutor"),
+        subtitle: t("hero.card_find_subtitle"),
+        image:
+          "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop",
+        imageAlt: t("search_panel.find_tutor"),
+        invert: true,
+        cta: {
+          ctaEnabled: true,
+          text: t("hero.cta_primary"),
+          link: "/tutors",
+          size: "default",
+        },
+      },
+      {
+        title: t("tutors_cta.title"),
+        subtitle: t("tutors_cta.subtitle"),
+        image:
+          "https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=1200&auto=format&fit=crop",
+        imageAlt: t("tutors_cta.title"),
+        invert: true,
+        cta: {
+          ctaEnabled: true,
+          text: t("tutors_cta.cta"),
+          link: "/join",
+          size: "default",
+        },
+      },
+    ],
+    [t],
+  );
+
   const openTutorDetail = (tutorCode: string) => {
     navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
   };
@@ -209,18 +254,6 @@ function Landing() {
       { value: "female", label: t("search_panel.gender_female") },
       { value: "male", label: t("search_panel.gender_male") },
     ],
-    [t],
-  );
-
-  const howAccordionItems = useMemo(
-    () =>
-      [
-        { id: "1", title: t("how_accordion.item1_title"), content: t("how_accordion.item1_desc") },
-        { id: "2", title: t("how_accordion.item2_title"), content: t("how_accordion.item2_desc") },
-        { id: "3", title: t("how_accordion.item3_title"), content: t("how_accordion.item3_desc") },
-        { id: "4", title: t("how_accordion.item4_title"), content: t("how_accordion.item4_desc") },
-        { id: "5", title: t("how_accordion.item5_title"), content: t("how_accordion.item5_desc") },
-      ] satisfies { id: string; title: string; content: string }[],
     [t],
   );
 
@@ -295,38 +328,16 @@ function Landing() {
 
       <SiteHeader />
 
-      {/* HERO SECTION */}
-      <section className="hero-startup-bg relative overflow-hidden">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
-          <div className="flex flex-col justify-center">
-            <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-5xl md:text-6xl lg:text-7xl">
-              {t("hero.title_a")}
-              <br />
-              <span className="text-[color:var(--ink)]">{t("hero.title_b")}</span>
-            </h1>
-            <div className="mt-6 flex flex-wrap gap-3 md:mt-8">
-              <Button
-                asChild
-                size="lg"
-                variant="solid"
-                color="blue"
-                className="h-12 w-full rounded-xl px-5 text-base font-bold shadow-brand md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
-              >
-                <Link
-                  to="/tutors"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    blurActive();
-                  }}
-                >
-                  {t("hero.cta_primary")}
-                  <ArrowRight className="ml-2 h-6 w-6 md:h-5 md:w-5" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* HERO */}
+      <Hero08
+        className="hero-startup-bg bg-transparent"
+        title={`${t("hero.title_a")} ${t("hero.title_b")}`}
+        description={t("hero.description")}
+        socialProof={t("hero.eyebrow")}
+        avatars={heroAvatars}
+        cards={heroCards}
+        animation="subtle"
+      />
 
       <section className="relative -mt-4 pb-14 md:-mt-7 md:pb-16">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
@@ -497,34 +508,66 @@ function Landing() {
         </div>
       </section>
 
-      {/* FINDING A TUTOR / MATCHING */}
+      {/* FINDING A TUTOR / TUTOR CTA */}
       <section id="how" className="py-12 md:py-24">
-        <div className="mx-auto flex max-w-7xl flex-col items-center gap-8 px-4 md:gap-10 md:px-6">
-          <Accordion05 items={howAccordionItems} defaultValue="1" />
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button
-              asChild
-              size="lg"
-              variant="solid"
-              color="blue"
-              className="h-11 rounded-xl px-6 text-sm font-bold md:h-12 md:rounded-md md:px-8 md:text-base"
-            >
-              <Link to="/tutors">
-                <Search className="mr-2 h-4 w-4" />
-                {t("how.cta_find")}
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 rounded-xl px-6 text-sm font-bold md:h-12 md:rounded-md md:px-8 md:text-base"
-            >
-              <Link to="/join">
-                <UserPlus className="mr-2 h-4 w-4" />
-                {t("tutors_cta.cta")}
-              </Link>
-            </Button>
+        <div className="mx-auto max-w-7xl space-y-8 px-4 md:space-y-12 md:px-6">
+          <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
+            <div className="order-2 lg:order-1">
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-[color:var(--ink)] md:text-4xl">
+                {t("how.step1_title")}
+              </h2>
+              <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
+                {t("how.step1_desc")}
+              </p>
+              <Button
+                asChild
+                size="lg"
+                variant="solid"
+                color="blue"
+                className="mt-5 h-11 w-full rounded-xl px-4 text-sm font-bold md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
+              >
+                <Link to="/tutors">
+                  <Search className="mr-2 h-4 w-4" />
+                  {t("how.cta_find")}
+                </Link>
+              </Button>
+            </div>
+            <div className="order-1 lg:order-2">
+              <div className="landing-tutor-visual landing-tutor-visual--dots" aria-hidden="true" />
+            </div>
+          </div>
+
+          <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
+            <div>
+              <div className="overflow-hidden rounded-2xl bg-[color:var(--surface)]">
+                <img
+                  src="/tutor-matching-network.jpeg"
+                  alt="Tutor and student matching network"
+                  className="h-auto w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+            <div>
+              <h3 className="mt-2 text-2xl font-bold tracking-tight text-[color:var(--ink)] md:text-4xl">
+                {t("tutors_cta.title")}
+              </h3>
+              <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
+                {t("tutors_cta.subtitle")}
+              </p>
+              <Button
+                asChild
+                size="lg"
+                variant="solid"
+                color="blue"
+                className="mt-5 h-11 w-full rounded-xl px-4 text-sm font-bold md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
+              >
+                <Link to="/join">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  {t("tutors_cta.cta")}
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>

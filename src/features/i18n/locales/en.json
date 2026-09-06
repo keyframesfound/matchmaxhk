@@ -13,7 +13,10 @@
   "hero": {
     "title_a": "Match with your perfect",
     "title_b": "tutor",
-    "cta_primary": "Browse tutors"
+    "cta_primary": "Browse tutors",
+    "eyebrow": "Hong Kong's smart tutoring matching platform",
+    "description": "We match you with experienced top scorers across Hong Kong — tailored 1-on-1 tutoring for IB, DSE, IGCSE and more.",
+    "card_find_subtitle": "Verified top scorers for IB, DSE, IGCSE, AP and more — compare rates, subjects and lesson modes."
   },
   "trust": {
     "students": "Students matched",
