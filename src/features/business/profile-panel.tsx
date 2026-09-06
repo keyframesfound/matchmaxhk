@@ -883,7 +883,7 @@ export function ProfilePanel() {
             <div
               className={cn(
                 "h-full rounded-full transition-all duration-300",
-                completeness.pct === 100 ? "bg-emerald-500" : "bg-[#1FA8B6]",
+                completeness.pct === 100 ? "bg-emerald-500" : "bg-[#1d9bf0]",
               )}
               style={{ width: `${completeness.pct}%` }}
             />
@@ -917,8 +917,8 @@ export function ProfilePanel() {
         <div className="mt-5">
           <div className="mb-3 flex items-center gap-2">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1FA8B6] opacity-75 motion-reduce:hidden" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#1FA8B6]" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1d9bf0] opacity-75 motion-reduce:hidden" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#1d9bf0]" />
             </span>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Live preview

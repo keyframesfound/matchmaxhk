@@ -59,7 +59,7 @@ export function UsageMeter({
         <div
           className={cn(
             "h-full rounded-full transition-all",
-            nearLimit ? "bg-amber-500" : "bg-[#1FA8B6]",
+            nearLimit ? "bg-amber-500" : "bg-[#1d9bf0]",
           )}
           style={{ width: limit ? `${pct}%` : "100%" }}
         />

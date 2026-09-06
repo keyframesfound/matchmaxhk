@@ -427,7 +427,7 @@ function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="px-5 py-20 text-[#041344] dark:bg-[#10234f] dark:text-white sm:px-8 sm:py-28 lg:px-12">
+        <section className="px-5 py-20 text-[#0f1419] dark:bg-[#16181c] dark:text-white sm:px-8 sm:py-28 lg:px-12">
           <div className="mx-auto max-w-[1440px]">
             <div className="grid gap-6 md:grid-cols-[0.7fr_1.3fr] md:items-end">
               <div>
@@ -459,7 +459,7 @@ function HowItWorksPage() {
               label: "Submit a tutor request",
             },
           ]}
-          className="bg-[#E7F6F8] text-[#041344] dark:bg-[#0C2B4E] dark:text-white"
+          className="bg-[#E3ECF6] text-[#0f1419] dark:bg-[#061622] dark:text-white"
           numberClassName="bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
           accentClassName="text-[color:var(--muted-foreground)]"
         />
@@ -474,7 +474,7 @@ function HowItWorksPage() {
             { to: "/tutor-requests", label: "Browse open cases" },
             { to: "/join", label: "Apply as a tutor" },
           ]}
-          className="bg-[#041344] !text-white dark:bg-[#041344] dark:!text-white"
+          className="bg-[#0f1419] !text-white dark:bg-[#0f1419] dark:!text-white"
           numberClassName="bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
           accentClassName="text-[color:var(--muted-foreground)]"
           bodyTextClassName="text-white"

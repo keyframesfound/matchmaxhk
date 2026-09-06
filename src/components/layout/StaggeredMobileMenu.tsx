@@ -36,7 +36,7 @@ type StaggeredMobileMenuProps = {
   renderFooter?: (closeMenu: () => void) => ReactNode;
 };
 
-const LAYER_COLORS = ["#041344", "#0A245F", "#1FA8B6"];
+const LAYER_COLORS = ["#0f1419", "#1d9bf0", "#8ecdf8"];
 
 export function StaggeredMobileMenu({
   items,

@@ -392,7 +392,7 @@ function BusinessPublicProfile() {
                 {org.cover_image_url ? (
                   <img src={org.cover_image_url} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="h-full w-full bg-gradient-to-r from-[#1FA8B6] via-[#2bbfcc] to-[#77E8EE]" />
+                  <div className="h-full w-full bg-gradient-to-r from-[#1d9bf0] via-[#47aef5] to-[#8ecdf8]" />
                 )}
                 {isOwner && (
                   <>

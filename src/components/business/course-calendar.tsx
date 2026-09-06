@@ -38,8 +38,8 @@ export type CalendarCourse = {
 type EventTone = "default" | "secondary" | "outline";
 
 const TONE_ACCENT: Record<EventTone, string> = {
-  default: "bg-[#1FA8B6]",
-  secondary: "bg-[#0A245F]",
+  default: "bg-[#1d9bf0]",
+  secondary: "bg-[#0f1419]",
   outline: "bg-muted-foreground/40",
 };
 

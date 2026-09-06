@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -6,14 +6,14 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * MatchMax design system
+ * MatchMax design system — "Twitter Azure" (21st.dev, serafimcloud)
  * Palette:
- *   Deep Navy    #041344
- *   Royal Navy   #0A245F
- *   Teal         #1FA8B6
- *   Bright Cyan  #2ED5DE
- *   Light Aqua   #77E8EE
- *   White        #FFFFFF
+ *   Ink         #0f1419
+ *   Azure       #1d9bf0   (theme primary #1e9df1, ring #1da1f2)
+ *   Sky         #8ecdf8
+ *   Azure Wash  #E3ECF6
+ *   Green       #17bf63   Amber #f7b928   Red #f4212e
+ *   White       #ffffff
  */
 
 @theme inline {
@@ -70,175 +70,171 @@
 }
 
 :root {
-  --radius: 0.7rem;
+  --radius: 1.3rem;
   --radius-control: 0.5rem;
-  --radius-panel: 0.75rem;
-  /* Uber Move is Uber's proprietary typeface; DM Sans is the web fallback. */
-  --font-sans:
-    "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    sans-serif;
-  --font-heading:
-    "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    sans-serif;
-  --font-body:
-    "Uber Move", "Uber Move Text", "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    sans-serif;
+  --radius-panel: 1rem;
+  /* Open Sans is the Twitter Azure typeface; system sans is the fallback. */
+  --font-sans: "Open Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: "Open Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Open Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* Brand raw */
-  --brand-navy: #091540;
-  --brand-royal: #1B2CC1;
-  --brand-teal: #1FA8B6;
-  --brand-cyan: #ABD2FA;
-  --brand-aqua: #ABD2FA;
+  --brand-navy: #0f1419;
+  --brand-royal: #1d9bf0;
+  --brand-teal: #1da1f2;
+  --brand-cyan: #71c9f8;
+  --brand-aqua: #8ecdf8;
 
-  /* Semantic — light theme */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.16 0.09 265); /* Deep navy */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.16 0.09 265);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0.09 265);
-  --primary: oklch(0.16 0.09 265); /* Deep navy */
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.96 0.005 250); /* Neutral grey fill */
-  --secondary-foreground: oklch(0.16 0.09 265);
-  --muted: oklch(0.97 0.005 250);
-  --muted-foreground: oklch(0.45 0.03 260);
-  --accent: oklch(0.945 0.005 250); /* Neutral hover wash */
-  --accent-foreground: oklch(0.16 0.09 265);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --success: oklch(0.627 0.194 149.214); /* green-600 */
-  --warning: oklch(0.666 0.179 58.318); /* amber-600 */
-  --border: oklch(0.93 0.008 250);
-  --input: oklch(0.93 0.008 250);
-  --ring: #0a245f; /* Royal Navy — the one accent */
+  /* Semantic — light theme (Twitter Azure) */
+  --background: #ffffff;
+  --foreground: #0f1419;
+  --card: #f7f8f8;
+  --card-foreground: #0f1419;
+  --popover: #ffffff;
+  --popover-foreground: #0f1419;
+  --primary: #1e9df1;
+  --primary-foreground: #ffffff;
+  --secondary: #0f1419;
+  --secondary-foreground: #ffffff;
+  --muted: #e5e5e6;
+  --muted-foreground: #536471;
+  --accent: #e3ecf6; /* Azure hover wash */
+  --accent-foreground: #1e9df1;
+  --destructive: #f4212e;
+  --destructive-foreground: #ffffff;
+  --success: #17bf63;
+  --success-foreground: #ffffff;
+  --warning: #f7b928;
+  --warning-foreground: #0f1419;
+  --border: #e1eaef;
+  --input: #f7f9fa;
+  --ring: #1da1f2;
 
-  --chart-1: oklch(0.66 0.11 197);
-  --chart-2: oklch(0.78 0.13 195);
-  --chart-3: oklch(0.28 0.11 265);
-  --chart-4: oklch(0.87 0.09 195);
-  --chart-5: oklch(0.16 0.09 265);
+  --chart-1: #1e9df1;
+  --chart-2: #00b87a;
+  --chart-3: #f7b928;
+  --chart-4: #17bf63;
+  --chart-5: #e0245e;
 
-  --sidebar: oklch(0.99 0.003 250);
-  --sidebar-foreground: oklch(0.16 0.09 265);
-  --sidebar-primary: oklch(0.16 0.09 265);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.96 0.003 250);
-  --sidebar-accent-foreground: oklch(0.16 0.09 265);
-  --sidebar-border: oklch(0.93 0.008 250);
-  --sidebar-ring: #0a245f;
+  --sidebar: #f7f8f8;
+  --sidebar-foreground: #0f1419;
+  --sidebar-primary: #1e9df1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e3ecf6;
+  --sidebar-accent-foreground: #1e9df1;
+  --sidebar-border: #e1e8ed;
+  --sidebar-ring: #1da1f2;
 
-  /* Accent button (money CTAs) — navy in light, flips to Signal Periwinkle in dark */
-  --btn-accent: #0a245f;
+  /* Accent button (money CTAs) — Azure in both themes */
+  --btn-accent: #1d9bf0;
   --btn-accent-fg: #ffffff;
-  --btn-accent-hover: #041344;
+  --btn-accent-hover: #1a8cd8;
 
   /* WhatsApp brand exception */
   --brand-whatsapp: #25d366;
   --brand-whatsapp-hover: #1ebe57;
 
   /* Themed app surfaces */
-  --ink: #041344;
+  --ink: #0f1419;
   --surface: #ffffff;
-  --surface-subtle: #f8fafc;
-  --surface-invert: #041344;
-  --surface-invert-hover: #0a245f;
-  --brand-link: #0d47a1;
+  --surface-subtle: #f7f9fa;
+  --surface-hover: #eff3f4;
+  --surface-invert: #0f1419;
+  --surface-invert-hover: #272c30;
+  --brand-link: #1d9bf0;
 
   /* Stepper */
   --stepper-row-bg: linear-gradient(135deg, color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)), var(--color-card));
-  --stepper-inactive-bg: #eef2f3;
-  --stepper-inactive-fg: #56626f;
-  --stepper-active-bg: #041344;
+  --stepper-inactive-bg: #eff3f4;
+  --stepper-inactive-fg: #536471;
+  --stepper-active-bg: #1d9bf0;
   --stepper-active-fg: #ffffff;
-  --stepper-complete-bg: #1fa8b6;
+  --stepper-complete-bg: #17bf63;
   --stepper-complete-fg: #ffffff;
   --stepper-dot: #ffffff;
-  --stepper-connector: #1fa8b6;
+  --stepper-connector: #1d9bf0;
 
   /* Gradients & shadows */
-  --gradient-brand: linear-gradient(135deg, #041344 0%, #0a245f 45%, #1fa8b6 100%);
-  --gradient-brand-x: linear-gradient(90deg, #041344 0%, #0a245f 45%, #1fa8b6 100%);
-  --gradient-brand-soft: linear-gradient(135deg, #f5fbfc 0%, #e8f8fa 100%);
-  --shadow-brand: 0 10px 30px -18px color-mix(in oklab, #041344 24%, transparent);
-  --shadow-teal: 0 12px 24px -16px color-mix(in oklab, #1fa8b6 28%, transparent);
+  --gradient-brand: linear-gradient(135deg, #0f1419 0%, #1d9bf0 55%, #8ecdf8 100%);
+  --gradient-brand-x: linear-gradient(90deg, #0f1419 0%, #1d9bf0 55%, #8ecdf8 100%);
+  --gradient-brand-soft: linear-gradient(135deg, #f7fafc 0%, #e8f1f9 100%);
+  --shadow-brand: 0 10px 30px -18px color-mix(in oklab, #1d9bf0 26%, transparent);
+  --shadow-teal: 0 12px 24px -16px color-mix(in oklab, #1d9bf0 30%, transparent);
   --focus-ring: 0 0 0 3px color-mix(in oklab, var(--ring) 32%, transparent);
 }
 
 /*
- * Dark theme — "Untitled UI"-style cool dark surfaces.
- * Canvas  #0C111D (gray-950) · Cards #101828 (gray-900) · Elevated #182230–#1D2939 (gray-850/800)
- * Borders stay subtle (#1E2836), secondary text is gray-400 (#98A2B3),
- * and the brand blue accents (#ABD2FA / #0A245F / #1B2CC1 / teal) are preserved.
+ * Dark theme — "Twitter Azure" lights-off mode.
+ * Canvas #000000 · Cards #17181C · Borders #242628 · Secondary text #72767B.
+ * The azure accent (#1D9BF0) stays the action colour in both themes.
  */
 .dark {
-  --ink: #f4f7fb;
-  --surface: #090a0c;
-  --surface-subtle: #0c0e11;
-  --surface-raised: #111419;
-  --surface-hover: #1a1f27;
-  --surface-invert: #102a63;
-  --surface-invert-hover: #173f96;
-  --brand-link: #abd2fa;
-  --subtle-foreground: #9ca3af;
-  --disabled-foreground: #6b7280;
-  --success: #5ee6a1;
-  --success-foreground: #082617;
-  --warning: #ffd37a;
-  --warning-foreground: #302000;
+  --ink: #e7e9ea;
+  --surface: #000000;
+  --surface-subtle: #16181c;
+  --surface-raised: #1c2126;
+  --surface-hover: #202327;
+  --surface-invert: #f0f3f4;
+  --surface-invert-hover: #d9dde0;
+  --brand-link: #1d9bf0;
+  --subtle-foreground: #71767b;
+  --disabled-foreground: #536471;
+  --success: #17bf63;
+  --success-foreground: #00220f;
+  --warning: #f7b928;
+  --warning-foreground: #201200;
 
   /* Stepper */
   --stepper-row-bg: linear-gradient(135deg, color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)), var(--color-card));
-  --stepper-inactive-bg: #1d2939;
-  --stepper-inactive-fg: #d0d5dd;
-  --stepper-active-bg: #abd2fa;
-  --stepper-active-fg: #041344;
-  --stepper-complete-bg: #abd2fa;
-  --stepper-complete-fg: #041344;
-  --stepper-dot: #041344;
-  --stepper-connector: #abd2fa;
-  --gradient-brand: linear-gradient(135deg, #090a0c 0%, #102a63 70%, #173f96 100%);
-  --gradient-brand-x: linear-gradient(90deg, #090a0c 0%, #102a63 70%, #173f96 100%);
-  --gradient-brand-soft: linear-gradient(135deg, #090a0c 0%, #111419 100%);
+  --stepper-inactive-bg: #202327;
+  --stepper-inactive-fg: #71767b;
+  --stepper-active-bg: #1d9bf0;
+  --stepper-active-fg: #ffffff;
+  --stepper-complete-bg: #17bf63;
+  --stepper-complete-fg: #ffffff;
+  --stepper-dot: #000000;
+  --stepper-connector: #1d9bf0;
+  --gradient-brand: linear-gradient(135deg, #000000 0%, #061622 55%, #123a5e 100%);
+  --gradient-brand-x: linear-gradient(90deg, #000000 0%, #061622 55%, #123a5e 100%);
+  --gradient-brand-soft: linear-gradient(135deg, #000000 0%, #16181c 100%);
 
-  --background: #090a0c;
-  --foreground: #f4f7fb;
-  --card: #111419;
-  --card-foreground: #f4f7fb;
-  --popover: #15191f;
-  --popover-foreground: #f4f7fb;
-  --primary: #abd2fa;
-  --primary-foreground: #041344;
-  --secondary: #1a1f27;
-  --secondary-foreground: #e5e7eb;
-  --muted: #161a20;
-  --muted-foreground: #9ca3af;
-  --accent: #1a1f27;
-  --accent-foreground: #f4f7fb;
-  --destructive: #f04438;
+  --background: #000000;
+  --foreground: #e7e9ea;
+  --card: #17181c;
+  --card-foreground: #d9d9d9;
+  --popover: #000000;
+  --popover-foreground: #e7e9ea;
+  --primary: #1c9cf0;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f3f4;
+  --secondary-foreground: #0f1419;
+  --muted: #181818;
+  --muted-foreground: #72767b;
+  --accent: #061622;
+  --accent-foreground: #1c9cf0;
+  --destructive: #f4212e;
   --destructive-foreground: #ffffff;
-  --border: #242932;
-  --input: #2a303a;
-  --ring: #abd2fa;
-  --chart-1: #abd2fa;
-  --chart-2: #5ee6a1;
-  --chart-3: #ffd37a;
-  --chart-4: #f97066;
-  --chart-5: #d6a8ff;
-  --sidebar: #08090b;
-  --sidebar-foreground: #f4f7fb;
-  --sidebar-primary: #abd2fa;
-  --sidebar-primary-foreground: #041344;
-  --sidebar-accent: #1a1f27;
-  --sidebar-accent-foreground: #f4f7fb;
-  --sidebar-border: #242932;
-  --sidebar-ring: #abd2fa;
+  --border: #242628;
+  --input: #22303c;
+  --ring: #1da1f2;
+  --chart-1: #1e9df1;
+  --chart-2: #00b87a;
+  --chart-3: #f7b928;
+  --chart-4: #17bf63;
+  --chart-5: #e0245e;
+  --sidebar: #17181c;
+  --sidebar-foreground: #d9d9d9;
+  --sidebar-primary: #1da1f2;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #061622;
+  --sidebar-accent-foreground: #1c9cf0;
+  --sidebar-border: #38444d;
+  --sidebar-ring: #1da1f2;
 
-  /* Accent button in dark — Signal Periwinkle on navy text (Inverted Signal Rule) */
-  --btn-accent: #abd2fa;
-  --btn-accent-fg: #041344;
-  --btn-accent-hover: #cfe1fb;
+  /* Accent button in dark — Azure stays the signal (Inverted Signal Rule) */
+  --btn-accent: #1d9bf0;
+  --btn-accent-fg: #ffffff;
+  --btn-accent-hover: #1a8cd8;
 
   /* WhatsApp brand exception */
   --brand-whatsapp: #25d366;
@@ -318,7 +314,7 @@
     font-family: var(--font-heading);
     font-weight: 700;
     line-height: 1.15;
-    letter-spacing: -0.02em;
+    letter-spacing: normal; /* Twitter Azure: 0em tracking */
     color: var(--color-foreground);
   }
 
@@ -415,7 +411,7 @@
 
 @layer utilities {
   .dark .text-brand-gradient {
-    background-image: linear-gradient(135deg, #7df4ff 0%, #40e0d0 100%);
+    background-image: linear-gradient(135deg, #8ecdf8 0%, #1d9bf0 100%);
   }
 }
 
@@ -432,7 +428,7 @@
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(100deg, rgba(4, 19, 68, 0.98) 8%, rgba(4, 19, 68, 0.82) 52%, rgba(4, 19, 68, 0.55)),
+      linear-gradient(100deg, rgba(15, 20, 25, 0.98) 8%, rgba(15, 20, 25, 0.82) 52%, rgba(15, 20, 25, 0.55)),
       url("/tutor-matching-network.jpeg") center / cover no-repeat;
     filter: saturate(0.78) contrast(1.1);
   }
@@ -441,14 +437,14 @@
     position: absolute;
     inset: 0;
     content: "";
-    background: radial-gradient(circle at 76% 30%, rgba(31, 168, 182, 0.32), transparent 33%);
+    background: radial-gradient(circle at 76% 30%, rgba(29, 161, 242, 0.32), transparent 33%);
   }
 
   .how-it-works-paper {
-    background-color: #f8fbfc;
+    background-color: #f7fafc;
     background-image:
-      radial-gradient(circle at 88% 28%, rgba(119, 232, 238, 0.3), transparent 22rem),
-      repeating-linear-gradient(90deg, transparent 0, transparent calc(8.333% - 1px), rgba(4, 19, 68, 0.055) calc(8.333% - 1px), rgba(4, 19, 68, 0.055) 8.333%),
+      radial-gradient(circle at 88% 28%, rgba(29, 161, 242, 0.16), transparent 22rem),
+      repeating-linear-gradient(90deg, transparent 0, transparent calc(8.333% - 1px), rgba(15, 20, 25, 0.05) calc(8.333% - 1px), rgba(15, 20, 25, 0.05) 8.333%),
       url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
     background-attachment: fixed;
   }
@@ -488,10 +484,10 @@
 
   .landing-tutor-visual--aurora {
     background:
-      radial-gradient(130% 95% at 6% 14%, rgba(244, 167, 219, 0.9) 0%, rgba(244, 167, 219, 0) 36%),
-      radial-gradient(96% 82% at 94% 14%, rgba(161, 231, 218, 0.88) 0%, rgba(161, 231, 218, 0) 52%),
-      radial-gradient(108% 94% at 18% 88%, rgba(2, 143, 104, 0.88) 0%, rgba(2, 143, 104, 0.08) 55%),
-      linear-gradient(142deg, #f6f7f5 0%, #d5dfda 56%, #cfd6cf 100%);
+      radial-gradient(130% 95% at 6% 14%, rgba(142, 205, 248, 0.9) 0%, rgba(142, 205, 248, 0) 36%),
+      radial-gradient(96% 82% at 94% 14%, rgba(185, 229, 255, 0.88) 0%, rgba(185, 229, 255, 0) 52%),
+      radial-gradient(108% 94% at 18% 88%, rgba(0, 184, 122, 0.82) 0%, rgba(0, 184, 122, 0.08) 55%),
+      linear-gradient(142deg, #f7f9fa 0%, #dfe9f1 56%, #d3e0ea 100%);
   }
 
   .landing-tutor-visual--aurora::after {
@@ -523,11 +519,11 @@
     background: linear-gradient(
       145deg,
       rgba(255, 255, 255, 0.98) 18%,
-      rgba(245, 250, 251, 0.94) 100%
+      rgba(247, 250, 252, 0.94) 100%
     );
     box-shadow:
-      inset 0 0 0 1px rgba(10, 36, 95, 0.06),
-      0 14px 28px -24px rgba(4, 19, 68, 0.35);
+      inset 0 0 0 1px rgba(15, 20, 25, 0.08),
+      0 14px 28px -24px rgba(15, 20, 25, 0.35);
   }
 }
 

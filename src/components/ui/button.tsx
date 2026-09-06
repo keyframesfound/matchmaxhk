@@ -13,11 +13,11 @@ const buttonVariants = cva(
       color: {
         accent:
           "[--btn:var(--btn-accent)] [--btn-fg:var(--btn-accent-fg)] [--btn-hover:var(--btn-accent-hover)]",
-        amber: "[--btn:#B45309] [--btn-fg:#fff] [--btn-hover:#92400E]",
+        amber: "[--btn:#A16207] [--btn-fg:#fff] [--btn-hover:#854D0E]",
         blue: "[--btn:var(--btn-accent)] [--btn-fg:var(--btn-accent-fg)] [--btn-hover:var(--btn-accent-hover)]",
         destructive:
           "[--btn:var(--destructive)] [--btn-fg:var(--destructive-foreground)] [--btn-hover:color-mix(in_oklab,var(--destructive)_85%,black)]",
-        green: "[--btn:#15803D] [--btn-fg:#fff] [--btn-hover:#166534]",
+        green: "[--btn:#00875A] [--btn-fg:#fff] [--btn-hover:#006B47]",
         neutral:
           "[--btn:var(--foreground)] [--btn-fg:var(--background)] [--btn-hover:color-mix(in_oklab,var(--foreground)_85%,black)]",
       },
@@ -37,7 +37,7 @@ const buttonVariants = cva(
       },
       variant: {
         candy:
-          "border border-white/25 bg-gradient-to-b from-[var(--btn,var(--foreground))] to-[var(--btn-hover,#041344)] text-[var(--btn-fg,#fff)] shadow-md shadow-black/20 ring-1 ring-[color-mix(in_oklab,var(--foreground)_15%,var(--btn,var(--foreground)))] hover:from-[var(--btn-hover,#041344)] hover:to-[var(--btn-hover,#041344)] [&_svg]:drop-shadow-sm",
+          "border border-white/25 bg-gradient-to-b from-[var(--btn,var(--foreground))] to-[var(--btn-hover,#272c30)] text-[var(--btn-fg,#fff)] shadow-md shadow-black/20 ring-1 ring-[color-mix(in_oklab,var(--foreground)_15%,var(--btn,var(--foreground)))] hover:from-[var(--btn-hover,#272c30)] hover:to-[var(--btn-hover,#272c30)] [&_svg]:drop-shadow-sm",
         default:
           "border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] text-[color:var(--foreground)] shadow-sm hover:border-[color:var(--foreground)]/25 hover:bg-[color:var(--muted)]",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",

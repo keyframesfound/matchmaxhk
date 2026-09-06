@@ -283,12 +283,12 @@ function BusinessOverview() {
                       >
                         <defs>
                           <linearGradient id="mmImpressions" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#1FA8B6" stopOpacity={0.25} />
-                            <stop offset="100%" stopColor="#1FA8B6" stopOpacity={0} />
+                            <stop offset="0%" stopColor="#1d9bf0" stopOpacity={0.25} />
+                            <stop offset="100%" stopColor="#1d9bf0" stopOpacity={0} />
                           </linearGradient>
                           <linearGradient id="mmProfileViews" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#0A245F" stopOpacity={0.25} />
-                            <stop offset="100%" stopColor="#0A245F" stopOpacity={0} />
+                            <stop offset="0%" stopColor="#0f1419" stopOpacity={0.25} />
+                            <stop offset="100%" stopColor="#0f1419" stopOpacity={0} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -323,7 +323,7 @@ function BusinessOverview() {
                           type="monotone"
                           dataKey="impression"
                           name="Impressions"
-                          stroke="#1FA8B6"
+                          stroke="#1d9bf0"
                           strokeWidth={2}
                           fill="url(#mmImpressions)"
                         />
@@ -331,7 +331,7 @@ function BusinessOverview() {
                           type="monotone"
                           dataKey="profile_view"
                           name="Profile views"
-                          stroke="#0A245F"
+                          stroke="#0f1419"
                           strokeWidth={2}
                           fill="url(#mmProfileViews)"
                         />
@@ -390,13 +390,13 @@ function BusinessOverview() {
                         <Bar
                           dataKey="course_view"
                           name="Course views"
-                          fill="#1FA8B6"
+                          fill="#1d9bf0"
                           radius={[3, 3, 0, 0]}
                         />
                         <Bar
                           dataKey="contact_click"
                           name="Contact clicks"
-                          fill="#0A245F"
+                          fill="#0f1419"
                           radius={[3, 3, 0, 0]}
                         />
                       </BarChart>
@@ -435,7 +435,7 @@ function BusinessOverview() {
                   <div className="px-6 pt-4">
                     <Progress
                       value={onboardingPercent}
-                      className="h-1.5 bg-muted [&>div]:bg-[#1FA8B6]"
+                      className="h-1.5 bg-muted [&>div]:bg-[#1d9bf0]"
                     />
                   </div>
 

@@ -76,7 +76,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
         {data.coverUrl ? (
           <img src={data.coverUrl} alt="" className="h-full w-full object-cover" />
         ) : (
-          <div className="h-full w-full bg-gradient-to-r from-[#1FA8B6] via-[#2bbfcc] to-[#77E8EE]" />
+          <div className="h-full w-full bg-gradient-to-r from-[#1d9bf0] via-[#47aef5] to-[#8ecdf8]" />
         )}
       </div>
       <div className="px-5 pb-6">
