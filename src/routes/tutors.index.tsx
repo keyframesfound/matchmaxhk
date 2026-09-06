@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
-import { PriceRangeSlider } from "@/components/ui/range-slider";
+import { AmountReadout, AmountSlider } from "@/components/ui/amount-slider";
 import {
   Dialog,
   DialogContent,
@@ -62,6 +62,7 @@ type SearchState = z.infer<typeof searchSchema>;
 const PRICE_MIN = 100;
 const PRICE_MAX = 1200;
 const PRICE_STEP = 10;
+const PRICE_STOPS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200];
 
 const MAX_COMPARE = 4;
 
@@ -389,22 +390,6 @@ function TutorsDirectory() {
     queryFn: fetchPublishedTutors,
   });
 
-  // Hourly-rate distribution for the search panel's histogram slider.
-  const rateHistogram = useMemo(() => {
-    const BUCKETS = 32;
-    const counts = Array.from({ length: BUCKETS }, () => 0);
-    for (const tut of tutors) {
-      const rate = Math.min(Math.max(tut.hourly_rate, PRICE_MIN), PRICE_MAX);
-      const index = Math.min(
-        BUCKETS - 1,
-        Math.floor(((rate - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * BUCKETS),
-      );
-      counts[index] += 1;
-    }
-    const peak = Math.max(...counts, 1);
-    return counts.map((count) => Math.max(count / peak, 0.05));
-  }, [tutors]);
-
   const { data: whatsappNumber = "" } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
     queryFn: async () => {
@@ -619,24 +604,43 @@ function TutorsDirectory() {
                 </Button>
               </form>
 
-              <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-6">
-                <div className="w-full max-w-xs shrink-0">
-                  <p className="mb-2 text-xs font-medium text-muted-foreground">
-                    {t("search_panel.price_range")}
-                  </p>
-                  <PriceRangeSlider
-                    className="px-0"
-                    data={rateHistogram}
+              <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
+                <div className="flex w-full flex-col gap-2 sm:min-w-[20rem] sm:flex-1 sm:flex-row sm:items-center sm:gap-5">
+                  <div className="flex shrink-0 items-baseline gap-2.5">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {t("search_panel.price_range")}
+                    </p>
+                    <AmountReadout
+                      value={draft.min_price ?? PRICE_MIN}
+                      prefix="HK$"
+                      className="text-base leading-none"
+                    />
+                    <span aria-hidden="true" className="text-xs text-muted-foreground">
+                      –
+                    </span>
+                    <AmountReadout
+                      value={draft.max_price ?? PRICE_MAX}
+                      prefix="HK$"
+                      suffix={draft.max_price === undefined ? "+" : undefined}
+                      className="text-base leading-none"
+                    />
+                  </div>
+                  <AmountSlider
+                    aria-label={t("search_panel.price_range")}
                     min={PRICE_MIN}
                     max={PRICE_MAX}
                     step={PRICE_STEP}
+                    stops={PRICE_STOPS}
+                    minStepsBetweenThumbs={1}
+                    thumbAriaLabels={["Minimum hourly rate", "Maximum hourly rate"]}
                     value={[draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX]}
-                    onValueChange={([min, max]) =>
+                    onValueChange={([lo, hi]) =>
                       setDraftParam({
-                        min_price: min > PRICE_MIN ? min : undefined,
-                        max_price: max < PRICE_MAX ? max : undefined,
+                        min_price: lo && lo > PRICE_MIN ? lo : undefined,
+                        max_price: hi && hi < PRICE_MAX ? hi : undefined,
                       })
                     }
+                    className="w-full sm:flex-1"
                   />
                 </div>
                 <SearchableSelect

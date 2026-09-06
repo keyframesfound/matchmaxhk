@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Search, UserPlus } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import { AmountReadout, AmountSlider } from "@/components/ui/amount-slider";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
-import Hero08, { type Hero08Avatar, type Hero08Card } from "@/components/ui/hero-08";
+import Hero08, { Hero08Cards, type Hero08Avatar, type Hero08Card } from "@/components/ui/hero-08";
 import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 import {
   fetchPublishedTutors,
@@ -335,7 +335,6 @@ function Landing() {
         description={t("hero.description")}
         socialProof={t("hero.eyebrow")}
         avatars={heroAvatars}
-        cards={heroCards}
         animation="subtle"
       />
 
@@ -510,66 +509,7 @@ function Landing() {
 
       {/* FINDING A TUTOR / TUTOR CTA */}
       <section id="how" className="py-12 md:py-24">
-        <div className="mx-auto max-w-7xl space-y-8 px-4 md:space-y-12 md:px-6">
-          <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
-            <div className="order-2 lg:order-1">
-              <h2 className="mt-2 text-2xl font-bold tracking-tight text-[color:var(--ink)] md:text-4xl">
-                {t("how.step1_title")}
-              </h2>
-              <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
-                {t("how.step1_desc")}
-              </p>
-              <Button
-                asChild
-                size="lg"
-                variant="solid"
-                color="blue"
-                className="mt-5 h-11 w-full rounded-xl px-4 text-sm font-bold md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
-              >
-                <Link to="/tutors">
-                  <Search className="mr-2 h-4 w-4" />
-                  {t("how.cta_find")}
-                </Link>
-              </Button>
-            </div>
-            <div className="order-1 lg:order-2">
-              <div className="landing-tutor-visual landing-tutor-visual--dots" aria-hidden="true" />
-            </div>
-          </div>
-
-          <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
-            <div>
-              <div className="overflow-hidden rounded-2xl bg-[color:var(--surface)]">
-                <img
-                  src="/tutor-matching-network.jpeg"
-                  alt="Tutor and student matching network"
-                  className="h-auto w-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-            <div>
-              <h3 className="mt-2 text-2xl font-bold tracking-tight text-[color:var(--ink)] md:text-4xl">
-                {t("tutors_cta.title")}
-              </h3>
-              <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
-                {t("tutors_cta.subtitle")}
-              </p>
-              <Button
-                asChild
-                size="lg"
-                variant="solid"
-                color="blue"
-                className="mt-5 h-11 w-full rounded-xl px-4 text-sm font-bold md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
-              >
-                <Link to="/join">
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  {t("tutors_cta.cta")}
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
+        <Hero08Cards cards={heroCards} animation="subtle" />
       </section>
 
       <SiteFooter />

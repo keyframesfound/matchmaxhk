@@ -28,7 +28,7 @@ export interface Hero08Props {
   description: string;
   socialProof?: string;
   avatars?: Hero08Avatar[];
-  cards: Hero08Card[];
+  cards?: Hero08Card[];
   animation?: "none" | "subtle";
   variant?: "standard" | "compact";
   className?: string;
@@ -220,11 +220,53 @@ export function Hero08({
           </div>
         </Reveal>
 
-        <Reveal active={animate} variants={mediaItem} className="w-full">
-          {cardsElement}
-        </Reveal>
+        {cardsElement && (
+          <Reveal active={animate} variants={mediaItem} className="w-full">
+            {cardsElement}
+          </Reveal>
+        )}
       </motion.div>
     </section>
+  );
+}
+
+/**
+ * The feature-card grid on its own, for placing the cards anywhere on the page
+ * (e.g. a lower section) while the hero keeps only the title/description header.
+ */
+export function Hero08Cards({
+  cards,
+  animation = "none",
+  variant = "standard",
+  className,
+}: {
+  cards: Hero08Card[];
+  animation?: "none" | "subtle";
+  variant?: "standard" | "compact";
+  className?: string;
+}) {
+  const reduce = useReducedMotion();
+  const animate = animation === "subtle" && !reduce;
+  const vs = variantStyles[variant];
+
+  if (!cards?.length) return null;
+
+  return (
+    <motion.div
+      className={cn("relative z-10 mx-auto flex max-w-6xl flex-col px-6", className)}
+      variants={animate ? container : undefined}
+      initial={animate ? "hidden" : false}
+      whileInView={animate ? "visible" : undefined}
+      viewport={{ once: true, margin: "-80px" }}
+    >
+      <Reveal active={animate} variants={mediaItem} className="w-full">
+        <div className={cn("grid grid-cols-1 md:grid-cols-2", vs.grid)}>
+          {cards.map((card) => (
+            <FeatureCard key={card.title} card={card} vs={vs} />
+          ))}
+        </div>
+      </Reveal>
+    </motion.div>
   );
 }
 
