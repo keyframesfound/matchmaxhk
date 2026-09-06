@@ -531,9 +531,12 @@ function TutorsDirectory() {
             <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
               Find verified tutors
             </h1>
-            <div className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5">
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Start with a subject or tutor code, then narrow the list to the right fit.
+            </p>
+            <div className="relative mt-7 overflow-hidden rounded-sm border border-border bg-card shadow-sm">
               <form
-                className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]"
+                className="p-4 sm:p-5"
                 onSubmit={(event) => {
                   event.preventDefault();
                   navigate({
@@ -544,16 +547,29 @@ function TutorsDirectory() {
                   });
                 }}
               >
-                <div className="relative lg:col-span-5">
+                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+                  <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    className="h-11 rounded-sm pl-9"
+                    className="h-12 rounded-sm pl-9 text-base"
                     placeholder={t("search_panel.keyword_placeholder")}
                     aria-label={t("search_panel.keyword_aria")}
                     value={draft.q ?? ""}
                     onChange={(e) => setDraftParam({ q: e.target.value })}
                   />
                 </div>
+                  <Button
+                    type="submit"
+                    variant="solid"
+                    color="blue"
+                    className="h-12 rounded-sm px-7 font-bold"
+                  >
+                    <Search className="mr-1.5 h-4 w-4" />
+                    {t("search_panel.search")}
+                  </Button>
+                </div>
+                <div className="mt-4 border-t border-border pt-4">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <SearchableSelect
                   value={draft.category ?? ""}
                   onChange={handleCategoryChange}
@@ -593,19 +609,12 @@ function TutorsDirectory() {
                   placeholder={t("search_panel.any_gender")}
                   className="h-11 rounded-sm"
                 />
-                <Button
-                  type="submit"
-                  variant="solid"
-                  color="blue"
-                  className="h-11 rounded-sm px-6 font-bold"
-                >
-                  <Search className="mr-1.5 h-4 w-4" />
-                  {t("search_panel.search")}
-                </Button>
+                  </div>
+                </div>
               </form>
 
-              <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
-                <div className="flex w-full flex-col gap-2 sm:min-w-[20rem] sm:flex-1 sm:flex-row sm:items-center sm:gap-5">
+              <div className="grid gap-4 border-t border-border bg-[color:var(--surface-subtle)] px-4 py-4 sm:px-5 lg:grid-cols-[minmax(22rem,36rem)_14rem_auto] lg:items-center lg:gap-6">
+                <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:gap-5">
                   <div className="flex shrink-0 items-baseline gap-2.5">
                     <p className="text-xs font-medium text-muted-foreground">
                       {t("search_panel.price_range")}
@@ -655,26 +664,17 @@ function TutorsDirectory() {
                   searchPlaceholder={t("search_panel.search_sorting")}
                   className="h-11 w-full rounded-sm sm:w-56 sm:shrink-0"
                 />
-                <div className="flex flex-wrap items-center gap-3 sm:ml-auto">
-                  {hotlineUrl ? (
-                    <a
-                      href={hotlineUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex h-9 items-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
-                    >
-                      <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
-                      WhatsApp
-                    </a>
-                  ) : null}
-                  <p className="text-xs text-muted-foreground sm:text-sm">
-                    {t("search_panel.skip_prefix")}{" "}
-                    <span className="font-bold text-[color:var(--ink)]">
-                      {t("search_panel.skip_highlight")}
-                    </span>
-                    {t("search_panel.skip_suffix")}
-                  </p>
-                </div>
+                {hotlineUrl ? (
+                  <a
+                    href={hotlineUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
+                  >
+                    <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
+                    WhatsApp us
+                  </a>
+                ) : null}
               </div>
             </div>
           </div>

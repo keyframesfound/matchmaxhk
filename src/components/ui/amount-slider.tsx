@@ -389,7 +389,7 @@ export function AmountReadout({
   return (
     <span
       className={cn(
-        "inline-flex items-baseline font-semibold tabular-nums text-foreground",
+        "relative top-[0.24em] inline-flex items-baseline font-semibold tabular-nums text-foreground",
         className,
       )}
       role="status"
