@@ -215,5 +215,19 @@
   },
   "profile": {
     "verified": "Verified"
+  },
+  "tutor_card": {
+    "verified_fallback": "Academic profile verified",
+    "academic_achievements": "Academic achievements",
+    "achievements_and_experiences": "Achievements and Experiences",
+    "more": "more",
+    "highlights_label": "Tutor card highlights",
+    "highlight_fallback": "Experienced tutor matching students with tailored support",
+    "tutor_alt": "Tutor {{code}}",
+    "compare_add": "Add tutor {{code}} to comparison",
+    "compare_remove": "Remove tutor {{code}} from comparison",
+    "gender_male": "Male",
+    "gender_female": "Female",
+    "gender_other": "Other"
   }
 }

@@ -242,5 +242,19 @@
   },
   "profile": {
     "verified": "已核實"
+  },
+  "tutor_card": {
+    "verified_fallback": "學術資料已核實",
+    "academic_achievements": "學術成績",
+    "achievements_and_experiences": "成就同經驗",
+    "more": "更多",
+    "highlights_label": "導師卡重點",
+    "highlight_fallback": "經驗豐富嘅導師，為學生配對度身訂造嘅支援",
+    "tutor_alt": "導師 {{code}}",
+    "compare_add": "將導師 {{code}} 加入比較",
+    "compare_remove": "將導師 {{code}} 移出比較",
+    "gender_male": "男",
+    "gender_female": "女",
+    "gender_other": "其他"
   }
 }

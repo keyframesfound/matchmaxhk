@@ -1,6 +1,7 @@
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Award, Check, Columns2, UserRound } from "lucide-react";
-import { getTutorCardHighlights, getTutorGenderLabel, type Tutor } from "@/features/tutors/queries";
+import { getTutorCardHighlights, type Tutor } from "@/features/tutors/queries";
 import {
   formatTutorCode,
   getTutorSubjectChips,
@@ -34,12 +35,12 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
   return (
     <span
       data-academic-chip
-      className="inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[9px] font-bold leading-snug text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[10px]"
+      className="inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--brand-teal)]/45 bg-[color:var(--brand-teal)]/8 px-2 py-1 text-[10px] font-bold leading-snug text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[11px]"
     >
       <span className="break-words">{chip.subject}</span>
       {grade ? (
         <>
-          <span className="mx-0.5 shrink-0 text-[color:var(--brand-teal)]">:</span>
+          <span className="mx-0.5 shrink-0 text-muted-foreground">:</span>
           <span className="shrink-0 font-black">
             {grade.prefix}
             {grade.value}
@@ -71,6 +72,7 @@ export function PublicTutorCard({
   compareSelected,
   onCompareToggle,
 }: PublicTutorCardProps) {
+  const { t } = useTranslation();
   const interactive = typeof onOpen === "function";
   const academicChips = useMemo(() => getTutorSubjectChips(tutor), [tutor]);
   const cardHighlights = useMemo(() => getTutorCardHighlights(tutor), [tutor]);
@@ -78,12 +80,14 @@ export function PublicTutorCard({
   const academicWidthRef = useRef<number | null>(null);
   const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
   const [visibleAcademicChipCount, setVisibleAcademicChipCount] = useState(academicChips.length);
-  const genderLabel = getTutorGenderLabel(tutor.gender);
+  const genderLabel = t(`tutor_card.gender_${(tutor.gender ?? "").toLowerCase()}`, {
+    defaultValue: "",
+  }) as string;
   const primaryCredential = removeEmoji(
     tutor.academic_headline ??
       tutor.university ??
       tutor.secondary_school ??
-      "Academic profile verified",
+      t("tutor_card.verified_fallback"),
   );
   const supportingCredentials = [tutor.university, tutor.secondary_school]
     .map((value) => (value ? removeEmoji(value) : ""))
@@ -156,7 +160,7 @@ export function PublicTutorCard({
   return (
     <article
       className={cn(
-        "relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--surface)] shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[23rem]",
+        "relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[10px] border border-[color:var(--brand-teal)]/25 bg-[color:var(--surface)] shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-teal)]/40 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
         interactive && "cursor-pointer",
         compareSelected &&
           "border-[color:var(--brand-teal)] ring-2 ring-[color:var(--brand-teal)]/40",
@@ -183,7 +187,9 @@ export function PublicTutorCard({
               {tutor.photo_url ? (
                 <img
                   src={tutor.photo_url}
-                  alt={`Tutor ${formatTutorCode(tutor.tutor_code)}`}
+                  alt={t("tutor_card.tutor_alt", { code: formatTutorCode(tutor.tutor_code) })}
+                  loading="lazy"
+                  decoding="async"
                   className="h-11 w-11 rounded-full border border-border bg-muted object-cover md:h-[3.25rem] md:w-[3.25rem]"
                 />
               ) : (
@@ -198,7 +204,12 @@ export function PublicTutorCard({
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">
-            <p className="line-clamp-2 text-[14px] font-black leading-tight tracking-tight text-[color:var(--ink)] md:pr-20 md:text-[17px]">
+            <p
+              className={cn(
+                "line-clamp-2 text-[14px] font-black leading-tight tracking-tight text-[color:var(--ink)] md:text-[17px]",
+                genderLabel ? "md:pr-20" : "md:pr-0",
+              )}
+            >
               {primaryCredential}
             </p>
             {supportingCredentials.map((credential, index) => (
@@ -231,7 +242,7 @@ export function PublicTutorCard({
         {academicChips.length > 0 ? (
           <section className="border-b border-[color:var(--brand-teal)]/20 pb-2.5 md:pb-3">
             <h3 className="text-[13px] font-black tracking-tight text-[color:var(--ink)] md:text-[15px]">
-              Academic achievements
+              {t("tutor_card.academic_achievements")}
             </h3>
             <div className="relative mt-2">
               <div
@@ -252,9 +263,9 @@ export function PublicTutorCard({
                     aria-controls={`academic-achievements-${tutor.tutor_code}`}
                     onClick={toggleAcademicChips}
                     onKeyDown={(event) => event.stopPropagation()}
-                    className="inline-flex translate-y-0.5 items-center self-center px-0.5 py-1 text-[11px] font-bold leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline md:py-1.5 md:text-[12px]"
+                    className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-[11px] font-bold leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-teal)]/40 md:py-1.5 md:text-[12px]"
                   >
-                    ... more
+                    ... {t("tutor_card.more")}
                   </button>
                 ) : null}
               </div>
@@ -267,7 +278,7 @@ export function PublicTutorCard({
         >
           <h3 className="flex items-center gap-1.5 text-[11px] font-black tracking-tight text-[color:var(--ink)] md:text-[12px]">
             <Award className="h-3.5 w-3.5 text-[color:var(--brand-teal)]" aria-hidden="true" />
-            Achievements and Experiences
+            {t("tutor_card.achievements_and_experiences")}
           </h3>
 
           {tutor.achievements.length > 0 ? (
@@ -287,46 +298,46 @@ export function PublicTutorCard({
             </ul>
           ) : null}
 
-          <div className="mt-2.5 space-y-1 md:mt-3" aria-label="Tutor card highlights">
+          <ul className="mt-2.5 space-y-1 md:mt-3" aria-label={t("tutor_card.highlights_label")}>
             {(cardHighlights.length > 0
               ? cardHighlights
-              : ["Experienced tutor matching students with tailored support"]
+              : [t("tutor_card.highlight_fallback")]
             ).map((highlight, index) => (
-              <p
+              <li
                 key={`${highlight}-${index}`}
                 className="line-clamp-1 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--ink)] md:text-[14px]"
               >
                 {removeEmoji(highlight)}
-              </p>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       </div>
 
-      <footer className="flex items-center justify-between gap-2 border-t border-[color:var(--brand-teal)]/20 bg-[color:var(--surface)] px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
+      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--brand-teal)]/20 bg-[color:var(--surface)] px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
         <p className="text-xl font-black leading-none tracking-tight text-[color:var(--ink)] md:text-3xl">
           HK${tutor.hourly_rate}
           <span className="ml-1 text-[10px] font-semibold text-muted-foreground md:text-[13px]">
             {priceSuffix}
           </span>
         </p>
-        <div className="flex items-center gap-1.5 md:gap-2">
+        <div className="ml-auto flex items-center gap-1.5 md:gap-2">
           {onCompareToggle ? (
             <button
               type="button"
               aria-pressed={compareSelected ?? false}
               aria-label={
                 compareSelected
-                  ? `Remove tutor ${formatTutorCode(tutor.tutor_code)} from comparison`
-                  : `Add tutor ${formatTutorCode(tutor.tutor_code)} to comparison`
+                  ? t("tutor_card.compare_remove", { code: formatTutorCode(tutor.tutor_code) })
+                  : t("tutor_card.compare_add", { code: formatTutorCode(tutor.tutor_code) })
               }
               onClick={handleCompareToggle}
               onKeyDown={(event) => event.stopPropagation()}
               className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-[2px] transition-colors",
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-teal)]/40",
                 compareSelected
                   ? "bg-[color:var(--brand-teal)] text-white"
-                  : "text-[color:var(--ink)]/55 hover:text-[color:var(--brand-teal)]",
+                  : "text-[color:var(--ink)]/55 hover:bg-[color:var(--brand-teal)]/10 hover:text-[color:var(--brand-teal)]",
               )}
             >
               {compareSelected ? (

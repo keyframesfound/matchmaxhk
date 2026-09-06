@@ -136,9 +136,9 @@ const TutorRequestsIndexRoute = TutorRequestsIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const TutorRequestsCaseCodeRoute = TutorRequestsCaseCodeRouteImport.update({
-  id: '/$caseCode',
-  path: '/$caseCode',
-  getParentRoute: () => TutorRequestsRoute,
+  id: '/tutor-requests/$caseCode',
+  path: '/tutor-requests/$caseCode',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const TutorsIndexRoute = TutorsIndexRouteImport.update({
   id: '/tutors/',
@@ -475,6 +475,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BusinessSlugRoute: typeof BusinessSlugRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
+  TutorRequestsCaseCodeRoute: typeof TutorRequestsCaseCodeRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
   CoursesIndexRoute: typeof CoursesIndexRoute
   TutorRequestsIndexRoute: typeof TutorRequestsIndexRoute
@@ -614,10 +615,10 @@ declare module '@tanstack/react-router' {
     }
     '/tutor-requests/$caseCode': {
       id: '/tutor-requests/$caseCode'
-      path: '/$caseCode'
+      path: '/tutor-requests/$caseCode'
       fullPath: '/tutor-requests/$caseCode'
       preLoaderRoute: typeof TutorRequestsCaseCodeRouteImport
-      parentRoute: typeof TutorRequestsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/tutors/': {
       id: '/tutors/'
@@ -804,6 +805,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BusinessSlugRoute: BusinessSlugRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
+  TutorRequestsCaseCodeRoute: TutorRequestsCaseCodeRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
   CoursesIndexRoute: CoursesIndexRoute,
   TutorRequestsIndexRoute: TutorRequestsIndexRoute,
