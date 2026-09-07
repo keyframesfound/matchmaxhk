@@ -1,6 +1,5 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { gsap } from "gsap";
-import { Search } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -8,13 +7,9 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type FormEvent,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { useTranslation } from "react-i18next";
-
-import { Input } from "@/components/ui/input";
 
 import "./StaggeredMobileMenu.css";
 
@@ -43,11 +38,8 @@ export function StaggeredMobileMenu({
   socialItems,
   renderFooter,
 }: StaggeredMobileMenuProps) {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [query, setQuery] = useState("");
   const openRef = useRef(false);
   const panelRef = useRef<HTMLElement>(null);
   const layersRef = useRef<HTMLDivElement>(null);
@@ -160,14 +152,6 @@ export function StaggeredMobileMenu({
     playClose();
   }, [playClose, playOpen]);
 
-  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const q = query.trim();
-    setQuery("");
-    closeMenu();
-    void navigate({ to: "/tutors", search: q ? { q } : {} });
-  };
-
   useEffect(() => {
     if (!open) return;
 
@@ -224,42 +208,6 @@ export function StaggeredMobileMenu({
             </div>
 
             <aside id={panelId} ref={panelRef} className="smm-panel" aria-hidden={!open}>
-              <div className="smm-panel-header">
-                <Link
-                  to="/"
-                  className="smm-brand"
-                  aria-label="MatchMax home"
-                  onClick={() => closeMenu()}
-                >
-                  <img
-                    src="/matchmax-logo.png"
-                    alt=""
-                    className="logo-dark-recolor"
-                    width={32}
-                    height={32}
-                  />
-                  <span>MatchMax</span>
-                </Link>
-              </div>
-
-              <form className="smm-search" role="search" onSubmit={handleSearchSubmit}>
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink)]/45"
-                  aria-hidden="true"
-                />
-                <Input
-                  type="search"
-                  enterKeyHint="search"
-                  className="h-11 rounded-sm pl-9"
-                  placeholder={t("search_panel.keyword_placeholder", {
-                    defaultValue: "Search tutor code, subject, keyword…",
-                  })}
-                  aria-label={t("search_panel.keyword_aria", { defaultValue: "Search tutors" })}
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                />
-              </form>
-
               <div className="smm-panel-content">
                 <nav aria-label="Mobile navigation">
                   <ol className="smm-menu-list">
