@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && node scripts/sync-dist.mjs",
+    "build": "NITRO_PRESET=cloudflare-module vite build && node scripts/sync-dist.mjs",
     "build:dev": "vite build --mode development && node scripts/sync-dist.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
