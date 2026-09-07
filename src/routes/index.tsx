@@ -14,6 +14,7 @@ import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 import { blurActive } from "@/lib/dom";
+import { cn } from "@/lib/utils";
 import {
   fetchPublishedTutors,
   fetchTopWeeklyTutors,
@@ -137,14 +138,56 @@ function CurriculumTutorSection({
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
 
-  const pageCount = tutors.length > TUTORS_PER_PAGE ? 2 : 1;
-  const currentPage = Math.min(page, pageCount - 1);
-  const pageTutors =
-    currentPage === 0
-      ? tutors.slice(0, TUTORS_PER_PAGE)
-      : tutors.slice(TUTORS_PER_PAGE, MAX_HOME_TUTORS);
-  const showSeeAllTile = pageCount > 1 && currentPage === pageCount - 1;
-  const goToPage = (next: number) => setPage(Math.max(0, Math.min(pageCount - 1, next)));
+  const pages: Tutor[][] = [];
+  for (let i = 0; i < tutors.length; i += TUTORS_PER_PAGE) {
+    pages.push(tutors.slice(i, i + TUTORS_PER_PAGE));
+  }
+  const currentPage = Math.min(page, pages.length - 1);
+  const goToPage = (next: number) => setPage(Math.max(0, Math.min(pages.length - 1, next)));
+
+  const renderTutorCard = (tutor: Tutor) => (
+    <div key={tutor.id} className="min-w-0">
+      <PublicTutorCard
+        tutor={tutor}
+        priceSuffix={priceSuffix}
+        onOpen={onOpen}
+        footerAction={
+          <>
+            <TutorSaveButton tutorId={tutor.id} compact />
+            <Button
+              asChild
+              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+            >
+              <a
+                href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(event) => event.stopPropagation()}
+              >
+                Request tutor
+              </a>
+            </Button>
+          </>
+        }
+      />
+    </div>
+  );
+
+  const seeAllTile = (className: string) => (
+    <Link
+      to="/tutors"
+      search={{ category }}
+      className={cn(
+        "flex flex-col items-center justify-center gap-3 rounded-[var(--radius-panel)] border border-dashed border-border bg-[color:var(--surface-subtle)]/40 text-center transition-colors hover:bg-[color:var(--surface-subtle)]",
+        className,
+      )}
+    >
+      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card">
+        <ArrowRight className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
+      </span>
+      <span className="text-sm font-bold text-[color:var(--ink)]">{t("featured.see_all")}</span>
+    </Link>
+  );
 
   return (
     <section>
@@ -162,8 +205,8 @@ function CurriculumTutorSection({
             <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
           </Link>
         </Button>
-        {pageCount > 1 ? (
-          <div className="ml-auto flex shrink-0 items-center gap-1.5">
+        {pages.length > 1 ? (
+          <div className="ml-auto hidden shrink-0 items-center gap-1.5 md:flex">
             <button
               type="button"
               aria-label={t("featured.prev")}
@@ -176,7 +219,7 @@ function CurriculumTutorSection({
             <button
               type="button"
               aria-label={t("featured.next")}
-              disabled={currentPage === pageCount - 1}
+              disabled={currentPage === pages.length - 1}
               onClick={() => goToPage(currentPage + 1)}
               className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)] disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
             >
@@ -195,50 +238,40 @@ function CurriculumTutorSection({
             />
           ))}
         </div>
-      ) : pageTutors.length > 0 ? (
-        <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-3 xl:grid-cols-4">
-          {pageTutors.map((tutor) => (
-            <div key={tutor.id} className="w-[min(86vw,370px)] shrink-0 snap-start md:w-auto">
-              <PublicTutorCard
-                tutor={tutor}
-                priceSuffix={priceSuffix}
-                onOpen={onOpen}
-                footerAction={
-                  <>
-                    <TutorSaveButton tutorId={tutor.id} compact />
-                    <Button
-                      asChild
-                      className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                    >
-                      <a
-                        href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        Request tutor
-                      </a>
-                    </Button>
-                  </>
-                }
-              />
-            </div>
-          ))}
-          {showSeeAllTile ? (
-            <Link
-              to="/tutors"
-              search={{ category }}
-              className="flex min-h-[20rem] w-[min(86vw,370px)] shrink-0 snap-start flex-col items-center justify-center gap-3 rounded-[var(--radius-panel)] border border-dashed border-border bg-[color:var(--surface-subtle)]/40 text-center transition-colors hover:bg-[color:var(--surface-subtle)] md:min-h-[23rem] md:w-auto"
+      ) : tutors.length > 0 ? (
+        <>
+          {/* Mobile: one swipeable row — first page of tutors, then the see-all tile */}
+          <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:hidden">
+            {tutors.slice(0, TUTORS_PER_PAGE).map((tutor) => renderTutorCard(tutor))}
+            {tutors.length > TUTORS_PER_PAGE
+              ? seeAllTile("min-h-[20rem] w-[min(86vw,370px)] shrink-0 snap-start")
+              : null}
+          </div>
+
+          {/* md+: paged sliding track */}
+          <div className="hidden overflow-hidden md:block">
+            <div
+              className="flex items-stretch transition-transform duration-300 ease-out motion-reduce:transition-none"
+              style={{ transform: `translateX(-${currentPage * 100}%)` }}
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card">
-                <ArrowRight className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
-              </span>
-              <span className="text-sm font-bold text-[color:var(--ink)]">
-                {t("featured.see_all")}
-              </span>
-            </Link>
-          ) : null}
-        </div>
+              {pages.map((pageTutors, pageIndex) => {
+                const isCurrentPage = pageIndex === currentPage;
+                const withSeeAllTile = pages.length > 1 && pageIndex === pages.length - 1;
+                return (
+                  <div
+                    key={pageIndex}
+                    inert={!isCurrentPage}
+                    aria-hidden={!isCurrentPage}
+                    className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-3 xl:grid-cols-4"
+                  >
+                    {pageTutors.map((tutor) => renderTutorCard(tutor))}
+                    {withSeeAllTile ? seeAllTile("min-h-[23rem]") : null}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
       ) : null}
     </section>
   );

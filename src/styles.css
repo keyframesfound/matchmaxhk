@@ -867,7 +867,7 @@
     --background: #050505;
     --surface-subtle: rgba(255, 255, 255, 0.08);
     border-bottom-color: rgba(255, 255, 255, 0.1);
-    background-color: rgba(5, 5, 5, 0.55);
+    background-color: rgba(5, 5, 5, 0.6) !important;
   }
 
   .site-header--dark .logo-dark-recolor {

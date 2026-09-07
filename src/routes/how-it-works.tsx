@@ -285,13 +285,13 @@ function HowItWorksPage() {
       <SiteHeader
         tone={stageActive ? "dark" : "light"}
         className={
-          stageActive
-            ? "!border-b-0 !bg-transparent"
-            : "!border-b-0 !bg-white/95 dark:!bg-[color:var(--surface)]"
+          stageActive ? "!border-b-0" : "!border-b-0 !bg-white/95 dark:!bg-[color:var(--surface)]"
         }
       />
       <main className="flex-1">
-        <HeroReveal onStageActiveChange={handleStageActive} />
+        <div className="-mt-16">
+          <HeroReveal onStageActiveChange={handleStageActive} />
+        </div>
 
         <section className="mx-auto max-w-[1440px] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
           <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
