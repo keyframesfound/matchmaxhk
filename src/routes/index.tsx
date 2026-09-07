@@ -412,7 +412,6 @@ function Landing() {
             <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-5xl md:text-6xl lg:text-7xl">
               {t("hero.title_a")}
               <br />
-              <span className="text-[color:var(--ink)]">{t("hero.title_b")}</span>
             </h1>
             <div className="mt-6 flex flex-wrap gap-3 md:mt-8">
               <Button
