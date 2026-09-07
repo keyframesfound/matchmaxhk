@@ -48,7 +48,8 @@ function PreviewButton({
     <span
       className={cn(
         "inline-flex h-9 cursor-default select-none items-center rounded-md px-3.5 text-sm font-bold",
-        variant === "primary" && "bg-[color:var(--surface-invert)] text-white",
+        variant === "primary" &&
+          "bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]",
         variant === "outline" && "border border-border bg-card text-[color:var(--ink)]",
         variant === "ghost" && "text-[color:var(--ink)]",
       )}

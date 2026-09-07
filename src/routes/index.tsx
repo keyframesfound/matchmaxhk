@@ -156,7 +156,7 @@ function CurriculumTutorSection({
             <TutorSaveButton tutorId={tutor.id} compact />
             <Button
               asChild
-              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
             >
               <a
                 href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}
@@ -419,7 +419,7 @@ function Landing() {
               <Button
                 asChild
                 size="lg"
-                className="h-12 w-full rounded-xl bg-[color:var(--surface-invert)] px-5 text-base font-bold text-white shadow-brand hover:bg-[color:var(--surface-invert-hover)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
+                className="h-12 w-full rounded-xl bg-[color:var(--surface-invert)] px-5 text-base font-bold text-[color:var(--surface-invert-fg)] shadow-brand hover:bg-[color:var(--surface-invert-hover)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
               >
                 <Link
                   to="/tutors"
@@ -496,7 +496,7 @@ function Landing() {
                 className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
               />
               <Button
-                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-xs font-bold text-white hover:bg-[color:var(--surface-invert-hover)] md:h-11 md:px-6 md:text-base"
+                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-xs font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] md:h-11 md:px-6 md:text-base"
                 onClick={() => navigate({ to: "/tutors", search: tutorSearchParams })}
               >
                 <Search className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4" />
@@ -536,7 +536,7 @@ function Landing() {
               <Button
                 asChild
                 size="lg"
-                className="mt-5 h-11 w-full rounded-xl bg-[color:var(--surface-invert)] px-4 text-sm font-bold text-white hover:bg-[color:var(--surface-invert-hover)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
+                className="mt-5 h-11 w-full rounded-xl bg-[color:var(--surface-invert)] px-4 text-sm font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
                 <Link to="/tutors">
                   <Search className="mr-2 h-4 w-4" />
@@ -570,7 +570,7 @@ function Landing() {
               <Button
                 asChild
                 size="lg"
-                className="mt-5 h-11 w-full rounded-xl bg-[color:var(--surface-invert)] px-4 text-sm font-bold text-white hover:bg-[color:var(--surface-invert-hover)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
+                className="mt-5 h-11 w-full rounded-xl bg-[color:var(--surface-invert)] px-4 text-sm font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
                 <Link to="/join">
                   <UserPlus className="mr-2 h-4 w-4" />

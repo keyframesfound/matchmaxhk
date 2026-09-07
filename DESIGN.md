@@ -167,7 +167,7 @@ The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairli
 ### Named Rules
 **The Scarcity Rule.** Azure (`--btn-accent`/`--ring`/`--brand-link`) owns exactly three things: (1) money-CTA fills — the ~10% of buttons that start a conversion flow, (2) text links, (3) focus rings and selected/active states. Everything else is ink/neutral. Test: *does this button start a conversion flow?* If not, it is neutral (white or ink).
 
-**The Constant Signal Rule.** Dark mode dims the world, not the signal: Azure keeps carrying accent fills, links, and focus in both themes (unlike palettes that invert the accent). Dark neutral/secondary buttons use X's translucent slate fill (`rgba(91,112,131,0.4)`, `--btn-neutral`) with `#F0F3F4` text, deepening to `0.6` alpha on hover — the white pill is never a resting neutral in dark mode.
+**The Constant Signal Rule.** Dark mode dims the world, not the signal: Azure keeps carrying accent fills, links, and focus in both themes (unlike palettes that invert the accent). Dark neutral/secondary buttons use X's translucent slate fill (`rgba(91,112,131,0.4)`, `--btn-neutral`) with white (`#FFFFFF`) text, deepening to `0.6` alpha on hover — the white pill is never a resting neutral in dark mode. The inverted CTA pill (`--surface-invert`) is white with ink text in dark (`--surface-invert-fg`), white text on ink in light; never hardcode `text-white` on an invert fill.
 
 ## Typography
 

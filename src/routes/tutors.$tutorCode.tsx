@@ -677,7 +677,7 @@ function TutorDetail() {
                     footerAction={
                       <Button
                         asChild
-                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white shadow-none hover:bg-[color:var(--surface-invert-hover)]"
+                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] shadow-none hover:bg-[color:var(--surface-invert-hover)]"
                       >
                         <a
                           href={`https://wa.me/${(whatsappNumber ?? "").replace(/[^\d]/g, "")}?text=${encodeURIComponent(`I would like to request tutor ${candidate.tutor_code}`)}`}

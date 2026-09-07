@@ -1958,7 +1958,7 @@ export function ApplicationForm() {
                             className={cn(
                               "rounded-lg border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
                               travelBudget === budget && originStation
-                                ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-white"
+                                ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]"
                                 : "border-border bg-card text-foreground hover:border-[color:var(--foreground)]/25",
                             )}
                           >

@@ -167,6 +167,7 @@
   --surface-hover: #eff3f4;
   --surface-invert: #0f1419;
   --surface-invert-hover: #272c30;
+  --surface-invert-fg: #ffffff;
   --brand-link: #1d9bf0;
 
   /* Stepper */
@@ -206,6 +207,7 @@
   --surface-hover: #202327;
   --surface-invert: #f0f3f4;
   --surface-invert-hover: #d9dde0;
+  --surface-invert-fg: #0f1419;
   --brand-link: #1d9bf0;
   --subtle-foreground: #71767b;
   --disabled-foreground: #536471;

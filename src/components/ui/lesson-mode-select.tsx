@@ -36,7 +36,7 @@ function AnimatedCheck({ selected }: { selected: boolean }) {
     <AnimatePresence initial={false}>
       {selected ? (
         <motion.span
-          className="ml-auto grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[color:var(--surface-invert)] text-white"
+          className="ml-auto grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]"
           initial={shouldReduceMotion ? {} : { scale: 0 }}
           animate={shouldReduceMotion ? {} : { scale: 1 }}
           exit={shouldReduceMotion ? {} : { scale: 0 }}
