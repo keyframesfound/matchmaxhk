@@ -2,30 +2,32 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, ChevronLeft, ChevronRight, Search, UserPlus } from "lucide-react";
+import { ArrowRight, BadgeCheck, BookOpen, Clock3, MapPin, Search } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
-import { AmountReadout, AmountSlider } from "@/components/ui/amount-slider";
-import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
-import { TutorSaveButton } from "@/features/tutors/saved-tutors";
-import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
+import { PublicTutorCard, buildTutorWhatsAppUrl } from "@/features/tutors/public-tutor-card";
+import { blurActive } from "@/lib/dom";
 import {
   fetchPublishedTutors,
   fetchTopWeeklyTutors,
-  getTutorCardHighlights,
+  fetchLandingStats,
+  fetchTutorByCode,
   HK_DISTRICTS,
+  matchesDistrictFilter,
+  matchesLessonModeFilter,
 } from "@/features/tutors/queries";
-import {
-  DEFAULT_SUBJECT_OPTIONS,
-  getSubjectOptionsForCategory,
-  matchesCategoryFilter,
-} from "@/features/tutors/subjects";
+import { DEFAULT_SUBJECT_OPTIONS, matchesSubjectQuery } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
 const OG_IMAGE =
@@ -38,22 +40,24 @@ type HomeTutorSearchState = {
   district?: string;
   gender?: string;
   q?: string;
-  min_price?: number;
-  max_price?: number;
-  sort?: string;
 };
 
-const PRICE_MIN = 100;
-const PRICE_MAX = 1200;
-const PRICE_STEP = 10;
-const PRICE_STOPS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200];
+const HOME_CATEGORY_OPTIONS = [
+  { value: "", label: "Any category" },
+  { value: "IB", label: "IB" },
+  { value: "DSE", label: "DSE" },
+  { value: "IGCSE", label: "IGCSE" },
+  { value: "AP", label: "AP" },
+  { value: "A-Level", label: "A-Level" },
+  { value: "Primary", label: "Primary" },
+  { value: "Secondary", label: "Secondary" },
+  { value: "International", label: "International" },
+];
 
-const CURRICULUM_CATEGORIES = [
-  { label: "IBDP", value: "IB" },
-  { label: "DSE", value: "DSE" },
-  { label: "IGCSE", value: "IGCSE" },
-  { label: "A Levels", value: "A-Level" },
-  { label: "Examiner/pro teachers", value: "International" },
+const HOME_GENDER_OPTIONS = [
+  { value: "", label: "Any gender" },
+  { value: "female", label: "Female" },
+  { value: "male", label: "Male" },
 ];
 
 export const Route = createFileRoute("/")({
@@ -108,7 +112,6 @@ function Landing() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [homeSearch, setHomeSearch] = useState<HomeTutorSearchState>({});
-  const [carouselPages, setCarouselPages] = useState<Record<string, number>>({});
 
   const setHomeSearchParam = (patch: Partial<HomeTutorSearchState>) => {
     setHomeSearch((prev) => {
@@ -126,6 +129,46 @@ function Landing() {
     queryFn: () => fetchTopWeeklyTutors(3),
   });
 
+  const { data: liveStats } = useQuery({
+    queryKey: ["landing", "stats"],
+    queryFn: () => fetchLandingStats(),
+  });
+
+  const { data: studentsMatchedSetting } = useQuery({
+    queryKey: ["settings", "students_matched"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "students_matched")
+        .maybeSingle();
+      if (error) throw error;
+      const v = data?.value;
+      const n = typeof v === "string" ? parseInt(v, 10) : typeof v === "number" ? v : 0;
+      return Number.isFinite(n) ? n : 0;
+    },
+  });
+
+  const { data: heroTutorCode } = useQuery({
+    queryKey: ["settings", "hero_tutor_code"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "hero_tutor_code")
+        .maybeSingle();
+      if (error) throw error;
+      const v = data?.value;
+      return typeof v === "string" ? v.trim() : "";
+    },
+  });
+
+  const { data: pickedHeroTutor } = useQuery({
+    queryKey: ["landing", "hero_tutor", heroTutorCode ?? ""],
+    queryFn: () => fetchTutorByCode(heroTutorCode as string),
+    enabled: !!heroTutorCode,
+  });
+
   const { data: publishedTutors = [], isLoading: publishedTutorsLoading } = useQuery({
     queryKey: ["landing", "published_tutors"],
     queryFn: fetchPublishedTutors,
@@ -140,70 +183,22 @@ function Landing() {
         .eq("key", "whatsapp_number")
         .maybeSingle();
       if (error) throw error;
-      return typeof data?.value === "string" ? data.value : "";
+      const value = data?.value;
+      return typeof value === "string" ? value : "";
     },
   });
 
-  const tutorsForCategory = (category: string) =>
-    publishedTutors
-      .filter((tutor) =>
-        matchesCategoryFilter(category, tutor.subjects, [
-          ...tutor.target_students,
-          ...getTutorCardHighlights(tutor),
-        ]),
-      );
+  const defaultHeroTutor = pickedHeroTutor ?? featuredTutors[0] ?? publishedTutors[0] ?? null;
+
+  const heroTutor = useMemo(() => {
+    return defaultHeroTutor;
+  }, [defaultHeroTutor]);
 
   const openTutorDetail = (tutorCode: string) => {
     navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
   };
 
-  const homeSubjectOptions = useMemo(
-    () => getSubjectOptionsForCategory(homeSearch.category) ?? DEFAULT_SUBJECT_OPTIONS,
-    [homeSearch.category],
-  );
-
-  const homeCategoryOptions = useMemo(
-    () => [
-      { value: "", label: t("search_panel.any_category") },
-      { value: "IB", label: "IB" },
-      { value: "DSE", label: "DSE" },
-      { value: "IGCSE", label: "IGCSE" },
-      { value: "AP", label: "AP" },
-      { value: "A-Level", label: "A-Level" },
-      { value: "Primary", label: t("search_panel.category_primary") },
-      { value: "Secondary", label: t("search_panel.category_secondary") },
-      { value: "International", label: t("search_panel.category_international") },
-    ],
-    [t],
-  );
-
-  const homeGenderOptions = useMemo(
-    () => [
-      { value: "", label: t("search_panel.any_gender") },
-      { value: "female", label: t("search_panel.gender_female") },
-      { value: "male", label: t("search_panel.gender_male") },
-    ],
-    [t],
-  );
-
-  const homeSortOptions = useMemo(
-    () => [
-      { value: "", label: t("search_panel.sort_recommended") },
-      { value: "price_asc", label: t("search_panel.sort_price_asc") },
-      { value: "price_desc", label: t("search_panel.sort_price_desc") },
-    ],
-    [t],
-  );
-
-  const handleHomeCategoryChange = (category: string) => {
-    const nextSubjectOptions = getSubjectOptionsForCategory(category);
-    setHomeSearchParam({
-      category: category || undefined,
-      ...(homeSearch.subject && !nextSubjectOptions.includes(homeSearch.subject)
-        ? { subject: undefined }
-        : {}),
-    });
-  };
+  const subjectOptions = DEFAULT_SUBJECT_OPTIONS;
 
   const tutorSearchParams = useMemo(() => {
     const params: HomeTutorSearchState = {
@@ -212,9 +207,6 @@ function Landing() {
       mode: homeSearch.mode,
       gender: homeSearch.gender,
       q: homeSearch.q,
-      min_price: homeSearch.min_price,
-      max_price: homeSearch.max_price,
-      sort: homeSearch.sort,
     };
     if (homeSearch.mode === "in_person") {
       params.district = homeSearch.district;
@@ -222,7 +214,41 @@ function Landing() {
     return params;
   }, [homeSearch]);
 
-  const hotlineUrl = buildTutorWhatsAppUrl(whatsappNumber, "");
+  const previewTutors = useMemo(() => {
+    const categoryFilter = (homeSearch.category ?? "").toLowerCase();
+    const subjectFilter = (homeSearch.subject ?? "").toLowerCase();
+    const districtFilter = homeSearch.mode === "in_person" ? (homeSearch.district ?? "") : "";
+    const modeFilter = homeSearch.mode ?? "";
+    const genderFilter = homeSearch.gender ?? "";
+    const query = (homeSearch.q ?? "").trim().toLowerCase();
+
+    return publishedTutors
+      .filter((tut) => {
+      if (categoryFilter) {
+        const categorySource = [...tut.subjects, ...tut.target_students, tut.headline ?? ""]
+          .join(" ")
+          .toLowerCase();
+        if (!categorySource.includes(categoryFilter)) return false;
+      }
+      if (subjectFilter && !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter)))
+        return false;
+      if (!matchesLessonModeFilter(modeFilter, tut.lesson_mode)) return false;
+      if (!matchesDistrictFilter(districtFilter, tut.district)) return false;
+      if (genderFilter && (tut.gender ?? "") !== genderFilter) return false;
+      if (
+        query &&
+        !(
+          tut.tutor_code.toLowerCase().includes(query) ||
+          tut.subjects.some((s) => matchesSubjectQuery(s, query)) ||
+          (tut.headline ?? "").toLowerCase().includes(query)
+        )
+      ) {
+        return false;
+      }
+      return true;
+      })
+        .slice(0, 6);
+  }, [homeSearch, publishedTutors]);
 
   // JSON-LD
   const structuredData = {
@@ -270,293 +296,298 @@ function Landing() {
 
       <SiteHeader />
 
-      <section className="relative min-h-[min(58vh,560px)] border-b border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 pb-12 pt-10 sm:px-6 sm:pt-14 md:pb-16 md:pt-20">
-        <div className="mx-auto flex max-w-7xl flex-col justify-center">
-          <div className="mb-7 max-w-xl">
-            <p className="text-sm font-bold uppercase tracking-[0.16em] text-[color:var(--brand-link)]">
-              MatchMax
-            </p>
-            <h1 className="mt-3 text-3xl font-extrabold leading-tight tracking-tight text-[color:var(--ink)] sm:text-5xl">
-              {t("search_panel.find_tutor")}
+      {/* HERO SECTION */}
+      <section className="hero-startup-bg relative overflow-hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(ellipse at top right, color-mix(in oklab, #2ED5DE 25%, transparent) 0%, transparent 55%), radial-gradient(ellipse at bottom left, color-mix(in oklab, #041344 15%, transparent) 0%, transparent 50%)",
+          }}
+        />
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
+          <div className="flex flex-col justify-center">
+            <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-5xl md:text-6xl lg:text-7xl">
+              {t("hero.title_a")}
+              <br />
+              <span className="text-brand-gradient">{t("hero.title_b")}</span>
             </h1>
-            <p className="mt-3 text-base text-[color:var(--ink)]/65 sm:text-lg">
-              Find the right subject expert for your next lesson.
-            </p>
-          </div>
-        <div className="mx-auto max-w-[1440px] px-4 md:px-6">
-          <div className="relative overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--ink)]/10 bg-[color:var(--surface)] shadow-[0_18px_50px_-28px_rgba(4,19,68,0.35)]">
-            <form
-              className="p-3 sm:p-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                navigate({ to: "/tutors", search: tutorSearchParams });
-              }}
-            >
-              <div className="grid gap-1 rounded-[calc(var(--radius-panel)-2px)] border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-1 md:grid-cols-[1.35fr_1fr_1fr_0.9fr_auto] md:items-center">
-                <div className="relative min-h-16 rounded-[calc(var(--radius-panel)-4px)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-subtle)]">
-                  <label htmlFor="home-tutor-search" className="block text-xs font-bold text-[color:var(--ink)]">
-                    Search
-                  </label>
-                  <Input
-                    id="home-tutor-search"
-                    className="h-7 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
-                    placeholder={t("search_panel.keyword_placeholder")}
-                    aria-label={t("search_panel.keyword_aria")}
-                    value={homeSearch.q ?? ""}
-                    onChange={(e) => setHomeSearchParam({ q: e.target.value })}
-                  />
-                </div>
-                <div className="min-h-16 rounded-[calc(var(--radius-panel)-4px)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-subtle)]">
-                  <label className="block text-xs font-bold text-[color:var(--ink)]">Curriculum</label>
-                  <SearchableSelect
-                    value={homeSearch.category ?? ""}
-                    onChange={handleHomeCategoryChange}
-                    options={homeCategoryOptions}
-                    placeholder={t("search_panel.any_category")}
-                    searchPlaceholder={t("search_panel.search_category")}
-                    className="mt-1 h-7 border-0 bg-transparent px-0 shadow-none"
-                  />
-                </div>
-                <div className="min-h-16 rounded-[calc(var(--radius-panel)-4px)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-subtle)]">
-                  <label className="block text-xs font-bold text-[color:var(--ink)]">Subject</label>
-                  <SearchableSelect
-                    value={homeSearch.subject ?? ""}
-                    onChange={(v) => setHomeSearchParam({ subject: v || undefined })}
-                    options={[
-                      { value: "", label: t("search_panel.any_subject") },
-                      ...homeSubjectOptions.map((s) => ({ value: s, label: s })),
-                    ]}
-                    placeholder={t("search_panel.any_subject")}
-                    searchPlaceholder={t("search_panel.search_subject")}
-                    className="mt-1 h-7 border-0 bg-transparent px-0 shadow-none"
-                  />
-                </div>
-                <div className="min-h-16 rounded-[calc(var(--radius-panel)-4px)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-subtle)]">
-                  <label className="block text-xs font-bold text-[color:var(--ink)]">Lesson mode</label>
-                  <LessonModeSelect
-                    mode={
-                      (homeSearch.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""
-                    }
-                    district={homeSearch.district}
-                    districts={HK_DISTRICTS}
-                    onChange={({ mode, district }) =>
-                      setHomeSearchParam({
-                        mode: mode || undefined,
-                        district: mode === "in_person" ? district : undefined,
-                      })
-                    }
-                    placeholder={t("search_panel.any_mode")}
-                    className="mt-1 h-7 border-0 bg-transparent px-0 shadow-none"
-                  />
-                </div>
-                <div className="min-h-16 rounded-[calc(var(--radius-panel)-4px)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-subtle)]">
-                  <label className="block text-xs font-bold text-[color:var(--ink)]">Gender</label>
-                  <SearchableSelect
-                    value={homeSearch.gender ?? ""}
-                    onChange={(v) => setHomeSearchParam({ gender: v || undefined })}
-                    options={homeGenderOptions}
-                    placeholder={t("search_panel.any_gender")}
-                    className="mt-1 h-7 border-0 bg-transparent px-0 shadow-none"
-                  />
-                </div>
-                <Button type="submit" variant="solid" color="blue" className="h-14 rounded-full px-6 font-bold">
-                  <Search className="mr-1.5 h-4 w-4" />
-                  {t("search_panel.search")}
-                </Button>
-              </div>
-            </form>
-            <div className="grid gap-4 border-t border-border bg-[color:var(--surface-subtle)] px-4 py-4 sm:px-5 lg:grid-cols-[minmax(22rem,36rem)_14rem_auto] lg:items-center lg:gap-6">
-              <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:gap-5">
-                <div className="flex shrink-0 items-baseline gap-2.5">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {t("search_panel.price_range")}
-                  </p>
-                  <AmountReadout
-                    value={homeSearch.min_price ?? PRICE_MIN}
-                    prefix="HK$"
-                    className="text-base leading-none"
-                  />
-                  <span aria-hidden="true" className="text-xs text-muted-foreground">
-                    –
-                  </span>
-                  <AmountReadout
-                    value={homeSearch.max_price ?? PRICE_MAX}
-                    prefix="HK$"
-                    suffix={homeSearch.max_price === undefined ? "+" : undefined}
-                    className="text-base leading-none"
-                  />
-                </div>
-                <AmountSlider
-                  aria-label={t("search_panel.price_range")}
-                  min={PRICE_MIN}
-                  max={PRICE_MAX}
-                  step={PRICE_STEP}
-                  stops={PRICE_STOPS}
-                  minStepsBetweenThumbs={1}
-                  thumbAriaLabels={["Minimum hourly rate", "Maximum hourly rate"]}
-                  value={[homeSearch.min_price ?? PRICE_MIN, homeSearch.max_price ?? PRICE_MAX]}
-                  onValueChange={([lo, hi]) =>
-                    setHomeSearchParam({
-                      min_price: lo && lo > PRICE_MIN ? lo : undefined,
-                      max_price: hi && hi < PRICE_MAX ? hi : undefined,
-                    })
-                  }
-                  className="w-full sm:flex-1"
-                />
-              </div>
-              <SearchableSelect
-                value={homeSearch.sort ?? ""}
-                onChange={(sort) => setHomeSearchParam({ sort: sort || undefined })}
-                options={homeSortOptions}
-                placeholder={t("search_panel.sort_recommended")}
-                searchPlaceholder={t("search_panel.search_sorting")}
-                className="h-11 w-full rounded-sm sm:w-56 sm:shrink-0"
-              />
-              {hotlineUrl ? (
-                <a
-                  href={hotlineUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
-                >
-                  <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
-                  WhatsApp us
-                </a>
-              ) : null}
+            <div className="mt-6 flex flex-wrap gap-3 md:mt-10">
+              <Button
+                asChild
+                size="lg"
+                className="h-12 w-full rounded-xl bg-[color:var(--brand-navy)] px-5 text-base font-bold text-white shadow-brand hover:bg-[color:var(--brand-royal)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
+              >
+                <Link to="/tutors" onClick={(event) => {
+                                event.stopPropagation();
+                                blurActive();
+                              }}>
+                  {t("hero.cta_primary")}
+                  <ArrowRight className="ml-2 h-6 w-6 md:h-5 md:w-5" />
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
-        </div>
       </section>
 
-      <section className="px-4 py-10 sm:px-6 md:py-14">
-        <div className="mx-auto max-w-7xl">
-          <div className="space-y-10 md:space-y-12">
-            {CURRICULUM_CATEGORIES.map(({ label, value }) => {
-              const tutors = tutorsForCategory(value);
-              const page = carouselPages[value] ?? 0;
-              const tutorsPerPage = 3;
-              const pageCount = Math.max(1, Math.ceil(tutors.length / tutorsPerPage));
-              const pageStart = page * tutorsPerPage;
-              const visibleTutors = tutors.slice(pageStart, pageStart + tutorsPerPage);
-              const showSeeAll = pageStart + visibleTutors.length >= tutors.length;
-              const setPage = (nextPage: number) =>
-                setCarouselPages((current) => ({ ...current, [value]: nextPage }));
+      <section className="relative -mt-4 pb-14 md:-mt-7 md:pb-16">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
+          <div className="relative rounded-sm border border-border bg-card p-2.5 shadow-sm sm:p-5">
+            <div className="flex items-center justify-between gap-2 border-b border-border pb-2.5 sm:pb-4">
+              <p className="text-xs font-black uppercase tracking-wide text-[color:var(--brand-teal)] sm:text-sm">
+                Find tutor
+              </p>
+            </div>
 
-              return (
-                <section key={value}>
-                  <div className="mb-4 flex items-center justify-between gap-4">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
-                        {label} tutors
-                      </h2>
-                      <Link
-                        to="/tutors"
-                        search={{ category: value }}
-                        className="inline-flex shrink-0 items-center gap-1 text-sm font-bold text-[color:var(--brand-link)] hover:text-[color:var(--ink)]"
-                      >
-                        {t("featured.view_all")}
-                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                      </Link>
-                    </div>
-                    {pageCount > 1 ? (
-                      <div className="flex shrink-0 items-center gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Previous ${label} tutors`}
-                          disabled={page === 0}
-                          onClick={() => setPage(Math.max(0, page - 1))}
-                          className="h-8 w-8 rounded-full text-[color:var(--ink)]/60 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Next ${label} tutors`}
-                          disabled={page >= pageCount - 1}
-                          onClick={() => setPage(Math.min(pageCount - 1, page + 1))}
-                          className="h-8 w-8 rounded-full text-[color:var(--ink)]/60 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : null}
-                  </div>
+            <div className="mt-2.5 grid gap-2 sm:gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-9 rounded-sm pl-9 text-xs md:h-11 md:text-sm"
+                  placeholder="Search tutor code, subject, keyword…"
+                  value={homeSearch.q ?? ""}
+                  onChange={(e) => setHomeSearchParam({ q: e.target.value })}
+                />
+              </div>
+              <SearchableSelect
+                value={homeSearch.category ?? ""}
+                onChange={(v) => setHomeSearchParam({ category: v || undefined })}
+                options={HOME_CATEGORY_OPTIONS}
+                placeholder="Any category"
+                searchPlaceholder="Search category..."
+                className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+              />
+              <SearchableSelect
+                value={homeSearch.subject ?? ""}
+                onChange={(v) => setHomeSearchParam({ subject: v || undefined })}
+                options={[
+                  { value: "", label: "Any subject" },
+                  ...subjectOptions.map((s) => ({ value: s, label: s })),
+                ]}
+                placeholder="Any subject"
+                searchPlaceholder="Search subject..."
+                className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+              />
+              <LessonModeSelect
+                mode={(homeSearch.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
+                district={homeSearch.district}
+                districts={HK_DISTRICTS}
+                onChange={({ mode, district }) =>
+                  setHomeSearchParam({
+                    mode: mode || undefined,
+                    district: mode === "in_person" ? district : undefined,
+                  })
+                }
+                placeholder="Any lesson mode"
+                    className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+              />
+              <SearchableSelect
+                value={homeSearch.gender ?? ""}
+                onChange={(v) => setHomeSearchParam({ gender: v || undefined })}
+                options={HOME_GENDER_OPTIONS}
+                placeholder="Any gender"
+                  className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+              />
+              <Button
+                  className="h-9 rounded-sm bg-[color:var(--brand-navy)] px-4 text-xs font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-11 md:px-6 md:text-base"
+                onClick={() => navigate({ to: "/tutors", search: tutorSearchParams })}
+              >
+                Search
+              </Button>
+            </div>
+          </div>
 
-                  {publishedTutorsLoading ? (
-                    <div className="-mx-4 flex gap-4 overflow-hidden px-4 md:mx-0 md:px-0">
-                      {Array.from({ length: 3 }).map((_, index) => (
-                        <Skeleton
-                          key={index}
-                          className="h-[23rem] w-[min(86vw,370px)] shrink-0 rounded-[var(--radius-panel)] border border-border"
-                        />
-                      ))}
-                    </div>
-                  ) : tutors.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                      {visibleTutors.map((tutor) => (
-                        <div
-                          key={tutor.id}
-                          className="min-w-0"
+          <div className="mt-6">
+            <div className="mb-6 flex items-baseline justify-between">
+              <p className="text-sm text-muted-foreground">
+                {publishedTutorsLoading ? (
+                  "Loading…"
+                ) : (
+                  <>
+                    <span className="font-bold text-foreground">{previewTutors.length}</span>{" "}
+                    {previewTutors.length === 1 ? "tutor" : "tutors"} found
+                  </>
+                )}
+              </p>
+            </div>
+
+            {publishedTutorsLoading && (
+                <div className="grid gap-4 md:grid-cols-2 lg:gap-6 xl:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                      className="h-56 animate-pulse rounded-sm border border-border bg-muted/40"
+                  />
+                ))}
+              </div>
+            )}
+
+            {!publishedTutorsLoading && previewTutors.length === 0 && (
+              <div className="rounded-sm border border-dashed border-border bg-card p-12 text-center">
+                <p className="text-lg font-bold text-[color:var(--brand-navy)]">
+                  No tutors match your filters yet
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Try widening your search, then tap Search to view all matching tutors.
+                </p>
+              </div>
+            )}
+
+            {!publishedTutorsLoading && previewTutors.length > 0 && (
+              <>
+                <div className="grid gap-4 md:grid-cols-2 lg:hidden">
+                  {previewTutors.map((tut) => (
+                    <PublicTutorCard
+                      key={tut.id}
+                      tutor={tut}
+                      priceSuffix={t("featured.per_hour")}
+                      onOpen={openTutorDetail}
+                      footerAction={
+                        <Button
+                          asChild
+                          className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
                         >
+                          <a
+                            href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            Request tutor
+                          </a>
+                        </Button>
+                      }
+                    />
+                  ))}
+                </div>
+
+                <div className="hidden lg:block">
+                  <Carousel className="px-14" opts={{ align: "start" }}>
+                    <CarouselContent>
+                      {previewTutors.map((tut) => (
+                        <CarouselItem key={tut.id} className="lg:basis-1/2 xl:basis-1/3">
                           <PublicTutorCard
-                            tutor={tutor}
+                            tutor={tut}
                             priceSuffix={t("featured.per_hour")}
                             onOpen={openTutorDetail}
                             footerAction={
-                              <>
-                                <TutorSaveButton tutorId={tutor.id} compact />
-                                <Button
-                                  asChild
-                                  className="h-9 rounded-sm px-4 text-[13px] font-bold shadow-none"
+                              <Button
+                                asChild
+                                className="h-9 rounded-sm bg-[#0A245F] px-4 text-[13px] font-bold text-white hover:bg-[#081d4f]"
+                              >
+                                <a
+                                  href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(event) => event.stopPropagation()}
                                 >
-                                  <a
-                                    href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    onClick={(event) => event.stopPropagation()}
-                                  >
-                                    Request tutor
-                                  </a>
-                                </Button>
-                              </>
+                                  Request tutor
+                                </a>
+                              </Button>
                             }
                           />
-                        </div>
+                        </CarouselItem>
                       ))}
-                      {showSeeAll ? (
-                        <Link
-                          to="/tutors"
-                          search={{ category: value }}
-                          className="flex min-h-[20rem] flex-col items-center justify-center gap-6 rounded-[var(--radius-panel)] border border-[color:var(--ink)]/10 bg-[color:var(--surface)] px-4 text-center shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-[transform,box-shadow] hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[20rem]"
-                        >
-                          <div className="flex items-end justify-center -space-x-8">
-                            {visibleTutors.slice(0, 3).map((tutor, index) => (
-                              <div
-                                key={tutor.id}
-                                className="relative h-20 w-20 overflow-hidden rounded-xl border-4 border-[color:var(--surface)] bg-muted shadow-md"
-                                style={{ transform: `translateY(${index === 1 ? -12 : index === 2 ? 6 : 0}px) rotate(${index === 0 ? -6 : index === 2 ? 5 : 0}deg)` }}
-                              >
-                                {tutor.photo_url ? (
-                                  <img src={tutor.photo_url} alt="" className="h-full w-full object-cover" />
-                                ) : null}
-                              </div>
-                            ))}
-                          </div>
-                          <span className="text-lg font-bold text-[color:var(--ink)]">See all</span>
-                        </Link>
-                      ) : null}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-0 hidden h-11 w-11 border-[color:var(--brand-teal)]/30 bg-white text-[color:var(--brand-navy)] shadow-sm hover:bg-white lg:flex" />
+                    <CarouselNext className="right-0 hidden h-11 w-11 border-[color:var(--brand-teal)]/30 bg-white text-[color:var(--brand-navy)] shadow-sm hover:bg-white lg:flex" />
+                  </Carousel>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="pb-12 md:pb-22">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
+          <p className="text-xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
+            Book for later
+          </p>
+
+          <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1.9fr)_minmax(320px,1fr)]">
+            <article className="consulting-reserve-card overflow-hidden rounded-3xl md:rounded-sm">
+              <div className="grid min-h-[430px] gap-0 md:min-h-[520px]">
+                <div className="flex flex-col justify-between gap-4 p-4 sm:p-6 md:p-10">
+                  <div>
+                    <h2 className="mt-2 max-w-xl text-xl font-black leading-[1.05] tracking-tight text-[color:var(--brand-navy)] sm:text-2xl md:mt-5 md:text-[2.75rem]">
+                      Get your IA/EE/TOK reviewed by IB Top Scorers
+                    </h2>
+                    <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm md:mt-5 md:text-[1.04rem]">
+                      Stop paying for expensive tutors just to read your drafts during lessons.
+                      You do not need someone watching you write. You need clear, line-by-line guidance and planning.
+                    </p>
+
+                    <div className="mt-4 grid gap-2.5 sm:mt-6 sm:grid-cols-2">
+                      <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
+                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                          Review format
+                        </p>
+                        <p className="mt-1 text-sm font-black text-[color:var(--brand-navy)] sm:text-lg">
+                          Offline line-by-line comments
+                        </p>
+                        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-sm">
+                          Rubric-linked notes with direct edits you can apply immediately.
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
+                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                          1-month mentorship
+                        </p>
+                        <p className="mt-1 text-sm font-black text-[color:var(--brand-navy)] sm:text-lg">
+                          WhatsApp + draft support
+                        </p>
+                        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-sm">
+                          Follow-up clarifications so revisions stay focused and efficient.
+                        </p>
+                      </div>
                     </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{t("common.no_tutors_yet")}</p>
-                  )}
-                </section>
-              );
-            })}
+                  </div>
+
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <Button
+                      asChild
+                      size="lg"
+                      className="h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:h-12 md:w-auto md:rounded-sm md:px-8 md:text-base"
+                    >
+                      <Link to="/consulting">Explore consulting plans</Link>
+                    </Button>
+                  </div>
+                </div>
+
+              </div>
+            </article>
+
+            <aside className="rounded-3xl border border-border bg-card p-4 shadow-[0_10px_24px_rgba(4,19,68,0.04)] md:rounded-sm md:p-7">
+              <h3 className="text-xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-2xl">
+                Benefits
+              </h3>
+              <div className="mt-3 divide-y divide-border/80 md:mt-5">
+                {[
+                  {
+                    icon: BadgeCheck,
+                    text: "Choose your exact review track and timeline in advance.",
+                  },
+                  {
+                    icon: Clock3,
+                    text: "Follow up on your draft.",
+                  },
+                  {
+                    icon: BookOpen,
+                    text: "No live lesson time wasted reading drafts line-by-line.",
+                  },
+                ].map(({ icon: Icon, text }) => (
+                  <div key={text} className="flex gap-3 py-2.5 first:pt-0 last:pb-0 md:py-5">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[color:var(--brand-navy)]/6 text-[color:var(--brand-navy)]">
+                      <Icon className="h-3.5 w-3.5" />
+                    </span>
+                    <p className="text-xs leading-relaxed text-foreground sm:text-sm md:text-[1.05rem]">{text}</p>
+                  </div>
+                ))}
+              </div>
+            </aside>
           </div>
         </div>
       </section>
@@ -566,7 +597,7 @@ function Landing() {
         <div className="mx-auto max-w-7xl space-y-8 px-4 md:space-y-12 md:px-6">
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div className="order-2 lg:order-1">
-              <h2 className="mt-2 text-2xl font-bold tracking-tight text-[color:var(--ink)] md:text-4xl">
+              <h2 className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
                 {t("how.step1_title")}
               </h2>
               <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
@@ -575,14 +606,9 @@ function Landing() {
               <Button
                 asChild
                 size="lg"
-                variant="solid"
-                color="blue"
-                className="mt-5 h-11 w-full rounded-xl px-4 text-sm font-bold md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
+                className="mt-5 h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
-                <Link to="/tutors">
-                  <Search className="mr-2 h-4 w-4" />
-                  {t("how.cta_find")}
-                </Link>
+                <Link to="/tutors">{t("how.cta_find")}</Link>
               </Button>
             </div>
             <div className="order-1 lg:order-2">
@@ -592,17 +618,10 @@ function Landing() {
 
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div>
-              <div className="overflow-hidden rounded-2xl bg-[color:var(--surface)]">
-                <img
-                  src="/tutor-matching-network.jpeg"
-                  alt="Tutor and student matching network"
-                  className="h-auto w-full object-cover"
-                  loading="lazy"
-                />
-              </div>
+              <div className="landing-tutor-visual landing-tutor-visual--aurora" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="mt-2 text-2xl font-bold tracking-tight text-[color:var(--ink)] md:text-4xl">
+              <h3 className="text-2xl font-black tracking-tight text-[color:var(--brand-navy)] md:text-4xl">
                 {t("tutors_cta.title")}
               </h3>
               <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:mt-4 md:text-lg md:font-normal">
@@ -611,14 +630,9 @@ function Landing() {
               <Button
                 asChild
                 size="lg"
-                variant="solid"
-                color="blue"
-                className="mt-5 h-11 w-full rounded-xl px-4 text-sm font-bold md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
+                className="mt-5 h-11 w-full rounded-xl bg-[color:var(--brand-navy)] px-4 text-sm font-bold text-white hover:bg-[color:var(--brand-royal)] md:mt-8 md:h-12 md:w-auto md:rounded-md md:px-8 md:text-base"
               >
-                <Link to="/join">
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  {t("tutors_cta.cta")}
-                </Link>
+                <Link to="/become-a-tutor">{t("tutors_cta.cta")}</Link>
               </Button>
             </div>
           </div>

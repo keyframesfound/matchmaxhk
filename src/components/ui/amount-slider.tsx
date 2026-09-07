@@ -23,24 +23,18 @@ function hash(x: number, y: number) {
  * Amount slider rendered as a live grid of shimmering squares in the theme's
  * accent color. A tail of busy squares trails the thumb and grows with the
  * value, while a faint drifting shimmer nudges rightward through the empty
- * track. Given two values it becomes a range slider: the glowing grid fills
- * the band between the two thumbs instead. Honors prefers-reduced-motion, and
- * pauses offscreen or on a hidden tab.
+ * track. Honors prefers-reduced-motion, and pauses offscreen or on a hidden tab.
  */
 export function AmountSlider({
   className,
   min = 0,
   max = 100,
-  step = 1,
   stops,
-  thumbAriaLabels,
   onValueChange,
   ...props
 }: React.ComponentProps<typeof SliderPrimitive.Root> & {
   /** Optional magnetic stops the thumb snaps to (rendered as ticks). */
   stops?: number[];
-  /** Per-thumb accessible names, in value order (min thumb first). */
-  thumbAriaLabels?: string[];
 }) {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const trackRef = React.useRef<HTMLSpanElement | null>(null);
@@ -51,19 +45,10 @@ export function AmountSlider({
     : Array.isArray(props.defaultValue)
       ? props.defaultValue
       : [min];
-  // Two values turn the slider into a range: the glow spans between the thumbs.
-  const isRange = value.length === 2;
   const current = value[value.length - 1] ?? min;
-  const toFraction = (v: number) => Math.min(Math.max((v - min) / (max - min || 1), 0), 1);
-  const loFraction = isRange ? toFraction(value[0] ?? min) : 0;
-  const hiFraction = toFraction(current);
-  const isRangeRef = React.useRef(isRange);
-  const loFractionRef = React.useRef(loFraction);
-  const hiFractionRef = React.useRef(hiFraction);
-  isRangeRef.current = isRange;
-  loFractionRef.current = loFraction;
-  hiFractionRef.current = hiFraction;
-  const activeThumbRef = React.useRef(0);
+  const fraction = Math.min(Math.max((current - min) / (max - min || 1), 0), 1);
+  const fractionRef = React.useRef(fraction);
+  fractionRef.current = fraction;
 
   const sortedStops = React.useMemo(
     () => (stops && stops.length ? [...stops].sort((a, b) => a - b) : null),
@@ -81,9 +66,7 @@ export function AmountSlider({
   const handleValueChange = (vals: number[]) => {
     onValueChange?.(sortedStops ? vals.map(snap) : vals);
   };
-  // Keyboard: step one stop at a time instead of Radix's raw step. In range
-  // mode the focused thumb (tracked via onFocus) is the one that moves, and it
-  // can never cross the other thumb.
+  // Keyboard: step one stop at a time instead of Radix's raw step.
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (!sortedStops) return;
     const delta =
@@ -99,34 +82,14 @@ export function AmountSlider({
     if (delta === null) return;
     event.preventDefault();
     event.stopPropagation();
-
-    if (!isRange) {
-      const idx = sortedStops.indexOf(snap(current));
-      const next =
-        delta === "home"
-          ? 0
-          : delta === "end"
-            ? sortedStops.length - 1
-            : Math.min(sortedStops.length - 1, Math.max(0, idx + delta));
-      onValueChange?.([sortedStops[next]]);
-      return;
-    }
-
-    const thumbIndex = Math.min(Math.max(activeThumbRef.current, 0), 1);
-    const other = value[1 - thumbIndex] ?? current;
-    const idx = sortedStops.indexOf(snap(value[thumbIndex] ?? current));
-    const otherIdx = Math.max(0, sortedStops.indexOf(snap(other)));
-    let nextIdx =
+    const idx = sortedStops.indexOf(snap(current));
+    const next =
       delta === "home"
         ? 0
         : delta === "end"
           ? sortedStops.length - 1
           : Math.min(sortedStops.length - 1, Math.max(0, idx + delta));
-    nextIdx = thumbIndex === 0 ? Math.min(nextIdx, otherIdx - 1) : Math.max(nextIdx, otherIdx + 1);
-    nextIdx = Math.min(sortedStops.length - 1, Math.max(0, nextIdx));
-    const nextValues = [...value];
-    nextValues[thumbIndex] = sortedStops[nextIdx];
-    onValueChange?.(nextValues);
+    onValueChange?.([sortedStops[next]]);
   };
 
   const [reduce, setReduce] = React.useState(false);
@@ -176,45 +139,27 @@ export function AmountSlider({
     const draw = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
-      const range = isRangeRef.current;
-      const lo = loFractionRef.current;
-      const hi = hiFractionRef.current;
-      // Shimmer speeds up the further the thumbs are dragged.
-      phase += dt * (0.3 + (range ? hi - lo : hi) * 3.2);
+      const fill = fractionRef.current;
+      // Shimmer speeds up the further the thumb is dragged.
+      phase += dt * (0.3 + fill * 3.2);
       // Gentle constant drift for the "nudge" shimmer in the empty track.
       hintPhase += dt;
       ctx.clearRect(0, 0, w, h);
       const cols = Math.ceil(w / CELL);
       const rows = Math.ceil(h / CELL);
       const sq = CELL - GAP;
-      // Single thumb: a tail of busy squares trails behind the thumb and grows
-      // with the amount; a faint rightward "nudge" shimmer fills the empty
-      // track ahead of it, strongest at small amounts and fading away as the
-      // amount climbs. Range mode: the same glowing grid fills the band
-      // between the two thumbs, fading softly at both edges. Positions are in
-      // px and aligned to the thumbs' real travel (inset by THUMB/2) so the
-      // glow ends at the thumbs.
-      const fillPx = THUMB / 2 + hi * (w - THUMB);
-      const startPx = range ? THUMB / 2 + lo * (w - THUMB) : 0;
-      const bandPx = range ? Math.max(fillPx - startPx, 0) : hi * 0.6 * w;
-      const edgePx = Math.min(bandPx * 0.3, 56);
-      const hintStrength = range ? 0 : 0.15 * (1 - hi);
+      // Tail behind the thumb grows with the amount; a faint rightward "nudge"
+      // shimmer fills the empty track ahead of it, strongest at small amounts
+      // and fading away as the amount climbs. Positions are in px and aligned to
+      // the thumb's real travel (inset by THUMB/2) so the tail ends at the thumb.
+      const fillPx = THUMB / 2 + fill * (w - THUMB);
+      const bandPx = fill * 0.6 * w;
+      const hintStrength = 0.15 * (1 - fill);
       for (let cx = 0; cx < cols; cx++) {
         const cellPx = cx * CELL + CELL / 2;
         let colBase: number;
         let isTail: boolean;
-        if (range) {
-          if (bandPx <= 0.5) continue;
-          if (cellPx < startPx - edgePx || cellPx > fillPx + edgePx) continue;
-          const intensity =
-            cellPx < startPx
-              ? 1 - (startPx - cellPx) / edgePx
-              : cellPx > fillPx
-                ? 1 - (cellPx - fillPx) / edgePx
-                : 1;
-          colBase = intensity * intensity;
-          isTail = true;
-        } else if (cellPx <= fillPx) {
+        if (cellPx <= fillPx) {
           if (bandPx <= 0.5) continue;
           const band = 1 - (fillPx - cellPx) / bandPx;
           if (band <= 0) continue;
@@ -315,14 +260,13 @@ export function AmountSlider({
   // Under reduced motion the loop is static, so repaint when the value changes.
   React.useEffect(() => {
     if (reduce) drawRef.current?.(performance.now());
-  }, [loFraction, hiFraction, reduce]);
+  }, [fraction, reduce]);
 
   return (
     <SliderPrimitive.Root
       data-slot="amount-slider"
       min={min}
       max={max}
-      step={step}
       className={cn(
         "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50",
         className,
@@ -356,10 +300,6 @@ export function AmountSlider({
       {value.map((_, index) => (
         <SliderPrimitive.Thumb
           key={index}
-          aria-label={thumbAriaLabels?.[index]}
-          onFocus={() => {
-            activeThumbRef.current = index;
-          }}
           className="block h-10 w-6 shrink-0 cursor-grab rounded-lg bg-foreground shadow-md ring-ring/30 transition-[box-shadow] duration-300 ease-out outline-none hover:ring-2 focus-visible:ring-2 active:cursor-grabbing disabled:pointer-events-none"
         />
       ))}
@@ -389,7 +329,7 @@ export function AmountReadout({
   return (
     <span
       className={cn(
-        "relative top-[0.24em] inline-flex items-baseline font-semibold tabular-nums text-foreground",
+        "inline-flex items-baseline font-semibold tabular-nums text-foreground",
         className,
       )}
       role="status"
