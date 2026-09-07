@@ -6,7 +6,6 @@ import {
   MessageCircle,
   ArrowLeft,
   Award,
-  BadgeCheck,
   Globe,
   Languages,
   Layers,
@@ -489,13 +488,6 @@ function TutorDetail() {
                       </>
                     ) : null}
                   </h1>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-royal)]/25 bg-[color:var(--accent)] px-3 py-1.5 text-xs font-bold leading-none text-[color:var(--accent-foreground)]">
-                    <BadgeCheck className="h-4 w-4" aria-hidden="true" />
-                    {translate("profile.verified")}
-                    <span className="font-semibold text-[color:var(--accent-foreground)]/75">
-                      · {translate("profile.verified_detail")}
-                    </span>
-                  </span>
                 </div>
                 {t.academic_headline || t.university || t.secondary_school ? (
                   <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">

@@ -312,10 +312,15 @@
   },
   "hiw": {
     "hero_eyebrow": "MatchMax 點樣運作",
-    "hero_title": "由學生創辦：點解 MatchMax 做得更好",
+    "hero_title": "由學生創辦，以系統方式運作。",
+    "hero_title_highlights": ["以系統方式運作"],
     "hero_body": "我哋係親身考過 IB 同 DSE 嘅大學生，所以創辦咗 MatchMax。我哋明白傳統代理將導師當數字，令家長無所適從。以下係我哋點樣令配對更簡單、公平同透明。",
     "hero_cta_browse": "瀏覽導師檔案",
     "hero_cta_apply": "申請做導師",
+    "stats_eyebrow": "網絡實況",
+    "stats_matched_label": "已配對學生",
+    "stats_edu_label": "經核實導師",
+    "stats_subjects_label": "涵蓋科目",
     "props_eyebrow": "01 / 我哋嘅優勢",
     "props": {
       "screening": {
@@ -335,6 +340,33 @@
         "detail": "MatchMax 由大學生創辦，最明白私人補習嘅實際運作。我哋唔用機械式配對，每份申請都由團隊逐一審閱，提供貼心嘅人工配對指導，確保每個配對都啱到晒。"
       }
     },
+    "machine_eyebrow": "02 / 核實機器",
+    "machine_title": "上架之前，核實必須先完成。",
+    "machine_lead": "唔用機械式配對。每份申請由團隊逐一審閱，每份學歷文件由人手核對。",
+    "machine_verified": "已核實",
+    "machine_steps": {
+      "s1": {
+        "title": "成績表核實",
+        "detail": "導師提交官方成績表、文憑同公開考試證書，我哋逐份人工核對，確保達到我哋嘅學術門檻。"
+      },
+      "s2": {
+        "title": "團隊審閱",
+        "detail": "每份申請都由團隊逐一閱讀，親自處理，絕唔用機械式配對。"
+      },
+      "s3": {
+        "title": "經核實尖子上架",
+        "detail": "只有 IB 40+、DSE Best 5 30+、A*AA 同官方閱卷員先可以通過門檻，導師卡先會上架。"
+      },
+      "s4": {
+        "title": "個案配對",
+        "detail": "你沿線嘅家長申請會變成個案，一個工作天內交到你手上。"
+      }
+    },
+    "machine_handoff_label": "個案交接",
+    "machine_handoff_from": "request",
+    "machine_handoff_to": "tutor-code",
+    "machine_demo_note": "流程示意",
+    "ledger_intro": "同一套配對，逐項同傳統代理比對。",
     "compare_eyebrow": "02 / 點解 MatchMax 做得更好",
     "compare_edu_title": "俾導師：公平規則，由明白你嘅學生制定",
     "compare_parent_title": "俾家長：真實分數，經核實學歷",
@@ -499,6 +531,14 @@
         "a": "學費會按協議嘅每小時收費同時間表，直接支付俾導師。MatchMax 唔會經手或托管學費，付款過程直接又透明。"
       }
     },
+    "mock_title_parents": "配對申請",
+    "mock_title_tutors": "公開個案",
+    "mock_state_searching": "配對中",
+    "mock_state_shortlist": "已入短名單",
+    "mock_state_matched": "已配對",
+    "mock_note": "示意畫面——實際配對經你嘅短名單同 WhatsApp 熱線進行。",
+    "mock_row_profiles": "經核實導師",
+    "mock_row_match": "你嘅配對",
     "cta_title": "一段對話，開始正確嘅配對。",
     "cta_body": "無論你係想搵導師、建立教學事業，定係為補習社搵人，我哋團隊都會親自跟進每一次配對。",
     "cta_check": "貼心人工跟進，絕非機械式配對。"

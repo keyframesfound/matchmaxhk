@@ -35,7 +35,7 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
   return (
     <span
       data-academic-chip
-      className="inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-1 text-xs font-bold leading-snug text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[13px]"
+      className="inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-1.5 py-0.5 text-[11px] font-bold leading-snug text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2 md:py-1 md:text-xs"
     >
       <span className="break-words">{chip.subject}</span>
       {grade ? (
