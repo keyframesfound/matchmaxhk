@@ -138,18 +138,18 @@ function AcademicQualification({ result }: { result: ExamResult }) {
           return (
             <li
               key={`${entry.subject}-${subjectIndex}`}
-              className="border-l-2 border-[color:var(--foreground)]/20 pl-3"
+              className="border-l-2 border-[color:var(--brand-link)] pl-3"
             >
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-bold text-[color:var(--ink)]">{entry.subject}</span>
                 {entry.grade.trim() ? (
-                  <span className="text-sm font-bold text-[color:var(--muted-foreground)]">
+                  <span className="text-sm font-bold text-[color:var(--brand-link)]">
                     – Grade {entry.grade.replace(/^grade\s+/i, "")}
                   </span>
                 ) : null}
               </div>
               {papers.length > 0 ? (
-                <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
+                <p className="mt-0.5 text-xs font-semibold text-[color:var(--brand-link)]">
                   {papers.map((paper, paperIndex) => (
                     <span key={`${paper.label}-${paperIndex}`}>
                       {paperIndex > 0 ? <strong> · </strong> : null}
