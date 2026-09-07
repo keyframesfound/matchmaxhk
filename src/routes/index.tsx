@@ -234,19 +234,19 @@ function CurriculumTutorSection({
           {Array.from({ length: TUTORS_PER_PAGE }).map((_, index) => (
             <Skeleton
               key={index}
-              className="h-[23rem] w-[min(86vw,370px)] shrink-0 rounded-[var(--radius-panel)] border border-border md:w-auto"
+              className="h-[23rem] w-[min(76vw,370px)] shrink-0 rounded-[var(--radius-panel)] border border-border md:w-auto"
             />
           ))}
         </div>
       ) : tutors.length > 0 ? (
         <>
           {/* Mobile: one swipeable row — first page of tutors, then the see-all tile */}
-          <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:hidden">
+          <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scroll-px-4 md:hidden">
             {tutors
               .slice(0, TUTORS_PER_PAGE)
-              .map((tutor) => renderTutorCard(tutor, "w-[min(86vw,370px)] shrink-0 snap-start"))}
+              .map((tutor) => renderTutorCard(tutor, "w-[min(76vw,370px)] shrink-0 snap-start"))}
             {tutors.length > TUTORS_PER_PAGE
-              ? seeAllTile("min-h-[20rem] w-[min(86vw,370px)] shrink-0 snap-start")
+              ? seeAllTile("min-h-[20rem] w-[min(76vw,370px)] shrink-0 snap-start")
               : null}
           </div>
 
