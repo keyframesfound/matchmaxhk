@@ -8,10 +8,12 @@ import { cn } from "@/lib/utils";
 export function AmountSlider({
   className,
   stops,
+  thumbAriaLabels,
   onValueChange,
   ...props
 }: React.ComponentProps<typeof SliderPrimitive.Root> & {
   stops?: number[];
+  thumbAriaLabels?: string[];
 }) {
   const sortedStops = React.useMemo(
     () => (stops && stops.length ? [...stops].sort((a, b) => a - b) : null),
@@ -46,6 +48,7 @@ export function AmountSlider({
         (_, index) => (
         <SliderPrimitive.Thumb
           key={index}
+          aria-label={thumbAriaLabels?.[index]}
           className="block size-4 shrink-0 rounded-full border-2 border-primary bg-background shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none"
         />
         ),

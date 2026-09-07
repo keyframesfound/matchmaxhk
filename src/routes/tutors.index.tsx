@@ -614,7 +614,7 @@ function TutorsDirectory() {
               </form>
 
               <div className="grid gap-4 border-t border-border bg-[color:var(--surface-subtle)] px-4 py-4 sm:px-5 lg:grid-cols-[minmax(22rem,36rem)_14rem_auto] lg:items-center lg:gap-6">
-                <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:gap-5">
+                <div className="flex w-full flex-col gap-2 md:flex-row md:items-center md:gap-5">
                   <div className="flex shrink-0 items-baseline gap-2.5">
                     <p className="text-xs font-medium text-muted-foreground">
                       {t("search_panel.price_range")}
@@ -649,7 +649,7 @@ function TutorsDirectory() {
                         max_price: hi && hi < PRICE_MAX ? hi : undefined,
                       })
                     }
-                    className="w-full sm:flex-1"
+                    className="w-full md:flex-1"
                   />
                 </div>
                 <SearchableSelect
