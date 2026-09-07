@@ -1413,18 +1413,6 @@ export function ApplicationForm() {
             </div>
           </div>
         ) : null}
-        <div className="flex justify-end">
-          <p
-            aria-live="polite"
-            className={cn(
-              "flex items-center gap-1.5 text-xs font-medium text-[color:var(--muted-foreground)] transition-opacity duration-300",
-              draftSavedAt ? "opacity-100" : "opacity-0",
-            )}
-          >
-            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("common.draft_saved")}
-          </p>
-        </div>
         <Stepper
           className="join-stepper"
           scrollActiveIndicatorIntoView
