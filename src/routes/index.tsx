@@ -430,17 +430,16 @@ function Landing() {
       </section>
 
       <section className="px-4 py-10 sm:px-6 md:py-14">
-        <div className="mx-auto max-w-[1600px]">
+        <div className="mx-auto max-w-7xl">
           <div className="space-y-10 md:space-y-12">
             {CURRICULUM_CATEGORIES.map(({ label, value }) => {
               const tutors = tutorsForCategory(value);
               const page = carouselPages[value] ?? 0;
-              const pageCount =
-                tutors.length <= 4 ? 1 : 1 + Math.ceil(Math.max(0, tutors.length - 5) / 4);
-              const pageStart = page === 0 ? 0 : 5 + (page - 1) * 4;
-              const visibleTutors = tutors.slice(pageStart, pageStart + (page === 0 ? 5 : 4));
-              const showSeeAll =
-                tutors.length <= 4 || (page > 0 && pageStart + visibleTutors.length >= tutors.length);
+              const tutorsPerPage = 3;
+              const pageCount = Math.max(1, Math.ceil(tutors.length / tutorsPerPage));
+              const pageStart = page * tutorsPerPage;
+              const visibleTutors = tutors.slice(pageStart, pageStart + tutorsPerPage);
+              const showSeeAll = pageStart + visibleTutors.length >= tutors.length;
               const setPage = (nextPage: number) =>
                 setCarouselPages((current) => ({ ...current, [value]: nextPage }));
 
@@ -498,14 +497,13 @@ function Landing() {
                       ))}
                     </div>
                   ) : tutors.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                       {visibleTutors.map((tutor) => (
                         <div
                           key={tutor.id}
                           className="min-w-0"
                         >
                           <PublicTutorCard
-                            className="md:min-h-[20rem]"
                             tutor={tutor}
                             priceSuffix={t("featured.per_hour")}
                             onOpen={openTutorDetail}
