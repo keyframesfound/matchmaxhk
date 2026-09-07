@@ -270,9 +270,9 @@
   --btn-accent-fg: #ffffff;
   --btn-accent-hover: #1a8cd8;
 
-  /* Neutral button in dark — X's translucent slate, never white */
+  /* Neutral button in dark — X's translucent slate, never white; label stays crisp white */
   --btn-neutral: rgba(91, 112, 131, 0.4);
-  --btn-neutral-fg: #f0f3f4;
+  --btn-neutral-fg: #ffffff;
   --btn-neutral-hover: rgba(91, 112, 131, 0.6);
 
   /* WhatsApp brand exception */
