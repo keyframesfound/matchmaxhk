@@ -321,7 +321,7 @@ export function PublicTutorCard({
 
       <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border bg-[color:var(--surface)] px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
         <p className="min-w-0 flex-1 truncate text-xl font-bold leading-none tracking-tight text-[color:var(--ink)] md:text-3xl">
-          HK${tutor.hourly_rate}
+          ${tutor.hourly_rate}
           <span className="ml-1 text-xs font-semibold text-muted-foreground md:text-[13px]">
             {priceSuffix}
           </span>

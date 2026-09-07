@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
-import { AmountReadout, AmountSlider } from "@/components/ui/amount-slider";
+import { PriceRangeSlider } from "@/components/ui/price-range-slider";
 import {
   Dialog,
   DialogContent,
@@ -62,7 +62,7 @@ type SearchState = z.infer<typeof searchSchema>;
 const PRICE_MIN = 100;
 const PRICE_MAX = 1200;
 const PRICE_STEP = 10;
-const PRICE_STOPS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200];
+const PRICE_STOP_INTERVAL = 50;
 
 const MAX_COMPARE = 4;
 
@@ -549,15 +549,15 @@ function TutorsDirectory() {
               >
                 <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
                   <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    className="h-12 rounded-sm pl-9 text-base"
-                    placeholder={t("search_panel.keyword_placeholder")}
-                    aria-label={t("search_panel.keyword_aria")}
-                    value={draft.q ?? ""}
-                    onChange={(e) => setDraftParam({ q: e.target.value })}
-                  />
-                </div>
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      className="h-12 rounded-sm pl-9 text-base"
+                      placeholder={t("search_panel.keyword_placeholder")}
+                      aria-label={t("search_panel.keyword_aria")}
+                      value={draft.q ?? ""}
+                      onChange={(e) => setDraftParam({ q: e.target.value })}
+                    />
+                  </div>
                   <Button
                     type="submit"
                     variant="solid"
@@ -570,86 +570,70 @@ function TutorsDirectory() {
                 </div>
                 <div className="mt-4 border-t border-border pt-4">
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <SearchableSelect
-                  value={draft.category ?? ""}
-                  onChange={handleCategoryChange}
-                  options={categoryOptions}
-                  placeholder={t("search_panel.any_category")}
-                  searchPlaceholder={t("search_panel.search_category")}
-                  className="h-11 rounded-sm"
-                />
-                <SearchableSelect
-                  value={draft.subject ?? ""}
-                  onChange={(v) => setDraftParam({ subject: v || undefined })}
-                  options={[
-                    { value: "", label: t("search_panel.any_subject") },
-                    ...subjectOptions.map((s) => ({ value: s, label: s })),
-                  ]}
-                  placeholder={t("search_panel.any_subject")}
-                  searchPlaceholder={t("search_panel.search_subject")}
-                  className="h-11 rounded-sm"
-                />
-                <LessonModeSelect
-                  mode={(draft.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
-                  district={draft.district}
-                  districts={HK_DISTRICTS}
-                  onChange={({ mode, district }) =>
-                    setDraftParam({
-                      mode: mode || undefined,
-                      district: mode === "in_person" ? district : undefined,
-                    })
-                  }
-                  placeholder={t("search_panel.any_mode")}
-                  className="h-11 rounded-sm"
-                />
-                <SearchableSelect
-                  value={draft.gender ?? ""}
-                  onChange={(v) => setDraftParam({ gender: v || undefined })}
-                  options={genderOptions}
-                  placeholder={t("search_panel.any_gender")}
-                  className="h-11 rounded-sm"
-                />
+                    <SearchableSelect
+                      value={draft.category ?? ""}
+                      onChange={handleCategoryChange}
+                      options={categoryOptions}
+                      placeholder={t("search_panel.any_category")}
+                      searchPlaceholder={t("search_panel.search_category")}
+                      className="h-11 rounded-sm"
+                    />
+                    <SearchableSelect
+                      value={draft.subject ?? ""}
+                      onChange={(v) => setDraftParam({ subject: v || undefined })}
+                      options={[
+                        { value: "", label: t("search_panel.any_subject") },
+                        ...subjectOptions.map((s) => ({ value: s, label: s })),
+                      ]}
+                      placeholder={t("search_panel.any_subject")}
+                      searchPlaceholder={t("search_panel.search_subject")}
+                      className="h-11 rounded-sm"
+                    />
+                    <LessonModeSelect
+                      mode={
+                        (draft.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""
+                      }
+                      district={draft.district}
+                      districts={HK_DISTRICTS}
+                      onChange={({ mode, district }) =>
+                        setDraftParam({
+                          mode: mode || undefined,
+                          district: mode === "in_person" ? district : undefined,
+                        })
+                      }
+                      placeholder={t("search_panel.any_mode")}
+                      className="h-11 rounded-sm"
+                    />
+                    <SearchableSelect
+                      value={draft.gender ?? ""}
+                      onChange={(v) => setDraftParam({ gender: v || undefined })}
+                      options={genderOptions}
+                      placeholder={t("search_panel.any_gender")}
+                      className="h-11 rounded-sm"
+                    />
                   </div>
                 </div>
               </form>
 
               <div className="grid gap-4 border-t border-border bg-[color:var(--surface-subtle)] px-4 py-4 sm:px-5 lg:grid-cols-[minmax(22rem,36rem)_14rem_auto] lg:items-center lg:gap-6">
-                <div className="flex w-full flex-col gap-2 md:flex-row md:items-center md:gap-5">
-                  <div className="flex shrink-0 items-baseline gap-2.5">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      {t("search_panel.price_range")}
-                    </p>
-                    <AmountReadout
-                      value={draft.min_price ?? PRICE_MIN}
-                      prefix="HK$"
-                      className="text-base leading-none"
-                    />
-                    <span aria-hidden="true" className="text-xs text-muted-foreground">
-                      –
-                    </span>
-                    <AmountReadout
-                      value={draft.max_price ?? PRICE_MAX}
-                      prefix="HK$"
-                      suffix={draft.max_price === undefined ? "+" : undefined}
-                      className="text-base leading-none"
-                    />
-                  </div>
-                  <AmountSlider
-                    aria-label={t("search_panel.price_range")}
+                <div className="w-full">
+                  <PriceRangeSlider
                     min={PRICE_MIN}
                     max={PRICE_MAX}
                     step={PRICE_STEP}
-                    stops={PRICE_STOPS}
-                    minStepsBetweenThumbs={1}
-                    thumbAriaLabels={["Minimum hourly rate", "Maximum hourly rate"]}
+                    stopInterval={PRICE_STOP_INTERVAL}
                     value={[draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX]}
+                    label={t("search_panel.price_range")}
                     onValueChange={([lo, hi]) =>
                       setDraftParam({
-                        min_price: lo && lo > PRICE_MIN ? lo : undefined,
-                        max_price: hi && hi < PRICE_MAX ? hi : undefined,
+                        min_price: lo > PRICE_MIN ? lo : undefined,
+                        max_price: hi < PRICE_MAX ? hi : undefined,
                       })
                     }
-                    className="w-full md:flex-1"
+                    minLabel={t("search_panel.price_min_label")}
+                    maxLabel={t("search_panel.price_max_label")}
+                    minReadoutLabel={t("search_panel.price_min_label")}
+                    maxReadoutLabel={t("search_panel.price_max_label")}
                   />
                 </div>
                 <SearchableSelect

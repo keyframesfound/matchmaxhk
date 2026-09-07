@@ -88,6 +88,8 @@
     "sort_price_asc": "Price: Low to High",
     "sort_price_desc": "Price: High to Low",
     "price_range": "Hourly price range",
+    "price_min_label": "Minimum hourly rate",
+    "price_max_label": "Maximum hourly rate",
     "category_primary": "Primary",
     "category_secondary": "Secondary",
     "category_international": "International",

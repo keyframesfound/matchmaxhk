@@ -91,6 +91,8 @@
     "sort_price_asc": "價錢：低至高",
     "sort_price_desc": "價錢：高至低",
     "price_range": "每小時收費範圍",
+    "price_min_label": "最低每小時收費",
+    "price_max_label": "最高每小時收費",
     "category_primary": "小學",
     "category_secondary": "中學",
     "category_international": "國際課程",
