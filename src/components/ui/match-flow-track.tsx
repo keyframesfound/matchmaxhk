@@ -182,7 +182,12 @@ export function MatchFlowTrack({
                 ))}
               </div>
 
-              <p className={cn("mt-5 text-xs", dark ? "text-white/35" : "text-[color:var(--ink)]/45")}>
+              <p
+                className={cn(
+                  "mt-5 text-xs",
+                  dark ? "text-white/35" : "text-[color:var(--ink)]/45",
+                )}
+              >
                 {mockNote}
               </p>
             </div>
@@ -190,23 +195,5 @@ export function MatchFlowTrack({
         </div>
       </div>
     </section>
-  );
-}
-
-function ArrowRightIcon({ dark }: { dark: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={cn("ml-2 h-4 w-4", dark ? "text-[#8ecdf8]" : "text-[color:var(--brand-link)]")}
-      aria-hidden="true"
-    >
-      <path d="M5 12h14" />
-      <path d="m12 5 7 7-7 7" />
-    </svg>
   );
 }

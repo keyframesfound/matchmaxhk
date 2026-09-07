@@ -37,7 +37,10 @@ export function VerificationPipeline({
 
           <ol className="mt-10 hidden space-y-3 lg:block" aria-hidden="true">
             {steps.map((step, index) => (
-              <li key={step.title} className="flex items-center gap-3 text-sm font-bold text-[#1d9bf0]">
+              <li
+                key={step.title}
+                className="flex items-center gap-3 text-sm font-bold text-[#1d9bf0]"
+              >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#1d9bf0]/60 bg-[#1d9bf0]/15 text-xs text-[#8ecdf8]">
                   {String(index + 1).padStart(2, "0")}
                 </span>
