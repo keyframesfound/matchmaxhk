@@ -16,7 +16,12 @@ import {
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { Accordion05 } from "@/components/ui/accordion-05";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/how-it-works")({
@@ -245,6 +250,21 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
   );
 }
 
+function FaqAccordion({ items, className }: { items: FaqItem[]; className?: string }) {
+  return (
+    <Accordion type="single" collapsible className={className}>
+      {items.map((item, index) => (
+        <AccordionItem key={index} value={`item-${index}`}>
+          <AccordionTrigger className="font-semibold hover:no-underline">
+            {item.title}
+          </AccordionTrigger>
+          <AccordionContent className="text-muted-foreground">{item.content}</AccordionContent>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  );
+}
+
 function HowItWorksPage() {
   const { t } = useTranslation();
   const {
@@ -392,7 +412,7 @@ function HowItWorksPage() {
                 />
                 {t("hiw.faq_tutors")}
               </h3>
-              <Accordion05 className="mt-5" items={tutorFaqItems} defaultValue="1" />
+              <FaqAccordion className="mt-5" items={tutorFaqItems} />
             </div>
 
             <div className="mt-14">
@@ -403,7 +423,7 @@ function HowItWorksPage() {
                 />
                 {t("hiw.faq_parents")}
               </h3>
-              <Accordion05 className="mt-5" items={parentFaqItems} defaultValue="1" />
+              <FaqAccordion className="mt-5" items={parentFaqItems} />
             </div>
           </div>
         </section>
