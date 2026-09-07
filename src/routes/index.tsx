@@ -66,8 +66,8 @@ const CURRICULUM_CATEGORIES = [
   { label: "Examiner/pro teachers", value: "International" },
 ];
 
-const TUTORS_PER_PAGE = 5;
-const MAX_HOME_TUTORS = 9;
+const TUTORS_PER_PAGE = 4;
+const MAX_HOME_TUTORS = 7;
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -187,21 +187,20 @@ function CurriculumTutorSection({
       </div>
 
       {loading ? (
-        <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:px-0 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:px-0 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: TUTORS_PER_PAGE }).map((_, index) => (
             <Skeleton
               key={index}
-              className="h-[23rem] w-[min(78vw,300px)] shrink-0 rounded-[var(--radius-panel)] border border-border md:w-auto"
+              className="h-[23rem] w-[min(86vw,370px)] shrink-0 rounded-[var(--radius-panel)] border border-border md:w-auto"
             />
           ))}
         </div>
       ) : pageTutors.length > 0 ? (
-        <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-3 xl:grid-cols-4">
           {pageTutors.map((tutor) => (
-            <div key={tutor.id} className="w-[min(78vw,300px)] shrink-0 snap-start md:w-auto">
+            <div key={tutor.id} className="w-[min(86vw,370px)] shrink-0 snap-start md:w-auto">
               <PublicTutorCard
                 tutor={tutor}
-                compact
                 priceSuffix={priceSuffix}
                 onOpen={onOpen}
                 footerAction={
@@ -209,7 +208,7 @@ function CurriculumTutorSection({
                     <TutorSaveButton tutorId={tutor.id} compact />
                     <Button
                       asChild
-                      className="h-8 rounded-sm bg-[color:var(--surface-invert)] px-3 text-xs font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                      className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
                     >
                       <a
                         href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}
@@ -229,7 +228,7 @@ function CurriculumTutorSection({
             <Link
               to="/tutors"
               search={{ category }}
-              className="flex min-h-[20rem] w-[min(78vw,300px)] shrink-0 snap-start flex-col items-center justify-center gap-3 rounded-[var(--radius-panel)] border border-dashed border-border bg-[color:var(--surface-subtle)]/40 text-center transition-colors hover:bg-[color:var(--surface-subtle)] md:min-h-[23rem] md:w-auto"
+              className="flex min-h-[20rem] w-[min(86vw,370px)] shrink-0 snap-start flex-col items-center justify-center gap-3 rounded-[var(--radius-panel)] border border-dashed border-border bg-[color:var(--surface-subtle)]/40 text-center transition-colors hover:bg-[color:var(--surface-subtle)] md:min-h-[23rem] md:w-auto"
             >
               <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card">
                 <ArrowRight className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
@@ -375,7 +374,7 @@ function Landing() {
 
       {/* HERO SECTION */}
       <section className="hero-startup-bg relative overflow-hidden">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col justify-center">
             <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-5xl md:text-6xl lg:text-7xl">
               {t("hero.title_a")}
@@ -405,7 +404,7 @@ function Landing() {
       </section>
 
       <section className="relative -mt-4 pb-14 md:-mt-7 md:pb-16">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
+        <div className="mx-auto max-w-[1440px] px-4 md:px-6">
           <div className="relative rounded-sm border border-border bg-card p-2.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-2.5 sm:pb-4">
               <p className="text-xs font-black uppercase tracking-wide text-[color:var(--ink)] sm:text-sm">
@@ -491,7 +490,7 @@ function Landing() {
 
       {/* FINDING A TUTOR / TUTOR CTA */}
       <section id="how" className="py-12 md:py-24">
-        <div className="mx-auto max-w-7xl space-y-8 px-4 md:space-y-12 md:px-6">
+        <div className="mx-auto max-w-[1440px] space-y-8 px-4 md:space-y-12 md:px-6">
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div className="order-2 lg:order-1">
               <h2 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--ink)] md:text-4xl">
