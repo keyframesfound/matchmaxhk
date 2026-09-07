@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, Search, UserPlus } from "lucide-react";
+import { ArrowRight, Search, UserPlus } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,6 @@ import { blurActive } from "@/lib/dom";
 import {
   fetchPublishedTutors,
   fetchTopWeeklyTutors,
-  fetchLandingStats,
-  fetchTutorByCode,
   getTutorCardHighlights,
   HK_DISTRICTS,
 } from "@/features/tutors/queries";
@@ -131,49 +129,9 @@ function Landing() {
   };
 
   // Queries
-  const { data: featuredTutors = [], isLoading: featuredLoading } = useQuery({
+  const { data: featuredTutors = [] } = useQuery({
     queryKey: ["landing", "featured_tutors"],
     queryFn: () => fetchTopWeeklyTutors(3),
-  });
-
-  const { data: liveStats } = useQuery({
-    queryKey: ["landing", "stats"],
-    queryFn: () => fetchLandingStats(),
-  });
-
-  const { data: studentsMatchedSetting } = useQuery({
-    queryKey: ["settings", "students_matched"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "students_matched")
-        .maybeSingle();
-      if (error) throw error;
-      const v = data?.value;
-      const n = typeof v === "string" ? parseInt(v, 10) : typeof v === "number" ? v : 0;
-      return Number.isFinite(n) ? n : 0;
-    },
-  });
-
-  const { data: heroTutorCode } = useQuery({
-    queryKey: ["settings", "hero_tutor_code"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "hero_tutor_code")
-        .maybeSingle();
-      if (error) throw error;
-      const v = data?.value;
-      return typeof v === "string" ? v.trim() : "";
-    },
-  });
-
-  const { data: pickedHeroTutor } = useQuery({
-    queryKey: ["landing", "hero_tutor", heroTutorCode ?? ""],
-    queryFn: () => fetchTutorByCode(heroTutorCode as string),
-    enabled: !!heroTutorCode,
   });
 
   const { data: publishedTutors = [], isLoading: publishedTutorsLoading } = useQuery({
@@ -193,14 +151,6 @@ function Landing() {
       return typeof data?.value === "string" ? data.value : "";
     },
   });
-
-  const defaultHeroTutor = pickedHeroTutor ?? featuredTutors[0] ?? null;
-
-  const heroTutor = useMemo(() => {
-    return defaultHeroTutor;
-  }, [defaultHeroTutor]);
-
-  const heroTutorBadge = /\b45\s*\/\s*45\b/.test(heroTutor?.academic_headline ?? "");
 
   const tutorsForCategory = (category: string) =>
     publishedTutors
@@ -300,9 +250,6 @@ function Landing() {
               <br />
               <span className="text-[color:var(--ink)]">{t("hero.title_b")}</span>
             </h1>
-            <p className="mt-4 max-w-md text-sm font-medium leading-relaxed text-muted-foreground md:mt-5 md:text-base">
-              {t("hero.subtitle")}
-            </p>
             <div className="mt-6 flex flex-wrap gap-3 md:mt-8">
               <Button
                 asChild
@@ -321,86 +268,7 @@ function Landing() {
                 </Link>
               </Button>
             </div>
-            {liveStats && studentsMatchedSetting !== undefined ? (
-              <div className="mt-8 grid grid-cols-3 gap-4 border-t border-[color:var(--ink)]/10 pt-5 md:mt-10 md:max-w-lg">
-                {[
-                  { value: studentsMatchedSetting, label: t("hero.stat_students") },
-                  { value: liveStats.activeTutors, label: t("hero.stat_tutors") },
-                  { value: liveStats.subjectsCovered, label: t("hero.stat_subjects") },
-                ].map(({ value, label }) => (
-                  <div key={label}>
-                    <p className="text-xl font-black tracking-tight text-[color:var(--ink)] md:text-3xl">
-                      {value.toLocaleString("en-HK")}
-                    </p>
-                    <p className="mt-1 text-[11px] font-semibold leading-snug text-muted-foreground md:text-xs">
-                      {label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
           </div>
-          {heroTutor ? (
-            <aside className="flex flex-col justify-center">
-              <div className="relative rounded-sm border border-[color:var(--brand-teal)]/25 bg-card p-4 shadow-brand sm:p-5">
-                <div className="flex items-center justify-between gap-2 border-b border-[color:var(--brand-teal)]/20 pb-3">
-                  <p className="text-xs font-black uppercase tracking-wide text-muted-foreground sm:text-sm">
-                    {t("hero.featured_label")}
-                  </p>
-                  <span className="bg-brand-gradient-x inline-flex items-center gap-1 rounded-[5px] px-2 py-1 text-[10px] font-black uppercase leading-none tracking-wide text-white shadow-sm">
-                    <BadgeCheck className="h-3 w-3" aria-hidden="true" />
-                    {t("profile.verified")}
-                  </span>
-                </div>
-                <div className="mt-4 flex items-start gap-3">
-                  {heroTutor.photo_url ? (
-                    <img
-                      src={heroTutor.photo_url}
-                      alt=""
-                      className="h-14 w-14 shrink-0 rounded-full border border-border object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-base font-bold text-[color:var(--ink)]">
-                      {(heroTutor.tutor_code ?? "")
-                        .replace(/[^a-zA-Z0-9]/g, "")
-                        .slice(0, 2)
-                        .toUpperCase() || "MM"}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="flex flex-wrap items-center gap-2 text-xs font-bold tracking-wide text-muted-foreground">
-                      {heroTutor.tutor_code}
-                      {heroTutorBadge ? (
-                        <span className="bg-brand-gradient-x rounded-[4px] px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-wide text-white">
-                          IBDP 45
-                        </span>
-                      ) : null}
-                    </p>
-                    <p className="mt-1 line-clamp-2 text-sm font-black leading-snug tracking-tight text-[color:var(--ink)] md:text-[15px]">
-                      {heroTutor.academic_headline ?? heroTutor.university ?? ""}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  asChild
-                  variant="ghost"
-                  className="mt-4 h-9 justify-between rounded-sm px-2 text-sm font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]"
-                >
-                  <Link
-                    to="/tutors/$tutorCode"
-                    params={{ tutorCode: heroTutor.tutor_code }}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      blurActive();
-                    }}
-                  >
-                    {t("hero.view_profile")}
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
-                </Button>
-              </div>
-            </aside>
-          ) : null}
         </div>
       </section>
 
@@ -540,67 +408,6 @@ function Landing() {
                 </section>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      <section className="pb-12 md:pb-22">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <h2 className="mt-2 text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
-            Save your shortlist
-          </h2>
-
-          <div className="mt-4">
-            <article className="saved-posts-reserve-card overflow-hidden rounded-3xl md:rounded-sm">
-              <div className="grid min-h-[430px] gap-0 md:min-h-[520px]">
-                <div className="flex flex-col justify-between gap-4 p-4 sm:p-6 md:p-10">
-                  <div>
-                    <h2 className="mt-2 max-w-xl text-xl font-black leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-2xl md:mt-5 md:text-[2.75rem]">
-                      Keep your favorite tutors close
-                    </h2>
-                    <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm md:mt-5 md:text-[1.04rem]">
-                      Bookmark tutors from the directory so you can compare your shortlist and come
-                      back when you are ready to request a lesson.
-                    </p>
-
-                    <div className="mt-4 grid gap-2.5 sm:mt-6 sm:grid-cols-2">
-                      <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
-                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                          Save profiles
-                        </p>
-                        <p className="mt-1 text-sm font-black text-[color:var(--ink)] sm:text-lg">
-                          Build your shortlist
-                        </p>
-                        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-sm">
-                          Keep promising tutor profiles in one place while you decide.
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-[0_8px_20px_rgba(4,19,68,0.04)] md:rounded-sm">
-                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                          Return anytime
-                        </p>
-                        <p className="mt-1 text-sm font-black text-[color:var(--ink)] sm:text-lg">
-                          Request when ready
-                        </p>
-                        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-sm">
-                          Open a saved profile and contact the tutor when the time is right.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                    <Button
-                      asChild
-                      size="lg"
-                      className="h-11 w-full rounded-xl bg-[color:var(--surface-invert)] px-4 text-sm font-bold text-white hover:bg-[color:var(--surface-invert-hover)] md:h-12 md:w-auto md:rounded-sm md:px-8 md:text-base"
-                    >
-                      <Link to="/saved-posts">View saved posts</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </article>
           </div>
         </div>
       </section>
