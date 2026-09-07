@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { motion, useReducedMotion } from "motion/react";
 import {
   ArrowRight,
   Asterisk,
@@ -25,14 +24,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { AuroraBackground } from "@/components/ui/aurora-background";
-import { BlurHighlightText } from "@/components/ui/blur-highlight-text";
 import { Button } from "@/components/ui/button";
 import { fetchLandingStats } from "@/features/tutors/queries";
 import { MatchFlowTrack } from "@/components/ui/match-flow-track";
-import { NumberTicker } from "@/components/ui/number-ticker";
-import { Reveal } from "@/components/ui/reveal";
-import { ScrollProgressRail } from "@/components/ui/scroll-progress";
 import { VerificationPipeline } from "@/components/ui/verification-pipeline";
 
 export const Route = createFileRoute("/how-it-works")({
@@ -173,28 +167,29 @@ function DeltaLedger({
       </div>
       <ul>
         {rows.map((row) => (
-          <Reveal key={row.aspect} className="border-b border-white/10">
-            <li className="grid gap-x-10 gap-y-4 py-7 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-y-0 md:py-9">
-              <h4 className="text-lg font-bold tracking-tight">{row.aspect}</h4>
-              <div>
-                <p className="mb-1 text-xs font-medium text-white/40 md:hidden">
-                  {t("hiw.table_old_mobile")}
-                </p>
-                <p className="text-sm leading-6 text-white/45 line-through decoration-white/30">
-                  {row.oldWay}
-                </p>
-              </div>
-              <div>
-                <p className="mb-1 text-xs font-medium text-[#8ecdf8] md:hidden">
-                  {t("hiw.table_max")}
-                </p>
-                <p className="text-sm leading-6 text-white/85">
-                  <strong className="font-bold text-[#1d9bf0]">{row.advantage}: </strong>
-                  {row.detail}
-                </p>
-              </div>
-            </li>
-          </Reveal>
+          <li
+            key={row.aspect}
+            className="grid gap-x-10 gap-y-4 border-b border-white/10 py-7 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-y-0 md:py-9"
+          >
+            <h4 className="text-lg font-bold tracking-tight">{row.aspect}</h4>
+            <div>
+              <p className="mb-1 text-xs font-medium text-white/40 md:hidden">
+                {t("hiw.table_old_mobile")}
+              </p>
+              <p className="text-sm leading-6 text-white/45 line-through decoration-white/30">
+                {row.oldWay}
+              </p>
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-medium text-[#8ecdf8] md:hidden">
+                {t("hiw.table_max")}
+              </p>
+              <p className="text-sm leading-6 text-white/85">
+                <strong className="font-bold text-[#1d9bf0]">{row.advantage}: </strong>
+                {row.detail}
+              </p>
+            </div>
+          </li>
         ))}
       </ul>
     </div>
@@ -203,7 +198,6 @@ function DeltaLedger({
 
 function HowItWorksPage() {
   const { t } = useTranslation();
-  const reducedMotion = useReducedMotion();
   const {
     valueProps,
     educatorComparison,
@@ -248,47 +242,32 @@ function HowItWorksPage() {
     },
   ];
 
-  const heroHighlights = t("hiw.hero_title_highlights", { returnObjects: true }) as string[];
-
   return (
     <div className="how-it-works-paper flex min-h-screen flex-col text-[color:var(--ink)]">
       <SiteHeader className="!border-b-0 !bg-white/95 dark:!bg-[color:var(--surface)]" />
-      <ScrollProgressRail />
       <main className="flex-1">
-        <section className="relative overflow-hidden">
-          <AuroraBackground className="opacity-70" />
-          <div className="relative mx-auto max-w-[1440px] px-5 pb-16 pt-20 sm:px-8 sm:pb-24 sm:pt-28 lg:px-12">
-            <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-              {t("hiw.hero_eyebrow")}
-            </p>
-            <div className="relative mt-5 w-fit">
-              <h1 className="max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
-                <BlurHighlightText as="span" highlights={heroHighlights}>
-                  {t("hiw.hero_title")}
-                </BlurHighlightText>
-              </h1>
-              <motion.span
-                aria-hidden="true"
-                className="absolute -right-7 -top-5 text-[color:var(--brand-link)] sm:-right-10 sm:-top-6"
-                animate={reducedMotion ? undefined : { rotate: 360 }}
-                transition={{ duration: 24, ease: "linear", repeat: Infinity }}
-              >
-                <Asterisk className="h-6 w-6 sm:h-8 sm:w-8" />
-              </motion.span>
-            </div>
-            <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/65">
-              {t("hiw.hero_body")}
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Button asChild size="lg" variant="solid" color="accent">
-                <Link to="/tutors">
-                  {t("hiw.hero_cta_browse")} <ArrowRight />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/join">{t("hiw.hero_cta_apply")}</Link>
-              </Button>
-            </div>
+        <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
+          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+            {t("hiw.hero_eyebrow")}
+          </p>
+          <div className="relative mt-5 w-fit">
+            <h1 className="max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
+              {t("hiw.hero_title")}
+            </h1>
+            <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--muted-foreground)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
+          </div>
+          <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/65">
+            {t("hiw.hero_body")}
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Button asChild size="lg" variant="solid" color="accent">
+              <Link to="/tutors">
+                {t("hiw.hero_cta_browse")} <ArrowRight />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link to="/join">{t("hiw.hero_cta_apply")}</Link>
+            </Button>
           </div>
         </section>
 
@@ -297,17 +276,15 @@ function HowItWorksPage() {
             {t("hiw.stats_eyebrow")}
           </p>
           <dl className="mt-8 grid gap-x-10 gap-y-8 border-y border-[color:var(--ink)]/12 py-10 sm:grid-cols-3">
-            {stats.map((stat, index) => (
-              <Reveal key={stat.label} delay={index * 0.08}>
-                <div>
-                  <dd className="text-5xl font-extrabold tracking-tight text-[color:var(--brand-link)] sm:text-6xl">
-                    <NumberTicker target={stat.target} duration={2.2} delay={index * 0.15} />
-                  </dd>
-                  <dt className="mt-3 text-sm font-bold text-[color:var(--muted-foreground)]">
-                    {stat.label}
-                  </dt>
-                </div>
-              </Reveal>
+            {stats.map((stat) => (
+              <div key={stat.label}>
+                <dd className="text-5xl font-extrabold tracking-tight text-[color:var(--brand-link)] sm:text-6xl">
+                  {stat.target.toLocaleString()}
+                </dd>
+                <dt className="mt-3 text-sm font-bold text-[color:var(--muted-foreground)]">
+                  {stat.label}
+                </dt>
+              </div>
             ))}
           </dl>
 
@@ -315,19 +292,20 @@ function HowItWorksPage() {
             {t("hiw.props_eyebrow")}
           </p>
           <div className="mt-8 grid gap-5 sm:grid-cols-2 sm:gap-8">
-            {valueProps.map(({ icon: Icon, title, detail }, index) => (
-              <Reveal key={title} delay={index * 0.05}>
-                <article className="h-full rounded-[var(--radius-panel)] border border-[color:var(--ink)]/12 bg-[color:var(--surface)] p-6 shadow-[var(--shadow-brand)] sm:p-8">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-panel)] bg-[color:var(--foreground)]/[0.04]">
-                    <Icon
-                      className="h-6 w-6 text-[color:var(--muted-foreground)]"
-                      aria-hidden="true"
-                    />
-                  </span>
-                  <h3 className="mt-5 text-xl font-bold tracking-tight sm:text-2xl">{title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">{detail}</p>
-                </article>
-              </Reveal>
+            {valueProps.map(({ icon: Icon, title, detail }) => (
+              <article
+                key={title}
+                className="h-full rounded-[var(--radius-panel)] border border-[color:var(--ink)]/12 bg-[color:var(--surface)] p-6 shadow-[var(--shadow-brand)] sm:p-8"
+              >
+                <span className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-panel)] bg-[color:var(--foreground)]/[0.04]">
+                  <Icon
+                    className="h-6 w-6 text-[color:var(--muted-foreground)]"
+                    aria-hidden="true"
+                  />
+                </span>
+                <h3 className="mt-5 text-xl font-bold tracking-tight sm:text-2xl">{title}</h3>
+                <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">{detail}</p>
+              </article>
             ))}
           </div>
         </section>
@@ -344,9 +322,7 @@ function HowItWorksPage() {
             demoNote={t("hiw.machine_demo_note")}
           />
           <div className="mx-auto max-w-[1440px] px-5 pb-24 sm:px-8 lg:px-12">
-            <Reveal>
-              <p className="max-w-xl text-base leading-7 text-white/55">{t("hiw.ledger_intro")}</p>
-            </Reveal>
+            <p className="max-w-xl text-base leading-7 text-white/55">{t("hiw.ledger_intro")}</p>
             <div className="mt-12 space-y-16 sm:space-y-20">
               <DeltaLedger title={t("hiw.compare_edu_title")} rows={educatorComparison} t={t} />
               <DeltaLedger title={t("hiw.compare_parent_title")} rows={parentComparison} t={t} />
@@ -432,7 +408,7 @@ function HowItWorksPage() {
               {t("hiw.faq_title")}
             </h2>
 
-            <Reveal className="mt-14">
+            <div className="mt-14">
               <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
                 <UserRoundCheck
                   className="h-6 w-6 text-[color:var(--muted-foreground)]"
@@ -458,9 +434,9 @@ function HowItWorksPage() {
                   ))}
                 </Accordion>
               </div>
-            </Reveal>
+            </div>
 
-            <Reveal className="mt-14">
+            <div className="mt-14">
               <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
                 <Search
                   className="h-6 w-6 text-[color:var(--muted-foreground)]"
@@ -486,34 +462,31 @@ function HowItWorksPage() {
                   ))}
                 </Accordion>
               </div>
-            </Reveal>
+            </div>
           </div>
         </section>
 
-        <section className="relative overflow-hidden">
-          <AuroraBackground className="opacity-60" />
-          <div className="relative mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
-            <div className="grid gap-10 sm:grid-cols-[1fr_auto] sm:items-end">
-              <div>
-                <MessageCircle className="h-7 w-7 text-[color:var(--muted-foreground)]" />
-                <h2 className="mt-7 max-w-4xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
-                  {t("hiw.cta_title")}
-                </h2>
-                <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/68">
-                  {t("hiw.cta_body")}
-                </p>
-                <div className="mt-8">
-                  <Button asChild size="lg" variant="solid" color="accent">
-                    <Link to="/tutor-requests" search={{ post: true }}>
-                      {t("hiw.parents_link_request")} <ArrowRight />
-                    </Link>
-                  </Button>
-                </div>
+        <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
+          <div className="grid gap-10 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div>
+              <MessageCircle className="h-7 w-7 text-[color:var(--muted-foreground)]" />
+              <h2 className="mt-7 max-w-4xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
+                {t("hiw.cta_title")}
+              </h2>
+              <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/68">
+                {t("hiw.cta_body")}
+              </p>
+              <div className="mt-8">
+                <Button asChild size="lg" variant="solid" color="accent">
+                  <Link to="/tutor-requests" search={{ post: true }}>
+                    {t("hiw.parents_link_request")} <ArrowRight />
+                  </Link>
+                </Button>
               </div>
-              <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]/70">
-                <Check className="h-4 w-4 text-[color:var(--muted-foreground)]" />{" "}
-                {t("hiw.cta_check")}
-              </div>
+            </div>
+            <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]/70">
+              <Check className="h-4 w-4 text-[color:var(--muted-foreground)]" />{" "}
+              {t("hiw.cta_check")}
             </div>
           </div>
         </section>

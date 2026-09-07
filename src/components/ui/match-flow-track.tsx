@@ -1,12 +1,8 @@
-"use client";
-
-import { useEffect, useRef, useState, type ComponentType } from "react";
-import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
+import type { ComponentType } from "react";
 import { ArrowRight, Check, Search } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 import { cn } from "@/lib/utils";
-import { Reveal } from "@/components/ui/reveal";
 
 type TrackLink = {
   to: "/tutors" | "/join" | "/tutor-requests";
@@ -44,20 +40,6 @@ export function MatchFlowTrack({
   mockRowB,
 }: MatchFlowTrackProps) {
   const dark = tone === "dark";
-  const mockRef = useRef<HTMLDivElement>(null);
-  const mockInView = useInView(mockRef, { margin: "-15% 0px" });
-  const reducedMotion = useReducedMotion();
-  const [mockState, setMockState] = useState(0);
-
-  useEffect(() => {
-    if (reducedMotion || !mockInView) return;
-    const id = window.setInterval(() => {
-      setMockState((prev) => (prev + 1) % 3);
-    }, 2600);
-    return () => window.clearInterval(id);
-  }, [mockInView, reducedMotion]);
-
-  const stateLabel = reducedMotion ? mockStates[2] : mockStates[mockState];
 
   return (
     <section
@@ -112,149 +94,119 @@ export function MatchFlowTrack({
 
           <div>
             <ol className="border-t border-current/20">
-              {steps.map(([number, stepTitle, text], index) => (
-                <Reveal key={number} delay={index * 0.06}>
-                  <li className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-5 border-b border-current/20 py-7 sm:gap-8 sm:py-9">
-                    <span
+              {steps.map(([number, stepTitle, text]) => (
+                <li
+                  key={number}
+                  className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-5 border-b border-current/20 py-7 sm:gap-8 sm:py-9"
+                >
+                  <span
+                    className={cn(
+                      "flex h-11 w-11 items-center justify-center text-sm font-bold",
+                      dark
+                        ? "bg-white/[0.06] text-white"
+                        : "bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]",
+                    )}
+                  >
+                    {number}
+                  </span>
+                  <div>
+                    <h4 className="text-xl font-bold tracking-tight sm:text-2xl">{stepTitle}</h4>
+                    <p
                       className={cn(
-                        "flex h-11 w-11 items-center justify-center text-sm font-bold",
-                        dark
-                          ? "bg-white/[0.06] text-white"
-                          : "bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]",
+                        "mt-3 max-w-2xl text-sm leading-7",
+                        dark ? "text-white/70" : "text-[color:var(--ink)]/70",
                       )}
                     >
-                      {number}
-                    </span>
-                    <div>
-                      <h4 className="text-xl font-bold tracking-tight sm:text-2xl">{stepTitle}</h4>
-                      <p
-                        className={cn(
-                          "mt-3 max-w-2xl text-sm leading-7",
-                          dark ? "text-white/70" : "text-[color:var(--ink)]/70",
-                        )}
-                      >
-                        {text}
-                      </p>
-                    </div>
-                  </li>
-                </Reveal>
+                      {text}
+                    </p>
+                  </div>
+                </li>
               ))}
             </ol>
 
-            <Reveal className="mt-12" y={24}>
-              <div
-                ref={mockRef}
-                aria-hidden="true"
-                className={cn(
-                  "rounded-[var(--radius-panel)] border p-6 sm:p-8",
-                  dark
-                    ? "border-white/12 bg-white/[0.04] shadow-[var(--shadow-teal)]"
-                    : "border-[color:var(--ink)]/12 bg-[color:var(--surface)] shadow-[var(--shadow-brand)]",
-                )}
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={cn(
-                        "flex h-9 w-9 items-center justify-center rounded-full",
-                        dark ? "bg-white/[0.08]" : "bg-[color:var(--foreground)]/[0.06]",
-                      )}
-                    >
-                      <Search
-                        className={cn(
-                          "h-4 w-4",
-                          dark ? "text-[#8ecdf8]" : "text-[color:var(--brand-link)]",
-                        )}
-                      />
-                    </span>
-                    <p className="text-sm font-bold">{mockTitle}</p>
-                  </div>
+            <div
+              aria-hidden="true"
+              className={cn(
+                "mt-12 rounded-[var(--radius-panel)] border p-6 sm:p-8",
+                dark
+                  ? "border-white/12 bg-white/[0.04] shadow-[var(--shadow-teal)]"
+                  : "border-[color:var(--ink)]/12 bg-[color:var(--surface)] shadow-[var(--shadow-brand)]",
+              )}
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
                   <span
                     className={cn(
-                      "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold",
-                      mockState === 2 && !reducedMotion
-                        ? "border-[#17bf63]/40 bg-[#17bf63]/10 text-[#17bf63]"
-                        : dark
-                          ? "border-[#1d9bf0]/40 bg-[#1d9bf0]/10 text-[#8ecdf8]"
-                          : "border-[#1d9bf0]/35 bg-[#1d9bf0]/10 text-[#1a8cd8]",
+                      "flex h-9 w-9 items-center justify-center rounded-full",
+                      dark ? "bg-white/[0.08]" : "bg-[color:var(--foreground)]/[0.06]",
                     )}
                   >
-                    {mockState === 2 && !reducedMotion ? (
-                      <Check className="h-3.5 w-3.5" />
-                    ) : (
-                      <motion.span
-                        className="h-1.5 w-1.5 rounded-full bg-current"
-                        animate={reducedMotion ? undefined : { opacity: [1, 0.25, 1] }}
-                        transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
-                      />
-                    )}
-                    <AnimatePresence mode="wait" initial={false}>
-                      <motion.span
-                        key={stateLabel}
-                        initial={reducedMotion ? false : { opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={reducedMotion ? undefined : { opacity: 0, y: -6 }}
-                        transition={{ duration: 0.22, ease: "easeOut" }}
-                      >
-                        {stateLabel}
-                      </motion.span>
-                    </AnimatePresence>
-                  </span>
-                </div>
-
-                <div className="mt-6 space-y-3">
-                  {[
-                    { label: mockRowA, done: true },
-                    { label: mockRowB, done: mockState === 2 && !reducedMotion },
-                  ].map((row, index) => (
-                    <div
-                      key={row.label}
+                    <Search
                       className={cn(
-                        "flex items-center justify-between gap-4 rounded-[var(--radius-control)] border px-4 py-3",
-                        dark
-                          ? "border-white/10 bg-white/[0.03]"
-                          : "border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)]",
+                        "h-4 w-4",
+                        dark ? "text-[#8ecdf8]" : "text-[color:var(--brand-link)]",
                       )}
-                    >
-                      <span className={cn("text-sm", row.done ? "font-bold" : "font-medium")}>
-                        {row.label}
-                      </span>
-                      <motion.span
-                        className={cn(
-                          "h-2 rounded-full",
-                          row.done
-                            ? "w-16 bg-[#1d9bf0]"
-                            : dark
-                              ? "w-24 bg-white/15"
-                              : "w-24 bg-[color:var(--ink)]/15",
-                        )}
-                        animate={
-                          row.done || reducedMotion ? undefined : { opacity: [0.45, 1, 0.45] }
-                        }
-                        transition={{
-                          duration: 1.4,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                          delay: index * 0.2,
-                        }}
-                      />
-                    </div>
-                  ))}
+                    />
+                  </span>
+                  <p className="text-sm font-bold">{mockTitle}</p>
                 </div>
-
-                <p
+                <span
                   className={cn(
-                    "mt-5 text-xs",
-                    dark ? "text-white/35" : "text-[color:var(--ink)]/45",
+                    "inline-flex items-center gap-2 rounded-full border border-[#17bf63]/40 bg-[#17bf63]/10 px-3 py-1 text-xs font-bold text-[#17bf63]",
                   )}
                 >
-                  {mockNote}
-                </p>
+                  <Check className="h-3.5 w-3.5" />
+                  {mockStates[2]}
+                </span>
               </div>
-            </Reveal>
+
+              <div className="mt-6 space-y-3">
+                {[
+                  { label: mockRowA, done: true },
+                  { label: mockRowB, done: true },
+                ].map((row) => (
+                  <div
+                    key={row.label}
+                    className={cn(
+                      "flex items-center justify-between gap-4 rounded-[var(--radius-control)] border px-4 py-3",
+                      dark
+                        ? "border-white/10 bg-white/[0.03]"
+                        : "border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)]",
+                    )}
+                  >
+                    <span className={cn("text-sm", row.done ? "font-bold" : "font-medium")}>
+                      {row.label}
+                    </span>
+                    <span className="h-2 w-16 rounded-full bg-[#1d9bf0]" />
+                  </div>
+                ))}
+              </div>
+
+              <p className={cn("mt-5 text-xs", dark ? "text-white/35" : "text-[color:var(--ink)]/45")}>
+                {mockNote}
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function ArrowRightIcon({ dark }: { dark: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("ml-2 h-4 w-4", dark ? "text-[#8ecdf8]" : "text-[color:var(--brand-link)]")}
+      aria-hidden="true"
+    >
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </svg>
   );
 }
