@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
+  Asterisk,
   BadgeCheck,
   Building2,
   Check,
@@ -14,7 +14,6 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 
-import { HeroReveal } from "@/components/how-it-works/hero-reveal";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import {
@@ -268,8 +267,6 @@ function FaqAccordion({ items, className }: { items: FaqItem[]; className?: stri
 
 function HowItWorksPage() {
   const { t } = useTranslation();
-  const [stageActive, setStageActive] = useState(true);
-  const handleStageActive = useCallback((active: boolean) => setStageActive(active), []);
   const {
     valueProps,
     educatorComparison,
@@ -282,16 +279,32 @@ function HowItWorksPage() {
 
   return (
     <div className="how-it-works-paper flex min-h-screen flex-col text-[color:var(--ink)]">
-      <SiteHeader
-        tone={stageActive ? "dark" : "light"}
-        className={
-          stageActive ? "!border-b-0" : "!border-b-0 !bg-white/95 dark:!bg-[color:var(--surface)]"
-        }
-      />
+      <SiteHeader className="!border-b-0 !bg-white/95 dark:!bg-[color:var(--surface)]" />
       <main className="flex-1">
-        <div className="-mt-16">
-          <HeroReveal onStageActiveChange={handleStageActive} />
-        </div>
+        <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
+          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+            {t("hiw.hero_eyebrow")}
+          </p>
+          <div className="relative mt-5 w-fit">
+            <h1 className="max-w-2xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
+              {t("hiw.hero_title")}
+            </h1>
+            <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--muted-foreground)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
+          </div>
+          <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/65">
+            {t("hiw.hero_body")}
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Button asChild size="lg" variant="solid" color="accent">
+              <Link to="/tutors">
+                {t("hiw.hero_cta_browse")} <ArrowRight />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link to="/join">{t("hiw.hero_cta_apply")}</Link>
+            </Button>
+          </div>
+        </section>
 
         <section className="mx-auto max-w-[1440px] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
           <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
