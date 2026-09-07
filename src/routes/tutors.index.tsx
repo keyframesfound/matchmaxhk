@@ -619,8 +619,8 @@ function TutorsDirectory() {
                 </div>
               </form>
 
-              <div className="grid gap-4 border-t border-border bg-[color:var(--surface-subtle)] px-4 py-4 sm:px-5 lg:grid-cols-[minmax(22rem,36rem)_14rem_auto] lg:items-center lg:gap-6">
-                <div className="w-full space-y-3">
+              <div className="grid gap-3 border-t border-border bg-[color:var(--surface-subtle)] px-4 py-4 sm:px-5 sm:grid-cols-2 lg:grid-cols-4 lg:items-center">
+                <div className="w-full space-y-3 sm:col-span-2 lg:col-span-1">
                   <Label className="tabular-nums">
                     {t("search_panel.price_from")} {formatPrice(priceValue[0])}{" "}
                     {t("search_panel.price_to")} {formatPrice(priceValue[1])}
@@ -652,14 +652,14 @@ function TutorsDirectory() {
                   options={sortOptions}
                   placeholder={t("search_panel.sort_recommended")}
                   searchPlaceholder={t("search_panel.search_sorting")}
-                  className="h-11 w-full rounded-sm sm:w-56 sm:shrink-0"
+                  className="h-11 rounded-sm"
                 />
                 {hotlineUrl ? (
                   <a
                     href={hotlineUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[color:var(--brand-whatsapp-hover)] sm:justify-self-start lg:col-span-2 lg:justify-self-end"
                   >
                     <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
                     WhatsApp us
