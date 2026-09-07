@@ -10,6 +10,7 @@ type BlurHighlightTextProps = {
   className?: string;
   as?: "h1" | "h2" | "h3" | "p" | "span";
   activeClassName?: string;
+  active?: boolean;
 };
 
 type Segment = { text: string; mark: boolean; index: number };
@@ -50,21 +51,23 @@ export function BlurHighlightText({
   className,
   as: Tag = "span",
   activeClassName,
+  active,
 }: BlurHighlightTextProps) {
   const ref = useRef<HTMLElement | null>(null);
-  const [active, setActive] = useState(false);
+  const [ioActive, setIoActive] = useState(false);
+  const isActive = active ?? ioActive;
   const segments = useMemo(() => buildSegments(children, highlights), [children, highlights]);
 
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof IntersectionObserver === "undefined") {
-      setActive(true);
+      setIoActive(true);
       return;
     }
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
-          setActive(true);
+          setIoActive(true);
           io.disconnect();
         }
       },
@@ -77,7 +80,7 @@ export function BlurHighlightText({
   return (
     <Tag
       ref={ref as React.Ref<never>}
-      className={cn("blur-highlight-text", active && cn("is-active", activeClassName), className)}
+      className={cn("blur-highlight-text", isActive && cn("is-active", activeClassName), className)}
     >
       {segments.map((segment, i) =>
         segment.mark ? (

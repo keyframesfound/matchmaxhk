@@ -73,7 +73,13 @@ function DesktopNavLink({
   );
 }
 
-export function SiteHeader({ className }: { className?: string }) {
+export function SiteHeader({
+  className,
+  tone = "light",
+}: {
+  className?: string;
+  tone?: "light" | "dark";
+}) {
   const { t } = useTranslation();
   const { user, signOut, hasAnyRole } = useAuth();
   const { membership } = useMyOrganization();
@@ -124,7 +130,11 @@ export function SiteHeader({ className }: { className?: string }) {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm ${className ?? ""}`}
+      className={cn(
+        "sticky top-0 z-50 w-full border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm",
+        tone === "dark" && "site-header--dark",
+        className,
+      )}
     >
       <div className="mx-auto flex h-[64px] max-w-[1440px] items-center px-4 sm:px-8 lg:px-10">
         <Link to="/" className="flex shrink-0 items-center" aria-label="MatchMax home">

@@ -59,6 +59,9 @@
     "title": "Explore the tutors MatchMax offers",
     "subtitle": "Top scorering tutors across Hong Kong",
     "view_all": "View all tutors",
+    "see_all": "See all",
+    "prev": "Previous tutors",
+    "next": "Next tutors",
     "per_hour": "/hr"
   },
   "search_panel": {

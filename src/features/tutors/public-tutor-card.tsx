@@ -29,13 +29,16 @@ function splitGradeLabel(grade: string | null) {
   return { prefix: match[1], value: match[2] };
 }
 
-function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
+function AcademicResultChip({ chip, compact }: { chip: TutorSubjectChip; compact?: boolean }) {
   const grade = splitGradeLabel(chip.grade);
 
   return (
     <span
       data-academic-chip
-      className="inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-1.5 py-0.5 text-[11px] font-bold leading-snug text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2 md:py-1 md:text-xs"
+      className={cn(
+        "inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-1.5 py-0.5 text-[11px] font-bold leading-snug text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)]",
+        !compact && "md:px-2 md:py-1 md:text-xs",
+      )}
     >
       <span className="break-words">{chip.subject}</span>
       {grade ? (
@@ -60,6 +63,8 @@ type PublicTutorCardProps = {
   className?: string;
   compareSelected?: boolean;
   onCompareToggle?: () => void;
+  /** Denser layout for narrow multi-column placements (e.g. 5-up rails). */
+  compact?: boolean;
 };
 
 export function PublicTutorCard({
@@ -71,6 +76,7 @@ export function PublicTutorCard({
   className,
   compareSelected,
   onCompareToggle,
+  compact = false,
 }: PublicTutorCardProps) {
   const { t } = useTranslation();
   const interactive = typeof onOpen === "function";
@@ -185,7 +191,12 @@ export function PublicTutorCard({
     >
       <header className="relative border-b border-border bg-[color:var(--surface)] px-3 py-2.5 md:px-4 md:py-3">
         <div className="flex items-start gap-2.5 md:gap-3.5">
-          <div className="flex w-12 shrink-0 flex-col items-center gap-1.5 md:w-14">
+          <div
+            className={cn(
+              "flex w-12 shrink-0 flex-col items-center gap-1.5",
+              !compact && "md:w-14",
+            )}
+          >
             <div className="relative">
               {showPhoto ? (
                 <img
@@ -194,15 +205,28 @@ export function PublicTutorCard({
                   loading="lazy"
                   decoding="async"
                   onError={() => setHasPhotoError(true)}
-                  className="h-11 w-11 rounded-full border border-border bg-muted object-cover md:h-[3.25rem] md:w-[3.25rem]"
+                  className={cn(
+                    "h-11 w-11 rounded-full border border-border bg-muted object-cover",
+                    !compact && "md:h-[3.25rem] md:w-[3.25rem]",
+                  )}
                 />
               ) : (
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted text-sm font-bold text-[color:var(--ink)] md:h-[3.25rem] md:w-[3.25rem] md:text-base">
+                <div
+                  className={cn(
+                    "flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted text-sm font-bold text-[color:var(--ink)]",
+                    !compact && "md:h-[3.25rem] md:w-[3.25rem] md:text-base",
+                  )}
+                >
                   {getTutorInitials(tutor.tutor_code)}
                 </div>
               )}
             </div>
-            <p className="whitespace-nowrap text-xs font-bold tracking-wide text-muted-foreground md:text-[13px]">
+            <p
+              className={cn(
+                "whitespace-nowrap font-bold tracking-wide text-muted-foreground",
+                compact ? "text-[11px]" : "text-xs md:text-[13px]",
+              )}
+            >
               {formatTutorCode(tutor.tutor_code)}
             </p>
           </div>
@@ -210,8 +234,9 @@ export function PublicTutorCard({
           <div className="min-w-0 flex-1 pt-0.5">
             <p
               className={cn(
-                "line-clamp-2 text-[14px] font-bold leading-tight tracking-tight text-[color:var(--ink)] md:text-[17px]",
-                genderLabel ? "md:pr-20" : "md:pr-0",
+                "line-clamp-2 text-[14px] font-bold leading-tight tracking-tight text-[color:var(--ink)]",
+                !compact && "md:text-[17px]",
+                genderLabel ? (compact ? "md:pr-14" : "md:pr-20") : compact ? "" : "md:pr-0",
               )}
             >
               {primaryCredential}
@@ -219,7 +244,10 @@ export function PublicTutorCard({
             {supportingCredentials.map((credential, index) => (
               <p
                 key={`${credential}-${index}`}
-                className="mt-1.5 text-xs font-semibold leading-snug text-muted-foreground md:text-[13px]"
+                className={cn(
+                  "mt-1.5 font-semibold leading-snug text-muted-foreground",
+                  compact ? "text-[11px]" : "text-xs md:text-[13px]",
+                )}
               >
                 {credential}
               </p>
@@ -243,7 +271,12 @@ export function PublicTutorCard({
       <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
         {academicChips.length > 0 ? (
           <section className="border-b border-border pb-2.5 md:pb-3">
-            <h3 className="text-[13px] font-bold tracking-tight text-[color:var(--ink)] md:text-[15px]">
+            <h3
+              className={cn(
+                "font-bold tracking-tight text-[color:var(--ink)]",
+                compact ? "text-xs" : "text-[13px] md:text-[15px]",
+              )}
+            >
               {t("tutor_card.academic_achievements")}
             </h3>
             <div className="relative mt-2">
@@ -255,7 +288,11 @@ export function PublicTutorCard({
                 {academicChips
                   .slice(0, areAcademicChipsExpanded ? undefined : visibleAcademicChipCount)
                   .map((chip, index) => (
-                    <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
+                    <AcademicResultChip
+                      key={`${chip.subject}-${index}`}
+                      chip={chip}
+                      compact={compact}
+                    />
                   ))}
                 {!areAcademicChipsExpanded && visibleAcademicChipCount < academicChips.length ? (
                   <button
@@ -278,7 +315,12 @@ export function PublicTutorCard({
         <section
           className={cn("flex flex-1 flex-col", academicChips.length > 0 ? "pt-2.5" : "pt-0")}
         >
-          <h3 className="flex items-center gap-1.5 text-xs font-bold tracking-tight text-[color:var(--ink)] md:text-[13px]">
+          <h3
+            className={cn(
+              "flex items-center gap-1.5 font-bold tracking-tight text-[color:var(--ink)]",
+              compact ? "text-xs" : "text-xs md:text-[13px]",
+            )}
+          >
             <Award
               className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
               aria-hidden="true"
@@ -291,7 +333,10 @@ export function PublicTutorCard({
               {tutor.achievements.slice(0, 3).map((achievement, index) => (
                 <li
                   key={`${achievement.short_text}-${index}`}
-                  className="flex gap-1.5 text-xs font-medium leading-snug text-[color:var(--ink)] md:text-[13px]"
+                  className={cn(
+                    "flex gap-1.5 font-medium leading-snug text-[color:var(--ink)]",
+                    compact ? "text-xs" : "text-xs md:text-[13px]",
+                  )}
                 >
                   <Award
                     className="mt-0.5 h-3 w-3 shrink-0 text-[color:var(--muted-foreground)]"
@@ -310,7 +355,10 @@ export function PublicTutorCard({
             ).map((highlight, index) => (
               <li
                 key={`${highlight}-${index}`}
-                className="line-clamp-1 text-[12px] font-bold leading-snug tracking-tight text-[color:var(--ink)] md:text-[14px]"
+                className={cn(
+                  "line-clamp-1 font-bold leading-snug tracking-tight text-[color:var(--ink)]",
+                  compact ? "text-[12px]" : "text-[12px] md:text-[14px]",
+                )}
               >
                 {removeEmoji(highlight)}
               </li>
@@ -319,14 +367,36 @@ export function PublicTutorCard({
         </section>
       </div>
 
-      <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border bg-[color:var(--surface)] px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
-        <p className="min-w-0 flex-1 truncate text-xl font-bold leading-none tracking-tight text-[color:var(--ink)] md:text-3xl">
+      <footer
+        className={cn(
+          "min-w-0 border-t border-border bg-[color:var(--surface)] px-3 py-2 md:px-4 md:py-2.5",
+          compact
+            ? "flex flex-col gap-1.5"
+            : "flex flex-nowrap items-center justify-between gap-2 md:gap-3",
+        )}
+      >
+        <p
+          className={cn(
+            "min-w-0 truncate font-bold leading-none tracking-tight text-[color:var(--ink)]",
+            compact ? "text-lg" : "flex-1 text-xl md:text-3xl",
+          )}
+        >
           HK${tutor.hourly_rate}
-          <span className="ml-1 text-xs font-semibold text-muted-foreground md:text-[13px]">
+          <span
+            className={cn(
+              "ml-1 font-semibold text-muted-foreground",
+              compact ? "text-[11px]" : "text-xs md:text-[13px]",
+            )}
+          >
             {priceSuffix}
           </span>
         </p>
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2">
+        <div
+          className={cn(
+            "flex shrink-0 items-center",
+            compact ? "justify-between gap-2" : "ml-auto gap-1.5 md:gap-2",
+          )}
+        >
           {onCompareToggle ? (
             <button
               type="button"

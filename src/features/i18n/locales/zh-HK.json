@@ -62,6 +62,9 @@
     "title": "精選導師",
     "subtitle": "香港各區人氣導師",
     "view_all": "瀏覽全部導師",
+    "see_all": "瀏覽全部",
+    "prev": "上一批導師",
+    "next": "下一批導師",
     "per_hour": "/小時"
   },
   "search_panel": {

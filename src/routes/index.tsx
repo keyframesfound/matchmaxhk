@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Search, UserPlus } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Search, UserPlus } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import {
   fetchTopWeeklyTutors,
   getTutorCardHighlights,
   HK_DISTRICTS,
+  type Tutor,
 } from "@/features/tutors/queries";
 import {
   DEFAULT_SUBJECT_OPTIONS,
@@ -64,6 +65,9 @@ const CURRICULUM_CATEGORIES = [
   { label: "A Levels", value: "A-Level" },
   { label: "Examiner/pro teachers", value: "International" },
 ];
+
+const TUTORS_PER_PAGE = 5;
+const MAX_HOME_TUTORS = 9;
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -113,6 +117,134 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
+function CurriculumTutorSection({
+  label,
+  category,
+  tutors,
+  loading,
+  priceSuffix,
+  whatsappNumber,
+  onOpen,
+}: {
+  label: string;
+  category: string;
+  tutors: Tutor[];
+  loading: boolean;
+  priceSuffix: string;
+  whatsappNumber: string;
+  onOpen: (tutorCode: string) => void;
+}) {
+  const { t } = useTranslation();
+  const [page, setPage] = useState(0);
+
+  const pageCount = tutors.length > TUTORS_PER_PAGE ? 2 : 1;
+  const currentPage = Math.min(page, pageCount - 1);
+  const pageTutors =
+    currentPage === 0
+      ? tutors.slice(0, TUTORS_PER_PAGE)
+      : tutors.slice(TUTORS_PER_PAGE, MAX_HOME_TUTORS);
+  const showSeeAllTile = pageCount > 1 && currentPage === pageCount - 1;
+  const goToPage = (next: number) => setPage(Math.max(0, Math.min(pageCount - 1, next)));
+
+  return (
+    <section>
+      <div className="mb-4 flex items-center gap-2 sm:gap-3">
+        <h2 className="min-w-0 truncate text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
+          {label} tutors
+        </h2>
+        <Button
+          asChild
+          variant="ghost"
+          className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
+        >
+          <Link to="/tutors" search={{ category }}>
+            {t("featured.view_all")}
+            <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
+          </Link>
+        </Button>
+        {pageCount > 1 ? (
+          <div className="ml-auto flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              aria-label={t("featured.prev")}
+              disabled={currentPage === 0}
+              onClick={() => goToPage(currentPage - 1)}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)] disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              aria-label={t("featured.next")}
+              disabled={currentPage === pageCount - 1}
+              onClick={() => goToPage(currentPage + 1)}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)] disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
+            >
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      {loading ? (
+        <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:px-0 lg:grid-cols-4 xl:grid-cols-5">
+          {Array.from({ length: TUTORS_PER_PAGE }).map((_, index) => (
+            <Skeleton
+              key={index}
+              className="h-[23rem] w-[min(78vw,300px)] shrink-0 rounded-[var(--radius-panel)] border border-border md:w-auto"
+            />
+          ))}
+        </div>
+      ) : pageTutors.length > 0 ? (
+        <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 xl:grid-cols-5">
+          {pageTutors.map((tutor) => (
+            <div key={tutor.id} className="w-[min(78vw,300px)] shrink-0 snap-start md:w-auto">
+              <PublicTutorCard
+                tutor={tutor}
+                compact
+                priceSuffix={priceSuffix}
+                onOpen={onOpen}
+                footerAction={
+                  <>
+                    <TutorSaveButton tutorId={tutor.id} compact />
+                    <Button
+                      asChild
+                      className="h-8 rounded-sm bg-[color:var(--surface-invert)] px-3 text-xs font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
+                    >
+                      <a
+                        href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        Request tutor
+                      </a>
+                    </Button>
+                  </>
+                }
+              />
+            </div>
+          ))}
+          {showSeeAllTile ? (
+            <Link
+              to="/tutors"
+              search={{ category }}
+              className="flex min-h-[20rem] w-[min(78vw,300px)] shrink-0 snap-start flex-col items-center justify-center gap-3 rounded-[var(--radius-panel)] border border-dashed border-border bg-[color:var(--surface-subtle)]/40 text-center transition-colors hover:bg-[color:var(--surface-subtle)] md:min-h-[23rem] md:w-auto"
+            >
+              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card">
+                <ArrowRight className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
+              </span>
+              <span className="text-sm font-bold text-[color:var(--ink)]">
+                {t("featured.see_all")}
+              </span>
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function Landing() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -160,7 +292,7 @@ function Landing() {
           ...getTutorCardHighlights(tutor),
         ]),
       )
-      .slice(0, 6);
+      .slice(0, MAX_HOME_TUTORS);
 
   const openTutorDetail = (tutorCode: string) => {
     navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
@@ -341,73 +473,18 @@ function Landing() {
           </div>
 
           <div className="mt-8 space-y-10 md:mt-10 md:space-y-12">
-            {CURRICULUM_CATEGORIES.map(({ label, value }) => {
-              const tutors = tutorsForCategory(value);
-
-              return (
-                <section key={value}>
-                  <div className="mb-4 flex items-center justify-between gap-4">
-                    <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
-                      {label} tutors
-                    </h2>
-                    <Button
-                      asChild
-                      variant="ghost"
-                      className="h-9 shrink-0 rounded-full px-3 text-sm font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:px-4"
-                    >
-                      <Link to="/tutors" search={{ category: value }}>
-                        {t("featured.view_all")}
-                        <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
-                      </Link>
-                    </Button>
-                  </div>
-
-                  {publishedTutorsLoading ? (
-                    <div className="-mx-4 flex gap-4 overflow-hidden px-4 md:mx-0 md:px-0">
-                      {Array.from({ length: 3 }).map((_, index) => (
-                        <Skeleton
-                          key={index}
-                          className="h-[23rem] w-[min(86vw,370px)] shrink-0 rounded-sm border border-border"
-                        />
-                      ))}
-                    </div>
-                  ) : tutors.length > 0 ? (
-                    <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:gap-6 md:px-0">
-                      {tutors.map((tutor) => (
-                        <div
-                          key={tutor.id}
-                          className="w-[min(86vw,370px)] shrink-0 snap-start md:w-[350px] xl:w-[370px]"
-                        >
-                          <PublicTutorCard
-                            tutor={tutor}
-                            priceSuffix={t("featured.per_hour")}
-                            onOpen={openTutorDetail}
-                            footerAction={
-                              <>
-                                <TutorSaveButton tutorId={tutor.id} compact />
-                                <Button
-                                  asChild
-                                  className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white hover:bg-[color:var(--surface-invert-hover)]"
-                                >
-                                  <a
-                                    href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    onClick={(event) => event.stopPropagation()}
-                                  >
-                                    Request tutor
-                                  </a>
-                                </Button>
-                              </>
-                            }
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                </section>
-              );
-            })}
+            {CURRICULUM_CATEGORIES.map(({ label, value }) => (
+              <CurriculumTutorSection
+                key={value}
+                label={label}
+                category={value}
+                tutors={tutorsForCategory(value)}
+                loading={publishedTutorsLoading}
+                priceSuffix={t("featured.per_hour")}
+                whatsappNumber={whatsappNumber}
+                onOpen={openTutorDetail}
+              />
+            ))}
           </div>
         </div>
       </section>
