@@ -283,7 +283,7 @@ function Landing() {
               Find the right subject expert for your next lesson.
             </p>
           </div>
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
+        <div className="mx-auto max-w-[1440px] px-4 md:px-6">
           <div className="relative overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--ink)]/10 bg-[color:var(--surface)] shadow-[0_18px_50px_-28px_rgba(4,19,68,0.35)]">
             <form
               className="p-3 sm:p-4"
@@ -425,8 +425,13 @@ function Landing() {
               ) : null}
             </div>
           </div>
+        </div>
+        </div>
+      </section>
 
-          <div className="mt-8 space-y-10 md:mt-10 md:space-y-12">
+      <section className="px-4 py-10 sm:px-6 md:py-14">
+        <div className="mx-auto max-w-[1600px]">
+          <div className="space-y-10 md:space-y-12">
             {CURRICULUM_CATEGORIES.map(({ label, value }) => {
               const tutors = tutorsForCategory(value);
 
@@ -462,7 +467,7 @@ function Landing() {
                       {tutors.map((tutor) => (
                         <div
                           key={tutor.id}
-                          className="w-[min(86vw,370px)] shrink-0 snap-start md:w-[350px] xl:w-[370px]"
+                          className="w-[min(86vw,320px)] shrink-0 snap-start md:w-[300px] xl:w-[320px]"
                         >
                           <PublicTutorCard
                             tutor={tutor}
@@ -497,7 +502,6 @@ function Landing() {
               );
             })}
           </div>
-        </div>
         </div>
       </section>
 
