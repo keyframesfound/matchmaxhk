@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
-import { PriceRangeSlider } from "@/components/ui/price-range-slider";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -62,7 +63,9 @@ type SearchState = z.infer<typeof searchSchema>;
 const PRICE_MIN = 100;
 const PRICE_MAX = 1200;
 const PRICE_STEP = 10;
-const PRICE_STOP_INTERVAL = 50;
+
+const formatPrice = (price: number) =>
+  price === PRICE_MAX ? `HK$${price.toLocaleString()}+` : `HK$${price.toLocaleString()}`;
 
 const MAX_COMPARE = 4;
 
@@ -425,6 +428,7 @@ function TutorsDirectory() {
   const modeFilter = draft.mode ?? "";
   const genderFilter = draft.gender ?? "";
   const effectiveDistrictFilter = modeFilter === "in_person" ? districtFilter : "";
+  const priceValue: [number, number] = [draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX];
 
   const filtered = useMemo(() => {
     const query = (draft.q ?? "").trim().toLowerCase();
@@ -616,24 +620,26 @@ function TutorsDirectory() {
               </form>
 
               <div className="grid gap-4 border-t border-border bg-[color:var(--surface-subtle)] px-4 py-4 sm:px-5 lg:grid-cols-[minmax(22rem,36rem)_14rem_auto] lg:items-center lg:gap-6">
-                <div className="w-full">
-                  <PriceRangeSlider
-                    min={PRICE_MIN}
-                    max={PRICE_MAX}
-                    step={PRICE_STEP}
-                    stopInterval={PRICE_STOP_INTERVAL}
-                    value={[draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX]}
-                    label={t("search_panel.price_range")}
+                <div className="w-full space-y-3">
+                  <Label className="tabular-nums">
+                    {t("search_panel.price_from")} {formatPrice(priceValue[0])}{" "}
+                    {t("search_panel.price_to")} {formatPrice(priceValue[1])}
+                  </Label>
+                  <Slider
+                    value={priceValue}
                     onValueChange={([lo, hi]) =>
                       setDraftParam({
                         min_price: lo > PRICE_MIN ? lo : undefined,
                         max_price: hi < PRICE_MAX ? hi : undefined,
                       })
                     }
-                    minLabel={t("search_panel.price_min_label")}
-                    maxLabel={t("search_panel.price_max_label")}
-                    minReadoutLabel={t("search_panel.price_min_label")}
-                    maxReadoutLabel={t("search_panel.price_max_label")}
+                    min={PRICE_MIN}
+                    max={PRICE_MAX}
+                    step={PRICE_STEP}
+                    minStepsBetweenThumbs={1}
+                    showTooltip
+                    tooltipContent={formatPrice}
+                    aria-label={t("search_panel.price_range")}
                   />
                 </div>
                 <SearchableSelect
