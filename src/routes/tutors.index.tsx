@@ -744,7 +744,7 @@ function TutorsDirectory() {
                         <TutorSaveButton tutorId={tut.id} compact />
                         <Button
                           asChild
-                          className="h-9 rounded-sm px-4 text-[13px] font-bold shadow-none"
+                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-white shadow-none hover:bg-[color:var(--surface-invert-hover)]"
                         >
                           <a
                             href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
