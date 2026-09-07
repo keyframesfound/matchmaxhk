@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Search, UserPlus } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Search, UserPlus } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
@@ -108,6 +108,7 @@ function Landing() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [homeSearch, setHomeSearch] = useState<HomeTutorSearchState>({});
+  const [carouselPages, setCarouselPages] = useState<Record<string, number>>({});
 
   const setHomeSearchParam = (patch: Partial<HomeTutorSearchState>) => {
     setHomeSearch((prev) => {
@@ -150,8 +151,7 @@ function Landing() {
           ...tutor.target_students,
           ...getTutorCardHighlights(tutor),
         ]),
-      )
-      .slice(0, 6);
+      );
 
   const openTutorDetail = (tutorCode: string) => {
     navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
@@ -434,23 +434,58 @@ function Landing() {
           <div className="space-y-10 md:space-y-12">
             {CURRICULUM_CATEGORIES.map(({ label, value }) => {
               const tutors = tutorsForCategory(value);
+              const page = carouselPages[value] ?? 0;
+              const pageCount =
+                tutors.length <= 4 ? 1 : 1 + Math.ceil(Math.max(0, tutors.length - 5) / 4);
+              const pageStart = page === 0 ? 0 : 5 + (page - 1) * 4;
+              const visibleTutors = tutors.slice(pageStart, pageStart + (page === 0 ? 5 : 4));
+              const showSeeAll =
+                tutors.length <= 4 || (page > 0 && pageStart + visibleTutors.length >= tutors.length);
+              const setPage = (nextPage: number) =>
+                setCarouselPages((current) => ({ ...current, [value]: nextPage }));
 
               return (
                 <section key={value}>
                   <div className="mb-4 flex items-center justify-between gap-4">
-                    <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
-                      {label} tutors
-                    </h2>
-                    <Button
-                      asChild
-                      variant="ghost"
-                      className="h-9 shrink-0 rounded-full px-3 text-sm font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:px-4"
-                    >
-                      <Link to="/tutors" search={{ category: value }}>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
+                        {label} tutors
+                      </h2>
+                      <Link
+                        to="/tutors"
+                        search={{ category: value }}
+                        className="inline-flex shrink-0 items-center gap-1 text-sm font-bold text-[color:var(--brand-link)] hover:text-[color:var(--ink)]"
+                      >
                         {t("featured.view_all")}
-                        <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
                       </Link>
-                    </Button>
+                    </div>
+                    {pageCount > 1 ? (
+                      <div className="flex shrink-0 items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Previous ${label} tutors`}
+                          disabled={page === 0}
+                          onClick={() => setPage(Math.max(0, page - 1))}
+                          className="h-8 w-8 rounded-full text-[color:var(--ink)]/60 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Next ${label} tutors`}
+                          disabled={page >= pageCount - 1}
+                          onClick={() => setPage(Math.min(pageCount - 1, page + 1))}
+                          className="h-8 w-8 rounded-full text-[color:var(--ink)]/60 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
 
                   {publishedTutorsLoading ? (
@@ -463,13 +498,14 @@ function Landing() {
                       ))}
                     </div>
                   ) : tutors.length > 0 ? (
-                    <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:gap-6 md:px-0">
-                      {tutors.map((tutor) => (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                      {visibleTutors.map((tutor) => (
                         <div
                           key={tutor.id}
-                          className="w-[min(86vw,320px)] shrink-0 snap-start md:w-[300px] xl:w-[320px]"
+                          className="min-w-0"
                         >
                           <PublicTutorCard
+                            className="md:min-h-[20rem]"
                             tutor={tutor}
                             priceSuffix={t("featured.per_hour")}
                             onOpen={openTutorDetail}
@@ -494,6 +530,28 @@ function Landing() {
                           />
                         </div>
                       ))}
+                      {showSeeAll ? (
+                        <Link
+                          to="/tutors"
+                          search={{ category: value }}
+                          className="flex min-h-[20rem] flex-col items-center justify-center gap-6 rounded-[var(--radius-panel)] border border-[color:var(--ink)]/10 bg-[color:var(--surface)] px-4 text-center shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-[transform,box-shadow] hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] md:min-h-[20rem]"
+                        >
+                          <div className="flex items-end justify-center -space-x-8">
+                            {visibleTutors.slice(0, 3).map((tutor, index) => (
+                              <div
+                                key={tutor.id}
+                                className="relative h-20 w-20 overflow-hidden rounded-xl border-4 border-[color:var(--surface)] bg-muted shadow-md"
+                                style={{ transform: `translateY(${index === 1 ? -12 : index === 2 ? 6 : 0}px) rotate(${index === 0 ? -6 : index === 2 ? 5 : 0}deg)` }}
+                              >
+                                {tutor.photo_url ? (
+                                  <img src={tutor.photo_url} alt="" className="h-full w-full object-cover" />
+                                ) : null}
+                              </div>
+                            ))}
+                          </div>
+                          <span className="text-lg font-bold text-[color:var(--ink)]">See all</span>
+                        </Link>
+                      ) : null}
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">{t("common.no_tutors_yet")}</p>
