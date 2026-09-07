@@ -19,7 +19,7 @@ const buttonVariants = cva(
           "[--btn:var(--destructive)] [--btn-fg:var(--destructive-foreground)] [--btn-hover:color-mix(in_oklab,var(--destructive)_85%,black)]",
         green: "[--btn:#00875A] [--btn-fg:#fff] [--btn-hover:#006B47]",
         neutral:
-          "[--btn:var(--foreground)] [--btn-fg:var(--background)] [--btn-hover:color-mix(in_oklab,var(--foreground)_85%,black)]",
+          "[--btn:var(--btn-neutral)] [--btn-fg:var(--btn-neutral-fg)] [--btn-hover:var(--btn-neutral-hover)]",
       },
       shape: {
         default: "",
@@ -37,7 +37,7 @@ const buttonVariants = cva(
       },
       variant: {
         candy:
-          "border border-white/25 bg-gradient-to-b from-[var(--btn,var(--foreground))] to-[var(--btn-hover,#272c30)] text-[var(--btn-fg,#fff)] shadow-md shadow-black/20 ring-1 ring-[color-mix(in_oklab,var(--foreground)_15%,var(--btn,var(--foreground)))] hover:from-[var(--btn-hover,#272c30)] hover:to-[var(--btn-hover,#272c30)] [&_svg]:drop-shadow-sm",
+          "border border-white/25 bg-gradient-to-b from-[var(--btn,var(--btn-neutral))] to-[var(--btn-hover,var(--btn-neutral-hover))] text-[var(--btn-fg,#fff)] shadow-md shadow-black/20 ring-1 ring-[color-mix(in_oklab,var(--foreground)_15%,var(--btn,var(--btn-neutral)))] hover:from-[var(--btn-hover,var(--btn-neutral-hover))] hover:to-[var(--btn-hover,var(--btn-neutral-hover))] [&_svg]:drop-shadow-sm",
         default:
           "border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] text-[color:var(--foreground)] shadow-sm hover:border-[color:var(--foreground)]/25 hover:bg-[color:var(--muted)]",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
@@ -46,10 +46,10 @@ const buttonVariants = cva(
         outline:
           "border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] shadow-sm hover:border-[color:var(--foreground)]/25 hover:bg-[color:var(--foreground)]/[0.04]",
         secondary:
-          "bg-[color:var(--secondary)] text-[color:var(--foreground)] shadow-sm hover:bg-[color:var(--accent)]",
+          "bg-[var(--btn,var(--btn-neutral))] text-[color:var(--btn-fg,var(--btn-neutral-fg))] shadow-sm hover:bg-[var(--btn-hover,var(--btn-neutral-hover))]",
         soft: "bg-[color-mix(in_oklab,var(--btn,var(--foreground))_12%,transparent)] text-[var(--btn,var(--foreground))] hover:bg-[color-mix(in_oklab,var(--btn,var(--foreground))_18%,transparent)]",
         solid:
-          "bg-[var(--btn,var(--foreground))] text-[var(--btn-fg,var(--background))] shadow-sm hover:bg-[var(--btn-hover,var(--brand-navy))]",
+          "bg-[var(--btn,var(--btn-neutral))] text-[var(--btn-fg,var(--btn-neutral-fg))] shadow-sm hover:bg-[var(--btn-hover,var(--btn-neutral-hover))]",
       },
     },
     defaultVariants: {

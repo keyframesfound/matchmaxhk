@@ -167,7 +167,7 @@ The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairli
 ### Named Rules
 **The Scarcity Rule.** Azure (`--btn-accent`/`--ring`/`--brand-link`) owns exactly three things: (1) money-CTA fills — the ~10% of buttons that start a conversion flow, (2) text links, (3) focus rings and selected/active states. Everything else is ink/neutral. Test: *does this button start a conversion flow?* If not, it is neutral (white or ink).
 
-**The Constant Signal Rule.** Dark mode dims the world, not the signal: Azure keeps carrying accent fills, links, and focus in both themes (unlike palettes that invert the accent). Dark secondary buttons flip to white fill (`#F0F3F4`) with ink text — the X "white button on black" pattern.
+**The Constant Signal Rule.** Dark mode dims the world, not the signal: Azure keeps carrying accent fills, links, and focus in both themes (unlike palettes that invert the accent). Dark neutral/secondary buttons use X's translucent slate fill (`rgba(91,112,131,0.4)`, `--btn-neutral`) with `#F0F3F4` text, deepening to `0.6` alpha on hover — the white pill is never a resting neutral in dark mode.
 
 ## Typography
 
@@ -227,7 +227,7 @@ For each component: confident signage — bold labels, one clear primary action,
 - **Accent** (`variant="solid" color="blue"` — `color="accent"` is an alias): the money CTA. `--btn-accent` fill (`#1D9BF0` in both themes) with white text, hover `#1A8CD8`. Reserved for the conversion list: hero Find a Tutor, directory Search, Post your request (+ submit), Join as Tutor (+ final submit), Contact/Request Tutor, header Sign up, auth continue, pricing highlighted CTA, dashboard/case CTAs, Publish course, business signup.
 - **Request-tutor decision:** the full-size "Request tutor" CTA on the tutor profile page is the one azure contact CTA; on tutor cards (home rails, directory, suggested tutors) the compact "Request tutor" WhatsApp button ships neutral (default variant) so the card stays scannable and azure stays scarce. Do not flip card contact buttons to azure for emphasis.
 - **Colour axis** (`color` prop sets `--btn/--btn-fg/--btn-hover`): blue/accent (azure tokens), neutral (ink fill), green `#00875A→#006B47`, amber `#A16207→#854D0E`, destructive. `variant="candy"` adds a vertical gradient for marquee CTAs; `variant="soft"` renders the colour as a 12→18% tint.
-- **Ghost / Link / Outline / Secondary:** Ghost = ink text, 6% hover wash (text stays ink); Link = Azure, underlined on hover; Outline = white fill, `foreground/15` border shifting to `/25` + 4% wash on hover; Secondary = ink fill (`--secondary`) with white text on light, white fill with ink text on dark.
+- **Ghost / Link / Outline / Secondary:** Ghost = ink text, 6% hover wash (text stays ink); Link = Azure, underlined on hover; Outline = surface fill, `foreground/15` border shifting to `/25` + 4% wash on hover; Secondary = the neutral axis (`--btn-neutral`): ink fill with white text on light, translucent slate `rgba(91,112,131,0.4)` with `#F0F3F4` text on dark, hover deepens the same fill (never an azure wash).
 - **States:** All buttons press with `active:scale-[0.97]`, transition 150ms ease-out, focus-visible ring-2 azure (`--ring`) at 40% + offset, disabled at 50% opacity, optional animated loading spinner. `motion-reduce` disables the press.
 
 ### Badges / Chips

@@ -151,6 +151,11 @@
   --btn-accent-fg: #ffffff;
   --btn-accent-hover: #1a8cd8;
 
+  /* Neutral solid button — ink in light; goes translucent slate in dark */
+  --btn-neutral: #0f1419;
+  --btn-neutral-fg: #ffffff;
+  --btn-neutral-hover: #272c30;
+
   /* WhatsApp brand exception */
   --brand-whatsapp: #25d366;
   --brand-whatsapp-hover: #1ebe57;
@@ -264,6 +269,11 @@
   --btn-accent: #1d9bf0;
   --btn-accent-fg: #ffffff;
   --btn-accent-hover: #1a8cd8;
+
+  /* Neutral button in dark — X's translucent slate, never white */
+  --btn-neutral: rgba(91, 112, 131, 0.4);
+  --btn-neutral-fg: #f0f3f4;
+  --btn-neutral-hover: rgba(91, 112, 131, 0.6);
 
   /* WhatsApp brand exception */
   --brand-whatsapp: #25d366;
