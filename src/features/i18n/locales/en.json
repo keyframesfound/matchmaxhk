@@ -287,15 +287,10 @@
   },
   "hiw": {
     "hero_eyebrow": "How MatchMax works",
-    "hero_title": "Built by students. Run like a system.",
-    "hero_title_highlights": ["Run like a system."],
+    "hero_title": "Built By Students: Why MatchMax Works Better",
     "hero_body": "We founded MatchMax as university students who sat the IB and DSE exams ourselves. We know traditional agencies treat educators like numbers and leave parents guessing. Here is how we make matching simple, fair, and transparent for both sides.",
     "hero_cta_browse": "Browse Educator Profiles",
     "hero_cta_apply": "Apply to Teach",
-    "stats_eyebrow": "Live from the network",
-    "stats_matched_label": "Students matched",
-    "stats_edu_label": "Verified educators",
-    "stats_subjects_label": "Subjects covered",
     "props_eyebrow": "01 / What makes us different",
     "props": {
       "screening": {
@@ -315,33 +310,6 @@
         "detail": "Built by university students, we inherently understand the logistics of private tutoring. We do not use automated, robotic matchmaking; we treat every application individually and provide personalized, manual guidance to ensure the perfect fit."
       }
     },
-    "machine_eyebrow": "02 / Inside the machine",
-    "machine_title": "Verification runs before a profile goes live.",
-    "machine_lead": "No automated matchmaking. Every application is read by our team, every credential checked by hand.",
-    "machine_verified": "VERIFIED",
-    "machine_steps": {
-      "s1": {
-        "title": "Transcript check",
-        "detail": "Official transcripts, diplomas, and exam certificates are submitted and manually checked against our academic bar."
-      },
-      "s2": {
-        "title": "Team review",
-        "detail": "Every application is read individually by our team — we treat each one personally, never robotically."
-      },
-      "s3": {
-        "title": "Verified top scorer",
-        "detail": "Only IB 40+, DSE Best 5 30+, A*AA, and official examiners clear the bar and go live."
-      },
-      "s4": {
-        "title": "Case matched",
-        "detail": "A request along your MTR line becomes a case, handed to you within one business day."
-      }
-    },
-    "machine_handoff_label": "The handoff",
-    "machine_handoff_from": "request",
-    "machine_handoff_to": "tutor-code",
-    "machine_demo_note": "Illustrative",
-    "ledger_intro": "The same matching, measured line by line against the old way.",
     "compare_eyebrow": "02 / Why MatchMax works better",
     "compare_edu_title": "For Educators: Fair Rules, Built by Students Who Understand You",
     "compare_parent_title": "For Parents: Real Scores, Verified Credentials",
@@ -506,14 +474,6 @@
         "a": "Tuition is paid directly to the tutor based on the agreed hourly rate and schedule. MatchMax does not hold or handle your tuition fees, keeping the payment process direct and transparent."
       }
     },
-    "mock_title_parents": "Match request",
-    "mock_title_tutors": "Open case",
-    "mock_state_searching": "Searching",
-    "mock_state_shortlist": "Shortlisted",
-    "mock_state_matched": "Matched",
-    "mock_note": "Illustrative demo — real matching runs through your shortlist and our WhatsApp hotline.",
-    "mock_row_profiles": "Verified profiles",
-    "mock_row_match": "Your match",
     "cta_title": "The right match starts with a conversation.",
     "cta_body": "Whether you are looking for a tutor, building your teaching practice, or staffing a centre, our team makes every connection personal.",
     "cta_check": "Personal guidance, never robotic matching."

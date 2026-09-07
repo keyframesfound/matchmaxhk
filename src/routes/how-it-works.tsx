@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
@@ -14,20 +13,11 @@ import {
   Search,
   UserRoundCheck,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Accordion05 } from "@/components/ui/accordion-05";
 import { Button } from "@/components/ui/button";
-import { fetchLandingStats } from "@/features/tutors/queries";
-import { MatchFlowTrack } from "@/components/ui/match-flow-track";
-import { VerificationPipeline } from "@/components/ui/verification-pipeline";
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
@@ -127,12 +117,6 @@ function useHowItWorksContent() {
     "payments",
   ]);
 
-  const machineSteps = (["s1", "s2", "s3", "s4"] as const).map((key) => ({
-    title: t(`hiw.machine_steps.${key}.title`),
-    detail: t(`hiw.machine_steps.${key}.detail`),
-    ...(key === "s3" ? { badge: t("hiw.machine_verified") } : {}),
-  }));
-
   return {
     t,
     valueProps,
@@ -142,50 +126,115 @@ function useHowItWorksContent() {
     tutorSteps,
     tutorFaqItems,
     parentFaqItems,
-    machineSteps,
   };
 }
 
-function DeltaLedger({
+function AudienceSection({
+  eyebrow,
+  audience,
   title,
-  rows,
-  t,
+  icon: Icon,
+  steps,
+  links,
+  className,
+  numberClassName,
+  accentClassName,
+  bodyTextClassName = "text-current/70",
 }: {
+  eyebrow: string;
+  audience: string;
   title: string;
-  rows: ComparisonRow[];
-  t: (key: string) => string;
+  icon: typeof Search;
+  steps: [string, string, string][];
+  links: { to: "/tutors" | "/join" | "/tutor-requests"; label: string; search?: { post?: true } }[];
+  className: string;
+  numberClassName: string;
+  accentClassName: string;
+  bodyTextClassName?: string;
 }) {
   return (
+    <section className={className}>
+      <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
+        <article className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,4fr)] lg:gap-20">
+          <div className="h-fit lg:sticky lg:top-24">
+            <Icon className={`h-7 w-7 ${accentClassName}`} />
+            <p className={`mt-6 text-sm font-bold ${accentClassName}`}>{eyebrow}</p>
+            <h3 className="mt-3 text-5xl font-extrabold leading-[1.02] tracking-tight text-inherit sm:text-6xl lg:text-7xl">
+              {audience}
+            </h3>
+            <p className="mt-4 max-w-md text-xl font-bold leading-snug tracking-tight sm:text-2xl">
+              {title}
+            </p>
+            <div className="mt-8 space-y-3">
+              {links.map((link) => (
+                <Link
+                  key={link.label}
+                  to={link.to}
+                  search={link.search}
+                  className="inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
+                >
+                  {link.label} <ArrowRight className={`ml-2 h-4 w-4 ${accentClassName}`} />
+                </Link>
+              ))}
+            </div>
+          </div>
+          <ol className="border-t border-current/20">
+            {steps.map(([number, stepTitle, text]) => (
+              <li
+                key={number}
+                className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-5 border-b border-current/20 py-7 sm:gap-8 sm:py-9"
+              >
+                <span
+                  className={`flex h-11 w-11 items-center justify-center text-sm font-bold ${numberClassName}`}
+                >
+                  {number}
+                </span>
+                <div>
+                  <h4 className="text-xl font-bold tracking-tight text-inherit sm:text-2xl">
+                    {stepTitle}
+                  </h4>
+                  <p className={`mt-3 max-w-2xl text-sm leading-7 ${bodyTextClassName}`}>{text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[] }) {
+  const { t } = useTranslation();
+  return (
     <div>
-      <h3 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h3>
-      <div className="mt-8 hidden gap-x-10 border-b border-white/15 pb-4 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
-        <p className="text-sm font-bold text-white/45">{t("hiw.table_aspect")}</p>
-        <p className="text-sm font-bold text-white/45 line-through decoration-white/30">
-          {t("hiw.table_old")}
-        </p>
-        <p className="text-sm font-bold text-[#1d9bf0]">{t("hiw.table_max")}</p>
+      <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
+      <div className="mt-8 hidden gap-x-10 border-b border-[color:var(--ink)]/20 pb-4 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
+        <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_aspect")}</p>
+        <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_old")}</p>
+        <p className="text-sm font-bold text-[color:var(--brand-link)]">{t("hiw.table_max")}</p>
       </div>
       <ul>
         {rows.map((row) => (
           <li
             key={row.aspect}
-            className="grid gap-x-10 gap-y-4 border-b border-white/10 py-7 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-y-0 md:py-9"
+            className="grid gap-x-10 gap-y-4 border-b border-[color:var(--ink)]/12 py-7 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-y-0 md:py-9"
           >
-            <h4 className="text-lg font-bold tracking-tight">{row.aspect}</h4>
+            <h3 className="text-lg font-bold tracking-tight">{row.aspect}</h3>
             <div>
-              <p className="mb-1 text-xs font-medium text-white/40 md:hidden">
+              <p className="mb-1 text-xs font-medium text-[color:var(--ink)]/45 md:hidden">
                 {t("hiw.table_old_mobile")}
               </p>
-              <p className="text-sm leading-6 text-white/45 line-through decoration-white/30">
-                {row.oldWay}
-              </p>
+              <p className="text-sm leading-6 text-[color:var(--ink)]/60">{row.oldWay}</p>
             </div>
             <div>
-              <p className="mb-1 text-xs font-medium text-[#8ecdf8] md:hidden">
+              <p className="mb-1 text-xs font-medium text-[color:var(--muted-foreground)] md:hidden">
                 {t("hiw.table_max")}
               </p>
-              <p className="text-sm leading-6 text-white/85">
-                <strong className="font-bold text-[#1d9bf0]">{row.advantage}: </strong>
+              <p className="text-sm leading-6 text-[color:var(--ink)]">
+                <strong className="font-bold text-[color:var(--brand-link)]">
+                  {row.advantage}:
+                </strong>{" "}
                 {row.detail}
               </p>
             </div>
@@ -206,41 +255,7 @@ function HowItWorksPage() {
     tutorSteps,
     tutorFaqItems,
     parentFaqItems,
-    machineSteps,
   } = useHowItWorksContent();
-
-  const { data: studentsMatched = "0" } = useQuery({
-    queryKey: ["settings", "students_matched"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "students_matched")
-        .maybeSingle();
-      if (error) throw error;
-      return typeof data?.value === "string" ? data.value : "0";
-    },
-  });
-
-  const { data: landingStats } = useQuery({
-    queryKey: ["landing", "stats"],
-    queryFn: fetchLandingStats,
-  });
-
-  const stats = [
-    {
-      target: Number.parseInt(studentsMatched.replace(/[^0-9]/g, ""), 10) || 0,
-      label: t("hiw.stats_matched_label"),
-    },
-    {
-      target: landingStats?.activeTutors ?? 0,
-      label: t("hiw.stats_edu_label"),
-    },
-    {
-      target: landingStats?.subjectsCovered ?? 0,
-      label: t("hiw.stats_subjects_label"),
-    },
-  ];
 
   return (
     <div className="how-it-works-paper flex min-h-screen flex-col text-[color:var(--ink)]">
@@ -251,7 +266,7 @@ function HowItWorksPage() {
             {t("hiw.hero_eyebrow")}
           </p>
           <div className="relative mt-5 w-fit">
-            <h1 className="max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
+            <h1 className="max-w-2xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
               {t("hiw.hero_title")}
             </h1>
             <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--muted-foreground)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
@@ -273,29 +288,13 @@ function HowItWorksPage() {
 
         <section className="mx-auto max-w-[1440px] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
           <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-            {t("hiw.stats_eyebrow")}
-          </p>
-          <dl className="mt-8 grid gap-x-10 gap-y-8 border-y border-[color:var(--ink)]/12 py-10 sm:grid-cols-3">
-            {stats.map((stat) => (
-              <div key={stat.label}>
-                <dd className="text-5xl font-extrabold tracking-tight text-[color:var(--brand-link)] sm:text-6xl">
-                  {stat.target.toLocaleString()}
-                </dd>
-                <dt className="mt-3 text-sm font-bold text-[color:var(--muted-foreground)]">
-                  {stat.label}
-                </dt>
-              </div>
-            ))}
-          </dl>
-
-          <p className="mt-16 text-sm font-bold text-[color:var(--muted-foreground)]">
             {t("hiw.props_eyebrow")}
           </p>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 sm:gap-8">
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 sm:gap-8">
             {valueProps.map(({ icon: Icon, title, detail }) => (
               <article
                 key={title}
-                className="h-full rounded-[var(--radius-panel)] border border-[color:var(--ink)]/12 bg-[color:var(--surface)] p-6 shadow-[var(--shadow-brand)] sm:p-8"
+                className="rounded-[var(--radius-panel)] border border-[color:var(--ink)]/12 bg-[color:var(--surface)] p-6 shadow-[var(--shadow-brand)] sm:p-8"
               >
                 <span className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-panel)] bg-[color:var(--foreground)]/[0.04]">
                   <Icon
@@ -310,23 +309,13 @@ function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="bg-[#0f1419] text-white dark:bg-[color:var(--surface)]">
-          <VerificationPipeline
-            eyebrow={t("hiw.machine_eyebrow")}
-            title={t("hiw.machine_title")}
-            lead={t("hiw.machine_lead")}
-            steps={machineSteps}
-            handoffLabel={t("hiw.machine_handoff_label")}
-            handoffFrom={t("hiw.machine_handoff_from")}
-            handoffTo={t("hiw.machine_handoff_to")}
-            demoNote={t("hiw.machine_demo_note")}
-          />
-          <div className="mx-auto max-w-[1440px] px-5 pb-24 sm:px-8 lg:px-12">
-            <p className="max-w-xl text-base leading-7 text-white/55">{t("hiw.ledger_intro")}</p>
-            <div className="mt-12 space-y-16 sm:space-y-20">
-              <DeltaLedger title={t("hiw.compare_edu_title")} rows={educatorComparison} t={t} />
-              <DeltaLedger title={t("hiw.compare_parent_title")} rows={parentComparison} t={t} />
-            </div>
+        <section className="mx-auto max-w-[1440px] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
+          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+            {t("hiw.compare_eyebrow")}
+          </p>
+          <div className="mt-10 space-y-16 sm:mt-12 sm:space-y-20">
+            <ComparisonTable title={t("hiw.compare_edu_title")} rows={educatorComparison} />
+            <ComparisonTable title={t("hiw.compare_parent_title")} rows={parentComparison} />
           </div>
         </section>
 
@@ -348,12 +337,11 @@ function HowItWorksPage() {
           </div>
         </section>
 
-        <MatchFlowTrack
-          tone="light"
-          icon={Search}
+        <AudienceSection
           eyebrow={t("hiw.parents_eyebrow")}
           audience={t("hiw.parents_audience")}
           title={t("hiw.parents_title")}
+          icon={Search}
           steps={parentSteps}
           links={[
             { to: "/tutors", label: t("hiw.parents_link_find") },
@@ -363,37 +351,25 @@ function HowItWorksPage() {
               label: t("hiw.parents_link_request"),
             },
           ]}
-          mockTitle={t("hiw.mock_title_parents")}
-          mockStates={[
-            t("hiw.mock_state_searching"),
-            t("hiw.mock_state_shortlist"),
-            t("hiw.mock_state_matched"),
-          ]}
-          mockNote={t("hiw.mock_note")}
-          mockRowA={t("hiw.mock_row_profiles")}
-          mockRowB={t("hiw.mock_row_match")}
+          className="bg-[#E3ECF6] text-[#0f1419] dark:bg-[#061622] dark:text-white"
+          numberClassName="bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
+          accentClassName="text-[color:var(--muted-foreground)]"
         />
 
-        <MatchFlowTrack
-          tone="dark"
-          icon={UserRoundCheck}
+        <AudienceSection
           eyebrow={t("hiw.tutors_eyebrow")}
           audience={t("hiw.tutors_audience")}
           title={t("hiw.tutors_title")}
+          icon={UserRoundCheck}
           steps={tutorSteps}
           links={[
             { to: "/tutor-requests", label: t("hiw.tutors_link_cases") },
             { to: "/join", label: t("hiw.tutors_link_apply") },
           ]}
-          mockTitle={t("hiw.mock_title_tutors")}
-          mockStates={[
-            t("hiw.mock_state_searching"),
-            t("hiw.mock_state_shortlist"),
-            t("hiw.mock_state_matched"),
-          ]}
-          mockNote={t("hiw.mock_note")}
-          mockRowA={t("hiw.mock_row_profiles")}
-          mockRowB={t("hiw.mock_row_match")}
+          className="bg-[#0f1419] !text-white dark:bg-[#0f1419] dark:!text-white"
+          numberClassName="bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
+          accentClassName="text-[color:var(--muted-foreground)]"
+          bodyTextClassName="text-white"
         />
 
         <section
@@ -416,24 +392,7 @@ function HowItWorksPage() {
                 />
                 {t("hiw.faq_tutors")}
               </h3>
-              <div className="mt-5 rounded-[var(--radius-panel)] border border-[color:var(--ink)]/12 bg-[color:var(--surface)] px-5 py-2 shadow-[var(--shadow-brand)] sm:px-8">
-                <Accordion type="single" collapsible className="w-full">
-                  {tutorFaqItems.map((item) => (
-                    <AccordionItem
-                      key={item.id}
-                      value={`tutor-faq-${item.id}`}
-                      className="border-[color:var(--ink)]/10"
-                    >
-                      <AccordionTrigger className="py-5 text-left text-lg font-bold text-[color:var(--ink)] hover:no-underline sm:text-xl">
-                        {item.title}
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-5 text-base leading-relaxed text-[color:var(--ink)]/70">
-                        {item.content}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </div>
+              <Accordion05 className="mt-5" items={tutorFaqItems} defaultValue="1" />
             </div>
 
             <div className="mt-14">
@@ -444,24 +403,7 @@ function HowItWorksPage() {
                 />
                 {t("hiw.faq_parents")}
               </h3>
-              <div className="mt-5 rounded-[var(--radius-panel)] border border-[color:var(--ink)]/12 bg-[color:var(--surface)] px-5 py-2 shadow-[var(--shadow-brand)] sm:px-8">
-                <Accordion type="single" collapsible className="w-full">
-                  {parentFaqItems.map((item) => (
-                    <AccordionItem
-                      key={item.id}
-                      value={`parent-faq-${item.id}`}
-                      className="border-[color:var(--ink)]/10"
-                    >
-                      <AccordionTrigger className="py-5 text-left text-lg font-bold text-[color:var(--ink)] hover:no-underline sm:text-xl">
-                        {item.title}
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-5 text-base leading-relaxed text-[color:var(--ink)]/70">
-                        {item.content}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </div>
+              <Accordion05 className="mt-5" items={parentFaqItems} defaultValue="1" />
             </div>
           </div>
         </section>
@@ -476,13 +418,6 @@ function HowItWorksPage() {
               <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/68">
                 {t("hiw.cta_body")}
               </p>
-              <div className="mt-8">
-                <Button asChild size="lg" variant="solid" color="accent">
-                  <Link to="/tutor-requests" search={{ post: true }}>
-                    {t("hiw.parents_link_request")} <ArrowRight />
-                  </Link>
-                </Button>
-              </div>
             </div>
             <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]/70">
               <Check className="h-4 w-4 text-[color:var(--muted-foreground)]" />{" "}
