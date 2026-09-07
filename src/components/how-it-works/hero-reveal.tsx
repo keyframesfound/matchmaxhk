@@ -87,17 +87,15 @@ function PlaceholderTile() {
 }
 
 function HeroCopy({ copyActive }: { copyActive?: boolean }) {
-  const { t, i18n } = useTranslation();
-  const highlights = i18n.language?.startsWith("zh") ? ["由學生創辦"] : ["Built By Students"];
+  const { t } = useTranslation();
 
   return (
     <div className="text-center">
-      <p className="text-sm font-bold text-white/60">{t("hiw.hero_eyebrow")}</p>
+      <p className="text-sm font-bold text-white">{t("hiw.hero_eyebrow")}</p>
       <div className="relative mx-auto mt-4 w-fit">
         <BlurHighlightText
           as="h1"
           active={copyActive}
-          highlights={highlights}
           className="max-w-3xl text-4xl font-extrabold leading-[1.02] tracking-tight text-white sm:text-6xl"
         >
           {t("hiw.hero_title")}
@@ -107,9 +105,7 @@ function HeroCopy({ copyActive }: { copyActive?: boolean }) {
           aria-hidden="true"
         />
       </div>
-      <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-white/65">
-        {t("hiw.hero_body")}
-      </p>
+      <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-white">{t("hiw.hero_body")}</p>
       <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
         <Button asChild size="lg" variant="solid" color="accent">
           <Link to="/tutors">
