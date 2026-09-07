@@ -878,3 +878,33 @@
     background-image: linear-gradient(135deg, #8ecdf8 0%, #1d9bf0 100%);
   }
 }
+
+/*
+ * Dropdown sheets: popper-based dropdowns (searchable selects, lesson mode,
+ * tag suggestions) always open downwards. On mobile (< lg) the Radix popper
+ * wrapper is repositioned into a full-width sheet pinned right below the
+ * sticky nav (64px header + 1px border = 65px), so the search input at the
+ * top of the dropdown sits directly under the nav bar. `!important` beats
+ * the inline transform/position styles Radix applies to the wrapper.
+ */
+@media (width < 64rem) {
+  [data-radix-popper-content-wrapper]:has(> .mm-dropdown-sheet) {
+    position: fixed !important;
+    top: 65px !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    transform: none !important;
+  }
+
+  [data-radix-popper-content-wrapper] > .mm-dropdown-sheet {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    border-top-width: 0 !important;
+    border-right-width: 0 !important;
+    border-left-width: 0 !important;
+    border-radius: 0 0 12px 12px !important;
+  }
+}

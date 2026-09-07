@@ -145,8 +145,8 @@ function CurriculumTutorSection({
   const currentPage = Math.min(page, pages.length - 1);
   const goToPage = (next: number) => setPage(Math.max(0, Math.min(pages.length - 1, next)));
 
-  const renderTutorCard = (tutor: Tutor) => (
-    <div key={tutor.id} className="min-w-0">
+  const renderTutorCard = (tutor: Tutor, className?: string) => (
+    <div key={tutor.id} className={cn("min-w-0", className)}>
       <PublicTutorCard
         tutor={tutor}
         priceSuffix={priceSuffix}
@@ -242,7 +242,9 @@ function CurriculumTutorSection({
         <>
           {/* Mobile: one swipeable row — first page of tutors, then the see-all tile */}
           <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:hidden">
-            {tutors.slice(0, TUTORS_PER_PAGE).map((tutor) => renderTutorCard(tutor))}
+            {tutors
+              .slice(0, TUTORS_PER_PAGE)
+              .map((tutor) => renderTutorCard(tutor, "w-[min(86vw,370px)] shrink-0 snap-start"))}
             {tutors.length > TUTORS_PER_PAGE
               ? seeAllTile("min-h-[20rem] w-[min(86vw,370px)] shrink-0 snap-start")
               : null}
