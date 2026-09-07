@@ -32,6 +32,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteMyAccount } from "@/lib/account.functions";
+import { ConsolePanel } from "@/components/ui/console-panel";
 import { cn } from "@/lib/utils";
 import { useTheme, type ThemePreference } from "@/features/theme/ThemeProvider";
 
@@ -225,10 +226,7 @@ function SettingsPage() {
             </aside>
 
             <div className="min-w-0 max-w-3xl space-y-6">
-              <section
-                id="profile"
-                className="scroll-mt-28 rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]"
-              >
+              <ConsolePanel id="profile" padding="none" className="scroll-mt-28">
                 <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
                   <h2 className="text-lg font-bold text-[color:var(--ink)]">Profile</h2>
                   <p className="mt-1 text-sm text-[color:var(--ink)]/65">
@@ -270,12 +268,9 @@ function SettingsPage() {
                     {saving ? "Saving…" : "Save changes"}
                   </Button>
                 </form>
-              </section>
+              </ConsolePanel>
 
-              <section
-                id="security"
-                className="scroll-mt-28 rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]"
-              >
+              <ConsolePanel id="security" padding="none" className="scroll-mt-28">
                 <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
                   <h2 className="text-lg font-bold text-[color:var(--ink)]">Password</h2>
                   <p className="mt-1 text-sm text-[color:var(--ink)]/65">
@@ -317,12 +312,9 @@ function SettingsPage() {
                     {changingPassword ? "Updating..." : "Update password"}
                   </Button>
                 </form>
-              </section>
+              </ConsolePanel>
 
-              <section
-                id="appearance"
-                className="scroll-mt-28 rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]"
-              >
+              <ConsolePanel id="appearance" padding="none" className="scroll-mt-28">
                 <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
                   <h2 className="text-lg font-bold text-[color:var(--ink)]">Appearance</h2>
                   <p className="mt-1 text-sm text-[color:var(--ink)]/65">
@@ -365,7 +357,7 @@ function SettingsPage() {
                     );
                   })}
                 </div>
-              </section>
+              </ConsolePanel>
 
               <section
                 id="danger-zone"

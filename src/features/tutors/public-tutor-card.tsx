@@ -35,7 +35,7 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
   return (
     <span
       data-academic-chip
-      className="inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-1 text-[10px] font-bold leading-snug text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[11px]"
+      className="inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-1 text-xs font-bold leading-snug text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] md:px-2.5 md:py-1.5 md:text-[13px]"
     >
       <span className="break-words">{chip.subject}</span>
       {grade ? (
@@ -163,7 +163,7 @@ export function PublicTutorCard({
   return (
     <article
       className={cn(
-        "relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[10px] border border-border bg-[color:var(--surface)] shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
+        "relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] shadow-[0_10px_30px_rgba(4,19,68,0.06)] transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(4,19,68,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
         interactive && "cursor-pointer",
         compareSelected && "border-[color:var(--ring)] ring-2 ring-[color:var(--ring)]/40",
         className,
@@ -202,7 +202,7 @@ export function PublicTutorCard({
                 </div>
               )}
             </div>
-            <p className="whitespace-nowrap text-[10px] font-bold tracking-wide text-muted-foreground md:text-[11px]">
+            <p className="whitespace-nowrap text-xs font-bold tracking-wide text-muted-foreground md:text-[13px]">
               {formatTutorCode(tutor.tutor_code)}
             </p>
           </div>
@@ -219,7 +219,7 @@ export function PublicTutorCard({
             {supportingCredentials.map((credential, index) => (
               <p
                 key={`${credential}-${index}`}
-                className="mt-1.5 text-[11px] font-semibold leading-snug text-muted-foreground md:text-[13px]"
+                className="mt-1.5 text-xs font-semibold leading-snug text-muted-foreground md:text-[13px]"
               >
                 {credential}
               </p>
@@ -228,7 +228,7 @@ export function PublicTutorCard({
 
           {genderLabel ? (
             <div className="flex shrink-0 flex-col items-end gap-1 md:absolute md:right-4 md:top-3">
-              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[9px] font-bold text-[color:var(--ink)] md:px-2.5 md:text-[10px]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs font-bold text-[color:var(--ink)] md:px-2.5">
                 <UserRound
                   className="h-3 w-3 text-[color:var(--muted-foreground)]"
                   aria-hidden="true"
@@ -265,7 +265,7 @@ export function PublicTutorCard({
                     aria-controls={`academic-achievements-${tutor.tutor_code}`}
                     onClick={toggleAcademicChips}
                     onKeyDown={(event) => event.stopPropagation()}
-                    className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-[11px] font-bold leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:py-1.5 md:text-[12px]"
+                    className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-xs font-bold leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:py-1.5 md:text-[13px]"
                   >
                     ... {t("tutor_card.more")}
                   </button>
@@ -278,7 +278,7 @@ export function PublicTutorCard({
         <section
           className={cn("flex flex-1 flex-col", academicChips.length > 0 ? "pt-2.5" : "pt-0")}
         >
-          <h3 className="flex items-center gap-1.5 text-[11px] font-bold tracking-tight text-[color:var(--ink)] md:text-[12px]">
+          <h3 className="flex items-center gap-1.5 text-xs font-bold tracking-tight text-[color:var(--ink)] md:text-[13px]">
             <Award
               className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
               aria-hidden="true"
@@ -291,7 +291,7 @@ export function PublicTutorCard({
               {tutor.achievements.slice(0, 3).map((achievement, index) => (
                 <li
                   key={`${achievement.short_text}-${index}`}
-                  className="flex gap-1.5 text-[10px] font-medium leading-snug text-[color:var(--ink)] md:text-[11px]"
+                  className="flex gap-1.5 text-xs font-medium leading-snug text-[color:var(--ink)] md:text-[13px]"
                 >
                   <Award
                     className="mt-0.5 h-3 w-3 shrink-0 text-[color:var(--muted-foreground)]"
@@ -322,7 +322,7 @@ export function PublicTutorCard({
       <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-[color:var(--surface)] px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
         <p className="text-xl font-bold leading-none tracking-tight text-[color:var(--ink)] md:text-3xl">
           HK${tutor.hourly_rate}
-          <span className="ml-1 text-[10px] font-semibold text-muted-foreground md:text-[13px]">
+          <span className="ml-1 text-xs font-semibold text-muted-foreground md:text-[13px]">
             {priceSuffix}
           </span>
         </p>

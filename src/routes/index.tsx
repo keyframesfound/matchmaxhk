@@ -15,11 +15,9 @@ import { AmountReadout, AmountSlider } from "@/components/ui/amount-slider";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
-import { blurActive } from "@/lib/dom";
 import {
   fetchPublishedTutors,
   fetchTopWeeklyTutors,
-  fetchTutorByCode,
   getTutorCardHighlights,
   HK_DISTRICTS,
 } from "@/features/tutors/queries";
@@ -127,26 +125,6 @@ function Landing() {
     queryFn: () => fetchTopWeeklyTutors(3),
   });
 
-  const { data: heroTutorCode } = useQuery({
-    queryKey: ["settings", "hero_tutor_code"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "hero_tutor_code")
-        .maybeSingle();
-      if (error) throw error;
-      const v = data?.value;
-      return typeof v === "string" ? v.trim() : "";
-    },
-  });
-
-  const { data: pickedHeroTutor } = useQuery({
-    queryKey: ["landing", "hero_tutor", heroTutorCode ?? ""],
-    queryFn: () => fetchTutorByCode(heroTutorCode as string),
-    enabled: !!heroTutorCode,
-  });
-
   const { data: publishedTutors = [], isLoading: publishedTutorsLoading } = useQuery({
     queryKey: ["landing", "published_tutors"],
     queryFn: fetchPublishedTutors,
@@ -164,12 +142,6 @@ function Landing() {
       return typeof data?.value === "string" ? data.value : "";
     },
   });
-
-  const defaultHeroTutor = pickedHeroTutor ?? featuredTutors[0] ?? null;
-
-  const heroTutor = useMemo(() => {
-    return defaultHeroTutor;
-  }, [defaultHeroTutor]);
 
   const tutorsForCategory = (category: string) =>
     publishedTutors
@@ -298,80 +270,55 @@ function Landing() {
 
       <SiteHeader />
 
-      {/* HERO SECTION */}
-      <section className="hero-startup-bg relative overflow-hidden">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
-          <div className="flex flex-col justify-center">
-            <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-5xl md:text-6xl lg:text-7xl">
-              {t("hero.title_a")}
-              <br />
-              <span className="text-[color:var(--ink)]">{t("hero.title_b")}</span>
+      <section className="relative min-h-[min(58vh,560px)] border-b border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 pb-12 pt-10 sm:px-6 sm:pt-14 md:pb-16 md:pt-20">
+        <div className="mx-auto flex max-w-7xl flex-col justify-center">
+          <div className="mb-7 max-w-xl">
+            <p className="text-sm font-bold uppercase tracking-[0.16em] text-[color:var(--brand-link)]">
+              MatchMax
+            </p>
+            <h1 className="mt-3 text-3xl font-extrabold leading-tight tracking-tight text-[color:var(--ink)] sm:text-5xl">
+              {t("search_panel.find_tutor")}
             </h1>
-            <div className="mt-6 flex flex-wrap gap-3 md:mt-8">
-              <Button
-                asChild
-                size="lg"
-                variant="solid"
-                color="blue"
-                className="h-12 w-full rounded-xl px-5 text-base font-bold shadow-brand md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
-              >
-                <Link
-                  to="/tutors"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    blurActive();
-                  }}
-                >
-                  {t("hero.cta_primary")}
-                  <ArrowRight className="ml-2 h-6 w-6 md:h-5 md:w-5" />
-                </Link>
-              </Button>
-            </div>
+            <p className="mt-3 text-base text-[color:var(--ink)]/65 sm:text-lg">
+              Find the right subject expert for your next lesson.
+            </p>
           </div>
-        </div>
-      </section>
-
-      <section className="relative -mt-4 pb-14 md:-mt-7 md:pb-16">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="relative overflow-hidden rounded-sm border border-border bg-card shadow-sm">
+          <div className="relative overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--ink)]/10 bg-[color:var(--surface)] shadow-[0_18px_50px_-28px_rgba(4,19,68,0.35)]">
             <form
-              className="p-4 sm:p-5"
+              className="p-3 sm:p-4"
               onSubmit={(event) => {
                 event.preventDefault();
                 navigate({ to: "/tutors", search: tutorSearchParams });
               }}
             >
-              <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <div className="grid gap-1 rounded-[calc(var(--radius-panel)-2px)] border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-1 md:grid-cols-[1.35fr_1fr_1fr_0.9fr_auto] md:items-center">
+                <div className="relative min-h-16 rounded-[calc(var(--radius-panel)-4px)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-subtle)]">
+                  <label htmlFor="home-tutor-search" className="block text-xs font-bold text-[color:var(--ink)]">
+                    Search
+                  </label>
                   <Input
-                    className="h-12 rounded-sm pl-9 text-base"
+                    id="home-tutor-search"
+                    className="h-7 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
                     placeholder={t("search_panel.keyword_placeholder")}
                     aria-label={t("search_panel.keyword_aria")}
                     value={homeSearch.q ?? ""}
                     onChange={(e) => setHomeSearchParam({ q: e.target.value })}
                   />
                 </div>
-                <Button
-                  type="submit"
-                  variant="solid"
-                  color="blue"
-                  className="h-12 rounded-sm px-7 font-bold"
-                >
-                  <Search className="mr-1.5 h-4 w-4" />
-                  {t("search_panel.search")}
-                </Button>
-              </div>
-              <div className="mt-4 border-t border-border pt-4">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="min-h-16 rounded-[calc(var(--radius-panel)-4px)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-subtle)]">
+                  <label className="block text-xs font-bold text-[color:var(--ink)]">Curriculum</label>
                   <SearchableSelect
                     value={homeSearch.category ?? ""}
                     onChange={handleHomeCategoryChange}
                     options={homeCategoryOptions}
                     placeholder={t("search_panel.any_category")}
                     searchPlaceholder={t("search_panel.search_category")}
-                    className="h-11 rounded-sm"
+                    className="mt-1 h-7 border-0 bg-transparent px-0 shadow-none"
                   />
+                </div>
+                <div className="min-h-16 rounded-[calc(var(--radius-panel)-4px)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-subtle)]">
+                  <label className="block text-xs font-bold text-[color:var(--ink)]">Subject</label>
                   <SearchableSelect
                     value={homeSearch.subject ?? ""}
                     onChange={(v) => setHomeSearchParam({ subject: v || undefined })}
@@ -381,8 +328,11 @@ function Landing() {
                     ]}
                     placeholder={t("search_panel.any_subject")}
                     searchPlaceholder={t("search_panel.search_subject")}
-                    className="h-11 rounded-sm"
+                    className="mt-1 h-7 border-0 bg-transparent px-0 shadow-none"
                   />
+                </div>
+                <div className="min-h-16 rounded-[calc(var(--radius-panel)-4px)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-subtle)]">
+                  <label className="block text-xs font-bold text-[color:var(--ink)]">Lesson mode</label>
                   <LessonModeSelect
                     mode={
                       (homeSearch.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""
@@ -396,16 +346,23 @@ function Landing() {
                       })
                     }
                     placeholder={t("search_panel.any_mode")}
-                    className="h-11 rounded-sm"
+                    className="mt-1 h-7 border-0 bg-transparent px-0 shadow-none"
                   />
+                </div>
+                <div className="min-h-16 rounded-[calc(var(--radius-panel)-4px)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-subtle)]">
+                  <label className="block text-xs font-bold text-[color:var(--ink)]">Gender</label>
                   <SearchableSelect
                     value={homeSearch.gender ?? ""}
                     onChange={(v) => setHomeSearchParam({ gender: v || undefined })}
                     options={homeGenderOptions}
                     placeholder={t("search_panel.any_gender")}
-                    className="h-11 rounded-sm"
+                    className="mt-1 h-7 border-0 bg-transparent px-0 shadow-none"
                   />
                 </div>
+                <Button type="submit" variant="solid" color="blue" className="h-14 rounded-full px-6 font-bold">
+                  <Search className="mr-1.5 h-4 w-4" />
+                  {t("search_panel.search")}
+                </Button>
               </div>
             </form>
             <div className="grid gap-4 border-t border-border bg-[color:var(--surface-subtle)] px-4 py-4 sm:px-5 lg:grid-cols-[minmax(22rem,36rem)_14rem_auto] lg:items-center lg:gap-6">
@@ -496,7 +453,7 @@ function Landing() {
                       {Array.from({ length: 3 }).map((_, index) => (
                         <Skeleton
                           key={index}
-                          className="h-[23rem] w-[min(86vw,370px)] shrink-0 rounded-[10px] border border-border"
+                          className="h-[23rem] w-[min(86vw,370px)] shrink-0 rounded-[var(--radius-panel)] border border-border"
                         />
                       ))}
                     </div>
@@ -533,11 +490,14 @@ function Landing() {
                         </div>
                       ))}
                     </div>
-                  ) : null}
+                  ) : (
+                    <p className="text-sm text-muted-foreground">{t("common.no_tutors_yet")}</p>
+                  )}
                 </section>
               );
             })}
           </div>
+        </div>
         </div>
       </section>
 

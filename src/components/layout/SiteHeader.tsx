@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Bookmark,
   BookOpen,
@@ -28,9 +28,50 @@ import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
+import { cn } from "@/lib/utils";
 
 import { AnnouncementBanner } from "./AnnouncementBanner";
 import { StaggeredMobileMenu } from "./StaggeredMobileMenu";
+
+type NavDestination =
+  | "/how-it-works"
+  | "/tutors"
+  | "/courses"
+  | "/saved-posts"
+  | "/join"
+  | "/pricing"
+  | "/tutor-requests";
+
+function DesktopNavLink({
+  to,
+  active,
+  children,
+}: {
+  to: NavDestination;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      to={to}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "group relative text-[15px] font-semibold transition-colors duration-200 focus-visible:text-[color:var(--brand-link)]",
+        active
+          ? "text-[color:var(--brand-link)]"
+          : "text-[color:var(--ink)]/85 hover:text-[color:var(--brand-link)]",
+      )}
+    >
+      {children}
+      <span
+        className={cn(
+          "absolute -bottom-2 left-0 h-[2px] rounded-full bg-[color:var(--foreground)] transition-all duration-200",
+          active ? "w-full" : "w-0 group-hover:w-full",
+        )}
+      />
+    </Link>
+  );
+}
 
 export function SiteHeader({ className }: { className?: string }) {
   const { t } = useTranslation();
@@ -39,42 +80,46 @@ export function SiteHeader({ className }: { className?: string }) {
   const hasOrg = !!membership;
   const { theme, setTheme } = useTheme();
   const isAdmin = hasAnyRole(["admin", "super_admin"]);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
   const accountName =
     user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
   const accountInitial = accountName.charAt(0).toUpperCase();
   const useDarkTheme = theme !== "dark";
   const brandLabelClassName = "text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
   const mobileItems = [
-    { label: t("How it works"), ariaLabel: t("How it works"), to: "/how-it-works" },
+    { label: t("nav.how"), ariaLabel: t("nav.how"), to: "/how-it-works" },
     {
-      label: t("nav.find", { defaultValue: "Find" }),
-      ariaLabel: t("nav.find", { defaultValue: "Find" }),
+      label: t("nav.find"),
+      ariaLabel: t("nav.find"),
       to: "/tutors",
     },
     ...(CENTRE_MARKET_ENABLED
       ? [
           {
-            label: t("nav.courses", { defaultValue: "Courses" }),
-            ariaLabel: t("nav.courses", { defaultValue: "Courses" }),
+            label: t("nav.courses"),
+            ariaLabel: t("nav.courses"),
             to: "/courses",
           },
         ]
       : []),
-    { label: "Saved Posts", ariaLabel: "Saved Posts", to: "/saved-posts" },
-    { label: "Become a Tutor", ariaLabel: "Become a Tutor", to: "/join" },
+    { label: t("nav.saved_posts"), ariaLabel: t("nav.saved_posts"), to: "/saved-posts" },
+    { label: t("nav.become_tutor"), ariaLabel: t("nav.become_tutor"), to: "/join" },
     ...(CENTRE_MARKET_ENABLED
       ? [
           {
-            label: t("nav.for_business", { defaultValue: "For Business" }),
-            ariaLabel: t("nav.for_business", { defaultValue: "For Business" }),
+            label: t("nav.for_business"),
+            ariaLabel: t("nav.for_business"),
             to: "/pricing",
           },
         ]
       : []),
-    ...(hasOrg ? [{ label: "My Business", ariaLabel: "My Business", to: "/business" }] : []),
-    { label: "Request a Tutor", ariaLabel: "Request a Tutor", to: "/tutor-requests" },
-    ...(user ? [{ label: "Settings", ariaLabel: "Settings", to: "/dashboard" }] : []),
-    ...(isAdmin ? [{ label: "Admin", ariaLabel: "Admin", to: "/admin" }] : []),
+    ...(hasOrg
+      ? [{ label: t("nav.my_business"), ariaLabel: t("nav.my_business"), to: "/business" }]
+      : []),
+    { label: t("nav.request_tutor"), ariaLabel: t("nav.request_tutor"), to: "/tutor-requests" },
+    ...(user ? [{ label: t("nav.settings"), ariaLabel: t("nav.settings"), to: "/dashboard" }] : []),
+    ...(isAdmin ? [{ label: t("nav.admin"), ariaLabel: t("nav.admin"), to: "/admin" }] : []),
   ];
 
   return (
@@ -90,59 +135,31 @@ export function SiteHeader({ className }: { className?: string }) {
         </Link>
 
         <nav className="ml-12 hidden items-center gap-9 lg:flex">
-          <a
-            href="/how-it-works"
-            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
-          >
-            {t("How it works")}
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
-          </a>
-          <Link
-            to="/tutors"
-            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
-          >
-            {t("nav.find", { defaultValue: "Find" })}
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
-          </Link>
+          <DesktopNavLink to="/how-it-works" active={isActive("/how-it-works")}>
+            {t("nav.how")}
+          </DesktopNavLink>
+          <DesktopNavLink to="/tutors" active={isActive("/tutors")}>
+            {t("nav.find")}
+          </DesktopNavLink>
           {CENTRE_MARKET_ENABLED && (
-            <Link
-              to="/courses"
-              className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
-            >
-              {t("nav.courses", { defaultValue: "Courses" })}
-              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
-            </Link>
+            <DesktopNavLink to="/courses" active={isActive("/courses")}>
+              {t("nav.courses")}
+            </DesktopNavLink>
           )}
-          <Link
-            to="/saved-posts"
-            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
-          >
-            Saved Posts
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
-          </Link>
-          <Link
-            to="/join"
-            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
-          >
-            Become a Tutor
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
-          </Link>
+          <DesktopNavLink to="/saved-posts" active={isActive("/saved-posts")}>
+            {t("nav.saved_posts")}
+          </DesktopNavLink>
+          <DesktopNavLink to="/join" active={isActive("/join")}>
+            {t("nav.become_tutor")}
+          </DesktopNavLink>
           {CENTRE_MARKET_ENABLED && (
-            <Link
-              to="/pricing"
-              className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
-            >
-              {t("nav.for_business", { defaultValue: "For Business" })}
-              <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
-            </Link>
+            <DesktopNavLink to="/pricing" active={isActive("/pricing")}>
+              {t("nav.for_business")}
+            </DesktopNavLink>
           )}
-          <Link
-            to="/tutor-requests"
-            className="group relative text-[15px] font-semibold text-[color:var(--ink)]/85 transition-colors duration-200 hover:text-[color:var(--brand-link)] focus-visible:text-[color:var(--brand-link)]"
-          >
-            Request a Tutor
-            <span className="absolute -bottom-2 left-0 h-[2px] w-0 rounded-full bg-[color:var(--foreground)] transition-all duration-200 group-hover:w-full" />
-          </Link>
+          <DesktopNavLink to="/tutor-requests" active={isActive("/tutor-requests")}>
+            {t("nav.request_tutor")}
+          </DesktopNavLink>
         </nav>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-4">
@@ -179,10 +196,10 @@ export function SiteHeader({ className }: { className?: string }) {
                 >
                   <DropdownMenuLabel className="border-b border-[color:var(--ink)]/10 px-4 py-3">
                     <div className="text-sm font-semibold text-[color:var(--ink)]">
-                      MatchMax account
+                      {t("nav.account_title")}
                     </div>
                     <div className="mt-0.5 text-xs font-normal text-[color:var(--ink)]/60">
-                      Manage your profile and preferences
+                      {t("nav.account_subtitle")}
                     </div>
                   </DropdownMenuLabel>
                   <div className="p-1.5">
@@ -190,19 +207,19 @@ export function SiteHeader({ className }: { className?: string }) {
                       asChild
                       className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
                     >
-                      <a href="/dashboard#profile">
+                      <Link to="/dashboard" hash="profile">
                         <UserRound aria-hidden="true" />
-                        Profile
-                      </a>
+                        {t("nav.profile")}
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       asChild
                       className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
                     >
-                      <a href="/dashboard">
+                      <Link to="/dashboard">
                         <Settings aria-hidden="true" />
-                        Settings
-                      </a>
+                        {t("nav.settings")}
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       asChild
@@ -210,7 +227,7 @@ export function SiteHeader({ className }: { className?: string }) {
                     >
                       <Link to="/saved-posts">
                         <Bookmark aria-hidden="true" />
-                        Saved posts
+                        {t("nav.saved_posts")}
                       </Link>
                     </DropdownMenuItem>
                     {(CENTRE_MARKET_ENABLED || hasOrg) && (
@@ -220,7 +237,7 @@ export function SiteHeader({ className }: { className?: string }) {
                       >
                         <Link to={hasOrg ? "/business" : "/business/join"}>
                           <Building2 aria-hidden="true" />
-                          {hasOrg ? "My Business" : "For Business"}
+                          {hasOrg ? t("nav.my_business") : t("nav.for_business")}
                         </Link>
                       </DropdownMenuItem>
                     )}
@@ -229,7 +246,7 @@ export function SiteHeader({ className }: { className?: string }) {
                       className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
                     >
                       {useDarkTheme ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
-                      {useDarkTheme ? "Dark mode" : "Light mode"}
+                      {useDarkTheme ? t("nav.dark_mode") : t("nav.light_mode")}
                     </DropdownMenuItem>
                     {isAdmin && (
                       <>
@@ -240,7 +257,7 @@ export function SiteHeader({ className }: { className?: string }) {
                         >
                           <Link to="/admin">
                             <ShieldCheck aria-hidden="true" />
-                            Admin
+                            {t("nav.admin")}
                           </Link>
                         </DropdownMenuItem>
                       </>
@@ -248,7 +265,7 @@ export function SiteHeader({ className }: { className?: string }) {
                     <DropdownMenuSeparator className="my-1.5" />
                     <DropdownMenuItem
                       onSelect={() => void signOut()}
-                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-red-50 focus:text-red-600"
+                      className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--destructive)]/10 focus:text-[color:var(--destructive)]"
                     >
                       <LogOut aria-hidden="true" />
                       {t("nav.sign_out")}
@@ -256,7 +273,7 @@ export function SiteHeader({ className }: { className?: string }) {
                   </div>
                   <div className="flex items-center justify-between border-t border-[color:var(--ink)]/10 px-4 py-2.5 text-xs text-[color:var(--ink)]/50">
                     <span>MatchMax</span>
-                    <span>Account menu</span>
+                    <span>{t("nav.account_menu_label")}</span>
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -275,7 +292,7 @@ export function SiteHeader({ className }: { className?: string }) {
                   color="blue"
                   className="h-11 rounded-full px-6 text-[15px] font-semibold shadow-sm transition-all duration-200 hover:shadow-md"
                 >
-                  Sign up
+                  {t("nav.sign_up")}
                 </Button>
               </Link>
             </>
@@ -305,7 +322,7 @@ export function SiteHeader({ className }: { className?: string }) {
                         color="blue"
                         className="h-10 w-full rounded-full text-sm font-semibold shadow-sm"
                       >
-                        Sign up
+                        {t("nav.sign_up")}
                       </Button>
                     </Link>
                   </>
@@ -316,7 +333,7 @@ export function SiteHeader({ className }: { className?: string }) {
                       void signOut();
                       closeMenu();
                     }}
-                    className="h-10 w-full rounded-full border border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-red-50 hover:text-red-600"
+                    className="h-10 w-full rounded-full border border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
                   >
                     {t("nav.sign_out")}
                   </button>

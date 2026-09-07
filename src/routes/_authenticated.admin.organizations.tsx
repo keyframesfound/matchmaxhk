@@ -13,7 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  ConsoleTable,
+  ConsoleTableBody,
+  ConsoleTableEmpty,
+  ConsoleTableHead,
+  ConsoleTableSkeletonRows,
+  ConsoleTd,
+  ConsoleTh,
+} from "@/components/ui/console-table";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 
@@ -140,108 +148,100 @@ function AdminOrganizations() {
             </div>
           </div>
 
-          <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-card shadow-sm">
-            <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">Organization</th>
-                  <th className="px-4 py-3 font-semibold">Plan</th>
-                  <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 font-semibold">Courses</th>
-                  <th className="px-4 py-3 font-semibold">Members</th>
-                  <th className="px-4 py-3 font-semibold">Created</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading &&
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <tr key={i} className="border-b border-border last:border-0">
-                      <td className="px-4 py-4" colSpan={6}>
-                        <Skeleton className="h-6 w-full" />
-                      </td>
-                    </tr>
-                  ))}
-                {!isLoading && filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
-                      No organizations found.
-                    </td>
+          <ConsoleTable
+            className="mt-6"
+            density="compact"
+            minTableWidth="760px"
+            tableClassName="text-left"
+          >
+            <ConsoleTableHead>
+              <tr>
+                <ConsoleTh>Organization</ConsoleTh>
+                <ConsoleTh>Plan</ConsoleTh>
+                <ConsoleTh>Status</ConsoleTh>
+                <ConsoleTh>Courses</ConsoleTh>
+                <ConsoleTh>Members</ConsoleTh>
+                <ConsoleTh>Created</ConsoleTh>
+              </tr>
+            </ConsoleTableHead>
+            <ConsoleTableBody>
+              {isLoading && <ConsoleTableSkeletonRows columns={6} rows={3} />}
+              {!isLoading && filtered.length === 0 && (
+                <ConsoleTableEmpty colSpan={6} icon={Building2} title="No organizations found" />
+              )}
+              {!isLoading &&
+                filtered.map((org) => (
+                  <tr key={org.id}>
+                    <ConsoleTd>
+                      <p className="font-semibold text-[color:var(--ink)]">{org.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        /business/{org.slug}
+                        {org.district ? ` · ${org.district}` : ""}
+                      </p>
+                    </ConsoleTd>
+                    <ConsoleTd>
+                      <Select
+                        value={org.plan}
+                        onValueChange={(value) =>
+                          updateOrg.mutate({
+                            id: org.id,
+                            patch: { plan: value as "business" | "enterprise" },
+                          })
+                        }
+                        disabled={updateOrg.isPending}
+                      >
+                        <SelectTrigger className="h-9 w-36">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="business">Business (10 courses)</SelectItem>
+                          <SelectItem value="enterprise">Enterprise (unlimited)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </ConsoleTd>
+                    <ConsoleTd>
+                      <Select
+                        value={org.status}
+                        onValueChange={(value) =>
+                          updateOrg.mutate({
+                            id: org.id,
+                            patch: {
+                              status: value as "pending" | "active" | "suspended",
+                            },
+                          })
+                        }
+                        disabled={updateOrg.isPending}
+                      >
+                        <SelectTrigger className="h-9 w-36">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="suspended">Suspended</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </ConsoleTd>
+                    <ConsoleTd className="font-semibold text-[color:var(--ink)]">
+                      {org.courses?.[0]?.count ?? 0}
+                      {org.plan === "business" ? (
+                        <span className="text-xs font-normal text-muted-foreground"> / 10</span>
+                      ) : null}
+                    </ConsoleTd>
+                    <ConsoleTd className="font-semibold text-[color:var(--ink)]">
+                      {org.organization_members?.[0]?.count ?? 0}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {" "}
+                        / {org.plan === "business" ? 2 : 21}
+                      </span>
+                    </ConsoleTd>
+                    <ConsoleTd className="text-muted-foreground">
+                      {new Date(org.created_at).toLocaleDateString()}
+                    </ConsoleTd>
                   </tr>
-                )}
-                {!isLoading &&
-                  filtered.map((org) => (
-                    <tr key={org.id} className="border-b border-border last:border-0">
-                      <td className="px-4 py-4">
-                        <p className="font-semibold text-[color:var(--ink)]">{org.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          /business/{org.slug}
-                          {org.district ? ` · ${org.district}` : ""}
-                        </p>
-                      </td>
-                      <td className="px-4 py-4">
-                        <Select
-                          value={org.plan}
-                          onValueChange={(value) =>
-                            updateOrg.mutate({
-                              id: org.id,
-                              patch: { plan: value as "business" | "enterprise" },
-                            })
-                          }
-                          disabled={updateOrg.isPending}
-                        >
-                          <SelectTrigger className="h-9 w-36">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="business">Business (10 courses)</SelectItem>
-                            <SelectItem value="enterprise">Enterprise (unlimited)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="px-4 py-4">
-                        <Select
-                          value={org.status}
-                          onValueChange={(value) =>
-                            updateOrg.mutate({
-                              id: org.id,
-                              patch: {
-                                status: value as "pending" | "active" | "suspended",
-                              },
-                            })
-                          }
-                          disabled={updateOrg.isPending}
-                        >
-                          <SelectTrigger className="h-9 w-36">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="suspended">Suspended</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="px-4 py-4 font-semibold text-[color:var(--ink)]">
-                        {org.courses?.[0]?.count ?? 0}
-                        {org.plan === "business" ? (
-                          <span className="text-xs font-normal text-muted-foreground"> / 10</span>
-                        ) : null}
-                      </td>
-                      <td className="px-4 py-4 font-semibold text-[color:var(--ink)]">
-                        {org.organization_members?.[0]?.count ?? 0}
-                        <span className="text-xs font-normal text-muted-foreground">
-                          {" "}
-                          / {org.plan === "business" ? 2 : 21}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-muted-foreground">
-                        {new Date(org.created_at).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
+                ))}
+            </ConsoleTableBody>
+          </ConsoleTable>
         </div>
       </main>
     </div>

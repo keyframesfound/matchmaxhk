@@ -5,19 +5,22 @@ import { useTranslation } from "react-i18next";
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 
 const productLinks = [
-  { name: "Find tutors", to: "/tutors" },
-  { name: "How it works", to: "/how-it-works" },
-  { name: "Request a Tutor", to: "/tutor-requests" },
-  { name: "Saved Posts", to: "/saved-posts" },
-  { name: "Join as tutor", to: "/join" },
+  { key: "footer.find_tutors", to: "/tutors" },
+  { key: "footer.how", to: "/how-it-works" },
+  { key: "footer.request_tutor", to: "/tutor-requests" },
+  { key: "footer.saved_posts", to: "/saved-posts" },
+  { key: "footer.join_as_tutor", to: "/join" },
 ] as const;
 
 const companyLinks = [
-  { name: "FAQ", to: "/how-it-works", hash: "faq" },
-  { name: "Privacy policy", to: "/privacy-policy" },
+  { key: "footer.faq", to: "/how-it-works", hash: "faq" },
+  { key: "footer.privacy", to: "/privacy-policy" },
 ] as const;
 
-const supportLinks = [{ name: "Home", to: "/" }] as const;
+const supportLinks = [
+  { key: "footer.home", to: "/" },
+  { key: "footer.contact", href: "mailto:contact@matchmax.hk" },
+] as const;
 
 export function SiteFooter({
   className,
@@ -72,7 +75,7 @@ export function SiteFooter({
 
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 lg:col-span-3">
             <div>
-              <h4 className="mb-4 text-sm font-semibold text-foreground">Product</h4>
+              <h4 className="mb-4 text-sm font-semibold text-foreground">{t("footer.product")}</h4>
               <ul className="space-y-3">
                 {productLinks.map((link) => (
                   <li key={link.to}>
@@ -80,7 +83,7 @@ export function SiteFooter({
                       className="text-sm text-foreground/70 transition-colors hover:text-brand"
                       to={link.to}
                     >
-                      {link.name}
+                      {t(link.key)}
                     </Link>
                   </li>
                 ))}
@@ -88,7 +91,7 @@ export function SiteFooter({
             </div>
 
             <div>
-              <h4 className="mb-4 text-sm font-semibold text-foreground">Company</h4>
+              <h4 className="mb-4 text-sm font-semibold text-foreground">{t("footer.company")}</h4>
               <ul className="space-y-3">
                 {companyLinks.map((link) => (
                   <li key={link.to}>
@@ -97,7 +100,7 @@ export function SiteFooter({
                       to={link.to}
                       hash={"hash" in link ? link.hash : undefined}
                     >
-                      {link.name}
+                      {t(link.key)}
                     </Link>
                   </li>
                 ))}
@@ -105,16 +108,25 @@ export function SiteFooter({
             </div>
 
             <div>
-              <h4 className="mb-4 text-sm font-semibold text-foreground">Support</h4>
+              <h4 className="mb-4 text-sm font-semibold text-foreground">{t("footer.support")}</h4>
               <ul className="space-y-3">
                 {supportLinks.map((link) => (
-                  <li key={link.to}>
-                    <Link
-                      className="text-sm text-foreground/70 transition-colors hover:text-brand"
-                      to={link.to}
-                    >
-                      {link.name}
-                    </Link>
+                  <li key={link.key}>
+                    {"href" in link ? (
+                      <a
+                        className="text-sm text-foreground/70 transition-colors hover:text-brand"
+                        href={link.href}
+                      >
+                        {t(link.key)}
+                      </a>
+                    ) : (
+                      <Link
+                        className="text-sm text-foreground/70 transition-colors hover:text-brand"
+                        to={link.to}
+                      >
+                        {t(link.key)}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

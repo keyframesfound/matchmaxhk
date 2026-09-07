@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { CheckCircle2, Send } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { submitCaseRequest } from "@/lib/cases.functions";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { EXAM_SYSTEM_OPTIONS, LEVEL_OPTIONS } from "@/features/cases/case-options";
+import { useFormDraft } from "@/lib/use-form-draft";
 import { cn } from "@/lib/utils";
 
 const MODE_OPTIONS = [
@@ -118,20 +120,33 @@ type CaseRequestFormProps = {
 };
 
 export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFormProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [result, setResult] = useState<{ caseCode: string } | null>(null);
   const honeypot = useRef<HTMLInputElement>(null);
   const startedAt = useRef(Date.now());
+  const { restored, savedAt, saveDraft, clearDraft } = useFormDraft<FormState>("case-request");
+
+  useEffect(() => {
+    if (!restored) return;
+    setForm((prev) => ({ ...prev, ...restored }));
+  }, [restored]);
+
+  const isBlankDraft = (value: FormState) =>
+    Object.entries(value).every(([key, v]) => v === "" || (key === "gender" && v === "any"));
 
   const update = (patch: Partial<FormState>) => {
+    const next = { ...form, ...patch };
+    if (isBlankDraft(next)) clearDraft();
+    else saveDraft(next);
     setForm((prev) => ({ ...prev, ...patch }));
     setErrors((prev) => {
       const keys = Object.keys(patch) as (keyof FormState)[];
       if (!keys.some((key) => prev[key])) return prev;
-      const next = { ...prev };
-      keys.forEach((key) => delete next[key]);
-      return next;
+      const nextErrors = { ...prev };
+      keys.forEach((key) => delete nextErrors[key]);
+      return nextErrors;
     });
   };
 
@@ -174,6 +189,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       });
     },
     onSuccess: (data) => {
+      clearDraft();
       setResult(data);
       onSubmitted?.(data);
     },
@@ -217,6 +233,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     setForm(INITIAL_FORM);
     setErrors({});
     setResult(null);
+    clearDraft();
     startedAt.current = Date.now();
   };
 
@@ -511,6 +528,16 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         </Button>
         <p className="text-center text-xs text-muted-foreground sm:text-sm">
           Free for parents — our team will contact you on WhatsApp within one business day.
+        </p>
+        <p
+          aria-live="polite"
+          className={cn(
+            "flex items-center justify-center gap-1.5 text-center text-xs font-medium text-[color:var(--muted-foreground)] transition-opacity duration-300",
+            savedAt && !result ? "opacity-100" : "opacity-0",
+          )}
+        >
+          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+          {t("common.draft_saved")}
         </p>
       </div>
     </form>

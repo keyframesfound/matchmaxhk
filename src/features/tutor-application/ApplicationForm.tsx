@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +38,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import Stepper, { Step, type StepperIndicatorRenderArgs } from "@/components/ui/stepper";
+import { useFormDraft } from "@/lib/use-form-draft";
 import { cn } from "@/lib/utils";
 import {
   extractTranscriptQualification,
@@ -477,7 +479,42 @@ function SubjectPicker({
   );
 }
 
+type ApplicationBaseState = {
+  name: string;
+  phone: string;
+  email: string;
+  country: string;
+  countryOther: string;
+  graduationYear: string;
+  status: string;
+  statusOther: string;
+  medium: string[];
+  highSchool: string;
+  university: string;
+  programme: string;
+  year: string;
+  subjectsTaught: string[];
+  format: string;
+  stations: string[];
+  achievements: Achievement[];
+  hourlyRate: string;
+  materials: string;
+  certificatesLater: boolean;
+  commission: boolean;
+  privacy: boolean;
+};
+
+type ApplicationDraft = {
+  step: number;
+  base: ApplicationBaseState;
+  roles: string[];
+  boards: string[];
+  credentials: string[];
+  qualifications: Qualification[];
+};
+
 export function ApplicationForm() {
+  const { t } = useTranslation();
   const submit = useServerFn(submitTutorApplication);
   const extractTranscript = useServerFn(extractTranscriptQualification);
   const [step, setStep] = useState(1);
@@ -500,7 +537,7 @@ export function ApplicationForm() {
   const [locating, setLocating] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
   const [suggestionStatus, setSuggestionStatus] = useState<"idle" | "adding" | "done">("idle");
-  const [base, setBase] = useState({
+  const [base, setBase] = useState<ApplicationBaseState>({
     name: "",
     phone: "+852 ",
     email: "",
@@ -532,6 +569,65 @@ export function ApplicationForm() {
   const professional = base.status === PROFESSIONAL_STATUS;
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
+
+  const {
+    restored: restoredDraft,
+    savedAt: draftSavedAt,
+    saveDraft,
+    clearDraft,
+  } = useFormDraft<ApplicationDraft>("tutor-application");
+  const draftAppliedRef = useRef(false);
+
+  useEffect(() => {
+    if (!restoredDraft) return;
+    draftAppliedRef.current = true;
+    setBase((prev) => ({
+      ...prev,
+      ...restoredDraft.base,
+      achievements: (restoredDraft.base.achievements ?? []).map((achievement) => ({
+        ...achievement,
+        proof: null,
+      })),
+    }));
+    if (Array.isArray(restoredDraft.roles)) setRoles(restoredDraft.roles);
+    if (Array.isArray(restoredDraft.boards)) setBoards(restoredDraft.boards);
+    if (Array.isArray(restoredDraft.credentials)) setCredentials(restoredDraft.credentials);
+    if (Array.isArray(restoredDraft.qualifications) && restoredDraft.qualifications.length > 0) {
+      setQualifications(
+        restoredDraft.qualifications.map((qualification) => ({
+          ...qualification,
+          transcript: null,
+          scores: Array.isArray(qualification.scores) ? qualification.scores : [],
+        })),
+      );
+    }
+    if (
+      typeof restoredDraft.step === "number" &&
+      restoredDraft.step >= 1 &&
+      restoredDraft.step <= stepTitles.length
+    ) {
+      setStep(restoredDraft.step);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restoredDraft]);
+
+  useEffect(() => {
+    if (restoredDraft && !draftAppliedRef.current) return;
+    saveDraft({
+      step,
+      base: {
+        ...base,
+        achievements: base.achievements.map((achievement) => ({ ...achievement, proof: null })),
+      },
+      roles,
+      boards,
+      credentials,
+      qualifications: qualifications.map((qualification) => ({
+        ...qualification,
+        transcript: null,
+      })),
+    });
+  }, [restoredDraft, saveDraft, step, base, roles, boards, credentials, qualifications]);
 
   function changeStep(nextStep: number) {
     shouldScrollToStepper.current = true;
@@ -970,6 +1066,7 @@ export function ApplicationForm() {
         return;
       }
       await submit({ data: parsed.data });
+      clearDraft();
       setDone(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (reason) {
@@ -1316,6 +1413,18 @@ export function ApplicationForm() {
             </div>
           </div>
         ) : null}
+        <div className="flex justify-end">
+          <p
+            aria-live="polite"
+            className={cn(
+              "flex items-center gap-1.5 text-xs font-medium text-[color:var(--muted-foreground)] transition-opacity duration-300",
+              draftSavedAt ? "opacity-100" : "opacity-0",
+            )}
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+            {t("common.draft_saved")}
+          </p>
+        </div>
         <Stepper
           className="join-stepper"
           scrollActiveIndicatorIntoView

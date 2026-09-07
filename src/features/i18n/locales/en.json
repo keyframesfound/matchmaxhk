@@ -5,10 +5,22 @@
     "find": "Find",
     "courses": "Courses",
     "for_business": "For Business",
+    "saved_posts": "Saved Posts",
+    "become_tutor": "Become a Tutor",
+    "request_tutor": "Request a Tutor",
+    "my_business": "My Business",
+    "settings": "Settings",
+    "profile": "Profile",
     "sign_in": "Log in",
+    "sign_up": "Sign up",
     "sign_out": "Sign out",
     "dashboard": "Dashboard",
-    "admin": "Admin"
+    "admin": "Admin",
+    "dark_mode": "Dark mode",
+    "light_mode": "Light mode",
+    "account_title": "MatchMax account",
+    "account_subtitle": "Manage your profile and preferences",
+    "account_menu_label": "Account menu"
   },
   "hero": {
     "title_a": "Match with your perfect",
@@ -90,9 +102,16 @@
   },
   "footer": {
     "tagline": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them—through tailored 1-on-1 tutoring.",
-    "quick_links": "Quick links",
+    "product": "Product",
+    "company": "Company",
     "support": "Support",
+    "find_tutors": "Find tutors",
     "how": "How it works",
+    "request_tutor": "Request a Tutor",
+    "saved_posts": "Saved Posts",
+    "join_as_tutor": "Join as tutor",
+    "faq": "FAQ",
+    "home": "Home",
     "verification": "Tutor verification",
     "districts": "District guides",
     "help": "Help center",
@@ -186,6 +205,8 @@
     "loading": "Loading…",
     "error": "Something went wrong.",
     "back_home": "Back home",
+    "draft_saved": "Draft saved",
+    "try_again": "Try again",
     "no_tutors_yet": "New tutors are being added — check back soon."
   },
   "join": {
@@ -226,7 +247,29 @@
     "empty_whatsapp": "Ask on WhatsApp"
   },
   "profile": {
-    "verified": "Verified"
+    "verified": "Verified",
+    "verified_detail": "Transcript checked",
+    "section_academic": "Core Academic Breakdown",
+    "section_achievements": "Achievement & Experience",
+    "section_subjects": "Subjects Taught",
+    "section_lesson": "Lesson Format & Details",
+    "label_format": "Format",
+    "label_location": "Location",
+    "label_languages": "Languages",
+    "not_specified": "Not specified",
+    "suggested_eyebrow": "Keep exploring",
+    "suggested_title": "Suggested tutors you may like",
+    "browse_all": "Browse all tutors",
+    "request_tutor": "Request tutor",
+    "cant_find": "Can't find the right tutor?",
+    "skip_pitch": "Skip the manual filters — tell us what you need and we'll source a match for free.",
+    "submit_case": "Submit a Case Request",
+    "link_copied": "Profile link copied",
+    "loading_aria": "Loading tutor profile",
+    "error_title": "This tutor profile didn't load",
+    "error_body": "Something went wrong on our end. Try again, or browse the directory to find another tutor.",
+    "not_found_title": "Tutor not found",
+    "not_found_body": "This tutor code doesn't match any published tutor."
   },
   "tutor_card": {
     "verified_fallback": "Academic profile verified",
@@ -241,5 +284,198 @@
     "gender_male": "Male",
     "gender_female": "Female",
     "gender_other": "Other"
+  },
+  "hiw": {
+    "hero_eyebrow": "How MatchMax works",
+    "hero_title": "Built By Students: Why MatchMax Works Better",
+    "hero_body": "We founded MatchMax as university students who sat the IB and DSE exams ourselves. We know traditional agencies treat educators like numbers and leave parents guessing. Here is how we make matching simple, fair, and transparent for both sides.",
+    "hero_cta_browse": "Browse Educator Profiles",
+    "hero_cta_apply": "Apply to Teach",
+    "props_eyebrow": "01 / What makes us different",
+    "props": {
+      "screening": {
+        "title": "Top 1% Elite Screening",
+        "detail": "Our network strictly consists of top-tier talent: IB 40+, DSE Best 5 30+, and official examiners. Every profile is rigorously verified to guarantee parents are paired with authentic, high-calibre educators."
+      },
+      "fees": {
+        "title": "The Most Transparent Fees in Hong Kong",
+        "detail": "Traditional agencies typically charge tutors half of their first month's tuition—up to a full two weeks of pay. MatchMax charges a radically transparent, one-time flat fee of just the first 1.5 lessons (100% of the 1st lesson and 50% of the 2nd lesson's wage), so top talent keeps more of what they earn."
+      },
+      "b2b": {
+        "title": "Zero-Cost B2B Placements",
+        "detail": "Standard platforms charge tutoring centres massive upfront recruitment fees. MatchMax charges educational partners $0, delivering elite, verified staffing solutions at unprecedented speed and zero risk."
+      },
+      "founded": {
+        "title": "Student-Founded Expertise",
+        "detail": "Built by university students, we inherently understand the logistics of private tutoring. We do not use automated, robotic matchmaking; we treat every application individually and provide personalized, manual guidance to ensure the perfect fit."
+      }
+    },
+    "compare_eyebrow": "02 / Why MatchMax works better",
+    "compare_edu_title": "For Educators: Fair Rules, Built by Students Who Understand You",
+    "compare_parent_title": "For Parents: Real Scores, Verified Credentials",
+    "table_aspect": "What Matters",
+    "table_old": "Old-School Agencies",
+    "table_max": "MatchMax",
+    "table_old_mobile": "Old-school agencies",
+    "edu": {
+      "commission": {
+        "aspect": "Agency Commission",
+        "old": "Take 2 full weeks of your pay (up to 4–8 lessons).",
+        "adv": "Fair 1.5-Lesson Fee",
+        "detail": "You only pay for 1.5 lessons per successful match. You keep 100% of everything you earn after that."
+      },
+      "travel": {
+        "aspect": "Travel & Commute",
+        "old": "Assign cases by broad districts, making you travel an hour for a single lesson.",
+        "adv": "MTR Station Selection",
+        "detail": "You pick the exact MTR stations you can reach. We only send you students along your line."
+      },
+      "credibility": {
+        "aspect": "Academic Credibility Showcase",
+        "old": "Squash your achievements into generic bullet points that make top scorers blend in with average applicants.",
+        "adv": "Granular Component Highlights",
+        "detail": "Showcase your exact strengths—including 7s in specific HL subjects, IA scores, and 5** paper breakdowns—so parents see your real value."
+      },
+      "voice": {
+        "aspect": "Your Voice & Needs",
+        "old": "Run by corporate agents who never took your syllabus and do not care about your study schedule.",
+        "adv": "Run by IB & DSE Grads",
+        "detail": "We understand university workloads, exam stress, and what your prep time is worth."
+      },
+      "privacy": {
+        "aspect": "Complete Privacy Protection",
+        "old": "Blast full names, phone numbers, or school affiliations across public groups.",
+        "adv": "Zero Public Name Leaks",
+        "detail": "Full names and sensitive personal details remain private. Tutors and school teachers alike can instruct safely without public exposure."
+      }
+    },
+    "parent_cmp": {
+      "browsing": {
+        "aspect": "Browsing Experience",
+        "old": "Cluttered, messy profiles that are painful to navigate. Crucial details are hidden away or missing, making direct comparison impossible.",
+        "adv": "Clean, E-Commerce Style Cards",
+        "detail": "Key credentials—verified scores, secondary schools, and target subjects—are visible right on the preview card. Browse, compare, and shortlist educators effortlessly like online shopping, with no lost profiles."
+      },
+      "screening": {
+        "aspect": "Tutor Screening (Authenticity)",
+        "old": "Anyone can sign up. They rarely verify if reported grades or degrees are genuine.",
+        "adv": "100% Verified Credentials",
+        "detail": "We manually check official transcripts, diplomas, and exam certificates before an educator profile goes live."
+      },
+      "quality": {
+        "aspect": "Tutor Quality (The Bar)",
+        "old": "Accept average scorers just to fill slots and collect a booking cut.",
+        "adv": "Strict Top-Scorer Standards",
+        "detail": "Every educator must clear our minimum academic bar (such as IB 40+, DSE 30+, or A*AA)."
+      },
+      "scores": {
+        "aspect": "Score Details",
+        "old": "Give you a vague one-line summary about the tutor's background.",
+        "adv": "Detailed Paper Breakdowns",
+        "detail": "See exact component marks for IAs, essays, and individual exam papers before you choose."
+      },
+      "alumni": {
+        "aspect": "Alumni & School Fit",
+        "old": "Pair your child with random tutors who do not know their school's curriculum style.",
+        "adv": "School & Major Matches",
+        "detail": "Find tutors who graduated from your child's exact secondary school or study their target degree."
+      }
+    },
+    "flow_eyebrow": "03 / The matching flow",
+    "flow_speed": "Within one business day",
+    "flow_title": "One thoughtful process, for every side of the match.",
+    "parents_eyebrow": "For parents & students",
+    "parents_audience": "For Parents",
+    "parents_title": "The highest calibre of educational matching, completely free.",
+    "parents_steps": {
+      "s1": {
+        "title": "Browse verified profiles like an online store",
+        "detail": "Filter by curriculum (IB/DSE/A-Level), target subjects, and specific MTR stations. Review verified component scores and secondary school backgrounds directly on each candidate card. Or send your exact requirements to our WhatsApp hotline."
+      },
+      "s2": {
+        "title": "Shortlist & request matches",
+        "detail": "Add preferred educators to your shortlist and submit a match request with your schedule and lesson preferences."
+      },
+      "s3": {
+        "title": "Confirm & start learning",
+        "detail": "Connect directly via WhatsApp with the tutor to align on lesson goals, confirm details, and schedule your first session."
+      }
+    },
+    "parents_link_find": "Find a tutor",
+    "parents_link_request": "Submit a tutor request",
+    "tutors_eyebrow": "For tutors",
+    "tutors_audience": "For Tutors",
+    "tutors_title": "Maximise your earning potential with Hong Kong's most tutor-friendly platform.",
+    "tutors_steps": {
+      "s1": {
+        "title": "Build your profile",
+        "detail": "Submit your academic records (transcripts, diplomas, and component scores) alongside your secondary school and reachable MTR stations."
+      },
+      "s2": {
+        "title": "Verification & anonymous listing",
+        "detail": "We review and verify your credentials before your card goes live. Your full name and sensitive personal data remain strictly confidential."
+      },
+      "s3": {
+        "title": "Receive requests & teach",
+        "detail": "Review inbound student match requests matching your commute preferences and accept sessions on your own terms with a fair 1.5-lesson platform fee."
+      }
+    },
+    "tutors_link_cases": "Browse open cases",
+    "tutors_link_apply": "Apply as a tutor",
+    "faq_eyebrow": "04 / Good to know",
+    "faq_title": "Frequently Asked Questions",
+    "faq_tutors": "For Tutors",
+    "faq_parents": "For Parents",
+    "tutor_faq": {
+      "paid": {
+        "q": "How do I get paid?",
+        "a": "Parents pay you directly for your lessons via your preferred payment method. MatchMax charges a one-time flat fee per successful match — 100% of the 1st lesson and 50% of the 2nd lesson (1.5 lessons in total). All earnings for every lesson after that are 100% yours."
+      },
+      "speed": {
+        "q": "How many days does it usually take to find students?",
+        "a": "Matching speed depends on subject demand, your profile quality, and availability. Many tutors receive relevant student matching requests within 1 to 2 weeks."
+      },
+      "rates": {
+        "q": "What are typical tutoring rates?",
+        "a": "Usual market rates typically range between HK$300 to HK$600 per hour. However, rates vary depending on lesson mode (online vs. in-person), duration, level, subject complexity, and your academic background. Tutors can discuss and negotiate rates directly with parents to agree on a fair fee."
+      },
+      "experience": {
+        "q": "Do I need teaching experience to join?",
+        "a": "Prior experience helps, but strong academic results, clear communication skills, and a complete profile are equally important for verification and student matching."
+      },
+      "modes": {
+        "q": "Can I teach both online and in person?",
+        "a": "Yes. You can set your preferred lesson modes and target locations in your profile and update them anytime as your schedule changes."
+      },
+      "protection": {
+        "q": "What happens if a parent doesn't pay me?",
+        "a": "While payment arrangements are made directly between you and the parent, MatchMax takes payment protection seriously. If a parent fails to pay for completed lessons, we will intervene, follow up directly with the parent, and use all appropriate lawful methods to help you recover your unpaid fees."
+      }
+    },
+    "parent_faq": {
+      "negotiate": {
+        "q": "Can hourly rates be negotiated?",
+        "a": "Yes, rates can be negotiated, but any adjustments depend entirely on the tutor's willingness and policy. Factors such as lesson frequency, online vs. in-person mode, travel distance, and lesson length may give room for discussion directly with the tutor."
+      },
+      "trial": {
+        "q": "Can I arrange a trial lesson before committing to a regular schedule?",
+        "a": "Yes. Parents are welcome to request an initial single trial lesson. Whether a trial lesson is offered and its specific terms (paid or discounted) depend entirely on the individual tutor's willingness and policy, which you can confirm directly before starting."
+      },
+      "matching": {
+        "q": "How does matching work?",
+        "a": "You have two straightforward options: you can click forward directly on any tutor's profile card to request that specific tutor, or reach out to our WhatsApp hotline and tell us exactly what you are looking for so we can match you. Once confirmed, we connect you directly with the tutor to finalize lesson times."
+      },
+      "verification": {
+        "q": "How does MatchMax verify tutor qualifications and grades?",
+        "a": "Every tutor on our platform must submit official supporting documentation—such as exam score certificates, diplomas, or university transcripts. Our team verifies these credentials before any profile goes live."
+      },
+      "payments": {
+        "q": "How do payments work between parents and tutors?",
+        "a": "Tuition is paid directly to the tutor based on the agreed hourly rate and schedule. MatchMax does not hold or handle your tuition fees, keeping the payment process direct and transparent."
+      }
+    },
+    "cta_title": "The right match starts with a conversation.",
+    "cta_body": "Whether you are looking for a tutor, building your teaching practice, or staffing a centre, our team makes every connection personal.",
+    "cta_check": "Personal guidance, never robotic matching."
   }
 }

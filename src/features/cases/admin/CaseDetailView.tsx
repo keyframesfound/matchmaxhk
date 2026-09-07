@@ -42,6 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ConsolePanel } from "@/components/ui/console-panel";
 import { cn } from "@/lib/utils";
 import {
   CASE_STATUSES,
@@ -260,7 +261,7 @@ export function CaseDetailView({
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left column: requirements + contact + notes */}
         <div className="space-y-6 lg:col-span-2">
-          <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
+          <ConsolePanel>
             <h2 className="text-xs font-semibold text-muted-foreground">Requirements</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
               <DetailRow
@@ -317,9 +318,9 @@ export function CaseDetailView({
                 <p className="mt-1.5 text-sm text-[color:var(--ink)]">{caseRow.schedule_note}</p>
               </div>
             ) : null}
-          </section>
+          </ConsolePanel>
 
-          <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
+          <ConsolePanel>
             <h2 className="text-xs font-semibold text-muted-foreground">Parent contact</h2>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -339,9 +340,9 @@ export function CaseDetailView({
                 </Button>
               </div>
             </div>
-          </section>
+          </ConsolePanel>
 
-          <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
+          <ConsolePanel>
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-semibold text-muted-foreground">Internal notes</h2>
               <NotebookPen className="h-4 w-4 text-muted-foreground/60" aria-hidden="true" />
@@ -396,12 +397,12 @@ export function CaseDetailView({
                 ))
               )}
             </div>
-          </section>
+          </ConsolePanel>
         </div>
 
         {/* Right column: handling */}
         <div className="space-y-6">
-          <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
+          <ConsolePanel>
             <h2 className="text-xs font-semibold text-muted-foreground">Handling</h2>
             <div className="mt-3 space-y-3">
               <Select
@@ -445,9 +446,9 @@ export function CaseDetailView({
                 {formatBudget(caseRow.budget_min, caseRow.budget_max)}
               </div>
             </div>
-          </section>
+          </ConsolePanel>
 
-          <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
+          <ConsolePanel>
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-semibold text-muted-foreground">Board listing</h2>
               <Button
@@ -482,9 +483,9 @@ export function CaseDetailView({
                 View board <ExternalLink className="h-3 w-3" aria-hidden="true" />
               </a>
             ) : null}
-          </section>
+          </ConsolePanel>
 
-          <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
+          <ConsolePanel>
             <h2 className="text-xs font-semibold text-muted-foreground">Tags</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               Track pipeline state: follow-up, premium, matched-source.
@@ -498,9 +499,9 @@ export function CaseDetailView({
                 maxTags={10}
               />
             </div>
-          </section>
+          </ConsolePanel>
 
-          <section className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-5 shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
+          <ConsolePanel>
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-semibold text-muted-foreground">Suggested tutors</h2>
               <Sparkles
@@ -549,7 +550,7 @@ export function CaseDetailView({
                 ))
               )}
             </div>
-          </section>
+          </ConsolePanel>
 
           <section className="rounded-2xl border border-destructive/20 bg-[color:var(--surface)] p-5">
             <h2 className="text-xs font-semibold text-muted-foreground">Danger zone</h2>

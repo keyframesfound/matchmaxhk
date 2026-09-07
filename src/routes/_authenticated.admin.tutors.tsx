@@ -16,8 +16,16 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import {
+  ConsoleTable,
+  ConsoleTableBody,
+  ConsoleTableEmpty,
+  ConsoleTableHead,
+  ConsoleTableSkeletonRows,
+  ConsoleTd,
+  ConsoleTh,
+} from "@/components/ui/console-table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -336,235 +344,200 @@ function AdminTutors() {
                 </div>
               ) : null}
 
-              {/* Table Container */}
-              <div className="overflow-hidden rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
-                <table className="w-full text-sm">
-                  <thead className="bg-[color:var(--surface-subtle)]/60 text-left text-xs font-medium text-[color:var(--ink)]/60 border-b border-[color:var(--ink)]/10">
-                    <tr>
-                      <th className="px-5 py-3.5">
+              <ConsoleTable tableClassName="text-left">
+                <ConsoleTableHead>
+                  <tr>
+                    <ConsoleTh>
+                      <Checkbox
+                        className="rounded-[4px] shadow-none"
+                        checked={allFilteredSelected}
+                        onCheckedChange={toggleAll}
+                        aria-label="Select all tutors"
+                      />
+                    </ConsoleTh>
+                    <ConsoleTh>Tutor Profile</ConsoleTh>
+                    <ConsoleTh>Subjects</ConsoleTh>
+                    <ConsoleTh>Format & District</ConsoleTh>
+                    <ConsoleTh>Rate</ConsoleTh>
+                    <ConsoleTh>Visibility</ConsoleTh>
+                    <ConsoleTh align="right">Actions</ConsoleTh>
+                  </tr>
+                </ConsoleTableHead>
+                <ConsoleTableBody>
+                  {isLoading && <ConsoleTableSkeletonRows columns={7} />}
+
+                  {!isLoading && filtered.length === 0 && (
+                    <ConsoleTableEmpty
+                      colSpan={7}
+                      icon={Users}
+                      title="No tutors found"
+                      description={
+                        search
+                          ? "Try adjusting your search criteria"
+                          : "Get started by adding your first verified tutor profile."
+                      }
+                      action={
+                        !search ? (
+                          <Button onClick={() => setIsCreating(true)} variant="outline" size="sm">
+                            <Plus className="mr-1.5 h-3.5 w-3.5" />
+                            Add New Tutor
+                          </Button>
+                        ) : undefined
+                      }
+                    />
+                  )}
+
+                  {filtered.map((row) => (
+                    <tr
+                      key={row.id}
+                      className={cn(
+                        "transition-colors hover:bg-[color:var(--surface-subtle)]/40",
+                        selectedIds.has(row.id) && "bg-[color:var(--foreground)]/[0.04]",
+                      )}
+                    >
+                      <ConsoleTd>
                         <Checkbox
                           className="rounded-[4px] shadow-none"
-                          checked={allFilteredSelected}
-                          onCheckedChange={toggleAll}
-                          aria-label="Select all tutors"
+                          checked={selectedIds.has(row.id)}
+                          onCheckedChange={() => toggleOne(row.id)}
+                          aria-label={`Select ${row.tutor_code || "tutor"}`}
                         />
-                      </th>
-                      <th className="px-5 py-3.5">Tutor Profile</th>
-                      <th className="px-5 py-3.5">Subjects</th>
-                      <th className="px-5 py-3.5">Format & District</th>
-                      <th className="px-5 py-3.5">Rate</th>
-                      <th className="px-5 py-3.5">Visibility</th>
-                      <th className="px-5 py-3.5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[color:var(--ink)]/[0.07]">
-                    {isLoading &&
-                      Array.from({ length: 5 }).map((_, index) => (
-                        <tr key={index}>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-4 w-4" />
-                          </td>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-4 w-28" />
-                            <Skeleton className="mt-2 h-3 w-48" />
-                          </td>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-5 w-24 rounded-full" />
-                          </td>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-4 w-20" />
-                          </td>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-4 w-16" />
-                          </td>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-5 w-16 rounded-full" />
-                          </td>
-                          <td className="px-5 py-4 text-right">
-                            <Skeleton className="ml-auto h-8 w-24 rounded-md" />
-                          </td>
-                        </tr>
-                      ))}
-
-                    {!isLoading && filtered.length === 0 && (
-                      <tr>
-                        <td colSpan={7} className="px-5 py-12 text-center text-muted-foreground">
-                          <Users className="mx-auto h-8 w-8 text-muted-foreground/50 mb-2" />
-                          <p className="font-semibold text-sm text-[color:var(--ink)]">
-                            No tutors found
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {search
-                              ? "Try adjusting your search criteria"
-                              : "Get started by adding your first verified tutor profile."}
-                          </p>
-                          {!search && (
-                            <Button
-                              onClick={() => setIsCreating(true)}
-                              variant="outline"
-                              size="sm"
-                              className="mt-4"
-                            >
-                              <Plus className="mr-1.5 h-3.5 w-3.5" />
-                              Add New Tutor
-                            </Button>
+                      </ConsoleTd>
+                      <ConsoleTd>
+                        <div className="flex items-center gap-3">
+                          {row.photo_url ? (
+                            <img
+                              src={row.photo_url}
+                              alt=""
+                              className="h-10 w-10 rounded-xl object-cover ring-1 ring-[color:var(--ink)]/10 shadow-sm"
+                            />
+                          ) : (
+                            <div className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--ink)]/[0.06] text-xs font-bold text-[color:var(--ink)]/60">
+                              {(row.tutor_code || "MM").slice(0, 2)}
+                            </div>
                           )}
-                        </td>
-                      </tr>
-                    )}
-
-                    {filtered.map((row) => (
-                      <tr
-                        key={row.id}
-                        className={cn(
-                          "transition-colors hover:bg-[color:var(--surface-subtle)]/40",
-                          selectedIds.has(row.id) && "bg-[color:var(--foreground)]/[0.04]",
-                        )}
-                      >
-                        <td className="px-5 py-4">
-                          <Checkbox
-                            className="rounded-[4px] shadow-none"
-                            checked={selectedIds.has(row.id)}
-                            onCheckedChange={() => toggleOne(row.id)}
-                            aria-label={`Select ${row.tutor_code || "tutor"}`}
-                          />
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            {row.photo_url ? (
-                              <img
-                                src={row.photo_url}
-                                alt=""
-                                className="h-10 w-10 rounded-xl object-cover ring-1 ring-[color:var(--ink)]/10 shadow-sm"
-                              />
-                            ) : (
-                              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--ink)]/[0.06] text-xs font-bold text-[color:var(--ink)]/60">
-                                {(row.tutor_code || "MM").slice(0, 2)}
-                              </div>
-                            )}
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-[color:var(--ink)] font-mono">
-                                  {row.tutor_code || "Unnamed"}
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-[color:var(--ink)] font-mono">
+                                {row.tutor_code || "Unnamed"}
+                              </span>
+                              {getTutorGenderLabel(row.gender) && (
+                                <span className="text-xs text-muted-foreground font-normal">
+                                  · {getTutorGenderLabel(row.gender)}
                                 </span>
-                                {getTutorGenderLabel(row.gender) && (
-                                  <span className="text-xs text-muted-foreground font-normal">
-                                    · {getTutorGenderLabel(row.gender)}
-                                  </span>
-                                )}
-                                {row.badge && (
-                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]">
-                                    {row.badge}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="mt-0.5 max-w-sm space-y-0.5 text-xs text-muted-foreground">
-                                {getTutorCardHighlights(row).length > 0 ? (
-                                  getTutorCardHighlights(row).map((highlight, index) => (
-                                    <p key={`${highlight}-${index}`} className="line-clamp-1">
-                                      {highlight}
-                                    </p>
-                                  ))
-                                ) : (
-                                  <p>No card highlights added</p>
-                                )}
-                              </div>
+                              )}
+                              {row.badge && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]">
+                                  {row.badge}
+                                </span>
+                              )}
+                            </div>
+                            <div className="mt-0.5 max-w-sm space-y-0.5 text-xs text-muted-foreground">
+                              {getTutorCardHighlights(row).length > 0 ? (
+                                getTutorCardHighlights(row).map((highlight, index) => (
+                                  <p key={`${highlight}-${index}`} className="line-clamp-1">
+                                    {highlight}
+                                  </p>
+                                ))
+                              ) : (
+                                <p>No card highlights added</p>
+                              )}
                             </div>
                           </div>
-                        </td>
+                        </div>
+                      </ConsoleTd>
 
-                        <td className="px-5 py-4">
-                          <div className="flex flex-wrap gap-1 max-w-xs">
-                            {(row.subjects ?? []).slice(0, 3).map((s) => (
-                              <span
-                                key={s}
-                                className="inline-flex items-center rounded-md bg-[color:var(--ink)]/[0.06] px-2 py-0.5 text-[11px] font-medium text-[color:var(--ink)]"
-                              >
-                                {s}
-                              </span>
-                            ))}
-                            {(row.subjects ?? []).length > 3 && (
-                              <span className="text-[11px] text-muted-foreground self-center">
-                                +{(row.subjects ?? []).length - 3} more
-                              </span>
-                            )}
-                          </div>
-                        </td>
+                      <ConsoleTd>
+                        <div className="flex flex-wrap gap-1 max-w-xs">
+                          {(row.subjects ?? []).slice(0, 3).map((s) => (
+                            <span
+                              key={s}
+                              className="inline-flex items-center rounded-md bg-[color:var(--ink)]/[0.06] px-2 py-0.5 text-[11px] font-medium text-[color:var(--ink)]"
+                            >
+                              {s}
+                            </span>
+                          ))}
+                          {(row.subjects ?? []).length > 3 && (
+                            <span className="text-[11px] text-muted-foreground self-center">
+                              +{(row.subjects ?? []).length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </ConsoleTd>
 
-                        <td className="px-5 py-4 text-xs">
-                          <div className="font-medium text-[color:var(--ink)] capitalize">
-                            {row.lesson_mode === "either"
-                              ? "Hybrid"
-                              : row.lesson_mode.replace("_", " ")}
-                          </div>
-                          <div className="text-muted-foreground text-[11px]">
-                            {row.district ? row.district : "All areas"}
-                          </div>
-                        </td>
+                      <ConsoleTd className="text-xs">
+                        <div className="font-medium text-[color:var(--ink)] capitalize">
+                          {row.lesson_mode === "either"
+                            ? "Hybrid"
+                            : row.lesson_mode.replace("_", " ")}
+                        </div>
+                        <div className="text-muted-foreground text-[11px]">
+                          {row.district ? row.district : "All areas"}
+                        </div>
+                      </ConsoleTd>
 
-                        <td className="px-5 py-4 font-semibold text-[color:var(--ink)]">
-                          HK${row.hourly_rate}
-                          <span className="text-xs text-muted-foreground font-normal">/hr</span>
-                        </td>
+                      <ConsoleTd className="font-semibold text-[color:var(--ink)]">
+                        HK${row.hourly_rate}
+                        <span className="text-xs text-muted-foreground font-normal">/hr</span>
+                      </ConsoleTd>
 
-                        <td className="px-5 py-4">
-                          <span
-                            className={cn(
-                              "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold",
-                              row.is_published
-                                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-                                : "bg-muted text-muted-foreground",
-                            )}
-                          >
-                            {row.is_published ? "Published" : "Hidden"}
-                          </span>
-                        </td>
+                      <ConsoleTd>
+                        <span
+                          className={cn(
+                            "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold",
+                            row.is_published
+                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                              : "bg-muted text-muted-foreground",
+                          )}
+                        >
+                          {row.is_published ? "Published" : "Hidden"}
+                        </span>
+                      </ConsoleTd>
 
-                        <td className="px-5 py-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {row.tutor_code ? (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                asChild
-                                className="h-8 text-xs text-muted-foreground hover:text-[color:var(--ink)]"
-                              >
-                                <Link
-                                  to="/tutors/$tutorCode"
-                                  params={{ tutorCode: row.tutor_code }}
-                                  target="_blank"
-                                >
-                                  <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                                  View
-                                </Link>
-                              </Button>
-                            ) : null}
-
+                      <ConsoleTd align="right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {row.tutor_code ? (
                             <Button
                               size="sm"
-                              variant="outline"
-                              onClick={() => setEditingTutor(row)}
-                              className="h-8 text-xs"
-                            >
-                              <Pencil className="h-3 w-3 mr-1" />
-                              Edit
-                            </Button>
-
-                            <Button
-                              size="icon"
                               variant="ghost"
-                              onClick={() => setDeletingId(row.id)}
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              asChild
+                              className="h-8 text-xs text-muted-foreground hover:text-[color:var(--ink)]"
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <Link
+                                to="/tutors/$tutorCode"
+                                params={{ tutorCode: row.tutor_code }}
+                                target="_blank"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                                View
+                              </Link>
                             </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          ) : null}
+
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingTutor(row)}
+                            className="h-8 text-xs"
+                          >
+                            <Pencil className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setDeletingId(row.id)}
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </ConsoleTd>
+                    </tr>
+                  ))}
+                </ConsoleTableBody>
+              </ConsoleTable>
             </div>
           )}
         </div>

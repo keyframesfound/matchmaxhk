@@ -151,11 +151,11 @@ function ListingCard({
         </h3>
         <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-1">
           {course.level ? (
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-400/20">
+            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-400/20">
               {course.level}
             </span>
           ) : null}
-          <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+          <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
             {courseModeLabel(course.mode)}
           </span>
         </div>
@@ -834,7 +834,10 @@ function BusinessPublicProfile() {
                     </span>
                   )}
                   {!org.website_url && !org.contact_email && !org.contact_phone && (
-                    <p className="text-muted-foreground">Contact details coming soon.</p>
+                    <p className="text-muted-foreground">
+                      This business hasn&rsquo;t added contact details yet. Message our team on
+                      WhatsApp (button below) and we&rsquo;ll connect you.
+                    </p>
                   )}
                 </div>
                 <div className="flex flex-col gap-2 sm:w-56">

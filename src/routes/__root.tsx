@@ -8,7 +8,6 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
-
 import appCss from "../styles.css?url";
 import { I18nProvider } from "@/features/i18n/I18nProvider";
 import { AuthProvider } from "@/features/auth/useAuth";
@@ -41,23 +40,19 @@ export function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
   const router = useRouter();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
       <div className="max-w-lg text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
+        <h1 className="text-7xl font-bold text-brand-gradient">Oops</h1>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">This page didn't load</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          Something went wrong on our end — it's not anything you did. Try again, or head back home.
         </p>
-        {error?.message ? (
-          <div className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-left font-mono text-xs text-destructive break-words">
-            <span className="font-semibold">Error:</span> {error.message}
-          </div>
-        ) : null}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -75,6 +70,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             Go home
           </a>
         </div>
+        <p className="mt-6 text-xs text-muted-foreground">
+          Still stuck? Message our team on WhatsApp — we're happy to help.
+        </p>
       </div>
     </div>
   );
@@ -100,6 +98,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "MatchMax helps Hong Kong families find verified tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://matchmax.hk" },
+      { property: "og:image", content: "https://matchmax.hk/matchmax-logo.png" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "MatchMax" },
       {
@@ -107,6 +107,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "MatchMax connects Hong Kong parents and students with verified DSE, IB, IGCSE, and AP tutors — matched instantly.",
       },
+      { name: "twitter:image", content: "https://matchmax.hk/matchmax-logo.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

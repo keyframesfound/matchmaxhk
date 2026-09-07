@@ -25,6 +25,7 @@ import {
 import { z } from "zod";
 import { Link } from "@tanstack/react-router";
 
+import { ConsolePanel } from "@/components/ui/console-panel";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -545,10 +546,7 @@ function EditorSection({
   id?: string;
 }) {
   return (
-    <section
-      id={id}
-      className="scroll-mt-24 rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] shadow-[0_1px_3px_rgba(4,19,68,0.04)] overflow-hidden"
-    >
+    <ConsolePanel id={id} padding="none" className="scroll-mt-24 overflow-hidden">
       <div className="border-b border-[color:var(--ink)]/[0.07] px-6 py-4.5 bg-[color:var(--surface-subtle)]/40 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="grid h-9 w-9 place-items-center rounded-xl bg-[color:var(--ink)]/[0.06] text-[color:var(--ink)]">
@@ -562,7 +560,7 @@ function EditorSection({
         {badge}
       </div>
       <div className="p-6 space-y-6">{children}</div>
-    </section>
+    </ConsolePanel>
   );
 }
 
@@ -1470,19 +1468,19 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
             </EditorSection>
 
             {/* 6. Publication Settings */}
-            <div className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-6 shadow-sm">
+            <ConsolePanel padding="lg">
               <Toggle
                 label="Public Directory Visibility"
                 hint="When enabled, this tutor is discoverable in the MatchMax directory and search filters."
                 checked={form.is_published}
                 onCheckedChange={(v) => setForm({ ...form, is_published: v })}
               />
-            </div>
+            </ConsolePanel>
           </div>
 
           {/* Right: Sticky Live Preview Card */}
           <div className="lg:sticky lg:top-20 space-y-4">
-            <div className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-4 shadow-sm">
+            <ConsolePanel padding="sm">
               <div className="flex items-center justify-between mb-3 border-b border-[color:var(--ink)]/[0.08] pb-2.5">
                 <div className="flex items-center gap-1.5">
                   <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -1507,10 +1505,10 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                   </Button>
                 }
               />
-            </div>
+            </ConsolePanel>
 
             {/* Sticky Action Card */}
-            <div className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-4 space-y-3 shadow-sm">
+            <ConsolePanel padding="sm" className="space-y-3">
               <Button
                 type="submit"
                 disabled={isSaving}
@@ -1536,7 +1534,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
               >
                 Cancel & Return
               </Button>
-            </div>
+            </ConsolePanel>
           </div>
         </div>
       </form>

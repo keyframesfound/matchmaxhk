@@ -64,7 +64,7 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
           <span className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]">
             <span className="min-w-0 truncate">{rowTitle(item)}</span>
             {item.startTiming === "asap" ? (
-              <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+              <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-bold text-[#a16207] dark:text-[color:var(--warning)]">
                 <CalendarClock className="h-3 w-3" aria-hidden="true" />
                 ASAP
               </span>

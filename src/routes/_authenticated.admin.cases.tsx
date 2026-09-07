@@ -6,8 +6,16 @@ import { formatDistanceToNow } from "date-fns";
 import { Clock, Download, Flame, Inbox, MessageCircle, Search, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import {
+  ConsoleTable,
+  ConsoleTableBody,
+  ConsoleTableEmpty,
+  ConsoleTableHead,
+  ConsoleTableSkeletonRows,
+  ConsoleTd,
+  ConsoleTh,
+} from "@/components/ui/console-table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -353,235 +361,197 @@ function AdminCases() {
                 </div>
               ) : null}
 
-              {/* Table Container */}
-              <div className="overflow-hidden rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] shadow-[0_1px_3px_rgba(4,19,68,0.04)]">
-                <table className="w-full text-sm">
-                  <thead className="border-b border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)]/60 text-left text-xs font-medium text-[color:var(--ink)]/60">
-                    <tr>
-                      <th className="px-5 py-3.5">
+              <ConsoleTable tableClassName="text-left">
+                <ConsoleTableHead>
+                  <tr>
+                    <ConsoleTh>
+                      <Checkbox
+                        className="rounded-[4px] shadow-none"
+                        checked={allFilteredSelected}
+                        onCheckedChange={toggleAll}
+                        aria-label="Select all cases"
+                      />
+                    </ConsoleTh>
+                    <ConsoleTh>Case</ConsoleTh>
+                    <ConsoleTh>Parent Contact</ConsoleTh>
+                    <ConsoleTh>Subjects & Level</ConsoleTh>
+                    <ConsoleTh>Format & District</ConsoleTh>
+                    <ConsoleTh>Budget</ConsoleTh>
+                    <ConsoleTh>Status</ConsoleTh>
+                    <ConsoleTh>Tags</ConsoleTh>
+                    <ConsoleTh align="right">Actions</ConsoleTh>
+                  </tr>
+                </ConsoleTableHead>
+                <ConsoleTableBody>
+                  {isLoading && <ConsoleTableSkeletonRows columns={9} />}
+
+                  {!isLoading && filtered.length === 0 && (
+                    <ConsoleTableEmpty
+                      colSpan={9}
+                      icon={Inbox}
+                      title="No case requests found"
+                      description={
+                        search || statusFilter !== "all" || tagFilter !== "all"
+                          ? "Try adjusting your filters"
+                          : "New submissions from the case request form will appear here."
+                      }
+                    />
+                  )}
+
+                  {filtered.map((row) => (
+                    <tr
+                      key={row.id}
+                      className={cn(
+                        "transition-colors hover:bg-[color:var(--surface-subtle)]/40",
+                        selectedIds.has(row.id) && "bg-[color:var(--foreground)]/[0.04]",
+                      )}
+                    >
+                      <ConsoleTd>
                         <Checkbox
                           className="rounded-[4px] shadow-none"
-                          checked={allFilteredSelected}
-                          onCheckedChange={toggleAll}
-                          aria-label="Select all cases"
+                          checked={selectedIds.has(row.id)}
+                          onCheckedChange={() => toggleOne(row.id)}
+                          aria-label={`Select case ${row.case_code}`}
                         />
-                      </th>
-                      <th className="px-5 py-3.5">Case</th>
-                      <th className="px-5 py-3.5">Parent Contact</th>
-                      <th className="px-5 py-3.5">Subjects & Level</th>
-                      <th className="px-5 py-3.5">Format & District</th>
-                      <th className="px-5 py-3.5">Budget</th>
-                      <th className="px-5 py-3.5">Status</th>
-                      <th className="px-5 py-3.5">Tags</th>
-                      <th className="px-5 py-3.5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[color:var(--ink)]/[0.07]">
-                    {isLoading &&
-                      Array.from({ length: 5 }).map((_, index) => (
-                        <tr key={index}>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-4 w-4" />
-                          </td>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="mt-2 h-3 w-44" />
-                          </td>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-4 w-28" />
-                          </td>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-5 w-24 rounded-full" />
-                          </td>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-4 w-20" />
-                          </td>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-4 w-16" />
-                          </td>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-5 w-20 rounded-full" />
-                          </td>
-                          <td className="px-5 py-4">
-                            <Skeleton className="h-5 w-16 rounded-full" />
-                          </td>
-                          <td className="px-5 py-4 text-right">
-                            <Skeleton className="ml-auto h-8 w-24 rounded-md" />
-                          </td>
-                        </tr>
-                      ))}
-
-                    {!isLoading && filtered.length === 0 && (
-                      <tr>
-                        <td colSpan={9} className="px-5 py-12 text-center text-muted-foreground">
-                          <Inbox className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
-                          <p className="text-sm font-semibold text-[color:var(--ink)]">
-                            No case requests found
-                          </p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {search || statusFilter !== "all" || tagFilter !== "all"
-                              ? "Try adjusting your filters"
-                              : "New submissions from the case request form will appear here."}
-                          </p>
-                        </td>
-                      </tr>
-                    )}
-
-                    {filtered.map((row) => (
-                      <tr
-                        key={row.id}
-                        className={cn(
-                          "transition-colors hover:bg-[color:var(--surface-subtle)]/40",
-                          selectedIds.has(row.id) && "bg-[color:var(--foreground)]/[0.04]",
-                        )}
-                      >
-                        <td className="px-5 py-4">
-                          <Checkbox
-                            className="rounded-[4px] shadow-none"
-                            checked={selectedIds.has(row.id)}
-                            onCheckedChange={() => toggleOne(row.id)}
-                            aria-label={`Select case ${row.case_code}`}
-                          />
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-mono text-sm font-bold text-[color:var(--ink)]">
-                              {row.case_code}
+                      </ConsoleTd>
+                      <ConsoleTd>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-sm font-bold text-[color:var(--ink)]">
+                            {row.case_code}
+                          </span>
+                          {row.start_timing === "asap" && (
+                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                              <Flame className="mr-0.5 h-3 w-3" aria-hidden="true" />
+                              ASAP
                             </span>
-                            {row.start_timing === "asap" && (
-                              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
-                                <Flame className="mr-0.5 h-3 w-3" aria-hidden="true" />
-                                ASAP
-                              </span>
-                            )}
-                            {row.board_published_at && (
-                              <span
-                                className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400"
-                                title="Live on the public tutor request board"
-                              >
-                                On board
-                              </span>
-                            )}
-                          </div>
-                          <p className="mt-0.5 max-w-xs truncate text-xs text-muted-foreground">
-                            {row.title}
-                          </p>
-                          <p className="mt-0.5 text-[11px] text-muted-foreground/80">
-                            {formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}
-                          </p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="text-sm font-bold text-[color:var(--ink)]">
-                            {row.contact_name}
-                          </div>
-                          <a
-                            href={whatsappUrl(row.contact_phone)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-[color:var(--ink)]"
-                          >
-                            <MessageCircle className="h-3 w-3" aria-hidden="true" />
-                            {row.contact_phone}
-                          </a>
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex flex-wrap gap-1 max-w-[12rem]">
-                            {(row.subjects ?? []).slice(0, 2).map((s) => (
-                              <span
-                                key={s}
-                                className="inline-flex items-center rounded-md bg-[color:var(--ink)]/[0.06] px-2 py-0.5 text-[11px] font-medium text-[color:var(--ink)]"
-                              >
-                                {s}
-                              </span>
-                            ))}
-                            {(row.subjects ?? []).length > 2 && (
-                              <span className="self-center text-[11px] text-muted-foreground">
-                                +{(row.subjects ?? []).length - 2} more
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-0.5 text-[11px] text-muted-foreground">
-                            {row.student_level}
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-xs">
-                          <div className="font-medium capitalize text-[color:var(--ink)]">
-                            {MODE_LABEL[row.mode] ?? row.mode}
-                          </div>
-                          <div className="text-[11px] text-muted-foreground">
-                            {row.district ?? "Any area"}
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-xs font-semibold text-[color:var(--ink)]">
-                          {row.budget_min === null && row.budget_max === null ? (
-                            <span className="font-normal text-muted-foreground">Not set</span>
+                          )}
+                          {row.board_published_at && (
+                            <span
+                              className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400"
+                              title="Live on the public tutor request board"
+                            >
+                              On board
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-0.5 max-w-xs truncate text-xs text-muted-foreground">
+                          {row.title}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground/80">
+                          {formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}
+                        </p>
+                      </ConsoleTd>
+                      <ConsoleTd>
+                        <div className="text-sm font-bold text-[color:var(--ink)]">
+                          {row.contact_name}
+                        </div>
+                        <a
+                          href={whatsappUrl(row.contact_phone)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-[color:var(--ink)]"
+                        >
+                          <MessageCircle className="h-3 w-3" aria-hidden="true" />
+                          {row.contact_phone}
+                        </a>
+                      </ConsoleTd>
+                      <ConsoleTd>
+                        <div className="flex flex-wrap gap-1 max-w-[12rem]">
+                          {(row.subjects ?? []).slice(0, 2).map((s) => (
+                            <span
+                              key={s}
+                              className="inline-flex items-center rounded-md bg-[color:var(--ink)]/[0.06] px-2 py-0.5 text-[11px] font-medium text-[color:var(--ink)]"
+                            >
+                              {s}
+                            </span>
+                          ))}
+                          {(row.subjects ?? []).length > 2 && (
+                            <span className="self-center text-[11px] text-muted-foreground">
+                              +{(row.subjects ?? []).length - 2} more
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-0.5 text-[11px] text-muted-foreground">
+                          {row.student_level}
+                        </div>
+                      </ConsoleTd>
+                      <ConsoleTd className="text-xs">
+                        <div className="font-medium capitalize text-[color:var(--ink)]">
+                          {MODE_LABEL[row.mode] ?? row.mode}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {row.district ?? "Any area"}
+                        </div>
+                      </ConsoleTd>
+                      <ConsoleTd className="text-xs font-semibold text-[color:var(--ink)]">
+                        {row.budget_min === null && row.budget_max === null ? (
+                          <span className="font-normal text-muted-foreground">Not set</span>
+                        ) : (
+                          <>
+                            HK${row.budget_min ?? "?"}-{row.budget_max ?? "?"}
+                            <span className="text-[11px] font-normal text-muted-foreground">
+                              /hr
+                            </span>
+                          </>
+                        )}
+                      </ConsoleTd>
+                      <ConsoleTd>
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold",
+                            STATUS_PILL_CLASS[row.status],
+                          )}
+                        >
+                          {STATUS_LABEL[row.status]}
+                        </span>
+                      </ConsoleTd>
+                      <ConsoleTd>
+                        <div className="flex flex-wrap gap-1 max-w-[10rem]">
+                          {(row.tags ?? []).length === 0 ? (
+                            <span className="text-[11px] text-muted-foreground/70">None</span>
                           ) : (
                             <>
-                              HK${row.budget_min ?? "?"}-{row.budget_max ?? "?"}
-                              <span className="text-[11px] font-normal text-muted-foreground">
-                                /hr
-                              </span>
+                              {(row.tags ?? []).slice(0, 2).map((t) => (
+                                <span
+                                  key={t}
+                                  className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-0.5 text-[10px] font-bold text-[color:var(--foreground)]"
+                                >
+                                  {t}
+                                </span>
+                              ))}
+                              {(row.tags ?? []).length > 2 && (
+                                <span className="self-center text-[10px] text-muted-foreground">
+                                  +{(row.tags ?? []).length - 2}
+                                </span>
+                              )}
                             </>
                           )}
-                        </td>
-                        <td className="px-5 py-4">
-                          <span
-                            className={cn(
-                              "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold",
-                              STATUS_PILL_CLASS[row.status],
-                            )}
+                        </div>
+                      </ConsoleTd>
+                      <ConsoleTd align="right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setOpenId(row.id)}
+                            className="h-8 text-xs"
                           >
-                            {STATUS_LABEL[row.status]}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex flex-wrap gap-1 max-w-[10rem]">
-                            {(row.tags ?? []).length === 0 ? (
-                              <span className="text-[11px] text-muted-foreground/70">None</span>
-                            ) : (
-                              <>
-                                {(row.tags ?? []).slice(0, 2).map((t) => (
-                                  <span
-                                    key={t}
-                                    className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-0.5 text-[10px] font-bold text-[color:var(--foreground)]"
-                                  >
-                                    {t}
-                                  </span>
-                                ))}
-                                {(row.tags ?? []).length > 2 && (
-                                  <span className="self-center text-[10px] text-muted-foreground">
-                                    +{(row.tags ?? []).length - 2}
-                                  </span>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setOpenId(row.id)}
-                              className="h-8 text-xs"
-                            >
-                              Open
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => setDeletingId(row.id)}
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                            Open
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setDeletingId(row.id)}
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </ConsoleTd>
+                    </tr>
+                  ))}
+                </ConsoleTableBody>
+              </ConsoleTable>
             </div>
           )}
         </div>

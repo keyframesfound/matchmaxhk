@@ -18,3 +18,10 @@ npx --yes bun@1.2.15 install --frozen-lockfile
 ```
 
 Do not modify dependencies without committing the resulting `bun.lock` update.
+
+## UI Assets (21st.dev MCP)
+
+Use the 21st.dev MCP (`21st_search`, `21st_get_component`, `21st_get_theme`, etc.) freely when
+the task needs UI assets — components, tooltips, themes, icons, or design inspiration. Prefer
+searching the catalog before hand-writing new UI, and adapt fetched code to the existing
+shadcn/ui conventions in `src/components/ui`.

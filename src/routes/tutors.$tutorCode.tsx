@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useEffect, useState } from "react";
 import {
   MapPin,
   MessageCircle,
@@ -132,7 +132,7 @@ function AcademicQualification({ result }: { result: ExamResult }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-medium text-[color:var(--ink)]">{label}</p>
+      <p className="text-xs font-medium text-[color:var(--ink)]">{label}</p>
       <ul className="space-y-1.5">
         {subjects.map((entry, subjectIndex) => {
           const papers = (entry.papers ?? []).filter((p) => p.label.trim() && p.score.trim());
@@ -168,10 +168,11 @@ function AcademicQualification({ result }: { result: ExamResult }) {
 }
 
 function TutorProfileSkeleton() {
+  const { t } = useTranslation();
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
-      <main className="flex-1" aria-busy="true" aria-label="Loading tutor profile">
+      <main className="flex-1" aria-busy="true" aria-label={t("profile.loading_aria")}>
         <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
           <div className="mx-auto max-w-5xl px-5 sm:px-8">
             <Skeleton className="h-9 w-24 rounded-md" />
@@ -215,7 +216,7 @@ function TutorProfileSkeleton() {
                 {[0, 1, 2].map((card) => (
                   <div
                     key={card}
-                    className="rounded-[10px] border border-border bg-[color:var(--surface)] p-4"
+                    className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-4"
                   >
                     <div className="flex items-center gap-3">
                       <Skeleton className="h-11 w-11 rounded-full" />
@@ -276,33 +277,51 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
       links: [{ rel: "canonical", href: url }],
     };
   },
-  notFoundComponent: () => (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
-      <main className="mx-auto max-w-3xl px-4 py-24 text-center">
-        <h1 className="text-3xl font-bold text-[color:var(--ink)]">Tutor not found</h1>
-        <p className="mt-3 text-muted-foreground">
-          This tutor code doesn’t match any published tutor.
-        </p>
-        <Button asChild className="mt-6">
-          <Link to="/tutors">Browse all tutors</Link>
-        </Button>
-      </main>
-      <SiteFooter />
-    </div>
-  ),
-  errorComponent: ({ error }) => (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
-      <main className="mx-auto max-w-3xl px-4 py-24 text-center">
-        <h1 className="text-2xl font-bold text-destructive">Something went wrong</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
-      </main>
-      <SiteFooter />
-    </div>
-  ),
+  notFoundComponent: function TutorNotFound() {
+    const { t } = useTranslation();
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <SiteHeader />
+        <main className="mx-auto max-w-3xl px-4 py-24 text-center">
+          <h1 className="text-3xl font-bold text-[color:var(--ink)]">
+            {t("profile.not_found_title")}
+          </h1>
+          <p className="mt-3 text-muted-foreground">{t("profile.not_found_body")}</p>
+          <Button asChild className="mt-6">
+            <Link to="/tutors">{t("profile.browse_all")}</Link>
+          </Button>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  },
+  errorComponent: TutorErrorComponent,
   component: TutorDetail,
 });
+
+function TutorErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  const { t } = useTranslation();
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <SiteHeader />
+      <main className="mx-auto max-w-3xl px-4 py-24 text-center">
+        <h1 className="text-2xl font-bold text-[color:var(--ink)]">{t("profile.error_title")}</h1>
+        <p className="mt-3 text-sm text-muted-foreground">{t("profile.error_body")}</p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+          <Button onClick={reset}>{t("common.try_again")}</Button>
+          <Button asChild variant="outline">
+            <Link to="/tutors">{t("profile.browse_all")}</Link>
+          </Button>
+        </div>
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}
 
 function TutorDetail() {
   const { tutor } = Route.useLoaderData();
@@ -371,7 +390,8 @@ function TutorDetail() {
   const profileBio = t.qualifications_summary?.trim() ?? "";
   const lessonLocation = t.district ? `Hong Kong — ${t.district}` : "Hong Kong";
   const tutorLanguages = (t.languages ?? []).filter(Boolean);
-  const lessonLanguages = tutorLanguages.length > 0 ? tutorLanguages.join(", ") : "Not specified";
+  const lessonLanguages =
+    tutorLanguages.length > 0 ? tutorLanguages.join(", ") : translate("profile.not_specified");
   const lessonFormat = (getTutorLessonModeLabel(t.lesson_mode) ?? "To be confirmed").replace(
     / tutoring$/,
     "",
@@ -392,12 +412,12 @@ function TutorDetail() {
         return;
       }
       await navigator.clipboard.writeText(shareData.url);
-      toast.success("Profile link copied");
+      toast.success(translate("profile.link_copied"));
     } catch (error) {
       if ((error as DOMException)?.name === "AbortError") return;
       try {
         await navigator.clipboard.writeText(shareData.url);
-        toast.success("Profile link copied");
+        toast.success(translate("profile.link_copied"));
       } catch {
         toast.error("Couldn't share this profile");
       }
@@ -469,12 +489,12 @@ function TutorDetail() {
                       </>
                     ) : null}
                   </h1>
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2.5 py-1 text-xs font-bold leading-none text-[color:var(--ink)]">
-                    <BadgeCheck
-                      className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
-                      aria-hidden="true"
-                    />
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-royal)]/25 bg-[color:var(--accent)] px-3 py-1.5 text-xs font-bold leading-none text-[color:var(--accent-foreground)]">
+                    <BadgeCheck className="h-4 w-4" aria-hidden="true" />
                     {translate("profile.verified")}
+                    <span className="font-semibold text-[color:var(--accent-foreground)]/75">
+                      · {translate("profile.verified_detail")}
+                    </span>
                   </span>
                 </div>
                 {t.academic_headline || t.university || t.secondary_school ? (
@@ -493,7 +513,9 @@ function TutorDetail() {
                 <div className="flex items-center justify-start gap-1.5 sm:justify-end">
                   <p className="text-3xl font-bold text-[color:var(--ink)]">
                     HK${t.hourly_rate}
-                    <span className="ml-1 text-sm font-semibold text-muted-foreground">/hr</span>
+                    <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                      {translate("featured.per_hour")}
+                    </span>
                   </p>
                   <TutorSaveButton tutorId={t.id} compact />
                   <Button
@@ -521,12 +543,14 @@ function TutorDetail() {
                   </Button>
                 ) : (
                   <Button
-                    disabled
+                    asChild
                     variant="solid"
                     color="blue"
                     className="mt-3 w-full font-bold sm:w-auto"
                   >
-                    <MessageCircle className="mr-2 h-4 w-4" /> Contact coming soon
+                    <Link to="/tutor-requests" search={{ post: true }}>
+                      <MessageCircle className="mr-2 h-4 w-4" /> Request via our team
+                    </Link>
                   </Button>
                 )}
               </div>
@@ -538,7 +562,7 @@ function TutorDetail() {
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <div>
               {examResults.length > 0 ? (
-                <ProfileSection icon={LineChart} title="Core Academic Breakdown">
+                <ProfileSection icon={LineChart} title={translate("profile.section_academic")}>
                   <div className="space-y-4">
                     {examResults.map((result, index) => (
                       <AcademicQualification key={`${result.system}-${index}`} result={result} />
@@ -548,7 +572,7 @@ function TutorDetail() {
               ) : null}
 
               {profileBio || t.achievements.length > 0 ? (
-                <ProfileSection icon={Award} title="Achievement & Experience">
+                <ProfileSection icon={Award} title={translate("profile.section_achievements")}>
                   <div className="space-y-4">
                     {profileBio ? (
                       <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
@@ -582,7 +606,7 @@ function TutorDetail() {
               ) : null}
 
               {t.subjects.length > 0 || t.ia_ee_tok_support.length > 0 ? (
-                <ProfileSection icon={Layers} title="Subjects Taught">
+                <ProfileSection icon={Layers} title={translate("profile.section_subjects")}>
                   <div className="text-left text-sm">
                     {t.subjects.length > 0 ? (
                       <div className="space-y-1">
@@ -607,23 +631,23 @@ function TutorDetail() {
                 </ProfileSection>
               ) : null}
 
-              <ProfileSection icon={MapPin} title="Lesson Format & Details">
+              <ProfileSection icon={MapPin} title={translate("profile.section_lesson")}>
                 <ul className="space-y-3.5">
                   <LessonDetailRow
                     icon={Globe}
-                    label="Format"
+                    label={translate("profile.label_format")}
                     value={lessonFormat}
                     iconClassName="text-[color:var(--ink)]"
                   />
                   <LessonDetailRow
                     icon={MapPin}
-                    label="Location"
+                    label={translate("profile.label_location")}
                     value={lessonLocation}
                     iconClassName="text-[color:var(--ink)]"
                   />
                   <LessonDetailRow
                     icon={Languages}
-                    label="Languages"
+                    label={translate("profile.label_languages")}
                     value={lessonLanguages}
                     iconClassName="text-[color:var(--ink)]"
                   />
@@ -639,14 +663,14 @@ function TutorDetail() {
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
                   <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-                    Keep exploring
+                    {translate("profile.suggested_eyebrow")}
                   </p>
                   <h2 className="mt-1 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                    Suggested tutors you may like
+                    {translate("profile.suggested_title")}
                   </h2>
                 </div>
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/tutors">Browse all tutors</Link>
+                  <Link to="/tutors">{translate("profile.browse_all")}</Link>
                 </Button>
               </div>
               <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -654,7 +678,7 @@ function TutorDetail() {
                   <PublicTutorCard
                     key={candidate.id}
                     tutor={candidate}
-                    priceSuffix="/hr"
+                    priceSuffix={translate("featured.per_hour")}
                     onOpen={(code) =>
                       void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
                     }
@@ -669,7 +693,7 @@ function TutorDetail() {
                           rel="noopener noreferrer"
                           onClick={(event) => event.stopPropagation()}
                         >
-                          Request tutor
+                          {translate("profile.request_tutor")}
                         </a>
                       </Button>
                     }
@@ -678,15 +702,14 @@ function TutorDetail() {
               </div>
               <div className="mt-8 rounded-sm border border-border bg-[color:var(--surface)] px-5 py-4 sm:px-6">
                 <p className="text-sm text-muted-foreground sm:text-base">
-                  Can&rsquo;t find the right tutor?{" "}
+                  {translate("profile.cant_find")}{" "}
                   <span className="font-bold text-[color:var(--ink)]">
-                    Skip the manual filters — tell us what you need and we&rsquo;ll source a match
-                    for free.
+                    {translate("profile.skip_pitch")}
                   </span>
                 </p>
                 <Button asChild variant="solid" color="blue" className="mt-3 font-bold">
                   <Link to="/tutor-requests" search={{ post: true }}>
-                    Submit a Case Request
+                    {translate("profile.submit_case")}
                   </Link>
                 </Button>
               </div>

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import { AmountReadout, AmountSlider } from "@/components/ui/amount-slider";
 import {
@@ -310,7 +311,7 @@ function CompareDialog({
             ))}
             {rows.map(({ label, render }) => (
               <div key={label || "actions"} className="contents">
-                <div className="border-t border-border/70 px-2 py-3 text-[11px] font-medium text-muted-foreground">
+                <div className="border-t border-border/70 px-2 py-3 text-xs font-medium text-muted-foreground">
                   {label}
                 </div>
                 {tutors.map((t) => (
@@ -549,15 +550,15 @@ function TutorsDirectory() {
               >
                 <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
                   <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    className="h-12 rounded-sm pl-9 text-base"
-                    placeholder={t("search_panel.keyword_placeholder")}
-                    aria-label={t("search_panel.keyword_aria")}
-                    value={draft.q ?? ""}
-                    onChange={(e) => setDraftParam({ q: e.target.value })}
-                  />
-                </div>
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      className="h-12 rounded-sm pl-9 text-base"
+                      placeholder={t("search_panel.keyword_placeholder")}
+                      aria-label={t("search_panel.keyword_aria")}
+                      value={draft.q ?? ""}
+                      onChange={(e) => setDraftParam({ q: e.target.value })}
+                    />
+                  </div>
                   <Button
                     type="submit"
                     variant="solid"
@@ -570,45 +571,47 @@ function TutorsDirectory() {
                 </div>
                 <div className="mt-4 border-t border-border pt-4">
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <SearchableSelect
-                  value={draft.category ?? ""}
-                  onChange={handleCategoryChange}
-                  options={categoryOptions}
-                  placeholder={t("search_panel.any_category")}
-                  searchPlaceholder={t("search_panel.search_category")}
-                  className="h-11 rounded-sm"
-                />
-                <SearchableSelect
-                  value={draft.subject ?? ""}
-                  onChange={(v) => setDraftParam({ subject: v || undefined })}
-                  options={[
-                    { value: "", label: t("search_panel.any_subject") },
-                    ...subjectOptions.map((s) => ({ value: s, label: s })),
-                  ]}
-                  placeholder={t("search_panel.any_subject")}
-                  searchPlaceholder={t("search_panel.search_subject")}
-                  className="h-11 rounded-sm"
-                />
-                <LessonModeSelect
-                  mode={(draft.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
-                  district={draft.district}
-                  districts={HK_DISTRICTS}
-                  onChange={({ mode, district }) =>
-                    setDraftParam({
-                      mode: mode || undefined,
-                      district: mode === "in_person" ? district : undefined,
-                    })
-                  }
-                  placeholder={t("search_panel.any_mode")}
-                  className="h-11 rounded-sm"
-                />
-                <SearchableSelect
-                  value={draft.gender ?? ""}
-                  onChange={(v) => setDraftParam({ gender: v || undefined })}
-                  options={genderOptions}
-                  placeholder={t("search_panel.any_gender")}
-                  className="h-11 rounded-sm"
-                />
+                    <SearchableSelect
+                      value={draft.category ?? ""}
+                      onChange={handleCategoryChange}
+                      options={categoryOptions}
+                      placeholder={t("search_panel.any_category")}
+                      searchPlaceholder={t("search_panel.search_category")}
+                      className="h-11 rounded-sm"
+                    />
+                    <SearchableSelect
+                      value={draft.subject ?? ""}
+                      onChange={(v) => setDraftParam({ subject: v || undefined })}
+                      options={[
+                        { value: "", label: t("search_panel.any_subject") },
+                        ...subjectOptions.map((s) => ({ value: s, label: s })),
+                      ]}
+                      placeholder={t("search_panel.any_subject")}
+                      searchPlaceholder={t("search_panel.search_subject")}
+                      className="h-11 rounded-sm"
+                    />
+                    <LessonModeSelect
+                      mode={
+                        (draft.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""
+                      }
+                      district={draft.district}
+                      districts={HK_DISTRICTS}
+                      onChange={({ mode, district }) =>
+                        setDraftParam({
+                          mode: mode || undefined,
+                          district: mode === "in_person" ? district : undefined,
+                        })
+                      }
+                      placeholder={t("search_panel.any_mode")}
+                      className="h-11 rounded-sm"
+                    />
+                    <SearchableSelect
+                      value={draft.gender ?? ""}
+                      onChange={(v) => setDraftParam({ gender: v || undefined })}
+                      options={genderOptions}
+                      placeholder={t("search_panel.any_gender")}
+                      className="h-11 rounded-sm"
+                    />
                   </div>
                 </div>
               </form>
@@ -654,26 +657,34 @@ function TutorsDirectory() {
                 </div>
                 <SearchableSelect
                   value={draft.sort ?? ""}
-                  onChange={(v) =>
-                    navigate({
-                      search: (prev) => ({ ...prev, sort: v || undefined }) as SearchState,
-                    })
-                  }
+                  onChange={(v) => setDraftParam({ sort: v || undefined })}
                   options={sortOptions}
                   placeholder={t("search_panel.sort_recommended")}
                   searchPlaceholder={t("search_panel.search_sorting")}
                   className="h-11 w-full rounded-sm sm:w-56 sm:shrink-0"
                 />
                 {hotlineUrl ? (
-                  <a
-                    href={hotlineUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
-                  >
-                    <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
-                    WhatsApp us
-                  </a>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <a
+                          href={hotlineUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
+                        >
+                          <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
+                          WhatsApp us
+                        </a>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs text-center">
+                        <p>
+                          Skip the manual filters — tell us what you need and we&apos;ll source a
+                          match for free.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 ) : null}
               </div>
             </div>
@@ -696,7 +707,10 @@ function TutorsDirectory() {
             {isLoading && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className="h-[23rem] rounded-[10px] border border-border" />
+                  <Skeleton
+                    key={i}
+                    className="h-[23rem] rounded-[var(--radius-panel)] border border-border"
+                  />
                 ))}
               </div>
             )}
