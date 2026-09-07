@@ -42,7 +42,7 @@ type HomeTutorSearchState = {
 };
 
 const HOME_CATEGORY_OPTIONS = [
-  { value: "", label: "Any category" },
+  { value: "", label: "Any curriculum" },
   { value: "IB", label: "IB" },
   { value: "DSE", label: "DSE" },
   { value: "IGCSE", label: "IGCSE" },
@@ -460,7 +460,7 @@ function Landing() {
                 value={homeSearch.category ?? ""}
                 onChange={handleHomeCategoryChange}
                 options={HOME_CATEGORY_OPTIONS}
-                placeholder="Any category"
+                placeholder="Any curriculum"
                 searchPlaceholder="Search category..."
                 className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
               />
