@@ -117,6 +117,7 @@ function AudienceSection({
   icon: Icon,
   steps,
   links,
+  callout,
   className,
   numberClassName,
   accentClassName,
@@ -128,6 +129,7 @@ function AudienceSection({
   icon: typeof Search;
   steps: [string, string, string][];
   links: { to: "/tutors" | "/join" | "/tutor-requests"; label: string; search?: { post?: true } }[];
+  callout?: string;
   className: string;
   numberClassName: string;
   accentClassName: string;
@@ -158,6 +160,9 @@ function AudienceSection({
                 </Link>
               ))}
             </div>
+            {callout ? (
+              <p className={`mt-4 max-w-md text-sm leading-6 ${bodyTextClassName}`}>{callout}</p>
+            ) : null}
           </div>
           <ol className="border-t border-current/20">
             {steps.map(([number, stepTitle, text]) => (
@@ -323,6 +328,7 @@ function HowItWorksPage() {
               label: t("hiw.parents_link_request"),
             },
           ]}
+          callout={t("hiw.parents_callout")}
           className="bg-[#E3ECF6] text-[#0f1419] dark:bg-[#061622] dark:text-white"
           numberClassName="bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
           accentClassName="text-[color:var(--muted-foreground)]"
@@ -338,6 +344,7 @@ function HowItWorksPage() {
             { to: "/tutor-requests", label: t("hiw.tutors_link_cases") },
             { to: "/join", label: t("hiw.tutors_link_apply") },
           ]}
+          callout={t("hiw.tutors_callout")}
           className="bg-[#0f1419] !text-white dark:bg-[#0f1419] dark:!text-white"
           numberClassName="bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
           accentClassName="text-[color:var(--muted-foreground)]"

@@ -291,8 +291,8 @@
   },
   "hiw": {
     "hero_eyebrow": "How MatchMax works",
-    "hero_title": "Built By Students: Why MatchMax Works Better",
-    "hero_body": "We founded MatchMax as university students who sat the IB and DSE exams ourselves. We know traditional agencies treat tutors like numbers and leave parents guessing. Here is how we make matching simple, fair, and transparent for both sides.",
+    "hero_title": "The New Standard for Tutor Matching.",
+    "hero_body": "We manually verify every top scorer and school examiner so you don't have to. Experience Hong Kong's most transparent, easy-to-use platform for finding and comparing premium tutors.",
     "hero_cta_browse": "Browse Tutor Profiles",
     "hero_cta_apply": "Apply to Teach",
     "card_view_profile": "View profile",
@@ -368,46 +368,48 @@
       }
     },
     "flow_eyebrow": "02 / The matching flow",
-    "flow_speed": "Within one business day",
-    "flow_title": "One thoughtful process, for every side of the match.",
+    "flow_speed": "Instant direct connection",
+    "flow_title": "Three steps, whichever side of the match you're on.",
     "parents_eyebrow": "For parents & students",
     "parents_audience": "For Parents",
-    "parents_title": "The highest calibre of educational matching, completely free.",
+    "parents_title": "Manually verified top scorers, transparent paper scores, zero guesswork.",
     "parents_steps": {
       "s1": {
-        "title": "Browse verified profiles like an online store",
-        "detail": "Filter by curriculum (IB/DSE/A-Level), target subjects, and specific MTR stations. Review verified component scores and secondary school backgrounds directly on each candidate card. Or send your exact requirements to our WhatsApp hotline."
+        "title": "Browse Premium, Verified Profiles",
+        "detail": "We enforce a strictly high academic bar. Browse clean, easy-to-read profiles featuring manually verified transcripts, exact paper scores, and secondary school backgrounds. No vague claims—just proven results under \"Achievements and Experiences\"."
       },
       "s2": {
-        "title": "Shortlist & request matches",
-        "detail": "Add preferred tutors to your shortlist and submit a match request with your schedule and lesson preferences."
+        "title": "Compare & Request Seamlessly",
+        "detail": "Treat tutor hunting like simple online shopping. Add candidates to your shortlist, compare their \"Subjects Taught\" and credentials side-by-side, and submit your lesson preferences with zero hassle."
       },
       "s3": {
-        "title": "Confirm & start learning",
-        "detail": "Connect directly via WhatsApp with the tutor to align on lesson goals, confirm details, and schedule your first session."
+        "title": "Instant Direct Connection",
+        "detail": "Skip the agency waiting time. Once a match is made, you connect directly with the tutor via WhatsApp. No middlemen, no phone tag—just direct communication to confirm your first lesson."
       }
     },
     "parents_link_find": "Find a tutor",
     "parents_link_request": "Submit a tutor request",
+    "parents_callout": "Short on time? Submit your exact criteria through our Tutor Request Form and let us find the perfect match for you.",
     "tutors_eyebrow": "For tutors",
     "tutors_audience": "For Tutors",
     "tutors_title": "Maximise your earning potential with Hong Kong's most tutor-friendly platform.",
     "tutors_steps": {
       "s1": {
-        "title": "Build your profile",
-        "detail": "Submit your academic records (transcripts, diplomas, and component scores) alongside your secondary school and reachable MTR stations."
+        "title": "Submit Your Credentials",
+        "detail": "Build your profile by uploading your official transcripts, specific component scores, and reachable MTR stations."
       },
       "s2": {
-        "title": "Verification & anonymous listing",
-        "detail": "We review and verify your credentials before your card goes live. Your full name and sensitive personal data remain strictly confidential."
+        "title": "Manual Verification & Anonymous Listing",
+        "detail": "Our team manually checks your documents to maintain our premium standard. Your profile goes live completely anonymously—your full name and sensitive details remain 100% private."
       },
       "s3": {
-        "title": "Receive requests & teach",
-        "detail": "Review inbound student match requests matching your commute preferences and accept sessions on your own terms with a fair 1.5-lesson platform fee."
+        "title": "Teach & Keep What You Earn",
+        "detail": "Accept student requests that fit your schedule and commute. Keep 100% of your earnings after a fair, transparent 1.5-lesson platform fee—no massive agency commission cuts."
       }
     },
     "tutors_link_cases": "Browse open cases",
     "tutors_link_apply": "Apply as a tutor",
+    "tutors_callout": "Want to fill your schedule faster? Browse our Open Cases Board anytime to claim student requests that match your expertise.",
     "faq_eyebrow": "03 / Good to know",
     "faq_title": "Frequently Asked Questions",
     "faq_tutors": "For Tutors",
