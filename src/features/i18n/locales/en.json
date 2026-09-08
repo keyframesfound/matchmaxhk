@@ -346,13 +346,13 @@
         "aspect": "Tutor Screening (Authenticity)",
         "old": "Anyone can sign up. They rarely verify if reported grades or degrees are genuine.",
         "adv": "100% Verified Credentials",
-        "detail": "We manually check official transcripts, diplomas, and exam certificates before an educator profile goes live."
+        "detail": "We manually check official transcripts, diplomas, and exam certificates before an tutor profile goes live."
       },
       "quality": {
         "aspect": "Tutor Quality (The Bar)",
         "old": "Accept average scorers just to fill slots and collect a booking cut.",
         "adv": "Strict Top-Scorer Standards",
-        "detail": "Every educator must clear our minimum academic bar (such as IB 40+, DSE 30+, or A*AA)."
+        "detail": "Every tutor must clear our minimum academic bar (such as IB 40+, DSE 30+, or A*AA)."
       },
       "scores": {
         "aspect": "Score Details",
