@@ -146,7 +146,7 @@ function AudienceSection({
             <p className="mt-4 max-w-md text-xl font-bold leading-snug tracking-tight sm:text-2xl">
               {title}
             </p>
-            <div className="mt-8 space-y-16">
+            <div className="mt-8 flex flex-col items-start gap-6">
               {links.map((link) => (
                 <Link
                   key={link.label}
