@@ -307,9 +307,14 @@ function HowItWorksPage() {
                   <Clock3 className="h-5 w-5" /> {t("hiw.flow_speed")}
                 </div>
               </div>
-              <h2 className="max-w-3xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
-                {t("hiw.flow_title")}
-              </h2>
+              <div>
+                <h2 className="max-w-3xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
+                  {t("hiw.flow_title")}
+                </h2>
+                <p className="mt-5 max-w-xl text-base leading-7 text-current/70">
+                  {t("hiw.flow_body")}
+                </p>
+              </div>
             </div>
           </div>
         </section>
