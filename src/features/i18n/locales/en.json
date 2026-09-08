@@ -23,9 +23,8 @@
     "account_menu_label": "Account menu"
   },
   "hero": {
-    "title_a": "Verified Top Scorers & School Examiners: IB, A-Levels, DSE & IGCSE.",
-    "body": "MatchMax sets a strictly high academic bar, exclusively accepting premium tutors. Every official transcript and certificate is manually verified by our team before a profile ever goes live. Experience the easiest, most transparent platform in Hong Kong to instantly review verified tutor achievements, exact paper scores, and secondary school backgrounds.",
-    "cta_primary": "Browse Tutors"
+    "title_a": "Match with your perfect tutor",
+    "cta_primary": "Browse tutors"
   },
   "trust": {
     "students": "Students matched",
@@ -35,9 +34,9 @@
   },
   "how": {
     "title": "Search for the right tutor",
-    "step1_title": "Finding a tutor?",
-    "step1_desc": "From HKDSE to IBDP MatchMax has you covered, we've got top scoring students from across Hong Kong. Explore subject teachers, lesson modes and more in our list of tutors.",
-    "cta_find": "Find a tutor",
+    "step1_title": "Verified Top Scorers & School Examiners: IB, A-Levels, DSE & IGCSE.",
+    "step1_desc": "MatchMax sets a strictly high academic bar, exclusively accepting premium tutors. Every official transcript and certificate is manually verified by our team before a profile ever goes live. Experience the easiest, most transparent platform in Hong Kong to instantly review verified tutor achievements, exact paper scores, and secondary school backgrounds.",
+    "cta_find": "Browse Tutors",
     "step2_title": "Get matched",
     "step2_desc": "Share your Tutor Code with our team and we'll connect you with your tutor.",
     "step3_title": "Start learning",
