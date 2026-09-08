@@ -296,25 +296,6 @@
     "hero_cta_browse": "Browse Tutor Profiles",
     "hero_cta_apply": "Apply to Teach",
     "card_view_profile": "View profile",
-    "props_eyebrow": "01 / What makes us different",
-    "props": {
-      "screening": {
-        "title": "Top 1% Elite Screening",
-        "detail": "Our network strictly consists of top-tier talent: IB 40+, DSE Best 5 30+, and official examiners. Every profile is rigorously verified to guarantee parents are paired with authentic, high-calibre educators."
-      },
-      "fees": {
-        "title": "The Most Transparent Fees in Hong Kong",
-        "detail": "Traditional agencies typically charge tutors half of their first month's tuition—up to a full two weeks of pay. MatchMax charges a radically transparent, one-time flat fee of just the first 1.5 lessons (100% of the 1st lesson and 50% of the 2nd lesson's wage), so top talent keeps more of what they earn."
-      },
-      "b2b": {
-        "title": "Zero-Cost B2B Placements",
-        "detail": "Standard platforms charge tutoring centres massive upfront recruitment fees. MatchMax charges educational partners $0, delivering elite, verified staffing solutions at unprecedented speed and zero risk."
-      },
-      "founded": {
-        "title": "Student-Founded Expertise",
-        "detail": "Built by university students, we inherently understand the logistics of private tutoring. We do not use automated, robotic matchmaking; we treat every application individually and provide personalized, manual guidance to ensure the perfect fit."
-      }
-    },
     "compare_eyebrow": "02 / Why MatchMax works better",
     "compare_edu_title": "For Educators: Fair Rules, Built by Students Who Understand You",
     "compare_parent_title": "For Parents: Real Scores, Verified Credentials",

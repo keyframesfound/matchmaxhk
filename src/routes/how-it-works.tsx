@@ -3,12 +3,8 @@ import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   Asterisk,
-  BadgeCheck,
-  Building2,
   Check,
   Clock3,
-  GraduationCap,
-  HandCoins,
   MessageCircle,
   Search,
   UserRoundCheck,
@@ -46,29 +42,10 @@ type ComparisonRow = {
   detail: string;
 };
 
-type ValueProp = {
-  icon: typeof Search;
-  title: string;
-  detail: string;
-};
-
 type FaqItem = { id: string; title: string; content: string };
-
-const PROP_ICONS = {
-  screening: BadgeCheck,
-  fees: HandCoins,
-  b2b: Building2,
-  founded: GraduationCap,
-} as const;
 
 function useHowItWorksContent() {
   const { t } = useTranslation();
-
-  const valueProps: ValueProp[] = (["screening", "fees", "b2b", "founded"] as const).map((key) => ({
-    icon: PROP_ICONS[key],
-    title: t(`hiw.props.${key}.title`),
-    detail: t(`hiw.props.${key}.detail`),
-  }));
 
   const comparisonRow = (group: "edu" | "parent_cmp", key: string): ComparisonRow => ({
     aspect: t(`hiw.${group}.${key}.aspect`),
@@ -124,7 +101,6 @@ function useHowItWorksContent() {
 
   return {
     t,
-    valueProps,
     educatorComparison,
     parentComparison,
     parentSteps,
@@ -268,7 +244,6 @@ function FaqAccordion({ items, className }: { items: FaqItem[]; className?: stri
 function HowItWorksPage() {
   const { t } = useTranslation();
   const {
-    valueProps,
     educatorComparison,
     parentComparison,
     parentSteps,
@@ -303,29 +278,6 @@ function HowItWorksPage() {
             <Button asChild size="lg" variant="outline">
               <Link to="/join">{t("hiw.hero_cta_apply")}</Link>
             </Button>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-[1440px] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
-          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-            {t("hiw.props_eyebrow")}
-          </p>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 sm:gap-8">
-            {valueProps.map(({ icon: Icon, title, detail }) => (
-              <article
-                key={title}
-                className="rounded-[var(--radius-panel)] border border-[color:var(--ink)]/12 bg-[color:var(--surface)] p-6 shadow-[var(--shadow-brand)] sm:p-8"
-              >
-                <span className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-panel)] bg-[color:var(--foreground)]/[0.04]">
-                  <Icon
-                    className="h-6 w-6 text-[color:var(--muted-foreground)]"
-                    aria-hidden="true"
-                  />
-                </span>
-                <h3 className="mt-5 text-xl font-bold tracking-tight sm:text-2xl">{title}</h3>
-                <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">{detail}</p>
-              </article>
-            ))}
           </div>
         </section>
 
