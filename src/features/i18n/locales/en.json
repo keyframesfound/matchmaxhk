@@ -292,12 +292,12 @@
   "hiw": {
     "hero_eyebrow": "How MatchMax works",
     "hero_title": "Built By Students: Why MatchMax Works Better",
-    "hero_body": "We founded MatchMax as university students who sat the IB and DSE exams ourselves. We know traditional agencies treat educators like numbers and leave parents guessing. Here is how we make matching simple, fair, and transparent for both sides.",
+    "hero_body": "We founded MatchMax as university students who sat the IB and DSE exams ourselves. We know traditional agencies treat tutors like numbers and leave parents guessing. Here is how we make matching simple, fair, and transparent for both sides.",
     "hero_cta_browse": "Browse Tutor Profiles",
     "hero_cta_apply": "Apply to Teach",
     "card_view_profile": "View profile",
     "compare_eyebrow": "01 / Why MatchMax works better",
-    "compare_edu_title": "For Educators: Fair Rules, Built by Students Who Understand You",
+    "compare_edu_title": "For Tutors: Fair Rules, Built by Students Who Understand You",
     "compare_parent_title": "For Parents: Real Scores, Verified Credentials",
     "table_aspect": "What Matters",
     "table_old": "Old-School Agencies",
@@ -340,7 +340,7 @@
         "aspect": "Browsing Experience",
         "old": "Cluttered, messy profiles that are painful to navigate. Crucial details are hidden away or missing, making direct comparison impossible.",
         "adv": "Clean, E-Commerce Style Cards",
-        "detail": "Key credentials—verified scores, secondary schools, and target subjects—are visible right on the preview card. Browse, compare, and shortlist educators effortlessly like online shopping, with no lost profiles."
+        "detail": "Key credentials—verified scores, secondary schools, and target subjects—are visible right on the preview card. Browse, compare, and shortlist tutors effortlessly like online shopping, with no lost profiles."
       },
       "screening": {
         "aspect": "Tutor Screening (Authenticity)",
@@ -380,7 +380,7 @@
       },
       "s2": {
         "title": "Shortlist & request matches",
-        "detail": "Add preferred educators to your shortlist and submit a match request with your schedule and lesson preferences."
+        "detail": "Add preferred tutors to your shortlist and submit a match request with your schedule and lesson preferences."
       },
       "s3": {
         "title": "Confirm & start learning",

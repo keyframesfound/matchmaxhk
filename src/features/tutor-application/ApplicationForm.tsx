@@ -747,7 +747,7 @@ export function ApplicationForm() {
     [allResultSubjects, base.subjectsTaught, removedStudiedSubjects],
   );
   const notice = professional
-    ? "Please note: MatchMax's Professional tier is reserved for highly qualified educators. Teaching credentials or official examiner letters are required for verification, and your identity, CV, and current employment are kept strictly confidential."
+    ? "Please note: MatchMax's Professional tier is reserved for highly qualified tutors. Teaching credentials or official examiner letters are required for verification, and your identity, CV, and current employment are kept strictly confidential."
     : primary.curriculum === "IBDP"
       ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above."
       : primary.curriculum === "A-Level"
