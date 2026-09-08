@@ -23,8 +23,9 @@
     "account_menu_label": "Account menu"
   },
   "hero": {
-    "title_a": "Match with your perfect tutor",
-    "cta_primary": "Browse tutors"
+    "title_a": "Verified Top Scorers & School Examiners: IB, A-Levels, DSE & IGCSE.",
+    "body": "MatchMax sets a strictly high academic bar, exclusively accepting premium tutors. Every official transcript and certificate is manually verified by our team before a profile ever goes live. Experience the easiest, most transparent platform in Hong Kong to instantly review verified tutor achievements, exact paper scores, and secondary school backgrounds.",
+    "cta_primary": "Browse Tutors"
   },
   "trust": {
     "students": "Students matched",
@@ -100,9 +101,9 @@
     "skip_suffix": "."
   },
   "tutors_cta": {
-    "title": "You do the teaching. We do the matching.",
-    "subtitle": "MatchMax provides an excellent platform for tutors to find students. While you focus on teaching, we help you find the students.",
-    "cta": "Join"
+    "title": "You Do the Teaching. We Keep It Fair.",
+    "subtitle": "Built by graduates who know the industry. Keep what you earn with a transparent 1.5-lesson platform fee—no massive agency cuts. Protect your privacy with anonymous listings, set your own hourly rates, and use our MTR filtering tool to seamlessly find cases that fit your schedule and commute.",
+    "cta": "Apply to Teach"
   },
   "footer": {
     "tagline": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them—through tailored 1-on-1 tutoring.",

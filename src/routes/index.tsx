@@ -411,10 +411,12 @@ function Landing() {
       <section className="hero-startup-bg relative overflow-hidden">
         <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col justify-center">
-            <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="mt-3 max-w-3xl text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-5xl md:text-6xl lg:text-7xl">
               {t("hero.title_a")}
-              <br />
             </h1>
+            <p className="mt-4 max-w-2xl text-sm font-medium leading-relaxed text-muted-foreground sm:text-base md:mt-6 md:text-lg md:font-normal">
+              {t("hero.body")}
+            </p>
             <div className="mt-6 flex flex-wrap gap-3 md:mt-8">
               <Button
                 asChild
