@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 const MODE_OPTIONS = [
   { value: "online", label: "Online" },
   { value: "in_person", label: "In-person" },
-  { value: "either", label: "Open to discussion" },
 ];
 
 const FREQUENCY_OPTIONS = [
@@ -130,7 +129,11 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
 
   useEffect(() => {
     if (!restored) return;
-    setForm((prev) => ({ ...prev, ...restored }));
+    setForm((prev) => ({
+      ...prev,
+      ...restored,
+      mode: restored.mode === "either" ? "" : restored.mode,
+    }));
   }, [restored]);
 
   const isBlankDraft = (value: FormState) =>

@@ -20,7 +20,7 @@ type Props = {
   className?: string;
 };
 
-const MODE_KEYS = [{ key: "" }, { key: "online" }, { key: "either" }] as const;
+const MODE_KEYS = [{ key: "" }, { key: "online" }] as const;
 
 function AnimatedCheck({ selected }: { selected: boolean }) {
   const shouldReduceMotion = useReducedMotion();

@@ -199,7 +199,6 @@ export function CaseEditDialog({
               <SelectContent>
                 <SelectItem value="online">Online</SelectItem>
                 <SelectItem value="in_person">In-person</SelectItem>
-                <SelectItem value="either">Open to discussion</SelectItem>
               </SelectContent>
             </Select>
           </div>
