@@ -70,7 +70,11 @@ import {
   MTR_STATION_OPTIONS,
   toggleLineStations,
 } from "./mtr";
-import { getGradesForSelection, getSystem } from "@/features/tutors/examSystems";
+import {
+  getGradesForSelection,
+  getSystem,
+  IELTS_COMPONENT_LABELS,
+} from "@/features/tutors/examSystems";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 
 type ScoreRow = {
@@ -103,7 +107,10 @@ const SYSTEM_IDS: Record<string, string> = {
   HKDSE: "dse",
   AP: "ap",
   SAT: "sat",
+  IELTS: "ielts",
 };
+const IELTS_CURRICULUM = "IELTS";
+const IELTS_OVERALL_SUBJECT = "IELTS Overall";
 const LANGUAGES = ["English", "Cantonese", "Mandarin"];
 const COUNTRY_OPTIONS = [
   "Hong Kong",
@@ -341,11 +348,24 @@ function blankQualification(curriculum = "IBDP"): Qualification {
     curriculum,
     overall: "",
     boards: [],
-    scores: [{ subject: "", grade: "", level: "", gradeSystem: "", papers: [] }],
+    scores: [blankScoreRow(curriculum)],
     best6: "",
     transcript: null,
     transcriptStatus: "upload",
   };
+}
+
+function blankScoreRow(curriculum: string): ScoreRow {
+  if (curriculum === IELTS_CURRICULUM) {
+    return {
+      subject: IELTS_OVERALL_SUBJECT,
+      grade: "",
+      level: "",
+      gradeSystem: "",
+      papers: IELTS_COMPONENT_LABELS.map((label) => ({ label, score: "" })),
+    };
+  }
+  return { subject: "", grade: "", level: "", gradeSystem: "", papers: [] };
 }
 
 function paperOptions(curriculum: string) {
@@ -356,6 +376,7 @@ function paperOptions(curriculum: string) {
   if (curriculum === "AP")
     return ["Multiple Choice", "Free Response", "Portfolio / Performance Task"];
   if (curriculum === "SAT") return ["Reading & Writing", "Math"];
+  if (curriculum === IELTS_CURRICULUM) return [...IELTS_COMPONENT_LABELS];
   return ["Paper 1", "Paper 2", "Paper 3", "Paper 4", "Coursework"];
 }
 
@@ -732,9 +753,11 @@ export function ApplicationForm() {
   const allResultSubjects = useMemo(
     () => [
       ...new Set(
-        qualifications.flatMap((qualification) =>
-          qualification.scores.map((score) => score.subject.trim()).filter(Boolean),
-        ),
+        qualifications
+          .flatMap((qualification) =>
+            qualification.scores.map((score) => score.subject.trim()).filter(Boolean),
+          )
+          .filter((subject) => subject !== IELTS_OVERALL_SUBJECT),
       ),
     ],
     [qualifications],
@@ -969,6 +992,34 @@ export function ApplicationForm() {
           content: await fileData(file),
         },
       });
+      if (qualifications[qualificationIndex].curriculum === IELTS_CURRICULUM) {
+        const bands = new Map(
+          extracted.scores.map((score) => [score.subject.trim().toLowerCase(), score.grade.trim()]),
+        );
+        const overallBand =
+          extracted.overall.trim() || bands.get("overall") || bands.get("ielts overall") || "";
+        const papers = IELTS_COMPONENT_LABELS.map((label) => ({
+          label,
+          score: bands.get(label.toLowerCase()) ?? "",
+        }));
+        updateQualification(qualificationIndex, {
+          overall: overallBand,
+          best6: extracted.best6,
+          scores: [
+            {
+              subject: IELTS_OVERALL_SUBJECT,
+              grade: overallBand,
+              level: "",
+              gradeSystem: "",
+              papers,
+            },
+          ],
+        });
+        setTranscriptMessage(
+          `Added ${papers.filter((paper) => paper.score).length} component scores. Review the fields below.`,
+        );
+        return;
+      }
       updateQualification(qualificationIndex, {
         overall: extracted.overall,
         best6: extracted.best6,
@@ -996,7 +1047,15 @@ export function ApplicationForm() {
       const subjectResults = qualifications
         .map(
           (qualification) =>
-            `${qualification.curriculum}${qualification.overall ? ` (${qualification.overall})` : ""}\n${qualification.scores.map((score) => `${score.subject}: ${score.grade}`).join("\n")}`,
+            `${qualification.curriculum}${qualification.overall ? ` (${qualification.overall})` : ""}\n${qualification.scores
+              .map((score) => {
+                const papers = score.papers.filter((paper) => paper.label && paper.score.trim());
+                const paperText = papers.length
+                  ? ` (${papers.map((paper) => `${paper.label}: ${paper.score.trim()}`).join(", ")})`
+                  : "";
+                return `${score.subject}: ${score.grade}${paperText}`;
+              })
+              .join("\n")}`,
         )
         .join("\n\n");
       const parsed = tutorApplicationSchema.safeParse({
@@ -1222,9 +1281,15 @@ export function ApplicationForm() {
                 ) : (
                   <Select
                     value={score.grade}
-                    onValueChange={(grade) =>
-                      updateScore(qualificationIndex, scoreIndex, { grade })
-                    }
+                    onValueChange={(grade) => {
+                      updateScore(qualificationIndex, scoreIndex, { grade });
+                      if (
+                        qualification.curriculum === IELTS_CURRICULUM &&
+                        score.subject === IELTS_OVERALL_SUBJECT
+                      ) {
+                        updateQualification(qualificationIndex, { overall: grade });
+                      }
+                    }}
                     disabled={!score.subject}
                   >
                     <SelectTrigger
@@ -1294,7 +1359,11 @@ export function ApplicationForm() {
                           ),
                         })
                       }
-                      placeholder="Specific score (18/25)"
+                      placeholder={
+                        qualification.curriculum === IELTS_CURRICULUM
+                          ? "Band (8.0)"
+                          : "Specific score (18/25)"
+                      }
                     />
                     <Button
                       type="button"
@@ -1324,7 +1393,7 @@ export function ApplicationForm() {
                   <Plus /> Add component score
                 </Button>
               </div>
-              {qualification.scores.length > 1 ? (
+              {qualification.scores.length > 1 && qualification.curriculum !== IELTS_CURRICULUM ? (
                 <Button
                   type="button"
                   variant="outline"
@@ -1341,21 +1410,23 @@ export function ApplicationForm() {
             </div>
           );
         })}
-        <Button
-          type="button"
-          variant="outline"
-          className="w-fit"
-          onClick={() =>
-            updateQualification(qualificationIndex, {
-              scores: [
-                ...qualification.scores,
-                { subject: "", grade: "", level: "", gradeSystem: "", papers: [] },
-              ],
-            })
-          }
-        >
-          <Plus /> Add another subject
-        </Button>
+        {qualification.curriculum !== IELTS_CURRICULUM ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-fit"
+            onClick={() =>
+              updateQualification(qualificationIndex, {
+                scores: [
+                  ...qualification.scores,
+                  { subject: "", grade: "", level: "", gradeSystem: "", papers: [] },
+                ],
+              })
+            }
+          >
+            <Plus /> Add another subject
+          </Button>
+        ) : null}
       </div>
     );
   };
@@ -1660,10 +1731,12 @@ export function ApplicationForm() {
                           label={
                             qualification.curriculum === "HKDSE"
                               ? "Best 5 Score"
-                              : qualification.curriculum === "IBDP" ||
-                                  qualification.curriculum === "SAT"
-                                ? "Overall Achieved Score"
-                                : "Overall Achieved Grades"
+                              : qualification.curriculum === IELTS_CURRICULUM
+                                ? "Overall Band Score"
+                                : qualification.curriculum === "IBDP" ||
+                                    qualification.curriculum === "SAT"
+                                  ? "Overall Achieved Score"
+                                  : "Overall Achieved Grades"
                           }
                           required
                           error={fieldErrors[`overall-${index}`]}
@@ -1677,9 +1750,22 @@ export function ApplicationForm() {
                                 : "text"
                             }
                             value={qualification.overall}
-                            onChange={(event) =>
-                              updateQualification(index, { overall: event.target.value })
-                            }
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              if (
+                                qualification.curriculum === IELTS_CURRICULUM &&
+                                qualification.scores[0]?.subject === IELTS_OVERALL_SUBJECT
+                              ) {
+                                updateQualification(index, {
+                                  overall: value,
+                                  scores: qualification.scores.map((score, scoreIndex) =>
+                                    scoreIndex === 0 ? { ...score, grade: value } : score,
+                                  ),
+                                });
+                                return;
+                              }
+                              updateQualification(index, { overall: value });
+                            }}
                             placeholder={
                               qualification.curriculum === "IBDP"
                                 ? "43"
@@ -1687,7 +1773,9 @@ export function ApplicationForm() {
                                   ? "32"
                                   : qualification.curriculum === "SAT"
                                     ? "1450"
-                                    : "A*AA"
+                                    : qualification.curriculum === IELTS_CURRICULUM
+                                      ? "8.0"
+                                      : "A*AA"
                             }
                           />
                         </Field>
@@ -1858,8 +1946,8 @@ export function ApplicationForm() {
                     <Plus /> Add another qualification
                   </Button>
                   <Hint>
-                    Did you also complete IGCSE, MYP, or another prior curriculum? Adding them opens
-                    you to a wider pool of potential cases.
+                    Did you also complete IGCSE, MYP, IELTS, or another prior qualification? Adding
+                    them opens you to a wider pool of potential cases.
                   </Hint>
                 </div>
               ) : null}

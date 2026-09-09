@@ -114,6 +114,7 @@ function formatExamSystemLabel(system: string) {
   if (normalized === "igcse" || normalized === "gcse") return "IGCSE / GCSE";
   if (normalized === "ap") return "AP";
   if (normalized === "sat") return "SAT";
+  if (normalized === "ielts") return "IELTS";
 
   const systemName = system.trim();
   return (getSystem(normalized)?.label ?? systemName) || "Exam system";
@@ -128,6 +129,8 @@ function getExamSystemSubjectSummary(result: ExamResult) {
 
 function AcademicQualification({ result }: { result: ExamResult }) {
   const label = formatExamSystemLabel(result.system);
+  const isIelts = result.system.trim().toLowerCase() === "ielts";
+  const gradeNoun = isIelts ? "Band" : "Grade";
   const subjects = result.subjects.filter((entry) => entry.subject.trim());
 
   if (subjects.length === 0) return null;
@@ -147,7 +150,7 @@ function AcademicQualification({ result }: { result: ExamResult }) {
                 <span className="text-sm font-bold text-[color:var(--ink)]">{entry.subject}</span>
                 {entry.grade.trim() ? (
                   <span className="text-sm font-bold text-[color:var(--brand-link)]">
-                    – Grade {entry.grade.replace(/^grade\s+/i, "")}
+                    – {gradeNoun} {entry.grade.replace(/^(grade|band)\s+/i, "")}
                   </span>
                 ) : null}
               </div>
@@ -384,10 +387,19 @@ function TutorDetail() {
     : "";
   const genderLabel = getTutorGenderLabel(t.gender);
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
-  const subjectGroups = getTutorSubjectGroups(t).map((group) => ({
-    ...group,
-    systemLabel: formatExamSystemLabel(group.systemId),
-  }));
+  const subjectGroups = getTutorSubjectGroups(t).map((group) => {
+    const systemLabel = formatExamSystemLabel(group.systemId);
+    const subjects = group.subjects.filter(
+      (subject) => subject.trim().toLowerCase() !== systemLabel.trim().toLowerCase(),
+    );
+    return {
+      ...group,
+      systemLabel,
+      // A taught subject may be the system label itself (e.g. "IELTS");
+      // render it once instead of "IELTS: IELTS".
+      subjects: subjects.length > 0 ? subjects : [systemLabel],
+    };
+  });
   const examResults = (t.exam_results ?? []).filter((result) =>
     result.subjects.some((entry) => entry.subject.trim()),
   );

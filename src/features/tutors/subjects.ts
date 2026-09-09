@@ -1,13 +1,18 @@
 import { EXAM_SYSTEMS, IB_SUBJECTS } from "./examSystems";
 
 // Canonical subject list built from every exam system, deduped + generals.
+// Qualification-only systems (e.g. IELTS) contribute no teachable subjects.
 export const DEFAULT_SUBJECT_OPTIONS: string[] = (() => {
   const set = new Set<string>();
-  for (const sys of EXAM_SYSTEMS) for (const s of sys.subjects) set.add(s);
+  for (const sys of EXAM_SYSTEMS) {
+    if (sys.qualificationsOnly) continue;
+    for (const s of sys.subjects) set.add(s);
+  }
   for (const s of [
     "Mathematics",
     "English",
     "Chinese",
+    "IELTS",
     "Physics",
     "Chemistry",
     "Biology",

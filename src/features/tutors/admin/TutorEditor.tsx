@@ -151,7 +151,7 @@ export const tutorFormSchema = z.object({
   languages: z.array(z.string().trim().min(1).max(60)),
   gender: z.enum(["male", "female", "other"]),
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
-  exam_results: z.array(examSchema).max(2, "Add no more than two exam systems"),
+  exam_results: z.array(examSchema).max(3, "Add no more than three exam systems"),
   achievements: z
     .array(achievementSchema)
     .max(MAX_TUTOR_ACHIEVEMENTS, "Add no more than three achievements"),
@@ -210,7 +210,7 @@ export function tutorToFormData(t: Tutor): TutorFormData {
       ? (t as unknown as { gender: "male" | "female" | "other" }).gender
       : "female",
     experience_years: t.experience_years ?? "",
-    exam_results: (t.exam_results ?? []).slice(0, 2).map((r) => ({
+    exam_results: (t.exam_results ?? []).slice(0, 3).map((r) => ({
       system: r.system ?? "",
       subjects: (r.subjects ?? []).map((s) => ({
         subject: s.subject ?? "",
@@ -245,7 +245,7 @@ export function formDataToPayload(v: TutorFormData) {
         .filter((s) => s.subject),
     }))
     .filter((r) => r.system && r.subjects.length > 0)
-    .slice(0, 2);
+    .slice(0, 3);
 
   const cleanAchievements: TutorAchievement[] = v.achievements
     .map((achievement) => ({
@@ -1045,7 +1045,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
             <EditorSection
               icon={GraduationCap}
               title="Exam Results & Breakdown"
-              description="Standardized exam systems (IBDP, HKDSE, A-Level, AP) and subject score pills."
+              description="Standardized exam systems (IBDP, HKDSE, A-Level, AP, IELTS) and subject score pills."
               id="academics"
               badge={
                 <Button
@@ -1053,11 +1053,11 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                   variant="outline"
                   size="sm"
                   onClick={addExamSystem}
-                  disabled={form.exam_results.length >= 2}
+                  disabled={form.exam_results.length >= 3}
                   className="h-8 text-xs"
                 >
                   <Plus className="mr-1 h-3.5 w-3.5" />
-                  Add System ({form.exam_results.length}/2)
+                  Add System ({form.exam_results.length}/3)
                 </Button>
               }
             >
@@ -1085,6 +1085,8 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                 <div className="space-y-6">
                   {form.exam_results.map((result, examIdx) => {
                     const currentSystem = getSystem(result.system);
+                    const paperLabels: readonly string[] =
+                      currentSystem?.paperLabels ?? EXAM_PAPER_LABELS;
                     return (
                       <div
                         key={examIdx}
@@ -1172,7 +1174,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                                 {/* Optional Paper Breakdown Pills */}
                                 {entry.subject && (
                                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                                    {EXAM_PAPER_LABELS.map((label) => {
+                                    {paperLabels.map((label) => {
                                       const currentScore =
                                         (entry.papers ?? []).find((p) => p.label === label)
                                           ?.score ?? "";
@@ -1189,15 +1191,11 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                                             const next = score.trim()
                                               ? [...rest, { label, score }]
                                               : rest;
-                                            next.sort(
-                                              (a, b) =>
-                                                EXAM_PAPER_LABELS.indexOf(
-                                                  a.label as (typeof EXAM_PAPER_LABELS)[number],
-                                                ) -
-                                                EXAM_PAPER_LABELS.indexOf(
-                                                  b.label as (typeof EXAM_PAPER_LABELS)[number],
-                                                ),
-                                            );
+                                            const rank = (paperLabel: string) => {
+                                              const index = paperLabels.indexOf(paperLabel);
+                                              return index === -1 ? paperLabels.length : index;
+                                            };
+                                            next.sort((a, b) => rank(a.label) - rank(b.label));
                                             updateExamSubject(examIdx, subIdx, { papers: next });
                                           }}
                                           className="h-7.5 text-[11px]"

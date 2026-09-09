@@ -29,6 +29,7 @@ export const CURRICULUM_OPTIONS = [
   "HKDSE",
   "AP",
   "SAT",
+  "IELTS",
   "Foundation / other",
 ] as const;
 export const MATERIALS_OPTIONS = ["Yes", "No", "In progress"] as const;
@@ -128,10 +129,7 @@ export const tutorApplicationSchema = z
     locations: z
       .string()
       .trim()
-      .max(
-        2000,
-        "Too many teaching locations selected — please narrow your station selection.",
-      )
+      .max(2000, "Too many teaching locations selected — please narrow your station selection.")
       .optional()
       .default(""),
     medium: z.string().trim().min(1, "Required").max(200),
@@ -173,6 +171,17 @@ export const tutorApplicationSchema = z
           message: "Enter an SAT total score from 400 to 1600",
         });
       }
+    }
+    if (
+      !isProfessional &&
+      data.curriculum === "IELTS" &&
+      !/^(?:[4-8](?:\.0|\.5)?|9\.0)$/.test(data.overallScore)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["overallScore"],
+        message: "Enter an IELTS band from 4.0 to 9.0 (in 0.5 steps)",
+      });
     }
     if (isProfessional && data.teachingQualifications.length === 0) {
       context.addIssue({

@@ -1,4 +1,4 @@
-export type ExamSystemId = "ib" | "dse" | "alevel" | "igcse" | "ap" | "sat" | "other";
+export type ExamSystemId = "ib" | "dse" | "alevel" | "igcse" | "ap" | "sat" | "ielts" | "other";
 
 export type ExamSystem = {
   id: ExamSystemId;
@@ -12,6 +12,17 @@ export type ExamSystem = {
    */
   gradesFor?: (subject: string) => string[];
   grades: string[];
+  /**
+   * Assessment-component labels used for the paper-breakdown pills.
+   * Defaults to EXAM_PAPER_LABELS when omitted.
+   */
+  paperLabels?: readonly string[];
+  /**
+   * True when the system is a qualification (e.g. IELTS) whose "subjects"
+   * are score entries, not teachable subjects — they are excluded from
+   * the site-wide teaching-subject pickers.
+   */
+  qualificationsOnly?: boolean;
 };
 
 export const IB_BLOCKS = [
@@ -245,12 +256,17 @@ const AP_SUBJECTS = [
 
 const SAT_SUBJECTS = ["SAT Total", "SAT EBRW", "SAT Math", "SAT Essay (legacy)"];
 
+const IELTS_SUBJECTS = ["IELTS Overall"];
+
+export const IELTS_COMPONENT_LABELS = ["Reading", "Writing", "Listening", "Speaking"] as const;
+
 const IB_GRADES = ["7", "6", "5", "4", "3", "2", "1"];
 const DSE_GRADES = ["5**", "5*", "5", "4", "3", "2", "1", "U"];
 const ALEVEL_GRADES = ["A*", "A", "B", "C", "D", "E", "U"];
 const IGCSE_GRADES_NUMERIC = ["9", "8", "7", "6", "5", "4", "3", "2", "1", "U"];
 const IGCSE_GRADES_LEGACY = ["A*", "A", "B", "C", "D", "E", "F", "G", "U"];
 const AP_GRADES = ["5", "4", "3", "2", "1"];
+const IELTS_BANDS = ["9.0", "8.5", "8.0", "7.5", "7.0", "6.5", "6.0", "5.5", "5.0", "4.5", "4.0"];
 
 const ibGradesFor = (subject: string): string[] => {
   if (["TOK", "Extended Essay"].includes(subject)) return ["A", "B", "C", "D", "E"];
@@ -306,6 +322,15 @@ export const EXAM_SYSTEMS: ExamSystem[] = [
   },
   { id: "ap", label: "AP", subjects: AP_SUBJECTS, grades: AP_GRADES },
   { id: "sat", label: "SAT", subjects: SAT_SUBJECTS, grades: [], gradesFor: satGradesFor },
+  {
+    id: "ielts",
+    label: "IELTS",
+    subjects: IELTS_SUBJECTS,
+    grades: IELTS_BANDS,
+    gradesFor: () => IELTS_BANDS,
+    paperLabels: IELTS_COMPONENT_LABELS,
+    qualificationsOnly: true,
+  },
   { id: "other", label: "Other", subjects: [], freeSubject: true, grades: [] },
 ];
 

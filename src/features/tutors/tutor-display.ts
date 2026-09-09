@@ -30,20 +30,32 @@ function normalizeSubjectKey(value: string) {
 export function formatTutorGradeLabel(grade?: string | null): string | null {
   const trimmed = grade?.trim() ?? "";
   if (!trimmed) return null;
+  if (/^band\s+/i.test(trimmed)) return trimmed;
   return /^grade\s+/i.test(trimmed) ? trimmed : `Grade ${trimmed}`;
+}
+
+function formatTutorGradeForSystem(system: string, grade: string): string {
+  if (system === "ielts") {
+    const trimmed = grade.trim();
+    return /^band\s+/i.test(trimmed) ? trimmed : `Band ${trimmed}`;
+  }
+  return formatTutorGradeLabel(grade) ?? "";
 }
 
 export function getTutorSubjectChips(
   tutor: Pick<Tutor, "subjects" | "exam_results">,
 ): TutorSubjectChip[] {
-  const gradeLookup = new Map<string, string>();
+  const gradeLookup = new Map<string, { grade: string; system: string }>();
   for (const result of tutor.exam_results ?? []) {
+    const system = String(result.system ?? "")
+      .trim()
+      .toLowerCase();
     for (const entry of result.subjects ?? []) {
       const subject = (entry.subject ?? "").trim();
       const grade = (entry.grade ?? "").trim();
       if (!subject || !grade) continue;
       const key = normalizeSubjectKey(subject);
-      if (!gradeLookup.has(key)) gradeLookup.set(key, grade);
+      if (!gradeLookup.has(key)) gradeLookup.set(key, { grade, system });
     }
   }
 
@@ -52,18 +64,21 @@ export function getTutorSubjectChips(
     .filter(Boolean)
     .map((subject) => {
       const key = normalizeSubjectKey(subject);
-      let grade = gradeLookup.get(key);
+      let matched = gradeLookup.get(key);
 
-      if (!grade) {
-        for (const [candidateKey, candidateGrade] of gradeLookup.entries()) {
+      if (!matched) {
+        for (const [candidateKey, candidateMatch] of gradeLookup.entries()) {
           if (candidateKey.includes(key) || key.includes(candidateKey)) {
-            grade = candidateGrade;
+            matched = candidateMatch;
             break;
           }
         }
       }
 
-      return { subject, grade: formatTutorGradeLabel(grade) };
+      return {
+        subject,
+        grade: matched ? formatTutorGradeForSystem(matched.system, matched.grade) : null,
+      };
     });
 }
 
@@ -74,6 +89,7 @@ const SYSTEM_SHORT_LABELS: Record<string, string> = {
   igcse: "IGCSE",
   ap: "AP",
   sat: "SAT",
+  ielts: "IELTS",
 };
 
 export function getExamSystemShortLabel(systemId: string): string {
@@ -120,7 +136,7 @@ function collectLevelsFromExamResults(
   return [...levels].sort();
 }
 
-const SYSTEM_ALIAS_PATTERN = /^(IBDP|IB|HKDSE|DSE|A-?Level|IGCSE|AP|SAT)\b[\s:–-]*/i;
+const SYSTEM_ALIAS_PATTERN = /^(IBDP|IB|HKDSE|DSE|A-?Level|IGCSE|AP|SAT|IELTS)\b[\s:–-]*/i;
 
 const SYSTEM_ALIASES: Record<string, string> = {
   ibdp: "ib",
@@ -132,6 +148,7 @@ const SYSTEM_ALIASES: Record<string, string> = {
   igcse: "igcse",
   ap: "ap",
   sat: "sat",
+  ielts: "ielts",
 };
 
 /**
@@ -199,6 +216,19 @@ export function getTutorSubjectSentence(tutor: Pick<Tutor, "subjects" | "exam_re
       }
       return `${g.base}${suffix}`;
     });
+    // A taught subject may already be the system label itself (e.g. "IELTS");
+    // print it once instead of "IELTS: IELTS".
+    if (
+      prefix &&
+      items.length === 1 &&
+      items[0]
+        .replace(/\s*\(.*\)\s*$/, "")
+        .trim()
+        .toLowerCase() === prefix.toLowerCase()
+    ) {
+      parts.push(items[0]);
+      continue;
+    }
     parts.push(`${prefix ? `${prefix}: ` : ""}${items.join(", ")}`);
   }
 
@@ -287,5 +317,7 @@ export function formatTaughtSubjectLabel(
   const systemId = findExamSystemForSubject(base, tutor.exam_results);
   const prefix = getExamSystemShortLabel(systemId);
   const suffix = level ? ` (${level})` : "";
+  // Skip the prefix when it duplicates the subject name (e.g. "IELTS: IELTS").
+  if (prefix && prefix.toLowerCase() === base.toLowerCase()) return `${prefix}${suffix}`;
   return `${prefix ? `${prefix}: ` : ""}${base}${suffix}`;
 }
