@@ -33,6 +33,7 @@ import { getTutorSubjectGroups } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MarkdownText } from "@/components/ui/markdown-text";
 
 function buildTutorSeoMeta(tutor: Tutor, url: string) {
   const subjects = (tutor.subjects ?? []).filter(Boolean);
@@ -573,11 +574,7 @@ function TutorDetail() {
               {profileBio || t.achievements.length > 0 ? (
                 <ProfileSection icon={Award} title={translate("profile.section_achievements")}>
                   <div className="space-y-4">
-                    {profileBio ? (
-                      <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                        {profileBio}
-                      </p>
-                    ) : null}
+                    {profileBio ? <MarkdownText>{profileBio}</MarkdownText> : null}
                     {t.achievements.length > 0 ? (
                       <ul className="space-y-2.5">
                         {t.achievements.map((achievement, index) => (

@@ -223,7 +223,6 @@ function AdminTutors() {
       { label: "Academic headline", value: (row) => row.academic_headline ?? "" },
       { label: "University", value: (row) => row.university ?? "" },
       { label: "Secondary school", value: (row) => row.secondary_school ?? "" },
-      { label: "Badge", value: (row) => row.badge ?? "" },
       { label: "Card highlights", value: (row) => getTutorCardHighlights(row).join(" | ") },
       { label: "Published", value: (row) => (row.is_published ? "yes" : "no") },
     ];
@@ -424,11 +423,6 @@ function AdminTutors() {
                               {getTutorGenderLabel(row.gender) && (
                                 <span className="text-xs text-muted-foreground font-normal">
                                   · {getTutorGenderLabel(row.gender)}
-                                </span>
-                              )}
-                              {row.badge && (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]">
-                                  {row.badge}
                                 </span>
                               )}
                             </div>

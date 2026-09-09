@@ -60,7 +60,6 @@ export type Tutor = {
   gender: string | null;
   lesson_mode: "online" | "in_person" | "either";
   hourly_rate: number;
-  badge: string | null;
   photo_url: string | null;
   tutor_code: string;
   is_published: boolean;
@@ -83,7 +82,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, university, secondary_school, target_students, qualifications_summary, subjects, district, stations, lesson_mode, hourly_rate, badge, photo_url, tutor_code, is_published, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
+  "id, display_name, headline, card_highlights, academic_headline, university, secondary_school, target_students, qualifications_summary, subjects, district, stations, lesson_mode, hourly_rate, photo_url, tutor_code, is_published, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 

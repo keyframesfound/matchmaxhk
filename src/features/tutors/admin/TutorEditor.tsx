@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Toggle } from "@/components/base/toggle/toggle";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -135,11 +136,10 @@ export const tutorFormSchema = z.object({
   academic_headline: z.string().trim().max(120).optional().or(z.literal("")),
   university: z.string().trim().max(120).optional().or(z.literal("")),
   secondary_school: z.string().trim().max(120).optional().or(z.literal("")),
-  qualifications_summary: z.string().trim().max(1200).optional().or(z.literal("")),
+  qualifications_summary: z.string().trim().max(1500).optional().or(z.literal("")),
   stations: z.array(z.string().trim().min(1).max(80)).max(200),
   lesson_mode: z.enum(["online", "in_person", "either"]),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
-  badge: z.string().trim().max(80).optional().or(z.literal("")),
   photo_url: z.string().trim().max(1000).optional().or(z.literal("")),
   tutor_code: z
     .string()
@@ -173,7 +173,6 @@ export const emptyTutorForm: TutorFormData = {
   stations: [],
   lesson_mode: "either",
   hourly_rate: 0,
-  badge: "",
   photo_url: "",
   tutor_code: "",
   is_published: true,
@@ -201,7 +200,6 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     stations: t.stations ?? [],
     lesson_mode: t.lesson_mode ?? "either",
     hourly_rate: t.hourly_rate ?? 0,
-    badge: t.badge ?? "",
     photo_url: t.photo_url ?? "",
     tutor_code: t.tutor_code ?? "",
     is_published: t.is_published ?? true,
@@ -282,7 +280,6 @@ export function formDataToPayload(v: TutorFormData) {
         : [...new Set(v.stations.map((station) => station.trim()).filter(Boolean))],
     lesson_mode: v.lesson_mode,
     hourly_rate: v.hourly_rate,
-    badge: v.badge?.trim() || null,
     photo_url: v.photo_url?.trim() || null,
     tutor_code: v.tutor_code.trim(),
     is_published: v.is_published,
@@ -691,7 +688,6 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
       gender: form.gender,
       lesson_mode: form.lesson_mode,
       hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
-      badge: form.badge?.trim() || null,
       photo_url: form.photo_url?.trim() || null,
       tutor_code: form.tutor_code.trim() || "MM-PREVIEW",
       is_published: form.is_published,
@@ -932,7 +928,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
             <EditorSection
               icon={User}
               title="Identity & Media"
-              description="Basic profile identification, badge, and photo. Card highlights are edited in their own section below."
+              description="Basic profile identification and photo. Card highlights are edited in their own section below."
               id="identity"
             >
               <div className="grid gap-4 sm:grid-cols-3">
@@ -960,14 +956,6 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                       { value: "other", label: "Other" },
                     ]}
                     placeholder="Select gender"
-                  />
-                </FormField>
-
-                <FormField label="Profile Badge" error={errors.badge} hint="Shown as header pill">
-                  <Input
-                    value={form.badge}
-                    onChange={(e) => setForm({ ...form, badge: e.target.value })}
-                    placeholder="CUHK MBChB Year 2"
                   />
                 </FormField>
               </div>
@@ -1522,14 +1510,13 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
               <FormField
                 label="Tutor Biography & Teaching Philosophy"
                 error={errors.qualifications_summary}
-                hint="Detailed overview shown on the public profile"
+                hint="Formatting supported (bold ⌘B, italic ⌘I, bullets) · shown on the public profile"
               >
-                <Textarea
-                  rows={4}
+                <RichTextEditor
                   value={form.qualifications_summary}
-                  onChange={(e) => setForm({ ...form, qualifications_summary: e.target.value })}
+                  onChange={(val) => setForm({ ...form, qualifications_summary: val })}
                   placeholder="e.g. Full-time IB & DSE specialist with 5+ years experience. Proven track record guiding 30+ students to grade 7 in IB Biology and Chemistry..."
-                  className="text-xs leading-relaxed"
+                  maxLength={1500}
                 />
               </FormField>
 
