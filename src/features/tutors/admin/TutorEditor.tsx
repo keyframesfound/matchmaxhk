@@ -43,6 +43,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { MtrStationMultiSelect } from "@/components/ui/mtr-station-select";
 import { TagInput } from "@/components/ui/tag-input";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import {
@@ -135,6 +136,7 @@ export const tutorFormSchema = z.object({
   secondary_school: z.string().trim().max(120).optional().or(z.literal("")),
   qualifications_summary: z.string().trim().max(1200).optional().or(z.literal("")),
   district: z.string().trim().max(80).optional().or(z.literal("")),
+  stations: z.array(z.string().trim().min(1).max(80)).max(200),
   lesson_mode: z.enum(["online", "in_person", "either"]),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
   badge: z.string().trim().max(80).optional().or(z.literal("")),
@@ -169,6 +171,7 @@ export const emptyTutorForm: TutorFormData = {
   secondary_school: "",
   qualifications_summary: "",
   district: "",
+  stations: [],
   lesson_mode: "either",
   hourly_rate: 0,
   badge: "",
@@ -197,6 +200,7 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     secondary_school: t.secondary_school ?? "",
     qualifications_summary: t.qualifications_summary ?? "",
     district: t.district ?? "",
+    stations: t.stations ?? [],
     lesson_mode: t.lesson_mode ?? "either",
     hourly_rate: t.hourly_rate ?? 0,
     badge: t.badge ?? "",
@@ -275,6 +279,10 @@ export function formDataToPayload(v: TutorFormData) {
     subjects: v.subjects,
     target_students: v.target_students,
     district: v.lesson_mode === "online" ? null : v.district?.trim() || null,
+    stations:
+      v.lesson_mode === "online"
+        ? []
+        : [...new Set(v.stations.map((station) => station.trim()).filter(Boolean))],
     lesson_mode: v.lesson_mode,
     hourly_rate: v.hourly_rate,
     badge: v.badge?.trim() || null,
@@ -639,6 +647,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
       qualifications_summary: form.qualifications_summary?.trim() || null,
       subjects: form.subjects,
       district: form.lesson_mode === "online" ? null : form.district?.trim() || null,
+      stations: form.lesson_mode === "online" ? [] : form.stations,
       gender: form.gender,
       lesson_mode: form.lesson_mode,
       hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
@@ -699,6 +708,10 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
       }
       if (parsed.data.lesson_mode !== "online" && !(parsed.data.district ?? "").trim()) {
         publishErrors.district = "District is required for in-person or hybrid tutoring.";
+      }
+      if (parsed.data.lesson_mode !== "online" && parsed.data.stations.length === 0) {
+        publishErrors.stations =
+          "Select at least one MTR station for in-person or hybrid tutoring.";
       }
     }
 
@@ -1194,7 +1207,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
             <EditorSection
               icon={Briefcase}
               title="Rates & Delivery Format"
-              description="Lesson modes, district coverage for in-person tutoring, and hourly rates."
+              description="Lesson modes, MTR station coverage for in-person tutoring, and hourly rates."
               id="logistics"
             >
               <div className="grid gap-6 sm:grid-cols-2">
@@ -1209,6 +1222,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                         ...form,
                         lesson_mode: val as TutorFormData["lesson_mode"],
                         district: val === "online" ? "" : form.district,
+                        stations: val === "online" ? [] : form.stations,
                       });
                     }}
                     className="grid grid-cols-3 gap-1.5 w-full"
@@ -1246,6 +1260,20 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2">
+                {form.lesson_mode !== "online" ? (
+                  <FormField
+                    className="sm:col-span-2"
+                    label="Teaching Stations (MTR)"
+                    required={form.is_published}
+                    error={errors.stations}
+                    hint="Every MTR station this tutor can teach at — parents search by their nearest station."
+                  >
+                    <MtrStationMultiSelect
+                      value={form.stations}
+                      onChange={(stations) => setForm({ ...form, stations })}
+                    />
+                  </FormField>
+                ) : null}
                 {form.lesson_mode !== "online" ? (
                   <FormField
                     label="Primary District"

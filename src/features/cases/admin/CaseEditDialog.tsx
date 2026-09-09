@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { MtrStationSelect } from "@/components/ui/mtr-station-select";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HK_DISTRICTS } from "@/features/tutors/queries";
 import { EXAM_SYSTEM_OPTIONS, LEVEL_OPTIONS } from "@/features/cases/case-options";
 import type { CaseRow } from "./shared";
 
@@ -181,17 +181,12 @@ export function CaseEditDialog({
           </div>
           <div>
             <label className={labelClassName} htmlFor={`ce-district-${caseRow.id}`}>
-              District
+              Nearest MTR station
             </label>
-            <SearchableSelect
+            <MtrStationSelect
               value={form.district}
               onChange={(v) => update({ district: v })}
-              options={["", ...HK_DISTRICTS].map((d) => ({
-                value: d,
-                label: d || "Any / open to discussion",
-              }))}
-              placeholder="Optional"
-              searchPlaceholder="Search district..."
+              placeholder="Any / open to discussion"
               className={controlClassName}
             />
           </div>

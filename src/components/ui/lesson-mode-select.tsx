@@ -5,23 +5,16 @@ import { Check, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { MtrStationPickerContent } from "@/components/ui/mtr-station-select";
 
 type LessonMode = "" | "online" | "in_person" | "either";
 
 type Props = {
   mode: LessonMode;
-  district?: string;
-  districts: string[];
-  onChange: (next: { mode: LessonMode; district?: string }) => void;
+  station?: string;
+  onChange: (next: { mode: LessonMode; station?: string }) => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
@@ -55,8 +48,7 @@ function AnimatedCheck({ selected }: { selected: boolean }) {
 
 export function LessonModeSelect({
   mode,
-  district,
-  districts,
+  station,
   onChange,
   placeholder = "Lesson mode",
   disabled = false,
@@ -64,7 +56,7 @@ export function LessonModeSelect({
 }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [submenu, setSubmenu] = useState<"mode" | "district">("mode");
+  const [submenu, setSubmenu] = useState<"mode" | "station">("mode");
   const shouldReduceMotion = useReducedMotion();
 
   const modeLabels = useMemo<Record<LessonMode, string>>(
@@ -76,19 +68,14 @@ export function LessonModeSelect({
     }),
     [t],
   );
-  const anyDistrictLabel = t("search_panel.any_district");
 
   const triggerLabel = useMemo(() => {
-    if (mode === "in_person" && district) return `${modeLabels.in_person} · ${district}`;
+    if (mode === "in_person" && station) return `${modeLabels.in_person} · ${station}`;
     return modeLabels[mode] || placeholder;
-  }, [district, mode, modeLabels, placeholder]);
+  }, [mode, modeLabels, placeholder, station]);
 
-  const openDistrictSubmenu = () => {
-    setSubmenu("district");
-  };
-
-  const commit = (nextMode: LessonMode, nextDistrict?: string) => {
-    onChange({ mode: nextMode, district: nextDistrict });
+  const commit = (nextMode: LessonMode, nextStation?: string) => {
+    onChange({ mode: nextMode, station: nextStation });
     setOpen(false);
     setSubmenu("mode");
   };
@@ -138,7 +125,7 @@ export function LessonModeSelect({
           <motion.div
             key={submenu}
             initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scaleY: 0.88, y: -6 }}
-            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scaleY: 1, y: 0 }}
+            animate={shouldReduceMotion ? { opacity: 1, scaleY: 1, y: 0 } : { opacity: 1 }}
             exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scaleY: 0.88, y: -6 }}
             transition={
               shouldReduceMotion
@@ -175,7 +162,7 @@ export function LessonModeSelect({
                               }
                         }
                       >
-                        <CommandItem onSelect={() => commit(option.key, undefined)}>
+                        <CommandItem onSelect={() => commit(option.key)}>
                           {modeLabels[option.key]}
                           <AnimatedCheck selected={mode === option.key} />
                         </CommandItem>
@@ -198,7 +185,7 @@ export function LessonModeSelect({
                           : { type: "spring", stiffness: 400, damping: 28, mass: 0.6, delay: 0.06 }
                       }
                     >
-                      <CommandItem onSelect={openDistrictSubmenu}>
+                      <CommandItem onSelect={() => setSubmenu("station")}>
                         <span className="flex flex-1 items-center justify-between">
                           {modeLabels.in_person}
                           <ChevronRight className="h-4 w-4 opacity-60" />
@@ -210,7 +197,7 @@ export function LessonModeSelect({
                 </CommandList>
               </Command>
             ) : (
-              <Command shouldFilter className="bg-transparent text-[color:var(--ink)]">
+              <div>
                 <div className="flex items-center gap-1 border-b border-[color:var(--ink)]/10 px-2.5 py-2">
                   <Button
                     type="button"
@@ -222,50 +209,16 @@ export function LessonModeSelect({
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <span className="text-sm font-bold text-[color:var(--ink)]">
-                    {t("search_panel.choose_district")}
+                    {t("search_panel.choose_station")}
                   </span>
                 </div>
-                <CommandInput placeholder={t("search_panel.search_district")} />
-                <CommandList className="max-h-64 overflow-y-auto p-1.5">
-                  <CommandEmpty>{t("search_panel.no_district")}</CommandEmpty>
-                  <CommandGroup>
-                    {["", ...districts].map((item, index) => (
-                      <motion.div
-                        key={item || "all"}
-                        initial={
-                          shouldReduceMotion
-                            ? { opacity: 1 }
-                            : { opacity: 0, filter: "blur(4px)", x: -10 }
-                        }
-                        animate={
-                          shouldReduceMotion
-                            ? { opacity: 1 }
-                            : { opacity: 1, filter: "blur(0px)", x: 0 }
-                        }
-                        transition={
-                          shouldReduceMotion
-                            ? { duration: 0 }
-                            : {
-                                type: "spring",
-                                stiffness: 400,
-                                damping: 28,
-                                mass: 0.6,
-                                delay: index * 0.02,
-                              }
-                        }
-                      >
-                        <CommandItem
-                          value={item || anyDistrictLabel}
-                          onSelect={() => commit("in_person", item || undefined)}
-                        >
-                          {item || anyDistrictLabel}
-                          <AnimatedCheck selected={district === item} />
-                        </CommandItem>
-                      </motion.div>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
+                <MtrStationPickerContent
+                  value={station}
+                  onSelect={(nextStation) => commit("in_person", nextStation)}
+                  className="border-t-0"
+                  listClassName="max-h-64"
+                />
+              </div>
             )}
           </motion.div>
         </AnimatePresence>

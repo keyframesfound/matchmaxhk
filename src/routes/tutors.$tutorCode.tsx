@@ -25,6 +25,7 @@ import {
   fetchTutorByCode,
   getTutorGenderLabel,
   getTutorLessonModeLabel,
+  getTutorStationsText,
   type Tutor,
 } from "@/features/tutors/queries";
 import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
@@ -36,7 +37,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 function buildTutorSeoMeta(tutor: Tutor, url: string) {
   const subjects = (tutor.subjects ?? []).filter(Boolean);
   const subjectText = subjects.slice(0, 3).join(", ");
-  const locationText = tutor.district ? ` in ${tutor.district}` : " in Hong Kong";
+  const areaText = getTutorStationsText(tutor);
+  const locationText = areaText ? ` in ${areaText}` : " in Hong Kong";
   const lessonModeText =
     tutor.lesson_mode === "online"
       ? "online"
@@ -362,8 +364,10 @@ function TutorDetail() {
         const sharedSubjects = (candidate.subjects ?? []).filter((s) =>
           currentSubjects.has(s.trim().toLowerCase()),
         ).length;
-        const sameDistrict = candidate.district && candidate.district === t.district ? 1 : 0;
-        return { tutor: candidate, score: sharedSubjects * 2 + sameDistrict };
+        const sharedStations = (candidate.stations ?? []).filter((station) =>
+          (t.stations ?? []).includes(station),
+        ).length;
+        return { tutor: candidate, score: sharedSubjects * 2 + sharedStations };
       })
       .sort(
         (a, b) =>
@@ -387,7 +391,10 @@ function TutorDetail() {
     result.subjects.some((entry) => entry.subject.trim()),
   );
   const profileBio = t.qualifications_summary?.trim() ?? "";
-  const lessonLocation = t.district ? `Hong Kong — ${t.district}` : "Hong Kong";
+  const lessonLocation = (() => {
+    const area = getTutorStationsText(t);
+    return area ? `Hong Kong — ${area}` : "Hong Kong";
+  })();
   const tutorLanguages = (t.languages ?? []).filter(Boolean);
   const lessonLanguages =
     tutorLanguages.length > 0 ? tutorLanguages.join(", ") : translate("profile.not_specified");
@@ -395,7 +402,7 @@ function TutorDetail() {
     / tutoring$/,
     "",
   );
-  const tutorSeoSummary = `Tutor ${t.tutor_code} offers ${subjectText || "tutoring"} support${t.district ? ` in ${t.district}` : " in Hong Kong"}. ${t.lesson_mode === "online" ? "Online lessons are available." : t.lesson_mode === "either" ? "Online and in-person lessons are available." : "In-person lessons are available."} Browse rates and availability on MatchMax.`;
+  const tutorSeoSummary = `Tutor ${t.tutor_code} offers ${subjectText || "tutoring"} support${getTutorStationsText(t) ? ` in ${getTutorStationsText(t)}` : " in Hong Kong"}. ${t.lesson_mode === "online" ? "Online lessons are available." : t.lesson_mode === "either" ? "Online and in-person lessons are available." : "In-person lessons are available."} Browse rates and availability on MatchMax.`;
 
   const [isSharing, setIsSharing] = useState(false);
   const handleShare = async () => {

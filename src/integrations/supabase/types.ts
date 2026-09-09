@@ -609,6 +609,7 @@ export type Database = {
           photo_url: string | null;
           qualifications_summary: string | null;
           secondary_school: string | null;
+          stations: string[];
           subjects: string[];
           target_students: string[];
           tutor_code: string;
@@ -638,6 +639,7 @@ export type Database = {
           photo_url?: string | null;
           qualifications_summary?: string | null;
           secondary_school?: string | null;
+          stations?: string[];
           subjects?: string[];
           target_students?: string[];
           tutor_code: string;
@@ -667,6 +669,7 @@ export type Database = {
           photo_url?: string | null;
           qualifications_summary?: string | null;
           secondary_school?: string | null;
+          stations?: string[];
           subjects?: string[];
           target_students?: string[];
           tutor_code?: string;

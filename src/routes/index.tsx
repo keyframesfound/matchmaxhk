@@ -19,7 +19,6 @@ import {
   fetchPublishedTutors,
   fetchTopWeeklyTutors,
   getTutorCardHighlights,
-  HK_DISTRICTS,
   type Tutor,
 } from "@/features/tutors/queries";
 import {
@@ -36,7 +35,7 @@ type HomeTutorSearchState = {
   category?: string;
   subject?: string;
   mode?: string;
-  district?: string;
+  station?: string;
   gender?: string;
   q?: string;
 };
@@ -356,7 +355,7 @@ function Landing() {
       q: homeSearch.q,
     };
     if (homeSearch.mode === "in_person") {
-      params.district = homeSearch.district;
+      params.station = homeSearch.station;
     }
     return params;
   }, [homeSearch]);
@@ -477,12 +476,11 @@ function Landing() {
               />
               <LessonModeSelect
                 mode={(homeSearch.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
-                district={homeSearch.district}
-                districts={HK_DISTRICTS}
-                onChange={({ mode, district }) =>
+                station={homeSearch.station}
+                onChange={({ mode, station }) =>
                   setHomeSearchParam({
                     mode: mode || undefined,
-                    district: mode === "in_person" ? district : undefined,
+                    station: mode === "in_person" ? station : undefined,
                   })
                 }
                 placeholder="Any lesson mode"

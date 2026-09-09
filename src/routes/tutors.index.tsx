@@ -34,9 +34,8 @@ import {
   getTutorCardHighlights,
   getTutorGenderLabel,
   getTutorLessonModeLabel,
-  HK_DISTRICTS,
-  matchesDistrictFilter,
   matchesLessonModeFilter,
+  matchesStationFilter,
   type Tutor,
 } from "@/features/tutors/queries";
 import {
@@ -50,7 +49,7 @@ import { setCompareBarVisible } from "@/lib/compare-bar";
 const searchSchema = z.object({
   category: z.string().optional(),
   subject: z.string().optional(),
-  district: z.string().optional(),
+  station: z.string().optional(), // nearest MTR station to the student
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
   min_price: z.coerce.number().int().min(0).optional(),
@@ -77,14 +76,14 @@ export const Route = createFileRoute("/tutors/")({
       {
         name: "description",
         content:
-          "Browse verified tutors in Hong Kong by subject, district, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
+          "Browse verified tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
       },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Find Verified Tutors in Hong Kong | MatchMax" },
       {
         property: "og:description",
         content:
-          "Browse verified tutors in Hong Kong by subject, district, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
+          "Browse verified tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
       },
       { property: "og:url", content: "https://matchmax.hk/tutors" },
     ],
@@ -220,9 +219,11 @@ function CompareDialog({
       ),
     },
     {
-      label: "District",
+      label: "Location",
       render: (t) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">{t.district ?? "—"}</p>
+        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+          {t.stations.length > 0 ? t.stations.slice(0, 3).join(", ") : (t.district ?? "—")}
+        </p>
       ),
     },
     {
@@ -424,10 +425,10 @@ function TutorsDirectory() {
   };
 
   const subjectFilter = (draft.subject ?? "").toLowerCase();
-  const districtFilter = draft.district ?? "";
+  const stationFilter = draft.station ?? "";
   const modeFilter = draft.mode ?? "";
   const genderFilter = draft.gender ?? "";
-  const effectiveDistrictFilter = modeFilter === "in_person" ? districtFilter : "";
+  const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
   const priceValue: [number, number] = [draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX];
 
   const filtered = useMemo(() => {
@@ -448,7 +449,7 @@ function TutorsDirectory() {
       if (draft.min_price !== undefined && tut.hourly_rate < draft.min_price) return false;
       if (draft.max_price !== undefined && tut.hourly_rate > draft.max_price) return false;
       if (!matchesLessonModeFilter(modeFilter, tut.lesson_mode)) return false;
-      if (!matchesDistrictFilter(effectiveDistrictFilter, tut.district)) return false;
+      if (!matchesStationFilter(effectiveStationFilter, tut.stations)) return false;
       if (genderFilter) {
         const g = (tut as unknown as { gender?: string | null }).gender ?? "";
         if (g !== genderFilter) return false;
@@ -480,7 +481,7 @@ function TutorsDirectory() {
     tutors,
     categoryFilter,
     subjectFilter,
-    effectiveDistrictFilter,
+    effectiveStationFilter,
     modeFilter,
     genderFilter,
     draft.q,
@@ -546,7 +547,7 @@ function TutorsDirectory() {
                   navigate({
                     search: {
                       ...draft,
-                      district: draft.mode === "in_person" ? draft.district : undefined,
+                      station: draft.mode === "in_person" ? draft.station : undefined,
                     },
                   });
                 }}
@@ -597,12 +598,11 @@ function TutorsDirectory() {
                       mode={
                         (draft.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""
                       }
-                      district={draft.district}
-                      districts={HK_DISTRICTS}
-                      onChange={({ mode, district }) =>
+                      station={draft.station}
+                      onChange={({ mode, station }) =>
                         setDraftParam({
                           mode: mode || undefined,
-                          district: mode === "in_person" ? district : undefined,
+                          station: mode === "in_person" ? station : undefined,
                         })
                       }
                       placeholder={t("search_panel.any_mode")}

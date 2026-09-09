@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { MtrStationSelect } from "@/components/ui/mtr-station-select";
 import { submitCaseRequest } from "@/lib/cases.functions";
-import { HK_DISTRICTS } from "@/features/tutors/queries";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { EXAM_SYSTEM_OPTIONS, LEVEL_OPTIONS } from "@/features/cases/case-options";
 import { useFormDraft } from "@/lib/use-form-draft";
@@ -394,17 +394,12 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         </div>
         <div>
           <label className={labelClassName} htmlFor={`${idPrefix}-district`}>
-            District
+            Nearest MTR station
           </label>
-          <SearchableSelect
+          <MtrStationSelect
             value={form.district}
             onChange={(v) => update({ district: v })}
-            options={["", ...HK_DISTRICTS].map((d) => ({
-              value: d,
-              label: d || "Any / open to discussion",
-            }))}
-            placeholder="Optional"
-            searchPlaceholder="Search district..."
+            placeholder="Any / open to discussion"
             className={controlClassName}
           />
         </div>

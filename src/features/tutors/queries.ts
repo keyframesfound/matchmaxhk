@@ -56,6 +56,7 @@ export type Tutor = {
   qualifications_summary: string | null;
   subjects: string[];
   district: string | null;
+  stations: string[];
   gender: string | null;
   lesson_mode: "online" | "in_person" | "either";
   hourly_rate: number;
@@ -82,7 +83,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, university, secondary_school, target_students, qualifications_summary, subjects, district, lesson_mode, hourly_rate, badge, photo_url, tutor_code, is_published, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
+  "id, display_name, headline, card_highlights, academic_headline, university, secondary_school, target_students, qualifications_summary, subjects, district, stations, lesson_mode, hourly_rate, badge, photo_url, tutor_code, is_published, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -193,6 +194,11 @@ function normalize(
         (value): value is string => typeof value === "string" && value.trim().length > 0,
       )
     : [];
+  const stations = Array.isArray(row.stations)
+    ? (row.stations as unknown[]).filter(
+        (value): value is string => typeof value === "string" && value.trim().length > 0,
+      )
+    : [];
 
   const resolvedPhotoUrl = resolveTutorPhotoUrl(
     {
@@ -216,6 +222,7 @@ function normalize(
     ia_ee_tok_support: normalizeIaEeTokSupport(row.ia_ee_tok_support),
     ia_ee_tok_notes: typeof row.ia_ee_tok_notes === "string" ? row.ia_ee_tok_notes : null,
     target_students: targetStudents,
+    stations,
   };
 }
 
@@ -284,10 +291,25 @@ export function getTutorLessonModeLabel(mode: Tutor["lesson_mode"]): string {
   }
 }
 
-export function getTutorLocationLabel(tutor: Pick<Tutor, "district" | "lesson_mode">): string {
+const LOCATION_STATION_LIMIT = 3;
+
+export function getTutorStationsText(tutor: Pick<Tutor, "district" | "stations">): string | null {
+  const stationList = (tutor.stations ?? []).map((s) => s.trim()).filter(Boolean);
+  if (stationList.length === 0) return tutor.district?.trim() || null;
+  return `${stationList.slice(0, LOCATION_STATION_LIMIT).join(", ")}${
+    stationList.length > LOCATION_STATION_LIMIT
+      ? ` +${stationList.length - LOCATION_STATION_LIMIT}`
+      : ""
+  }`;
+}
+
+export function getTutorLocationLabel(
+  tutor: Pick<Tutor, "district" | "lesson_mode" | "stations">,
+): string {
+  const location = getTutorStationsText(tutor) ?? "";
   if (tutor.lesson_mode === "online") return "Online";
-  if (tutor.lesson_mode === "in_person") return tutor.district ?? "In person";
-  return tutor.district ? `${tutor.district} · Online & in-person` : "Online & in-person";
+  if (tutor.lesson_mode === "in_person") return location || "In person";
+  return location ? `${location} · Online & in-person` : "Online & in-person";
 }
 
 const DISTRICT_GROUPS: Record<string, string[]> = {
@@ -340,6 +362,15 @@ export function matchesDistrictFilter(
   if (isDistrictGroup(tutor) && DISTRICT_GROUPS[tutor].includes(filter)) return true;
 
   return false;
+}
+
+export function matchesStationFilter(
+  filterStation: string | undefined,
+  tutorStations: string[] | null | undefined,
+): boolean {
+  const filter = (filterStation ?? "").trim();
+  if (!filter) return true;
+  return (tutorStations ?? []).some((station) => (station ?? "").trim() === filter);
 }
 
 export async function fetchLandingStats(): Promise<{

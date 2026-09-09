@@ -125,7 +125,15 @@ export const tutorApplicationSchema = z
     materials: z.enum(MATERIALS_OPTIONS),
     format: z.enum(FORMAT_OPTIONS),
     maxStudents: z.string().trim().max(20).optional().default(""),
-    locations: z.string().trim().max(400).optional().default(""),
+    locations: z
+      .string()
+      .trim()
+      .max(
+        2000,
+        "Too many teaching locations selected — please narrow your station selection.",
+      )
+      .optional()
+      .default(""),
     medium: z.string().trim().min(1, "Required").max(200),
     notes: z.string().trim().max(2000).optional().default(""),
     certificatesLater: z.boolean().default(false),
