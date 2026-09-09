@@ -12,14 +12,15 @@ export const ACCEPTED_FILE_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 export const ACCEPT_ATTRIBUTE = ".pdf,.jpg,.jpeg,.png,.doc,.docx";
+export const PHONE_REGEX = /^[+(\d][\d\s()./+-]{4,19}\d$/;
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export const STATUS_OPTIONS = [
-  "Uni student",
-  "Full Time tutor",
-  "Part time tutor",
-  "Pro teacher / examiner",
+  "University Student",
+  "Full-Time tutor",
+  "Professional Teacher/ Public Exam Examiner",
 ] as const;
-export const PROFESSIONAL_STATUS = "Pro teacher / examiner" as const;
+export const PROFESSIONAL_STATUS = "Professional Teacher/ Public Exam Examiner" as const;
 
 export const CURRICULUM_OPTIONS = [
   "IBDP",

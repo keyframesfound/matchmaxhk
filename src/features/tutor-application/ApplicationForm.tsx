@@ -49,11 +49,13 @@ import {
   ACCEPTED_FILE_TYPES,
   COMMISSION_TEXT,
   CURRICULUM_OPTIONS,
+  EMAIL_REGEX,
   EXAMINING_BOARD_OPTIONS,
   FORMAT_OPTIONS,
   MATERIALS_OPTIONS,
   MAX_FILES,
   MAX_FILE_BYTES,
+  PHONE_REGEX,
   PROFESSIONAL_ROLE_OPTIONS,
   PROFESSIONAL_STATUS,
   PRIVACY_TEXT,
@@ -875,6 +877,10 @@ export function ApplicationForm() {
       required("status", base.status);
       required("medium", base.medium);
       if (base.status === "Other") required("statusOther", base.statusOther.trim());
+      if (!next.phone && base.phone.trim() && !PHONE_REGEX.test(base.phone.trim()))
+        next.phone = "Enter a valid phone / WhatsApp number (e.g. +852 9123 4567)";
+      if (!next.email && base.email.trim() && !EMAIL_REGEX.test(base.email.trim()))
+        next.email = "Enter a valid email address";
       if (professional) {
         required("roles", roles);
         if (roles.includes("Official examiner / moderator")) required("boards", boards);
@@ -1479,6 +1485,7 @@ export function ApplicationForm() {
               <div className="grid content-start gap-6">
                 <Field label="Phone / WhatsApp Number" required error={fieldErrors.phone}>
                   <Input
+                    inputMode="tel"
                     value={base.phone}
                     onChange={(event) => setBaseField("phone", event.target.value)}
                     placeholder="+852 9123 4567"
