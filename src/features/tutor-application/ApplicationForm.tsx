@@ -772,16 +772,16 @@ export function ApplicationForm() {
     [allResultSubjects, base.subjectsTaught, removedStudiedSubjects],
   );
   const notice = professional
-    ? "Please note: MatchMax's Professional tier is reserved for highly qualified tutors. Teaching credentials or official examiner letters are required for verification, and your identity, CV, and current employment are kept strictly confidential."
+    ? "Please note: MatchMax's Professional tier is reserved for highly qualified tutors. Teaching credentials or official examiner letters are required for verification, and your identity, CV, and current employment are kept strictly confidential. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
     : primary.curriculum === "IBDP"
-      ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above."
+      ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
       : primary.curriculum === "A-Level"
-        ? "Please note: For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent."
+        ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
         : primary.curriculum === "IGCSE / GCSE"
-          ? "Please note: For IGCSE / GCSE, we seek a strong track record of A*/A or 7-9 grades, particularly in subjects you wish to teach."
+          ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
           : primary.curriculum === "HKDSE"
-            ? "Please note: For HKDSE, we only accept candidates with a minimum Best 5 score of 30."
-            : "Please note: MatchMax employs a rigorous screening process to maintain our premium standards.";
+            ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
+            : "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5.";
 
   useEffect(() => {
     const siteKey = import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAEiLema3uiveM5pp";
@@ -1187,6 +1187,7 @@ export function ApplicationForm() {
 
   const scoreEditor = (qualification: Qualification, qualificationIndex: number) => {
     const system = getSystem(SYSTEM_IDS[qualification.curriculum] ?? "other");
+    const paperScoreOptions = system?.paperScoreOptions;
     return (
       <div key={qualificationIndex} className="grid gap-4">
         <div className="flex items-center justify-between">
@@ -1348,23 +1349,47 @@ export function ApplicationForm() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <Input
-                      value={paper.score}
-                      onChange={(event) =>
-                        updateScore(qualificationIndex, scoreIndex, {
-                          papers: score.papers.map((item, itemIndex) =>
-                            itemIndex === paperIndex
-                              ? { ...item, score: event.target.value }
-                              : item,
-                          ),
-                        })
-                      }
-                      placeholder={
-                        qualification.curriculum === IELTS_CURRICULUM
-                          ? "Band (8.0)"
-                          : "Specific score (18/25)"
-                      }
-                    />
+                    {paperScoreOptions ? (
+                      <Select
+                        value={paper.score}
+                        onValueChange={(value) =>
+                          updateScore(qualificationIndex, scoreIndex, {
+                            papers: score.papers.map((item, itemIndex) =>
+                              itemIndex === paperIndex ? { ...item, score: value } : item,
+                            ),
+                          })
+                        }
+                      >
+                        <SelectTrigger aria-label="Component score">
+                          <SelectValue placeholder="Band" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {paperScoreOptions.map((option) => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        value={paper.score}
+                        onChange={(event) =>
+                          updateScore(qualificationIndex, scoreIndex, {
+                            papers: score.papers.map((item, itemIndex) =>
+                              itemIndex === paperIndex
+                                ? { ...item, score: event.target.value }
+                                : item,
+                            ),
+                          })
+                        }
+                        placeholder={
+                          qualification.curriculum === IELTS_CURRICULUM
+                            ? "Band (8.0)"
+                            : "Specific score (18/25)"
+                        }
+                      />
+                    )}
                     <Button
                       type="button"
                       size="icon"

@@ -1087,6 +1087,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                     const currentSystem = getSystem(result.system);
                     const paperLabels: readonly string[] =
                       currentSystem?.paperLabels ?? EXAM_PAPER_LABELS;
+                    const paperScoreOptions = currentSystem?.paperScoreOptions;
                     return (
                       <div
                         key={examIdx}
@@ -1178,26 +1179,43 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                                       const currentScore =
                                         (entry.papers ?? []).find((p) => p.label === label)
                                           ?.score ?? "";
-                                      return (
+                                      const setPaperScore = (score: string) => {
+                                        const rest = (entry.papers ?? []).filter(
+                                          (p) => p.label !== label,
+                                        );
+                                        const next = score.trim()
+                                          ? [...rest, { label, score }]
+                                          : rest;
+                                        const rank = (paperLabel: string) => {
+                                          const index = paperLabels.indexOf(paperLabel);
+                                          return index === -1 ? paperLabels.length : index;
+                                        };
+                                        next.sort((a, b) => rank(a.label) - rank(b.label));
+                                        updateExamSubject(examIdx, subIdx, { papers: next });
+                                      };
+                                      return paperScoreOptions ? (
+                                        <Select
+                                          key={label}
+                                          value={currentScore}
+                                          onValueChange={setPaperScore}
+                                        >
+                                          <SelectTrigger className="h-7.5 text-[11px]">
+                                            <SelectValue placeholder={`${label} (optional)`} />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {paperScoreOptions.map((option) => (
+                                              <SelectItem key={option} value={option}>
+                                                {option}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      ) : (
                                         <Input
                                           key={label}
                                           value={currentScore}
                                           placeholder={`${label} (optional)`}
-                                          onChange={(e) => {
-                                            const score = e.target.value;
-                                            const rest = (entry.papers ?? []).filter(
-                                              (p) => p.label !== label,
-                                            );
-                                            const next = score.trim()
-                                              ? [...rest, { label, score }]
-                                              : rest;
-                                            const rank = (paperLabel: string) => {
-                                              const index = paperLabels.indexOf(paperLabel);
-                                              return index === -1 ? paperLabels.length : index;
-                                            };
-                                            next.sort((a, b) => rank(a.label) - rank(b.label));
-                                            updateExamSubject(examIdx, subIdx, { papers: next });
-                                          }}
+                                          onChange={(e) => setPaperScore(e.target.value)}
                                           className="h-7.5 text-[11px]"
                                         />
                                       );

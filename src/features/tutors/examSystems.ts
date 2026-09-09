@@ -18,6 +18,12 @@ export type ExamSystem = {
    */
   paperLabels?: readonly string[];
   /**
+   * Fixed score options for assessment-component breakdowns (e.g. IELTS
+   * band scores). When present, component scores render as a dropdown
+   * instead of a free-text input.
+   */
+  paperScoreOptions?: readonly string[];
+  /**
    * True when the system is a qualification (e.g. IELTS) whose "subjects"
    * are score entries, not teachable subjects — they are excluded from
    * the site-wide teaching-subject pickers.
@@ -329,6 +335,7 @@ export const EXAM_SYSTEMS: ExamSystem[] = [
     grades: IELTS_BANDS,
     gradesFor: () => IELTS_BANDS,
     paperLabels: IELTS_COMPONENT_LABELS,
+    paperScoreOptions: IELTS_BANDS,
     qualificationsOnly: true,
   },
   { id: "other", label: "Other", subjects: [], freeSubject: true, grades: [] },
