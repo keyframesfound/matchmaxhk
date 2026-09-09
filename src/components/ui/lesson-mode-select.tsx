@@ -125,7 +125,7 @@ export function LessonModeSelect({
           <motion.div
             key={submenu}
             initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scaleY: 0.88, y: -6 }}
-            animate={shouldReduceMotion ? { opacity: 1, scaleY: 1, y: 0 } : { opacity: 1 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scaleY: 1, y: 0 }}
             exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scaleY: 0.88, y: -6 }}
             transition={
               shouldReduceMotion

@@ -29,7 +29,7 @@ const FREQUENCY_OPTIONS = [
 ];
 
 const LENGTH_OPTIONS = [
-  { value: "45", label: "45 minutes" },
+  { value: "45", label: "30 minutes" },
   { value: "60", label: "60 minutes" },
   { value: "90", label: "90 minutes" },
   { value: "120", label: "120 minutes" },
