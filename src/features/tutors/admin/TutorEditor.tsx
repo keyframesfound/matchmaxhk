@@ -14,6 +14,7 @@ import {
   GraduationCap,
   Info,
   Loader2,
+  LocateFixed,
   MapPin,
   Plus,
   Sparkles,
@@ -43,7 +44,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { MtrStationMultiSelect } from "@/components/ui/mtr-station-select";
+import { MtrStationMultiSelect, MtrStationSelect } from "@/components/ui/mtr-station-select";
+import { getNearestMtrStation, getReachableMtrStations } from "@/features/tutor-application/mtr";
 import { TagInput } from "@/components/ui/tag-input";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import {
@@ -54,7 +56,6 @@ import {
 } from "@/features/tutors/r2.functions";
 import { DEFAULT_SUBJECT_OPTIONS as SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import {
-  HK_DISTRICTS,
   IA_EE_TOK_SUPPORT_OPTIONS,
   MAX_TUTOR_ACHIEVEMENTS,
   MAX_TUTOR_CARD_HIGHLIGHTS,
@@ -135,7 +136,6 @@ export const tutorFormSchema = z.object({
   university: z.string().trim().max(120).optional().or(z.literal("")),
   secondary_school: z.string().trim().max(120).optional().or(z.literal("")),
   qualifications_summary: z.string().trim().max(1200).optional().or(z.literal("")),
-  district: z.string().trim().max(80).optional().or(z.literal("")),
   stations: z.array(z.string().trim().min(1).max(80)).max(200),
   lesson_mode: z.enum(["online", "in_person", "either"]),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
@@ -170,7 +170,6 @@ export const emptyTutorForm: TutorFormData = {
   university: "",
   secondary_school: "",
   qualifications_summary: "",
-  district: "",
   stations: [],
   lesson_mode: "either",
   hourly_rate: 0,
@@ -199,7 +198,6 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     university: t.university ?? "",
     secondary_school: t.secondary_school ?? "",
     qualifications_summary: t.qualifications_summary ?? "",
-    district: t.district ?? "",
     stations: t.stations ?? [],
     lesson_mode: t.lesson_mode ?? "either",
     hourly_rate: t.hourly_rate ?? 0,
@@ -278,7 +276,6 @@ export function formDataToPayload(v: TutorFormData) {
     qualifications_summary: v.qualifications_summary?.trim() || null,
     subjects: v.subjects,
     target_students: v.target_students,
-    district: v.lesson_mode === "online" ? null : v.district?.trim() || null,
     stations:
       v.lesson_mode === "online"
         ? []
@@ -620,6 +617,49 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
   );
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = React.useState<string>("identity");
+  const [originStation, setOriginStation] = React.useState(initialData?.stations?.[0] ?? "");
+  const [travelBudget, setTravelBudget] = React.useState("20");
+  const [locating, setLocating] = React.useState(false);
+  const [locationMessage, setLocationMessage] = React.useState("");
+  const [suggestionStatus, setSuggestionStatus] = React.useState<"idle" | "adding" | "done">(
+    "idle",
+  );
+  const [addedCount, setAddedCount] = React.useState(0);
+
+  const locateOrigin = () => {
+    if (!navigator.geolocation) {
+      setLocationMessage("Location is not available in this browser. Choose a station manually.");
+      return;
+    }
+    setLocating(true);
+    setLocationMessage("");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const station = getNearestMtrStation(position.coords.latitude, position.coords.longitude);
+        setLocating(false);
+        if (!station) {
+          setLocationMessage("We could not find a nearby MTR station. Choose one manually.");
+          return;
+        }
+        setOriginStation(station);
+        setLocationMessage(`Nearest station found: ${station}`);
+      },
+      () => {
+        setLocating(false);
+        setLocationMessage("Location permission was unavailable. Choose a station manually.");
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
+    );
+  };
+
+  const addTravelSuggestions = () => {
+    if (!originStation) return;
+    setSuggestionStatus("adding");
+    const reachable = getReachableMtrStations(originStation, Number(travelBudget));
+    setForm((prev) => ({ ...prev, stations: [...new Set([...prev.stations, ...reachable])] }));
+    setAddedCount(reachable.length);
+    window.setTimeout(() => setSuggestionStatus("done"), 150);
+  };
 
   // Track if form has changed
   const isEditing = Boolean(initialData);
@@ -646,7 +686,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
       target_students: form.target_students,
       qualifications_summary: form.qualifications_summary?.trim() || null,
       subjects: form.subjects,
-      district: form.lesson_mode === "online" ? null : form.district?.trim() || null,
+      district: null,
       stations: form.lesson_mode === "online" ? [] : form.stations,
       gender: form.gender,
       lesson_mode: form.lesson_mode,
@@ -705,9 +745,6 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
         parsed.data.experience_years === ""
       ) {
         publishErrors.qualifications_summary = "Add bio or experience before publishing.";
-      }
-      if (parsed.data.lesson_mode !== "online" && !(parsed.data.district ?? "").trim()) {
-        publishErrors.district = "District is required for in-person or hybrid tutoring.";
       }
       if (parsed.data.lesson_mode !== "online" && parsed.data.stations.length === 0) {
         publishErrors.stations =
@@ -1221,7 +1258,6 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                       setForm({
                         ...form,
                         lesson_mode: val as TutorFormData["lesson_mode"],
-                        district: val === "online" ? "" : form.district,
                         stations: val === "online" ? [] : form.stations,
                       });
                     }}
@@ -1266,42 +1302,94 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                     label="Teaching Stations (MTR)"
                     required={form.is_published}
                     error={errors.stations}
-                    hint="Every MTR station this tutor can teach at — parents search by their nearest station."
+                    hint="Parents search by their nearest station — suggestions use estimated MTR travel time."
                   >
-                    <MtrStationMultiSelect
-                      value={form.stations}
-                      onChange={(stations) => setForm({ ...form, stations })}
-                    />
-                  </FormField>
-                ) : null}
-                {form.lesson_mode !== "online" ? (
-                  <FormField
-                    label="Primary District"
-                    required={form.is_published}
-                    error={errors.district}
-                    hint="For in-person lesson matchmaking"
-                  >
-                    <Select
-                      value={form.district || "__none"}
-                      onValueChange={(v) => setForm({ ...form, district: v === "__none" ? "" : v })}
-                    >
-                      <SelectTrigger className="h-10 text-xs">
-                        <SelectValue placeholder="Select District…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none">— No specific district —</SelectItem>
-                        {HK_DISTRICTS.map((d) => (
-                          <SelectItem key={d} value={d}>
-                            {d}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-3 rounded-lg border border-border bg-[color:var(--surface-subtle)]/40 p-3">
+                      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                        <div className="space-y-1">
+                          <Label className="text-xs font-semibold">Starting MTR station</Label>
+                          <MtrStationSelect
+                            value={originStation}
+                            onChange={(v) => {
+                              setOriginStation(v);
+                              setLocationMessage("");
+                              setSuggestionStatus("idle");
+                            }}
+                            placeholder="Choose their closest station"
+                            showAnyOption={false}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={locateOrigin}
+                          disabled={locating}
+                        >
+                          <LocateFixed />
+                          {locating ? "Locating…" : "Use my location"}
+                        </Button>
+                      </div>
+                      {locationMessage ? (
+                        <p className="text-xs font-medium text-[color:var(--ink)]/70">
+                          {locationMessage}
+                        </p>
+                      ) : null}
+                      <div className="space-y-1">
+                        <Label className="text-xs font-semibold">Estimated MTR travel time</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {["10", "20", "30"].map((budget) => (
+                            <button
+                              key={budget}
+                              type="button"
+                              disabled={!originStation}
+                              onClick={() => {
+                                setTravelBudget(budget);
+                                setSuggestionStatus("idle");
+                              }}
+                              className={cn(
+                                "rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
+                                travelBudget === budget && originStation
+                                  ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]"
+                                  : "border-border bg-card text-foreground hover:border-[color:var(--foreground)]/25",
+                              )}
+                            >
+                              Within {budget} min
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={addTravelSuggestions}
+                          disabled={!originStation || suggestionStatus === "adding"}
+                        >
+                          <Plus />
+                          Quick Add Stations
+                        </Button>
+                        {suggestionStatus === "done" ? (
+                          <p
+                            className="text-xs font-semibold text-emerald-700"
+                            role="status"
+                            aria-live="polite"
+                          >
+                            Done · {addedCount} stations within {travelBudget} min
+                          </p>
+                        ) : null}
+                      </div>
+                      <MtrStationMultiSelect
+                        value={form.stations}
+                        onChange={(stations) => setForm({ ...form, stations })}
+                      />
+                    </div>
                   </FormField>
                 ) : (
                   <div className="rounded-xl border border-dashed border-border bg-[color:var(--surface-subtle)]/40 p-3 text-xs text-muted-foreground flex items-center gap-2">
                     <Info className="h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]" />
-                    Online tutoring is available territory-wide; no district required.
+                    Online tutoring is available territory-wide; no stations required.
                   </div>
                 )}
 

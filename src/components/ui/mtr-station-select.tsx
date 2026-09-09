@@ -299,6 +299,7 @@ type MtrStationSelectProps = {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  showAnyOption?: boolean;
   disabled?: boolean;
   invalid?: boolean;
   className?: string;
@@ -309,6 +310,7 @@ export function MtrStationSelect({
   value,
   onChange,
   placeholder = "Select…",
+  showAnyOption = true,
   disabled = false,
   invalid = false,
   className,
@@ -350,6 +352,7 @@ export function MtrStationSelect({
       >
         <MtrStationPickerContent
           value={value}
+          showAnyOption={showAnyOption}
           onSelect={(station) => {
             onChange(station ?? "");
             setOpen(false);
