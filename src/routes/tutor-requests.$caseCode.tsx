@@ -23,6 +23,7 @@ import {
   formatCaseTitle,
   formatStudentLevel,
 } from "@/features/cases/display";
+import { CaseSaveButton } from "@/features/cases/saved-cases";
 import { getPublicCaseByCode, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
 type CaseDetailData = { item: PublicCaseBoardItem; whatsappNumber: string };
@@ -147,12 +148,15 @@ function CaseDetailPage() {
                 Posted {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
               </p>
             </div>
-            <Button asChild size="lg" variant="solid" color="blue" className="shrink-0">
-              <a href={applyUrl} target="_blank" rel="noreferrer">
-                <WhatsAppIcon aria-hidden="true" />
-                Apply now
-              </a>
-            </Button>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <CaseSaveButton caseId={item.id} />
+              <Button asChild size="lg" variant="solid" color="blue">
+                <a href={applyUrl} target="_blank" rel="noreferrer">
+                  <WhatsAppIcon aria-hidden="true" />
+                  Apply now
+                </a>
+              </Button>
+            </div>
           </div>
 
           <Separator className="my-8" />

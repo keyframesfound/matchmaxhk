@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CaseRequestForm } from "@/features/cases/CaseRequestForm";
+import { CaseSaveButton } from "@/features/cases/saved-cases";
 import { CASE_MODE_LABEL, formatCaseBudget, formatCaseSchedule } from "@/features/cases/display";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
@@ -86,6 +87,7 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
           </div>
         </div>
         <span className="flex shrink-0 items-center gap-1 text-sm font-semibold text-[color:var(--ink)]">
+          <CaseSaveButton caseId={item.id} compact />
           View details
           <ArrowRight
             className="h-4 w-4 transition-transform group-hover:translate-x-0.5"

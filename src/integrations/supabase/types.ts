@@ -363,6 +363,35 @@ export type Database = {
         };
         Relationships: [];
       };
+      saved_cases: {
+        Row: {
+          case_id: string;
+          created_at: string;
+          id: string;
+          user_id: string;
+        };
+        Insert: {
+          case_id: string;
+          created_at?: string;
+          id?: string;
+          user_id: string;
+        };
+        Update: {
+          case_id?: string;
+          created_at?: string;
+          id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "saved_cases_case_id_fkey";
+            columns: ["case_id"];
+            isOneToOne: false;
+            referencedRelation: "tutoring_cases";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       saved_courses: {
         Row: {
           course_id: string;
