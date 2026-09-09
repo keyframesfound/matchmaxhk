@@ -267,7 +267,7 @@ function DocumentUpload({
     <div className="grid min-w-0 gap-2">
       <label
         className={cn(
-          "flex min-h-24 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-[color:var(--surface-subtle)] px-4 py-3 text-center text-sm text-muted-foreground transition-colors",
+          "mx-auto flex min-h-20 w-full max-w-xs cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border bg-[color:var(--surface-subtle)] px-3 py-3 text-center text-sm text-muted-foreground transition-colors",
           invalid && "border-destructive",
           dragging && "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.05]",
           disabled && "cursor-not-allowed opacity-60",
@@ -299,11 +299,11 @@ function DocumentUpload({
         />
       </label>
       {file ? (
-        <div className="grid gap-2 rounded-md border border-border px-3 py-2 text-xs text-muted-foreground">
-          <div className="flex items-center justify-between gap-3">
-            <span className="flex min-w-0 items-center gap-2">
-              <Paperclip className="h-3 w-3 shrink-0" />
-              <span className="truncate">
+        <div className="grid min-w-0 gap-1.5 rounded-md border border-border px-3 py-2 text-xs text-muted-foreground">
+          <div className="flex items-start justify-between gap-2">
+            <span className="flex min-w-0 items-start gap-2">
+              <Paperclip className="mt-0.5 h-3 w-3 shrink-0" />
+              <span className="break-all text-left leading-snug">
                 {file.name} ({readableFileSize(file.size)})
               </span>
             </span>
