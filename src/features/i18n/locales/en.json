@@ -192,7 +192,16 @@
     "reset_invalid_title": "Link invalid or expired",
     "reset_invalid_body": "This password reset link is invalid or has expired. Request a new one to continue.",
     "request_new_link": "Request a new link",
-    "back_to_login": "Back to log in"
+    "back_to_login": "Back to log in",
+    "tos_title": "Terms of Service and Privacy Policy",
+    "tos_body_prefix": "By accepting, you acknowledge that you have read and agree to our ",
+    "tos_terms": "Terms of Service",
+    "tos_body_mid": " and ",
+    "tos_privacy": "Privacy Policy",
+    "tos_body_suffix": ".",
+    "tos_accept": "Accept",
+    "tos_decline": "Decline",
+    "tos_accept_error": "Could not record your acceptance. Please try again."
   },
   "dashboard": {
     "welcome": "Welcome back",

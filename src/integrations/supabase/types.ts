@@ -366,6 +366,8 @@ export type Database = {
           locale: string;
           phone: string | null;
           theme_preference: string;
+          tos_accepted_at: string | null;
+          tos_version: string | null;
           updated_at: string;
         };
         Insert: {
@@ -377,6 +379,8 @@ export type Database = {
           locale?: string;
           phone?: string | null;
           theme_preference?: string;
+          tos_accepted_at?: string | null;
+          tos_version?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -388,6 +392,8 @@ export type Database = {
           locale?: string;
           phone?: string | null;
           theme_preference?: string;
+          tos_accepted_at?: string | null;
+          tos_version?: string | null;
           updated_at?: string;
         };
         Relationships: [];

@@ -217,7 +217,16 @@
     "reset_invalid_title": "連結無效或已過期",
     "reset_invalid_body": "呢個重設密碼連結無效或已過期，請重新申請先可以繼續。",
     "request_new_link": "重新申請連結",
-    "back_to_login": "返回登入"
+    "back_to_login": "返回登入",
+    "tos_title": "條款及細則與私隱政策",
+    "tos_body_prefix": "接受即表示你確認已閱讀並同意我哋嘅",
+    "tos_terms": "條款及細則",
+    "tos_body_mid": "及",
+    "tos_privacy": "私隱政策",
+    "tos_body_suffix": "。",
+    "tos_accept": "接受",
+    "tos_decline": "拒絕",
+    "tos_accept_error": "無法記錄你嘅接受，請再試一次。"
   },
   "dashboard": {
     "welcome": "歡迎返嚟",
