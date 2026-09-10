@@ -1,7 +1,24 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, CalendarClock, Clock, Inbox, MapPin, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  CalendarClock,
+  Clock,
+  Inbox,
+  MapPin,
+  Wallet,
+  X,
+} from "lucide-react";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
@@ -130,7 +147,7 @@ function ListSkeleton({ rows }: { rows: number }) {
 function TutorRequestsPage() {
   const initialPost = Route.useSearch().post;
   const [formOpen, setFormOpen] = useState(Boolean(initialPost));
-  const formSectionRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const { data } = useQuery({
     queryKey: ["cases", "board"],
@@ -141,29 +158,12 @@ function TutorRequestsPage() {
 
   const { compareCases, compareOpen, setCompareOpen, clearCompare } = useCaseCompare(cases);
 
-  const openForm = () => {
-    setFormOpen(true);
-    window.requestAnimationFrame(() => {
-      formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  };
-
-  const toggleForm = () => {
-    if (formOpen) {
-      setFormOpen(false);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      openForm();
+  const handleOpenChange = (open: boolean) => {
+    setFormOpen(open);
+    if (!open && initialPost) {
+      void navigate({ to: "/tutor-requests", search: {}, replace: true });
     }
   };
-
-  useEffect(() => {
-    if (initialPost) {
-      window.requestAnimationFrame(() => {
-        formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    }
-  }, [initialPost]);
 
   // Group the board by exam system, keeping the most common curricula first.
   const groups = useMemo(() => {
@@ -208,36 +208,44 @@ function TutorRequestsPage() {
                 </div>
               </div>
               <Button
-                onClick={toggleForm}
+                onClick={() => setFormOpen(true)}
                 variant="solid"
                 color="neutral"
                 shape="pill"
                 className="h-12 w-full shrink-0 px-8 text-[15px] font-bold sm:h-11 sm:w-auto"
               >
-                {formOpen ? "Hide form" : "Post your request"}
+                Post your request
               </Button>
             </div>
           </div>
         </PageContainer>
       </section>
 
-      {/* Collapsible request form */}
-      {formOpen ? (
-        <div ref={formSectionRef} className="scroll-mt-24">
-          <PageContainer width="default" className="py-10 sm:py-12">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                Post your request
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                Tell us what you need and our team will review it — approved requests appear on this
-                board so qualified tutors can apply directly.
-              </p>
-            </div>
+      {/* Post-request bottom sheet */}
+      <Drawer open={formOpen} onOpenChange={handleOpenChange}>
+        <DrawerContent className="max-h-[92dvh] rounded-t-3xl bg-[color:var(--surface)]">
+          <div className="mx-auto flex w-full max-w-2xl flex-col overflow-y-auto px-4 pb-8 pt-1 sm:px-6">
+            <DrawerHeader className="relative flex items-start justify-between gap-4 p-0 pb-5 text-left">
+              <div className="min-w-0">
+                <DrawerTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                  Post your request
+                </DrawerTitle>
+                <DrawerDescription className="mt-2 text-sm leading-relaxed">
+                  Tell us what you need and our team will review it — approved requests appear on
+                  this board so qualified tutors can apply directly.
+                </DrawerDescription>
+              </div>
+              <DrawerClose
+                className="mt-1 shrink-0 cursor-pointer rounded-full p-2 text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06]"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" aria-hidden="true" />
+              </DrawerClose>
+            </DrawerHeader>
             <CaseRequestForm idPrefix="tr" />
-          </PageContainer>
-        </div>
-      ) : null}
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       {/* Board */}
       <section className="py-10 sm:py-12">
@@ -278,10 +286,11 @@ function TutorRequestsPage() {
                 </p>
                 <div className="mt-6 flex justify-center">
                   <Button
-                    onClick={openForm}
+                    onClick={() => setFormOpen(true)}
                     variant="solid"
-                    color="blue"
-                    className="h-11 rounded-sm px-6 font-bold"
+                    color="neutral"
+                    shape="pill"
+                    className="h-11 px-6 font-bold"
                   >
                     Post your request
                   </Button>
