@@ -223,9 +223,9 @@ function AuthPage() {
               </Button>
             </div>
           ) : (
-            <div className="flex flex-1 flex-col justify-center py-12">
-              <div className="mb-8 flex justify-center">
-                <Logo className="h-16 w-16" />
+            <div className="flex flex-1 flex-col justify-center pt-2 pb-24">
+              <div className="mb-10 flex justify-center">
+                <Logo className="h-24 w-24" />
               </div>
 
               <h1 className="text-center text-3xl font-bold tracking-tight text-[color:var(--ink)]">
