@@ -489,9 +489,6 @@
     --hiw-compare-card: #ffffff;
     --hiw-compare-card-border: color-mix(in oklab, var(--ink) 12%, transparent);
     --hiw-compare-line: color-mix(in oklab, var(--ink) 10%, transparent);
-    --hiw-compare-pill: #ffffff;
-    --hiw-compare-pill-text: color-mix(in oklab, var(--ink) 55%, transparent);
-    --hiw-compare-max-panel: color-mix(in oklab, var(--brand-link) 8%, transparent);
     background-color: #f7fafc;
     background-image:
       radial-gradient(circle at 88% 28%, rgba(29, 161, 242, 0.16), transparent 22rem),
@@ -510,9 +507,6 @@
     --hiw-compare-card: rgb(255 255 255 / 4%);
     --hiw-compare-card-border: rgb(255 255 255 / 10%);
     --hiw-compare-line: rgb(255 255 255 / 14%);
-    --hiw-compare-pill: rgb(255 255 255 / 10%);
-    --hiw-compare-pill-text: rgb(255 255 255 / 60%);
-    --hiw-compare-max-panel: color-mix(in oklab, var(--brand-link) 16%, transparent);
     background-color: var(--surface);
     background-image: none;
   }

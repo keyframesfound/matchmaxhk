@@ -215,12 +215,12 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
             </div>
             <div aria-hidden="true" className="flex items-center gap-3 md:hidden max-md:mt-4">
               <span className="h-px flex-1 bg-[color:var(--hiw-compare-line)]" />
-              <span className="rounded-full border border-[color:var(--hiw-compare-card-border)] bg-[color:var(--hiw-compare-pill)] px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-[color:var(--hiw-compare-pill-text)] shadow-sm">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[color:var(--ink)]">
                 {t("hiw.table_vs")}
               </span>
               <span className="h-px flex-1 bg-[color:var(--hiw-compare-line)]" />
             </div>
-            <div className="max-md:mt-4 max-md:rounded-xl max-md:bg-[color:var(--hiw-compare-max-panel)] max-md:p-4">
+            <div className="max-md:mt-4">
               <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--brand-link)] md:hidden">
                 {t("hiw.table_max")}
               </p>
