@@ -1,26 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ArrowRight,
-  BadgeCheck,
-  CalendarClock,
-  Clock,
-  Inbox,
-  MapPin,
-  Wallet,
-  X,
-} from "lucide-react";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { ArrowRight, BadgeCheck, CalendarClock, Clock, Inbox, MapPin, Wallet } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
@@ -149,7 +131,6 @@ function ListSkeleton({ rows }: { rows: number }) {
 function TutorRequestsPage() {
   const initialPost = Route.useSearch().post;
   const [formOpen, setFormOpen] = useState(Boolean(initialPost));
-  const isMobile = useIsMobile();
   const navigate = useNavigate();
 
   const { data } = useQuery({
@@ -224,50 +205,23 @@ function TutorRequestsPage() {
         </PageContainer>
       </section>
 
-      {/* Post-request bottom sheet (mobile) / centered modal (desktop) */}
-      {isMobile ? (
-        <Drawer open={formOpen} onOpenChange={handleOpenChange}>
-          <DrawerContent className="max-h-[92dvh] rounded-t-3xl bg-[color:var(--surface)]">
-            <div className="mx-auto flex w-full max-w-2xl flex-col overflow-y-auto px-4 pb-8 pt-1 sm:px-6">
-              <DrawerHeader className="relative flex items-start justify-between gap-4 p-0 pb-5 text-left">
-                <div className="min-w-0">
-                  <DrawerTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                    Post your request
-                  </DrawerTitle>
-                  <DrawerDescription className="mt-2 text-sm leading-relaxed">
-                    Tell us what you need and our team will review it — approved requests appear on
-                    this board so qualified tutors can apply directly.
-                  </DrawerDescription>
-                </div>
-                <DrawerClose
-                  className="mt-1 shrink-0 cursor-pointer rounded-full p-2 text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06]"
-                  aria-label="Close"
-                >
-                  <X className="h-5 w-5" aria-hidden="true" />
-                </DrawerClose>
-              </DrawerHeader>
-              <CaseRequestForm idPrefix="tr" />
+      {/* Post request: bottom sheet on mobile, centered modal on desktop */}
+      <Dialog open={formOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-h-[92dvh] w-full max-w-full gap-0 overflow-y-auto p-0 inset-x-0 top-auto bottom-0 translate-x-0 translate-y-0 rounded-none rounded-t-3xl border-x-0 border-b-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-2xl sm:rounded-2xl sm:border-x sm:border-b sm:data-[state=open]:zoom-in-95 sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=closed]:slide-out-to-bottom-0">
+          <div className="p-5 pb-[calc(2rem+env(safe-area-inset-bottom))] sm:p-8">
+            <div className="mb-6 pr-8">
+              <DialogTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                Post your request
+              </DialogTitle>
+              <DialogDescription className="mt-2 text-sm leading-relaxed">
+                Tell us what you need and our team will review it — approved requests appear on this
+                board so qualified tutors can apply directly.
+              </DialogDescription>
             </div>
-          </DrawerContent>
-        </Drawer>
-      ) : (
-        <Dialog open={formOpen} onOpenChange={handleOpenChange}>
-          <DialogContent className="max-w-2xl p-0 sm:rounded-2xl">
-            <div className="max-h-[85dvh] overflow-y-auto p-6 sm:p-8">
-              <div className="mb-6 pr-8">
-                <DialogTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                  Post your request
-                </DialogTitle>
-                <DialogDescription className="mt-2 text-sm leading-relaxed">
-                  Tell us what you need and our team will review it — approved requests appear on
-                  this board so qualified tutors can apply directly.
-                </DialogDescription>
-              </div>
-              <CaseRequestForm idPrefix="tr" />
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+            <CaseRequestForm idPrefix="tr" />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Board */}
       <section className="py-10 sm:py-12">
