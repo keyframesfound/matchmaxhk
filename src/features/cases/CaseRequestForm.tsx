@@ -506,7 +506,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             </div>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-component`}>
-                Specific component
+                Specific component (Optional)
               </label>
               <SearchableSelect
                 value={form.specificComponent}
@@ -541,7 +541,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             </div>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-subject2`}>
-                Second subject (optional)
+                Second subject (Optional)
               </label>
               <SearchableSelect
                 value={form.subject2}
@@ -576,11 +576,11 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               ) : null}
             </div>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:col-span-2">
-              Student info (optional)
+              Student info
             </p>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-year`}>
-                Year
+                Year (Optional)
               </label>
               <SearchableSelect
                 value={form.year}
@@ -593,7 +593,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             </div>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-school-type`}>
-                School type
+                School type (Optional)
               </label>
               <SearchableSelect
                 value={form.schoolType}
@@ -606,7 +606,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             </div>
             <div className="sm:col-span-2">
               <label className={labelClassName} htmlFor={`${idPrefix}-school-name`}>
-                School name
+                School name (Optional)
               </label>
               <Input
                 id={`${idPrefix}-school-name`}
@@ -663,7 +663,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             </div>
             <div className="sm:col-span-2">
               <label className={labelClassName} htmlFor={`${idPrefix}-target-school`}>
-                Target school
+                Target school (Optional)
               </label>
               <SearchableSelect
                 value={form.targetSchool}
@@ -677,11 +677,11 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               />
             </div>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:col-span-2">
-              Student info (optional)
+              Student info
             </p>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-year`}>
-                Year
+                Year (Optional)
               </label>
               <SearchableSelect
                 value={form.year}
@@ -694,7 +694,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             </div>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-school-name`}>
-                Current school name
+                Current school name (Optional)
               </label>
               <Input
                 id={`${idPrefix}-school-name`}
@@ -765,7 +765,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             </div>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-tutor-background`}>
-                Tutor background
+                Tutor background (Optional)
               </label>
               <SearchableSelect
                 value={form.tutorBackground}
@@ -782,7 +782,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             </div>
             <div className="sm:col-span-2">
               <label className={labelClassName} htmlFor={`${idPrefix}-notes`}>
-                Additional needs
+                Additional needs (Optional)
               </label>
               <Textarea
                 id={`${idPrefix}-notes`}
