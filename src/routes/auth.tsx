@@ -2,10 +2,9 @@ import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-r
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { SiteHeader } from "@/components/layout/SiteHeader";
+import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
@@ -32,18 +31,20 @@ declare global {
 }
 
 export const Route = createFileRoute("/auth")({
+  // Kept for backwards compatibility: existing links pass ?mode=sign_up,
+  // but the merged page handles login and signup in one magic-link flow.
   validateSearch: (search: Record<string, unknown>): { mode?: "sign_in" | "sign_up" } =>
     search.mode === "sign_up" ? { mode: "sign_up" } : {},
 
   head: () => ({
     meta: [
-      { title: "Log in — MatchMax" },
+      { title: "Log in or sign up — MatchMax" },
       {
         name: "description",
         content:
           "Log in or create your MatchMax account to manage your MatchMax profile and saved tutors.",
       },
-      { property: "og:title", content: "Log in — MatchMax" },
+      { property: "og:title", content: "Log in or sign up — MatchMax" },
       {
         property: "og:description",
         content: "Access your MatchMax settings and saved tutor profiles.",
@@ -58,15 +59,12 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const { t } = useTranslation();
-  const { mode: requestedMode } = Route.useSearch();
   const { user } = useAuth();
   const navigate = useNavigate();
   const router = useRouter();
-  const [mode, setMode] = useState<"sign_in" | "sign_up">(requestedMode ?? "sign_in");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaError, setCaptchaError] = useState<string | null>(null);
   const captchaContainerRef = useRef<HTMLDivElement>(null);
@@ -147,28 +145,17 @@ function AuthPage() {
     }
     setBusy(true);
     try {
-      if (mode === "sign_in") {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-          options: { captchaToken: captchaToken ?? undefined },
-        });
-        if (error) throw error;
-        toast.success("Welcome back to MatchMax.");
-        router.navigate({ to: "/tutors", replace: true });
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/tutors`,
-            data: { display_name: name },
-            captchaToken,
-          },
-        });
-        if (error) throw error;
-        toast.success(t("auth.check_email"));
-      }
+      // Magic link covers both login and signup: new emails create an account,
+      // existing (password) users receive a one-hour sign-in link.
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/tutors`,
+          captchaToken: captchaToken ?? undefined,
+        },
+      });
+      if (error) throw error;
+      setSentTo(email);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Sign-in failed";
       toast.error(msg);
@@ -202,23 +189,110 @@ function AuthPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
+      <header className="flex items-center justify-between px-4 py-3 sm:px-6">
+        <Link
+          to="/"
+          className="flex items-center gap-2 font-bold tracking-tight text-[color:var(--ink)]"
+          aria-label="MatchMax home"
+        >
+          <Logo className="h-8 w-8" />
+          <span>MatchMax</span>
+        </Link>
+      </header>
 
-      <main className="flex flex-1 items-center justify-center p-4 py-8 lg:p-8">
-        <div className="w-full max-w-[420px]">
-          <div className="w-full rounded-3xl border border-border bg-card p-6 shadow-brand sm:p-8">
-            <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)]">
-              {t(mode === "sign_in" ? "auth.sign_in_title" : "auth.sign_up_title")}
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t(mode === "sign_in" ? "auth.sign_in_subtitle" : "auth.sign_up_subtitle")}
-            </p>
+      <main className="flex flex-1 flex-col items-center px-4 pb-16 sm:px-6">
+        <div className="flex w-full max-w-[420px] flex-1 flex-col">
+          {sentTo ? (
+            <div className="flex flex-1 flex-col items-center justify-center py-16 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--muted)] text-2xl">
+                ✉️
+              </div>
+              <h1 className="mt-6 text-2xl font-bold tracking-tight text-[color:var(--ink)]">
+                {t("auth.check_email_title")}
+              </h1>
+              <p className="mt-3 text-sm text-muted-foreground">
+                {t("auth.check_email_body", { email: sentTo })}
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                className="mt-6 text-sm font-bold text-[color:var(--brand-link)]"
+                onClick={() => setSentTo(null)}
+              >
+                {t("auth.different_email")}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-1 flex-col justify-center py-12">
+              <div className="mb-8 flex justify-center">
+                <Logo className="h-16 w-16" />
+              </div>
 
-            <div className="mt-6 space-y-2">
+              <h1 className="text-center text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+                {t("auth.login_or_signup_title")}
+              </h1>
+              <p className="mt-2 text-center text-sm text-muted-foreground">
+                {t("auth.magic_link_subtitle")}
+              </p>
+
+              <form onSubmit={onSubmit} className="mt-8 space-y-3">
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    className="h-12 w-full bg-[color:var(--muted)] pr-10"
+                  />
+                  {email ? (
+                    <button
+                      type="button"
+                      onClick={() => setEmail("")}
+                      aria-label={t("auth.clear_email")}
+                      className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
+                    >
+                      <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden>
+                        <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.25" />
+                        <path
+                          d="M9 9l6 6M15 9l-6 6"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </button>
+                  ) : null}
+                </div>
+                <Button
+                  type="submit"
+                  disabled={busy || !captchaToken}
+                  variant="solid"
+                  color="neutral"
+                  className="h-12 w-full text-base font-bold"
+                >
+                  {busy ? t("auth.sending_link") : t("auth.continue")}
+                </Button>
+                <div
+                  ref={captchaContainerRef}
+                  className="min-h-[65px]"
+                  aria-label="Security check"
+                />
+                {captchaError ? <p className="text-sm text-destructive">{captchaError}</p> : null}
+              </form>
+
+              <div className="my-6 flex items-center gap-3">
+                <Separator className="flex-1" />
+                <span className="text-xs text-muted-foreground">{t("auth.or")}</span>
+                <Separator className="flex-1" />
+              </div>
+
               <Button
                 type="button"
                 variant="outline"
-                className="h-11 w-full font-bold"
+                className="h-12 w-full font-bold"
                 onClick={() => onOAuth("google")}
                 disabled={busy}
               >
@@ -243,87 +317,7 @@ function AuthPage() {
                 {t("auth.continue_google")}
               </Button>
             </div>
-
-            <div className="my-6 flex items-center gap-3">
-              <Separator className="flex-1" />
-              <span className="text-xs text-muted-foreground">{t("auth.or")}</span>
-              <Separator className="flex-1" />
-            </div>
-
-            <form onSubmit={onSubmit} className="space-y-4">
-              {mode === "sign_up" && (
-                <div className="space-y-2">
-                  <Label htmlFor="name">{t("auth.name")}</Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    autoComplete="name"
-                  />
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="email">{t("auth.email")}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">{t("auth.password")}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  autoComplete={mode === "sign_in" ? "current-password" : "new-password"}
-                />
-                {mode === "sign_in" ? (
-                  <Link
-                    to="/forgot-password"
-                    className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Forgot password?
-                  </Link>
-                ) : null}
-              </div>
-              <div ref={captchaContainerRef} className="min-h-[65px]" aria-label="Security check" />
-              {captchaError ? <p className="text-sm text-destructive">{captchaError}</p> : null}
-              <Button
-                type="submit"
-                disabled={busy || !captchaToken}
-                variant="solid"
-                color="blue"
-                className="h-11 w-full font-bold"
-              >
-                {busy ? t("auth.signing_in") : t("auth.continue")}
-              </Button>
-            </form>
-
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              {mode === "sign_in" ? t("auth.no_account") : t("auth.have_account")}{" "}
-              <button
-                type="button"
-                onClick={() => setMode(mode === "sign_in" ? "sign_up" : "sign_in")}
-                className="font-bold text-[color:var(--brand-link)] hover:underline"
-              >
-                {mode === "sign_in" ? t("auth.sign_up") : t("auth.sign_in")}
-              </button>
-            </p>
-          </div>
-
-          <p className="mt-6 text-center text-sm">
-            <Link to="/" className="text-muted-foreground hover:text-foreground">
-              ← {t("common.back_home")}
-            </Link>
-          </p>
+          )}
         </div>
       </main>
     </div>
