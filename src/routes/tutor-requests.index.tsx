@@ -21,7 +21,7 @@ import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functi
 
 export const Route = createFileRoute("/tutor-requests/")({
   validateSearch: (search: Record<string, unknown>): { post?: true } => ({
-    post: search.post === "1" || search.post === true ? true : undefined,
+    post: search.post === "1" || search.post === true || search.post === "true" ? true : undefined,
   }),
   head: () => ({
     meta: [
