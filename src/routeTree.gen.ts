@@ -20,6 +20,7 @@ import { Route as JoinRouteImport } from './routes/join'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TermsOfUseRouteImport } from './routes/terms-of-use'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
@@ -98,6 +99,11 @@ const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsOfUseRoute = TermsOfUseRouteImport.update({
+  id: '/terms-of-use',
+  path: '/terms-of-use',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms-of-use': typeof TermsOfUseRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
@@ -283,6 +290,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms-of-use': typeof TermsOfUseRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
@@ -321,6 +329,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms-of-use': typeof TermsOfUseRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
@@ -360,6 +369,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
+    | '/terms-of-use'
     | '/admin'
     | '/dashboard'
     | '/saved-posts'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
+    | '/terms-of-use'
     | '/dashboard'
     | '/saved-posts'
     | '/business/$slug'
@@ -434,6 +445,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
+    | '/terms-of-use'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/saved-posts'
@@ -473,6 +485,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsOfUseRoute: typeof TermsOfUseRoute
   BusinessSlugRoute: typeof BusinessSlugRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
   TutorRequestsCaseCodeRoute: typeof TutorRequestsCaseCodeRoute
@@ -562,6 +575,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms-of-use': {
+      id: '/terms-of-use'
+      path: '/terms-of-use'
+      fullPath: '/terms-of-use'
+      preLoaderRoute: typeof TermsOfUseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -803,6 +823,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsOfUseRoute: TermsOfUseRoute,
   BusinessSlugRoute: BusinessSlugRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
   TutorRequestsCaseCodeRoute: TutorRequestsCaseCodeRoute,
@@ -817,13 +838,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

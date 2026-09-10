@@ -869,7 +869,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 to="/terms-of-use"
                 target="_blank"
               >
-                Terms of Use
+                Terms and Conditions
               </Link>{" "}
               and confirm the details above are accurate.
               {errors.termsAgreed ? (

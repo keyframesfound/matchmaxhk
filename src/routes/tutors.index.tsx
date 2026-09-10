@@ -363,7 +363,7 @@ function TutorsDirectory() {
                   value={draft.sort ?? ""}
                   onChange={(v) =>
                     navigate({
-                      search: (prev) => ({ ...prev, sort: v || undefined }) as SearchState,
+                      search: (prev: SearchState) => ({ ...prev, sort: v || undefined }),
                     })
                   }
                   options={sortOptions}

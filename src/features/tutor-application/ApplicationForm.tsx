@@ -204,7 +204,7 @@ const FIELD_LABELS: Record<string, string> = {
   materials: "Teaching materials",
   commission: "Commission acknowledgment (final step)",
   privacy: "Privacy consent (final step)",
-  terms: "Terms of use consent (final step)",
+  terms: "Terms and Conditions consent (final step)",
   captcha: "Security check (final step)",
 };
 
@@ -2358,7 +2358,7 @@ export function ApplicationForm() {
                       to="/terms-of-use"
                       target="_blank"
                     >
-                      Terms of Use
+                      Terms and Conditions
                     </Link>{" "}
                     and confirm the information I have provided is true and complete.
                     {fieldErrors.terms ? (
