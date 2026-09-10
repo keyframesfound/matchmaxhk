@@ -67,7 +67,7 @@ export const INSTRUCTION_LANGUAGE_OPTIONS = [
 // "offline" maps to DB 'in_person'; "both"/"no_pref" map to DB 'either'.
 export const DELIVERY_MODE_OPTIONS = [
   { value: "online", label: "Online" },
-  { value: "offline", label: "Offline" },
+  { value: "offline", label: "In Person" },
   { value: "both", label: "Both" },
   { value: "no_pref", label: "No preference" },
 ];

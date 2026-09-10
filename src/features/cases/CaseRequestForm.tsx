@@ -837,7 +837,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               </>
             ) : (
               <>
-                <Send className="mr-2 h-5 w-5" /> Submit case request
+                <Send className="mr-2 h-5 w-5" /> Submit case
               </>
             )}
           </Button>
