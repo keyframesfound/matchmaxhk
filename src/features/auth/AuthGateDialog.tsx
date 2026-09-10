@@ -116,6 +116,11 @@ export function scrollPostIntoView(el: HTMLElement | null) {
   };
   window.addEventListener("wheel", cancel, { once: true, passive: true });
   window.addEventListener("touchmove", cancel, { once: true, passive: true });
+  // Keep the card clear of the sticky top nav (SiteHeader is h-[64px] + border);
+  // measured live so future header-height changes stay correct.
+  const header = document.querySelector("header");
+  const headerHeight = header?.getBoundingClientRect().height ?? 0;
+  el.style.scrollMarginTop = `${Math.ceil(headerHeight) + 16}px`;
   const scroll = () => {
     if (!cancelled) el.scrollIntoView({ block: "center", behavior: "smooth" });
   };
