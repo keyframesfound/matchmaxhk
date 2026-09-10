@@ -19,6 +19,8 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
@@ -147,6 +149,7 @@ function ListSkeleton({ rows }: { rows: number }) {
 function TutorRequestsPage() {
   const initialPost = Route.useSearch().post;
   const [formOpen, setFormOpen] = useState(Boolean(initialPost));
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
 
   const { data } = useQuery({
@@ -221,31 +224,50 @@ function TutorRequestsPage() {
         </PageContainer>
       </section>
 
-      {/* Post-request bottom sheet */}
-      <Drawer open={formOpen} onOpenChange={handleOpenChange}>
-        <DrawerContent className="max-h-[92dvh] rounded-t-3xl bg-[color:var(--surface)]">
-          <div className="mx-auto flex w-full max-w-2xl flex-col overflow-y-auto px-4 pb-8 pt-1 sm:px-6">
-            <DrawerHeader className="relative flex items-start justify-between gap-4 p-0 pb-5 text-left">
-              <div className="min-w-0">
-                <DrawerTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+      {/* Post-request bottom sheet (mobile) / centered modal (desktop) */}
+      {isMobile ? (
+        <Drawer open={formOpen} onOpenChange={handleOpenChange}>
+          <DrawerContent className="max-h-[92dvh] rounded-t-3xl bg-[color:var(--surface)]">
+            <div className="mx-auto flex w-full max-w-2xl flex-col overflow-y-auto px-4 pb-8 pt-1 sm:px-6">
+              <DrawerHeader className="relative flex items-start justify-between gap-4 p-0 pb-5 text-left">
+                <div className="min-w-0">
+                  <DrawerTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                    Post your request
+                  </DrawerTitle>
+                  <DrawerDescription className="mt-2 text-sm leading-relaxed">
+                    Tell us what you need and our team will review it — approved requests appear on
+                    this board so qualified tutors can apply directly.
+                  </DrawerDescription>
+                </div>
+                <DrawerClose
+                  className="mt-1 shrink-0 cursor-pointer rounded-full p-2 text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06]"
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5" aria-hidden="true" />
+                </DrawerClose>
+              </DrawerHeader>
+              <CaseRequestForm idPrefix="tr" />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog open={formOpen} onOpenChange={handleOpenChange}>
+          <DialogContent className="max-w-2xl p-0 sm:rounded-2xl">
+            <div className="max-h-[85dvh] overflow-y-auto p-6 sm:p-8">
+              <div className="mb-6 pr-8">
+                <DialogTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                   Post your request
-                </DrawerTitle>
-                <DrawerDescription className="mt-2 text-sm leading-relaxed">
+                </DialogTitle>
+                <DialogDescription className="mt-2 text-sm leading-relaxed">
                   Tell us what you need and our team will review it — approved requests appear on
                   this board so qualified tutors can apply directly.
-                </DrawerDescription>
+                </DialogDescription>
               </div>
-              <DrawerClose
-                className="mt-1 shrink-0 cursor-pointer rounded-full p-2 text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06]"
-                aria-label="Close"
-              >
-                <X className="h-5 w-5" aria-hidden="true" />
-              </DrawerClose>
-            </DrawerHeader>
-            <CaseRequestForm idPrefix="tr" />
-          </div>
-        </DrawerContent>
-      </Drawer>
+              <CaseRequestForm idPrefix="tr" />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Board */}
       <section className="py-10 sm:py-12">
