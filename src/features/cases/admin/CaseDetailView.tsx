@@ -20,7 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Toggle } from "@/components/base/toggle/toggle";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TagInput } from "@/components/ui/tag-input";
 import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
@@ -461,17 +461,29 @@ export function CaseDetailView({
               </Button>
             </div>
             <div className="mt-3 rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3.5 py-3">
-              <Toggle
-                label="Show on public board"
-                hint={
-                  caseRow.board_published_at
-                    ? `Live at /tutor-requests since ${format(new Date(caseRow.board_published_at), "d MMM yyyy")}. Matched or closed cases are hidden automatically.`
-                    : "Not published. Tutors can't see this case yet."
-                }
-                checked={caseRow.board_published_at !== null}
-                disabled={boardPublishMutation.isPending}
-                onCheckedChange={(checked) => boardPublishMutation.mutate(checked)}
-              />
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 space-y-0.5">
+                  <Label className="text-sm font-bold text-foreground">Board visibility</Label>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    {caseRow.board_published_at
+                      ? `Live at /tutor-requests since ${format(new Date(caseRow.board_published_at), "d MMM yyyy")}. Matched or closed cases are hidden automatically.`
+                      : "Not published. Tutors can't see this case yet."}
+                  </p>
+                </div>
+                <Select
+                  value={caseRow.board_published_at !== null ? "public" : "private"}
+                  onValueChange={(v) => boardPublishMutation.mutate(v === "public")}
+                  disabled={boardPublishMutation.isPending}
+                >
+                  <SelectTrigger className="h-9 w-[110px] shrink-0 text-sm font-bold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="public">Public</SelectItem>
+                    <SelectItem value="private">Private</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             {caseRow.board_published_at ? (
               <a

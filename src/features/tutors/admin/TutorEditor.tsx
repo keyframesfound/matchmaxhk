@@ -33,7 +33,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
-import { Toggle } from "@/components/base/toggle/toggle";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -1588,12 +1587,29 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
 
             {/* 6. Publication Settings */}
             <ConsolePanel padding="lg">
-              <Toggle
-                label="Public Directory Visibility"
-                hint="When enabled, this tutor is discoverable in the MatchMax directory and search filters."
-                checked={form.is_published}
-                onCheckedChange={(v) => setForm({ ...form, is_published: v })}
-              />
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 space-y-0.5">
+                  <Label className="text-sm font-bold text-foreground">
+                    Public Directory Visibility
+                  </Label>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    When public, this tutor is discoverable in the MatchMax directory and search
+                    filters.
+                  </p>
+                </div>
+                <Select
+                  value={form.is_published ? "public" : "private"}
+                  onValueChange={(v) => setForm({ ...form, is_published: v === "public" })}
+                >
+                  <SelectTrigger className="h-9 w-[110px] shrink-0 text-sm font-bold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="public">Public</SelectItem>
+                    <SelectItem value="private">Private</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </ConsolePanel>
           </div>
 
