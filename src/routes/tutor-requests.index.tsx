@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, CalendarClock, Clock, Inbox, MapPin, Wallet } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -128,9 +128,13 @@ function ListSkeleton({ rows }: { rows: number }) {
   );
 }
 
+const NOTICE_DISMISSED_KEY = "mm-case-request-notice-dismissed";
+
 function TutorRequestsPage() {
   const initialPost = Route.useSearch().post;
   const [formOpen, setFormOpen] = useState(Boolean(initialPost));
+  const [noticeOpen, setNoticeOpen] = useState(false);
+  const formSectionRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   const { data } = useQuery({
@@ -142,11 +146,35 @@ function TutorRequestsPage() {
 
   const { compareCases, compareOpen, setCompareOpen, clearCompare } = useCaseCompare(cases);
 
-  const handleOpenChange = (open: boolean) => {
-    setFormOpen(open);
-    if (!open && initialPost) {
-      void navigate({ to: "/tutor-requests", search: {}, replace: true });
+  // Auto-show the Klarna-style notice sheet on load unless permanently dismissed.
+  useEffect(() => {
+    if (!initialPost && window.localStorage.getItem(NOTICE_DISMISSED_KEY) !== "1") {
+      setNoticeOpen(true);
     }
+  }, [initialPost]);
+
+  const openForm = () => {
+    setFormOpen(true);
+    window.requestAnimationFrame(() => {
+      formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
+  const toggleForm = () => {
+    if (formOpen) {
+      setFormOpen(false);
+      if (initialPost) {
+        void navigate({ to: "/tutor-requests", search: {}, replace: true });
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      openForm();
+    }
+  };
+
+  const dismissNoticePermanently = () => {
+    window.localStorage.setItem(NOTICE_DISMISSED_KEY, "1");
+    setNoticeOpen(false);
   };
 
   // Group the board by exam system, keeping the most common curricula first.
@@ -170,58 +198,64 @@ function TutorRequestsPage() {
 
   return (
     <PublicPage mainClassName="bg-[color:var(--surface-subtle)]">
-      {/* Request CTA */}
-      <section>
-        <PageContainer width="wide" className="py-5 sm:py-6">
-          <div className="rounded-2xl border border-border bg-[color:var(--surface)] p-6 shadow-sm sm:p-7">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
-              <div className="flex min-w-0 items-start gap-4">
-                <BadgeCheck
-                  className="mt-0.5 h-8 w-8 shrink-0 text-[color:var(--ink)]"
-                  strokeWidth={1.75}
-                  aria-hidden="true"
-                />
-                <div className="min-w-0">
-                  <p className="text-lg font-bold leading-snug tracking-tight text-[color:var(--ink)] sm:text-xl">
-                    Requesting a tutor that meets your requirements?
-                  </p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                    Fill in this form and tutors who&rsquo;re qualified and interested can apply for
-                    your case!
-                  </p>
-                </div>
-              </div>
+      {/* Klarna-style notice: bottom sheet on mobile, centered modal on desktop */}
+      <Dialog open={noticeOpen} onOpenChange={setNoticeOpen}>
+        <DialogContent className="max-h-[92dvh] w-full max-w-full gap-0 overflow-y-auto p-0 inset-x-0 top-auto bottom-0 translate-x-0 translate-y-0 rounded-none rounded-t-3xl border-x-0 border-b-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:rounded-3xl sm:border-x sm:border-b sm:data-[state=open]:zoom-in-95 sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=closed]:slide-out-to-bottom-0">
+          <div className="flex flex-col items-stretch p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:p-8">
+            <BadgeCheck
+              className="h-12 w-12 text-[color:var(--ink)]"
+              strokeWidth={1.75}
+              aria-hidden="true"
+            />
+            <DialogTitle className="mt-6 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-[28px]">
+              Requesting a tutor that meets your requirements?
+            </DialogTitle>
+            <DialogDescription className="mt-2 text-base leading-relaxed">
+              Fill in this form and tutors who&rsquo;re qualified and interested can apply for your
+              case!
+            </DialogDescription>
+            <div className="mt-8 flex flex-col gap-2">
               <Button
-                onClick={() => setFormOpen(true)}
+                onClick={() => {
+                  setNoticeOpen(false);
+                  openForm();
+                }}
                 variant="solid"
                 color="neutral"
                 shape="pill"
-                className="h-12 w-full shrink-0 px-8 text-[15px] font-bold sm:h-11 sm:w-auto"
+                className="h-13 w-full text-base font-bold"
               >
                 Post your request
               </Button>
+              <Button
+                onClick={dismissNoticePermanently}
+                variant="ghost"
+                className="h-10 w-full text-sm text-muted-foreground"
+              >
+                Don&rsquo;t show again
+              </Button>
             </div>
-          </div>
-        </PageContainer>
-      </section>
-
-      {/* Post request: bottom sheet on mobile, centered modal on desktop */}
-      <Dialog open={formOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-h-[92dvh] w-full max-w-full gap-0 overflow-y-auto p-0 inset-x-0 top-auto bottom-0 translate-x-0 translate-y-0 rounded-none rounded-t-3xl border-x-0 border-b-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-2xl sm:rounded-2xl sm:border-x sm:border-b sm:data-[state=open]:zoom-in-95 sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=closed]:slide-out-to-bottom-0">
-          <div className="p-5 pb-[calc(2rem+env(safe-area-inset-bottom))] sm:p-8">
-            <div className="mb-6 pr-8">
-              <DialogTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                Post your request
-              </DialogTitle>
-              <DialogDescription className="mt-2 text-sm leading-relaxed">
-                Tell us what you need and our team will review it — approved requests appear on this
-                board so qualified tutors can apply directly.
-              </DialogDescription>
-            </div>
-            <CaseRequestForm idPrefix="tr" />
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Collapsible request form */}
+      {formOpen ? (
+        <div ref={formSectionRef} className="scroll-mt-24">
+          <PageContainer width="default" className="py-10 sm:py-12">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                Post your request
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                Tell us what you need and our team will review it — approved requests appear on this
+                board so qualified tutors can apply directly.
+              </p>
+            </div>
+            <CaseRequestForm idPrefix="tr" />
+          </PageContainer>
+        </div>
+      ) : null}
 
       {/* Board */}
       <section className="py-10 sm:py-12">
@@ -262,7 +296,7 @@ function TutorRequestsPage() {
                 </p>
                 <div className="mt-6 flex justify-center">
                   <Button
-                    onClick={() => setFormOpen(true)}
+                    onClick={openForm}
                     variant="solid"
                     color="neutral"
                     shape="pill"
