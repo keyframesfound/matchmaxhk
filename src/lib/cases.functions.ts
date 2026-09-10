@@ -17,7 +17,8 @@ const CaseRequestInput = z
     subjects: z.array(z.string().trim().min(1).max(120)).max(4),
     specificComponent: z.string().trim().max(80).optional().nullable(),
     instructionLanguage: z
-      .enum(["english_only", "cantonese", "mandarin", "bilingual", "any"])
+      .array(z.enum(["english_only", "cantonese", "mandarin", "bilingual", "any"]))
+      .max(5)
       .optional()
       .nullable(),
     schoolType: z.string().trim().max(80).optional().nullable(),
@@ -48,7 +49,7 @@ const CaseRequestInput = z
       if (data.subjects.length === 0) {
         ctx.addIssue({ code: "custom", path: ["subject1"], message: "Subject is required." });
       }
-      if (!data.instructionLanguage) {
+      if (!data.instructionLanguage || data.instructionLanguage.length === 0) {
         ctx.addIssue({
           code: "custom",
           path: ["instructionLanguage"],
@@ -227,6 +228,18 @@ const LANGUAGE_TO_DB: Record<string, string> = {
   any: "either",
 };
 
+// Multi-select tokens -> the single legacy DB token. One distinct language
+// family wins; any mix (or empty) falls back to "either".
+function instructionLanguageToDb(tokens: string[] | null | undefined): string {
+  const langs = new Set<string>();
+  for (const token of tokens ?? []) {
+    const mapped = LANGUAGE_TO_DB[token];
+    if (mapped) langs.add(mapped);
+  }
+  if (langs.size !== 1) return "either";
+  return langs.values().next().value ?? "either";
+}
+
 // Standardized tags that map this request onto tutor-profile vocabulary
 // ("Subjects Taught" and "Achievements and Experiences") for Case Cards.
 function buildCaseTags(data: CaseRequestPayload): string[] {
@@ -291,7 +304,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       interview_test: data.supportType === "admissions" ? (data.interviewTest ?? null) : null,
       school_type: data.supportType === "subject_tutoring" ? data.schoolType || null : null,
       tutor_background: data.tutorBackground,
-      language_of_instruction: LANGUAGE_TO_DB[data.instructionLanguage ?? ""] ?? "either",
+      language_of_instruction: instructionLanguageToDb(data.instructionLanguage),
       tags: buildCaseTags(data),
       district: data.district || null,
       mode: MODE_TO_DB[data.mode] ?? "either",

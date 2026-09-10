@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MtrStationSelect } from "@/components/ui/mtr-station-select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { submitCaseRequest } from "@/lib/cases.functions";
 import {
   CURRICULUM_OPTIONS,
@@ -72,7 +73,7 @@ type FormState = {
   subject1: string;
   subject2: string;
   specificComponent: string;
-  instructionLanguage: string;
+  instructionLanguage: string[];
   year: string;
   schoolName: string;
   schoolType: string;
@@ -99,7 +100,7 @@ const INITIAL_FORM: FormState = {
   subject1: "",
   subject2: "",
   specificComponent: "",
-  instructionLanguage: "",
+  instructionLanguage: [],
   year: "",
   schoolName: "",
   schoolType: "",
@@ -127,7 +128,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const [result, setResult] = useState<{ caseCode: string } | null>(null);
   const honeypot = useRef<HTMLInputElement>(null);
   const startedAt = useRef(Date.now());
-  const { restored, savedAt, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v4");
+  const { restored, savedAt, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v5");
 
   useEffect(() => {
     if (!restored) return;
@@ -136,7 +137,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
 
   const isBlankDraft = (value: FormState) =>
     Object.entries(value).every(
-      ([key, v]) => v === "" || (key === "tutorBackground" && v === "any"),
+      ([key, v]) =>
+        v === "" ||
+        (Array.isArray(v) && v.length === 0) ||
+        (key === "tutorBackground" && v === "any"),
     );
 
   const update = (patch: Partial<FormState>) => {
@@ -169,6 +173,13 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     update(value === "online" ? { deliveryMode: value, district: "" } : { deliveryMode: value });
   };
 
+  // Multi-select language chips. "No preference" is exclusive: picking it
+  // clears the others; picking a real language deselects "No preference".
+  const handleLanguageToggle = (values: string[]) => {
+    const next = values.includes("any") ? ["any"] : values.filter((v) => v !== "any");
+    update({ instructionLanguage: next });
+  };
+
   const validateStep = (target: number): Partial<Record<keyof FormState, string>> => {
     const nextErrors: Partial<Record<keyof FormState, string>> = {};
     if (target === 1) {
@@ -193,7 +204,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       } else {
         if (!form.curriculum) nextErrors.curriculum = "Required";
         if (!form.subject1) nextErrors.subject1 = "Required";
-        if (!form.instructionLanguage) nextErrors.instructionLanguage = "Required";
+        if (!form.instructionLanguage.length) nextErrors.instructionLanguage = "Required";
       }
     }
     if (target === 3) {
@@ -239,7 +250,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             !admissions && form.specificComponent !== "None"
               ? form.specificComponent || null
               : null,
-          instructionLanguage: admissions ? null : form.instructionLanguage || null,
+          instructionLanguage: admissions ? [] : form.instructionLanguage,
           year: form.year || null,
           schoolName: form.schoolName.trim() || null,
           schoolType: admissions ? null : form.schoolType || null,
@@ -563,15 +574,27 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 Instruction language
                 {errors.instructionLanguage === "Required" ? <RequiredFlag /> : null}
               </label>
-              <SearchableSelect
+              <ToggleGroup
+                type="multiple"
+                variant="outline"
+                className="flex-wrap justify-start gap-2"
                 value={form.instructionLanguage}
-                onChange={(v) => update({ instructionLanguage: v })}
-                options={INSTRUCTION_LANGUAGE_OPTIONS}
-                placeholder="Select language"
-                searchPlaceholder="Search language..."
-                className={controlClassName}
-                invalid={Boolean(errors.instructionLanguage)}
-              />
+                onValueChange={handleLanguageToggle}
+                aria-label="Instruction language"
+              >
+                {INSTRUCTION_LANGUAGE_OPTIONS.map((option) => (
+                  <ToggleGroupItem
+                    key={option.value}
+                    value={option.value}
+                    className={cn(
+                      "rounded-full border px-4",
+                      errors.instructionLanguage && invalidInputClassName,
+                    )}
+                  >
+                    {option.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
               {errors.instructionLanguage && errors.instructionLanguage !== "Required" ? (
                 <p className="mt-1 text-xs font-semibold text-destructive">
                   {errors.instructionLanguage}

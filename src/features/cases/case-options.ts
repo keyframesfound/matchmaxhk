@@ -130,6 +130,7 @@ export const TARGET_SCHOOL_OPTIONS = [
 export const SCHOOL_TYPE_OPTIONS = [
   { value: "International school", label: "International school" },
   { value: "Local school", label: "Local school" },
+  { value: "DSS school", label: "DSS school" },
   { value: "Private school", label: "Private school" },
   { value: "Other", label: "Other" },
 ];
