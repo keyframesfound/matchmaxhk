@@ -20,7 +20,7 @@ import { Route as JoinRouteImport } from './routes/join'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as TermsOfUseRouteImport } from './routes/terms-of-use'
+import { Route as TosRouteImport } from './routes/tos'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
@@ -101,9 +101,9 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TermsOfUseRoute = TermsOfUseRouteImport.update({
-  id: '/terms-of-use',
-  path: '/terms-of-use',
+const TosRoute = TosRouteImport.update({
+  id: '/tos',
+  path: '/tos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -252,7 +252,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/terms-of-use': typeof TermsOfUseRoute
+  '/tos': typeof TosRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
@@ -290,7 +290,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/terms-of-use': typeof TermsOfUseRoute
+  '/tos': typeof TosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
@@ -329,7 +329,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/terms-of-use': typeof TermsOfUseRoute
+  '/tos': typeof TosRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
@@ -369,7 +369,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
-    | '/terms-of-use'
+    | '/tos'
     | '/admin'
     | '/dashboard'
     | '/saved-posts'
@@ -407,7 +407,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
-    | '/terms-of-use'
+    | '/tos'
     | '/dashboard'
     | '/saved-posts'
     | '/business/$slug'
@@ -445,7 +445,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy-policy'
     | '/sitemap.xml'
-    | '/terms-of-use'
+    | '/tos'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/saved-posts'
@@ -485,7 +485,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  TermsOfUseRoute: typeof TermsOfUseRoute
+  TosRoute: typeof TosRoute
   BusinessSlugRoute: typeof BusinessSlugRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
   TutorRequestsCaseCodeRoute: typeof TutorRequestsCaseCodeRoute
@@ -577,11 +577,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/terms-of-use': {
-      id: '/terms-of-use'
-      path: '/terms-of-use'
-      fullPath: '/terms-of-use'
-      preLoaderRoute: typeof TermsOfUseRouteImport
+    '/tos': {
+      id: '/tos'
+      path: '/tos'
+      fullPath: '/tos'
+      preLoaderRoute: typeof TosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -823,7 +823,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  TermsOfUseRoute: TermsOfUseRoute,
+  TosRoute: TosRoute,
   BusinessSlugRoute: BusinessSlugRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
   TutorRequestsCaseCodeRoute: TutorRequestsCaseCodeRoute,

@@ -2355,7 +2355,7 @@ export function ApplicationForm() {
                     I agree to the MatchMax{" "}
                     <Link
                       className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
-                      to="/terms-of-use"
+                      to="/tos"
                       target="_blank"
                     >
                       Terms and Conditions

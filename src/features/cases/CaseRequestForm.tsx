@@ -866,7 +866,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               I agree to the MatchMax{" "}
               <Link
                 className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
-                to="/terms-of-use"
+                to="/tos"
                 target="_blank"
               >
                 Terms and Conditions

@@ -3,7 +3,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
 
-export const Route = createFileRoute("/terms-of-use")({
+export const Route = createFileRoute("/tos")({
   head: () => ({
     meta: [
       { title: "Terms and Conditions | MatchMax" },
