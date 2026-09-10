@@ -223,12 +223,12 @@ function AuthPage() {
               </Button>
             </div>
           ) : (
-            <div className="flex flex-1 flex-col justify-start overflow-y-auto pt-[6vh] pb-6">
-              <div className="mb-8 flex justify-center">
+            <div className="flex flex-1 flex-col justify-start overflow-y-auto pt-[4vh] pb-6">
+              <div className="mb-3 flex justify-center">
                 <Logo className="h-24 w-24" imgClassName="h-24 w-24" />
               </div>
 
-              <h1 className="text-center text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+              <h1 className="-mt-3 text-center text-3xl font-bold tracking-tight text-[color:var(--ink)]">
                 {t("auth.login_or_signup_title")}
               </h1>
               <p className="mt-2 text-center text-sm text-muted-foreground">
