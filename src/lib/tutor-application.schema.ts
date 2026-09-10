@@ -137,6 +137,7 @@ export const tutorApplicationSchema = z
     certificatesLater: z.boolean().default(false),
     commissionAck: z.literal(true),
     privacyAck: z.literal(true),
+    termsAck: z.literal(true),
   })
   .superRefine((data, context) => {
     const isProfessional = data.status === PROFESSIONAL_STATUS;

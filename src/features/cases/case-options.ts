@@ -57,9 +57,10 @@ export const CURRICULUM_COMPONENTS: Record<string, string[]> = {
 };
 
 export const INSTRUCTION_LANGUAGE_OPTIONS = [
-  { value: "english_only", label: "English only" },
+  { value: "english_only", label: "English" },
   { value: "cantonese", label: "Cantonese" },
   { value: "mandarin", label: "Mandarin" },
+  { value: "bilingual", label: "Bilingual" },
   { value: "any", label: "No preference" },
 ];
 

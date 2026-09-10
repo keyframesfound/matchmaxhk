@@ -38,6 +38,7 @@ const CaseRequestInput = z
     budgetMax: z.number().int().min(0).max(100000).optional().nullable(),
     tutorBackground: z.enum(["uni_student", "official_examiner", "any"]),
     notes: z.string().trim().max(2000).optional().nullable(),
+    termsAck: z.literal(true),
     website: z.string().max(0).optional().nullable(),
     elapsedMs: z.number().int(),
   })

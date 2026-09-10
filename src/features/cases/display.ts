@@ -41,12 +41,13 @@ export const CASE_GENDER_LABEL: Record<string, string> = {
 
 // Covers both legacy tokens (en / zh-HK / either) and the 3-step form tokens.
 export const CASE_LANGUAGE_LABEL: Record<string, string> = {
-  en: "English only",
+  en: "English",
   "zh-HK": "Cantonese",
   either: "No preference",
-  english_only: "English only",
+  english_only: "English",
   cantonese: "Cantonese",
   mandarin: "Mandarin",
+  bilingual: "Bilingual",
   any: "No preference",
 };
 

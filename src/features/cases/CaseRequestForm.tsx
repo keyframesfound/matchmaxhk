@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -88,6 +90,7 @@ type FormState = {
   budgetMax: string;
   tutorBackground: string;
   notes: string;
+  termsAgreed: boolean;
 };
 
 const INITIAL_FORM: FormState = {
@@ -113,6 +116,7 @@ const INITIAL_FORM: FormState = {
   budgetMax: "",
   tutorBackground: "any",
   notes: "",
+  termsAgreed: false,
 };
 
 type CaseRequestFormProps = {
@@ -140,6 +144,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       ([key, v]) =>
         v === "" ||
         (Array.isArray(v) && v.length === 0) ||
+        (typeof v === "boolean" && !v) ||
         (key === "tutorBackground" && v === "any"),
     );
 
@@ -211,6 +216,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       if (!form.deliveryMode) nextErrors.deliveryMode = "Required";
       if (form.deliveryMode !== "online" && !form.district) nextErrors.district = "Required";
       if (!form.budgetMax.trim()) nextErrors.budgetMax = "Required";
+      if (!form.termsAgreed) nextErrors.termsAgreed = "Required";
     }
     return nextErrors;
   };
@@ -264,6 +270,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           tutorBackground: (form.tutorBackground || "any") as
             "uni_student" | "official_examiner" | "any",
           notes: form.notes.trim() || null,
+          termsAck: form.termsAgreed,
           website: honeypot.current?.value || null,
           elapsedMs: Date.now() - startedAt.current,
         },
@@ -845,6 +852,35 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         aria-hidden="true"
         className="hidden"
       />
+
+      {step === 3 ? (
+        <div className="mt-6 grid gap-1.5">
+          <label className="flex gap-3 text-sm text-muted-foreground">
+            <Checkbox
+              checked={form.termsAgreed}
+              onCheckedChange={(checked) => update({ termsAgreed: checked === true })}
+              aria-invalid={errors.termsAgreed ? true : undefined}
+              className={errors.termsAgreed ? "border-destructive" : undefined}
+            />
+            <span>
+              I agree to the MatchMax{" "}
+              <Link
+                className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+                to="/terms-of-use"
+                target="_blank"
+              >
+                Terms of Use
+              </Link>{" "}
+              and confirm the details above are accurate.
+              {errors.termsAgreed ? (
+                <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                  Required
+                </span>
+              ) : null}
+            </span>
+          </label>
+        </div>
+      ) : null}
 
       <div className="mt-6 flex flex-col gap-3 border-t border-border pt-6">
         <div className="flex items-center justify-between gap-3">

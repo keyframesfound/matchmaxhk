@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
@@ -203,6 +204,7 @@ const FIELD_LABELS: Record<string, string> = {
   materials: "Teaching materials",
   commission: "Commission acknowledgment (final step)",
   privacy: "Privacy consent (final step)",
+  terms: "Terms of use consent (final step)",
   captcha: "Security check (final step)",
 };
 
@@ -525,6 +527,7 @@ type ApplicationBaseState = {
   certificatesLater: boolean;
   commission: boolean;
   privacy: boolean;
+  terms: boolean;
 };
 
 type ApplicationDraft = {
@@ -583,6 +586,7 @@ export function ApplicationForm() {
     certificatesLater: false,
     commission: false,
     privacy: false,
+    terms: false,
   });
   const [roles, setRoles] = useState<string[]>([]);
   const [boards, setBoards] = useState<string[]>([]);
@@ -956,6 +960,7 @@ export function ApplicationForm() {
     if (step === stepTitles.length) {
       required("commission", base.commission);
       required("privacy", base.privacy);
+      required("terms", base.terms);
       if (!captcha) next.captcha = "Complete the security check.";
     }
     setFieldErrors(next);
@@ -1124,6 +1129,7 @@ export function ApplicationForm() {
         certificatesLater: base.certificatesLater,
         commissionAck: base.commission,
         privacyAck: base.privacy,
+        termsAck: base.terms,
       });
       if (!parsed.success) {
         setError(parsed.error.issues[0]?.message ?? "Please check your application.");
@@ -2337,6 +2343,32 @@ export function ApplicationForm() {
           <Step>
             <Heading step={stepTitles.length} title="Acknowledgments" />
             <div className="grid gap-5">
+              <div className="grid gap-1.5">
+                <label className="flex gap-3 text-sm text-muted-foreground">
+                  <Checkbox
+                    checked={base.terms}
+                    onCheckedChange={(checked) => setBaseField("terms", checked === true)}
+                    aria-invalid={fieldErrors.terms ? true : undefined}
+                    className={fieldErrors.terms ? "border-destructive" : undefined}
+                  />
+                  <span>
+                    I agree to the MatchMax{" "}
+                    <Link
+                      className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+                      to="/terms-of-use"
+                      target="_blank"
+                    >
+                      Terms of Use
+                    </Link>{" "}
+                    and confirm the information I have provided is true and complete.
+                    {fieldErrors.terms ? (
+                      <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                        Required
+                      </span>
+                    ) : null}
+                  </span>
+                </label>
+              </div>
               <div className="grid gap-1.5">
                 <label className="flex gap-3 text-sm text-muted-foreground">
                   <Checkbox
