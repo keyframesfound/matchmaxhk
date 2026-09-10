@@ -1,10 +1,14 @@
-import { type MouseEvent, useEffect, useState } from "react";
+import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bookmark } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { AuthGateDialog, consumePendingSave } from "@/features/auth/AuthGateDialog";
+import {
+  AuthGateDialog,
+  consumePendingSave,
+  scrollPostIntoView,
+} from "@/features/auth/AuthGateDialog";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -66,6 +70,7 @@ export function CaseSaveButton({ caseId, compact = false }: { caseId: string; co
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const savedQuery = useSavedCaseIds();
   const saved = savedQuery.data?.includes(caseId) ?? false;
 
@@ -86,6 +91,7 @@ export function CaseSaveButton({ caseId, compact = false }: { caseId: string; co
   useEffect(() => {
     if (!user) return;
     if (consumePendingSave("case", caseId)) {
+      scrollPostIntoView(buttonRef.current);
       mutation.mutate(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,6 +110,7 @@ export function CaseSaveButton({ caseId, compact = false }: { caseId: string; co
   return (
     <>
       <Button
+        ref={buttonRef}
         type="button"
         variant="ghost"
         size="icon"

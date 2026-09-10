@@ -1,10 +1,14 @@
-import { type MouseEvent, useEffect, useState } from "react";
+import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bookmark } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { AuthGateDialog, consumePendingSave } from "@/features/auth/AuthGateDialog";
+import {
+  AuthGateDialog,
+  consumePendingSave,
+  scrollPostIntoView,
+} from "@/features/auth/AuthGateDialog";
 import { useAuth } from "@/features/auth/useAuth";
 import { fetchPublishedCourses, type CourseWithOrganization } from "@/features/courses/queries";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,6 +104,7 @@ export function CourseSaveButton({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const savedQuery = useSavedCourseIds();
   const saveCountQuery = useQuery({
     queryKey: ["saved-course-count", courseId],
@@ -131,6 +136,7 @@ export function CourseSaveButton({
   useEffect(() => {
     if (!user) return;
     if (consumePendingSave("course", courseId)) {
+      scrollPostIntoView(buttonRef.current);
       mutation.mutate(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,6 +156,7 @@ export function CourseSaveButton({
     <>
       <div className={compact ? "flex items-center -space-x-2" : undefined}>
         <Button
+          ref={buttonRef}
           type="button"
           variant="ghost"
           size="icon"
