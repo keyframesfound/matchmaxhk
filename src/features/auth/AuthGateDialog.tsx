@@ -189,7 +189,7 @@ export function AuthGateDialog({
               type="button"
               variant="solid"
               color="neutral"
-              className="h-12 w-full rounded-full text-base font-bold"
+              className="h-12 w-full rounded-xl text-base font-bold"
               onClick={(event: MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
                 goWithEmail();
@@ -200,7 +200,7 @@ export function AuthGateDialog({
             <Button
               type="button"
               variant="outline"
-              className="h-12 w-full rounded-full font-bold"
+              className="h-12 w-full rounded-xl font-bold"
               onClick={(event: MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
                 void signInWithGoogle();

@@ -303,7 +303,7 @@ function AuthPage() {
                   disabled={busy || !captchaToken}
                   variant="solid"
                   color="neutral"
-                  className="h-12 w-full text-base font-bold"
+                  className="h-12 w-full rounded-xl text-base font-bold"
                 >
                   {busy ? t("auth.sending_link") : t("auth.continue")}
                 </Button>
@@ -324,7 +324,7 @@ function AuthPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="h-12 w-full font-bold"
+                className="h-12 w-full rounded-xl font-bold"
                 onClick={() => onOAuth("google")}
                 disabled={busy}
               >
