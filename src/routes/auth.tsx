@@ -103,6 +103,7 @@ function AuthPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState<"email" | "password">("email");
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [showResetHint, setShowResetHint] = useState(false);
@@ -203,7 +204,7 @@ function AuthPage() {
       }
       captchaWidgetIdRef.current = null;
     };
-  }, [siteKey]);
+  }, [siteKey, step]);
 
   function resetCaptcha() {
     setCaptchaToken(null);
@@ -219,10 +220,29 @@ function AuthPage() {
     setPassword("");
     setConfirmPassword("");
     setShowPassword(false);
+    setStep("email");
     void navigate({ to: "/auth", search: (prev) => ({ ...prev, mode: next }), replace: true });
   }
 
-  async function onSubmit(e: React.FormEvent) {
+  function backToEmail() {
+    setStep("email");
+    setPassword("");
+    setConfirmPassword("");
+    setFormError(null);
+    setShowResetHint(false);
+    setShowPassword(false);
+    resetCaptcha();
+  }
+
+  function onSubmitEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError(null);
+    setShowResetHint(false);
+    if (!email.trim()) return;
+    setStep("password");
+  }
+
+  async function onSubmitPassword(e: React.FormEvent) {
     e.preventDefault();
     setFormError(null);
     setShowResetHint(false);
@@ -335,7 +355,15 @@ function AuthPage() {
                 type="button"
                 variant="ghost"
                 className="mt-6 text-sm font-bold text-[color:var(--brand-link)]"
-                onClick={() => setSentTo(null)}
+                onClick={() => {
+                  setSentTo(null);
+                  setStep("email");
+                  setPassword("");
+                  setConfirmPassword("");
+                  setShowPassword(false);
+                  setFormError(null);
+                  setShowResetHint(false);
+                }}
               >
                 {t("auth.different_email")}
               </Button>
@@ -352,208 +380,246 @@ function AuthPage() {
               <h1 className="-mt-1 text-center text-3xl font-bold tracking-tight text-[color:var(--ink)]">
                 {isSignUp ? t("auth.sign_up_title") : t("auth.sign_in_title")}
               </h1>
-              <p className="mt-2 text-center text-sm text-muted-foreground">
-                {isSignUp ? t("auth.sign_up_subtitle") : t("auth.password_sign_in_subtitle")}
-              </p>
+              {step === "password" ? (
+                <>
+                  <p className="mt-2 text-center text-sm font-medium text-foreground">{email}</p>
+                  <button
+                    type="button"
+                    onClick={backToEmail}
+                    className="mx-auto mt-1 block text-xs font-bold text-[color:var(--brand-link)] hover:underline"
+                  >
+                    {t("auth.different_email")}
+                  </button>
+                </>
+              ) : (
+                <p className="mt-2 text-center text-sm text-muted-foreground">
+                  {isSignUp ? t("auth.sign_up_subtitle") : t("auth.password_sign_in_subtitle")}
+                </p>
+              )}
 
-              <form onSubmit={onSubmit} className="mt-6 space-y-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="auth-email">{t("auth.email")}</Label>
-                  <div className="relative">
-                    <Input
-                      id="auth-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      autoComplete="email"
-                      placeholder="you@example.com"
-                      className="h-12 w-full bg-[color:var(--muted)] pr-10"
-                    />
-                    {email ? (
-                      <button
-                        type="button"
-                        onClick={() => setEmail("")}
-                        aria-label={t("auth.clear_email")}
-                        className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
-                      >
-                        <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden>
-                          <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.25" />
-                          <path
-                            d="M9 9l6 6M15 9l-6 6"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      </button>
-                    ) : null}
+              {step === "email" ? (
+                <>
+                  <form onSubmit={onSubmitEmail} className="mt-6 space-y-3">
+                    <div className="relative">
+                      <Input
+                        id="auth-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        className="h-12 w-full bg-[color:var(--muted)] pr-10"
+                      />
+                      {email ? (
+                        <button
+                          type="button"
+                          onClick={() => setEmail("")}
+                          aria-label={t("auth.clear_email")}
+                          className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
+                        >
+                          <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden>
+                            <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.25" />
+                            <path
+                              d="M9 9l6 6M15 9l-6 6"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        </button>
+                      ) : null}
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={busy}
+                      variant="solid"
+                      color="neutral"
+                      className="h-12 w-full rounded-xl text-base font-bold"
+                    >
+                      {t("auth.continue")}
+                    </Button>
+                  </form>
+
+                  <div className="my-5 flex items-center gap-3">
+                    <Separator className="flex-1" />
+                    <span className="text-xs text-muted-foreground">{t("auth.or")}</span>
+                    <Separator className="flex-1" />
                   </div>
-                </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="auth-password">{t("auth.password")}</Label>
-                  <div className="relative">
-                    <Input
-                      id="auth-password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      autoComplete={isSignUp ? "new-password" : "current-password"}
-                      spellCheck={false}
-                      placeholder={isSignUp ? t("auth.new_password_placeholder") : "••••••••"}
-                      className="h-12 w-full bg-[color:var(--muted)] pr-10"
-                    />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-12 w-full rounded-xl font-bold"
+                    onClick={() => onOAuth("google")}
+                    disabled={busy}
+                  >
+                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden>
+                      <path
+                        fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.26 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.83z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83C6.71 7.31 9.14 5.38 12 5.38z"
+                      />
+                    </svg>
+                    {t("auth.continue_google")}
+                  </Button>
+
+                  <p className="mt-5 text-center text-sm text-muted-foreground">
+                    {isSignUp ? t("auth.have_account") : t("auth.no_account")}{" "}
                     <button
                       type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      aria-label={showPassword ? t("auth.hide_password") : t("auth.show_password")}
-                      className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
+                      onClick={toggleMode}
+                      className="font-bold text-[color:var(--brand-link)] hover:underline"
                     >
-                      {showPassword ? (
-                        <svg
-                          className="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          aria-hidden
-                        >
-                          <path d="M3 3l18 18" />
-                          <path d="M10.6 5.1A9.8 9.8 0 0 1 12 5c5 0 9 4.5 10 7-.3.8-1 2-2.2 3.3" />
-                          <path d="M6.2 6.9C4 8.4 4.5 9.6 3 12c1 2.5 5 7 9 7 1.8 0 3.4-.7 4.8-1.7" />
-                          <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-                        </svg>
-                      ) : (
-                        <svg
-                          className="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          aria-hidden
-                        >
-                          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-                          <circle cx="12" cy="12" r="3" />
-                        </svg>
-                      )}
+                      {isSignUp ? t("auth.sign_in") : t("auth.sign_up")}
                     </button>
-                  </div>
-                </div>
-
-                {isSignUp ? (
-                  <>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <form onSubmit={onSubmitPassword} className="mt-6 space-y-3">
                     <div className="space-y-1.5">
-                      <Label htmlFor="auth-confirm-password">{t("auth.confirm_password")}</Label>
-                      <Input
-                        id="auth-confirm-password"
-                        type={showPassword ? "text" : "password"}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                        autoComplete="new-password"
-                        spellCheck={false}
-                        placeholder={t("auth.new_password_placeholder")}
-                        className="h-12 w-full bg-[color:var(--muted)]"
-                      />
-                    </div>
-                    <PasswordStrength value={password} rules={rules} labels={labels} copy={copy} />
-                  </>
-                ) : null}
-
-                <Button
-                  type="submit"
-                  disabled={busy || !captchaToken}
-                  variant="solid"
-                  color="neutral"
-                  className="h-12 w-full rounded-xl text-base font-bold"
-                >
-                  {busy
-                    ? isSignUp
-                      ? t("auth.creating_account")
-                      : t("auth.signing_in")
-                    : t("auth.continue")}
-                </Button>
-                <div
-                  ref={captchaContainerRef}
-                  className="min-h-[65px]"
-                  aria-label="Security check"
-                />
-                {captchaError ? <p className="text-sm text-destructive">{captchaError}</p> : null}
-                {formError ? (
-                  <div className="text-sm text-destructive">
-                    <p>{formError}</p>
-                    {showResetHint ? (
-                      <p className="mt-1 text-muted-foreground">
-                        {t("auth.invalid_credentials_hint")}{" "}
-                        <Link
-                          to="/forgot-password"
-                          className="font-bold text-[color:var(--brand-link)] hover:underline"
+                      <Label htmlFor="auth-password">{t("auth.password")}</Label>
+                      <div className="relative">
+                        <Input
+                          id="auth-password"
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          autoComplete={isSignUp ? "new-password" : "current-password"}
+                          spellCheck={false}
+                          placeholder={isSignUp ? t("auth.new_password_placeholder") : "••••••••"}
+                          className="h-12 w-full bg-[color:var(--muted)] pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((v) => !v)}
+                          aria-label={
+                            showPassword ? t("auth.hide_password") : t("auth.show_password")
+                          }
+                          className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
                         >
-                          {t("auth.set_password_link")}
-                        </Link>
-                      </p>
+                          {showPassword ? (
+                            <svg
+                              className="h-4 w-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              aria-hidden
+                            >
+                              <path d="M3 3l18 18" />
+                              <path d="M10.6 5.1A9.8 9.8 0 0 1 12 5c5 0 9 4.5 10 7-.3.8-1 2-2.2 3.3" />
+                              <path d="M6.2 6.9C4 8.4 4.5 9.6 3 12c1 2.5 5 7 9 7 1.8 0 3.4-.7 4.8-1.7" />
+                              <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="h-4 w-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              aria-hidden
+                            >
+                              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {isSignUp ? (
+                      <>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="auth-confirm-password">
+                            {t("auth.confirm_password")}
+                          </Label>
+                          <Input
+                            id="auth-confirm-password"
+                            type={showPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                            autoComplete="new-password"
+                            spellCheck={false}
+                            placeholder={t("auth.new_password_placeholder")}
+                            className="h-12 w-full bg-[color:var(--muted)]"
+                          />
+                        </div>
+                        <PasswordStrength
+                          value={password}
+                          rules={rules}
+                          labels={labels}
+                          copy={copy}
+                        />
+                      </>
                     ) : null}
-                  </div>
-                ) : null}
-              </form>
 
-              {!isSignUp ? (
-                <p className="mt-3 text-center text-sm">
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm font-bold text-[color:var(--brand-link)] hover:underline"
-                  >
-                    {t("auth.forgot_password")}
-                  </Link>
-                </p>
-              ) : null}
+                    <Button
+                      type="submit"
+                      disabled={busy || !captchaToken}
+                      variant="solid"
+                      color="neutral"
+                      className="h-12 w-full rounded-xl text-base font-bold"
+                    >
+                      {busy
+                        ? isSignUp
+                          ? t("auth.creating_account")
+                          : t("auth.signing_in")
+                        : t("auth.continue")}
+                    </Button>
+                    <div
+                      ref={captchaContainerRef}
+                      className="min-h-[65px]"
+                      aria-label="Security check"
+                    />
+                    {captchaError ? (
+                      <p className="text-sm text-destructive">{captchaError}</p>
+                    ) : null}
+                    {formError ? (
+                      <div className="text-sm text-destructive">
+                        <p>{formError}</p>
+                        {showResetHint ? (
+                          <p className="mt-1 text-muted-foreground">
+                            {t("auth.invalid_credentials_hint")}{" "}
+                            <Link
+                              to="/forgot-password"
+                              className="font-bold text-[color:var(--brand-link)] hover:underline"
+                            >
+                              {t("auth.set_password_link")}
+                            </Link>
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </form>
 
-              <div className="my-5 flex items-center gap-3">
-                <Separator className="flex-1" />
-                <span className="text-xs text-muted-foreground">{t("auth.or")}</span>
-                <Separator className="flex-1" />
-              </div>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="h-12 w-full rounded-xl font-bold"
-                onClick={() => onOAuth("google")}
-                disabled={busy}
-              >
-                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden>
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.26 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.83z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83C6.71 7.31 9.14 5.38 12 5.38z"
-                  />
-                </svg>
-                {t("auth.continue_google")}
-              </Button>
-
-              <p className="mt-5 text-center text-sm text-muted-foreground">
-                {isSignUp ? t("auth.have_account") : t("auth.no_account")}{" "}
-                <button
-                  type="button"
-                  onClick={toggleMode}
-                  className="font-bold text-[color:var(--brand-link)] hover:underline"
-                >
-                  {isSignUp ? t("auth.sign_in") : t("auth.sign_up")}
-                </button>
-              </p>
+                  {!isSignUp ? (
+                    <p className="mt-3 text-center text-sm">
+                      <Link
+                        to="/forgot-password"
+                        className="text-sm font-bold text-[color:var(--brand-link)] hover:underline"
+                      >
+                        {t("auth.forgot_password")}
+                      </Link>
+                    </p>
+                  ) : null}
+                </>
+              )}
             </div>
           )}
         </div>

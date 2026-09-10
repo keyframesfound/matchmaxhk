@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { CalendarClock, Check, Columns2, ListChecks } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -390,3 +390,41 @@ export function useCaseCompare(items: PublicCaseBoardItem[]) {
 }
 
 export { CaseCompareBar, CaseCompareDialog };
+
+// Wipes every stored case-compare selection: signed-in users get their
+// `compared_cases` rows deleted, guests get localStorage emptied, and the
+// query cache is reset so the compare bar disappears immediately.
+async function clearCompareSelections(queryClient: QueryClient) {
+  const { data } = await supabase.auth.getSession();
+  const sessionUserId = data.session?.user?.id;
+
+  writeGuestCompareIds([]);
+  queryClient.setQueryData(comparedCasesQueryKey(undefined), []);
+  if (sessionUserId) {
+    queryClient.setQueryData(comparedCasesQueryKey(sessionUserId), []);
+    const { error } = await supabase.from("compared_cases").delete().eq("user_id", sessionUserId);
+    if (error) throw error;
+    queryClient.setQueryData(comparedCasesQueryKey(sessionUserId), []);
+  }
+  void queryClient.invalidateQueries({ queryKey: ["compared-cases"] });
+}
+
+// Mounted once in the root layout so it survives navigation: whenever the
+// pathname changes (i.e. the user leaves the page they were on), the case
+// comparison selection is reset. Tutor comparisons live in page-local state
+// and are dropped automatically when the page unmounts.
+export function CompareSelectionReset() {
+  const queryClient = useQueryClient();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const prevPathname = useRef(pathname);
+
+  useEffect(() => {
+    if (prevPathname.current === pathname) return;
+    prevPathname.current = pathname;
+    clearCompareSelections(queryClient).catch((error: Error) => {
+      toast.error(error.message);
+    });
+  }, [pathname, queryClient]);
+
+  return null;
+}

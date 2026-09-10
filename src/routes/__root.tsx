@@ -11,10 +11,12 @@ import { type ReactNode, useEffect } from "react";
 import appCss from "../styles.css?url";
 import { I18nProvider } from "@/features/i18n/I18nProvider";
 import { AuthProvider } from "@/features/auth/useAuth";
+import { TosAcceptanceGate } from "@/features/auth/TosAcceptanceGate";
 import { ThemeProvider } from "@/features/theme/ThemeProvider";
 
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { WhatsAppFloatButton } from "@/components/layout/WhatsAppFloatButton";
+import { CompareSelectionReset } from "@/features/cases/compare-cases";
 import { Toaster } from "@/components/ui/sonner";
 
 export function NotFoundComponent() {
@@ -185,11 +187,14 @@ function RootComponent() {
       <I18nProvider>
         <AuthProvider>
           <ThemeProvider>
-            <main id="main-content">
-              <Outlet />
-            </main>
-            <BackToTopButton />
-            <WhatsAppFloatButton />
+            <TosAcceptanceGate>
+              <main id="main-content">
+                <Outlet />
+              </main>
+              <BackToTopButton />
+              <WhatsAppFloatButton />
+              <CompareSelectionReset />
+            </TosAcceptanceGate>
             <Toaster />
           </ThemeProvider>
         </AuthProvider>
