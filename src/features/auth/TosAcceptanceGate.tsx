@@ -1,13 +1,15 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/features/auth/useAuth";
-import { AcceptTermsGate } from "@/features/auth/AcceptTermsGate";
+import { AcceptTermsDialog } from "@/features/auth/AcceptTermsGate";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Blocks the entire app (public and authenticated routes alike) behind the
- * Terms of Service / Privacy Policy acceptance screen for any signed-in user
- * who has not accepted yet. Renders children untouched for visitors and for
- * users whose profile records an acceptance.
+ * Terms of Service / Privacy Policy acceptance dialog for any signed-in user
+ * who has not accepted yet. The page stays mounted behind the popup; the
+ * modal overlay blocks interaction and Radix locks body scroll. Children
+ * render untouched for visitors and users whose profile records an
+ * acceptance.
  */
 export function TosAcceptanceGate({ children }: { children: ReactNode }) {
   const { user, loading, signOut } = useAuth();
@@ -44,10 +46,13 @@ export function TosAcceptanceGate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AcceptTermsGate
-      userId={user.id}
-      onAccepted={() => setAcceptedFor(user.id)}
-      onDecline={() => void signOut()}
-    />
+    <>
+      {children}
+      <AcceptTermsDialog
+        userId={user.id}
+        onAccepted={() => setAcceptedFor(user.id)}
+        onDecline={() => void signOut()}
+      />
+    </>
   );
 }
