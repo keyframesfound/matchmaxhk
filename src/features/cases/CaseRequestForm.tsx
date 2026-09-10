@@ -83,6 +83,7 @@ type FormState = {
   // Page 3: Logistics
   deliveryMode: string;
   district: string;
+  budgetMin: string;
   budgetMax: string;
   tutorBackground: string;
   notes: string;
@@ -107,6 +108,7 @@ const INITIAL_FORM: FormState = {
   interviewTest: "",
   deliveryMode: "",
   district: "",
+  budgetMin: "",
   budgetMax: "",
   tutorBackground: "any",
   notes: "",
@@ -125,7 +127,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const [result, setResult] = useState<{ caseCode: string } | null>(null);
   const honeypot = useRef<HTMLInputElement>(null);
   const startedAt = useRef(Date.now());
-  const { restored, savedAt, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v3");
+  const { restored, savedAt, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v4");
 
   useEffect(() => {
     if (!restored) return;
@@ -246,6 +248,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           interviewTest: admissions ? form.interviewTest : null,
           mode: form.deliveryMode as "online" | "offline" | "both" | "no_pref",
           district: form.deliveryMode !== "online" ? form.district || null : null,
+          budgetMin: form.budgetMin ? Number(form.budgetMin) : null,
           budgetMax: form.budgetMax ? Number(form.budgetMax) : null,
           tutorBackground: (form.tutorBackground || "any") as
             "uni_student" | "official_examiner" | "any",
@@ -747,18 +750,30 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             ) : null}
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-budget-max`}>
-                Max hourly budget (HK$)
+                Hourly budget (HK$)
                 {errors.budgetMax === "Required" ? <RequiredFlag /> : null}
               </label>
-              <Input
-                id={`${idPrefix}-budget-max`}
-                className={cn(controlClassName, errors.budgetMax && invalidInputClassName)}
-                aria-invalid={errors.budgetMax ? true : undefined}
-                placeholder="e.g. 500"
-                inputMode="numeric"
-                value={form.budgetMax}
-                onChange={(e) => update({ budgetMax: e.target.value.replace(/[^\d]/g, "") })}
-              />
+              <div className="flex items-center gap-2">
+                <Input
+                  id={`${idPrefix}-budget-min`}
+                  aria-label="Minimum hourly budget in HK$"
+                  className={controlClassName}
+                  placeholder="Min (optional)"
+                  inputMode="numeric"
+                  value={form.budgetMin}
+                  onChange={(e) => update({ budgetMin: e.target.value.replace(/[^\d]/g, "") })}
+                />
+                <span className="text-sm font-bold text-muted-foreground">&ndash;</span>
+                <Input
+                  id={`${idPrefix}-budget-max`}
+                  className={cn(controlClassName, errors.budgetMax && invalidInputClassName)}
+                  aria-invalid={errors.budgetMax ? true : undefined}
+                  placeholder="Max"
+                  inputMode="numeric"
+                  value={form.budgetMax}
+                  onChange={(e) => update({ budgetMax: e.target.value.replace(/[^\d]/g, "") })}
+                />
+              </div>
               {errors.budgetMax && errors.budgetMax !== "Required" ? (
                 <p className="mt-1 text-xs font-semibold text-destructive">{errors.budgetMax}</p>
               ) : null}

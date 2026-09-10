@@ -33,6 +33,7 @@ const CaseRequestInput = z
     schoolName: z.string().trim().max(120).optional().nullable(),
     mode: z.enum(["online", "offline", "both", "no_pref"]),
     district: z.string().trim().max(80).optional().nullable(),
+    budgetMin: z.number().int().min(0).max(100000).optional().nullable(),
     budgetMax: z.number().int().min(0).max(100000).optional().nullable(),
     tutorBackground: z.enum(["uni_student", "official_examiner", "any"]),
     notes: z.string().trim().max(2000).optional().nullable(),
@@ -72,6 +73,19 @@ const CaseRequestInput = z
     }
     if (data.mode !== "online" && !data.district) {
       ctx.addIssue({ code: "custom", path: ["district"], message: "MTR station is required." });
+    }
+    if (
+      data.budgetMin !== null &&
+      data.budgetMin !== undefined &&
+      data.budgetMax !== null &&
+      data.budgetMax !== undefined &&
+      data.budgetMin > data.budgetMax
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["budgetMax"],
+        message: "Min budget cannot exceed max budget.",
+      });
     }
   });
 
@@ -284,7 +298,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       sessions_per_week: 1,
       session_length_minutes: 60,
       preferred_gender: "any" as const,
-      budget_min: null,
+      budget_min: data.budgetMin ?? null,
       budget_max: data.budgetMax ?? null,
       contact_name: data.parentName,
       contact_phone: data.contactPhone,
