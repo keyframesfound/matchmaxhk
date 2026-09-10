@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, CalendarClock, Clock, Inbox, MapPin, Wallet } from "lucide-react";
+import { ArrowRight, BadgeCheck, CalendarClock, Clock, Inbox, MapPin, Wallet } from "lucide-react";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
@@ -186,27 +186,38 @@ function TutorRequestsPage() {
 
   return (
     <PublicPage mainClassName="bg-[color:var(--surface-subtle)]">
-      {/* Request banner */}
+      {/* Request CTA */}
       <section>
-        <PageContainer
-          width="wide"
-          className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between sm:py-6"
-        >
-          <p className="max-w-3xl text-sm leading-relaxed text-[color:var(--ink)] sm:text-[15px]">
-            Requesting a tutor that meets your requirements?{" "}
-            <span className="font-bold">
-              Fill in this form and tutors who&rsquo;re qualified and interested can apply for your
-              case!
-            </span>
-          </p>
-          <Button
-            onClick={toggleForm}
-            variant="solid"
-            color="blue"
-            className="h-11 shrink-0 rounded-sm px-6 font-bold"
-          >
-            {formOpen ? "Hide form" : "Post your request"}
-          </Button>
+        <PageContainer width="wide" className="py-5 sm:py-6">
+          <div className="rounded-2xl border border-border bg-[color:var(--surface)] p-6 shadow-sm sm:p-7">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+              <div className="flex min-w-0 items-start gap-4">
+                <BadgeCheck
+                  className="mt-0.5 h-8 w-8 shrink-0 text-[color:var(--ink)]"
+                  strokeWidth={1.75}
+                  aria-hidden="true"
+                />
+                <div className="min-w-0">
+                  <p className="text-lg font-bold leading-snug tracking-tight text-[color:var(--ink)] sm:text-xl">
+                    Requesting a tutor that meets your requirements?
+                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    Fill in this form and tutors who&rsquo;re qualified and interested can apply for
+                    your case!
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={toggleForm}
+                variant="solid"
+                color="neutral"
+                shape="pill"
+                className="h-12 w-full shrink-0 px-8 text-[15px] font-bold sm:h-11 sm:w-auto"
+              >
+                {formOpen ? "Hide form" : "Post your request"}
+              </Button>
+            </div>
+          </div>
         </PageContainer>
       </section>
 
