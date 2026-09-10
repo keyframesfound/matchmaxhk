@@ -31,7 +31,8 @@ export const CURRICULUM_OPTIONS = [
   "SAT",
   "IELTS",
   "ISAT",
-  "UCAT",
+  "UCAT(3600)",
+  "UCAT(2700)",
   "Foundation / other",
 ] as const;
 export const MATERIALS_OPTIONS = ["Yes", "No", "In progress"] as const;
@@ -196,18 +197,33 @@ export const tutorApplicationSchema = z
         });
       }
     }
-    if (!isProfessional && data.curriculum === "UCAT") {
+    if (!isProfessional && data.curriculum === "UCAT(3600)") {
       const ucatScore = Number(data.overallScore);
       if (
         !Number.isInteger(ucatScore) ||
-        ucatScore < 900 ||
+        ucatScore < 1200 ||
         ucatScore > 3600 ||
         ucatScore % 10 !== 0
       ) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["overallScore"],
-          message: "Enter a UCAT total score from 900 to 3600 (in 10-point steps)",
+          message: "Enter a UCAT total score from 1200 to 3600 (in 10-point steps)",
+        });
+      }
+    }
+    if (!isProfessional && data.curriculum === "UCAT(2700)") {
+      const ucatScore = Number(data.overallScore);
+      if (
+        !Number.isInteger(ucatScore) ||
+        ucatScore < 900 ||
+        ucatScore > 2700 ||
+        ucatScore % 10 !== 0
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["overallScore"],
+          message: "Enter a UCAT total score from 900 to 2700 (in 10-point steps)",
         });
       }
     }
