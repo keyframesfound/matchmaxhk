@@ -1,11 +1,18 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Logo } from "@/components/brand/Logo";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  makePasswordRules,
+  PasswordStrength,
+  usePasswordStrength,
+  type PasswordStrengthCopy,
+} from "@/components/ui/password-strength";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
@@ -44,8 +51,7 @@ function withSave(path: string, save: string | undefined): string {
 const SAVE_PATTERN = /^(tutor|case|course):.{1,}$/;
 
 export const Route = createFileRoute("/auth")({
-  // Kept for backwards compatibility: existing links pass ?mode=sign_up,
-  // but the merged page handles login and signup in one magic-link flow.
+  // `mode=sign_up` switches between the sign-in and create-account forms.
   validateSearch: (
     search: Record<string, unknown>,
   ): { mode?: "sign_in" | "sign_up"; redirect?: string; save?: string } => {
@@ -70,7 +76,7 @@ export const Route = createFileRoute("/auth")({
       {
         name: "description",
         content:
-          "Log in or create your MatchMax account to manage your MatchMax profile and saved tutors.",
+          "Log in or create your MatchMax account with your email and password to manage your profile and saved tutors.",
       },
       { property: "og:title", content: "Log in or sign up — MatchMax" },
       {
@@ -89,15 +95,55 @@ function AuthPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { redirect, save } = Route.useSearch();
+  const { mode, redirect, save } = Route.useSearch();
+  const isSignUp = mode === "sign_up";
   const postAuthPath = redirect ?? "/tutors";
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [showResetHint, setShowResetHint] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaError, setCaptchaError] = useState<string | null>(null);
   const captchaContainerRef = useRef<HTMLDivElement>(null);
   const captchaWidgetIdRef = useRef<string | null>(null);
+
+  const rules = useMemo(
+    () =>
+      makePasswordRules({
+        length: t("auth.rule_length"),
+        case: t("auth.rule_case"),
+        digit: t("auth.rule_digit"),
+      }),
+    [t],
+  );
+  const labels = useMemo(
+    () => [
+      t("auth.strength_empty"),
+      t("auth.strength_weak"),
+      t("auth.strength_fair"),
+      t("auth.strength_strong"),
+    ],
+    [t],
+  );
+  const copy = useMemo<PasswordStrengthCopy>(
+    () => ({
+      meterLabel: t("auth.meter_label"),
+      commonlyGuessed: t("auth.commonly_guessed"),
+      srMet: t("auth.sr_met"),
+      srNotMet: t("auth.sr_not_met"),
+      announcedStrength: t("auth.sr_strength"),
+      announcedGuessed: t("auth.sr_guessed"),
+      announcedAllMet: t("auth.sr_all_met"),
+      announcedStillNeeded: t("auth.sr_still_needed"),
+    }),
+    [t],
+  );
+  const strength = usePasswordStrength(password, { rules, labels, copy });
+
   // Keep the public sitekey available even if the Cloudflare Git build omits the VITE_* variable.
   // The corresponding secret remains server-side in Supabase and is never bundled.
   const siteKey = import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAEiLema3uiveM5pp";
@@ -166,28 +212,71 @@ function AuthPage() {
     }
   }
 
+  function toggleMode() {
+    const next = isSignUp ? undefined : ("sign_up" as const);
+    setFormError(null);
+    setShowResetHint(false);
+    setPassword("");
+    setConfirmPassword("");
+    setShowPassword(false);
+    void navigate({ to: "/auth", search: (prev) => ({ ...prev, mode: next }), replace: true });
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError(null);
+    setShowResetHint(false);
     if (!captchaToken) {
-      toast.error("Please complete the security check.");
+      toast.error(t("auth.captcha_required"));
       return;
+    }
+    if (isSignUp) {
+      if (password !== confirmPassword) {
+        setFormError(t("auth.password_mismatch"));
+        return;
+      }
+      if (strength.guessable) {
+        setFormError(t("auth.password_too_common"));
+        return;
+      }
+      if (strength.score < strength.max) {
+        setFormError(t("auth.password_incomplete"));
+        return;
+      }
     }
     setBusy(true);
     try {
-      // Magic link covers both login and signup: new emails create an account,
-      // existing (password) users receive a one-hour sign-in link.
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}${withSave(postAuthPath, save)}`,
-          captchaToken: captchaToken ?? undefined,
-        },
-      });
-      if (error) throw error;
-      setSentTo(email);
+      if (isSignUp) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}${withSave(postAuthPath, save)}`,
+            captchaToken: captchaToken ?? undefined,
+          },
+        });
+        if (error) throw error;
+        // With email confirmation enabled there is no session yet: ask the
+        // user to confirm before signing in.
+        if (!data.session) setSentTo(email);
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+          options: { captchaToken: captchaToken ?? undefined },
+        });
+        if (error) throw error;
+      }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Sign-in failed";
-      toast.error(msg);
+      const msg = err instanceof Error ? err.message : "";
+      if (/invalid login credentials/i.test(msg)) {
+        setFormError(t("auth.invalid_credentials"));
+        setShowResetHint(true);
+      } else if (/not confirmed/i.test(msg)) {
+        setFormError(t("auth.email_not_confirmed"));
+      } else {
+        toast.error(msg || t("auth.sign_in_failed"));
+      }
     } finally {
       setBusy(false);
       resetCaptcha();
@@ -261,43 +350,118 @@ function AuthPage() {
               </div>
 
               <h1 className="-mt-1 text-center text-3xl font-bold tracking-tight text-[color:var(--ink)]">
-                {t("auth.login_or_signup_title")}
+                {isSignUp ? t("auth.sign_up_title") : t("auth.sign_in_title")}
               </h1>
               <p className="mt-2 text-center text-sm text-muted-foreground">
-                {t("auth.magic_link_subtitle")}
+                {isSignUp ? t("auth.sign_up_subtitle") : t("auth.password_sign_in_subtitle")}
               </p>
 
               <form onSubmit={onSubmit} className="mt-6 space-y-3">
-                <div className="relative">
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    className="h-12 w-full bg-[color:var(--muted)] pr-10"
-                  />
-                  {email ? (
+                <div className="space-y-1.5">
+                  <Label htmlFor="auth-email">{t("auth.email")}</Label>
+                  <div className="relative">
+                    <Input
+                      id="auth-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      className="h-12 w-full bg-[color:var(--muted)] pr-10"
+                    />
+                    {email ? (
+                      <button
+                        type="button"
+                        onClick={() => setEmail("")}
+                        aria-label={t("auth.clear_email")}
+                        className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
+                      >
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden>
+                          <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.25" />
+                          <path
+                            d="M9 9l6 6M15 9l-6 6"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="auth-password">{t("auth.password")}</Label>
+                  <div className="relative">
+                    <Input
+                      id="auth-password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoComplete={isSignUp ? "new-password" : "current-password"}
+                      spellCheck={false}
+                      placeholder={isSignUp ? t("auth.new_password_placeholder") : "••••••••"}
+                      className="h-12 w-full bg-[color:var(--muted)] pr-10"
+                    />
                     <button
                       type="button"
-                      onClick={() => setEmail("")}
-                      aria-label={t("auth.clear_email")}
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? t("auth.hide_password") : t("auth.show_password")}
                       className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
                     >
-                      <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden>
-                        <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.25" />
-                        <path
-                          d="M9 9l6 6M15 9l-6 6"
+                      {showPassword ? (
+                        <svg
+                          className="h-4 w-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
                           stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-                      </svg>
+                          strokeWidth="1.8"
+                          aria-hidden
+                        >
+                          <path d="M3 3l18 18" />
+                          <path d="M10.6 5.1A9.8 9.8 0 0 1 12 5c5 0 9 4.5 10 7-.3.8-1 2-2.2 3.3" />
+                          <path d="M6.2 6.9C4 8.4 4.5 9.6 3 12c1 2.5 5 7 9 7 1.8 0 3.4-.7 4.8-1.7" />
+                          <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="h-4 w-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          aria-hidden
+                        >
+                          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
                     </button>
-                  ) : null}
+                  </div>
                 </div>
+
+                {isSignUp ? (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="auth-confirm-password">{t("auth.confirm_password")}</Label>
+                      <Input
+                        id="auth-confirm-password"
+                        type={showPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        autoComplete="new-password"
+                        spellCheck={false}
+                        placeholder={t("auth.new_password_placeholder")}
+                        className="h-12 w-full bg-[color:var(--muted)]"
+                      />
+                    </div>
+                    <PasswordStrength value={password} rules={rules} labels={labels} copy={copy} />
+                  </>
+                ) : null}
+
                 <Button
                   type="submit"
                   disabled={busy || !captchaToken}
@@ -305,7 +469,11 @@ function AuthPage() {
                   color="neutral"
                   className="h-12 w-full rounded-xl text-base font-bold"
                 >
-                  {busy ? t("auth.sending_link") : t("auth.continue")}
+                  {busy
+                    ? isSignUp
+                      ? t("auth.creating_account")
+                      : t("auth.signing_in")
+                    : t("auth.continue")}
                 </Button>
                 <div
                   ref={captchaContainerRef}
@@ -313,7 +481,34 @@ function AuthPage() {
                   aria-label="Security check"
                 />
                 {captchaError ? <p className="text-sm text-destructive">{captchaError}</p> : null}
+                {formError ? (
+                  <div className="text-sm text-destructive">
+                    <p>{formError}</p>
+                    {showResetHint ? (
+                      <p className="mt-1 text-muted-foreground">
+                        {t("auth.invalid_credentials_hint")}{" "}
+                        <Link
+                          to="/forgot-password"
+                          className="font-bold text-[color:var(--brand-link)] hover:underline"
+                        >
+                          {t("auth.set_password_link")}
+                        </Link>
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
               </form>
+
+              {!isSignUp ? (
+                <p className="mt-3 text-center text-sm">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm font-bold text-[color:var(--brand-link)] hover:underline"
+                  >
+                    {t("auth.forgot_password")}
+                  </Link>
+                </p>
+              ) : null}
 
               <div className="my-5 flex items-center gap-3">
                 <Separator className="flex-1" />
@@ -348,6 +543,17 @@ function AuthPage() {
                 </svg>
                 {t("auth.continue_google")}
               </Button>
+
+              <p className="mt-5 text-center text-sm text-muted-foreground">
+                {isSignUp ? t("auth.have_account") : t("auth.no_account")}{" "}
+                <button
+                  type="button"
+                  onClick={toggleMode}
+                  className="font-bold text-[color:var(--brand-link)] hover:underline"
+                >
+                  {isSignUp ? t("auth.sign_in") : t("auth.sign_up")}
+                </button>
+              </p>
             </div>
           )}
         </div>
