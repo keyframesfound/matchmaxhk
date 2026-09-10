@@ -31,11 +31,38 @@ declare global {
   }
 }
 
+// Forward the pending-save value from the auth page URL onto the post-auth
+// redirect target so the save can resume after sign-in.
+function withSave(path: string, save: string | undefined): string {
+  if (!save) return path;
+  const [base, query] = path.split("?");
+  const params = new URLSearchParams(query);
+  params.set("save", save);
+  return `${base}?${params}`;
+}
+
+const SAVE_PATTERN = /^(tutor|case|course):.{1,}$/;
+
 export const Route = createFileRoute("/auth")({
   // Kept for backwards compatibility: existing links pass ?mode=sign_up,
   // but the merged page handles login and signup in one magic-link flow.
-  validateSearch: (search: Record<string, unknown>): { mode?: "sign_in" | "sign_up" } =>
-    search.mode === "sign_up" ? { mode: "sign_up" } : {},
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { mode?: "sign_in" | "sign_up"; redirect?: string; save?: string } => {
+    const redirect =
+      typeof search.redirect === "string" &&
+      search.redirect.startsWith("/") &&
+      !search.redirect.startsWith("//")
+        ? search.redirect
+        : undefined;
+    const save =
+      typeof search.save === "string" && SAVE_PATTERN.test(search.save) ? search.save : undefined;
+    return {
+      ...(search.mode === "sign_up" ? { mode: "sign_up" as const } : {}),
+      ...(redirect ? { redirect } : {}),
+      ...(save ? { save } : {}),
+    };
+  },
 
   head: () => ({
     meta: [
@@ -62,6 +89,8 @@ function AuthPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { redirect, save } = Route.useSearch();
+  const postAuthPath = redirect ?? "/tutors";
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -74,8 +103,8 @@ function AuthPage() {
   const siteKey = import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAEiLema3uiveM5pp";
 
   useEffect(() => {
-    if (user) navigate({ to: "/tutors", replace: true });
-  }, [user, navigate]);
+    if (user) navigate({ to: postAuthPath, replace: true });
+  }, [user, navigate, postAuthPath]);
 
   useEffect(() => {
     if (!siteKey || !captchaContainerRef.current) return;
@@ -150,7 +179,7 @@ function AuthPage() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/tutors`,
+          emailRedirectTo: `${window.location.origin}${withSave(postAuthPath, save)}`,
           captchaToken: captchaToken ?? undefined,
         },
       });
@@ -175,7 +204,7 @@ function AuthPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/tutors`,
+          redirectTo: `${window.location.origin}${withSave(postAuthPath, save)}`,
         },
       });
       if (error) throw error;
@@ -188,13 +217,13 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background">
       <SiteHeader />
 
-      <main className="flex flex-1 flex-col items-center overflow-hidden px-4 sm:px-6">
-        <div className="flex w-full max-w-[420px] flex-1 flex-col">
+      <main className="flex min-h-0 flex-1 flex-col items-center px-4 sm:px-6">
+        <div className="flex min-h-0 w-full max-w-[420px] flex-1 flex-col">
           {sentTo ? (
-            <div className="flex flex-1 flex-col items-center justify-center py-16 text-center">
+            <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
               <svg
                 className="h-12 w-12 text-[color:var(--ink)]"
                 viewBox="0 0 24 24"
@@ -223,19 +252,22 @@ function AuthPage() {
               </Button>
             </div>
           ) : (
-            <div className="flex flex-1 flex-col justify-start overflow-y-auto pt-[4vh] pb-6">
-              <div className="mb-3 flex justify-center">
-                <Logo className="h-24 w-24" imgClassName="h-24 w-24" />
+            <div className="flex min-h-0 flex-1 flex-col justify-start overflow-y-auto pt-1 pb-4">
+              <div className="mb-2 flex justify-center">
+                <Logo
+                  className="h-16 w-16 sm:h-20 sm:w-20"
+                  imgClassName="h-16 w-16 sm:h-20 sm:w-20"
+                />
               </div>
 
-              <h1 className="-mt-3 text-center text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+              <h1 className="-mt-1 text-center text-3xl font-bold tracking-tight text-[color:var(--ink)]">
                 {t("auth.login_or_signup_title")}
               </h1>
               <p className="mt-2 text-center text-sm text-muted-foreground">
                 {t("auth.magic_link_subtitle")}
               </p>
 
-              <form onSubmit={onSubmit} className="mt-8 space-y-3">
+              <form onSubmit={onSubmit} className="mt-6 space-y-3">
                 <div className="relative">
                   <Input
                     id="email"
@@ -283,7 +315,7 @@ function AuthPage() {
                 {captchaError ? <p className="text-sm text-destructive">{captchaError}</p> : null}
               </form>
 
-              <div className="my-6 flex items-center gap-3">
+              <div className="my-5 flex items-center gap-3">
                 <Separator className="flex-1" />
                 <span className="text-xs text-muted-foreground">{t("auth.or")}</span>
                 <Separator className="flex-1" />

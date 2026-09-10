@@ -1,18 +1,10 @@
-import { type MouseEvent, useState } from "react";
+import { type MouseEvent, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bookmark } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { AuthGateDialog, consumePendingSave } from "@/features/auth/AuthGateDialog";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -83,6 +75,16 @@ export function CaseSaveButton({ caseId, compact = false }: { caseId: string; co
     onError: (error: Error) => toast.error(error.message),
   });
 
+  // Resume a save that was interrupted by the sign-in flow (pending-save stash
+  // or ?save= URL param left by the Google OAuth round-trip).
+  useEffect(() => {
+    if (!user) return;
+    if (consumePendingSave("case", caseId)) {
+      mutation.mutate(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, caseId]);
+
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -113,37 +115,13 @@ export function CaseSaveButton({ caseId, compact = false }: { caseId: string; co
         <Bookmark className={saved ? "h-5 w-5 fill-current" : "h-5 w-5"} aria-hidden="true" />
       </Button>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-sm rounded-2xl border-border bg-[color:var(--surface)] p-6 shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-[color:var(--ink)]">
-              Sign up to save posts
-            </DialogTitle>
-            <DialogDescription className="pt-2 leading-relaxed">
-              Create a free account to bookmark tutoring requests and find them again later.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-2">
-            <DialogClose asChild>
-              <Button type="button" variant="outline" className="rounded-sm">
-                Maybe later
-              </Button>
-            </DialogClose>
-            <Button
-              type="button"
-              className="rounded-sm font-bold"
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                setDialogOpen(false);
-                window.location.assign("/auth?mode=sign_up");
-              }}
-            >
-              Sign up
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AuthGateDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        title="Save this request"
+        description="Sign up or log in to bookmark tutoring requests and find them again later."
+        pendingSave={saved ? undefined : { type: "case", id: caseId }}
+      />
     </>
   );
 }
