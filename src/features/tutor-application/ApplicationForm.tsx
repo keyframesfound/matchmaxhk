@@ -112,12 +112,17 @@ const SYSTEM_IDS: Record<string, string> = {
   SAT: "sat",
   IELTS: "ielts",
   ISAT: "isat",
-  UCAT: "ucat",
+  "UCAT(3600)": "ucat",
+  "UCAT(2700)": "ucat",
 };
 const IELTS_CURRICULUM = "IELTS";
 const IELTS_OVERALL_SUBJECT = "IELTS Overall";
 const ISAT_CURRICULUM = "ISAT";
-const UCAT_CURRICULUM = "UCAT";
+const UCAT_3600_CURRICULUM = "UCAT(3600)";
+const UCAT_2700_CURRICULUM = "UCAT(2700)";
+const isUcatCurriculum = (curriculum: string) =>
+  curriculum === UCAT_3600_CURRICULUM || curriculum === UCAT_2700_CURRICULUM;
+const ucatTotalCap = (curriculum: string) => (curriculum === UCAT_2700_CURRICULUM ? 2700 : 3600);
 const ISAT_OVERALL_SUBJECT = "ISAT Overall";
 const UCAT_TOTAL_SUBJECT = "UCAT Total";
 // Curricula whose score entry is one fixed subject row with a fixed set of
@@ -125,8 +130,16 @@ const UCAT_TOTAL_SUBJECT = "UCAT Total";
 const FIXED_SCORE_SUBJECTS: Record<string, string> = {
   [IELTS_CURRICULUM]: IELTS_OVERALL_SUBJECT,
   [ISAT_CURRICULUM]: ISAT_OVERALL_SUBJECT,
-  [UCAT_CURRICULUM]: UCAT_TOTAL_SUBJECT,
+  [UCAT_3600_CURRICULUM]: UCAT_TOTAL_SUBJECT,
+  [UCAT_2700_CURRICULUM]: UCAT_TOTAL_SUBJECT,
 };
+// From 2025 the UCAT withdrew Abstract Reasoning, so UCAT(2700) has four
+// components while UCAT(3600) keeps all five.
+const UCAT_2025_COMPONENT_LABELS = UCAT_COMPONENT_LABELS.filter(
+  (label) => label !== "Abstract Reasoning",
+);
+const ucatComponentLabels = (curriculum: string): readonly string[] =>
+  curriculum === UCAT_2700_CURRICULUM ? UCAT_2025_COMPONENT_LABELS : UCAT_COMPONENT_LABELS;
 const LANGUAGES = ["English", "Cantonese", "Mandarin"];
 const COUNTRY_OPTIONS = [
   "Hong Kong",
@@ -376,12 +389,15 @@ function blankScoreRow(curriculum: string): ScoreRow {
   const fixedSubject = FIXED_SCORE_SUBJECTS[curriculum];
   if (fixedSubject) {
     const system = getSystem(SYSTEM_IDS[curriculum] ?? "other");
+    const paperLabels = isUcatCurriculum(curriculum)
+      ? ucatComponentLabels(curriculum)
+      : (system?.paperLabels ?? []);
     return {
       subject: fixedSubject,
       grade: "",
       level: "",
       gradeSystem: "",
-      papers: (system?.paperLabels ?? []).map((label) => ({ label, score: "" })),
+      papers: paperLabels.map((label) => ({ label, score: "" })),
     };
   }
   return { subject: "", grade: "", level: "", gradeSystem: "", papers: [] };
@@ -397,7 +413,7 @@ function paperOptions(curriculum: string) {
   if (curriculum === "SAT") return ["Reading & Writing", "Math"];
   if (curriculum === IELTS_CURRICULUM) return [...IELTS_COMPONENT_LABELS];
   if (curriculum === ISAT_CURRICULUM) return [...ISAT_COMPONENT_LABELS];
-  if (curriculum === UCAT_CURRICULUM) return [...UCAT_COMPONENT_LABELS];
+  if (isUcatCurriculum(curriculum)) return [...ucatComponentLabels(curriculum)];
   return ["Paper 1", "Paper 2", "Paper 3", "Paper 4", "Coursework"];
 }
 
@@ -1019,7 +1035,9 @@ export function ApplicationForm() {
       const fixedSubject = FIXED_SCORE_SUBJECTS[qualifications[qualificationIndex].curriculum];
       if (fixedSubject) {
         const curriculum = qualifications[qualificationIndex].curriculum;
-        const componentLabels = getSystem(SYSTEM_IDS[curriculum] ?? "other")?.paperLabels ?? [];
+        const componentLabels = isUcatCurriculum(curriculum)
+          ? ucatComponentLabels(curriculum)
+          : (getSystem(SYSTEM_IDS[curriculum] ?? "other")?.paperLabels ?? []);
         const bands = new Map(
           extracted.scores.map((score) => [score.subject.trim().toLowerCase(), score.grade.trim()]),
         );
@@ -1247,7 +1265,12 @@ export function ApplicationForm() {
                 ? ["A*", "A", "B", "C", "D", "E", "F", "G", "U"]
                 : qualification.curriculum === "IGCSE / GCSE" && score.gradeSystem === "9-1"
                   ? ["9", "8", "7", "6", "5", "4", "3", "2", "1", "U"]
-                  : getGradesForSelection(system?.id ?? "other", score.subject);
+                  : isUcatCurriculum(qualification.curriculum) &&
+                      score.subject === UCAT_TOTAL_SUBJECT
+                    ? getGradesForSelection(system?.id ?? "other", score.subject).filter(
+                        (grade) => Number(grade) <= ucatTotalCap(qualification.curriculum),
+                      )
+                    : getGradesForSelection(system?.id ?? "other", score.subject);
           const availableSubjects = system?.subjects;
           const isFreeformQualification = qualification.curriculum === "Foundation / other";
           return (
@@ -1796,9 +1819,9 @@ export function ApplicationForm() {
                               ? "Best 5 Score"
                               : qualification.curriculum === IELTS_CURRICULUM
                                 ? "Overall Band Score"
-                                : ["IBDP", "SAT", ISAT_CURRICULUM, UCAT_CURRICULUM].includes(
+                                : ["IBDP", "SAT", ISAT_CURRICULUM].includes(
                                       qualification.curriculum,
-                                    )
+                                    ) || isUcatCurriculum(qualification.curriculum)
                                   ? "Overall Achieved Score"
                                   : "Overall Achieved Grades"
                           }
@@ -1807,9 +1830,9 @@ export function ApplicationForm() {
                         >
                           <Input
                             type={
-                              ["IBDP", "HKDSE", "SAT", ISAT_CURRICULUM, UCAT_CURRICULUM].includes(
+                              ["IBDP", "HKDSE", "SAT", ISAT_CURRICULUM].includes(
                                 qualification.curriculum,
-                              )
+                              ) || isUcatCurriculum(qualification.curriculum)
                                 ? "number"
                                 : "text"
                             }
@@ -1840,7 +1863,7 @@ export function ApplicationForm() {
                                     ? "1450"
                                     : qualification.curriculum === ISAT_CURRICULUM
                                       ? "165"
-                                      : qualification.curriculum === UCAT_CURRICULUM
+                                      : isUcatCurriculum(qualification.curriculum)
                                         ? "2450"
                                         : qualification.curriculum === IELTS_CURRICULUM
                                           ? "8.0"
