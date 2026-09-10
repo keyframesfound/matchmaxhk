@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/brand/Logo";
 import { toast } from "sonner";
 
 /** Effective date of the current Terms of Service (see /tos). Bump to re-prompt all users. */
@@ -17,7 +16,6 @@ function LockIllustration() {
       fill="none"
       aria-hidden
     >
-      <ellipse cx="120" cy="212" rx="56" ry="11" fill="currentColor" opacity="0.08" />
       <path
         d="M88 98V76a32 32 0 0 1 64 0v22"
         stroke="var(--brand-royal)"
@@ -70,10 +68,7 @@ export function AcceptTermsGate({ userId, onAccepted, onDecline }: AcceptTermsGa
     <div className="flex h-dvh flex-col overflow-hidden bg-background">
       <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 sm:px-6">
         <div className="flex w-full max-w-[400px] flex-col items-center text-center">
-          <Logo className="h-14 w-14" imgClassName="h-14 w-14" />
-          <div className="mt-8">
-            <LockIllustration />
-          </div>
+          <LockIllustration />
           <h1 className="mt-8 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
             {t("auth.tos_title")}
           </h1>
