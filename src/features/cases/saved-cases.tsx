@@ -41,9 +41,15 @@ async function setSavedCase({
   saved: boolean;
 }) {
   if (saved) {
-    const { error } = await supabase
-      .from("saved_cases")
-      .insert({ user_id: userId, case_id: caseId });
+    // ignoreDuplicates: resuming a pending save for a post the user already
+    // saved must not blow up with a unique-constraint (23505) error.
+    const { error } = await supabase.from("saved_cases").upsert(
+      { user_id: userId, case_id: caseId },
+      {
+        onConflict: "user_id,case_id",
+        ignoreDuplicates: true,
+      },
+    );
     if (error) throw error;
     return;
   }

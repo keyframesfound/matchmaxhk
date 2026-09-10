@@ -69,9 +69,15 @@ async function setSavedTutor({
   saved: boolean;
 }) {
   if (saved) {
-    const { error } = await supabase
-      .from("saved_tutors")
-      .insert({ user_id: userId, tutor_id: tutorId });
+    // ignoreDuplicates: resuming a pending save for a post the user already
+    // saved must not blow up with a unique-constraint (23505) error.
+    const { error } = await supabase.from("saved_tutors").upsert(
+      { user_id: userId, tutor_id: tutorId },
+      {
+        onConflict: "user_id,tutor_id",
+        ignoreDuplicates: true,
+      },
+    );
     if (error) throw error;
     return;
   }

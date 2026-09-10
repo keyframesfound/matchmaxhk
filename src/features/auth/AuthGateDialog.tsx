@@ -89,6 +89,17 @@ export function consumePendingSave(type: PendingSave["type"], id: string): boole
   return false;
 }
 
+// Swallow the click that dismissed the sheet so it can't fall through to the
+// element underneath (e.g. a tutor card opening its profile on click).
+function swallowDismissClick() {
+  const swallow = (event: Event) => {
+    event.stopPropagation();
+    event.preventDefault();
+  };
+  document.addEventListener("click", swallow, { capture: true, once: true });
+  window.setTimeout(() => document.removeEventListener("click", swallow, true), 450);
+}
+
 type AuthGateDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -134,8 +145,15 @@ export function AuthGateDialog({
     );
   }
 
+  function handleOpenChange(next: boolean) {
+    if (open && !next) {
+      swallowDismissClick();
+    }
+    onOpenChange(next);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="top-auto bottom-0 left-1/2 w-full max-w-[420px] translate-x-[-50%] translate-y-0 gap-0 rounded-t-3xl border-0 bg-[color:var(--surface)] p-6 pb-10 shadow-2xl data-[state=open]:slide-in-from-bottom-1/2 data-[state=closed]:slide-out-to-bottom-full sm:top-1/2 sm:bottom-auto sm:translate-y-[-50%] sm:rounded-3xl sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=open]:zoom-in-95">
         <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--muted)]">
           <Sparkles className="h-6 w-6 text-[color:var(--ink)]" aria-hidden="true" />
