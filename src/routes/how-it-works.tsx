@@ -200,21 +200,28 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
         <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_old")}</p>
         <p className="text-sm font-bold text-[color:var(--brand-link)]">{t("hiw.table_max")}</p>
       </div>
-      <ul>
+      <ul className="max-md:mt-8 max-md:space-y-4">
         {rows.map((row) => (
           <li
             key={row.aspect}
-            className="grid gap-x-10 gap-y-4 border-b border-[color:var(--ink)]/12 py-7 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-y-0 md:py-9"
+            className="border-b border-[color:var(--ink)]/12 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-x-10 md:py-9 max-md:rounded-2xl max-md:border max-md:border-[color:var(--hiw-compare-card-border)] max-md:bg-[color:var(--hiw-compare-card)] max-md:p-5 max-md:shadow-sm"
           >
             <h3 className="text-lg font-bold tracking-tight">{row.aspect}</h3>
-            <div>
-              <p className="mb-1 text-xs font-medium text-[color:var(--ink)]/45 md:hidden">
+            <div className="max-md:mt-4">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--ink)]/45 md:hidden">
                 {t("hiw.table_old_mobile")}
               </p>
               <p className="text-sm leading-6 text-[color:var(--ink)]/60">{row.oldWay}</p>
             </div>
-            <div>
-              <p className="mb-1 text-xs font-medium text-[color:var(--muted-foreground)] md:hidden">
+            <div aria-hidden="true" className="flex items-center gap-3 md:hidden max-md:mt-4">
+              <span className="h-px flex-1 bg-[color:var(--hiw-compare-line)]" />
+              <span className="rounded-full border border-[color:var(--hiw-compare-card-border)] bg-[color:var(--hiw-compare-pill)] px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-widest text-[color:var(--hiw-compare-pill-text)] shadow-sm">
+                {t("hiw.table_vs")}
+              </span>
+              <span className="h-px flex-1 bg-[color:var(--hiw-compare-line)]" />
+            </div>
+            <div className="max-md:mt-4 max-md:rounded-xl max-md:bg-[color:var(--hiw-compare-max-panel)] max-md:p-4">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--brand-link)] md:hidden">
                 {t("hiw.table_max")}
               </p>
               <p className="text-sm leading-6 text-[color:var(--ink)]">
