@@ -1,11 +1,17 @@
 import { useSyncExternalStore } from "react";
 
+const visibleKeys = new Set<string>();
 let visible = false;
 const listeners = new Set<() => void>();
 
-export function setCompareBarVisible(next: boolean) {
-  if (next === visible) return;
-  visible = next;
+// Multiple compare bars (tutors, cases) can be mounted at once; visibility is
+// true while any source requests it.
+export function setCompareBarVisible(key: string, next: boolean) {
+  if (next) visibleKeys.add(key);
+  else visibleKeys.delete(key);
+  const nextVisible = visibleKeys.size > 0;
+  if (nextVisible === visible) return;
+  visible = nextVisible;
   for (const listener of listeners) listener();
 }
 

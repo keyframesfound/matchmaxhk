@@ -1,27 +1,79 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { TARGET_PATHWAY_LABELS, TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
 
 const phoneRegex = /^[+(\d][\d\s()./+-]{4,19}\d$/;
 
-const CaseRequestInput = z.object({
-  parentName: z.string().trim().min(1, "Name is required.").max(80),
-  contactPhone: z.string().trim().regex(phoneRegex, "Please enter a valid phone number."),
-  level: z.string().trim().min(1).max(40),
-  examSystem: z.string().trim().max(40).optional().nullable(),
-  subjects: z.array(z.string().trim().min(1).max(120)).min(1).max(4),
-  mode: z.enum(["online", "in_person", "either"]),
-  district: z.string().trim().max(80).optional().nullable(),
-  sessionsPerWeek: z.number().int().min(1).max(14).optional().nullable(),
-  sessionLengthMinutes: z.number().int().min(30).max(240).optional().nullable(),
-  budgetMin: z.number().int().min(0).max(100000).optional().nullable(),
-  budgetMax: z.number().int().min(0).max(100000).optional().nullable(),
-  preferredGender: z.enum(["any", "male", "female"]),
-  startTiming: z.enum(["asap", "two_weeks", "flexible"]).optional().nullable(),
-  notes: z.string().trim().max(2000).optional().nullable(),
-  website: z.string().max(0).optional().nullable(),
-  elapsedMs: z.number().int(),
-});
+const CaseRequestInput = z
+  .object({
+    requesterType: z.enum(["parent", "student"]),
+    parentName: z.string().trim().min(1, "Name is required.").max(80),
+    contactPhone: z.string().trim().regex(phoneRegex, "Please enter a valid phone number."),
+    contactEmail: z.string().trim().email("Please enter a valid email address.").max(120),
+    supportType: z.enum(["subject_tutoring", "admissions"]),
+    // Path A: subject tutoring (null for admissions)
+    curriculum: z.string().trim().max(40).optional().nullable(),
+    subjects: z.array(z.string().trim().min(1).max(120)).max(4),
+    specificComponent: z.string().trim().max(80).optional().nullable(),
+    instructionLanguage: z
+      .enum(["english_only", "cantonese", "mandarin", "bilingual", "any"])
+      .optional()
+      .nullable(),
+    schoolType: z.string().trim().max(80).optional().nullable(),
+    // Path B: admissions (null for subject tutoring)
+    targetPathway: z.enum(["ucas_uk", "us_admissions", "hk_jupas", "tests"]).optional().nullable(),
+    targetSchool: z.string().trim().max(120).optional().nullable(),
+    interviewTest: z
+      .enum(["Medicine MMI", "Oxbridge", "IELTS", "SAT", "UCAT", "ISAT"])
+      .optional()
+      .nullable(),
+    // Shared
+    year: z.string().trim().max(40).optional().nullable(),
+    schoolName: z.string().trim().max(120).optional().nullable(),
+    mode: z.enum(["online", "offline", "both", "no_pref"]),
+    district: z.string().trim().max(80).optional().nullable(),
+    budgetMax: z.number().int().min(0).max(100000).optional().nullable(),
+    tutorBackground: z.enum(["uni_student", "official_examiner", "any"]),
+    notes: z.string().trim().max(2000).optional().nullable(),
+    website: z.string().max(0).optional().nullable(),
+    elapsedMs: z.number().int(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.supportType === "subject_tutoring") {
+      if (!data.curriculum) {
+        ctx.addIssue({ code: "custom", path: ["curriculum"], message: "Curriculum is required." });
+      }
+      if (data.subjects.length === 0) {
+        ctx.addIssue({ code: "custom", path: ["subject1"], message: "Subject is required." });
+      }
+      if (!data.instructionLanguage) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["instructionLanguage"],
+          message: "Instruction language is required.",
+        });
+      }
+    } else {
+      if (!data.targetPathway) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["targetPathway"],
+          message: "Target pathway is required.",
+        });
+      }
+      if (!data.interviewTest) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["interviewTest"],
+          message: "Interview / test is required.",
+        });
+      }
+    }
+    if (data.mode !== "online" && !data.district) {
+      ctx.addIssue({ code: "custom", path: ["district"], message: "MTR station is required." });
+    }
+  });
 
 export type CaseRequestPayload = z.infer<typeof CaseRequestInput>;
 
@@ -37,6 +89,9 @@ export type PublicCaseBoardItem = {
   mode: "online" | "in_person" | "either";
   sessionsPerWeek: number;
   sessionLengthMinutes: number;
+  languageOfInstruction: string | null;
+  tutorBackground: string | null;
+  tags: string[];
   preferredGender: "any" | "male" | "female";
   startTiming: string | null;
   budgetMin: number | null;
@@ -46,9 +101,9 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, preferred_gender, start_timing, budget_min, budget_max, board_published_at, created_at";
+  "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, tags, preferred_gender, start_timing, budget_min, budget_max, board_published_at, created_at";
 
-// Never contact_name / contact_phone / student_school / student_grade_current.
+// Never contact_name / contact_phone / contact_email / student_school / student_grade_current.
 function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
   return {
     id: row.id as string,
@@ -62,6 +117,9 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
     mode: row.mode as "online" | "in_person" | "either",
     sessionsPerWeek: (row.sessions_per_week as number | null) ?? 1,
     sessionLengthMinutes: (row.session_length_minutes as number | null) ?? 60,
+    languageOfInstruction: (row.language_of_instruction as string | null) ?? null,
+    tutorBackground: (row.tutor_background as string | null) ?? null,
+    tags: (row.tags as string[] | null) ?? [],
     preferredGender: (row.preferred_gender as "any" | "male" | "female") ?? "any",
     startTiming: (row.start_timing as string | null) ?? null,
     budgetMin: (row.budget_min as number | null) ?? null,
@@ -121,10 +179,59 @@ export const getPublicCaseByCode = createServerFn({ method: "GET" })
     };
   });
 
-function buildCaseTitle(subjects: string[], level: string): string {
-  const subjectPart = subjects.slice(0, 2).join(", ");
-  const extra = subjects.length > 2 ? ` +${subjects.length - 2} more` : "";
-  return `${level}: ${subjectPart}${extra}`;
+function buildCaseTitle(data: CaseRequestPayload): string {
+  const level = data.year?.trim() || "";
+  if (data.supportType === "admissions") {
+    const bits = [
+      TARGET_PATHWAY_LABELS[data.targetPathway ?? ""] ?? "",
+      data.targetSchool?.trim() || data.interviewTest || "",
+    ].filter(Boolean);
+    const label = bits.length ? bits.join(" · ") : "University admissions";
+    return level ? `${level}: ${label}` : label;
+  }
+  const subjectPart = data.subjects.slice(0, 2).join(", ");
+  const extra = data.subjects.length > 2 ? ` +${data.subjects.length - 2} more` : "";
+  if (!subjectPart) return level || "Tutor request";
+  return level ? `${level}: ${subjectPart}${extra}` : `${subjectPart}${extra}`;
+}
+
+// Delivered-mode form values -> case_mode enum.
+const MODE_TO_DB: Record<string, "online" | "in_person" | "either"> = {
+  online: "online",
+  offline: "in_person",
+  both: "either",
+  no_pref: "either",
+};
+
+// Instruction-language form tokens -> legacy tokens the tutor-matching
+// function (match_tutors_for_case) already understands.
+const LANGUAGE_TO_DB: Record<string, string> = {
+  english_only: "en",
+  cantonese: "zh-HK",
+  mandarin: "zh-HK",
+  bilingual: "either",
+  any: "either",
+};
+
+// Standardized tags that map this request onto tutor-profile vocabulary
+// ("Subjects Taught" and "Achievements and Experiences") for Case Cards.
+function buildCaseTags(data: CaseRequestPayload): string[] {
+  const tags = new Set<string>();
+  for (const subject of data.subjects) tags.add(subject.trim());
+  if (data.specificComponent && data.specificComponent !== "None") {
+    tags.add(data.specificComponent.trim());
+  }
+  const backgroundLabel = TUTOR_BACKGROUND_LABELS[data.tutorBackground ?? ""];
+  if (backgroundLabel && data.tutorBackground !== "any") tags.add(backgroundLabel);
+  if (data.supportType === "admissions") {
+    const pathwayLabel = TARGET_PATHWAY_LABELS[data.targetPathway ?? ""];
+    if (pathwayLabel) tags.add(pathwayLabel);
+    if (data.interviewTest) tags.add(data.interviewTest);
+  }
+  return Array.from(tags)
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .slice(0, 8);
 }
 
 // Each phone number can create at most 5 case requests in total.
@@ -155,18 +262,29 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
     }
 
     const insertRow = {
-      title: buildCaseTitle(data.subjects, data.level),
+      title: buildCaseTitle(data),
       description: data.notes?.trim() ? data.notes.trim() : null,
       subjects: data.subjects,
-      exam_system: data.examSystem || null,
-      student_level: data.level,
+      exam_system: data.supportType === "subject_tutoring" ? data.curriculum || null : null,
+      student_level: data.year?.trim() || "Unspecified",
+      contact_email: data.contactEmail,
+      requester_type: data.requesterType,
+      support_type: data.supportType,
+      specific_component:
+        data.supportType === "subject_tutoring" ? (data.specificComponent ?? null) : null,
+      target_pathway: data.supportType === "admissions" ? (data.targetPathway ?? null) : null,
+      target_school: data.supportType === "admissions" ? data.targetSchool || null : null,
+      interview_test: data.supportType === "admissions" ? (data.interviewTest ?? null) : null,
+      school_type: data.supportType === "subject_tutoring" ? data.schoolType || null : null,
+      tutor_background: data.tutorBackground,
+      language_of_instruction: LANGUAGE_TO_DB[data.instructionLanguage ?? ""] ?? "either",
+      tags: buildCaseTags(data),
       district: data.district || null,
-      mode: data.mode,
-      sessions_per_week: data.sessionsPerWeek ?? 1,
-      session_length_minutes: data.sessionLengthMinutes ?? 60,
-      start_timing: data.startTiming || null,
-      preferred_gender: data.preferredGender,
-      budget_min: data.budgetMin ?? null,
+      mode: MODE_TO_DB[data.mode] ?? "either",
+      sessions_per_week: 1,
+      session_length_minutes: 60,
+      preferred_gender: "any" as const,
+      budget_min: null,
       budget_max: data.budgetMax ?? null,
       contact_name: data.parentName,
       contact_phone: data.contactPhone,

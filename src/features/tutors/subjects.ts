@@ -25,10 +25,29 @@ export const DEFAULT_SUBJECT_OPTIONS: string[] = (() => {
     "Primary English",
     "Primary Mathematics",
     "Primary Chinese",
+    "Primary Science",
+    "Phonics",
   ])
     set.add(s);
   return Array.from(set).sort((a, b) => a.localeCompare(b));
 })();
+
+// Primary-school tracks used by the tutor request form's "Local Primary"
+// and "Int'l Primary" curricula. Kept in sync with tutor subject tags.
+export const LOCAL_PRIMARY_SUBJECTS = [
+  "Primary Chinese",
+  "Primary English",
+  "Primary Mathematics",
+  "General Studies",
+  "Phonics",
+].sort((a, b) => a.localeCompare(b));
+
+export const INTL_PRIMARY_SUBJECTS = [
+  "Primary English",
+  "Primary Mathematics",
+  "Primary Science",
+  "Phonics",
+].sort((a, b) => a.localeCompare(b));
 
 /**
  * Category -> exam-system id, so subject dropdowns can narrow to the

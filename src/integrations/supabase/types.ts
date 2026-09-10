@@ -71,6 +71,35 @@ export type Database = {
           },
         ];
       };
+      compared_cases: {
+        Row: {
+          case_id: string;
+          created_at: string;
+          id: string;
+          user_id: string;
+        };
+        Insert: {
+          case_id: string;
+          created_at?: string;
+          id?: string;
+          user_id: string;
+        };
+        Update: {
+          case_id?: string;
+          created_at?: string;
+          id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compared_cases_case_id_fkey";
+            columns: ["case_id"];
+            isOneToOne: false;
+            referencedRelation: "tutoring_cases";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       courses: {
         Row: {
           created_at: string;
@@ -504,6 +533,7 @@ export type Database = {
           budget_max: number | null;
           budget_min: number | null;
           case_code: string;
+          contact_email: string | null;
           contact_name: string;
           contact_phone: string;
           created_at: string;
@@ -511,23 +541,31 @@ export type Database = {
           district: string | null;
           exam_system: string | null;
           id: string;
+          interview_test: string | null;
           language_of_instruction: string;
           last_contacted_at: string | null;
           mode: Database["public"]["Enums"]["case_mode"];
           parent_id: string | null;
           preferred_gender: Database["public"]["Enums"]["case_gender_pref"];
+          requester_type: string | null;
           schedule_note: string | null;
+          school_type: string | null;
           session_length_minutes: number;
           sessions_per_week: number;
           source: string;
+          specific_component: string | null;
           start_timing: string | null;
           status: Database["public"]["Enums"]["case_request_status"];
           student_grade_current: string | null;
           student_level: string;
           student_school: string | null;
           subjects: string[];
+          support_type: string | null;
           tags: string[];
+          target_pathway: string | null;
+          target_school: string | null;
           title: string;
+          tutor_background: string | null;
           updated_at: string;
           urgency: Database["public"]["Enums"]["case_urgency"];
         };
@@ -537,6 +575,7 @@ export type Database = {
           budget_max?: number | null;
           budget_min?: number | null;
           case_code?: string;
+          contact_email?: string | null;
           contact_name: string;
           contact_phone: string;
           created_at?: string;
@@ -544,23 +583,31 @@ export type Database = {
           district?: string | null;
           exam_system?: string | null;
           id?: string;
+          interview_test?: string | null;
           language_of_instruction?: string;
           last_contacted_at?: string | null;
           mode?: Database["public"]["Enums"]["case_mode"];
           parent_id?: string | null;
           preferred_gender?: Database["public"]["Enums"]["case_gender_pref"];
+          requester_type?: string | null;
           schedule_note?: string | null;
+          school_type?: string | null;
           session_length_minutes?: number;
           sessions_per_week?: number;
           source?: string;
+          specific_component?: string | null;
           start_timing?: string | null;
           status?: Database["public"]["Enums"]["case_request_status"];
           student_grade_current?: string | null;
           student_level: string;
           student_school?: string | null;
           subjects?: string[];
+          support_type?: string | null;
           tags?: string[];
+          target_pathway?: string | null;
+          target_school?: string | null;
           title: string;
+          tutor_background?: string | null;
           updated_at?: string;
           urgency?: Database["public"]["Enums"]["case_urgency"];
         };
@@ -570,6 +617,7 @@ export type Database = {
           budget_max?: number | null;
           budget_min?: number | null;
           case_code?: string;
+          contact_email?: string | null;
           contact_name?: string;
           contact_phone?: string;
           created_at?: string;
@@ -577,23 +625,31 @@ export type Database = {
           district?: string | null;
           exam_system?: string | null;
           id?: string;
+          interview_test?: string | null;
           language_of_instruction?: string;
           last_contacted_at?: string | null;
           mode?: Database["public"]["Enums"]["case_mode"];
           parent_id?: string | null;
           preferred_gender?: Database["public"]["Enums"]["case_gender_pref"];
+          requester_type?: string | null;
           schedule_note?: string | null;
+          school_type?: string | null;
           session_length_minutes?: number;
           sessions_per_week?: number;
           source?: string;
+          specific_component?: string | null;
           start_timing?: string | null;
           status?: Database["public"]["Enums"]["case_request_status"];
           student_grade_current?: string | null;
           student_level?: string;
           student_school?: string | null;
           subjects?: string[];
+          support_type?: string | null;
           tags?: string[];
+          target_pathway?: string | null;
+          target_school?: string | null;
           title?: string;
+          tutor_background?: string | null;
           updated_at?: string;
           urgency?: Database["public"]["Enums"]["case_urgency"];
         };

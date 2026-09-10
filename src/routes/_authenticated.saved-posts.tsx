@@ -12,6 +12,12 @@ import { TutorSaveButton, fetchSavedTutors } from "@/features/tutors/saved-tutor
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
 import { CourseSaveButton, fetchSavedCourses } from "@/features/courses/saved-courses";
 import { CaseSaveButton, useSavedCaseIds } from "@/features/cases/saved-cases";
+import {
+  CaseCompareBar,
+  CaseCompareDialog,
+  CaseCompareToggle,
+  useCaseCompare,
+} from "@/features/cases/compare-cases";
 import { CASE_MODE_LABEL, formatCaseBudget, formatCaseSchedule } from "@/features/cases/display";
 import { getPublicCaseBoard } from "@/lib/cases.functions";
 import { courseModeLabel, formatCoursePrice } from "@/features/courses/queries";
@@ -58,6 +64,15 @@ function SavedPostsPage() {
     return (caseBoardQuery.data?.items ?? []).filter((item) => ids.has(item.id));
   }, [savedCaseIdsQuery.data, caseBoardQuery.data]);
   const whatsappNumber = caseBoardQuery.data?.whatsappNumber ?? "";
+
+  const {
+    compareCases,
+    compareOpen: caseCompareOpen,
+    setCompareOpen: setCaseCompareOpen,
+    clearCompare: clearCaseCompare,
+  } = useCaseCompare(savedCases);
+  const tutorBarVisible = compareTutors.length > 0 && !compareOpen;
+  const caseBarVisible = compareCases.length > 0 && !caseCompareOpen;
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--surface-subtle)] text-[color:var(--ink)]">
@@ -198,6 +213,7 @@ function SavedPostsPage() {
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-1">
+                          <CaseCompareToggle caseId={item.id} />
                           <CaseSaveButton caseId={item.id} compact />
                           <span className="text-sm font-semibold text-[color:var(--ink)]">
                             View details
@@ -276,11 +292,23 @@ function SavedPostsPage() {
         </div>
       </main>
       <SiteFooter />
-      {compareTutors.length > 0 && !compareOpen ? (
+      {tutorBarVisible ? (
         <CompareBar
           selectedTutors={compareTutors}
           onOpenCompare={() => setCompareOpen(true)}
           onClear={clearCompare}
+        />
+      ) : null}
+      {caseBarVisible ? (
+        <CaseCompareBar
+          count={compareCases.length}
+          onOpenCompare={() => setCaseCompareOpen(true)}
+          onClear={clearCaseCompare}
+          className={
+            tutorBarVisible
+              ? "fixed bottom-[8.75rem] left-1/2 z-40 w-[min(92vw,30rem)] -translate-x-1/2 sm:bottom-[4.75rem]"
+              : undefined
+          }
         />
       ) : null}
       <CompareDialog
@@ -288,6 +316,11 @@ function SavedPostsPage() {
         onOpenChange={setCompareOpen}
         tutors={compareTutors}
         whatsappNumber={whatsappNumber}
+      />
+      <CaseCompareDialog
+        open={caseCompareOpen}
+        onOpenChange={setCaseCompareOpen}
+        cases={compareCases}
       />
     </div>
   );

@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
+import { useState } from "react";
 import {
   ArrowLeft,
   CalendarClock,
@@ -7,14 +8,17 @@ import {
   Clock,
   GraduationCap,
   MapPin,
+  Share2,
   Wallet,
 } from "lucide-react";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   CASE_GENDER_LABEL,
+  CASE_LANGUAGE_LABEL,
   CASE_MODE_LABEL,
   CASE_START_LABEL,
   buildCaseApplyWhatsAppUrl,
@@ -23,8 +27,10 @@ import {
   formatCaseTitle,
   formatStudentLevel,
 } from "@/features/cases/display";
+import { TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
 import { getPublicCaseByCode, type PublicCaseBoardItem } from "@/lib/cases.functions";
+import { shareOrCopy } from "@/lib/share";
 
 type CaseDetailData = { item: PublicCaseBoardItem; whatsappNumber: string };
 
@@ -76,6 +82,19 @@ function CaseDetailPage() {
   const { item, whatsappNumber } = Route.useLoaderData() as CaseDetailData;
   const applyUrl = buildCaseApplyWhatsAppUrl(whatsappNumber, item.caseCode);
   const title = formatCaseTitle(item.studentLevel, item.subjects) || item.title;
+  const [isSharing, setIsSharing] = useState(false);
+
+  const handleShare = () => {
+    setIsSharing(true);
+    void shareOrCopy({
+      title: `${title} — Case ${item.caseCode} | MatchMax`,
+      text: `Check out this tutoring request (Case ${item.caseCode}) on MatchMax — ${formatCaseBudget(
+        item.budgetMin,
+        item.budgetMax,
+      )}.`,
+      url: window.location.href,
+    }).finally(() => setIsSharing(false));
+  };
 
   const meta = [
     {
@@ -109,6 +128,14 @@ function CaseDetailPage() {
     `Tutor gender: ${CASE_GENDER_LABEL[item.preferredGender] ?? "No preference"}`,
     `Start: ${CASE_START_LABEL[item.startTiming ?? ""] ?? "flexible"}`,
   ];
+  const languageLabel = CASE_LANGUAGE_LABEL[item.languageOfInstruction ?? ""];
+  if (item.languageOfInstruction && languageLabel && item.languageOfInstruction !== "either") {
+    preferences.splice(1, 0, `Instruction language: ${languageLabel}`);
+  }
+  const backgroundLabel = TUTOR_BACKGROUND_LABELS[item.tutorBackground ?? ""];
+  if (item.tutorBackground && item.tutorBackground !== "any" && backgroundLabel) {
+    preferences.push(`Tutor background: ${backgroundLabel}`);
+  }
 
   return (
     <PublicPage>
@@ -144,11 +171,32 @@ function CaseDetailPage() {
                   </span>
                 ) : null}
               </div>
+              {item.tags.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {item.tags.map((tag) => (
+                    <Badge key={tag} variant="outline" className="rounded-sm font-semibold">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              ) : null}
               <p className="text-xs text-muted-foreground">
                 Posted {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                aria-label="Share this case profile"
+                title="Share this case"
+                disabled={isSharing}
+                onClick={handleShare}
+              >
+                <Share2 className="h-4 w-4" aria-hidden="true" />
+              </Button>
               <CaseSaveButton caseId={item.id} />
               <Button asChild size="lg" variant="solid" color="blue">
                 <a href={applyUrl} target="_blank" rel="noreferrer">

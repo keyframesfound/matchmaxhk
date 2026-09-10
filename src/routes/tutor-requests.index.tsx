@@ -9,6 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CaseRequestForm } from "@/features/cases/CaseRequestForm";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
+import {
+  CaseCompareBar,
+  CaseCompareDialog,
+  CaseCompareToggle,
+  useCaseCompare,
+} from "@/features/cases/compare-cases";
 import { CASE_MODE_LABEL, formatCaseBudget, formatCaseSchedule } from "@/features/cases/display";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
@@ -87,6 +93,7 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
           </div>
         </div>
         <span className="flex shrink-0 items-center gap-1 text-sm font-semibold text-[color:var(--ink)]">
+          <CaseCompareToggle caseId={item.id} />
           <CaseSaveButton caseId={item.id} compact />
           View details
           <ArrowRight
@@ -131,6 +138,8 @@ function TutorRequestsPage() {
   });
   const cases = useMemo(() => data?.items ?? [], [data]);
   const isLoading = !data;
+
+  const { compareCases, compareOpen, setCompareOpen, clearCompare } = useCaseCompare(cases);
 
   const openForm = () => {
     setFormOpen(true);
@@ -296,6 +305,14 @@ function TutorRequestsPage() {
           </div>
         </div>
       </section>
+      {compareCases.length > 0 && !compareOpen ? (
+        <CaseCompareBar
+          count={compareCases.length}
+          onOpenCompare={() => setCompareOpen(true)}
+          onClear={clearCompare}
+        />
+      ) : null}
+      <CaseCompareDialog open={compareOpen} onOpenChange={setCompareOpen} cases={compareCases} />
     </PublicPage>
   );
 }

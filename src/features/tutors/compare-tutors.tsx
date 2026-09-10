@@ -292,8 +292,8 @@ export function useTutorCompare(tutors: Tutor[]) {
   const compareBarVisible = compareTutors.length > 0 && !compareOpen;
 
   useEffect(() => {
-    setCompareBarVisible(compareBarVisible);
-    return () => setCompareBarVisible(false);
+    setCompareBarVisible("tutor-compare", compareBarVisible);
+    return () => setCompareBarVisible("tutor-compare", false);
   }, [compareBarVisible]);
 
   return {

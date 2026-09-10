@@ -34,6 +34,7 @@ import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MarkdownText } from "@/components/ui/markdown-text";
+import { shareOrCopy } from "@/lib/share";
 
 function buildTutorSeoMeta(tutor: Tutor, url: string) {
   const subjects = (tutor.subjects ?? []).filter(Boolean);
@@ -418,31 +419,16 @@ function TutorDetail() {
   const tutorSeoSummary = `Tutor ${t.tutor_code} offers ${subjectText || "tutoring"} support${getTutorStationsText(t) ? ` in ${getTutorStationsText(t)}` : " in Hong Kong"}. ${t.lesson_mode === "online" ? "Online lessons are available." : t.lesson_mode === "either" ? "Online and in-person lessons are available." : "In-person lessons are available."} Browse rates and availability on MatchMax.`;
 
   const [isSharing, setIsSharing] = useState(false);
-  const handleShare = async () => {
-    const shareData = {
-      title: `Tutor ${t.tutor_code} | MatchMax`,
-      text: `Check out tutor ${t.tutor_code} on MatchMax — HK$${t.hourly_rate}/hr.`,
-      url: window.location.href,
-    };
-    try {
-      if (typeof navigator.share === "function") {
-        setIsSharing(true);
-        await navigator.share(shareData);
-        return;
-      }
-      await navigator.clipboard.writeText(shareData.url);
-      toast.success(translate("profile.link_copied"));
-    } catch (error) {
-      if ((error as DOMException)?.name === "AbortError") return;
-      try {
-        await navigator.clipboard.writeText(shareData.url);
-        toast.success(translate("profile.link_copied"));
-      } catch {
-        toast.error("Couldn't share this profile");
-      }
-    } finally {
-      setIsSharing(false);
-    }
+  const handleShare = () => {
+    setIsSharing(true);
+    void shareOrCopy(
+      {
+        title: `Tutor ${t.tutor_code} | MatchMax`,
+        text: `Check out tutor ${t.tutor_code} on MatchMax — HK$${t.hourly_rate}/hr.`,
+        url: window.location.href,
+      },
+      translate("profile.link_copied"),
+    ).finally(() => setIsSharing(false));
   };
   const tutorStructuredData = {
     "@context": "https://schema.org",
