@@ -175,7 +175,7 @@
     "magic_link_subtitle": "我們會電郵一條安全登入連結給你，無需密碼。",
     "sending_link": "發送連結中…",
     "check_email_title": "請檢查你嘅電郵",
-    "check_email_body": "登入連結已發送至 {email}，一小時內有效。",
+    "check_email_body": "登入連結已發送至 {{email}}，一小時內有效。",
     "different_email": "改用其他電郵"
   },
   "dashboard": {

@@ -150,7 +150,7 @@
     "magic_link_subtitle": "We'll email you a secure sign-in link. No password needed.",
     "sending_link": "Sending link…",
     "check_email_title": "Check your email",
-    "check_email_body": "We sent a sign-in link to {email}. It expires in one hour.",
+    "check_email_body": "We sent a sign-in link to {{email}}. It expires in one hour.",
     "different_email": "Use a different email"
   },
   "dashboard": {

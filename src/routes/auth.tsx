@@ -204,9 +204,18 @@ function AuthPage() {
         <div className="flex w-full max-w-[420px] flex-1 flex-col">
           {sentTo ? (
             <div className="flex flex-1 flex-col items-center justify-center py-16 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--muted)] text-2xl">
-                ✉️
-              </div>
+              <svg
+                className="h-12 w-12 text-[color:var(--ink)]"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                aria-hidden
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M2 12h20" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
               <h1 className="mt-6 text-2xl font-bold tracking-tight text-[color:var(--ink)]">
                 {t("auth.check_email_title")}
               </h1>
