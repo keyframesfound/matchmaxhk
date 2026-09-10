@@ -17,7 +17,7 @@ const CaseRequestInput = z
     subjects: z.array(z.string().trim().min(1).max(120)).max(4),
     specificComponent: z.string().trim().max(80).optional().nullable(),
     instructionLanguage: z
-      .array(z.enum(["english_only", "cantonese", "mandarin", "bilingual", "any"]))
+      .array(z.enum(["english_only", "cantonese", "mandarin", "any"]))
       .max(5)
       .optional()
       .nullable(),
@@ -224,7 +224,6 @@ const LANGUAGE_TO_DB: Record<string, string> = {
   english_only: "en",
   cantonese: "zh-HK",
   mandarin: "zh-HK",
-  bilingual: "either",
   any: "either",
 };
 

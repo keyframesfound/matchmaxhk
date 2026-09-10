@@ -68,7 +68,7 @@ export const CURRICULUM_COMPONENTS: Record<string, string[]> = {
 // Always rendered on Path A (per user decision), disabled until curriculum chosen.
 
 export const INSTRUCTION_LANGUAGE_OPTIONS = [
-  { value: "english_only", label: "English only" },
+  { value: "english_only", label: "English" },
   { value: "cantonese", label: "Cantonese" },
   { value: "mandarin", label: "Mandarin" },
   { value: "bilingual", label: "Bilingual" },

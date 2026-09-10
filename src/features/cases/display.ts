@@ -47,7 +47,6 @@ export const CASE_LANGUAGE_LABEL: Record<string, string> = {
   english_only: "English only",
   cantonese: "Cantonese",
   mandarin: "Mandarin",
-  bilingual: "Bilingual",
   any: "No preference",
 };
 
