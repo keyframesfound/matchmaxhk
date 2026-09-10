@@ -1,8 +1,9 @@
-import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Logo } from "@/components/brand/Logo";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -61,7 +62,6 @@ function AuthPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -188,19 +188,10 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <header className="flex items-center justify-between px-4 py-3 sm:px-6">
-        <Link
-          to="/"
-          className="flex items-center gap-2 font-bold tracking-tight text-[color:var(--ink)]"
-          aria-label="MatchMax home"
-        >
-          <Logo className="h-8 w-8" />
-          <span>MatchMax</span>
-        </Link>
-      </header>
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
+      <SiteHeader />
 
-      <main className="flex flex-1 flex-col items-center px-4 pb-16 sm:px-6">
+      <main className="flex flex-1 flex-col items-center overflow-hidden px-4 sm:px-6">
         <div className="flex w-full max-w-[420px] flex-1 flex-col">
           {sentTo ? (
             <div className="flex flex-1 flex-col items-center justify-center py-16 text-center">
@@ -232,9 +223,9 @@ function AuthPage() {
               </Button>
             </div>
           ) : (
-            <div className="flex flex-1 flex-col justify-center pt-2 pb-24">
-              <div className="mb-10 flex justify-center">
-                <Logo className="h-24 w-24" />
+            <div className="flex flex-1 flex-col justify-start overflow-y-auto pt-[6vh] pb-6">
+              <div className="mb-8 flex justify-center">
+                <Logo className="h-24 w-24" imgClassName="h-24 w-24" />
               </div>
 
               <h1 className="text-center text-3xl font-bold tracking-tight text-[color:var(--ink)]">
