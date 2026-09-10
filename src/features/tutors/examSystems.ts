@@ -1,4 +1,5 @@
-export type ExamSystemId = "ib" | "dse" | "alevel" | "igcse" | "ap" | "sat" | "ielts" | "other";
+export type ExamSystemId =
+  "ib" | "dse" | "alevel" | "igcse" | "ap" | "sat" | "ielts" | "isat" | "ucat" | "other";
 
 export type ExamSystem = {
   id: ExamSystemId;
@@ -23,6 +24,12 @@ export type ExamSystem = {
    * instead of a free-text input.
    */
   paperScoreOptions?: readonly string[];
+  /**
+   * Per-component score options that override `paperScoreOptions` for a
+   * given label (e.g. UCAT cognitive subtests are 300–900 while Situational
+   * Judgement uses bands). Falls back to `paperScoreOptions` when omitted.
+   */
+  paperScoreOptionsFor?: (label: string) => readonly string[];
   /**
    * True when the system is a qualification (e.g. IELTS) whose "subjects"
    * are score entries, not teachable subjects — they are excluded from
@@ -274,6 +281,35 @@ const IGCSE_GRADES_LEGACY = ["A*", "A", "B", "C", "D", "E", "F", "G", "U"];
 const AP_GRADES = ["5", "4", "3", "2", "1"];
 const IELTS_BANDS = ["9.0", "8.5", "8.0", "7.5", "7.0", "6.5", "6.0", "5.5", "5.0", "4.5", "4.0"];
 
+const numericScale = (min: number, max: number, step: number): string[] => {
+  const out: string[] = [];
+  for (let s = max; s >= min; s -= step) out.push(String(s));
+  return out;
+};
+
+const ISAT_SUBJECTS = ["ISAT Overall"];
+const UCAT_SUBJECTS = ["UCAT Total"];
+
+export const ISAT_COMPONENT_LABELS = ["Critical Reasoning", "Quantitative Reasoning"] as const;
+export const UCAT_COMPONENT_LABELS = [
+  "Verbal Reasoning",
+  "Decision Making",
+  "Quantitative Reasoning",
+  "Situational Judgement",
+  "Abstract Reasoning",
+] as const;
+
+// ISAT sections and overall are scaled 100–200 (integers).
+const ISAT_SCORES = numericScale(100, 200, 1);
+// UCAT cognitive subtests are scaled 300–900 in 10-point steps. The total is
+// 900–2700 from 2025 (Abstract Reasoning withdrawn) and 1200–3600 before.
+const UCAT_SUBTEST_SCORES = numericScale(300, 900, 10);
+const UCAT_TOTAL_SCORES = numericScale(900, 3600, 10);
+const UCAT_SJT_BANDS = ["Band 1", "Band 2", "Band 3", "Band 4"];
+
+const ucatPaperScoreOptionsFor = (label: string): readonly string[] =>
+  label === "Situational Judgement" ? UCAT_SJT_BANDS : UCAT_SUBTEST_SCORES;
+
 const ibGradesFor = (subject: string): string[] => {
   if (["TOK", "Extended Essay"].includes(subject)) return ["A", "B", "C", "D", "E"];
   return IB_GRADES;
@@ -336,6 +372,26 @@ export const EXAM_SYSTEMS: ExamSystem[] = [
     gradesFor: () => IELTS_BANDS,
     paperLabels: IELTS_COMPONENT_LABELS,
     paperScoreOptions: IELTS_BANDS,
+    qualificationsOnly: true,
+  },
+  {
+    id: "isat",
+    label: "ISAT",
+    subjects: ISAT_SUBJECTS,
+    grades: ISAT_SCORES,
+    gradesFor: () => ISAT_SCORES,
+    paperLabels: ISAT_COMPONENT_LABELS,
+    paperScoreOptions: ISAT_SCORES,
+    qualificationsOnly: true,
+  },
+  {
+    id: "ucat",
+    label: "UCAT",
+    subjects: UCAT_SUBJECTS,
+    grades: UCAT_TOTAL_SCORES,
+    gradesFor: () => UCAT_TOTAL_SCORES,
+    paperLabels: UCAT_COMPONENT_LABELS,
+    paperScoreOptionsFor: ucatPaperScoreOptionsFor,
     qualificationsOnly: true,
   },
   { id: "other", label: "Other", subjects: [], freeSubject: true, grades: [] },

@@ -1044,7 +1044,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
             <EditorSection
               icon={GraduationCap}
               title="Exam Results & Breakdown"
-              description="Standardized exam systems (IBDP, HKDSE, A-Level, AP, IELTS) and subject score pills."
+              description="Standardized exam systems (IBDP, HKDSE, A-Level, AP, IELTS, ISAT, UCAT) and subject score pills."
               id="academics"
               badge={
                 <Button
@@ -1175,6 +1175,9 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                                 {entry.subject && (
                                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                                     {paperLabels.map((label) => {
+                                      const componentScoreOptions =
+                                        currentSystem?.paperScoreOptionsFor?.(label) ??
+                                        paperScoreOptions;
                                       const currentScore =
                                         (entry.papers ?? []).find((p) => p.label === label)
                                           ?.score ?? "";
@@ -1192,7 +1195,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                                         next.sort((a, b) => rank(a.label) - rank(b.label));
                                         updateExamSubject(examIdx, subIdx, { papers: next });
                                       };
-                                      return paperScoreOptions ? (
+                                      return componentScoreOptions ? (
                                         <Select
                                           key={label}
                                           value={currentScore}
@@ -1202,7 +1205,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                                             <SelectValue placeholder={`${label} (optional)`} />
                                           </SelectTrigger>
                                           <SelectContent>
-                                            {paperScoreOptions.map((option) => (
+                                            {componentScoreOptions.map((option) => (
                                               <SelectItem key={option} value={option}>
                                                 {option}
                                               </SelectItem>

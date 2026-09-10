@@ -30,6 +30,8 @@ export const CURRICULUM_OPTIONS = [
   "AP",
   "SAT",
   "IELTS",
+  "ISAT",
+  "UCAT",
   "Foundation / other",
 ] as const;
 export const MATERIALS_OPTIONS = ["Yes", "No", "In progress"] as const;
@@ -183,6 +185,31 @@ export const tutorApplicationSchema = z
         path: ["overallScore"],
         message: "Enter an IELTS band from 4.0 to 9.0 (in 0.5 steps)",
       });
+    }
+    if (!isProfessional && data.curriculum === "ISAT") {
+      const isatScore = Number(data.overallScore);
+      if (!Number.isInteger(isatScore) || isatScore < 100 || isatScore > 200) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["overallScore"],
+          message: "Enter an ISAT scaled score from 100 to 200",
+        });
+      }
+    }
+    if (!isProfessional && data.curriculum === "UCAT") {
+      const ucatScore = Number(data.overallScore);
+      if (
+        !Number.isInteger(ucatScore) ||
+        ucatScore < 900 ||
+        ucatScore > 3600 ||
+        ucatScore % 10 !== 0
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["overallScore"],
+          message: "Enter a UCAT total score from 900 to 3600 (in 10-point steps)",
+        });
+      }
     }
     if (isProfessional && data.teachingQualifications.length === 0) {
       context.addIssue({

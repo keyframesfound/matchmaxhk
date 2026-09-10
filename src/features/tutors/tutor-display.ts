@@ -35,9 +35,12 @@ export function formatTutorGradeLabel(grade?: string | null): string | null {
 }
 
 function formatTutorGradeForSystem(system: string, grade: string): string {
+  const trimmed = grade.trim();
   if (system === "ielts") {
-    const trimmed = grade.trim();
     return /^band\s+/i.test(trimmed) ? trimmed : `Band ${trimmed}`;
+  }
+  if (system === "isat" || system === "ucat") {
+    return /^score\s+/i.test(trimmed) ? trimmed : `Score ${trimmed}`;
   }
   return formatTutorGradeLabel(grade) ?? "";
 }
@@ -90,6 +93,8 @@ const SYSTEM_SHORT_LABELS: Record<string, string> = {
   ap: "AP",
   sat: "SAT",
   ielts: "IELTS",
+  isat: "ISAT",
+  ucat: "UCAT",
 };
 
 export function getExamSystemShortLabel(systemId: string): string {
@@ -136,7 +141,8 @@ function collectLevelsFromExamResults(
   return [...levels].sort();
 }
 
-const SYSTEM_ALIAS_PATTERN = /^(IBDP|IB|HKDSE|DSE|A-?Level|IGCSE|AP|SAT|IELTS)\b[\s:–-]*/i;
+const SYSTEM_ALIAS_PATTERN =
+  /^(IBDP|IB|HKDSE|DSE|A-?Level|IGCSE|AP|SAT|IELTS|ISAT|UCAT)\b[\s:–-]*/i;
 
 const SYSTEM_ALIASES: Record<string, string> = {
   ibdp: "ib",
@@ -149,6 +155,8 @@ const SYSTEM_ALIASES: Record<string, string> = {
   ap: "ap",
   sat: "sat",
   ielts: "ielts",
+  isat: "isat",
+  ucat: "ucat",
 };
 
 /**

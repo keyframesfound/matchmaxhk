@@ -75,6 +75,8 @@ import {
   getGradesForSelection,
   getSystem,
   IELTS_COMPONENT_LABELS,
+  ISAT_COMPONENT_LABELS,
+  UCAT_COMPONENT_LABELS,
 } from "@/features/tutors/examSystems";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 
@@ -109,9 +111,22 @@ const SYSTEM_IDS: Record<string, string> = {
   AP: "ap",
   SAT: "sat",
   IELTS: "ielts",
+  ISAT: "isat",
+  UCAT: "ucat",
 };
 const IELTS_CURRICULUM = "IELTS";
 const IELTS_OVERALL_SUBJECT = "IELTS Overall";
+const ISAT_CURRICULUM = "ISAT";
+const UCAT_CURRICULUM = "UCAT";
+const ISAT_OVERALL_SUBJECT = "ISAT Overall";
+const UCAT_TOTAL_SUBJECT = "UCAT Total";
+// Curricula whose score entry is one fixed subject row with a fixed set of
+// component (paper) breakdowns.
+const FIXED_SCORE_SUBJECTS: Record<string, string> = {
+  [IELTS_CURRICULUM]: IELTS_OVERALL_SUBJECT,
+  [ISAT_CURRICULUM]: ISAT_OVERALL_SUBJECT,
+  [UCAT_CURRICULUM]: UCAT_TOTAL_SUBJECT,
+};
 const LANGUAGES = ["English", "Cantonese", "Mandarin"];
 const COUNTRY_OPTIONS = [
   "Hong Kong",
@@ -358,13 +373,15 @@ function blankQualification(curriculum = "IBDP"): Qualification {
 }
 
 function blankScoreRow(curriculum: string): ScoreRow {
-  if (curriculum === IELTS_CURRICULUM) {
+  const fixedSubject = FIXED_SCORE_SUBJECTS[curriculum];
+  if (fixedSubject) {
+    const system = getSystem(SYSTEM_IDS[curriculum] ?? "other");
     return {
-      subject: IELTS_OVERALL_SUBJECT,
+      subject: fixedSubject,
       grade: "",
       level: "",
       gradeSystem: "",
-      papers: IELTS_COMPONENT_LABELS.map((label) => ({ label, score: "" })),
+      papers: (system?.paperLabels ?? []).map((label) => ({ label, score: "" })),
     };
   }
   return { subject: "", grade: "", level: "", gradeSystem: "", papers: [] };
@@ -379,6 +396,8 @@ function paperOptions(curriculum: string) {
     return ["Multiple Choice", "Free Response", "Portfolio / Performance Task"];
   if (curriculum === "SAT") return ["Reading & Writing", "Math"];
   if (curriculum === IELTS_CURRICULUM) return [...IELTS_COMPONENT_LABELS];
+  if (curriculum === ISAT_CURRICULUM) return [...ISAT_COMPONENT_LABELS];
+  if (curriculum === UCAT_CURRICULUM) return [...UCAT_COMPONENT_LABELS];
   return ["Paper 1", "Paper 2", "Paper 3", "Paper 4", "Coursework"];
 }
 
@@ -997,13 +1016,20 @@ export function ApplicationForm() {
           content: await fileData(file),
         },
       });
-      if (qualifications[qualificationIndex].curriculum === IELTS_CURRICULUM) {
+      const fixedSubject = FIXED_SCORE_SUBJECTS[qualifications[qualificationIndex].curriculum];
+      if (fixedSubject) {
+        const curriculum = qualifications[qualificationIndex].curriculum;
+        const componentLabels = getSystem(SYSTEM_IDS[curriculum] ?? "other")?.paperLabels ?? [];
         const bands = new Map(
           extracted.scores.map((score) => [score.subject.trim().toLowerCase(), score.grade.trim()]),
         );
         const overallBand =
-          extracted.overall.trim() || bands.get("overall") || bands.get("ielts overall") || "";
-        const papers = IELTS_COMPONENT_LABELS.map((label) => ({
+          extracted.overall.trim() ||
+          bands.get("overall") ||
+          bands.get("total") ||
+          bands.get(`${curriculum.toLowerCase()} overall`) ||
+          "";
+        const papers = componentLabels.map((label) => ({
           label,
           score: bands.get(label.toLowerCase()) ?? "",
         }));
@@ -1012,7 +1038,7 @@ export function ApplicationForm() {
           best6: extracted.best6,
           scores: [
             {
-              subject: IELTS_OVERALL_SUBJECT,
+              subject: fixedSubject,
               grade: overallBand,
               level: "",
               gradeSystem: "",
@@ -1290,10 +1316,7 @@ export function ApplicationForm() {
                     value={score.grade}
                     onValueChange={(grade) => {
                       updateScore(qualificationIndex, scoreIndex, { grade });
-                      if (
-                        qualification.curriculum === IELTS_CURRICULUM &&
-                        score.subject === IELTS_OVERALL_SUBJECT
-                      ) {
+                      if (FIXED_SCORE_SUBJECTS[qualification.curriculum] === score.subject) {
                         updateQualification(qualificationIndex, { overall: grade });
                       }
                     }}
@@ -1327,90 +1350,98 @@ export function ApplicationForm() {
                 ) : null}
               </div>
               <div className="grid gap-2 sm:col-span-2">
-                {score.papers.map((paper, paperIndex) => (
-                  <div
-                    key={`${paper.label}-${paperIndex}`}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
-                  >
-                    <div className="col-span-2 sm:col-span-1">
-                      <Select
-                        value={paper.label}
-                        onValueChange={(label) =>
-                          updateScore(qualificationIndex, scoreIndex, {
-                            papers: score.papers.map((item, itemIndex) =>
-                              itemIndex === paperIndex ? { ...item, label } : item,
-                            ),
-                          })
-                        }
-                      >
-                        <SelectTrigger aria-label="Assessment component">
-                          <SelectValue placeholder="Choose paper or assessment" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {paperOptions(qualification.curriculum).map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {paperScoreOptions ? (
-                      <Select
-                        value={paper.score}
-                        onValueChange={(value) =>
-                          updateScore(qualificationIndex, scoreIndex, {
-                            papers: score.papers.map((item, itemIndex) =>
-                              itemIndex === paperIndex ? { ...item, score: value } : item,
-                            ),
-                          })
-                        }
-                      >
-                        <SelectTrigger aria-label="Component score">
-                          <SelectValue placeholder="Band" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {paperScoreOptions.map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Input
-                        value={paper.score}
-                        onChange={(event) =>
-                          updateScore(qualificationIndex, scoreIndex, {
-                            papers: score.papers.map((item, itemIndex) =>
-                              itemIndex === paperIndex
-                                ? { ...item, score: event.target.value }
-                                : item,
-                            ),
-                          })
-                        }
-                        placeholder={
-                          qualification.curriculum === IELTS_CURRICULUM
-                            ? "Band (8.0)"
-                            : "Specific score (18/25)"
-                        }
-                      />
-                    )}
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      aria-label="Remove assessment component"
-                      onClick={() =>
-                        updateScore(qualificationIndex, scoreIndex, {
-                          papers: score.papers.filter((_, itemIndex) => itemIndex !== paperIndex),
-                        })
-                      }
+                {score.papers.map((paper, paperIndex) => {
+                  const componentScoreOptions =
+                    system?.paperScoreOptionsFor?.(paper.label) ?? paperScoreOptions;
+                  return (
+                    <div
+                      key={`${paper.label}-${paperIndex}`}
+                      className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
                     >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                ))}
+                      <div className="col-span-2 sm:col-span-1">
+                        <Select
+                          value={paper.label}
+                          onValueChange={(label) =>
+                            updateScore(qualificationIndex, scoreIndex, {
+                              papers: score.papers.map((item, itemIndex) =>
+                                itemIndex === paperIndex ? { ...item, label } : item,
+                              ),
+                            })
+                          }
+                        >
+                          <SelectTrigger aria-label="Assessment component">
+                            <SelectValue placeholder="Choose paper or assessment" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {paperOptions(qualification.curriculum).map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {componentScoreOptions ? (
+                        <Select
+                          value={paper.score}
+                          onValueChange={(value) =>
+                            updateScore(qualificationIndex, scoreIndex, {
+                              papers: score.papers.map((item, itemIndex) =>
+                                itemIndex === paperIndex ? { ...item, score: value } : item,
+                              ),
+                            })
+                          }
+                        >
+                          <SelectTrigger aria-label="Component score">
+                            <SelectValue
+                              placeholder={
+                                qualification.curriculum === IELTS_CURRICULUM ? "Band" : "Score"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {componentScoreOptions.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          value={paper.score}
+                          onChange={(event) =>
+                            updateScore(qualificationIndex, scoreIndex, {
+                              papers: score.papers.map((item, itemIndex) =>
+                                itemIndex === paperIndex
+                                  ? { ...item, score: event.target.value }
+                                  : item,
+                              ),
+                            })
+                          }
+                          placeholder={
+                            qualification.curriculum === IELTS_CURRICULUM
+                              ? "Band (8.0)"
+                              : "Specific score (18/25)"
+                          }
+                        />
+                      )}
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Remove assessment component"
+                        onClick={() =>
+                          updateScore(qualificationIndex, scoreIndex, {
+                            papers: score.papers.filter((_, itemIndex) => itemIndex !== paperIndex),
+                          })
+                        }
+                      >
+                        <Trash2 />
+                      </Button>
+                    </div>
+                  );
+                })}
                 <Button
                   type="button"
                   variant="outline"
@@ -1424,7 +1455,8 @@ export function ApplicationForm() {
                   <Plus /> Add component score
                 </Button>
               </div>
-              {qualification.scores.length > 1 && qualification.curriculum !== IELTS_CURRICULUM ? (
+              {qualification.scores.length > 1 &&
+              !FIXED_SCORE_SUBJECTS[qualification.curriculum] ? (
                 <Button
                   type="button"
                   variant="outline"
@@ -1441,7 +1473,7 @@ export function ApplicationForm() {
             </div>
           );
         })}
-        {qualification.curriculum !== IELTS_CURRICULUM ? (
+        {!FIXED_SCORE_SUBJECTS[qualification.curriculum] ? (
           <Button
             type="button"
             variant="outline"
@@ -1764,8 +1796,9 @@ export function ApplicationForm() {
                               ? "Best 5 Score"
                               : qualification.curriculum === IELTS_CURRICULUM
                                 ? "Overall Band Score"
-                                : qualification.curriculum === "IBDP" ||
-                                    qualification.curriculum === "SAT"
+                                : ["IBDP", "SAT", ISAT_CURRICULUM, UCAT_CURRICULUM].includes(
+                                      qualification.curriculum,
+                                    )
                                   ? "Overall Achieved Score"
                                   : "Overall Achieved Grades"
                           }
@@ -1774,18 +1807,19 @@ export function ApplicationForm() {
                         >
                           <Input
                             type={
-                              qualification.curriculum === "IBDP" ||
-                              qualification.curriculum === "HKDSE" ||
-                              qualification.curriculum === "SAT"
+                              ["IBDP", "HKDSE", "SAT", ISAT_CURRICULUM, UCAT_CURRICULUM].includes(
+                                qualification.curriculum,
+                              )
                                 ? "number"
                                 : "text"
                             }
                             value={qualification.overall}
                             onChange={(event) => {
                               const value = event.target.value;
+                              const fixedSubject = FIXED_SCORE_SUBJECTS[qualification.curriculum];
                               if (
-                                qualification.curriculum === IELTS_CURRICULUM &&
-                                qualification.scores[0]?.subject === IELTS_OVERALL_SUBJECT
+                                fixedSubject &&
+                                qualification.scores[0]?.subject === fixedSubject
                               ) {
                                 updateQualification(index, {
                                   overall: value,
@@ -1804,9 +1838,13 @@ export function ApplicationForm() {
                                   ? "32"
                                   : qualification.curriculum === "SAT"
                                     ? "1450"
-                                    : qualification.curriculum === IELTS_CURRICULUM
-                                      ? "8.0"
-                                      : "A*AA"
+                                    : qualification.curriculum === ISAT_CURRICULUM
+                                      ? "165"
+                                      : qualification.curriculum === UCAT_CURRICULUM
+                                        ? "2450"
+                                        : qualification.curriculum === IELTS_CURRICULUM
+                                          ? "8.0"
+                                          : "A*AA"
                             }
                           />
                         </Field>

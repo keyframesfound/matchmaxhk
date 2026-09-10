@@ -22,6 +22,8 @@ export const DEFAULT_SUBJECT_OPTIONS: string[] = (() => {
     "Computer Science",
     "Music",
     "Art",
+    "ISAT",
+    "UCAT",
     "Primary English",
     "Primary Mathematics",
     "Primary Chinese",

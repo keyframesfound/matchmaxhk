@@ -116,6 +116,8 @@ function formatExamSystemLabel(system: string) {
   if (normalized === "ap") return "AP";
   if (normalized === "sat") return "SAT";
   if (normalized === "ielts") return "IELTS";
+  if (normalized === "isat") return "ISAT";
+  if (normalized === "ucat") return "UCAT";
 
   const systemName = system.trim();
   return (getSystem(normalized)?.label ?? systemName) || "Exam system";
@@ -130,8 +132,13 @@ function getExamSystemSubjectSummary(result: ExamResult) {
 
 function AcademicQualification({ result }: { result: ExamResult }) {
   const label = formatExamSystemLabel(result.system);
-  const isIelts = result.system.trim().toLowerCase() === "ielts";
-  const gradeNoun = isIelts ? "Band" : "Grade";
+  const normalizedSystem = result.system.trim().toLowerCase();
+  const gradeNoun =
+    normalizedSystem === "ielts"
+      ? "Band"
+      : normalizedSystem === "isat" || normalizedSystem === "ucat"
+        ? "Score"
+        : "Grade";
   const subjects = result.subjects.filter((entry) => entry.subject.trim());
 
   if (subjects.length === 0) return null;
