@@ -559,7 +559,7 @@ function AdminCases() {
 
       {/* Batch Delete Confirmation Dialog */}
       <AlertDialog open={confirmBatchDelete} onOpenChange={setConfirmBatchDelete}>
-        <AlertDialogContent>
+        <AlertDialogContent className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] shadow-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>
               Delete {selectedIds.size} Case Request{selectedIds.size === 1 ? "" : "s"}?
@@ -583,7 +583,7 @@ function AdminCases() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={Boolean(deletingId)} onOpenChange={(open) => !open && setDeletingId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] shadow-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Case Request?</AlertDialogTitle>
             <AlertDialogDescription>
