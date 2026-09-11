@@ -46,7 +46,7 @@ function CompareBar({
   const count = selectedTutors.length;
   return (
     <div className="fixed bottom-20 left-1/2 z-40 w-[min(92vw,30rem)] -translate-x-1/2 sm:bottom-6">
-      <div className="flex items-center justify-between gap-3 rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 py-2.5 shadow-[0_16px_40px_rgba(4,19,68,0.18)]">
+      <div className="flex items-center justify-between gap-3 rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
           <ListChecks
             className="h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
