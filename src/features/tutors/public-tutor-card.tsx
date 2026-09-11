@@ -1,6 +1,6 @@
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Award, BadgeCheck, Check, Columns2, UserRound } from "lucide-react";
+import { Award, BookOpen, Check, Columns2, UserRound } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getTutorCardHighlights, type Tutor } from "@/features/tutors/queries";
 import {
@@ -203,19 +203,8 @@ export function PublicTutorCard({
                 </div>
               )}
             </div>
-            <p className="flex items-center gap-0.5 whitespace-nowrap text-xs font-semibold text-muted-foreground">
+            <p className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
               {formatTutorCode(tutor.tutor_code)}
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <BadgeCheck
-                      className="h-3.5 w-3.5 shrink-0 text-[color:var(--muted-foreground)]"
-                      aria-label={t("profile.verified")}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">{t("profile.verified_detail")}</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </p>
           </div>
 
@@ -248,7 +237,12 @@ export function PublicTutorCard({
       <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
         {academicChips.length > 0 ? (
           <section className="border-b border-border pb-2.5 md:pb-3">
-            <h3 className="text-sm font-semibold text-[color:var(--ink)]">
+            <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)]">
+              <BookOpen
+                className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              />
               {t("tutor_card.academic_achievements")}
             </h3>
             <div className="relative mt-2">
@@ -283,9 +277,10 @@ export function PublicTutorCard({
         <section
           className={cn("flex flex-1 flex-col", academicChips.length > 0 ? "pt-2.5" : "pt-0")}
         >
-          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink)]">
+          <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)]">
             <Award
               className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
+              strokeWidth={2.5}
               aria-hidden="true"
             />
             {t("tutor_card.achievements_and_experiences")}
