@@ -8,6 +8,7 @@ import {
   getTutorSubjectChips,
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
+import { useFitText } from "@/hooks/use-fit-text";
 import { cn } from "@/lib/utils";
 
 function getTutorInitials(tutorCode?: string | null) {
@@ -49,6 +50,32 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
         </>
       ) : null}
     </span>
+  );
+}
+
+type FitTextProps = {
+  as: "p" | "li";
+  maxLines: 1 | 2;
+  contentKey: string | number;
+  className?: string;
+  children: ReactNode;
+};
+
+function FitText({ as, maxLines, contentKey, className, children }: FitTextProps) {
+  const ref = useFitText<HTMLParagraphElement & HTMLLIElement>({ maxLines, contentKey });
+
+  if (as === "li") {
+    return (
+      <li ref={ref} className={className}>
+        {children}
+      </li>
+    );
+  }
+
+  return (
+    <p ref={ref} className={className}>
+      {children}
+    </p>
   );
 }
 
@@ -209,9 +236,14 @@ export function PublicTutorCard({
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">
-            <p className="line-clamp-2 text-sm font-bold leading-tight text-[color:var(--ink)] md:text-base @max-sm:text-xs!">
+            <FitText
+              as="p"
+              maxLines={2}
+              contentKey={primaryCredential}
+              className="break-words text-sm font-bold leading-tight text-[color:var(--ink)] md:text-base @max-sm:text-xs!"
+            >
               {primaryCredential}
-            </p>
+            </FitText>
             {supportingCredentials.map((credential, index) => (
               <p
                 key={`${credential}-${index}`}
@@ -289,12 +321,15 @@ export function PublicTutorCard({
           {tutor.achievements.length > 0 ? (
             <ul className="mt-1.5 space-y-1.5">
               {tutor.achievements.slice(0, 3).map((achievement, index) => (
-                <li
+                <FitText
                   key={`${achievement.short_text}-${index}`}
-                  className="line-clamp-1 text-xs leading-snug text-[color:var(--ink)]"
+                  as="li"
+                  maxLines={1}
+                  contentKey={achievement.short_text}
+                  className="whitespace-nowrap text-xs leading-snug text-[color:var(--ink)]"
                 >
                   {removeEmoji(achievement.short_text)}
-                </li>
+                </FitText>
               ))}
             </ul>
           ) : null}
@@ -304,22 +339,32 @@ export function PublicTutorCard({
               ? cardHighlights
               : [t("tutor_card.highlight_fallback")]
             ).map((highlight, index) => (
-              <li
+              <FitText
                 key={`${highlight}-${index}`}
-                className="line-clamp-1 text-xs font-semibold leading-snug text-[color:var(--ink)] md:text-sm @max-sm:text-xs!"
+                as="li"
+                maxLines={1}
+                contentKey={highlight}
+                className="whitespace-nowrap text-xs font-semibold leading-snug text-[color:var(--ink)] md:text-sm @max-sm:text-xs!"
               >
                 {removeEmoji(highlight)}
-              </li>
+              </FitText>
             ))}
           </ul>
         </section>
       </div>
 
       <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
-        <p className="min-w-0 flex-1 truncate text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!">
+        <FitText
+          as="p"
+          maxLines={1}
+          contentKey={`${tutor.hourly_rate}-${priceSuffix}`}
+          className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
+        >
           ${tutor.hourly_rate}
-          <span className="ml-1 text-xs font-medium text-muted-foreground">{priceSuffix}</span>
-        </p>
+          <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
+            {priceSuffix}
+          </span>
+        </FitText>
         <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2">
           {onCompareToggle ? (
             <TooltipProvider delayDuration={300}>

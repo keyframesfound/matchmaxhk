@@ -233,7 +233,7 @@ function CurriculumTutorSection({
           {Array.from({ length: TUTORS_PER_PAGE }).map((_, index) => (
             <Skeleton
               key={index}
-              className="h-[23rem] w-[min(76vw,370px)] shrink-0 rounded-[var(--radius-panel)] border border-border md:w-auto"
+              className="h-[23rem] w-[min(88vw,380px)] shrink-0 rounded-[var(--radius-panel)] border border-border md:w-auto"
             />
           ))}
         </div>
@@ -243,9 +243,9 @@ function CurriculumTutorSection({
           <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scroll-px-4 md:hidden">
             {tutors
               .slice(0, TUTORS_PER_PAGE)
-              .map((tutor) => renderTutorCard(tutor, "w-[min(76vw,370px)] shrink-0 snap-start"))}
+              .map((tutor) => renderTutorCard(tutor, "w-[min(88vw,380px)] shrink-0 snap-start"))}
             {tutors.length > TUTORS_PER_PAGE
-              ? seeAllTile("min-h-[20rem] w-[min(76vw,370px)] shrink-0 snap-start")
+              ? seeAllTile("min-h-[20rem] w-[min(88vw,380px)] shrink-0 snap-start")
               : null}
           </div>
 
