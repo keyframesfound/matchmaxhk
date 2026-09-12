@@ -187,7 +187,7 @@ function TutorProfileSkeleton() {
       <SiteHeader />
       <main className="flex-1" aria-busy="true" aria-label={t("profile.loading_aria")}>
         <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
-          <div className="mx-auto max-w-5xl px-5 sm:px-8">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8">
             <Skeleton className="h-9 w-24 rounded-md" />
             <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
               <Skeleton className="h-16 w-16 shrink-0 rounded-full sm:h-20 sm:w-20" />
@@ -204,7 +204,7 @@ function TutorProfileSkeleton() {
           </div>
         </section>
         <section className="py-8 sm:py-10">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="overflow-hidden rounded-lg border border-border">
               {[0, 1, 2].map((section) => (
                 <div
@@ -465,7 +465,7 @@ function TutorDetail() {
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
-          <div className="mx-auto max-w-5xl px-5 sm:px-8">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8">
             <Button
               type="button"
               variant="outline"
@@ -564,7 +564,7 @@ function TutorDetail() {
         </section>
 
         <section className="py-8 sm:py-10">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div>
               {examResults.length > 0 ? (
                 <ProfileSection icon={LineChart} title={translate("profile.section_academic")}>
@@ -579,7 +579,9 @@ function TutorDetail() {
               {profileBio || t.achievements.length > 0 ? (
                 <ProfileSection icon={Award} title={translate("profile.section_achievements")}>
                   <div className="space-y-4">
-                    {profileBio ? <MarkdownText>{profileBio}</MarkdownText> : null}
+                    {profileBio ? (
+                      <MarkdownText className="text-[color:var(--ink)]">{profileBio}</MarkdownText>
+                    ) : null}
                     {t.achievements.length > 0 ? (
                       <ul className="space-y-2.5">
                         {t.achievements.map((achievement, index) => (
@@ -593,7 +595,7 @@ function TutorDetail() {
                                 {achievement.short_text}
                               </p>
                               {achievement.detail_text ? (
-                                <p className="mt-0.5 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                                <p className="mt-0.5 whitespace-pre-line text-sm leading-relaxed text-[color:var(--ink)]">
                                   {achievement.detail_text}
                                 </p>
                               ) : null}
