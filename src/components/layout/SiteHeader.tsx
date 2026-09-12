@@ -136,7 +136,7 @@ export function SiteHeader({
         className,
       )}
     >
-      <div className="mx-auto flex h-[64px] max-w-[1920px] items-center px-4 sm:px-8 lg:px-10">
+      <div className="mx-auto flex h-[64px] max-w-[1440px] items-center px-4 sm:px-8 lg:px-10">
         <Link to="/" className="flex shrink-0 items-center" aria-label="MatchMax home">
           <div className="flex items-center gap-2">
             <Logo className="shrink-0" />

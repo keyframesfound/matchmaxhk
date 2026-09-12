@@ -66,7 +66,7 @@ const CURRICULUM_CATEGORIES = [
   { label: "Examiner/pro teachers", value: "International" },
 ];
 
-const TUTORS_PER_PAGE = 4;
+const TUTORS_PER_PAGE = 3;
 const MAX_HOME_TUTORS = 7;
 
 export const Route = createFileRoute("/")({
@@ -189,7 +189,7 @@ function CurriculumTutorSection({
   );
 
   return (
-    <section>
+    <section className="mx-auto max-w-7xl">
       <div className="mb-4 flex items-center gap-2 sm:gap-3">
         <h2 className="min-w-0 truncate text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
           {label} tutors
@@ -229,7 +229,7 @@ function CurriculumTutorSection({
       </div>
 
       {loading ? (
-        <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:px-0 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:px-0 lg:grid-cols-3">
           {Array.from({ length: TUTORS_PER_PAGE }).map((_, index) => (
             <Skeleton
               key={index}
@@ -263,7 +263,7 @@ function CurriculumTutorSection({
                     key={pageIndex}
                     inert={!isCurrentPage}
                     aria-hidden={!isCurrentPage}
-                    className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-3 xl:grid-cols-4"
+                    className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-3"
                   >
                     {pageTutors.map((tutor) => renderTutorCard(tutor))}
                     {withSeeAllTile ? seeAllTile("min-h-[23rem]") : null}
@@ -408,7 +408,7 @@ function Landing() {
 
       {/* HERO SECTION */}
       <section className="hero-startup-bg relative overflow-hidden">
-        <div className="mx-auto grid max-w-[1920px] grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col justify-center">
             <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-5xl md:text-6xl lg:text-7xl">
               {t("hero.title_a")}
@@ -437,7 +437,7 @@ function Landing() {
       </section>
 
       <section className="relative -mt-4 pb-14 md:-mt-7 md:pb-16">
-        <div className="mx-auto max-w-[1920px] px-4 md:px-6">
+        <div className="mx-auto max-w-[1440px] px-4 md:px-6">
           <div className="relative rounded-sm border border-border bg-card p-2.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-2.5 sm:pb-4">
               <p className="text-xs font-black uppercase tracking-wide text-[color:var(--ink)] sm:text-sm">
@@ -522,7 +522,7 @@ function Landing() {
 
       {/* FINDING A TUTOR / TUTOR CTA */}
       <section id="how" className="py-12 md:py-24">
-        <div className="mx-auto max-w-[1920px] space-y-8 px-4 md:space-y-12 md:px-6">
+        <div className="mx-auto max-w-[1440px] space-y-8 px-4 md:space-y-12 md:px-6">
           <div className="grid items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div className="order-2 lg:order-1">
               <h2 className="mt-2 text-2xl font-black tracking-tight text-[color:var(--ink)] md:text-4xl">
