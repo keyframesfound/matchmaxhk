@@ -195,26 +195,29 @@
 }
 
 /*
- * Dark theme — "Twitter Azure" lights-off mode.
- * Canvas #000000 · Cards #17181C · Borders #242628 · Secondary text #72767B.
+ * Dark theme — "Twitter Azure" dim mode (dark-mode-guide compliant).
+ * Elevation ladder instead of pure black: canvas #121212 · cards #1E1E1E ·
+ * popovers #232327 · hovers #26282C · borders #2E3033 · secondary text #8A8E93.
+ * Statuses are lightened/desaturated for dark (success #4ADE80, warning #FCD34D,
+ * destructive #F87171) with dark-ink text on fills.
  * The azure accent (#1D9BF0) stays the action colour in both themes.
  */
 .dark {
   --ink: #e7e9ea;
-  --surface: #000000;
-  --surface-subtle: #16181c;
-  --surface-raised: #1c2126;
-  --surface-hover: #202327;
+  --surface: #121212;
+  --surface-subtle: #1a1c1e;
+  --surface-raised: #232327;
+  --surface-hover: #26282c;
   --surface-invert: #f0f3f4;
   --surface-invert-hover: #d9dde0;
   --surface-invert-fg: #0f1419;
   --brand-link: #1d9bf0;
-  --subtle-foreground: #71767b;
-  --disabled-foreground: #536471;
-  --success: #17bf63;
-  --success-foreground: #00220f;
-  --warning: #f7b928;
-  --warning-foreground: #201200;
+  --subtle-foreground: #8a8e93;
+  --disabled-foreground: #6b7076;
+  --success: #4ade80;
+  --success-foreground: #052e16;
+  --warning: #fcd34d;
+  --warning-foreground: #291b04;
 
   /* Stepper */
   --stepper-row-bg: linear-gradient(
@@ -222,35 +225,35 @@
     color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)),
     var(--color-card)
   );
-  --stepper-inactive-bg: #202327;
-  --stepper-inactive-fg: #71767b;
+  --stepper-inactive-bg: #26282c;
+  --stepper-inactive-fg: #8a8e93;
   --stepper-active-bg: #1d9bf0;
   --stepper-active-fg: #ffffff;
-  --stepper-complete-bg: #17bf63;
-  --stepper-complete-fg: #ffffff;
-  --stepper-dot: #000000;
+  --stepper-complete-bg: #4ade80;
+  --stepper-complete-fg: #052e16;
+  --stepper-dot: #121212;
   --stepper-connector: #1d9bf0;
-  --gradient-brand: linear-gradient(135deg, #000000 0%, #061622 55%, #123a5e 100%);
-  --gradient-brand-x: linear-gradient(90deg, #000000 0%, #061622 55%, #123a5e 100%);
-  --gradient-brand-soft: linear-gradient(135deg, #000000 0%, #16181c 100%);
+  --gradient-brand: linear-gradient(135deg, #121212 0%, #0a1e30 55%, #123a5e 100%);
+  --gradient-brand-x: linear-gradient(90deg, #121212 0%, #0a1e30 55%, #123a5e 100%);
+  --gradient-brand-soft: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
 
-  --background: #000000;
+  --background: #121212;
   --foreground: #e7e9ea;
-  --card: #17181c;
+  --card: #1e1e1e;
   --card-foreground: #d9d9d9;
-  --popover: #000000;
+  --popover: #232327;
   --popover-foreground: #e7e9ea;
   --primary: #1c9cf0;
   --primary-foreground: #ffffff;
   --secondary: #f0f3f4;
   --secondary-foreground: #0f1419;
-  --muted: #181818;
-  --muted-foreground: #72767b;
-  --accent: #061622;
+  --muted: #1e1e1e;
+  --muted-foreground: #8a8e93;
+  --accent: #1e2d37;
   --accent-foreground: #1c9cf0;
-  --destructive: #f4212e;
-  --destructive-foreground: #ffffff;
-  --border: #242628;
+  --destructive: #f87171;
+  --destructive-foreground: #2b0a0c;
+  --border: #2e3033;
   --input: #22303c;
   --ring: #1da1f2;
   --chart-1: #1e9df1;
@@ -258,13 +261,13 @@
   --chart-3: #f7b928;
   --chart-4: #17bf63;
   --chart-5: #e0245e;
-  --sidebar: #17181c;
+  --sidebar: #1a1c1e;
   --sidebar-foreground: #d9d9d9;
   --sidebar-primary: #1da1f2;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #061622;
+  --sidebar-accent: #1e2d37;
   --sidebar-accent-foreground: #1c9cf0;
-  --sidebar-border: #38444d;
+  --sidebar-border: #3a3d42;
   --sidebar-ring: #1da1f2;
 
   /* Accent button in dark — Azure stays the signal (Inverted Signal Rule) */
@@ -308,6 +311,32 @@
 
   html.dark {
     color-scheme: dark;
+  }
+
+  /*
+   * Smooth theme switching (dark-mode guide §10): 250ms ease on color-carrying
+   * properties while the `.theme-switching` class is on <html>, applied and
+   * removed by the ThemeProvider around a real light↔dark change. Media,
+   * embeds, and reduced-motion users are excluded.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    html.theme-switching,
+    html.theme-switching *,
+    html.theme-switching *::before,
+    html.theme-switching *::after {
+      transition:
+        background-color 250ms ease,
+        border-color 250ms ease,
+        color 250ms ease,
+        fill 250ms ease,
+        stroke 250ms ease !important;
+    }
+
+    html.theme-switching img,
+    html.theme-switching video,
+    html.theme-switching iframe {
+      transition: none !important;
+    }
   }
 
   body {

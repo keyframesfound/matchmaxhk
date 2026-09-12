@@ -17,12 +17,17 @@ colors:
   status-destructive: "#F4212E"
   status-success: "#17BF63"
   status-warning: "#F7B928"
-  dark-canvas: "#000000"
-  dark-card: "#17181C"
-  dark-border: "#242628"
-  dark-secondary-ink: "#72767B"
-  dark-hover: "#202327"
+  dark-canvas: "#121212"
+  dark-surface-subtle: "#1A1C1E"
+  dark-card: "#1E1E1E"
+  dark-raised: "#232327"
+  dark-hover: "#26282C"
+  dark-border: "#2E3033"
+  dark-secondary-ink: "#8A8E93"
   dark-input: "#22303C"
+  dark-success: "#4ADE80"
+  dark-warning: "#FCD34D"
+  dark-destructive: "#F87171"
 typography:
   display:
     fontFamily: "Open Sans, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
@@ -138,7 +143,7 @@ Density is product-like rather than editorial. Public pages persuade with bold 7
 - Twitter-style weight ladder — Display 800 / Title 700 / Emphasis 600 / UI 500 / Body 400 — at 0em tracking; no uniform black-type mass
 - Sentence-case labels throughout; no full-caps eyebrows, table headers, or column headings
 - Round geometry: `--radius: 1.3rem` base scale; inputs and compact controls tighten to 0.5rem
-- Full dark theme: true-black canvas (`#000000`), `#17181C` cards, and azure stays the signal in both themes
+- Full dark theme: dim `#121212` canvas with a luminosity elevation ladder (`#1E1E1E` cards, `#232327` popovers, `#26282C` hovers), lightened status colours, and azure stays the signal in both themes
 
 ## Colors
 
@@ -153,7 +158,7 @@ The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairli
 - **Azure Wash** (`#E3ECF6`, `--accent`): Hover washes and soft azure-tinted panels (`--accent-foreground` azure).
 
 ### Tertiary
-- **Green** (`#17BF63`), **Amber** (`#F7B928`), **Red** (`#F4212E`): Statuses and the button colour axis (buttons use AA-safe darker derivations `#00875A`/`#A16207`). Red is the theme destructive.
+- **Green** (`#17BF63`), **Amber** (`#F7B928`), **Red** (`#F4212E`): Statuses and the button colour axis (buttons use AA-safe darker derivations `#00875A`/`#A16207`). Red is the theme destructive. In dark mode the status tokens lighten/desaturate to `#4ADE80`/`#FCD34D`/`#F87171` with dark-ink text on fills (dark-mode guide §7); the light-theme trio and button axis stay unchanged.
 - **WhatsApp Green** (`#25D366`, `--brand-whatsapp`): The single sanctioned non-palette colour, for WhatsApp contact affordances only. Hover `#1EBE57`.
 
 ### Neutral
@@ -162,7 +167,7 @@ The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairli
 - **Input Tint** (`#F7F9FA`, `--input`) and **Hover Wash** (`#EFF3F4`, `--surface-hover`): Wells and hover states.
 - **Secondary Ink** (`#536471`, `--muted-foreground`): Secondary text on light.
 - **Hairline** (`#E1EAEF`, `--border`): Borders and separators on light.
-- **Night Canvas** (`#000000`) / **Night Card** (`#17181C`) / **Night Border** (`#242628`): Dark-theme surfaces; secondary text `#72767B`, hover `#202327`, inputs `#22303C`, dark sidebar border `#38444D`.
+- **Night Canvas** (`#121212`) / **Night Card** (`#1E1E1E`) / **Night Border** (`#2E3033`): Dark-theme surfaces on a luminosity elevation ladder — canvas `#121212`, subtle/sidebar `#1A1C1E`, cards/muted `#1E1E1E`, popovers/raised `#232327`, hovers `#26282C`; secondary text `#8A8E93` (AA on the ladder), inputs `#22303C`, dark sidebar border `#3A3D42`. Dark statuses lighten for comfort: success `#4ADE80`, warning `#FCD34D`, destructive `#F87171`, each with dark-ink text on fills.
 
 ### Named Rules
 **The Scarcity Rule.** Azure (`--btn-accent`/`--ring`/`--brand-link`) owns exactly three things: (1) money-CTA fills — the ~10% of buttons that start a conversion flow, (2) text links, (3) focus rings and selected/active states. Everything else is ink/neutral. Test: *does this button start a conversion flow?* If not, it is neutral (white or ink).
@@ -201,13 +206,14 @@ Spacing rhythm: marketing sections breathe at `py-20 sm:py-28`; standard pages `
 
 ## Elevation & Depth
 
-Flat by default, ambient lift on heroes. Light-theme separation is hairline borders first (`border-border` or `border-[color:var(--ink)]/10`); shadows are large-radius, low-opacity, azure-tinted washes reserved for hero CTAs, floating panels, and dark surfaces. Dark mode deepens into neutral elevation shadows because brand tints vanish on black.
+Flat by default, ambient lift on heroes. Light-theme separation is hairline borders first (`border-border` or `border-[color:var(--ink)]/10`); shadows are large-radius, low-opacity, azure-tinted washes reserved for hero CTAs, floating panels, and dark surfaces. Dark mode communicates elevation with luminosity (the night ladder: higher surfaces are lighter, per the dark-mode guide) and keeps deep neutral shadows only for floating overlays.
 
 ### Shadow Vocabulary
 - **Brand wash** (`--shadow-brand`: `0 10px 30px -18px color-mix(in oklab, #1D9BF0 26%, transparent)`): Hero CTAs, floating shells (join-stepper uses a stronger `0 24px 60px -36px` at 35% navy-ink).
 - **Azure wash** (`--shadow-teal`): Legacy token name, azure-tinted — progress/brand accents only, never interactive elements.
 - **Focus ring** (`--focus-ring`: `0 0 0 3px` ring at 32%): Keyboard focus glow.
-- **Night elevation** (dark: `0 16px 40px -24px rgba(0,0,0,0.78)` / `0 16px 32px -20px rgba(0,0,0,0.72)`): Dark-theme cards and popovers.
+- **Night elevation** (dark: `0 16px 40px -24px rgba(0,0,0,0.78)` / `0 16px 32px -20px rgba(0,0,0,0.72)`): Dark-theme cards and popovers; resting dark separation comes from the `#121212 → #1E1E1E → #232327` ladder, not shadows.
+- **Theme switch** (`html.theme-switching` for ~300ms): 250ms ease on background/color/border/fill/stroke when the theme actually flips (dark-mode guide §10); media and reduced-motion users are excluded.
 - **Component default**: `shadow-sm` on buttons/inputs; `shadow` on standard cards.
 
 ### Named Rules
@@ -235,7 +241,7 @@ For each component: confident signage — bold labels, one clear primary action,
 
 ### Cards / Containers
 - **Corner Style:** `rounded-xl` (≈25px) standard; compact landing panels tighten via tokens.
-- **Background:** `bg-card` (`#F7F8F8` light / `#17181C` dark).
+- **Background:** `bg-card` (`#F7F8F8` light / `#1E1E1E` dark).
 - **Shadow Strategy:** `shadow` at rest; see Elevation — borders do the separating.
 - **Border:** 1px `border-border` (or ink/10 in composed marketing panels).
 - **Internal Padding:** `p-6` standard; marketing search panel `p-2.5 sm:p-5`.

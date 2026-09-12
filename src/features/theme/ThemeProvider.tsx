@@ -16,6 +16,14 @@ export type ThemePreference = "system" | "light" | "dark";
 
 export const THEME_STORAGE_KEY = "matchmax-theme";
 
+/** Browser chrome color per theme (guide: match UI chrome to the canvas). */
+const THEME_CHROME_COLORS = { light: "#ffffff", dark: "#121212" } as const;
+
+const THEME_SWITCHING_CLASS = "theme-switching";
+const THEME_SWITCH_MS = 300;
+
+let themeSwitchTimer: ReturnType<typeof setTimeout> | undefined;
+
 type ThemeContextValue = {
   theme: ThemePreference;
   resolvedTheme: "light" | "dark";
@@ -35,8 +43,24 @@ function systemPrefersDark() {
 
 function applyTheme(theme: ThemePreference) {
   if (typeof document === "undefined") return;
+  const root = document.documentElement;
   const dark = theme === "dark" || (theme === "system" && systemPrefersDark());
-  document.documentElement.classList.toggle("dark", dark);
+  if (root.classList.contains("dark") !== dark) {
+    // Real light↔dark change: animate the switch (dark-mode guide §10).
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      root.classList.add(THEME_SWITCHING_CLASS);
+      if (themeSwitchTimer) clearTimeout(themeSwitchTimer);
+      themeSwitchTimer = setTimeout(() => {
+        root.classList.remove(THEME_SWITCHING_CLASS);
+        themeSwitchTimer = undefined;
+      }, THEME_SWITCH_MS);
+    }
+  }
+  root.classList.toggle("dark", dark);
+  const chrome = document.querySelector('meta[name="theme-color"]');
+  if (chrome) {
+    chrome.setAttribute("content", dark ? THEME_CHROME_COLORS.dark : THEME_CHROME_COLORS.light);
+  }
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

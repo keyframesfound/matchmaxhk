@@ -269,7 +269,7 @@ export function OrgAboutDialog({
               onChange={(e) => setForm({ ...form, intro_video_url: e.target.value })}
             />
             {form.intro_video_url.trim() && !parseYouTubeUrl(form.intro_video_url) ? (
-              <p className="text-xs text-red-500">
+              <p className="text-xs text-red-500 dark:text-red-400">
                 That doesn't look like a YouTube link. Paste a youtube.com/watch, youtu.be or
                 /shorts URL.
               </p>
@@ -307,7 +307,7 @@ export function OrgAboutDialog({
                     aria-label="Remove question"
                     onClick={() => setFaqItems((prev) => prev.filter((_, i) => i !== index))}
                   >
-                    <Trash2 className="h-4 w-4 text-red-500" />
+                    <Trash2 className="h-4 w-4 text-red-500 dark:text-red-400" />
                   </Button>
                 </div>
                 <Input

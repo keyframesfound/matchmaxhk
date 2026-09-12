@@ -39,6 +39,7 @@ import { TeamPanel } from "@/features/business/team-panel";
 import { ProfilePanel } from "@/features/business/profile-panel";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
+import { useTheme } from "@/features/theme/ThemeProvider";
 import {
   getBusinessAnalytics,
   type BusinessAnalytics,
@@ -52,6 +53,16 @@ import { cn } from "@/lib/utils";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 import { NotFoundComponent } from "./__root";
+
+/*
+ * Recharts SVG attributes can't resolve CSS custom properties, so series/grid
+ * colors resolve from the active theme (inline styles like contentStyle can).
+ * Light = ink second series; dark swaps it to Sky per the brand gradient.
+ */
+const CHART_THEME = {
+  light: { grid: "#e2e8f0", tick: "#64748b", ink: "#0f1419", azure: "#1d9bf0" },
+  dark: { grid: "#2e3033", tick: "#8a8e93", ink: "#8ecdf8", azure: "#1d9bf0" },
+} as const;
 
 export const Route = createFileRoute("/_authenticated/business/")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -77,6 +88,8 @@ function BusinessOverview() {
   const tab: ConsoleTab = (searchTab as ConsoleTab) ?? "overview";
   const { user } = useAuth();
   const { membership, organization, usage, isLoading } = useMyOrganization();
+  const { resolvedTheme } = useTheme();
+  const chart = resolvedTheme === "dark" ? CHART_THEME.dark : CHART_THEME.light;
   const [onboardingDismissed, setOnboardingDismissed] = useState(
     () => typeof window !== "undefined" && localStorage.getItem("mm-onboarding-dismissed") === "1",
   );
@@ -283,15 +296,15 @@ function BusinessOverview() {
                       >
                         <defs>
                           <linearGradient id="mmImpressions" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#1d9bf0" stopOpacity={0.25} />
-                            <stop offset="100%" stopColor="#1d9bf0" stopOpacity={0} />
+                            <stop offset="0%" stopColor={chart.azure} stopOpacity={0.25} />
+                            <stop offset="100%" stopColor={chart.azure} stopOpacity={0} />
                           </linearGradient>
                           <linearGradient id="mmProfileViews" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#0f1419" stopOpacity={0.25} />
-                            <stop offset="100%" stopColor="#0f1419" stopOpacity={0} />
+                            <stop offset="0%" stopColor={chart.ink} stopOpacity={0.25} />
+                            <stop offset="100%" stopColor={chart.ink} stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chart.grid} />
                         <XAxis
                           dataKey="date"
                           tickFormatter={(value: string) =>
@@ -300,13 +313,13 @@ function BusinessOverview() {
                           tickLine={false}
                           axisLine={false}
                           minTickGap={28}
-                          tick={{ fontSize: 11, fill: "#64748b" }}
+                          tick={{ fontSize: 11, fill: chart.tick }}
                         />
                         <YAxis
                           allowDecimals={false}
                           tickLine={false}
                           axisLine={false}
-                          tick={{ fontSize: 11, fill: "#64748b" }}
+                          tick={{ fontSize: 11, fill: chart.tick }}
                         />
                         <Tooltip
                           labelFormatter={(value) =>
@@ -314,7 +327,9 @@ function BusinessOverview() {
                           }
                           contentStyle={{
                             borderRadius: 10,
-                            border: "1px solid #e2e8f0",
+                            border: "1px solid var(--border)",
+                            background: "var(--popover)",
+                            color: "var(--popover-foreground)",
                             fontSize: 12,
                           }}
                         />
@@ -323,7 +338,7 @@ function BusinessOverview() {
                           type="monotone"
                           dataKey="impression"
                           name="Impressions"
-                          stroke="#1d9bf0"
+                          stroke={chart.azure}
                           strokeWidth={2}
                           fill="url(#mmImpressions)"
                         />
@@ -331,7 +346,7 @@ function BusinessOverview() {
                           type="monotone"
                           dataKey="profile_view"
                           name="Profile views"
-                          stroke="#0f1419"
+                          stroke={chart.ink}
                           strokeWidth={2}
                           fill="url(#mmProfileViews)"
                         />
@@ -359,7 +374,7 @@ function BusinessOverview() {
                         data={analytics.daily}
                         margin={{ top: 4, right: 8, bottom: 0, left: -18 }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chart.grid} />
                         <XAxis
                           dataKey="date"
                           tickFormatter={(value: string) =>
@@ -368,13 +383,13 @@ function BusinessOverview() {
                           tickLine={false}
                           axisLine={false}
                           minTickGap={28}
-                          tick={{ fontSize: 11, fill: "#64748b" }}
+                          tick={{ fontSize: 11, fill: chart.tick }}
                         />
                         <YAxis
                           allowDecimals={false}
                           tickLine={false}
                           axisLine={false}
-                          tick={{ fontSize: 11, fill: "#64748b" }}
+                          tick={{ fontSize: 11, fill: chart.tick }}
                         />
                         <Tooltip
                           labelFormatter={(value) =>
@@ -382,7 +397,9 @@ function BusinessOverview() {
                           }
                           contentStyle={{
                             borderRadius: 10,
-                            border: "1px solid #e2e8f0",
+                            border: "1px solid var(--border)",
+                            background: "var(--popover)",
+                            color: "var(--popover-foreground)",
                             fontSize: 12,
                           }}
                         />
@@ -390,13 +407,13 @@ function BusinessOverview() {
                         <Bar
                           dataKey="course_view"
                           name="Course views"
-                          fill="#1d9bf0"
+                          fill={chart.azure}
                           radius={[3, 3, 0, 0]}
                         />
                         <Bar
                           dataKey="contact_click"
                           name="Contact clicks"
-                          fill="#0f1419"
+                          fill={chart.ink}
                           radius={[3, 3, 0, 0]}
                         />
                       </BarChart>
@@ -600,7 +617,11 @@ function EngagementStat({
           <span
             className={cn(
               "inline-flex items-center gap-0.5 font-semibold",
-              delta > 0 ? "text-emerald-600" : delta < 0 ? "text-red-500" : "text-muted-foreground",
+              delta > 0
+                ? "text-emerald-600 dark:text-emerald-400"
+                : delta < 0
+                  ? "text-red-500 dark:text-red-400"
+                  : "text-muted-foreground",
             )}
           >
             {delta > 0 ? <TrendingUp className="h-3 w-3" /> : null}
@@ -608,7 +629,9 @@ function EngagementStat({
             {delta > 0 ? `+${delta}%` : delta === 0 ? "0%" : `${delta}%`}
           </span>
         )}
-        {delta === null && <span className="font-medium text-emerald-600">new</span>}
+        {delta === null && (
+          <span className="font-medium text-emerald-600 dark:text-emerald-400">new</span>
+        )}
       </span>
     </div>
   );
@@ -620,8 +643,8 @@ function PlanBadgeInline({ plan, status }: { plan: string; status: string }) {
       <span
         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${
           plan === "enterprise"
-            ? "bg-violet-50 text-violet-700 ring-violet-700/10"
-            : "bg-blue-50 text-blue-700 ring-blue-700/10"
+            ? "bg-violet-50 text-violet-700 ring-violet-700/10 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-400/20"
+            : "bg-blue-50 text-blue-700 ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-400/20"
         }`}
       >
         {plan === "enterprise" ? "Enterprise" : "Business"}
@@ -629,10 +652,10 @@ function PlanBadgeInline({ plan, status }: { plan: string; status: string }) {
       <span
         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${
           status === "active"
-            ? "bg-emerald-50 text-emerald-700 ring-emerald-700/10"
+            ? "bg-emerald-50 text-emerald-700 ring-emerald-700/10 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-400/20"
             : status === "pending"
-              ? "bg-amber-50 text-amber-700 ring-amber-700/10"
-              : "bg-red-50 text-red-700 ring-red-700/10"
+              ? "bg-amber-50 text-amber-700 ring-amber-700/10 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-400/20"
+              : "bg-red-50 text-red-700 ring-red-700/10 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-400/20"
         }`}
       >
         {status === "active" ? "Active" : status === "pending" ? "Pending" : "Suspended"}

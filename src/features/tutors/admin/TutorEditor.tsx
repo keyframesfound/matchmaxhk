@@ -1378,7 +1378,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                         </Button>
                         {suggestionStatus === "done" ? (
                           <p
-                            className="text-xs font-semibold text-emerald-700"
+                            className="text-xs font-semibold text-emerald-700 dark:text-emerald-400"
                             role="status"
                             aria-live="polite"
                           >
@@ -1490,13 +1490,14 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                           }
                           className={cn(
                             "pr-16 text-xs",
-                            reachedLimit && "border-amber-500 focus-visible:ring-amber-500",
+                            reachedLimit &&
+                              "border-amber-500 focus-visible:ring-amber-500 dark:border-amber-400 dark:focus-visible:ring-amber-400",
                           )}
                         />
                         <span
                           className={cn(
                             "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-muted-foreground",
-                            reachedLimit && "text-amber-600",
+                            reachedLimit && "text-amber-600 dark:text-amber-400",
                           )}
                           aria-live="polite"
                         >
@@ -1505,7 +1506,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
                       </div>
                       {reachedLimit ? (
                         <p
-                          className="flex items-center gap-1 text-[11px] font-medium text-amber-600"
+                          className="flex items-center gap-1 text-[11px] font-medium text-amber-600 dark:text-amber-400"
                           role="status"
                         >
                           <AlertCircle className="h-3.5 w-3.5 shrink-0" />
@@ -1621,7 +1622,7 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
             <ConsolePanel padding="sm">
               <div className="flex items-center justify-between mb-3 border-b border-[color:var(--ink)]/[0.08] pb-2.5">
                 <div className="flex items-center gap-1.5">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse dark:bg-emerald-400" />
                   <span className="text-xs font-bold text-[color:var(--ink)]">
                     Live Card Preview
                   </span>

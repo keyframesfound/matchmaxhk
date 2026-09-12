@@ -661,7 +661,7 @@ export function ProfilePanel() {
               onChange={(e) => setField({ intro_video_url: e.target.value })}
             />
             {form.intro_video_url.trim() && !parseYouTubeUrl(form.intro_video_url) ? (
-              <p className="text-xs text-red-500">
+              <p className="text-xs text-red-500 dark:text-red-400">
                 That doesn't look like a YouTube link. Paste a youtube.com/watch, youtu.be or
                 /shorts URL.
               </p>
@@ -717,7 +717,7 @@ export function ProfilePanel() {
                         aria-label="Remove question"
                         onClick={() => setFaqItems((prev) => prev.filter((_, i) => i !== index))}
                       >
-                        <Trash2 className="h-4 w-4 text-red-500" />
+                        <Trash2 className="h-4 w-4 text-red-500 dark:text-red-400" />
                       </Button>
                     </div>
                     <Input
@@ -838,12 +838,12 @@ export function ProfilePanel() {
             <p className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               {isDirty ? (
                 <>
-                  <span className="h-2 w-2 rounded-full bg-amber-500" />
+                  <span className="h-2 w-2 rounded-full bg-amber-500 dark:bg-amber-400" />
                   You have unsaved changes
                 </>
               ) : (
                 <>
-                  <CircleCheck className="h-4 w-4 text-emerald-600" />
+                  <CircleCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   All changes saved
                 </>
               )}
@@ -883,7 +883,7 @@ export function ProfilePanel() {
             <div
               className={cn(
                 "h-full rounded-full transition-all duration-300",
-                completeness.pct === 100 ? "bg-emerald-500" : "bg-[#1d9bf0]",
+                completeness.pct === 100 ? "bg-emerald-500 dark:bg-emerald-400" : "bg-[#1d9bf0]",
               )}
               style={{ width: `${completeness.pct}%` }}
             />
@@ -907,7 +907,7 @@ export function ProfilePanel() {
               ))}
             </div>
           ) : (
-            <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+            <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
               <CircleCheck className="h-3.5 w-3.5" />
               Your profile is fully populated
             </p>

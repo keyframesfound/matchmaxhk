@@ -310,8 +310,8 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
           <span
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
               row.original.is_published
-                ? "bg-emerald-50 text-emerald-700 ring-emerald-700/10"
-                : "bg-gray-100 text-gray-600 ring-gray-500/10"
+                ? "bg-emerald-50 text-emerald-700 ring-emerald-700/10 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-400/20"
+                : "bg-gray-100 text-gray-600 ring-gray-500/10 dark:bg-gray-500/10 dark:text-gray-400 dark:ring-gray-400/20"
             }`}
           >
             {row.original.is_published ? "Published" : "Unpublished"}
@@ -430,7 +430,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
                     {course.is_published ? "Unpublish" : "Publish"}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    className="text-red-500 focus:text-red-500"
+                    className="text-red-500 focus:text-red-500 dark:text-red-400 dark:focus:text-red-400"
                     onClick={() => setCoursePendingDeletion(course)}
                   >
                     <Trash2 className="h-4 w-4" />

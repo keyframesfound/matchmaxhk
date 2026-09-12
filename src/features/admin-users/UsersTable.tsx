@@ -173,7 +173,7 @@ export function UsersTable({ users, isLoading, onManageRoles, onDeleteUser }: Us
                         onClick={() => onManageRoles(user)}
                         className="cursor-pointer text-xs"
                       >
-                        <Shield className="mr-2 h-3.5 w-3.5 text-indigo-500" />
+                        <Shield className="mr-2 h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400" />
                         Manage Roles
                       </DropdownMenuItem>
                       <DropdownMenuItem

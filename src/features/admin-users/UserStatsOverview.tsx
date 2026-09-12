@@ -33,7 +33,7 @@ export function UserStatsOverview({ users, isLoading }: UserStatsOverviewProps) 
       subtitle: "Active user accounts",
       icon: Users,
       color: "text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20",
-      barColor: "bg-blue-500",
+      barColor: "bg-blue-500 dark:bg-blue-400",
       pct: 100,
     },
     {
@@ -42,7 +42,7 @@ export function UserStatsOverview({ users, isLoading }: UserStatsOverviewProps) 
       subtitle: `${adminPct}% of user base`,
       icon: ShieldCheck,
       color: "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20",
-      barColor: "bg-indigo-500",
+      barColor: "bg-indigo-500 dark:bg-indigo-400",
       pct: adminPct,
     },
     {
@@ -61,7 +61,7 @@ export function UserStatsOverview({ users, isLoading }: UserStatsOverviewProps) 
       subtitle: `${parentPct}% of user base`,
       icon: UserCheck,
       color: "text-slate-600 dark:text-slate-400 bg-slate-500/10 border-slate-500/20",
-      barColor: "bg-slate-500",
+      barColor: "bg-slate-500 dark:bg-slate-400",
       pct: parentPct,
     },
   ];

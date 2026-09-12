@@ -49,7 +49,7 @@ export function UsageMeter({
         <p
           className={cn(
             "text-xs font-semibold",
-            nearLimit ? "text-amber-600" : "text-[color:var(--ink)]",
+            nearLimit ? "text-amber-600 dark:text-amber-400" : "text-[color:var(--ink)]",
           )}
         >
           {limit === null ? `${used} · unlimited` : `${used} / ${limit}`}
@@ -59,7 +59,7 @@ export function UsageMeter({
         <div
           className={cn(
             "h-full rounded-full transition-all",
-            nearLimit ? "bg-amber-500" : "bg-[#1d9bf0]",
+            nearLimit ? "bg-amber-500 dark:bg-amber-400" : "bg-[#1d9bf0]",
           )}
           style={{ width: limit ? `${pct}%` : "100%" }}
         />

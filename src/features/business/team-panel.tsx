@@ -175,8 +175,8 @@ export function TeamPanel() {
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
                           member.role === "owner"
-                            ? "bg-violet-50 text-violet-700 ring-violet-700/10"
-                            : "bg-blue-50 text-blue-700 ring-blue-700/10"
+                            ? "bg-violet-50 text-violet-700 ring-violet-700/10 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-400/20"
+                            : "bg-blue-50 text-blue-700 ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-400/20"
                         }`}
                       >
                         {member.role === "owner" ? "Owner" : "Admin"}
@@ -186,8 +186,8 @@ export function TeamPanel() {
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
                           member.status === "active"
-                            ? "bg-emerald-50 text-emerald-700 ring-emerald-700/10"
-                            : "bg-amber-50 text-amber-700 ring-amber-700/10"
+                            ? "bg-emerald-50 text-emerald-700 ring-emerald-700/10 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-400/20"
+                            : "bg-amber-50 text-amber-700 ring-amber-700/10 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-400/20"
                         }`}
                       >
                         {member.status === "active" ? "Active" : "Invite pending"}
@@ -209,7 +209,7 @@ export function TeamPanel() {
                           }
                         >
                           {isOwner && !isSelfRow(member) ? (
-                            <Trash2 className="h-4 w-4 text-red-500" />
+                            <Trash2 className="h-4 w-4 text-red-500 dark:text-red-400" />
                           ) : (
                             <LogOut className="h-4 w-4" />
                           )}
