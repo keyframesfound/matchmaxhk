@@ -2,17 +2,17 @@ from pathlib import Path
 from PIL import Image
 
 public = Path('/home/ubuntu/matchmaxhk/public')
-source = Path('/home/ubuntu/matchmax_logos/matchmax_icon.png')
+source = Path('/home/ubuntu/matchmaxhk/public/matchmax-logo-ai.png')
 with Image.open(source).convert('RGBA') as source_image:
     icon = source_image.copy()
 
-# Remove only neutral white background pixels; the logo's blue gradients remain
-# untouched because they have significant channel separation.
+# Remove the neutral grayscale checkerboard matte while preserving all colored
+# logo gradients and edges.
 pixels = icon.load()
 for y in range(icon.height):
     for x in range(icon.width):
         r, g, b, _ = pixels[x, y]
-        if max(r, g, b) - min(r, g, b) <= 18 and min(r, g, b) >= 210:
+        if max(r, g, b) - min(r, g, b) <= 12 and min(r, g, b) >= 80:
             pixels[x, y] = (r, g, b, 0)
 
 bbox = icon.getbbox()
