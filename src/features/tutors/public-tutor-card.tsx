@@ -36,7 +36,7 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
   return (
     <span
       data-academic-chip
-      className="inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-1.5 py-0.5 text-xs leading-snug text-[color:var(--ink)] md:px-2 md:py-1"
+      className="inline-flex max-w-full items-start rounded-[4px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-1.5 py-0.5 text-xs leading-snug text-[color:var(--ink)] md:px-2 md:py-1 @max-sm:text-[11px]"
     >
       <span className="break-words font-medium">{chip.subject}</span>
       {grade ? (
@@ -164,7 +164,7 @@ export function PublicTutorCard({
   return (
     <article
       className={cn(
-        "relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-[transform,border-color] duration-200 hover:-translate-y-1 hover:border-[color:var(--foreground)]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
+        "@container relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-[transform,border-color] duration-200 hover:-translate-y-1 hover:border-[color:var(--foreground)]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
         interactive && "cursor-pointer",
         compareSelected && "border-[color:var(--ring)] ring-2 ring-[color:var(--ring)]/40",
         className,
@@ -209,7 +209,7 @@ export function PublicTutorCard({
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">
-            <p className="line-clamp-2 text-sm font-bold leading-tight text-[color:var(--ink)] md:text-base">
+            <p className="line-clamp-2 text-sm font-bold leading-tight text-[color:var(--ink)] md:text-base @max-sm:text-xs!">
               {primaryCredential}
             </p>
             {supportingCredentials.map((credential, index) => (
@@ -223,7 +223,7 @@ export function PublicTutorCard({
           </div>
 
           {genderLabel ? (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)]">
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)] @max-sm:px-1.5 @max-sm:py-0.5 @max-sm:text-[11px]">
               <UserRound
                 className="h-3 w-3 text-[color:var(--muted-foreground)]"
                 aria-hidden="true"
@@ -237,9 +237,9 @@ export function PublicTutorCard({
       <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
         {academicChips.length > 0 ? (
           <section className="border-b border-border pb-2.5 md:pb-3">
-            <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)]">
+            <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)] @max-sm:text-xs">
               <BookOpen
-                className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
+                className="h-3.5 w-3.5 text-[color:var(--muted-foreground)] @max-sm:h-3 @max-sm:w-3"
                 strokeWidth={2.5}
                 aria-hidden="true"
               />
@@ -264,7 +264,7 @@ export function PublicTutorCard({
                     aria-controls={`academic-achievements-${tutor.tutor_code}`}
                     onClick={toggleAcademicChips}
                     onKeyDown={(event) => event.stopPropagation()}
-                    className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:py-1.5 md:text-sm"
+                    className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:py-1.5 md:text-sm @max-sm:text-[11px]!"
                   >
                     ... {t("tutor_card.more")}
                   </button>
@@ -277,9 +277,9 @@ export function PublicTutorCard({
         <section
           className={cn("flex flex-1 flex-col", academicChips.length > 0 ? "pt-2.5" : "pt-0")}
         >
-          <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)]">
+          <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)] @max-sm:text-xs">
             <Award
-              className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
+              className="h-3.5 w-3.5 text-[color:var(--muted-foreground)] @max-sm:h-3 @max-sm:w-3"
               strokeWidth={2.5}
               aria-hidden="true"
             />
@@ -306,7 +306,7 @@ export function PublicTutorCard({
             ).map((highlight, index) => (
               <li
                 key={`${highlight}-${index}`}
-                className="line-clamp-1 text-xs font-semibold leading-snug text-[color:var(--ink)] md:text-sm"
+                className="line-clamp-1 text-xs font-semibold leading-snug text-[color:var(--ink)] md:text-sm @max-sm:text-xs!"
               >
                 {removeEmoji(highlight)}
               </li>
@@ -316,7 +316,7 @@ export function PublicTutorCard({
       </div>
 
       <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
-        <p className="min-w-0 flex-1 truncate text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl">
+        <p className="min-w-0 flex-1 truncate text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!">
           ${tutor.hourly_rate}
           <span className="ml-1 text-xs font-medium text-muted-foreground">{priceSuffix}</span>
         </p>
@@ -338,7 +338,7 @@ export function PublicTutorCard({
                     onClick={handleCompareToggle}
                     onKeyDown={(event) => event.stopPropagation()}
                     className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
                       compareSelected
                         ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
                         : "text-[color:var(--ink)]/55 hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]",

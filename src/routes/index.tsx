@@ -155,7 +155,7 @@ function CurriculumTutorSection({
             <TutorSaveButton tutorId={tutor.id} compact />
             <Button
               asChild
-              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
             >
               <a
                 href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}

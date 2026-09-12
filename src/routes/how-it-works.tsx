@@ -1,14 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import {
-  ArrowRight,
-  Asterisk,
-  Check,
-  Clock3,
-  MessageCircle,
-  Search,
-  UserRoundCheck,
-} from "lucide-react";
+import { ArrowRight, Asterisk, Clock3, MessageCircle, Search, UserRoundCheck } from "lucide-react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -195,45 +187,58 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
   return (
     <div>
       <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
-      <div className="mt-8 hidden gap-x-10 border-b border-[color:var(--ink)]/20 pb-4 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
-        <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_aspect")}</p>
-        <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_old")}</p>
-        <p className="text-sm font-bold text-[color:var(--brand-link)]">{t("hiw.table_max")}</p>
+      <div className="mt-8 rounded-2xl border border-[color:var(--hiw-compare-card-border)] bg-[color:var(--hiw-compare-card)] p-5 shadow-sm md:p-8">
+        <div className="hidden gap-x-10 border-b border-[color:var(--ink)]/20 pb-4 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
+          <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_aspect")}</p>
+          <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_old")}</p>
+          <p className="md:rounded-t-lg md:bg-[color:var(--hiw-compare-max)] md:-mb-4 md:pb-4 md:pl-4 text-sm font-bold text-[color:var(--brand-link)]">
+            {t("hiw.table_max")}
+          </p>
+        </div>
+        <ul>
+          {rows.map((row, index) => {
+            const isLast = index === rows.length - 1;
+            return (
+              <li
+                key={row.aspect}
+                className={`max-md:py-5 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-x-10 md:py-9 ${
+                  isLast ? "" : "border-b border-[color:var(--ink)]/12"
+                }`}
+              >
+                <h3 className="text-lg font-bold tracking-tight">{row.aspect}</h3>
+                <div className="max-md:mt-4">
+                  <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--ink)]/45 md:hidden">
+                    {t("hiw.table_old_mobile")}
+                  </p>
+                  <p className="text-sm leading-6 text-[color:var(--ink)]/60">{row.oldWay}</p>
+                </div>
+                <div aria-hidden="true" className="flex items-center gap-3 md:hidden max-md:mt-4">
+                  <span className="h-px flex-1 bg-[color:var(--hiw-compare-line)]" />
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-[color:var(--ink)]">
+                    {t("hiw.table_vs")}
+                  </span>
+                  <span className="h-px flex-1 bg-[color:var(--hiw-compare-line)]" />
+                </div>
+                <div
+                  className={`max-md:mt-4 md:-my-9 md:bg-[color:var(--hiw-compare-max)] md:py-9 md:pl-4 ${
+                    isLast ? "md:rounded-b-lg" : ""
+                  }`}
+                >
+                  <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--brand-link)] md:hidden">
+                    {t("hiw.table_max")}
+                  </p>
+                  <p className="text-sm leading-6 text-[color:var(--ink)]">
+                    <strong className="font-bold text-[color:var(--brand-link)]">
+                      {row.advantage}:
+                    </strong>{" "}
+                    {row.detail}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </div>
-      <ul className="max-md:mt-8 max-md:space-y-4">
-        {rows.map((row) => (
-          <li
-            key={row.aspect}
-            className="border-b border-[color:var(--ink)]/12 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-x-10 md:py-9 max-md:rounded-2xl max-md:border max-md:border-[color:var(--hiw-compare-card-border)] max-md:bg-[color:var(--hiw-compare-card)] max-md:p-5 max-md:shadow-sm"
-          >
-            <h3 className="text-lg font-bold tracking-tight">{row.aspect}</h3>
-            <div className="max-md:mt-4">
-              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--ink)]/45 md:hidden">
-                {t("hiw.table_old_mobile")}
-              </p>
-              <p className="text-sm leading-6 text-[color:var(--ink)]/60">{row.oldWay}</p>
-            </div>
-            <div aria-hidden="true" className="flex items-center gap-3 md:hidden max-md:mt-4">
-              <span className="h-px flex-1 bg-[color:var(--hiw-compare-line)]" />
-              <span className="text-[11px] font-bold uppercase tracking-widest text-[color:var(--ink)]">
-                {t("hiw.table_vs")}
-              </span>
-              <span className="h-px flex-1 bg-[color:var(--hiw-compare-line)]" />
-            </div>
-            <div className="max-md:mt-4">
-              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--brand-link)] md:hidden">
-                {t("hiw.table_max")}
-              </p>
-              <p className="text-sm leading-6 text-[color:var(--ink)]">
-                <strong className="font-bold text-[color:var(--brand-link)]">
-                  {row.advantage}:
-                </strong>{" "}
-                {row.detail}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
@@ -409,10 +414,6 @@ function HowItWorksPage() {
               <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/68">
                 {t("hiw.cta_body")}
               </p>
-            </div>
-            <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]/70">
-              <Check className="h-4 w-4 text-[color:var(--muted-foreground)]" />{" "}
-              {t("hiw.cta_check")}
             </div>
           </div>
         </section>
