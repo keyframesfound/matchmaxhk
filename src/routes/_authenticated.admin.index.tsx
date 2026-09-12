@@ -12,7 +12,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
-    meta: [{ title: "Admin overview — MatchMax" }, { name: "robots", content: "noindex" }],
+    meta: [
+      { title: "Admin overview — MatchMax" },
+      {
+        name: "description",
+        content: "Platform-wide stats for tutors, cases, profiles and organizations.",
+      },
+      { name: "robots", content: "noindex" },
+    ],
   }),
   component: AdminOverview,
 });

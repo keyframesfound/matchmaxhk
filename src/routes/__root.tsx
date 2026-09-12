@@ -103,12 +103,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:url", content: "https://matchmax.hk" },
       { property: "og:image", content: "https://matchmax.hk/matchmax-logo.png" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "MatchMax" },
-      {
-        name: "twitter:description",
-        content:
-          "MatchMax connects Hong Kong parents and students with verified DSE, IB, IGCSE, and AP tutors — matched instantly.",
-      },
       { name: "twitter:image", content: "https://matchmax.hk/matchmax-logo.png" },
     ],
     links: [

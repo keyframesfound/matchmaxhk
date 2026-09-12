@@ -15,7 +15,11 @@ export const Route = createFileRoute("/join")({
           "Apply to join the MatchMax tutor team in Hong Kong. Share your academic results, experience and availability.",
       },
       { property: "og:title", content: "Apply to tutor with MatchMax" },
-      { property: "og:description", content: "Join the MatchMax tutor network in Hong Kong." },
+      {
+        property: "og:description",
+        content:
+          "Apply to join the MatchMax tutor team in Hong Kong. Share your academic results, experience and availability.",
+      },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://matchmax.hk/join" },
       { name: "twitter:card", content: "summary_large_image" },

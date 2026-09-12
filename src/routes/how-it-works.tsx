@@ -22,6 +22,13 @@ export const Route = createFileRoute("/how-it-works")({
           "Discover MatchMax's transparent, high-calibre tutoring matching for families, tutors, and education centres in Hong Kong — plus answers to the most frequently asked questions.",
       },
       { name: "robots", content: "index, follow" },
+      { property: "og:title", content: "How It Works | MatchMax" },
+      {
+        property: "og:description",
+        content:
+          "Discover MatchMax's transparent, high-calibre tutoring matching for families, tutors, and education centres in Hong Kong — plus answers to the most frequently asked questions.",
+      },
+      { property: "og:url", content: "https://matchmax.hk/how-it-works" },
     ],
   }),
   component: HowItWorksPage,

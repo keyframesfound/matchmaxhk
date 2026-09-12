@@ -36,9 +36,42 @@ export const Route = createFileRoute("/courses/$courseId")({
   beforeLoad: () => {
     if (!CENTRE_MARKET_ENABLED) throw notFound();
   },
-  head: () => ({
-    meta: [{ title: "Course | MatchMax" }, { name: "robots", content: "index, follow" }],
-  }),
+  loader: async ({ params }) => {
+    const course = await fetchCourseById(params.courseId);
+    if (!course) throw notFound();
+    return course;
+  },
+  head: ({ match }) => {
+    const course = match.loaderData as CourseWithOrganization | undefined;
+    const url = `https://matchmax.hk/courses/${match.params.courseId}`;
+    if (!course) {
+      return {
+        meta: [{ title: "Course | MatchMax" }, { name: "robots", content: "noindex" }],
+        links: [{ rel: "canonical", href: url }],
+      };
+    }
+    const price = formatCoursePrice(course.price, course.currency);
+    const mode = courseModeLabel(course.mode);
+    const orgName = course.organization?.name ?? "a Hong Kong learning centre";
+    const description = (
+      course.summary?.trim() ||
+      `${course.title} — ${price ?? "enquire for pricing"} · ${mode} course at ${orgName} in Hong Kong. Enquire via MatchMax.`
+    ).slice(0, 200);
+    const title = `${course.title} | MatchMax`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { name: "robots", content: "index, follow" },
+        { property: "og:type", content: "website" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+        ...(course.image_url ? [{ property: "og:image", content: course.image_url }] : []),
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   component: CourseDetail,
 });
 
@@ -208,6 +241,7 @@ function MoreFromCentre({ orgId, currentCourseId }: { orgId: string; currentCour
 function CourseDetail() {
   const { courseId } = Route.useParams();
   const track = useBusinessTracker();
+  const loaderCourse = Route.useLoaderData();
   const {
     data: course,
     isLoading,
@@ -215,6 +249,7 @@ function CourseDetail() {
   } = useQuery({
     queryKey: ["course", courseId],
     queryFn: () => fetchCourseById(courseId),
+    initialData: loaderCourse,
     retry: false,
   });
 

@@ -75,7 +75,14 @@ export const Route = createFileRoute("/_authenticated/business/")({
     };
   },
   head: () => ({
-    meta: [{ title: "Business overview | MatchMax" }],
+    meta: [
+      { title: "Business overview | MatchMax" },
+      {
+        name: "description",
+        content: "Manage your organisation's courses, team and public profile on MatchMax.",
+      },
+      { name: "robots", content: "noindex" },
+    ],
   }),
   component: BusinessOverview,
 });

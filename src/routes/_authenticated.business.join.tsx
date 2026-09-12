@@ -23,7 +23,14 @@ export const Route = createFileRoute("/_authenticated/business/join")({
   },
   validateSearch: z.object({ plan: z.string().optional() }),
   head: () => ({
-    meta: [{ title: "Create your business account | MatchMax" }],
+    meta: [
+      { title: "Create your business account | MatchMax" },
+      {
+        name: "description",
+        content: "Create a MatchMax business account to list your learning centre's courses.",
+      },
+      { name: "robots", content: "noindex" },
+    ],
   }),
   component: BusinessJoinPage,
 });

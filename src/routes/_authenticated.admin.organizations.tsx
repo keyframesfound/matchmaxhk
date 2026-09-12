@@ -27,7 +27,11 @@ import { useAuth } from "@/features/auth/useAuth";
 
 export const Route = createFileRoute("/_authenticated/admin/organizations")({
   head: () => ({
-    meta: [{ title: "Organizations — MatchMax Admin" }, { name: "robots", content: "noindex" }],
+    meta: [
+      { title: "Organizations — MatchMax Admin" },
+      { name: "description", content: "Review and manage tutoring organizations on MatchMax." },
+      { name: "robots", content: "noindex" },
+    ],
   }),
   component: AdminOrganizations,
 });
