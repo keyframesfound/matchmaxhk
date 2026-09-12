@@ -1,12 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { cloneElement, isValidElement, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Check,
   CheckCircle2,
   LocateFixed,
   Paperclip,
   Plus,
   Scale,
+  Send,
   ShieldCheck,
   Sparkles,
   Trash2,
@@ -26,8 +30,7 @@ import {
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Input } from "@/components/base/input/input";
-import { FormField } from "@/components/ui/form-field";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
@@ -38,7 +41,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import Stepper, { Step, type StepperIndicatorRenderArgs } from "@/components/ui/stepper";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { cn } from "@/lib/utils";
 import {
@@ -181,7 +183,55 @@ const PROFESSIONAL_STEPS = [
   "Acknowledgments",
 ];
 
-const Field = FormField;
+const labelClassName =
+  "mb-1.5 block text-sm font-bold text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--muted-foreground)]";
+const controlClassName = "h-11 w-full rounded-sm";
+const invalidInputClassName =
+  "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30";
+
+function RequiredFlag() {
+  return <span className="ml-2 align-middle text-xs font-medium text-destructive">Required</span>;
+}
+
+type FieldProps = {
+  label: string;
+  required?: boolean;
+  error?: string;
+  hint?: React.ReactNode;
+  className?: string;
+  children: React.ReactNode;
+};
+
+function Field({ label, error, hint, className, children }: FieldProps) {
+  const control =
+    isValidElement(children) && children.type === Input
+      ? cloneElement(
+          children as React.ReactElement<{ className?: string; "aria-invalid"?: boolean }>,
+          {
+            className: cn(
+              controlClassName,
+              error && invalidInputClassName,
+              (children.props as { className?: string }).className,
+            ),
+            "aria-invalid": error ? true : undefined,
+          },
+        )
+      : children;
+
+  return (
+    <div className={cn("min-w-0", className)}>
+      <label className={labelClassName}>
+        {label}
+        {error === "Required" ? <RequiredFlag /> : null}
+      </label>
+      {control}
+      {error && error !== "Required" ? (
+        <p className="mt-1 text-xs font-semibold text-destructive">{error}</p>
+      ) : null}
+      {hint ? <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{hint}</p> : null}
+    </div>
+  );
+}
 
 function Hint({ children }: { children: React.ReactNode }) {
   return <p className="text-xs italic leading-relaxed text-muted-foreground">{children}</p>;
@@ -191,7 +241,7 @@ function EvidenceNote({ className }: { className?: string }) {
   return (
     <p
       className={cn(
-        "flex gap-2.5 rounded-lg border border-border bg-[color:var(--surface-subtle)] px-3 py-2.5 text-xs leading-relaxed text-muted-foreground",
+        "flex gap-2.5 rounded-sm border border-border bg-[color:var(--surface-subtle)] px-3 py-2.5 text-xs leading-relaxed text-muted-foreground",
         className,
       )}
     >
@@ -306,7 +356,7 @@ function DocumentUpload({
     <div className="grid min-w-0 gap-2">
       <label
         className={cn(
-          "mx-auto flex min-h-20 w-full max-w-xs cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border bg-[color:var(--surface-subtle)] px-3 py-3 text-center text-sm text-muted-foreground transition-colors",
+          "mx-auto flex min-h-20 w-full max-w-xs cursor-pointer flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-border bg-[color:var(--surface-subtle)] px-3 py-3 text-center text-sm text-muted-foreground transition-colors",
           invalid && "border-destructive",
           dragging && "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.05]",
           disabled && "cursor-not-allowed opacity-60",
@@ -338,7 +388,7 @@ function DocumentUpload({
         />
       </label>
       {file ? (
-        <div className="grid min-w-0 gap-1.5 rounded-md border border-border px-3 py-2 text-xs text-muted-foreground">
+        <div className="grid min-w-0 gap-1.5 rounded-sm border border-border px-3 py-2 text-xs text-muted-foreground">
           <div className="flex items-start justify-between gap-2">
             <span className="flex min-w-0 items-start gap-2">
               <Paperclip className="mt-0.5 h-3 w-3 shrink-0" />
@@ -531,6 +581,7 @@ function SubjectPicker({
             placeholder="Add subject"
             searchPlaceholder="Search subjects..."
             emptyText="No additional subjects available."
+            className={controlClassName}
             invalid={invalid}
           />
         </div>
@@ -694,6 +745,20 @@ export function ApplicationForm() {
   function changeStep(nextStep: number) {
     shouldScrollToStepper.current = true;
     setStep(nextStep);
+  }
+
+  function goToStep(target: number) {
+    if (target > step && !validateCurrentStep()) return;
+    changeStep(target);
+  }
+
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (step < stepTitles.length) {
+      goToStep(step + 1);
+      return;
+    }
+    void submitForm();
   }
 
   function scrollToStepperTop() {
@@ -1194,41 +1259,15 @@ export function ApplicationForm() {
     }
   }
 
-  function renderIndicator({
-    step: indicatorStep,
-    currentStep,
-    onStepClick,
-  }: StepperIndicatorRenderArgs) {
-    const complete = currentStep > indicatorStep;
-    return (
-      <button
-        type="button"
-        className="join-stepper-indicator"
-        aria-current={currentStep === indicatorStep ? "step" : undefined}
-        onClick={() => {
-          if (indicatorStep <= currentStep) onStepClick(indicatorStep);
-        }}
-      >
-        <span
-          className={cn(
-            "join-stepper-circle",
-            currentStep === indicatorStep && "join-stepper-circle--active",
-            complete && "join-stepper-circle--complete",
-          )}
-        >
-          {complete ? "✓" : indicatorStep}
-        </span>
-        <span className="join-stepper-label">{stepTitles[indicatorStep - 1]}</span>
-      </button>
-    );
-  }
-
   if (done)
     return (
-      <div className="py-20 text-center">
-        <CheckCircle2 className="mx-auto h-12 w-12 text-[color:var(--success)]" />
+      <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-8 text-center shadow-[var(--shadow-brand)] sm:p-12">
+        <CheckCircle2
+          className="mx-auto h-12 w-12 text-[color:var(--muted-foreground)]"
+          aria-hidden="true"
+        />
         <h1 className="mt-4 text-3xl font-bold text-[color:var(--ink)]">Application received</h1>
-        <p className="mx-auto mt-3 max-w-lg text-muted-foreground">
+        <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
           Your application has been received{professional ? " securely" : ""}! Parents can directly
           request you through the MatchMax WhatsApp hotline. Keep an eye on your messages.
         </p>
@@ -1276,11 +1315,19 @@ export function ApplicationForm() {
           return (
             <div
               key={scoreIndex}
-              className="grid gap-3 rounded-md border border-border/70 p-3 sm:grid-cols-2"
+              className="grid gap-3 rounded-sm border border-border/70 p-3 sm:grid-cols-2"
             >
               <div className="grid gap-1.5">
                 {isFreeformQualification ? (
                   <Input
+                    className={cn(
+                      controlClassName,
+                      fieldErrors[`subject-${qualificationIndex}-${scoreIndex}`] &&
+                        invalidInputClassName,
+                    )}
+                    aria-invalid={
+                      fieldErrors[`subject-${qualificationIndex}-${scoreIndex}`] ? true : undefined
+                    }
                     value={score.subject}
                     onChange={(event) =>
                       updateScore(qualificationIndex, scoreIndex, {
@@ -1288,7 +1335,6 @@ export function ApplicationForm() {
                       })
                     }
                     placeholder="Subject name"
-                    isInvalid={Boolean(fieldErrors[`subject-${qualificationIndex}-${scoreIndex}`])}
                   />
                 ) : (
                   <SearchableSelect
@@ -1300,6 +1346,7 @@ export function ApplicationForm() {
                     placeholder="Choose subject"
                     searchPlaceholder="Search subjects..."
                     emptyText="No matching subjects."
+                    className={controlClassName}
                     invalid={Boolean(fieldErrors[`subject-${qualificationIndex}-${scoreIndex}`])}
                   />
                 )}
@@ -1327,12 +1374,19 @@ export function ApplicationForm() {
               <div className="grid gap-1.5">
                 {isFreeformQualification ? (
                   <Input
+                    className={cn(
+                      controlClassName,
+                      fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`] &&
+                        invalidInputClassName,
+                    )}
+                    aria-invalid={
+                      fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`] ? true : undefined
+                    }
                     value={score.grade}
                     onChange={(event) =>
                       updateScore(qualificationIndex, scoreIndex, { grade: event.target.value })
                     }
                     placeholder="Grade / result"
-                    isInvalid={Boolean(fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`])}
                   />
                 ) : (
                   <Select
@@ -1351,6 +1405,7 @@ export function ApplicationForm() {
                         fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`] ? true : undefined
                       }
                       className={cn(
+                        controlClassName,
                         fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`] &&
                           "border-destructive hover:border-destructive focus:border-destructive focus:ring-destructive/30",
                       )}
@@ -1392,7 +1447,10 @@ export function ApplicationForm() {
                             })
                           }
                         >
-                          <SelectTrigger aria-label="Assessment component">
+                          <SelectTrigger
+                            aria-label="Assessment component"
+                            className={controlClassName}
+                          >
                             <SelectValue placeholder="Choose paper or assessment" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1415,7 +1473,7 @@ export function ApplicationForm() {
                             })
                           }
                         >
-                          <SelectTrigger aria-label="Component score">
+                          <SelectTrigger aria-label="Component score" className={controlClassName}>
                             <SelectValue
                               placeholder={
                                 qualification.curriculum === IELTS_CURRICULUM ? "Band" : "Score"
@@ -1432,6 +1490,7 @@ export function ApplicationForm() {
                         </Select>
                       ) : (
                         <Input
+                          className={controlClassName}
                           value={paper.score}
                           onChange={(event) =>
                             updateScore(qualificationIndex, scoreIndex, {
@@ -1468,7 +1527,7 @@ export function ApplicationForm() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-fit"
+                  className="w-fit rounded-sm"
                   onClick={() =>
                     updateScore(qualificationIndex, scoreIndex, {
                       papers: [...score.papers, { label: "", score: "" }],
@@ -1483,7 +1542,7 @@ export function ApplicationForm() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-fit"
+                  className="w-fit rounded-sm"
                   onClick={() =>
                     updateQualification(qualificationIndex, {
                       scores: qualification.scores.filter((_, index) => index !== scoreIndex),
@@ -1500,7 +1559,7 @@ export function ApplicationForm() {
           <Button
             type="button"
             variant="outline"
-            className="w-fit"
+            className="w-fit rounded-sm"
             onClick={() =>
               updateQualification(qualificationIndex, {
                 scores: [
@@ -1518,13 +1577,7 @@ export function ApplicationForm() {
   };
 
   return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        void submitForm();
-      }}
-      className="join-stepper-form"
-    >
+    <form onSubmit={handleSubmit}>
       <aside
         aria-label="Display rules and legal warning"
         className="mb-4 grid gap-3 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
@@ -1557,931 +1610,1047 @@ export function ApplicationForm() {
       <aside className="mb-8 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] px-4 py-3 text-sm leading-relaxed text-foreground">
         {notice}
       </aside>
-      <div ref={stepperRef}>
-        {error ? (
-          <div
-            role="alert"
-            className="mb-6 flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium leading-relaxed text-destructive"
-          >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <div className="min-w-0">
-              <span>{error}</span>
-              {Object.keys(fieldErrors).length > 0 ? (
-                <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-semibold">
-                  {Object.keys(fieldErrors).map((key) => (
-                    <li key={key}>{describeFieldError(key)}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
-        <Stepper
-          className="join-stepper"
-          scrollActiveIndicatorIntoView
-          currentStep={step}
-          onStepChange={changeStep}
-          onBeforeStepChange={() => validateCurrentStep()}
-          onFinalStepCompleted={() => void submitForm()}
-          renderStepIndicator={renderIndicator}
-          nextButtonText="Continue"
-          backButtonText="Previous"
-          completeButtonText={submitting ? "Submitting…" : "Submit application"}
-          backButtonProps={{ disabled: submitting }}
-          nextButtonProps={{ disabled: submitting }}
-        >
-          <Step>
-            <Heading
-              step={1}
-              title={professional ? "Basic Details & Professional Status" : "Basic Details"}
-            />
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div className="grid content-start gap-6">
-                <Field label="Full Name" required error={fieldErrors.name}>
-                  <Input
-                    value={base.name}
-                    onChange={(event) => setBaseField("name", event.target.value)}
-                    placeholder="Chan Hau Yui Hauzton"
-                  />
-                </Field>
-                <Field
-                  label="Email"
-                  required
-                  error={fieldErrors.email}
-                  hint="Use an email address you check regularly."
+      <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-5 shadow-[var(--shadow-brand)] sm:p-8">
+        <ol className="mb-8 flex items-center gap-2 sm:gap-3" aria-label="Form progress">
+          {stepTitles.map((label, index) => {
+            const stepNumber = index + 1;
+            const isComplete = stepNumber < step;
+            const isCurrent = stepNumber === step;
+            return (
+              <li key={label} className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+                <button
+                  type="button"
+                  disabled={stepNumber >= step}
+                  onClick={() => changeStep(stepNumber)}
+                  className={cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition-colors",
+                    isComplete &&
+                      "cursor-pointer border-[color:var(--ink)] bg-[color:var(--ink)] text-white",
+                    isCurrent &&
+                      "border-[color:var(--ink)] bg-[color:var(--ink)]/[0.06] text-[color:var(--ink)]",
+                    !isComplete && !isCurrent && "border-border text-muted-foreground",
+                  )}
+                  aria-current={isCurrent ? "step" : undefined}
+                  aria-label={label}
                 >
-                  <Input
-                    type="email"
-                    value={base.email}
-                    onChange={(event) => setBaseField("email", event.target.value)}
-                    placeholder="hauzton.chan@gmail.com"
+                  {isComplete ? <Check className="h-4 w-4" aria-hidden="true" /> : stepNumber}
+                </button>
+                <span
+                  className={cn(
+                    "hidden min-w-0 truncate text-xs font-bold sm:block sm:text-sm",
+                    isCurrent || isComplete ? "text-[color:var(--ink)]" : "text-muted-foreground",
+                  )}
+                >
+                  {label}
+                </span>
+                {stepNumber < stepTitles.length ? (
+                  <span
+                    className={cn(
+                      "h-px flex-1",
+                      stepNumber < step ? "bg-[color:var(--ink)]" : "bg-border",
+                    )}
+                    aria-hidden="true"
                   />
-                </Field>
-                <Field label="Country / Region" required error={fieldErrors.country}>
-                  <SearchableSelect
-                    value={base.country}
-                    onChange={setCountry}
-                    options={COUNTRY_OPTIONS}
-                    placeholder="Choose country or region"
-                    searchPlaceholder="Search countries"
-                    emptyText="No matching country. Choose Other."
-                    invalid={Boolean(fieldErrors.country)}
-                  />
-                  {base.country === "Other" ? (
+                ) : null}
+              </li>
+            );
+          })}
+        </ol>
+
+        <div ref={stepperRef}>
+          {error ? (
+            <div
+              role="alert"
+              className="mb-6 flex items-start gap-2.5 rounded-sm border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium leading-relaxed text-destructive"
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <div className="min-w-0">
+                <span>{error}</span>
+                {Object.keys(fieldErrors).length > 0 ? (
+                  <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-semibold">
+                    {Object.keys(fieldErrors).map((key) => (
+                      <li key={key}>{describeFieldError(key)}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+          {step === 1 ? (
+            <>
+              <Heading
+                step={1}
+                title={professional ? "Basic Details & Professional Status" : "Basic Details"}
+              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid content-start gap-4">
+                  <Field label="Full Name" required error={fieldErrors.name}>
                     <Input
-                      className="mt-2"
-                      isInvalid={Boolean(fieldErrors.countryOther)}
-                      hint={fieldErrors.countryOther || undefined}
-                      value={base.countryOther}
-                      onChange={(event) => setBaseField("countryOther", event.target.value)}
-                      placeholder="Enter country or region"
+                      value={base.name}
+                      onChange={(event) => setBaseField("name", event.target.value)}
+                      placeholder="Chan Hau Yui Hauzton"
                     />
+                  </Field>
+                  <Field
+                    label="Email"
+                    required
+                    error={fieldErrors.email}
+                    hint="Use an email address you check regularly."
+                  >
+                    <Input
+                      type="email"
+                      value={base.email}
+                      onChange={(event) => setBaseField("email", event.target.value)}
+                      placeholder="hauzton.chan@gmail.com"
+                    />
+                  </Field>
+                  <Field label="Country / Region" required error={fieldErrors.country}>
+                    <SearchableSelect
+                      value={base.country}
+                      onChange={setCountry}
+                      options={COUNTRY_OPTIONS}
+                      placeholder="Choose country or region"
+                      searchPlaceholder="Search countries"
+                      emptyText="No matching country. Choose Other."
+                      className={controlClassName}
+                      invalid={Boolean(fieldErrors.country)}
+                    />
+                    {base.country === "Other" ? (
+                      <div className="mt-2">
+                        <Input
+                          className={cn(
+                            controlClassName,
+                            fieldErrors.countryOther && invalidInputClassName,
+                          )}
+                          aria-invalid={fieldErrors.countryOther ? true : undefined}
+                          value={base.countryOther}
+                          onChange={(event) => setBaseField("countryOther", event.target.value)}
+                          placeholder="Enter country or region"
+                        />
+                        {fieldErrors.countryOther ? (
+                          <p className="mt-1 text-xs font-semibold text-destructive">
+                            {fieldErrors.countryOther}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </Field>
+                </div>
+                <div className="grid content-start gap-4">
+                  <Field label="Phone / WhatsApp Number" required error={fieldErrors.phone}>
+                    <Input
+                      inputMode="tel"
+                      value={base.phone}
+                      onChange={(event) => setBaseField("phone", event.target.value)}
+                      placeholder="+852 9123 4567"
+                    />
+                  </Field>
+                  <Field label="Medium of Instruction" required error={fieldErrors.medium}>
+                    <Choices
+                      options={LANGUAGES}
+                      values={base.medium}
+                      onToggle={(language) =>
+                        setBaseField("medium", updateArray(base.medium, language))
+                      }
+                      invalid={Boolean(fieldErrors.medium)}
+                    />
+                  </Field>
+                  <Field label="Graduation Year">
+                    <Input
+                      value={base.graduationYear}
+                      onChange={(event) => setBaseField("graduationYear", event.target.value)}
+                      placeholder="2023"
+                    />
+                  </Field>
+                </div>
+                <Field
+                  label="Current Status"
+                  required
+                  error={fieldErrors.status}
+                  className="sm:col-span-2"
+                >
+                  <SingleChoice
+                    options={STATUS_OPTIONS}
+                    value={base.status}
+                    onChange={(status) => {
+                      setBaseField("status", status);
+                      setRoles(
+                        status === PROFESSIONAL_STATUS ? ["Official examiner / moderator"] : [],
+                      );
+                    }}
+                    invalid={Boolean(fieldErrors.status)}
+                  />
+                  {base.status === "Other" ? (
+                    <div className="mt-2">
+                      <Input
+                        className={cn(
+                          controlClassName,
+                          fieldErrors.statusOther && invalidInputClassName,
+                        )}
+                        aria-invalid={fieldErrors.statusOther ? true : undefined}
+                        value={base.statusOther}
+                        onChange={(event) => setBaseField("statusOther", event.target.value)}
+                        placeholder="Please specify"
+                      />
+                      {fieldErrors.statusOther ? (
+                        <p className="mt-1 text-xs font-semibold text-destructive">
+                          {fieldErrors.statusOther}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {base.status === PROFESSIONAL_STATUS ||
+                  roles.includes("Official examiner / moderator") ? (
+                    <div className="mt-4">
+                      <label className={labelClassName}>
+                        Examining Board(s)
+                        {fieldErrors.boards ? <RequiredFlag /> : null}
+                      </label>
+                      <div className="mt-1.5">
+                        <Choices
+                          options={EXAMINING_BOARD_OPTIONS}
+                          values={boards}
+                          onToggle={(board) => {
+                            setBoards(updateArray(boards, board));
+                            clearFieldError("boards");
+                          }}
+                          invalid={Boolean(fieldErrors.boards)}
+                        />
+                      </div>
+                    </div>
                   ) : null}
                 </Field>
               </div>
-              <div className="grid content-start gap-6">
-                <Field label="Phone / WhatsApp Number" required error={fieldErrors.phone}>
+            </>
+          ) : null}
+
+          {step === 2 ? (
+            <>
+              <Heading
+                step={2}
+                title={
+                  professional ? "Higher Education & Teaching Credentials" : "Academic Background"
+                }
+              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                {professional ? (
+                  <Field label="Teaching Qualifications" required error={fieldErrors.credentials}>
+                    <Choices
+                      options={TEACHING_QUALIFICATION_OPTIONS}
+                      values={credentials}
+                      onToggle={(credential) => {
+                        setCredentials(updateArray(credentials, credential));
+                        clearFieldError("credentials");
+                      }}
+                      invalid={Boolean(fieldErrors.credentials)}
+                    />
+                  </Field>
+                ) : (
+                  <>
+                    <Field
+                      label="Secondary School Attended"
+                      required
+                      error={fieldErrors.highSchool}
+                    >
+                      <Input
+                        value={base.highSchool}
+                        onChange={(event) => setBaseField("highSchool", event.target.value)}
+                        placeholder="Diocesan Boys' School, 2023"
+                      />
+                    </Field>
+                    <Field label="Current Year of Study">
+                      <Input
+                        value={base.year}
+                        onChange={(event) => setBaseField("year", event.target.value)}
+                        placeholder="Year 1, Year 2, Graduate"
+                      />
+                    </Field>
+                  </>
+                )}
+                <Field label="University / Institution">
                   <Input
-                    inputMode="tel"
-                    value={base.phone}
-                    onChange={(event) => setBaseField("phone", event.target.value)}
-                    placeholder="+852 9123 4567"
+                    value={base.university}
+                    onChange={(event) => setBaseField("university", event.target.value)}
+                    placeholder="HKUST"
                   />
                 </Field>
-                <Field label="Medium of Instruction" required error={fieldErrors.medium}>
-                  <Choices
-                    options={LANGUAGES}
-                    values={base.medium}
-                    onToggle={(language) =>
-                      setBaseField("medium", updateArray(base.medium, language))
+                <Field label="Degree / Programme Major">
+                  <Input
+                    value={base.programme}
+                    onChange={(event) => setBaseField("programme", event.target.value)}
+                    placeholder="BBA Global Business & BSc Computer Science"
+                  />
+                </Field>
+                {!professional ? (
+                  <div className="sm:col-span-2">
+                    <Hint>
+                      Parents and students actively seek alumni from their own secondary schools, or
+                      mentors from their dream universities and majors. Accurate details increase
+                      your chances of securing a premium case.
+                    </Hint>
+                    {qualifications.map((qualification, index) => (
+                      <div key={index} className="mt-4 rounded-sm border border-border p-4">
+                        <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
+                          <Field
+                            label={index === 0 ? "Primary Curriculum" : "Additional Qualification"}
+                            required
+                            error={fieldErrors[`curriculum-${index}`]}
+                          >
+                            <div className="flex items-center gap-2">
+                              <SingleChoice
+                                options={CURRICULUM_OPTIONS}
+                                value={qualification.curriculum}
+                                onChange={(curriculum) =>
+                                  updateQualification(index, blankQualification(curriculum))
+                                }
+                                invalid={Boolean(fieldErrors[`curriculum-${index}`])}
+                              />
+                              {index > 0 ? (
+                                <Button
+                                  type="button"
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() =>
+                                    setQualifications((previous) =>
+                                      previous.filter((_, itemIndex) => itemIndex !== index),
+                                    )
+                                  }
+                                >
+                                  <Trash2 />
+                                </Button>
+                              ) : null}
+                            </div>
+                          </Field>
+                          <Field
+                            label={
+                              qualification.curriculum === "HKDSE"
+                                ? "Best 5 Score"
+                                : qualification.curriculum === IELTS_CURRICULUM
+                                  ? "Overall Band Score"
+                                  : ["IBDP", "SAT", ISAT_CURRICULUM].includes(
+                                        qualification.curriculum,
+                                      ) || isUcatCurriculum(qualification.curriculum)
+                                    ? "Overall Achieved Score"
+                                    : "Overall Achieved Grades"
+                            }
+                            required
+                            error={fieldErrors[`overall-${index}`]}
+                          >
+                            <Input
+                              type={
+                                ["IBDP", "HKDSE", "SAT", ISAT_CURRICULUM].includes(
+                                  qualification.curriculum,
+                                ) || isUcatCurriculum(qualification.curriculum)
+                                  ? "number"
+                                  : "text"
+                              }
+                              value={qualification.overall}
+                              onChange={(event) => {
+                                const value = event.target.value;
+                                const fixedSubject = FIXED_SCORE_SUBJECTS[qualification.curriculum];
+                                if (
+                                  fixedSubject &&
+                                  qualification.scores[0]?.subject === fixedSubject
+                                ) {
+                                  updateQualification(index, {
+                                    overall: value,
+                                    scores: qualification.scores.map((score, scoreIndex) =>
+                                      scoreIndex === 0 ? { ...score, grade: value } : score,
+                                    ),
+                                  });
+                                  return;
+                                }
+                                updateQualification(index, { overall: value });
+                              }}
+                              placeholder={
+                                qualification.curriculum === "IBDP"
+                                  ? "43"
+                                  : qualification.curriculum === "HKDSE"
+                                    ? "32"
+                                    : qualification.curriculum === "SAT"
+                                      ? "1450"
+                                      : qualification.curriculum === ISAT_CURRICULUM
+                                        ? "165"
+                                        : isUcatCurriculum(qualification.curriculum)
+                                          ? "2450"
+                                          : qualification.curriculum === IELTS_CURRICULUM
+                                            ? "8.0"
+                                            : "A*AA"
+                              }
+                            />
+                          </Field>
+                          {["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum) ? (
+                            <Field
+                              label="Exam Board(s)"
+                              required
+                              error={fieldErrors[`boards-${index}`]}
+                              className="sm:col-span-2"
+                            >
+                              <Choices
+                                options={[
+                                  "Cambridge CAIE",
+                                  "Pearson Edexcel",
+                                  "AQA",
+                                  "OxfordAQA",
+                                  "OCR",
+                                ]}
+                                values={qualification.boards}
+                                onToggle={(board) =>
+                                  updateQualification(index, {
+                                    boards: updateArray(qualification.boards, board),
+                                  })
+                                }
+                                invalid={Boolean(fieldErrors[`boards-${index}`])}
+                              />
+                            </Field>
+                          ) : null}
+                          {qualification.curriculum === "HKDSE" ? (
+                            <Field label="Best 6 Score">
+                              <Input
+                                type="number"
+                                value={qualification.best6}
+                                onChange={(event) =>
+                                  updateQualification(index, { best6: event.target.value })
+                                }
+                                placeholder="36"
+                              />
+                            </Field>
+                          ) : null}
+                          <Field label="Academic transcript / supporting document">
+                            <Select
+                              value={
+                                qualification.transcriptStatus === "upload"
+                                  ? "File upload"
+                                  : qualification.transcriptStatus === "provide_later"
+                                    ? "Provide later"
+                                    : "N/A"
+                              }
+                              onValueChange={(choice) =>
+                                updateQualification(index, {
+                                  transcriptStatus:
+                                    choice === "File upload"
+                                      ? "upload"
+                                      : choice === "Provide later"
+                                        ? "provide_later"
+                                        : "not_applicable",
+                                  transcript:
+                                    choice === "File upload" ? qualification.transcript : null,
+                                })
+                              }
+                            >
+                              <SelectTrigger
+                                aria-label="Academic document option"
+                                className={controlClassName}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {["File upload", "N/A", "Provide later"].map((option) => (
+                                  <SelectItem key={option} value={option}>
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {qualification.transcriptStatus === "upload" ? (
+                              <div className="mt-3 grid gap-2">
+                                <DocumentUpload
+                                  file={qualification.transcript}
+                                  disabled={transcriptStatus === "reading"}
+                                  accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                                  prompt="Drop a JPG or PNG image here or choose one"
+                                  onRemove={() => updateQualification(index, { transcript: null })}
+                                  onSelect={(file) => {
+                                    if (!isTranscriptImage(file)) {
+                                      setError(
+                                        "PDFs and documents cannot be uploaded here. Use a JPG or PNG image of your transcript instead.",
+                                      );
+                                      return;
+                                    }
+                                    if (file.size > MAX_FILE_BYTES) {
+                                      setError("Transcript images must be no larger than 5 MB.");
+                                      return;
+                                    }
+                                    updateQualification(index, { transcript: file });
+                                  }}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="w-fit rounded-sm"
+                                  loading={transcriptStatus === "reading"}
+                                  disabled={transcriptStatus === "reading"}
+                                  onClick={() => {
+                                    if (!qualification.transcript) {
+                                      setError(
+                                        "Upload a JPG or PNG transcript before using AI auto-fill.",
+                                      );
+                                      return;
+                                    }
+                                    if (!isTranscriptImage(qualification.transcript)) {
+                                      setError(
+                                        "AI auto-fill supports JPG and PNG transcript images only.",
+                                      );
+                                      return;
+                                    }
+                                    void autoFillQualification(index, qualification.transcript);
+                                  }}
+                                >
+                                  <Sparkles /> Auto-fill with AI
+                                </Button>
+                                <Hint>
+                                  JPG and PNG transcripts can be read by AI. Review every populated
+                                  field before submitting.
+                                </Hint>
+                                {transcriptMessage ? (
+                                  <p
+                                    className={cn(
+                                      "text-xs font-medium",
+                                      transcriptStatus === "reading"
+                                        ? "animate-pulse text-[color:var(--muted-foreground)]"
+                                        : transcriptMessage.startsWith("Added")
+                                          ? "text-emerald-700"
+                                          : "text-destructive",
+                                    )}
+                                    role="status"
+                                    aria-live="polite"
+                                  >
+                                    {transcriptMessage}
+                                  </p>
+                                ) : null}
+                              </div>
+                            ) : null}
+                            <EvidenceNote />
+                          </Field>
+                        </div>
+                        <div className="mt-5 border-t border-border pt-5">
+                          <h3 className="text-base font-bold text-[color:var(--ink)]">
+                            Subject Scores
+                          </h3>
+                          <Hint>
+                            List your full academic profile. Specific paper grades or breakdowns
+                            highlight niche strengths for parents looking for targeted support.
+                          </Hint>
+                          <div className="mt-4">{scoreEditor(qualification, index)}</div>
+                        </div>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mt-4 rounded-sm"
+                      onClick={() =>
+                        setQualifications((previous) => [
+                          ...previous,
+                          blankQualification("IGCSE / GCSE"),
+                        ])
+                      }
+                    >
+                      <Plus /> Add another qualification
+                    </Button>
+                    <Hint>
+                      Did you also complete IGCSE, MYP, IELTS, or another prior qualification?
+                      Adding them opens you to a wider pool of potential cases.
+                    </Hint>
+                  </div>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+
+          {step === 3 ? (
+            <>
+              <Heading step={professional ? 3 : 3} title="Subjects Taught" />
+              <Field
+                label="Subjects Willing to Teach"
+                required
+                hint="Select subjects from your academic profile that you are confident and capable of teaching. You can choose more than one."
+                error={fieldErrors.subjectsTaught}
+              >
+                <SubjectPicker
+                  studiedSubjects={allResultSubjects.filter(
+                    (subject) => !removedStudiedSubjects.includes(subject),
+                  )}
+                  addedSubjects={base.subjectsTaught}
+                  options={[...new Set([...DEFAULT_SUBJECT_OPTIONS, ...allResultSubjects])]}
+                  invalid={Boolean(fieldErrors.subjectsTaught)}
+                  onToggle={(subject) => {
+                    if (allResultSubjects.includes(subject)) {
+                      setRemovedStudiedSubjects((current) =>
+                        current.includes(subject)
+                          ? current.filter((item) => item !== subject)
+                          : [...current, subject],
+                      );
+                      return;
                     }
-                    invalid={Boolean(fieldErrors.medium)}
+                    setBaseField("subjectsTaught", updateArray(base.subjectsTaught, subject));
+                  }}
+                />
+              </Field>
+            </>
+          ) : null}
+
+          {step === 4 ? (
+            <>
+              <Heading step={professional ? 4 : 4} title="Lesson Preferences & Locations" />
+              <div className="grid gap-4">
+                <Field
+                  label="Mode of Lesson"
+                  required
+                  hint="Being open to in-person lessons significantly increases your match rate."
+                  error={fieldErrors.format}
+                >
+                  <SingleChoice
+                    options={FORMAT_OPTIONS}
+                    value={base.format}
+                    onChange={(format) => setBaseField("format", format)}
+                    invalid={Boolean(fieldErrors.format)}
                   />
                 </Field>
-                <Field label="Graduation Year">
+                {base.format !== "Online" ? (
+                  <Field
+                    label="Possible Teaching Locations (MTR Network)"
+                    required
+                    hint="Suggestions use estimated MTR rail and transfer time, not straight-line station distance. Walking time and delays are not included. You can choose more than one station."
+                    error={fieldErrors.stations}
+                  >
+                    <div
+                      className={cn(
+                        "grid gap-3 rounded-sm border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4",
+                        fieldErrors.stations && "border-destructive",
+                      )}
+                    >
+                      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                        <div className="grid gap-2">
+                          <label className={labelClassName}>Starting MTR station</label>
+                          <SearchableSelect
+                            value={originStation}
+                            onChange={setOrigin}
+                            options={MTR_STATION_OPTIONS}
+                            placeholder="Choose your closest station"
+                            searchPlaceholder="Search MTR stations"
+                            className={controlClassName}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="rounded-sm"
+                          onClick={locateOrigin}
+                          disabled={locating}
+                        >
+                          <LocateFixed />
+                          {locating ? "Locating…" : "Use my location"}
+                        </Button>
+                      </div>
+                      {locationMessage ? (
+                        <p className="text-xs font-medium text-[color:var(--ink)]/70">
+                          {locationMessage}
+                        </p>
+                      ) : null}
+                      <div className="grid gap-2">
+                        <label className={labelClassName}>Estimated MTR travel time</label>
+                        <div className="flex flex-wrap gap-2">
+                          {["10", "20", "30"].map((budget) => (
+                            <button
+                              key={budget}
+                              type="button"
+                              disabled={!originStation}
+                              onClick={() => {
+                                setTravelBudget(budget);
+                                setSuggestionStatus("idle");
+                              }}
+                              className={cn(
+                                "rounded-full border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
+                                travelBudget === budget && originStation
+                                  ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]"
+                                  : "border-border bg-card text-foreground hover:border-[color:var(--foreground)]/25",
+                              )}
+                            >
+                              Within {budget} min
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {originStation ? (
+                        <p className="text-xs text-muted-foreground">
+                          Stations within {travelBudget} minutes of {originStation} are preselected.
+                          You can edit the list below.
+                        </p>
+                      ) : null}
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Button
+                          type="button"
+                          variant="solid"
+                          color="accent"
+                          onClick={addTravelSuggestions}
+                          disabled={!originStation || suggestionStatus === "adding"}
+                          loading={suggestionStatus === "adding"}
+                        >
+                          <Plus />
+                          Quick Add Stations
+                        </Button>
+                        {suggestionStatus !== "idle" ? (
+                          <p
+                            className={cn(
+                              "text-sm font-semibold transition-colors",
+                              suggestionStatus === "adding"
+                                ? "animate-pulse text-[color:var(--muted-foreground)]"
+                                : "text-emerald-700",
+                            )}
+                            role="status"
+                            aria-live="polite"
+                          >
+                            {suggestionStatus === "adding"
+                              ? "Adding stations…"
+                              : `Done · ${autoStations.length} stations within ${travelBudget} min`}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="overflow-hidden rounded-sm border border-border px-4"
+                    >
+                      {MTR_LINES.map((line) => (
+                        <AccordionItem key={line.id} value={line.id}>
+                          <AccordionTrigger className="font-semibold text-foreground hover:no-underline">
+                            {line.label} -{" "}
+                            {
+                              line.stations.filter((station) => base.stations.includes(station))
+                                .length
+                            }{" "}
+                            selected
+                          </AccordionTrigger>
+                          <AccordionContent className="pt-2">
+                            <div className="grid gap-3 sm:grid-cols-3">
+                              <label className="flex items-center gap-2 text-sm font-semibold">
+                                <Checkbox
+                                  checked={line.stations.every((station) =>
+                                    base.stations.includes(station),
+                                  )}
+                                  onCheckedChange={() => toggleManualLine(line)}
+                                />{" "}
+                                Select all
+                              </label>
+                              {line.stations.map((station) => (
+                                <label
+                                  key={`${line.id}-${station}`}
+                                  className="flex items-center gap-2 text-sm"
+                                >
+                                  <Checkbox
+                                    checked={base.stations.includes(station)}
+                                    onCheckedChange={() => toggleManualStation(station)}
+                                  />
+                                  {station}
+                                </label>
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </Field>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+
+          {step === 5 ? (
+            <>
+              <Heading step={professional ? 5 : 5} title="Achievements and Experiences" />
+              <Hint>
+                Achievements and experience are optional. Add only items you would like MatchMax to
+                consider. Items without uploaded evidence will not be shown on your public profile,
+                except claims that cannot be documented, such as private tutoring experience or
+                student feedback.
+              </Hint>
+              <EvidenceNote className="mt-2" />
+              <div className="mt-5 grid gap-4">
+                {base.achievements.map((achievement, index) => (
+                  <div
+                    key={index}
+                    className="grid gap-3 rounded-sm border border-border p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(15rem,1fr)_auto]"
+                  >
+                    <Field label="Title" required error={fieldErrors[`achievement-title-${index}`]}>
+                      <Input
+                        value={achievement.title}
+                        onChange={(event) =>
+                          updateAchievement(index, { title: event.target.value })
+                        }
+                        placeholder="Award or role"
+                      />
+                    </Field>
+                    <Field
+                      label="Description"
+                      required
+                      error={fieldErrors[`achievement-description-${index}`]}
+                    >
+                      <Textarea
+                        value={achievement.description}
+                        onChange={(event) =>
+                          updateAchievement(index, { description: event.target.value })
+                        }
+                        placeholder="Brief details"
+                        aria-invalid={
+                          fieldErrors[`achievement-description-${index}`] ? true : undefined
+                        }
+                        className={cn(
+                          "w-full rounded-sm",
+                          fieldErrors[`achievement-description-${index}`] &&
+                            "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30",
+                        )}
+                      />
+                    </Field>
+                    <Field label="Evidence" error={fieldErrors[`achievement-proof-${index}`]}>
+                      <Select
+                        value={
+                          achievement.proofStatus === "upload"
+                            ? "File upload"
+                            : achievement.proofStatus === "provide_later"
+                              ? "Provide later"
+                              : "N/A"
+                        }
+                        onValueChange={(choice) =>
+                          updateAchievement(index, {
+                            proofStatus:
+                              choice === "File upload"
+                                ? "upload"
+                                : choice === "Provide later"
+                                  ? "provide_later"
+                                  : "not_applicable",
+                            proof: choice === "File upload" ? achievement.proof : null,
+                          })
+                        }
+                      >
+                        <SelectTrigger
+                          aria-label="Achievement evidence option"
+                          className={controlClassName}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {["File upload", "N/A", "Provide later"].map((option) => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {achievement.proofStatus === "upload" ? (
+                        <div className="mt-2">
+                          <DocumentUpload
+                            file={achievement.proof}
+                            invalid={Boolean(fieldErrors[`achievement-proof-${index}`])}
+                            onRemove={() => updateAchievement(index, { proof: null })}
+                            onSelect={(file) => {
+                              if (
+                                !ACCEPTED_FILE_TYPES.includes(file.type) ||
+                                file.size > MAX_FILE_BYTES
+                              ) {
+                                setError("Choose a supported evidence file no larger than 5 MB.");
+                                return;
+                              }
+                              updateAchievement(index, { proof: file });
+                            }}
+                          />
+                        </div>
+                      ) : null}
+                    </Field>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      aria-label="Remove achievement"
+                      onClick={() =>
+                        setBaseField(
+                          "achievements",
+                          base.achievements.filter((_, itemIndex) => itemIndex !== index),
+                        )
+                      }
+                    >
+                      <Trash2 />
+                    </Button>
+                  </div>
+                ))}
+                {base.achievements.length < MAX_FILES ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-fit rounded-sm"
+                    onClick={() =>
+                      setBaseField("achievements", [
+                        ...base.achievements,
+                        { title: "", description: "", proof: null, proofStatus: "not_applicable" },
+                      ])
+                    }
+                  >
+                    <Plus /> Add achievement or experience
+                  </Button>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+
+          {step === 6 ? (
+            <>
+              <Heading step={professional ? 6 : 6} title="Logistics & Rate" />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Proposed Hourly Rate (HKD)"
+                  required
+                  error={fieldErrors.hourlyRate}
+                  hint={
+                    primary.curriculum === "IBDP"
+                      ? "Suggested recent graduate rates: 45/45 HK$500/hr, 43-44 HK$400/hr, 40-42 HK$300-350/hr."
+                      : primary.curriculum === "HKDSE"
+                        ? "Suggested DSE rates: high achievers HK$150-200/hr; premium HK$250-300/hr for top scorers, sought-after majors, or extensive experience."
+                        : undefined
+                  }
+                >
                   <Input
-                    value={base.graduationYear}
-                    onChange={(event) => setBaseField("graduationYear", event.target.value)}
-                    placeholder="2023"
+                    type="number"
+                    value={base.hourlyRate}
+                    onChange={(event) => setBaseField("hourlyRate", event.target.value)}
+                    placeholder="450"
+                  />
+                </Field>
+                <Field
+                  label="Teaching materials"
+                  required
+                  error={fieldErrors.materials}
+                  className="self-start"
+                >
+                  <SingleChoice
+                    options={MATERIALS_OPTIONS}
+                    value={base.materials}
+                    onChange={(materials) => setBaseField("materials", materials)}
+                    invalid={Boolean(fieldErrors.materials)}
                   />
                 </Field>
               </div>
-              <Field
-                label="Current Status"
-                required
-                error={fieldErrors.status}
-                className="sm:col-span-2"
-              >
-                <SingleChoice
-                  options={STATUS_OPTIONS}
-                  value={base.status}
-                  onChange={(status) => {
-                    setBaseField("status", status);
-                    setRoles(
-                      status === PROFESSIONAL_STATUS ? ["Official examiner / moderator"] : [],
-                    );
-                  }}
-                  invalid={Boolean(fieldErrors.status)}
-                />
-                {base.status === "Other" ? (
-                  <Input
-                    className="mt-2"
-                    isInvalid={Boolean(fieldErrors.statusOther)}
-                    hint={fieldErrors.statusOther || undefined}
-                    value={base.statusOther}
-                    onChange={(event) => setBaseField("statusOther", event.target.value)}
-                    placeholder="Please specify"
-                  />
-                ) : null}
-                {base.status === PROFESSIONAL_STATUS ||
-                roles.includes("Official examiner / moderator") ? (
-                  <div className="mt-4">
-                    <Label className="font-semibold text-foreground">
-                      Examining Board(s)
-                      <span className="ml-1 text-destructive">*</span>
-                      {fieldErrors.boards ? (
+            </>
+          ) : null}
+
+          {step === stepTitles.length ? (
+            <>
+              <Heading step={stepTitles.length} title="Acknowledgments" />
+              <div className="grid gap-5">
+                <div className="grid gap-1.5">
+                  <label className="flex gap-3 text-sm text-muted-foreground">
+                    <Checkbox
+                      checked={base.terms}
+                      onCheckedChange={(checked) => setBaseField("terms", checked === true)}
+                      aria-invalid={fieldErrors.terms ? true : undefined}
+                      className={fieldErrors.terms ? "border-destructive" : undefined}
+                    />
+                    <span>
+                      I agree to the MatchMax{" "}
+                      <Link
+                        className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+                        to="/tos"
+                        target="_blank"
+                      >
+                        Terms and Conditions
+                      </Link>{" "}
+                      and confirm the information I have provided is true and complete.
+                      {fieldErrors.terms ? (
                         <span className="ml-2 align-middle text-xs font-medium text-destructive">
                           Required
                         </span>
                       ) : null}
-                    </Label>
-                    <div className="mt-2">
-                      <Choices
-                        options={EXAMINING_BOARD_OPTIONS}
-                        values={boards}
-                        onToggle={(board) => {
-                          setBoards(updateArray(boards, board));
-                          clearFieldError("boards");
-                        }}
-                        invalid={Boolean(fieldErrors.boards)}
-                      />
-                    </div>
-                  </div>
+                    </span>
+                  </label>
+                </div>
+                <div className="grid gap-1.5">
+                  <label className="flex gap-3 text-sm text-muted-foreground">
+                    <Checkbox
+                      checked={base.privacy}
+                      onCheckedChange={(checked) => setBaseField("privacy", checked === true)}
+                      aria-invalid={fieldErrors.privacy ? true : undefined}
+                      className={fieldErrors.privacy ? "border-destructive" : undefined}
+                    />
+                    <span>
+                      {professional
+                        ? "I consent to MatchMax using my credentials and CV to verify my professional status, promote my teaches profile, and protect my anonymity."
+                        : PRIVACY_TEXT}
+                      {fieldErrors.privacy ? (
+                        <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                          Required
+                        </span>
+                      ) : null}
+                    </span>
+                  </label>
+                </div>
+                <div className="grid gap-1.5">
+                  <label className="flex gap-3 text-sm text-muted-foreground">
+                    <Checkbox
+                      checked={base.commission}
+                      onCheckedChange={(checked) => setBaseField("commission", checked === true)}
+                      aria-invalid={fieldErrors.commission ? true : undefined}
+                      className={fieldErrors.commission ? "border-destructive" : undefined}
+                    />
+                    <span>
+                      {COMMISSION_TEXT}
+                      {fieldErrors.commission ? (
+                        <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                          Required
+                        </span>
+                      ) : null}
+                    </span>
+                  </label>
+                </div>
+                <div ref={captchaRef} className="min-h-[65px]" />
+                {captchaError ? (
+                  <p className="text-xs font-medium text-destructive" role="alert">
+                    {captchaError}
+                  </p>
                 ) : null}
-              </Field>
-            </div>
-          </Step>
-          <Step>
-            <Heading
-              step={2}
-              title={
-                professional ? "Higher Education & Teaching Credentials" : "Academic Background"
-              }
-            />
-            <div className="grid gap-6 sm:grid-cols-2">
-              {professional ? (
-                <Field label="Teaching Qualifications" required error={fieldErrors.credentials}>
-                  <Choices
-                    options={TEACHING_QUALIFICATION_OPTIONS}
-                    values={credentials}
-                    onToggle={(credential) => {
-                      setCredentials(updateArray(credentials, credential));
-                      clearFieldError("credentials");
-                    }}
-                    invalid={Boolean(fieldErrors.credentials)}
-                  />
-                </Field>
+                {fieldErrors.captcha ? (
+                  <p className="text-xs font-medium text-destructive" role="alert">
+                    {fieldErrors.captcha}
+                  </p>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-6 flex flex-col gap-3 border-t border-border pt-6">
+          <div className="flex items-center justify-between gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 rounded-sm px-6 font-bold"
+              disabled={step === 1 || submitting}
+              onClick={() => changeStep(step - 1)}
+            >
+              <ArrowLeft className="mr-2 h-5 w-5" /> Back
+            </Button>
+            <Button
+              type="submit"
+              disabled={submitting}
+              variant="solid"
+              color="blue"
+              className="h-12 rounded-sm px-8 font-bold"
+            >
+              {submitting ? (
+                "Submitting…"
+              ) : step < stepTitles.length ? (
+                <>
+                  Next <ArrowRight className="ml-2 h-5 w-5" />
+                </>
               ) : (
                 <>
-                  <Field label="Secondary School Attended" required error={fieldErrors.highSchool}>
-                    <Input
-                      value={base.highSchool}
-                      onChange={(event) => setBaseField("highSchool", event.target.value)}
-                      placeholder="Diocesan Boys' School, 2023"
-                    />
-                  </Field>
-                  <Field label="Current Year of Study">
-                    <Input
-                      value={base.year}
-                      onChange={(event) => setBaseField("year", event.target.value)}
-                      placeholder="Year 1, Year 2, Graduate"
-                    />
-                  </Field>
+                  <Send className="mr-2 h-5 w-5" /> Submit application
                 </>
               )}
-              <Field label="University / Institution">
-                <Input
-                  value={base.university}
-                  onChange={(event) => setBaseField("university", event.target.value)}
-                  placeholder="HKUST"
-                />
-              </Field>
-              <Field label="Degree / Programme Major">
-                <Input
-                  value={base.programme}
-                  onChange={(event) => setBaseField("programme", event.target.value)}
-                  placeholder="BBA Global Business & BSc Computer Science"
-                />
-              </Field>
-              {!professional ? (
-                <div className="sm:col-span-2">
-                  <Hint>
-                    Parents and students actively seek alumni from their own secondary schools, or
-                    mentors from their dream universities and majors. Accurate details increase your
-                    chances of securing a premium case.
-                  </Hint>
-                  {qualifications.map((qualification, index) => (
-                    <div key={index} className="mt-4 rounded-lg border border-border p-4">
-                      <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
-                        <Field
-                          label={index === 0 ? "Primary Curriculum" : "Additional Qualification"}
-                          required
-                          error={fieldErrors[`curriculum-${index}`]}
-                        >
-                          <div className="flex items-center gap-2">
-                            <SingleChoice
-                              options={CURRICULUM_OPTIONS}
-                              value={qualification.curriculum}
-                              onChange={(curriculum) =>
-                                updateQualification(index, blankQualification(curriculum))
-                              }
-                              invalid={Boolean(fieldErrors[`curriculum-${index}`])}
-                            />
-                            {index > 0 ? (
-                              <Button
-                                type="button"
-                                size="icon"
-                                variant="ghost"
-                                onClick={() =>
-                                  setQualifications((previous) =>
-                                    previous.filter((_, itemIndex) => itemIndex !== index),
-                                  )
-                                }
-                              >
-                                <Trash2 />
-                              </Button>
-                            ) : null}
-                          </div>
-                        </Field>
-                        <Field
-                          label={
-                            qualification.curriculum === "HKDSE"
-                              ? "Best 5 Score"
-                              : qualification.curriculum === IELTS_CURRICULUM
-                                ? "Overall Band Score"
-                                : ["IBDP", "SAT", ISAT_CURRICULUM].includes(
-                                      qualification.curriculum,
-                                    ) || isUcatCurriculum(qualification.curriculum)
-                                  ? "Overall Achieved Score"
-                                  : "Overall Achieved Grades"
-                          }
-                          required
-                          error={fieldErrors[`overall-${index}`]}
-                        >
-                          <Input
-                            type={
-                              ["IBDP", "HKDSE", "SAT", ISAT_CURRICULUM].includes(
-                                qualification.curriculum,
-                              ) || isUcatCurriculum(qualification.curriculum)
-                                ? "number"
-                                : "text"
-                            }
-                            value={qualification.overall}
-                            onChange={(event) => {
-                              const value = event.target.value;
-                              const fixedSubject = FIXED_SCORE_SUBJECTS[qualification.curriculum];
-                              if (
-                                fixedSubject &&
-                                qualification.scores[0]?.subject === fixedSubject
-                              ) {
-                                updateQualification(index, {
-                                  overall: value,
-                                  scores: qualification.scores.map((score, scoreIndex) =>
-                                    scoreIndex === 0 ? { ...score, grade: value } : score,
-                                  ),
-                                });
-                                return;
-                              }
-                              updateQualification(index, { overall: value });
-                            }}
-                            placeholder={
-                              qualification.curriculum === "IBDP"
-                                ? "43"
-                                : qualification.curriculum === "HKDSE"
-                                  ? "32"
-                                  : qualification.curriculum === "SAT"
-                                    ? "1450"
-                                    : qualification.curriculum === ISAT_CURRICULUM
-                                      ? "165"
-                                      : isUcatCurriculum(qualification.curriculum)
-                                        ? "2450"
-                                        : qualification.curriculum === IELTS_CURRICULUM
-                                          ? "8.0"
-                                          : "A*AA"
-                            }
-                          />
-                        </Field>
-                        {["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum) ? (
-                          <Field
-                            label="Exam Board(s)"
-                            required
-                            error={fieldErrors[`boards-${index}`]}
-                            className="sm:col-span-2"
-                          >
-                            <Choices
-                              options={[
-                                "Cambridge CAIE",
-                                "Pearson Edexcel",
-                                "AQA",
-                                "OxfordAQA",
-                                "OCR",
-                              ]}
-                              values={qualification.boards}
-                              onToggle={(board) =>
-                                updateQualification(index, {
-                                  boards: updateArray(qualification.boards, board),
-                                })
-                              }
-                              invalid={Boolean(fieldErrors[`boards-${index}`])}
-                            />
-                          </Field>
-                        ) : null}
-                        {qualification.curriculum === "HKDSE" ? (
-                          <Field label="Best 6 Score">
-                            <Input
-                              type="number"
-                              value={qualification.best6}
-                              onChange={(event) =>
-                                updateQualification(index, { best6: event.target.value })
-                              }
-                              placeholder="36"
-                            />
-                          </Field>
-                        ) : null}
-                        <Field label="Academic transcript / supporting document">
-                          <Select
-                            value={
-                              qualification.transcriptStatus === "upload"
-                                ? "File upload"
-                                : qualification.transcriptStatus === "provide_later"
-                                  ? "Provide later"
-                                  : "N/A"
-                            }
-                            onValueChange={(choice) =>
-                              updateQualification(index, {
-                                transcriptStatus:
-                                  choice === "File upload"
-                                    ? "upload"
-                                    : choice === "Provide later"
-                                      ? "provide_later"
-                                      : "not_applicable",
-                                transcript:
-                                  choice === "File upload" ? qualification.transcript : null,
-                              })
-                            }
-                          >
-                            <SelectTrigger aria-label="Academic document option">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {["File upload", "N/A", "Provide later"].map((option) => (
-                                <SelectItem key={option} value={option}>
-                                  {option}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {qualification.transcriptStatus === "upload" ? (
-                            <div className="mt-3 grid gap-2">
-                              <DocumentUpload
-                                file={qualification.transcript}
-                                disabled={transcriptStatus === "reading"}
-                                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
-                                prompt="Drop a JPG or PNG image here or choose one"
-                                onRemove={() => updateQualification(index, { transcript: null })}
-                                onSelect={(file) => {
-                                  if (!isTranscriptImage(file)) {
-                                    setError(
-                                      "PDFs and documents cannot be uploaded here. Use a JPG or PNG image of your transcript instead.",
-                                    );
-                                    return;
-                                  }
-                                  if (file.size > MAX_FILE_BYTES) {
-                                    setError("Transcript images must be no larger than 5 MB.");
-                                    return;
-                                  }
-                                  updateQualification(index, { transcript: file });
-                                }}
-                              />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                className="w-fit"
-                                loading={transcriptStatus === "reading"}
-                                disabled={transcriptStatus === "reading"}
-                                onClick={() => {
-                                  if (!qualification.transcript) {
-                                    setError(
-                                      "Upload a JPG or PNG transcript before using AI auto-fill.",
-                                    );
-                                    return;
-                                  }
-                                  if (!isTranscriptImage(qualification.transcript)) {
-                                    setError(
-                                      "AI auto-fill supports JPG and PNG transcript images only.",
-                                    );
-                                    return;
-                                  }
-                                  void autoFillQualification(index, qualification.transcript);
-                                }}
-                              >
-                                <Sparkles /> Auto-fill with AI
-                              </Button>
-                              <Hint>
-                                JPG and PNG transcripts can be read by AI. Review every populated
-                                field before submitting.
-                              </Hint>
-                              {transcriptMessage ? (
-                                <p
-                                  className={cn(
-                                    "text-xs font-medium",
-                                    transcriptStatus === "reading"
-                                      ? "animate-pulse text-[color:var(--muted-foreground)]"
-                                      : transcriptMessage.startsWith("Added")
-                                        ? "text-emerald-700"
-                                        : "text-destructive",
-                                  )}
-                                  role="status"
-                                  aria-live="polite"
-                                >
-                                  {transcriptMessage}
-                                </p>
-                              ) : null}
-                            </div>
-                          ) : null}
-                          <EvidenceNote />
-                        </Field>
-                      </div>
-                      <div className="mt-5 border-t border-border pt-5">
-                        <h3 className="text-base font-bold text-[color:var(--ink)]">
-                          Subject Scores
-                        </h3>
-                        <Hint>
-                          List your full academic profile. Specific paper grades or breakdowns
-                          highlight niche strengths for parents looking for targeted support.
-                        </Hint>
-                        <div className="mt-4">{scoreEditor(qualification, index)}</div>
-                      </div>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="mt-4"
-                    onClick={() =>
-                      setQualifications((previous) => [
-                        ...previous,
-                        blankQualification("IGCSE / GCSE"),
-                      ])
-                    }
-                  >
-                    <Plus /> Add another qualification
-                  </Button>
-                  <Hint>
-                    Did you also complete IGCSE, MYP, IELTS, or another prior qualification? Adding
-                    them opens you to a wider pool of potential cases.
-                  </Hint>
-                </div>
-              ) : null}
-            </div>
-          </Step>
-          <Step>
-            <Heading step={professional ? 3 : 3} title="Subjects Taught" />
-            <Field
-              label="Subjects Willing to Teach"
-              required
-              hint="Select subjects from your academic profile that you are confident and capable of teaching. You can choose more than one."
-              error={fieldErrors.subjectsTaught}
-            >
-              <SubjectPicker
-                studiedSubjects={allResultSubjects.filter(
-                  (subject) => !removedStudiedSubjects.includes(subject),
-                )}
-                addedSubjects={base.subjectsTaught}
-                options={[...new Set([...DEFAULT_SUBJECT_OPTIONS, ...allResultSubjects])]}
-                invalid={Boolean(fieldErrors.subjectsTaught)}
-                onToggle={(subject) => {
-                  if (allResultSubjects.includes(subject)) {
-                    setRemovedStudiedSubjects((current) =>
-                      current.includes(subject)
-                        ? current.filter((item) => item !== subject)
-                        : [...current, subject],
-                    );
-                    return;
-                  }
-                  setBaseField("subjectsTaught", updateArray(base.subjectsTaught, subject));
-                }}
-              />
-            </Field>
-          </Step>
-          <Step>
-            <Heading step={professional ? 4 : 4} title="Lesson Preferences & Locations" />
-            <div className="grid gap-6">
-              <Field
-                label="Mode of Lesson"
-                required
-                hint="Being open to in-person lessons significantly increases your match rate."
-                error={fieldErrors.format}
-              >
-                <SingleChoice
-                  options={FORMAT_OPTIONS}
-                  value={base.format}
-                  onChange={(format) => setBaseField("format", format)}
-                  invalid={Boolean(fieldErrors.format)}
-                />
-              </Field>
-              {base.format !== "Online" ? (
-                <Field
-                  label="Possible Teaching Locations (MTR Network)"
-                  required
-                  hint="Suggestions use estimated MTR rail and transfer time, not straight-line station distance. Walking time and delays are not included. You can choose more than one station."
-                  error={fieldErrors.stations}
-                >
-                  <div
-                    className={cn(
-                      "grid gap-3 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4",
-                      fieldErrors.stations && "border-destructive",
-                    )}
-                  >
-                    <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                      <div className="grid gap-2">
-                        <Label className="text-sm font-semibold">Starting MTR station</Label>
-                        <SearchableSelect
-                          value={originStation}
-                          onChange={setOrigin}
-                          options={MTR_STATION_OPTIONS}
-                          placeholder="Choose your closest station"
-                          searchPlaceholder="Search MTR stations"
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={locateOrigin}
-                        disabled={locating}
-                      >
-                        <LocateFixed />
-                        {locating ? "Locating…" : "Use my location"}
-                      </Button>
-                    </div>
-                    {locationMessage ? (
-                      <p className="text-xs font-medium text-[color:var(--ink)]/70">
-                        {locationMessage}
-                      </p>
-                    ) : null}
-                    <div className="grid gap-2">
-                      <Label className="text-sm font-semibold">Estimated MTR travel time</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {["10", "20", "30"].map((budget) => (
-                          <button
-                            key={budget}
-                            type="button"
-                            disabled={!originStation}
-                            onClick={() => {
-                              setTravelBudget(budget);
-                              setSuggestionStatus("idle");
-                            }}
-                            className={cn(
-                              "rounded-lg border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
-                              travelBudget === budget && originStation
-                                ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]"
-                                : "border-border bg-card text-foreground hover:border-[color:var(--foreground)]/25",
-                            )}
-                          >
-                            Within {budget} min
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {originStation ? (
-                      <p className="text-xs text-muted-foreground">
-                        Stations within {travelBudget} minutes of {originStation} are preselected.
-                        You can edit the list below.
-                      </p>
-                    ) : null}
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Button
-                        type="button"
-                        variant="solid"
-                        color="accent"
-                        onClick={addTravelSuggestions}
-                        disabled={!originStation || suggestionStatus === "adding"}
-                        loading={suggestionStatus === "adding"}
-                      >
-                        <Plus />
-                        Quick Add Stations
-                      </Button>
-                      {suggestionStatus !== "idle" ? (
-                        <p
-                          className={cn(
-                            "text-sm font-semibold transition-colors",
-                            suggestionStatus === "adding"
-                              ? "animate-pulse text-[color:var(--muted-foreground)]"
-                              : "text-emerald-700",
-                          )}
-                          role="status"
-                          aria-live="polite"
-                        >
-                          {suggestionStatus === "adding"
-                            ? "Adding stations…"
-                            : `Done · ${autoStations.length} stations within ${travelBudget} min`}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                  <Accordion
-                    type="single"
-                    collapsible
-                    className="overflow-hidden rounded-lg border border-border px-4"
-                  >
-                    {MTR_LINES.map((line) => (
-                      <AccordionItem key={line.id} value={line.id}>
-                        <AccordionTrigger className="font-semibold text-foreground hover:no-underline">
-                          {line.label} -{" "}
-                          {
-                            line.stations.filter((station) => base.stations.includes(station))
-                              .length
-                          }{" "}
-                          selected
-                        </AccordionTrigger>
-                        <AccordionContent className="pt-2">
-                          <div className="grid gap-3 sm:grid-cols-3">
-                            <label className="flex items-center gap-2 text-sm font-semibold">
-                              <Checkbox
-                                checked={line.stations.every((station) =>
-                                  base.stations.includes(station),
-                                )}
-                                onCheckedChange={() => toggleManualLine(line)}
-                              />{" "}
-                              Select all
-                            </label>
-                            {line.stations.map((station) => (
-                              <label
-                                key={`${line.id}-${station}`}
-                                className="flex items-center gap-2 text-sm"
-                              >
-                                <Checkbox
-                                  checked={base.stations.includes(station)}
-                                  onCheckedChange={() => toggleManualStation(station)}
-                                />
-                                {station}
-                              </label>
-                            ))}
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                </Field>
-              ) : null}
-            </div>
-          </Step>
-          <Step>
-            <Heading step={professional ? 5 : 5} title="Achievements and Experiences" />
-            <Hint>
-              Achievements and experience are optional. Add only items you would like MatchMax to
-              consider. Items without uploaded evidence will not be shown on your public profile,
-              except claims that cannot be documented, such as private tutoring experience or
-              student feedback.
-            </Hint>
-            <EvidenceNote className="mt-2" />
-            <div className="mt-5 grid gap-4">
-              {base.achievements.map((achievement, index) => (
-                <div
-                  key={index}
-                  className="grid gap-3 rounded-lg border border-border p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(15rem,1fr)_auto]"
-                >
-                  <Field label="Title" required error={fieldErrors[`achievement-title-${index}`]}>
-                    <Input
-                      value={achievement.title}
-                      onChange={(event) => updateAchievement(index, { title: event.target.value })}
-                      placeholder="Award or role"
-                    />
-                  </Field>
-                  <Field
-                    label="Description"
-                    required
-                    error={fieldErrors[`achievement-description-${index}`]}
-                  >
-                    <Textarea
-                      value={achievement.description}
-                      onChange={(event) =>
-                        updateAchievement(index, { description: event.target.value })
-                      }
-                      placeholder="Brief details"
-                      aria-invalid={
-                        fieldErrors[`achievement-description-${index}`] ? true : undefined
-                      }
-                      className={cn(
-                        fieldErrors[`achievement-description-${index}`] &&
-                          "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30",
-                      )}
-                    />
-                  </Field>
-                  <Field label="Evidence" error={fieldErrors[`achievement-proof-${index}`]}>
-                    <Select
-                      value={
-                        achievement.proofStatus === "upload"
-                          ? "File upload"
-                          : achievement.proofStatus === "provide_later"
-                            ? "Provide later"
-                            : "N/A"
-                      }
-                      onValueChange={(choice) =>
-                        updateAchievement(index, {
-                          proofStatus:
-                            choice === "File upload"
-                              ? "upload"
-                              : choice === "Provide later"
-                                ? "provide_later"
-                                : "not_applicable",
-                          proof: choice === "File upload" ? achievement.proof : null,
-                        })
-                      }
-                    >
-                      <SelectTrigger aria-label="Achievement evidence option">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {["File upload", "N/A", "Provide later"].map((option) => (
-                          <SelectItem key={option} value={option}>
-                            {option}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {achievement.proofStatus === "upload" ? (
-                      <div className="mt-2">
-                        <DocumentUpload
-                          file={achievement.proof}
-                          invalid={Boolean(fieldErrors[`achievement-proof-${index}`])}
-                          onRemove={() => updateAchievement(index, { proof: null })}
-                          onSelect={(file) => {
-                            if (
-                              !ACCEPTED_FILE_TYPES.includes(file.type) ||
-                              file.size > MAX_FILE_BYTES
-                            ) {
-                              setError("Choose a supported evidence file no larger than 5 MB.");
-                              return;
-                            }
-                            updateAchievement(index, { proof: file });
-                          }}
-                        />
-                      </div>
-                    ) : null}
-                  </Field>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    aria-label="Remove achievement"
-                    onClick={() =>
-                      setBaseField(
-                        "achievements",
-                        base.achievements.filter((_, itemIndex) => itemIndex !== index),
-                      )
-                    }
-                  >
-                    <Trash2 />
-                  </Button>
-                </div>
-              ))}
-              {base.achievements.length < MAX_FILES ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-fit"
-                  onClick={() =>
-                    setBaseField("achievements", [
-                      ...base.achievements,
-                      { title: "", description: "", proof: null, proofStatus: "not_applicable" },
-                    ])
-                  }
-                >
-                  <Plus /> Add achievement or experience
-                </Button>
-              ) : null}
-            </div>
-          </Step>
-          <Step>
-            <Heading step={professional ? 6 : 6} title="Logistics & Rate" />
-            <div className="grid gap-6 sm:grid-cols-2">
-              <Field
-                label="Proposed Hourly Rate (HKD)"
-                required
-                error={fieldErrors.hourlyRate}
-                hint={
-                  primary.curriculum === "IBDP"
-                    ? "Suggested recent graduate rates: 45/45 HK$500/hr, 43-44 HK$400/hr, 40-42 HK$300-350/hr."
-                    : primary.curriculum === "HKDSE"
-                      ? "Suggested DSE rates: high achievers HK$150-200/hr; premium HK$250-300/hr for top scorers, sought-after majors, or extensive experience."
-                      : undefined
-                }
-              >
-                <Input
-                  type="number"
-                  value={base.hourlyRate}
-                  onChange={(event) => setBaseField("hourlyRate", event.target.value)}
-                  placeholder="450"
-                />
-              </Field>
-              <Field
-                label="Teaching materials"
-                required
-                error={fieldErrors.materials}
-                className="self-start"
-              >
-                <SingleChoice
-                  options={MATERIALS_OPTIONS}
-                  value={base.materials}
-                  onChange={(materials) => setBaseField("materials", materials)}
-                  invalid={Boolean(fieldErrors.materials)}
-                />
-              </Field>
-            </div>
-          </Step>
-          <Step>
-            <Heading step={stepTitles.length} title="Acknowledgments" />
-            <div className="grid gap-5">
-              <div className="grid gap-1.5">
-                <label className="flex gap-3 text-sm text-muted-foreground">
-                  <Checkbox
-                    checked={base.terms}
-                    onCheckedChange={(checked) => setBaseField("terms", checked === true)}
-                    aria-invalid={fieldErrors.terms ? true : undefined}
-                    className={fieldErrors.terms ? "border-destructive" : undefined}
-                  />
-                  <span>
-                    I agree to the MatchMax{" "}
-                    <Link
-                      className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
-                      to="/tos"
-                      target="_blank"
-                    >
-                      Terms and Conditions
-                    </Link>{" "}
-                    and confirm the information I have provided is true and complete.
-                    {fieldErrors.terms ? (
-                      <span className="ml-2 align-middle text-xs font-medium text-destructive">
-                        Required
-                      </span>
-                    ) : null}
-                  </span>
-                </label>
-              </div>
-              <div className="grid gap-1.5">
-                <label className="flex gap-3 text-sm text-muted-foreground">
-                  <Checkbox
-                    checked={base.privacy}
-                    onCheckedChange={(checked) => setBaseField("privacy", checked === true)}
-                    aria-invalid={fieldErrors.privacy ? true : undefined}
-                    className={fieldErrors.privacy ? "border-destructive" : undefined}
-                  />
-                  <span>
-                    {professional
-                      ? "I consent to MatchMax using my credentials and CV to verify my professional status, promote my teaches profile, and protect my anonymity."
-                      : PRIVACY_TEXT}
-                    {fieldErrors.privacy ? (
-                      <span className="ml-2 align-middle text-xs font-medium text-destructive">
-                        Required
-                      </span>
-                    ) : null}
-                  </span>
-                </label>
-              </div>
-              <div className="grid gap-1.5">
-                <label className="flex gap-3 text-sm text-muted-foreground">
-                  <Checkbox
-                    checked={base.commission}
-                    onCheckedChange={(checked) => setBaseField("commission", checked === true)}
-                    aria-invalid={fieldErrors.commission ? true : undefined}
-                    className={fieldErrors.commission ? "border-destructive" : undefined}
-                  />
-                  <span>
-                    {COMMISSION_TEXT}
-                    {fieldErrors.commission ? (
-                      <span className="ml-2 align-middle text-xs font-medium text-destructive">
-                        Required
-                      </span>
-                    ) : null}
-                  </span>
-                </label>
-              </div>
-              <div ref={captchaRef} className="min-h-[65px]" />
-              {captchaError ? (
-                <p className="text-xs font-medium text-destructive" role="alert">
-                  {captchaError}
-                </p>
-              ) : null}
-              {fieldErrors.captcha ? (
-                <p className="text-xs font-medium text-destructive" role="alert">
-                  {fieldErrors.captcha}
-                </p>
-              ) : null}
-            </div>
-          </Step>
-        </Stepper>
+            </Button>
+          </div>
+        </div>
       </div>
     </form>
   );

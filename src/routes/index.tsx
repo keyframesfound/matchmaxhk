@@ -12,6 +12,7 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
+import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
 import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 import { blurActive } from "@/lib/dom";
 import { cn } from "@/lib/utils";
@@ -125,6 +126,8 @@ function CurriculumTutorSection({
   priceSuffix,
   whatsappNumber,
   onOpen,
+  compareSelectedIds,
+  onCompareToggle,
 }: {
   label: string;
   category: string;
@@ -133,6 +136,8 @@ function CurriculumTutorSection({
   priceSuffix: string;
   whatsappNumber: string;
   onOpen: (tutorCode: string) => void;
+  compareSelectedIds: string[];
+  onCompareToggle: (tutor: Tutor) => void;
 }) {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
@@ -150,6 +155,8 @@ function CurriculumTutorSection({
         tutor={tutor}
         priceSuffix={priceSuffix}
         onOpen={onOpen}
+        compareSelected={compareSelectedIds.includes(tutor.id)}
+        onCompareToggle={() => onCompareToggle(tutor)}
         footerAction={
           <>
             <TutorSaveButton tutorId={tutor.id} compact />
@@ -240,7 +247,7 @@ function CurriculumTutorSection({
       ) : tutors.length > 0 ? (
         <>
           {/* Mobile: one swipeable row — first page of tutors, then the see-all tile */}
-          <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scroll-px-4 md:hidden">
+          <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-1 pb-2 scroll-px-4 md:hidden">
             {tutors
               .slice(0, TUTORS_PER_PAGE)
               .map((tutor) => renderTutorCard(tutor, "w-[min(80vw,380px)] shrink-0 snap-start"))}
@@ -250,7 +257,7 @@ function CurriculumTutorSection({
           </div>
 
           {/* md+: paged sliding track */}
-          <div className="hidden overflow-hidden md:block">
+          <div className="hidden overflow-hidden pt-1 md:block">
             <div
               className="flex items-stretch transition-transform duration-300 ease-out motion-reduce:transition-none"
               style={{ transform: `translateX(-${currentPage * 100}%)` }}
@@ -316,6 +323,9 @@ function Landing() {
       return typeof data?.value === "string" ? data.value : "";
     },
   });
+
+  const { compareIds, compareTutors, toggleCompare, compareOpen, setCompareOpen, clearCompare } =
+    useTutorCompare(publishedTutors);
 
   const tutorsForCategory = (category: string) =>
     publishedTutors
@@ -514,6 +524,8 @@ function Landing() {
                 priceSuffix={t("featured.per_hour")}
                 whatsappNumber={whatsappNumber}
                 onOpen={openTutorDetail}
+                compareSelectedIds={compareIds}
+                onCompareToggle={toggleCompare}
               />
             ))}
           </div>
@@ -581,6 +593,20 @@ function Landing() {
       </section>
 
       <SiteFooter />
+
+      {compareTutors.length > 0 && !compareOpen ? (
+        <CompareBar
+          selectedTutors={compareTutors}
+          onOpenCompare={() => setCompareOpen(true)}
+          onClear={clearCompare}
+        />
+      ) : null}
+      <CompareDialog
+        open={compareOpen}
+        onOpenChange={setCompareOpen}
+        tutors={compareTutors}
+        whatsappNumber={whatsappNumber}
+      />
     </div>
   );
 }

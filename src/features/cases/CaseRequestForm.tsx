@@ -132,7 +132,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const [result, setResult] = useState<{ caseCode: string } | null>(null);
   const honeypot = useRef<HTMLInputElement>(null);
   const startedAt = useRef(Date.now());
-  const { restored, savedAt, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v5");
+  const { restored, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v5");
 
   useEffect(() => {
     if (!restored) return;
@@ -918,16 +918,6 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         </div>
         <p className="text-center text-xs text-muted-foreground sm:text-sm">
           Free for parents — our team will contact you on WhatsApp within one business day.
-        </p>
-        <p
-          aria-live="polite"
-          className={cn(
-            "flex items-center justify-center gap-1.5 text-center text-xs font-medium text-[color:var(--muted-foreground)] transition-opacity duration-300",
-            savedAt && !result ? "opacity-100" : "opacity-0",
-          )}
-        >
-          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-          {t("common.draft_saved")}
         </p>
       </div>
     </form>

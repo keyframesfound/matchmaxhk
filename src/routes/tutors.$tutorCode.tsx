@@ -468,7 +468,7 @@ function TutorDetail() {
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
             <Button
               type="button"
-              variant="outline"
+              variant="link"
               size="sm"
               className="mb-6"
               onClick={() => window.history.back()}
