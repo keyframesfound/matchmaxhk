@@ -67,7 +67,7 @@ const CURRICULUM_CATEGORIES = [
 ];
 
 const TUTORS_PER_PAGE = 3;
-const MAX_HOME_TUTORS = 7;
+const MAX_HOME_TUTORS = 6;
 
 export const Route = createFileRoute("/")({
   head: () => ({
