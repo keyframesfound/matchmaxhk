@@ -660,7 +660,7 @@ function TutorDetail() {
 
         {suggestedTutors.length > 0 ? (
           <section className="border-t border-border bg-muted/30 py-10 sm:py-12">
-            <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
                   <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
