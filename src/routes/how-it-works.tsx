@@ -187,7 +187,7 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
   return (
     <div>
       <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
-      <div className="mt-8 rounded-2xl border border-[color:var(--hiw-compare-card-border)] bg-[color:var(--hiw-compare-card)] p-5 shadow-sm md:p-8">
+      <div className="mt-5 rounded-2xl border border-[color:var(--hiw-compare-card-border)] bg-[color:var(--hiw-compare-card)] p-5 shadow-sm md:p-8">
         <div className="hidden gap-x-10 border-b border-[color:var(--ink)]/20 pb-4 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
           <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_aspect")}</p>
           <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_old")}</p>
