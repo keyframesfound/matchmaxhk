@@ -197,7 +197,7 @@
 /*
  * Dark theme — "Twitter Azure" dim mode (dark-mode-guide compliant).
  * Elevation ladder instead of pure black: canvas #121212 · cards #1E1E1E ·
- * popovers #232327 · hovers #26282C · borders #2E3033 · secondary text #8A8E93.
+ * popovers #232327 · hovers #26282C · borders #2E3033 · secondary text #9BA1A6.
  * Statuses are lightened/desaturated for dark (success #4ADE80, warning #FCD34D,
  * destructive #F87171) with dark-ink text on fills.
  * The azure accent (#1D9BF0) stays the action colour in both themes.
@@ -212,8 +212,8 @@
   --surface-invert-hover: #d9dde0;
   --surface-invert-fg: #0f1419;
   --brand-link: #1d9bf0;
-  --subtle-foreground: #8a8e93;
-  --disabled-foreground: #6b7076;
+  --subtle-foreground: #9ba1a6;
+  --disabled-foreground: #8a8e93;
   --success: #4ade80;
   --success-foreground: #052e16;
   --warning: #fcd34d;
@@ -226,7 +226,7 @@
     var(--color-card)
   );
   --stepper-inactive-bg: #26282c;
-  --stepper-inactive-fg: #8a8e93;
+  --stepper-inactive-fg: #9ba1a6;
   --stepper-active-bg: #1d9bf0;
   --stepper-active-fg: #ffffff;
   --stepper-complete-bg: #4ade80;
@@ -240,7 +240,7 @@
   --background: #121212;
   --foreground: #e7e9ea;
   --card: #1e1e1e;
-  --card-foreground: #d9d9d9;
+  --card-foreground: #e7e9ea;
   --popover: #232327;
   --popover-foreground: #e7e9ea;
   --primary: #1c9cf0;
@@ -248,7 +248,7 @@
   --secondary: #f0f3f4;
   --secondary-foreground: #0f1419;
   --muted: #1e1e1e;
-  --muted-foreground: #8a8e93;
+  --muted-foreground: #9ba1a6;
   --accent: #1e2d37;
   --accent-foreground: #1c9cf0;
   --destructive: #f87171;
@@ -262,7 +262,7 @@
   --chart-4: #17bf63;
   --chart-5: #e0245e;
   --sidebar: #1a1c1e;
-  --sidebar-foreground: #d9d9d9;
+  --sidebar-foreground: #e7e9ea;
   --sidebar-primary: #1da1f2;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1e2d37;

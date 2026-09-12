@@ -23,7 +23,8 @@ colors:
   dark-raised: "#232327"
   dark-hover: "#26282C"
   dark-border: "#2E3033"
-  dark-secondary-ink: "#8A8E93"
+  dark-secondary-ink: "#9BA1A6"
+  dark-disabled-ink: "#8A8E93"
   dark-input: "#22303C"
   dark-success: "#4ADE80"
   dark-warning: "#FCD34D"
@@ -167,7 +168,7 @@ The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairli
 - **Input Tint** (`#F7F9FA`, `--input`) and **Hover Wash** (`#EFF3F4`, `--surface-hover`): Wells and hover states.
 - **Secondary Ink** (`#536471`, `--muted-foreground`): Secondary text on light.
 - **Hairline** (`#E1EAEF`, `--border`): Borders and separators on light.
-- **Night Canvas** (`#121212`) / **Night Card** (`#1E1E1E`) / **Night Border** (`#2E3033`): Dark-theme surfaces on a luminosity elevation ladder — canvas `#121212`, subtle/sidebar `#1A1C1E`, cards/muted `#1E1E1E`, popovers/raised `#232327`, hovers `#26282C`; secondary text `#8A8E93` (AA on the ladder), inputs `#22303C`, dark sidebar border `#3A3D42`. Dark statuses lighten for comfort: success `#4ADE80`, warning `#FCD34D`, destructive `#F87171`, each with dark-ink text on fills.
+- **Night Canvas** (`#121212`) / **Night Card** (`#1E1E1E`) / **Night Border** (`#2E3033`): Dark-theme surfaces on a luminosity elevation ladder — canvas `#121212`, subtle/sidebar `#1A1C1E`, cards/muted `#1E1E1E`, popovers/raised `#232327`, hovers `#26282C`; one primary ink everywhere `#E7E9EA` (~15:1), secondary text `#9BA1A6` (Material's 60%-white medium emphasis; 7.2:1 on canvas, 6.4:1 on cards), disabled text `#8A8E93` (5.7:1 — visibly weaker, still readable); inputs `#22303C`, dark sidebar border `#3A3D42`. Dark statuses lighten for comfort: success `#4ADE80`, warning `#FCD34D`, destructive `#F87171`, each with dark-ink text on fills.
 
 ### Named Rules
 **The Scarcity Rule.** Azure (`--btn-accent`/`--ring`/`--brand-link`) owns exactly three things: (1) money-CTA fills — the ~10% of buttons that start a conversion flow, (2) text links, (3) focus rings and selected/active states. Everything else is ink/neutral. Test: *does this button start a conversion flow?* If not, it is neutral (white or ink).

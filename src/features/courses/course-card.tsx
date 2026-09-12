@@ -21,7 +21,7 @@ const LEVEL_BADGE_CLASSES: Record<string, string> = {
 };
 
 const DEFAULT_BADGE_CLASS =
-  "bg-gray-50 text-gray-700 ring-gray-700/10 dark:bg-gray-500/10 dark:text-gray-400 dark:ring-gray-400/20";
+  "bg-gray-50 text-gray-700 ring-gray-700/10 dark:bg-gray-500/10 dark:text-[color:var(--muted-foreground)] dark:ring-gray-400/20";
 
 export function CourseLevelBadge({ level }: { level: string | null }) {
   if (!level) return null;

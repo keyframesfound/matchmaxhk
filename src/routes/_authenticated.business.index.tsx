@@ -61,7 +61,7 @@ import { NotFoundComponent } from "./__root";
  */
 const CHART_THEME = {
   light: { grid: "#e2e8f0", tick: "#64748b", ink: "#0f1419", azure: "#1d9bf0" },
-  dark: { grid: "#2e3033", tick: "#8a8e93", ink: "#8ecdf8", azure: "#1d9bf0" },
+  dark: { grid: "#2e3033", tick: "#9ba1a6", ink: "#8ecdf8", azure: "#1d9bf0" },
 } as const;
 
 export const Route = createFileRoute("/_authenticated/business/")({
