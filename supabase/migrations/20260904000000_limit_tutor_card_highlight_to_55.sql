@@ -1,16 +1,16 @@
--- Reduce tutor-card highlight rows back to a 50-character limit per row.
+-- Limit tutor-card highlight rows to 55 characters per row.
 -- Keep the three-row limit unchanged.
 
 -- Truncate existing rows that exceed the new limit so the constraint validates.
 UPDATE public.tutors
 SET card_highlights = (
-  SELECT COALESCE(array_agg(LEFT(value, 50)), '{}'::text[])
+  SELECT COALESCE(array_agg(LEFT(value, 55)), '{}'::text[])
   FROM unnest(card_highlights) AS value
 )
 WHERE EXISTS (
   SELECT 1
   FROM unnest(card_highlights) AS value
-  WHERE char_length(value) > 50
+  WHERE char_length(value) > 55
 );
 
 CREATE OR REPLACE FUNCTION public.tutor_card_highlights_valid(highlight_values text[])
@@ -23,7 +23,7 @@ AS $$
     AND cardinality(highlight_values) <= 3
     AND COALESCE(
       (
-        SELECT bool_and(char_length(value) <= 50)
+        SELECT bool_and(char_length(value) <= 55)
         FROM unnest(highlight_values) AS value
       ),
       true
@@ -39,4 +39,4 @@ ALTER TABLE public.tutors
   CHECK (public.tutor_card_highlights_valid(card_highlights));
 
 COMMENT ON COLUMN public.tutors.card_highlights IS
-  'Up to three concise tutor-card rows; each row is limited to 50 characters.';
+  'Up to three concise tutor-card rows; each row is limited to 55 characters.';
