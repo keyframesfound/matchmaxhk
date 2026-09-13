@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { Search, SearchX, UserPlus } from "lucide-react";
+import { Search, SearchX } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
@@ -256,7 +256,7 @@ function TutorsDirectory() {
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
               Start with a subject or tutor code, then narrow the list to the right fit.
             </p>
-            <div className="relative mt-7 overflow-hidden rounded-sm border border-border bg-card shadow-sm">
+            <div className="relative mt-7 overflow-hidden rounded-sm border border-border bg-card">
               <form
                 className="p-4 sm:p-5"
                 onSubmit={(event) => {
@@ -376,7 +376,7 @@ function TutorsDirectory() {
                     href={hotlineUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[color:var(--brand-whatsapp-hover)] sm:justify-self-start lg:col-span-2 lg:justify-self-end"
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-bold text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)] sm:justify-self-start lg:col-span-2 lg:justify-self-end"
                   >
                     <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
                     WhatsApp us
@@ -442,12 +442,6 @@ function TutorsDirectory() {
                       {t("directory.empty_case")}
                     </Link>
                   </Button>
-                  <Button asChild variant="outline" className="font-bold">
-                    <Link to="/join">
-                      <UserPlus className="mr-2 h-4 w-4" aria-hidden="true" />
-                      Tutor Join Request
-                    </Link>
-                  </Button>
                 </div>
               </div>
             )}
@@ -467,7 +461,7 @@ function TutorsDirectory() {
                         <TutorSaveButton tutorId={tut.id} compact />
                         <Button
                           asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] shadow-none hover:bg-[color:var(--surface-invert-hover)]"
+                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                         >
                           <a
                             href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}

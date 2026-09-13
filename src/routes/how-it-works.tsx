@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Asterisk, Clock3, MessageCircle, Search, UserRoundCheck } from "lucide-react";
+import { ArrowRight, Clock3, MessageCircle, Search, UserRoundCheck } from "lucide-react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -284,11 +284,10 @@ function HowItWorksPage() {
           <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
             {t("hiw.hero_eyebrow")}
           </p>
-          <div className="relative mt-5 w-fit">
+          <div className="mt-5">
             <h1 className="max-w-2xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
               {t("hiw.hero_title")}
             </h1>
-            <Asterisk className="absolute -right-6 -top-4 h-5 w-5 text-[color:var(--muted-foreground)] sm:-right-9 sm:-top-5 sm:h-7 sm:w-7" />
           </div>
           <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/65">
             {t("hiw.hero_body")}
