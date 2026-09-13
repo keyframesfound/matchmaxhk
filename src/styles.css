@@ -339,9 +339,24 @@
     }
   }
 
+  html {
+    scrollbar-gutter: stable;
+  }
+
   body {
     overflow-x: clip;
     -webkit-tap-highlight-color: color-mix(in oklab, var(--ink) 12%, transparent);
+  }
+
+  /*
+   * Radix Select scroll-locks the page via react-remove-scroll, which hides
+   * the scrollbar and compensates with margin-right on body. The reserved
+   * gutter above already keeps the layout stable, so zero the compensation
+   * (the html prefix wins specificity over the library's runtime-injected
+   * body[data-scroll-locked] rule).
+   */
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
   }
 
   .hero-startup-bg {

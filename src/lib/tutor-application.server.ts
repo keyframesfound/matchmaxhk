@@ -125,9 +125,9 @@ export async function storeTutorApplication(
     .select("id")
     .single();
 
-  if (error || !inserted) {
+  if (insertError || !inserted) {
     throw new Error(
-      `Could not save your application: ${error?.message ?? "unexpected database error"}`,
+      `Could not save your application: ${insertError?.message ?? "unexpected database error"}`,
     );
   }
   const applicationId = inserted.id as string;
