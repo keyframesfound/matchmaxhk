@@ -17,6 +17,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   ConsoleTable,
   ConsoleTableBody,
@@ -76,6 +85,12 @@ function AdminTutors() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmBatchDelete, setConfirmBatchDelete] = useState(false);
+  const [visibilityFilter, setVisibilityFilter] = useState("all");
+  const [formatFilter, setFormatFilter] = useState("all");
+  const [subjectFilter, setSubjectFilter] = useState("all");
+  const [districtFilter, setDistrictFilter] = useState("all");
+  const [completenessFilter, setCompletenessFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
 
   useEffect(() => {
     if (!loading && !hasAnyRole(["admin", "super_admin"])) {
@@ -107,17 +122,116 @@ function AdminTutors() {
     queryFn: fetchAllTutors,
   });
 
+  const subjectOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of tutors) {
+      for (const subject of row.subjects ?? []) {
+        const value = (subject ?? "").trim();
+        if (value) set.add(value);
+      }
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [tutors]);
+
+  const districtOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of tutors) {
+      const value = (row.district ?? "").trim();
+      if (value) set.add(value);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [tutors]);
+
+  const hasActiveFilters =
+    search.trim() !== "" ||
+    visibilityFilter !== "all" ||
+    formatFilter !== "all" ||
+    subjectFilter !== "all" ||
+    districtFilter !== "all" ||
+    completenessFilter !== "all";
+
+  const clearFilters = () => {
+    setSearch("");
+    setVisibilityFilter("all");
+    setFormatFilter("all");
+    setSubjectFilter("all");
+    setDistrictFilter("all");
+    setCompletenessFilter("all");
+  };
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return tutors;
-    return tutors.filter(
-      (r) =>
-        (r.display_name ?? "").toLowerCase().includes(q) ||
-        (r.tutor_code ?? "").toLowerCase().includes(q) ||
-        (r.subjects ?? []).some((s) => (s ?? "").toLowerCase().includes(q)) ||
-        getTutorCardHighlights(r).some((highlight) => highlight.toLowerCase().includes(q)),
-    );
-  }, [tutors, search]);
+    const rows = tutors.filter((row) => {
+      if (visibilityFilter === "published" && !row.is_published) return false;
+      if (visibilityFilter === "hidden" && row.is_published) return false;
+      if (formatFilter !== "all" && row.lesson_mode !== formatFilter) return false;
+      if (
+        subjectFilter !== "all" &&
+        !(row.subjects ?? []).some((s) => (s ?? "").trim() === subjectFilter)
+      )
+        return false;
+      if (districtFilter !== "all" && (row.district ?? "").trim() !== districtFilter) return false;
+      if (completenessFilter !== "all") {
+        const complete =
+          Boolean(row.photo_url) &&
+          (row.subjects ?? []).length > 0 &&
+          getTutorCardHighlights(row).length > 0 &&
+          row.hourly_rate > 0;
+        if (completenessFilter === "complete" && !complete) return false;
+        if (completenessFilter === "incomplete" && complete) return false;
+      }
+      if (
+        q &&
+        !(
+          (row.display_name ?? "").toLowerCase().includes(q) ||
+          (row.tutor_code ?? "").toLowerCase().includes(q) ||
+          (row.subjects ?? []).some((s) => (s ?? "").toLowerCase().includes(q)) ||
+          getTutorCardHighlights(row).some((highlight) => highlight.toLowerCase().includes(q))
+        )
+      )
+        return false;
+      return true;
+    });
+
+    const codeThen = (a: Tutor, b: Tutor) => a.tutor_code.localeCompare(b.tutor_code);
+    const sorted = [...rows];
+    if (sortBy === "rate_desc")
+      sorted.sort((a, b) => b.hourly_rate - a.hourly_rate || codeThen(a, b));
+    else if (sortBy === "rate_asc")
+      sorted.sort((a, b) => a.hourly_rate - b.hourly_rate || codeThen(a, b));
+    else if (sortBy === "name")
+      sorted.sort(
+        (a, b) => (a.display_name ?? "").localeCompare(b.display_name ?? "") || codeThen(a, b),
+      );
+    else if (sortBy === "oldest")
+      sorted.sort(
+        (a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? "") || codeThen(a, b),
+      );
+    else
+      sorted.sort(
+        (a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? "") || codeThen(a, b),
+      );
+    return sorted;
+  }, [
+    tutors,
+    search,
+    visibilityFilter,
+    formatFilter,
+    subjectFilter,
+    districtFilter,
+    completenessFilter,
+    sortBy,
+  ]);
+
+  // Keep the batch selection in sync with what is currently visible so bulk
+  // publish/delete/CSV never touch rows hidden by the active filters.
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === 0) return prev;
+      const next = new Set([...prev].filter((id) => filtered.some((row) => row.id === id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [filtered]);
 
   const saveMutation = useMutation({
     mutationFn: async (payload: Record<string, unknown> & { id?: string }) => {
@@ -217,6 +331,21 @@ function AdminTutors() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const togglePublishMutation = useMutation({
+    mutationFn: async ({ id, isPublished }: { id: string; isPublished: boolean }) => {
+      const { error } = await supabase
+        .from("tutors")
+        .update({ is_published: isPublished } as never)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_data, variables) => {
+      toast.success(variables.isPublished ? "Tutor published" : "Tutor hidden");
+      invalidateTutorQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const batchRemoveMutation = useMutation({
     mutationFn: async (ids: string[]) => {
       const { error } = await supabase.from("tutors").delete().in("id", ids);
@@ -307,8 +436,8 @@ function AdminTutors() {
               </div>
 
               {/* Filters & Search */}
-              <div className="flex items-center justify-between gap-4">
-                <div className="relative w-full max-w-md">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative min-w-52 flex-1 sm:max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search by code, subject, card highlight..."
@@ -317,6 +446,82 @@ function AdminTutors() {
                     className="pl-9 h-10 bg-[color:var(--surface)] border-[color:var(--ink)]/15"
                   />
                 </div>
+                <Select value={visibilityFilter} onValueChange={setVisibilityFilter}>
+                  <SelectTrigger className="h-10 w-36 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All visibility</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                    <SelectItem value="hidden">Hidden</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={formatFilter} onValueChange={setFormatFilter}>
+                  <SelectTrigger className="h-10 w-36 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All formats</SelectItem>
+                    <SelectItem value="online">Online</SelectItem>
+                    <SelectItem value="in_person">In-person</SelectItem>
+                    <SelectItem value="either">Hybrid</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={completenessFilter} onValueChange={setCompletenessFilter}>
+                  <SelectTrigger className="h-10 w-40 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All profiles</SelectItem>
+                    <SelectItem value="complete">Complete</SelectItem>
+                    <SelectItem value="incomplete">Incomplete</SelectItem>
+                  </SelectContent>
+                </Select>
+                <SearchableSelect
+                  value={subjectFilter}
+                  onChange={setSubjectFilter}
+                  options={[
+                    { value: "all", label: "All subjects" },
+                    ...subjectOptions.map((subject) => ({ value: subject, label: subject })),
+                  ]}
+                  placeholder="All subjects"
+                  searchPlaceholder="Search subject..."
+                  className="h-10 w-44 rounded-md"
+                />
+                <SearchableSelect
+                  value={districtFilter}
+                  onChange={setDistrictFilter}
+                  options={[
+                    { value: "all", label: "All districts" },
+                    ...districtOptions.map((district) => ({ value: district, label: district })),
+                  ]}
+                  placeholder="All districts"
+                  searchPlaceholder="Search district..."
+                  className="h-10 w-44 rounded-md"
+                />
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="h-10 w-44 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest first</SelectItem>
+                    <SelectItem value="oldest">Oldest first</SelectItem>
+                    <SelectItem value="rate_desc">Rate: High to Low</SelectItem>
+                    <SelectItem value="rate_asc">Rate: Low to High</SelectItem>
+                    <SelectItem value="name">Name A–Z</SelectItem>
+                  </SelectContent>
+                </Select>
+                {hasActiveFilters && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={clearFilters}
+                    className="h-10 text-muted-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Clear filters
+                  </Button>
+                )}
               </div>
 
               {/* Batch actions */}
@@ -373,6 +578,11 @@ function AdminTutors() {
                 </div>
               ) : null}
 
+              <p className="text-sm text-muted-foreground">
+                Showing <span className="font-bold text-[color:var(--ink)]">{filtered.length}</span>{" "}
+                of {tutors.length} tutor{tutors.length === 1 ? "" : "s"}
+              </p>
+
               <ConsoleTable tableClassName="text-left">
                 <ConsoleTableHead>
                   <tr>
@@ -401,12 +611,17 @@ function AdminTutors() {
                       icon={Users}
                       title="No tutors found"
                       description={
-                        search
-                          ? "Try adjusting your search criteria"
+                        hasActiveFilters
+                          ? "No tutors match the current filters."
                           : "Get started by adding your first verified tutor profile."
                       }
                       action={
-                        !search ? (
+                        hasActiveFilters ? (
+                          <Button onClick={clearFilters} variant="outline" size="sm">
+                            <X className="mr-1.5 h-3.5 w-3.5" />
+                            Clear filters
+                          </Button>
+                        ) : !search ? (
                           <Button onClick={() => setIsCreating(true)} variant="outline" size="sm">
                             <Plus className="mr-1.5 h-3.5 w-3.5" />
                             Add New Tutor
@@ -506,16 +721,28 @@ function AdminTutors() {
                       </ConsoleTd>
 
                       <ConsoleTd>
-                        <span
-                          className={cn(
-                            "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold",
-                            row.is_published
-                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-                              : "bg-muted text-muted-foreground",
-                          )}
-                        >
-                          {row.is_published ? "Published" : "Hidden"}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={row.is_published}
+                            disabled={togglePublishMutation.isPending}
+                            onCheckedChange={(checked) =>
+                              togglePublishMutation.mutate({ id: row.id, isPublished: checked })
+                            }
+                            aria-label={`${row.is_published ? "Unpublish" : "Publish"} ${
+                              row.tutor_code || "tutor"
+                            }`}
+                          />
+                          <span
+                            className={cn(
+                              "text-xs font-semibold",
+                              row.is_published
+                                ? "text-emerald-700 dark:text-emerald-400"
+                                : "text-muted-foreground",
+                            )}
+                          >
+                            {row.is_published ? "Published" : "Hidden"}
+                          </span>
+                        </div>
                       </ConsoleTd>
 
                       <ConsoleTd align="right">
