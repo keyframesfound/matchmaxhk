@@ -297,20 +297,15 @@ export function formDataToPayload(v: TutorFormData) {
 // Merge an AI autofill suggestion into the current form. Only overwrites a
 // field when the suggestion provides a value; photo and publish state are
 // never touched.
-function mergeAutofillResult(
-  prev: TutorFormData,
-  result: TutorAutofillResult,
-): TutorFormData {
-  const examResults = result.exam_results
-    .slice(0, 3)
-    .map((r) => ({
-      system: r.system,
-      subjects: r.subjects.slice(0, 20).map((s) => ({
-        subject: s.subject,
-        grade: s.grade,
-        papers: (s.papers ?? []).map((p) => ({ label: p.label, score: p.score })),
-      })),
-    }));
+function mergeAutofillResult(prev: TutorFormData, result: TutorAutofillResult): TutorFormData {
+  const examResults = result.exam_results.slice(0, 3).map((r) => ({
+    system: r.system,
+    subjects: r.subjects.slice(0, 20).map((s) => ({
+      subject: s.subject,
+      grade: s.grade,
+      papers: (s.papers ?? []).map((p) => ({ label: p.label, score: p.score })),
+    })),
+  }));
 
   return {
     ...prev,
@@ -1740,11 +1735,7 @@ export function TutorEditor({
 
             {/* Sticky Action Card */}
             <ConsolePanel padding="sm" className="space-y-3">
-              <Button
-                type="submit"
-                disabled={isSaving}
-                className="w-full h-11 font-bold text-sm"
-              >
+              <Button type="submit" disabled={isSaving} className="w-full h-11 font-bold text-sm">
                 {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

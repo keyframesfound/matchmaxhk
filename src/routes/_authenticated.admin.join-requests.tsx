@@ -237,7 +237,12 @@ function AdminJoinRequests() {
     const now = new Date();
     const purgeAfter = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     updateStatus.mutate(
-      { id: row.id, status: "rejected", rejectedAt: now.toISOString(), purgeAfter: purgeAfter.toISOString() },
+      {
+        id: row.id,
+        status: "rejected",
+        rejectedAt: now.toISOString(),
+        purgeAfter: purgeAfter.toISOString(),
+      },
       {
         onSuccess: () => {
           toast.success("Application rejected", {
@@ -703,11 +708,7 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
                         : "bg-muted text-muted-foreground",
                   )}
                 >
-                  {doc.file
-                    ? "Stored"
-                    : doc.status === "provide_later"
-                      ? "Provide later"
-                      : "N/A"}
+                  {doc.file ? "Stored" : doc.status === "provide_later" ? "Provide later" : "N/A"}
                 </span>
               </li>
             ))}
@@ -724,9 +725,7 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
               <li key={`${achievement.title}-${index}`} className="space-y-1">
                 <div className="flex items-center gap-2">
                   <ImageIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  <span className="font-semibold text-[color:var(--ink)]">
-                    {achievement.title}
-                  </span>
+                  <span className="font-semibold text-[color:var(--ink)]">{achievement.title}</span>
                   <span
                     className={cn(
                       "ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold",

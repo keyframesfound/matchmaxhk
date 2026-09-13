@@ -66,7 +66,12 @@ function validateAttachmentBytes(
 async function uploadApplicationFile(
   config: ReturnType<typeof getR2Config>,
   file: { filename: string; contentType: string; content: string; size: number },
-  meta: { source: "achievement" | "transcript"; label: string; applicationId: string; index: number },
+  meta: {
+    source: "achievement" | "transcript";
+    label: string;
+    applicationId: string;
+    index: number;
+  },
 ): Promise<StoredApplicationFile> {
   const bytes = Buffer.from(file.content, "base64");
   const safeName = sanitizeFileName(file.filename) || "document";
