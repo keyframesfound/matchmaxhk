@@ -1,0 +1,917 @@
+[
+  {
+    "tutor_code": "MM-T041",
+    "display_name": "MM-T041",
+    "headline": "IB 40/45 🏅 | HKUST Mathematics 🔢 | Math AA HL Grade 7 Specialist 🎯",
+    "subjects": ["Math AA SL", "Math AA HL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 700,
+    "badge": "HKUST Mathematics",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 4,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [{ "grade": "7", "subject": "Math AA HL" }]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": null,
+    "university": "HKUST",
+    "target_students": ["IBDP"],
+    "qualifications_summary": "• **IB 40/45** with **Math AA HL Grade 7** ➗\n\n• Currently pursuing a Bachelor's degree in **Mathematics at The Hong Kong University of Science and Technology (HKUST)** 🔢\n\n• **UKMT Senior Mathematical Challenge — Gold Certificate** 🎖️\n\n• **4+ years of professional tutoring experience** specializing in international curricula; IBDP graduate (Class of 2018) 🏫\n\n• Online Zoom lessons only 💻",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 40/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB 40/45 | Math AA HL Grade 7 Specialist ➗",
+      "HKUST Mathematics Undergraduate 🔢",
+      "UKMT Senior Challenge Gold | 4+ Yrs Tutoring 🎖️"
+    ]
+  },
+  {
+    "tutor_code": "MM-T043",
+    "display_name": "MM-T043",
+    "headline": "HKU Materials Engineering 🔬 | A-Level 3A* (Math & Physics A*) 🎯 | SAT 1550/1600 📊",
+    "subjects": ["A-Level Physics", "A-Level Mathematics"],
+    "district": "Within Kowloon",
+    "stations": ["Ho Man Tin"],
+    "hourly_rate": 400,
+    "badge": "HKU Materials Engineering",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 4,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "alevel",
+        "subjects": [
+          { "grade": "A*", "subject": "Physics" },
+          { "grade": "A*", "subject": "Mathematics" }
+        ]
+      },
+      {
+        "system": "sat",
+        "subjects": [{ "grade": "1550", "subject": "SAT Total" }]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": null,
+    "university": "HKU",
+    "target_students": ["A-Level"],
+    "qualifications_summary": "• **GCE A-Level 3A\\*** including Physics A* and Math A*; **SAT 1550/1600** 📊\n\n• Currently majoring in **Materials Engineering at The University of Hong Kong (HKU)** 🔬\n\n• Recipient of the prestigious **Hon Ping Full Scholarship to HKU** 🏆\n\n• **4 years of extensive private tutoring** specializing in high-stakes public examinations and standardized test prep 🌟\n\n• SAT comprehensive training (Math, Reading, Writing) plus advanced foundation support 📐",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "A-Level 3A* | SAT 1550",
+    "secondary_school": "Galaxy International School",
+    "card_highlights": [
+      "A-Level 3A* (Math & Physics) | SAT 1550 🏅",
+      "HKU Materials Engineering | Hon Ping Scholarship 🔬",
+      "4 Yrs Exam & Standardized Test Tutoring 🌟"
+    ]
+  },
+  {
+    "tutor_code": "MM-T044",
+    "display_name": "MM-T044",
+    "headline": "IB Graduate | IB Psychology & IB Computer Science Specialist 🧠💻",
+    "subjects": ["Psych HL", "Psych SL", "Comp Sci SL"],
+    "district": "Within Hong Kong Island",
+    "stations": [],
+    "hourly_rate": 200,
+    "badge": null,
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "6", "subject": "Psych HL" },
+          { "grade": "6", "subject": "Comp Sci SL" },
+          { "grade": "6", "subject": "Econ HL" },
+          { "grade": "6", "subject": "Math AI SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP", "MYP"],
+    "qualifications_summary": "• **IB 37/45** with Grade 6 in Psychology HL, Computer Science SL, Economics HL & Math AI SL; **EE Grade A** 📝\n\n• Specialist focus with deep conceptual understanding of IB Psychology essay frameworks, case studies, and algorithm/pseudocode breakdowns 🧠\n\n• Practical teaching experience delivering targeted lessons for Year 10 Economics students 🏫\n\n• 100% English medium of instruction with custom study notes, structured guides, and practice resources 📚",
+    "achievements": [],
+    "ia_ee_tok_support": ["EE"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 37/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IBDP Graduate | Psych HL & Comp Sci SL 6 🧠💻",
+      "Extended Essay Grade A 📝",
+      "100% English instruction | Custom notes 📚"
+    ]
+  },
+  {
+    "tutor_code": "MM-T045",
+    "display_name": "MM-T045",
+    "headline": "IB Chemistry, Biology, Mathematics, English, Chinese & Economics 🎯",
+    "subjects": ["Chemistry", "Biology", "Mathematics", "English", "Chinese", "Economics"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 350,
+    "badge": null,
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English"],
+    "exam_results": [],
+    "lesson_mode": "online",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP"],
+    "qualifications_summary": "• Online IB tutoring across Chemistry, Biology, Mathematics, English, Chinese & Economics 📚\n\n• Online lessons only 💻",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": null,
+    "secondary_school": null,
+    "card_highlights": []
+  },
+  {
+    "tutor_code": "MM-T046",
+    "display_name": "MM-T046",
+    "headline": "IB 38/45 🏅 | Renaissance College Graduate 🎓 | CUHK Psychology Student 🧠",
+    "subjects": ["Psych HL", "Psych SL"],
+    "district": "Within Kowloon",
+    "stations": [],
+    "hourly_rate": 300,
+    "badge": "CUHK Psychology",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [{ "grade": "", "subject": "IBDP" }]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": "CUHK",
+    "target_students": ["IBDP", "MYP", "Primary"],
+    "qualifications_summary": "• **IB 38/45** graduate currently pursuing a **Bachelor of Psychology at CUHK** 🎓\n\n• Renaissance College Hong Kong (Class of 2025) graduate; previously at St. Catharine's School for Girls 🎒\n\n• **SEN & child support experience:** intern at U.P. Behaviour Consulting and classroom assistant at Jockey Club Sarah Roe School 🧸\n\n• Active private tutor since 2025, adapting lessons to individual needs with customized revision plans 👨‍🏫\n\n• IBDP / MYP / IGCSE / local curriculum coaching plus primary & early-secondary support 📝",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 38/45",
+    "secondary_school": "Renaissance College Hong Kong",
+    "card_highlights": [
+      "IB 38/45 | CUHK Psychology Student 🧠",
+      "SEN Experience: U.P. Behaviour & JC Sarah Roe 🧸",
+      "Customized revision plans since 2025 📝"
+    ]
+  },
+  {
+    "tutor_code": "MM-T047",
+    "display_name": "MM-T047",
+    "headline": "HKU Biological Sciences 🔬 | IB 40/45 🎯 | VSA Alumnus & Experienced Science Educator 🧬",
+    "subjects": ["Bio HL", "Geog HL", "Eng A Lang Lit HL", "Chem SL", "Math AA SL", "Spanish AB Initio SL"],
+    "district": "Open to Discussion",
+    "stations": [],
+    "hourly_rate": 350,
+    "badge": "HKU Biological Sciences",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "6", "subject": "Bio HL" },
+          { "grade": "6", "subject": "Geog HL" },
+          { "grade": "6", "subject": "Eng A Lang Lit HL" },
+          { "grade": "6", "subject": "Chem SL" },
+          { "grade": "6", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "Spanish AB Initio SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "HKU",
+    "target_students": ["IBDP", "MYP"],
+    "qualifications_summary": "• **IB 40/45** with Spanish ab initio Grade 7 and full 3/3 core marks (TOK A | EE B) 🏅\n\n• Current **HKU Biological Sciences** undergraduate; Victoria Shanghai Academy (Class of 2026) graduate 🎓\n\n• **Field & conservation experience:** marine biology intern with the Hong Kong Shark Foundation, veterinary support at the HK Rabbit Society, and Paws United Charity wildlife rescue 🦈\n\n• **Kids4Kids Student Teacher** designing interactive lessons; Head of Hydroponics and founder of the Aquascapers Club 🌱\n\n• CPR certified by HKU and SPCA Canine First Aid certified 🩹",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 40/45",
+    "secondary_school": "Victoria Shanghai Academy (VSA)",
+    "card_highlights": [
+      "IB 40/45 | HKU Biological Sciences 🔬",
+      "HK Shark Foundation Marine Bio Intern 🦈",
+      "Kids4Kids Student Teacher | VSA Class of 2026 🎒"
+    ]
+  },
+  {
+    "tutor_code": "MM-T048",
+    "display_name": "MM-T048",
+    "headline": "A-Level Top Scorer 🏅 | St Andrews Medicine 🩺 | GCSE & A-Level Science Mentor 🧪🧬",
+    "subjects": ["A-Level Chemistry", "A-Level Biology", "IGCSE Chemistry", "IGCSE Biology"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 580,
+    "badge": "St Andrews Medicine",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 3,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "alevel",
+        "subjects": [{ "grade": "A* A A", "subject": "A-Level Profile" }]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "female",
+    "university": "University of St Andrews",
+    "target_students": ["A-Level", "IGCSE"],
+    "qualifications_summary": "• **A-Level results A* A A** with specialisms in Chemistry & Biology 🧪🧬\n\n• Currently studying **Medicine at the University of St Andrews** 🩺\n\n• **3 years of teaching experience** with 4 currently active students 👨‍🏫\n\n• GCSE & A-Level Chemistry and Biology concept mastery with exam preparation 📐\n\n• Online tutoring only 💻",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "A-Level A* A A",
+    "secondary_school": null,
+    "card_highlights": [
+      "A-Level A* A A | Chem & Bio Specialist 🧪🧬",
+      "University of St Andrews Medicine 🩺",
+      "3 Yrs Teaching | 4 Active Students 👨‍🏫"
+    ]
+  },
+  {
+    "tutor_code": "MM-T049",
+    "display_name": "MM-T049",
+    "headline": "IB Math AI HL Grade 7 🔥 | SAT Math 790/800 🎓 | Math-English Double Major 🧠",
+    "subjects": ["Math AI HL", "Math AI SL", "Math AA SL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 100,
+    "badge": null,
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [{ "grade": "7", "subject": "Math AI HL" }]
+      },
+      {
+        "system": "sat",
+        "subjects": [{ "grade": "790", "subject": "SAT Math" }]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP", "MYP"],
+    "qualifications_summary": "• **IB Math AI HL Grade 7** and **SAT Math 790/800** 🔥📊\n\n• Double major in **Mathematics & English** — combining quantitative logic with precise language interpretation 🧠\n\n• Trains IB mark-scheme structures for step-by-step method marks ✍️\n\n• IB Math AI/AA (HL & SL) concept mastery, MYP foundations, and SAT Math strategy coaching ➗",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IB Math AI HL: 7 | SAT Math 790",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB Math AI HL Grade 7 🔥",
+      "SAT Math 790/800 📊",
+      "Math & English Double Major 🧠"
+    ]
+  },
+  {
+    "tutor_code": "MM-T050",
+    "display_name": "MM-T050",
+    "headline": "HKDSE English 5* 🏅 | HKBU English Language & Literature 📚 | 5 Years International School Tutoring 👨‍🏫",
+    "subjects": ["English", "English Literature", "Primary English"],
+    "district": "Open to Discussion",
+    "stations": ["Tung Chung", "Central"],
+    "hourly_rate": 300,
+    "badge": "HKBU English Lang & Lit",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 5,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "dse",
+        "subjects": [{ "grade": "5*", "subject": "English Language" }]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": "HKBU",
+    "target_students": ["Primary", "Secondary"],
+    "qualifications_summary": "• **HKDSE English Language 5\\***; current **HKBU English Language & Literature** undergraduate 📚\n\n• **5 years of private tutoring** for elite international schools (ISF, ESF, FIS, CDNIS, Harrow, ProEd Global School Bali) 🌟\n\n• **Educational consultant (1 yr 5 mo)** at Lee Educational Consulting: international school applications, MAP / CAT4 / AEAS prep, and interview training 💼\n\n• 3-month teaching internship at Open Flow Learning Centre Bali; teaching assistant with Own Academy at Island School 🏫\n\n• **2× champion of Around DB's Young Writers' Competition**; former YHKCC yearbook Chief Editor 🖋️",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "HKDSE English: 5*",
+    "secondary_school": "YMCA of Hong Kong Christian College",
+    "card_highlights": [
+      "DSE English 5* | HKBU Eng Lang & Lit 📚",
+      "5 Yrs with ISF, ESF, FIS, CDNIS & Harrow 🌟",
+      "2× Young Writers' Competition Champion 🖋️"
+    ]
+  },
+  {
+    "tutor_code": "MM-T051",
+    "display_name": "MM-T051",
+    "headline": "IB Courses | HKMU Language Studies in English 📚 | Theatre HL: 6 | Duke of Edinburgh Gold 🎖️",
+    "subjects": ["Theatre HL", "Primary English", "Phonics"],
+    "district": "Within New Territories",
+    "stations": ["Tung Chung"],
+    "hourly_rate": 100,
+    "badge": "HKMU Language Studies",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [{ "grade": "6", "subject": "Theatre HL" }]
+      },
+      {
+        "system": "sat",
+        "subjects": [{ "grade": "1250", "subject": "SAT Total" }]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": "Hong Kong Metropolitan University",
+    "target_students": ["Primary", "MYP"],
+    "qualifications_summary": "• **Theatre HL Grade 6** in IB Courses with Grade 6 across all MYP G10 subjects 🎭\n\n• Currently studying **Language Studies in English at Hong Kong Metropolitan University (HKMU)** 📚\n\n• **Duke of Edinburgh's International Award (Gold)** 🎖️\n\n• Certified in Youth Mental Health First Aid, St. John Ambulance First Aid, and a qualified kayaking instructor 🚣\n\n• Part-time Educational Assistant at a primary school, dance instructor, and summer camp teacher 🌟",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "Theatre HL: 6 | IB Courses",
+    "secondary_school": null,
+    "card_highlights": [
+      "Theatre HL 6 | Phonics & Primary English 🔤",
+      "Duke of Edinburgh Gold Award 🎖️",
+      "School Educational Assistant & Camp Teacher 🌟"
+    ]
+  },
+  {
+    "tutor_code": "MM-T052",
+    "display_name": "MM-T052",
+    "headline": "CityU Mechanical Engineering ⚙️ | A-Level 4A* 🎯 | Belt & Road & CityU Top Scholar 🏆",
+    "subjects": ["A-Level Mathematics", "A-Level Physics", "A-Level Chemistry", "IGCSE Math", "IGCSE Physics", "IGCSE Chemistry", "IGCSE Biology"],
+    "district": "Within Kowloon",
+    "stations": ["Wong Tai Sin"],
+    "hourly_rate": 150,
+    "badge": "CityU Mechanical Engineering",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 2,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "alevel",
+        "subjects": [
+          { "grade": "A*", "subject": "Mathematics" },
+          { "grade": "A*", "subject": "Physics" },
+          { "grade": "A*", "subject": "Chemistry" },
+          { "grade": "A*", "subject": "Urdu" }
+        ]
+      },
+      {
+        "system": "sat",
+        "subjects": [{ "grade": "790", "subject": "SAT Math" }]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "CityU",
+    "target_students": ["A-Level", "IGCSE"],
+    "qualifications_summary": "• **GCE A-Level 4A\\*** (Mathematics, Physics, Chemistry, Urdu) with **SAT Math 790/800** 🏅\n\n• Current **Mechanical Engineering undergraduate at City University of Hong Kong (CityU)** ⚙️\n\n• Recipient of the **HKSAR Belt and Road Scholarship & CityU Top Scholarship** 🌟\n\n• **2+ years at Foryou Education** teaching IGCSE Math, Biology, Physics & Chemistry 🏫\n\n• Olympiad mentorship: coached a 7-year-old to **Gold at AIMO and TIMO** 🥇",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "A-Level 4A* | SAT Math 790",
+    "secondary_school": "Roots IVY Educational Complex Faisalabad",
+    "card_highlights": [
+      "A-Level 4A* | SAT Math 790/800 🏅",
+      "CityU Mechanical Engineering ⚙️",
+      "Belt & Road + CityU Top Scholarship 🌟"
+    ]
+  },
+  {
+    "tutor_code": "MM-T053",
+    "display_name": "MM-T053",
+    "headline": "University of Bath 🎓 | BSc Economics with Politics | A-Level A* A* B | Econ & Math Specialist 📈➗",
+    "subjects": ["A-Level Economics", "A-Level Mathematics"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 200,
+    "badge": "University of Bath",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 3,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "alevel",
+        "subjects": [
+          { "grade": "A*", "subject": "Economics" },
+          { "grade": "A*", "subject": "Pure Mathematics" },
+          { "grade": "B", "subject": "Psychology" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "University of Bath",
+    "target_students": ["A-Level", "IGCSE"],
+    "qualifications_summary": "• **University of Bath — BSc Economics with Politics** 🎓\n\n• **A-Level (Edexcel IAL): A\\*** in Economics and Pure Mathematics; B in Psychology 📈➗\n\n• **3 years of tutoring experience** across different levels and curricula, experienced with international students 🌍\n\n• Skilled at breaking complex concepts into simple, understandable steps with comprehensive teaching materials ✅\n\n• In-person (location flexible) or online Zoom lessons 💻",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "A-Level Econ A* | Pure Math A*",
+    "secondary_school": null,
+    "card_highlights": [
+      "University of Bath | Econ with Politics 🎓",
+      "A-Level Econ A* & Pure Math A* 📈➗",
+      "3 Yrs Tutoring | GCSE & A-Level Specialist 🎯"
+    ]
+  },
+  {
+    "tutor_code": "MM-T054",
+    "display_name": "MM-T054",
+    "headline": "IBDP 43/45 🏆 | Specialist in IB Chem HL, Math AA & Chinese A 🧪📐",
+    "subjects": ["Math AA SL", "Chem HL", "Chin A Lang Lit SL"],
+    "district": "Within Kowloon",
+    "stations": ["Ho Man Tin"],
+    "hourly_rate": 300,
+    "badge": null,
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese", "Mandarin"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "Chin A Lang Lit SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "in_person",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP", "IGCSE", "Junior Secondary", "Primary"],
+    "qualifications_summary": "• **IB 43/45** with Grade 7 across Chemistry HL, Math AA SL & Chinese A Lang Lit SL — Grade 7 in every examined subject 🌟\n\n• **Proven score-improvement methodology:** personally jumped from ~33/45 in Form 4 to 43/45 in the final IBDP exams 📈\n\n• **Founder & Head Peer Tutor:** spearheaded an official school peer-tutoring programme with 1-on-1 and small-group coaching 🎓\n\n• Personally prepares exam-focused revision guides, topic-by-topic worksheets, and active-recall materials 📑\n\n• 100% English medium of instruction (EMI), plus Cantonese & Mandarin; in-person at the student's home, coffee shop or library 🤝",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 43/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB 43/45 — Grade 7 in every subject 🌟",
+      "Self-made jump: ~33/45 → 43/45 📈",
+      "Founder & Head Peer Tutor programme 🎓"
+    ]
+  },
+  {
+    "tutor_code": "MM-T055",
+    "display_name": "MM-T055",
+    "headline": "HKU Engineering Elite Scholar ⚙️ | IB 44/45 🏆 | Math AA, Physics & Business Specialist 📐",
+    "subjects": ["Math AA HL", "Business Management HL", "Phys HL", "Business Management SL", "IGCSE Math", "IGCSE Science", "IGCSE Business"],
+    "district": "Within Hong Kong Island",
+    "stations": [],
+    "hourly_rate": 400,
+    "badge": "HKU Engineering Elite Programme",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 4,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Math AA HL" },
+          { "grade": "7", "subject": "Phys HL" },
+          { "grade": "7", "subject": "Business Management HL" },
+          { "grade": "7", "subject": "Chem SL" },
+          { "grade": "7", "subject": "Eng A SL" },
+          { "grade": "7", "subject": "Chin B SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "HKU",
+    "target_students": ["IBDP", "IGCSE", "MYP", "Primary"],
+    "qualifications_summary": "• **IB 44/45** with Grade 7 in Math AA HL, Physics HL, Business Management HL, Chemistry SL, English A SL & Chinese B SL 🏆\n\n• **HKU Engineering Elite Programme** student with the HKU Undergraduate Entrance Scholarship, Engineering Elite Scholarship & Exchange Scholarship ⚙️\n\n• **Founder & Head Tutor of an official peer-tutoring programme** delivering 1-on-1 and small-group coaching in STEM & Business 🎓\n\n• Personally designs customized revision materials, worksheets, and exam-oriented lesson plans 📝\n\n• Experienced in recruiting, guiding, and training tutors across grade levels; 100% English medium instruction 🇬🇧",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 44/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB 44/45 | HKU Engineering Elite Scholar ⚙️",
+      "Math AA HL, Phy HL & BM HL Grade 7 📐⚡💼",
+      "3 Scholarships: Entrance, Elite & Exchange 🏆"
+    ]
+  },
+  {
+    "tutor_code": "MM-T056",
+    "display_name": "MM-T056",
+    "headline": "Cambridge Psychological & Behavioural Sciences 🧠 | IB 45/45 Perfect Scorer 🏆 | KGV Alumnus 🎯",
+    "subjects": ["Chem HL", "Bio HL", "Psych HL", "Eng Lit HL", "Math AA SL", "Spanish AB Initio SL", "IGCSE Biology", "IGCSE Chemistry", "IGCSE Physics", "IGCSE Economics", "MYP Math"],
+    "district": "Within Kowloon",
+    "stations": ["Kowloon"],
+    "hourly_rate": 300,
+    "badge": "University of Cambridge",
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [{ "grade": "45", "subject": "IBDP Total" }]
+      },
+      {
+        "system": "igcse",
+        "subjects": [{ "grade": "A*", "subject": "8.0 GPA (all subjects)" }]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": "University of Cambridge",
+    "target_students": ["IBDP", "IGCSE", "MYP"],
+    "qualifications_summary": "• **IB 45/45 perfect score** (and 45/45 predicted) with a perfect **iGCSE 8.0 GPA** — A*/9 across all subjects taught 🏅\n\n• Incoming **University of Cambridge, Psychological and Behavioural Sciences** undergraduate 🧠\n\n• **Phil Barnes Prize** (KGV's highest cross-discipline award) & **PTSA Public Spirit Prize** — both from 1,800+ students 🏆\n\n• **Co-Head of the official KGV iGCSE Tutoring Service** with 122+ formal 1-on-1 and group sessions 📚\n\n• TOK and Psychology EE specialist plus UCAS / Common App / UC application consulting 🌐",
+    "achievements": [],
+    "ia_ee_tok_support": ["EE", "TOK"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 45/45 | iGCSE 8.0 GPA",
+    "secondary_school": "King George V School (KGV)",
+    "card_highlights": [
+      "IB 45/45 Perfect Scorer → Cambridge 🧠",
+      "Phil Barnes Prize & PTSA Public Spirit Prize 🏆",
+      "122+ KGV iGCSE Tutoring Sessions 📚"
+    ]
+  },
+  {
+    "tutor_code": "MM-T057",
+    "display_name": "MM-T057",
+    "headline": null,
+    "subjects": [],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 150,
+    "badge": null,
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": [],
+    "exam_results": [],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": null,
+    "target_students": [],
+    "qualifications_summary": null,
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": null,
+    "secondary_school": null,
+    "card_highlights": []
+  },
+  {
+    "tutor_code": "MM-T058",
+    "display_name": "MM-T058",
+    "headline": "HKU MBBS / MRes 🩺 | A-Level 4A* & iGCSE 8A* 🏆 | Biology & STEM Specialist 🧬",
+    "subjects": ["A-Level Biology", "A-Level Chemistry", "A-Level Mathematics", "A-Level Economics", "IGCSE Biology", "IGCSE Economics"],
+    "district": "Within Kowloon",
+    "stations": ["Sung Wong Toi"],
+    "hourly_rate": 300,
+    "badge": "HKU Medicine (MBBS + MRes)",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "alevel",
+        "subjects": [
+          { "grade": "A*", "subject": "Biology" },
+          { "grade": "A*", "subject": "Chemistry" },
+          { "grade": "A*", "subject": "Mathematics" },
+          { "grade": "A*", "subject": "Economics" }
+        ]
+      },
+      {
+        "system": "igcse",
+        "subjects": [{ "grade": "A*", "subject": "8A* overall (Grade 9)" }]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "HKU",
+    "target_students": ["A-Level", "IGCSE"],
+    "qualifications_summary": "• **HKU MBBS student undertaking a Master of Research (MRes)** 🩺\n\n• **A-Level 4A\\*** (Biology, Chemistry, Mathematics & Economics) from Concord College (UK, 2024); **Rank #1 in A-Level Biology** 🧬\n\n• **iGCSE 8A* / Grade 9** (KGV, 2022) with the KGV iGCSE Academic Award 🌟\n\n• **HKUMed Dean's Scholarship** recipient; Imperial College Medicine Teams Challenge certificate 🏛️\n\n• 100% English medium of instruction with custom notes and topical practice papers 📝",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "A-Level 4A* | iGCSE 8A*",
+    "secondary_school": "King George V School (KGV)",
+    "card_highlights": [
+      "HKU MBBS + Master of Research (MRes) 🩺",
+      "A-Level 4A* | Rank #1 Biology at Concord 🧬",
+      "iGCSE 8A* | HKUMed Dean's Scholarship 📜"
+    ]
+  },
+  {
+    "tutor_code": "MM-T060",
+    "display_name": "MM-T060",
+    "headline": "HKU Nursing 🩺 | IB 39/45 🏆 | Chinese A & Math AA SL Specialist 🇨🇳📐",
+    "subjects": ["Chin A Lang Lit SL", "Math AA SL"],
+    "district": "Within New Territories",
+    "stations": ["Yuen Long"],
+    "hourly_rate": 300,
+    "badge": "HKU Nursing",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["Cantonese", "Mandarin", "English"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Chin A Lang Lit SL" },
+          { "grade": "7", "subject": "Math AA SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": "HKU",
+    "target_students": ["IBDP", "Junior Secondary", "Primary"],
+    "qualifications_summary": "• **IB 39/45** with **Grade 7 (highest marks) in Chinese A Lang & Lit SL and Math AA SL** 🏅\n\n• Incoming **Bachelor of Nursing at The University of Hong Kong (HKU)** (2026 entry) 🩺\n\n• Structured answer techniques for Chinese A commentary/essay writing and step-by-step Math AA problem-solving 📝\n\n• Custom practice papers, revision guides, and structured notes provided 📑\n\n• Bilingual instruction (Cantonese / Mandarin / English) 🇨🇳🇭🇰",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 39/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB 39/45 | HKU Nursing Student 🩺",
+      "Chinese A & Math AA SL Grade 7 🇨🇳📐",
+      "Custom notes, model essays & practice sets 📝"
+    ]
+  },
+  {
+    "tutor_code": "MM-T061",
+    "display_name": "MM-T061",
+    "headline": null,
+    "subjects": [],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 150,
+    "badge": null,
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": [],
+    "exam_results": [],
+    "lesson_mode": "either",
+    "gender": null,
+    "university": null,
+    "target_students": [],
+    "qualifications_summary": null,
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": null,
+    "secondary_school": null,
+    "card_highlights": []
+  },
+  {
+    "tutor_code": "MM-T062",
+    "display_name": "MM-T062",
+    "headline": "Canada Undergraduate 🇨🇦 | IB 37/45 🏅 | Economics HL 7 & English HL 6 Specialist 📈📚",
+    "subjects": ["Econ HL", "Eng A Lang Lit HL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 200,
+    "badge": null,
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Econ HL" },
+          { "grade": "6", "subject": "Eng A Lang Lit HL" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP", "IGCSE", "MYP"],
+    "qualifications_summary": "• **IB 37/45** with Grade 7 in Economics HL and Grade 6 in English A Lang & Lit HL 🏅\n\n• **Winner of the Junior Achievement Business Competition (Head of Finance)** and JA APAC Trade Competition Finalist 💼\n\n• Founder of charity **'The Gift of Giving'** — raised HK$500,000 ❤️\n\n• Founded the **'Save My IGCSEs'** initiative, tutoring 50+ students across 6 IGCSE subjects 📚\n\n• Online lessons only with real-world business insight woven into economics essays 💻",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 37/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB 37/45 | Econ HL 7 & Eng HL 6 📈📚",
+      "JA Business Competition Winner (Head of Finance) 💼",
+      "Raised HK$500,000 for charity ❤️"
+    ]
+  },
+  {
+    "tutor_code": "MM-T063",
+    "display_name": "MM-T063",
+    "headline": "HKU Government & Laws ⚖️ | IB 44/45 🏆 | Yale Summer Scholar 🏛️ | History & English Specialist 📜🇬🇧",
+    "subjects": ["Hist HL", "Eng A Lang Lit HL", "Comp Sci SL", "IGCSE History", "IGCSE Math"],
+    "district": "Open to Discussion",
+    "stations": ["HKU", "Ma On Shan"],
+    "hourly_rate": 400,
+    "badge": "HKU Gov & Laws + LLB",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Hist HL" },
+          { "grade": "7", "subject": "Eng A Lang Lit HL" },
+          { "grade": "7", "subject": "Comp Sci SL" }
+        ]
+      },
+      {
+        "system": "igcse",
+        "subjects": [
+          { "grade": "9", "subject": "History" },
+          { "grade": "A*", "subject": "Extended Mathematics" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": null,
+    "university": "HKU",
+    "target_students": ["IBDP", "IGCSE", "Primary"],
+    "qualifications_summary": "• **IB 44/45** with Grade 7 in History HL, English A Lang & Lit HL & Computer Science SL 📜\n\n• **Pearson Edexcel GCSE History 9** and **Cambridge IGCSE Extended Mathematics A\\*** 📐\n\n• **HKU BSocSc (Government & Laws) + LLB double degree** student and **Yale Summer Session 2026 scholar** (Grade A in both courses) 🏛️\n\n• HKU Undergraduate Entrance Scholarship; Co-founder of CodeHers HK; TEDx speaker & project manager 💻\n\n• Source analysis, essay structuring, and literary analysis frameworks for IB & GCSE history/English 📜",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 44/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB 44/45 | HKU Gov & Laws + LLB ⚖️",
+      "Yale Summer Scholar (2× Grade A) 🏛️",
+      "GCSE History 9 | IGCSE Ext Math A* 📐"
+    ]
+  },
+  {
+    "tutor_code": "MM-T064",
+    "display_name": "MM-T064",
+    "headline": "HKUST Global Business (GBUS) 🌐 | IB 42/45 🏆 | VSA Graduate 🎒 | Business, Bio & Math Specialist 💼🧬",
+    "subjects": ["Business Management HL", "Bio HL", "Math AA SL", "Chin A Lang Lit SL"],
+    "district": "Within Hong Kong Island",
+    "stations": [],
+    "hourly_rate": 400,
+    "badge": "HKUST Global Business (GBUS)",
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": 3,
+    "languages": ["English", "Cantonese", "Mandarin"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Business Management HL" },
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "Chin A Lang Lit SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "HKUST",
+    "target_students": ["IBDP", "IGCSE", "Primary"],
+    "qualifications_summary": "• **IB 42/45** with Grade 7 in Business Management HL, Biology HL, Math AA SL & Chinese A Lang Lit SL 🏅\n\n• **HKUST BBA in Global Business (GBUS)** with an HKUST Academic Scholarship 🌐\n\n• Victoria Shanghai Academy (Class of 2026) IBDP graduate 🎒\n\n• Structured essay frameworks for Business, active-recall techniques for Biology, and step-by-step Math AA strategies 📝\n\n• Trilingual instruction with 100% English-medium delivery available 🇬🇧🇭🇰🇨🇳",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 42/45",
+    "secondary_school": "Victoria Shanghai Academy (VSA)",
+    "card_highlights": [
+      "IB 42/45 | HKUST Global Business (GBUS) 🌐",
+      "Business HL, Bio HL & Math AA SL Grade 7 💼",
+      "HKUST Academic Scholarship Recipient 🏆"
+    ]
+  },
+  {
+    "tutor_code": "MM-T065",
+    "display_name": "MM-T065",
+    "headline": "IB 41/45 🏆 | ESF South Island School Graduate 🎒 | Science & Chinese Specialist 🧬🇨🇳",
+    "subjects": ["Bio HL", "Chin B HL", "Chin B SL", "Global Politics SL", "Math AI SL", "IGCSE Biology", "IGCSE Chemistry", "IGCSE Chinese", "MYP Chinese", "MYP Science"],
+    "district": "Open to Discussion",
+    "stations": [],
+    "hourly_rate": 400,
+    "badge": null,
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 3,
+    "languages": ["English", "Cantonese", "Mandarin"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Chin B HL" },
+          { "grade": "7", "subject": "Global Politics SL" },
+          { "grade": "6", "subject": "Math AI SL" }
+        ]
+      },
+      {
+        "system": "igcse",
+        "subjects": [
+          { "grade": "A", "subject": "Chinese (First Language)" },
+          { "grade": "8", "subject": "Global Citizenship" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP", "IGCSE", "MYP", "Primary"],
+    "qualifications_summary": "• **IB 41/45** with Grade 7 in Biology HL, Chinese B HL & Global Politics SL 🧬\n\n• **Grade-jump story:** lifted IB Biology from Level 3 to a final Grade 7 through active recall & spaced repetition 📈\n\n• Multiple **UK Russell Group medicine & biomedical offers** (Manchester, Bristol, Leeds, Queen Mary, City St George's) 🩺\n\n• **ESF Chairman's Award for Excellence 2026** and HKU Bioinformatics research assistantship 🏆\n\n• Multi-tiered Chinese specialist (First/Second/Foreign Language) with 3 years of peer tutoring and ESF Peak School classroom experience 🇨🇳",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 41/45",
+    "secondary_school": "ESF South Island School",
+    "card_highlights": [
+      "IB 41/45 | Bio HL, Chin B HL & GP SL Grade 7 🧬",
+      "Biology: Level 3 → Grade 7 jump 📈",
+      "ESF Chairman's Award 2026 🏆"
+    ]
+  },
+  {
+    "tutor_code": "MM-T066",
+    "display_name": "MM-T066",
+    "headline": "HKU Double Degree Law (BSocSc & LLB) ⚖️ | IB 42/45 🏆 | History, Econ & English Specialist 📜",
+    "subjects": ["Hist HL", "Econ HL", "Eng B HL", "Hist SL", "Econ SL", "Eng B SL"],
+    "district": "Within Kowloon",
+    "stations": ["Lai Chi Kok"],
+    "hourly_rate": 350,
+    "badge": "HKU BSocSc & LLB",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 1,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Hist HL" },
+          { "grade": "7", "subject": "Econ HL" },
+          { "grade": "7", "subject": "Eng B HL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "HKU",
+    "target_students": ["IBDP", "IGCSE", "MYP"],
+    "qualifications_summary": "• **IB 42/45** with Grade 7 in History HL, Economics HL & English B HL 📜\n\n• **TOK Essay 10/10 perfect score** — TOK Essay & Exhibition specialist 🧠\n\n• Studying the flagship **HKU BSocSc (Government & Laws) + LLB** double degree ⚖️\n\n• St. Stephen's College IBDP graduate (Class of 2025) with 1 year of tutoring and self-made essay frameworks, source analysis banks & economic model banks 📈\n\n• 100% English medium instruction 🇬🇧",
+    "achievements": [],
+    "ia_ee_tok_support": ["TOK"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 42/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "IB 42/45 | HKU BSocSc & LLB Double Degree ⚖️",
+      "Hist HL, Econ HL & Eng B HL Grade 7 📜📈",
+      "TOK Essay 10/10 Perfect Score 🧠"
+    ]
+  }
+]

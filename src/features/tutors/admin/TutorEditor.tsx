@@ -74,6 +74,8 @@ import {
   type ExamResult,
   type ExamResultEntry,
 } from "@/features/tutors/examSystems";
+import { AutofillDialog } from "./AutofillDialog";
+import type { TutorAutofillResult } from "./autofill.functions";
 
 const TARGET_STUDENT_OPTIONS = [
   "Primary",
@@ -289,6 +291,63 @@ export function formDataToPayload(v: TutorFormData) {
     achievements: cleanAchievements,
     ia_ee_tok_support: v.ia_ee_tok_support,
     ia_ee_tok_notes: v.ia_ee_tok_notes?.trim() || null,
+  };
+}
+
+// Merge an AI autofill suggestion into the current form. Only overwrites a
+// field when the suggestion provides a value; photo and publish state are
+// never touched.
+function mergeAutofillResult(
+  prev: TutorFormData,
+  result: TutorAutofillResult,
+): TutorFormData {
+  const examResults = result.exam_results
+    .slice(0, 3)
+    .map((r) => ({
+      system: r.system,
+      subjects: r.subjects.slice(0, 20).map((s) => ({
+        subject: s.subject,
+        grade: s.grade,
+        papers: (s.papers ?? []).map((p) => ({ label: p.label, score: p.score })),
+      })),
+    }));
+
+  return {
+    ...prev,
+    tutor_code: result.tutor_code.trim() || prev.tutor_code,
+    gender: ["male", "female", "other"].includes(result.gender)
+      ? (result.gender as TutorFormData["gender"])
+      : prev.gender,
+    academic_headline: result.academic_headline || prev.academic_headline,
+    university: result.university || prev.university,
+    secondary_school: result.secondary_school || prev.secondary_school,
+    subjects: result.subjects.length > 0 ? result.subjects.slice(0, 20) : prev.subjects,
+    target_students:
+      result.target_students.length > 0
+        ? result.target_students.slice(0, 10)
+        : prev.target_students,
+    exam_results: examResults.length > 0 ? examResults : prev.exam_results,
+    lesson_mode: ["online", "in_person", "either"].includes(result.lesson_mode)
+      ? result.lesson_mode
+      : prev.lesson_mode,
+    hourly_rate: result.hourly_rate > 0 ? result.hourly_rate : prev.hourly_rate,
+    stations:
+      result.lesson_mode !== "online" && result.stations.length > 0
+        ? [...new Set(result.stations)]
+        : prev.stations,
+    experience_years:
+      result.experience_years !== null && result.experience_years !== undefined
+        ? result.experience_years
+        : prev.experience_years,
+    languages: result.languages.length > 0 ? result.languages.slice(0, 8) : prev.languages,
+    card_highlights:
+      result.card_highlights.length > 0
+        ? result.card_highlights.concat(["", "", ""]).slice(0, MAX_TUTOR_CARD_HIGHLIGHTS)
+        : prev.card_highlights,
+    qualifications_summary: result.qualifications_summary || prev.qualifications_summary,
+    ia_ee_tok_support:
+      result.ia_ee_tok_support.length > 0 ? result.ia_ee_tok_support : prev.ia_ee_tok_support,
+    ia_ee_tok_notes: result.ia_ee_tok_notes || prev.ia_ee_tok_notes,
   };
 }
 
@@ -605,9 +664,17 @@ interface TutorEditorProps {
   onSave: (data: Record<string, unknown> & { id?: string }) => void;
   onCancel: () => void;
   isSaving?: boolean;
+  /** Join application to offer as AI autofill source (never prefills the form). */
+  applicationId?: string | null;
 }
 
-export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }: TutorEditorProps) {
+export function TutorEditor({
+  initialData,
+  onSave,
+  onCancel,
+  isSaving = false,
+  applicationId = null,
+}: TutorEditorProps) {
   const [form, setForm] = React.useState<TutorFormData>(() =>
     initialData ? tutorToFormData(initialData) : emptyTutorForm,
   );
@@ -621,6 +688,20 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
     "idle",
   );
   const [addedCount, setAddedCount] = React.useState(0);
+  const [autofillOpen, setAutofillOpen] = React.useState(false);
+
+  const applyAutofill = (result: TutorAutofillResult) => {
+    const snapshot = form;
+    setForm((prev) => mergeAutofillResult(prev, result));
+    toast.success("AI draft applied to the form", {
+      description: "Review every field before saving — you can undo.",
+      action: {
+        label: "Undo",
+        onClick: () => setForm(snapshot),
+      },
+      duration: 12_000,
+    });
+  };
 
   const locateOrigin = () => {
     if (!navigator.geolocation) {
@@ -876,6 +957,16 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAutofillOpen(true)}
+            className="h-9 text-xs font-bold"
+          >
+            <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+            AI Autofill
+          </Button>
           {isEditing && initialData?.tutor_code && (
             <Button variant="outline" size="sm" asChild className="text-xs h-9">
               <Link
@@ -1677,6 +1768,13 @@ export function TutorEditor({ initialData, onSave, onCancel, isSaving = false }:
           </div>
         </div>
       </form>
+
+      <AutofillDialog
+        open={autofillOpen}
+        onOpenChange={setAutofillOpen}
+        applicationId={applicationId}
+        onApply={applyAutofill}
+      />
     </div>
   );
 }

@@ -1,0 +1,742 @@
+[
+  {
+    "tutor_code": "MM-T017",
+    "display_name": "MM-T017",
+    "headline": "IB 43/45 🏅 | HKU Medicine Y3 🩺 | MBBS Merit of the Year Award 🎓",
+    "subjects": ["Chem HL", "Bio HL"],
+    "district": "Quarry Bay",
+    "stations": ["Tai Koo"],
+    "hourly_rate": 400,
+    "badge": "HKU Medicine (MBBS)",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Chin B HL" },
+          { "grade": "7", "subject": "Geog SL" },
+          { "grade": "7", "subject": "Math AI SL" }
+        ]
+      },
+      {
+        "system": "ielts",
+        "subjects": [{ "grade": "8.5", "subject": "IELTS Overall" }]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "HKU",
+    "target_students": ["IBDP", "IGCSE"],
+    "qualifications_summary": "• **IB 43/45** with Grade 7 in Chemistry HL, Biology HL, Chinese B HL, Geography SL & Math AI SL 🏅\n\n• **HKU MBBS Year 3**; recipient of the **MBBS Merit of the Year (2024–25)** and triple medical offers (HKU, CUHK, Cardiff) 🩺\n\n• Active tutor at **The Achievers** with international-school students from ESF, CIS, VSA & DBS 🏫\n\n• Admissions track record guiding students into HKU and CUHK medicine via personal statement editing and interview prep 📈\n\n• ATCL Violin (Distinction) & Piano diplomas; **IELTS 8.5** 🎻📊",
+    "achievements": [],
+    "ia_ee_tok_support": ["IA"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 43/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB 43/45 | HKU MBBS Year 3 🩺",
+      "MBBS Merit of the Year (2024–25) 🏅",
+      "The Achievers Tutor | IELTS 8.5 📊"
+    ]
+  },
+  {
+    "tutor_code": "MM-T019",
+    "display_name": "MM-T019",
+    "headline": "IB 44/45 🔥 | St. Stephen's Graduate 🎓 | HKU & CUHK Medicine Offers 🩺",
+    "subjects": ["Eng B HL", "Bio HL", "Chem HL", "Math AA SL", "Econ SL", "Chin A Lit SL"],
+    "district": "Within Hong Kong Island",
+    "stations": ["Causeway Bay"],
+    "hourly_rate": 350,
+    "badge": "HKU & CUHK Med Offers",
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Eng B HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "Econ SL" },
+          { "grade": "6", "subject": "Chin A Lit SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": null,
+    "target_students": ["IBDP"],
+    "qualifications_summary": "• **IB 44/45** with Grade 7 in Biology HL, Chemistry HL, English B HL, Math AA SL & Economics SL 🏅\n\n• **Biology Extended Essay Grade A** with TOK Grade B 📝\n\n• Graduate of St. Stephen's College holding **HKU and CUHK medical school offers** 🩺\n\n• IA & EE support: structuring, critical evaluation, and scientific review for relevant coursework 📑\n\n• In-person (location flexible) or online Zoom lessons 💻",
+    "achievements": [],
+    "ia_ee_tok_support": ["IA", "EE"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 44/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "IB 44/45 | HKU & CUHK Medicine Offers 🩺",
+      "Bio HL, Chem HL, Eng B HL & Math AA SL 7 🧬",
+      "Biology EE Grade A | IA / EE Support 📝"
+    ]
+  },
+  {
+    "tutor_code": "MM-T020",
+    "display_name": "MM-T020",
+    "headline": "IB Predicted 41 🏅 | St. Stephen's College Candidate 🎓 | Math AA / Bio / Chem Specialist 🎯",
+    "subjects": ["Eng B HL", "Bio HL", "Chem HL", "Econ SL", "Math AA SL", "Chin A Lit SL"],
+    "district": "Within New Territories",
+    "stations": ["Tung Chung"],
+    "hourly_rate": 300,
+    "badge": null,
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": 1,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "6", "subject": "Eng B HL" },
+          { "grade": "6", "subject": "Chin A Lit SL" },
+          { "grade": "6", "subject": "Econ SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": null,
+    "target_students": ["IBDP", "IGCSE", "Junior Secondary"],
+    "qualifications_summary": "• **IB predicted 41/45** with Grade 7 predicted in Biology HL, Chemistry HL & Math AA SL 🏅\n\n• St. Stephen's College 2026 IB candidate with **1 year of tutoring experience** in junior Science and senior Chemistry 🌟\n\n• **STEM awards:** Bronze in the Mathematics Applications Infographic Design Competition; 2nd Runner-up in the HK Tuberculosis, Chest & Heart Diseases Association Healthy Campus Project Competition 🥉\n\n• Concept catch-up, exam sprints, and international curriculum bridging for junior and senior students 📝",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP Predicted 41/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "IB Predicted 41 | SSC Class of 2026 🎒",
+      "Bio HL & Chem HL Predicted Grade 7 🧬🧪",
+      "1 Yr Tutoring: Junior Science & Senior Chem 🌟"
+    ]
+  },
+  {
+    "tutor_code": "MM-T021",
+    "display_name": "MM-T021",
+    "headline": "IB Predicted 43 🏅 | Triple Subject Prize Winner | Math AA / Physics / Chem 🎯",
+    "subjects": ["Eng B HL", "Math AA HL", "Phys HL", "Chem SL", "Geog SL", "Chin A Lang Lit SL"],
+    "district": "Within Hong Kong Island",
+    "stations": ["Sai Wan Ho"],
+    "hourly_rate": 300,
+    "badge": null,
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Math AA HL" },
+          { "grade": "7", "subject": "Phys HL" },
+          { "grade": "7", "subject": "Chem SL" },
+          { "grade": "7", "subject": "Geog SL" },
+          { "grade": "6", "subject": "Eng B HL" },
+          { "grade": "6", "subject": "Chin A Lang Lit SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP"],
+    "qualifications_summary": "• **IB predicted 43/45** with Grade 7 predicted in Math AA HL, Physics HL, Chemistry SL & Geography SL 🏅\n\n• **Triple school subject prizes:** Math AA HL (F4–5), Chemistry (F5) & Chinese A (F5) 🏆\n\n• **Competition record:** IMMC International/Regional Finalist; ICAS Mathematics Distinction; HK Mathematics Kangaroo Contest Third Prize 🌟\n\n• IA / EE mentorship for sciences and geography: topic selection, structure, and review 📝",
+    "achievements": [],
+    "ia_ee_tok_support": ["IA", "EE"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP Predicted 43/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB Predicted 43 | Triple Subject Prize Winner 🏆",
+      "Math AA HL, Physics & Chem SL Predicted 7 ⚡",
+      "IMMC Finalist | ICAS Distinction 🌟"
+    ]
+  },
+  {
+    "tutor_code": "MM-T022",
+    "display_name": "MM-T022",
+    "headline": "IB Predicted 42 🏅 | St. Stephen's College Candidate 🎓 | Eng B / Math AA / Sciences 🎯",
+    "subjects": ["Eng B HL", "Chem HL", "Bio HL", "Geog SL", "Math AA SL", "Chin A SL"],
+    "district": "Within Hong Kong Island",
+    "stations": ["North Point"],
+    "hourly_rate": 250,
+    "badge": null,
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Eng B HL" },
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "Geog SL" },
+          { "grade": "6", "subject": "Chem HL" },
+          { "grade": "6", "subject": "Chin A SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP", "IGCSE", "Junior Secondary"],
+    "qualifications_summary": "• **IB predicted 42/45** with Grade 7 predicted in English B HL, Biology HL, Math AA SL & Geography SL 🏅\n\n• St. Stephen's College 2026 IB candidate; **Student Council Vice-President, Assistant Head Prefect (Boarding) & Conservation Society President** 🎖️\n\n• Winner of the **'Most Popular Video Award'** in the Biliteracy and Trilingualism Campaign 🏆\n\n• Headed a CAS project teaching marine biology — experienced at explaining topics clearly to younger learners 🌟\n\n• Math, Biology, Chemistry, English & Science coaching with curriculum bridging 📝",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP Predicted 42/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "IB Predicted 42 | SSC Class of 2026 🎒",
+      "Eng B HL, Bio HL, Math AA SL & Geo SL 7 📚",
+      "Student Council VP | Assistant Head Prefect 🎖️"
+    ]
+  },
+  {
+    "tutor_code": "MM-T025",
+    "display_name": "MM-T025",
+    "headline": "IB Predicted 44 🏅 | UCAT 96th Percentile 🔥 | St. Stephen's College Graduate 🩺",
+    "subjects": ["Chin B HL", "Bio HL", "Chem HL", "Hist SL", "Math AA SL", "Eng A Lang Lit SL"],
+    "district": "Within Hong Kong Island",
+    "stations": ["Sai Wan Ho"],
+    "hourly_rate": 300,
+    "badge": null,
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Chin B HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "Hist SL" },
+          { "grade": "6", "subject": "Eng A Lang Lit SL" }
+        ]
+      },
+      {
+        "system": "ucat",
+        "subjects": [{ "grade": "2360", "subject": "UCAT Total" }]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP"],
+    "qualifications_summary": "• **IB predicted 44/45** with Grade 7 predicted in Chemistry HL, Biology HL, Chinese B HL, Math AA SL & History SL 🏅\n\n• **UCAT 2360 (96th percentile)** with medicine interview invites from Cambridge, Imperial, HKU, CUHK & Bristol 🏥\n\n• **Top of Form** in Chemistry HL (F5 & F6) and Biology HL (F5); 98% in Chemistry HL mock exam 📊\n\n• UCAT prep, UK/HK medicine personal statements & interview coaching; IA / EE review for sciences 📝\n\n• English Debate Team Captain (4 years) 🗣️",
+    "achievements": [],
+    "ia_ee_tok_support": ["IA", "EE"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP Predicted 44/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "IB Predicted 44 | UCAT 96th Percentile 🧬",
+      "Top of Form Chem & Bio HL | 98% Chem Mock 📊",
+      "Med Interviews: Cambridge, Imperial, HKU 🏥"
+    ]
+  },
+  {
+    "tutor_code": "MM-T026",
+    "display_name": "MM-T026",
+    "headline": "IB 44/45 🏅 | HKU IBGM Y2 🎓 | G5 Offers (LSE / UCL / Warwick) 📊",
+    "subjects": ["Math AI HL", "Econ HL"],
+    "district": "Within Hong Kong Island",
+    "stations": ["Central", "Sheung Wan"],
+    "hourly_rate": 450,
+    "badge": "HKU IBGM",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 2,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Math AI HL" },
+          { "grade": "7", "subject": "Econ HL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "HKU",
+    "target_students": ["IBDP", "IGCSE"],
+    "qualifications_summary": "• **IB 44/45** with Grade 7 in Math AI HL (Papers 1–3) and Economics HL (Papers 2–3) 📐\n\n• **HKU IBGM Year 2** (International Business & Global Management) with a 3.92/4.30 GPA and HKU Entrance Scholarship 🎓\n\n• **Case competition awards:** Gold at the HK Economic Olympiad; Merit at the HKU Internal Case Competition; IMMC Honours Award 🏆\n\n• St. Stephen's College graduate with 2+ years of online & in-person tutoring, including academic consulting for essay writing and university applications 👨‍🏫",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 44/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "IB 44/45 | HKU IBGM Year 2 🎓",
+      "Math AI HL & Econ HL Grade 7 📐📊",
+      "HK Economic Olympiad Gold Medalist 🏆"
+    ]
+  },
+  {
+    "tutor_code": "MM-T027",
+    "display_name": "MM-T027",
+    "headline": "IB 42/45 | Boston College Mathematics 🎓 | SAT 1560 | Island School Graduate 🏫",
+    "subjects": ["Math AI HL", "Math AA HL", "Econ HL", "Hist HL", "Japanese AB Initio SL", "Phys SL", "Eng A Lang Lit SL"],
+    "district": "Within Kowloon",
+    "stations": [],
+    "hourly_rate": 250,
+    "badge": "Boston College Mathematics",
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": 2,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Math AA HL" },
+          { "grade": "7", "subject": "Econ HL" },
+          { "grade": "7", "subject": "Phys SL" },
+          { "grade": "7", "subject": "Japanese AB Initio SL" },
+          { "grade": "6", "subject": "Hist HL" },
+          { "grade": "6", "subject": "Eng A Lang Lit SL" }
+        ]
+      },
+      {
+        "system": "sat",
+        "subjects": [{ "grade": "1560", "subject": "SAT Total" }]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "Boston College",
+    "target_students": ["IBDP", "IGCSE", "A-Level"],
+    "qualifications_summary": "• **IB 42/45** with Grade 7 in Math AA HL, Economics HL, Physics SL & Japanese ab initio SL; **SAT 1560** 📊\n\n• **Boston College Mathematics major** with mathematics offers across top US, UK & HK institutions 🎓\n\n• Island School graduate (Class of '26); recipient of the **Principal's Award for Academic Excellence** 🎖️\n\n• 2 years of tutoring across IGCSE and IB; guided a Math AA SL student **from Grade 3 to Grade 6 in 3 months** 📈\n\n• Independent mastery of AP and A-Level syllabuses (Math, Physics, Economics) 📘",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 42/45",
+    "secondary_school": "Island School",
+    "card_highlights": [
+      "IB 42/45 | Boston College Mathematics 🎓",
+      "Math AA HL & Econ HL Grade 7 | SAT 1560 📊",
+      "Student G3 → G6 in Math AA SL in 3 months 📈"
+    ]
+  },
+  {
+    "tutor_code": "MM-T028",
+    "display_name": "MM-T028",
+    "headline": null,
+    "subjects": [],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 500,
+    "badge": null,
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": [],
+    "exam_results": [],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": null,
+    "target_students": [],
+    "qualifications_summary": null,
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": null,
+    "secondary_school": null,
+    "card_highlights": []
+  },
+  {
+    "tutor_code": "MM-T029",
+    "display_name": "MM-T029",
+    "headline": null,
+    "subjects": [],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 150,
+    "badge": null,
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": [],
+    "exam_results": [],
+    "lesson_mode": "either",
+    "gender": null,
+    "university": null,
+    "target_students": [],
+    "qualifications_summary": null,
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": null,
+    "secondary_school": null,
+    "card_highlights": []
+  },
+  {
+    "tutor_code": "MM-T030",
+    "display_name": "MM-T030",
+    "headline": "CUHK Medicine (GPS) 🩺 | IB 44/45 | ESF Island School Graduate 🎯",
+    "subjects": ["Bio HL", "Chem HL", "Econ HL", "Math AA SL", "Eng A Lang Lit SL"],
+    "district": "Within Hong Kong Island",
+    "stations": ["Sai Ying Pun"],
+    "hourly_rate": 300,
+    "badge": "CUHK Medicine (MBChB GPS)",
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": 2,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Econ HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "Eng A Lang Lit SL" },
+          { "grade": "6", "subject": "Spanish AB Initio SL" }
+        ]
+      },
+      {
+        "system": "igcse",
+        "subjects": [
+          { "grade": "9", "subject": "Biology" },
+          { "grade": "9", "subject": "Chemistry" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "CUHK",
+    "target_students": ["IBDP"],
+    "qualifications_summary": "• **CUHK MBChB GPS (Global Physician-Leadership Stream)** — the highest entry-score medicine stream in Hong Kong 🩺\n\n• **IB 44/45** with straight 7s in Biology HL & Chemistry HL across all internal assessments, plus Econ HL, Math AA SL & English A Lang Lit SL 🧬\n\n• **IGCSE 8A* 1A** including Grade 9 in Biology and Chemistry; World Studies EE Grade A & TOK Grade A 📝\n\n• CUHK Medical Entrance Scholarship; 2× Principal Medal for Academic Success; Islander Award & Spirit Award 🏆\n\n• 2+ years of private tutoring and 4+ years as a school Science Mentor 👨‍🏫",
+    "achievements": [],
+    "ia_ee_tok_support": ["EE", "TOK"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 44/45",
+    "secondary_school": "ESF Island School",
+    "card_highlights": [
+      "CUHK MBChB GPS (Global Physician-Leader) 🩺",
+      "IB 44/45 | Bio HL & Chem HL straight 7s 🧬🧪",
+      "IGCSE 8A* 1A | Principal Medal ×2 🏅"
+    ]
+  },
+  {
+    "tutor_code": "MM-T031",
+    "display_name": "MM-T031",
+    "headline": "IB 44/45 🏅 | CUHK Medicine (GPS) 🩺 | HL Bio & Chem Perfect 7s 🧬🧪",
+    "subjects": ["Chem HL", "Bio HL"],
+    "district": "Within New Territories",
+    "stations": ["Tsuen Wan"],
+    "hourly_rate": 350,
+    "badge": "CUHK Medicine (MBChB GPS)",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 2,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Econ HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "Eng A Lang Lit SL" },
+          { "grade": "6", "subject": "Spanish AB Initio SL" }
+        ]
+      },
+      {
+        "system": "igcse",
+        "subjects": [
+          { "grade": "9", "subject": "Biology" },
+          { "grade": "9", "subject": "Chemistry" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": "CUHK",
+    "target_students": ["IBDP"],
+    "qualifications_summary": "• **CUHK MBChB GPS** medical student; **IB 44/45** with Grade 7 in Biology HL, Chemistry HL, Economics HL, Math AA SL & English A Lang Lit SL 🏅\n\n• **Consistency record:** straight 7s in every school test and internal assessment for HL Biology & HL Chemistry 📈\n\n• **IGCSE 8A* 1A** including Grade 9 in Biology & Chemistry; World Studies EE Grade A; TOK Grade A 📝\n\n• CUHK Medical Entrance Scholarship, 2× Principal Medal, Islander & Spirit Award 🏆\n\n• 2+ years of tutoring plus 4+ years as an official school Science Mentor 👨‍🏫",
+    "achievements": [],
+    "ia_ee_tok_support": ["EE"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 44/45",
+    "secondary_school": "ESF Island School",
+    "card_highlights": [
+      "IB 44/45 | CUHK MBChB GPS 🩺",
+      "Straight 7s: Bio HL & Chem HL internals 📈",
+      "IGCSE 8A* 1A | 4+ Yrs Science Mentor 🧬"
+    ]
+  },
+  {
+    "tutor_code": "MM-T033",
+    "display_name": "MM-T033",
+    "headline": "SAT Math 800/800 Perfect Scorer ➗ | AP Calculus 5/5 📐 | HKUST Graduate & SOA Actuarial Credentials 🎓",
+    "subjects": ["AP Calculus AB", "AP Calculus BC", "Math AA HL", "Math AA SL", "Math AI HL", "Math AI SL"],
+    "district": "Open to Discussion",
+    "stations": [],
+    "hourly_rate": 350,
+    "badge": "HKUST Graduate",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "sat",
+        "subjects": [
+          { "grade": "800", "subject": "SAT Math" },
+          { "grade": "1460", "subject": "SAT Total" }
+        ]
+      },
+      {
+        "system": "ap",
+        "subjects": [
+          { "grade": "5", "subject": "AP Calculus" },
+          { "grade": "4", "subject": "AP Chemistry" },
+          { "grade": "4", "subject": "AP Biology" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": "HKUST",
+    "target_students": ["AP", "IBDP", "A-Level", "IGCSE"],
+    "qualifications_summary": "• **SAT Math 800/800 perfect score** (SAT total 1460) with **AP Calculus 5/5** ➗📐\n\n• **HKUST graduate** who has passed US Society of Actuaries exams: **Exam P (Probability), Exam FM (Financial Mathematics) & Exam SRM** 📊\n\n• AP Chemistry (4/5) & AP Biology (4/5); high school GPA 3.54/4.00; Marshall School (Minnesota, USA) alumnus 🎓\n\n• AP / SAT / IB / A-Level / IGCSE mathematics coaching from junior secondary to senior levels ➗",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "SAT Math 800/800 | AP Calculus 5/5",
+    "secondary_school": "Marshall School (Minnesota, USA)",
+    "card_highlights": [
+      "SAT Math 800/800 Perfect Score ➗",
+      "AP Calculus 5/5 | HKUST Graduate 📐🎓",
+      "SOA Exams Passed: P, FM & SRM 📊"
+    ]
+  },
+  {
+    "tutor_code": "MM-T034",
+    "display_name": "MM-T034",
+    "headline": null,
+    "subjects": [],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 150,
+    "badge": null,
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": [],
+    "exam_results": [],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": null,
+    "target_students": [],
+    "qualifications_summary": null,
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": null,
+    "secondary_school": null,
+    "card_highlights": []
+  },
+  {
+    "tutor_code": "MM-T035",
+    "display_name": "MM-T035",
+    "headline": "SAT 1580 Elite Scorer 📈 | GSMST Scholar 🎓 | AP STEM & Computer Science Specialist 🎯",
+    "subjects": ["AP Calculus BC", "AP Precalculus", "AP Statistics", "AP Biology", "AP Computer Science A", "AP World History", "AP Human Geography", "AP Seminar"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 400,
+    "badge": null,
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "sat",
+        "subjects": [{ "grade": "1580", "subject": "SAT Total" }]
+      },
+      {
+        "system": "ap",
+        "subjects": [
+          { "grade": "5", "subject": "AP Calculus BC" },
+          { "grade": "5", "subject": "AP Computer Science A" },
+          { "grade": "5", "subject": "AP Biology" },
+          { "grade": "5", "subject": "AP Statistics" },
+          { "grade": "5", "subject": "AP Precalculus" },
+          { "grade": "5", "subject": "AP World History" },
+          { "grade": "5", "subject": "AP Human Geography" },
+          { "grade": "5", "subject": "AP Seminar" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "male",
+    "university": null,
+    "target_students": ["AP"],
+    "qualifications_summary": "• **SAT 1580** with a perfect AP sweep — **Grade 5 in 8+ rigorous AP subjects** 🏆\n\n• Student at the **Gwinnett School of Mathematics, Science, and Technology (GSMST)** — a top-tier US STEM high school 🎓\n\n• **AP Computer Science A specialist:** core logic, object-oriented programming (OOP), and debugging mastery 💻\n\n• AP humanities coaching: World History & Human Geography essay structures (SAQ/DBQ/LEQ) with analytical precision ✍️\n\n• Strategic SAT coaching targeted at students aiming for elite, top-percentile scores 📈",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "SAT 1580 | 8× AP Grade 5",
+    "secondary_school": "Gwinnett School of Mathematics, Science & Technology",
+    "card_highlights": [
+      "SAT 1580 | 8× AP Grade 5 Sweep 🏆",
+      "GSMST — Top US STEM High School 🎓",
+      "AP CSA, Calc BC, Stats & Sciences 💻"
+    ]
+  },
+  {
+    "tutor_code": "MM-T036",
+    "display_name": "MM-T036",
+    "headline": "ASU Electrical Engineering ⚙️ | AP Scholar with Distinction 🏆 | AP Math, English & History Specialist 📐",
+    "subjects": ["AP Precalculus", "AP Calculus AB", "AP English Language", "AP World History", "AP US Government"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 300,
+    "badge": "ASU Electrical Engineering",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 5,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "ap",
+        "subjects": [
+          { "grade": "5", "subject": "AP Precalculus" },
+          { "grade": "5", "subject": "AP Calculus AB" },
+          { "grade": "5", "subject": "AP English Language" },
+          { "grade": "4", "subject": "AP Calculus BC" },
+          { "grade": "4", "subject": "AP English Literature" },
+          { "grade": "4", "subject": "AP World History" },
+          { "grade": "4", "subject": "AP US Government" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": null,
+    "university": "Arizona State University",
+    "target_students": ["AP"],
+    "qualifications_summary": "• **AP Scholar with Distinction & College Board National Recognition Scholar** 🏆\n\n• Grade 5 in AP PreCalculus, AP Calculus AB & AP English Language; incoming **Electrical Engineering student at Arizona State University** ⚙️\n\n• **5+ years of tutoring and coaching** across private lessons, school clubs, and community programs ♟️\n\n• Personally prepares structured lesson plans, step-by-step conceptual breakdowns, and active-recall practice materials 🧠\n\n• 100% English medium of instruction 🇬🇧",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "5× AP Grade 5 | AP Scholar w/ Distinction",
+    "secondary_school": null,
+    "card_highlights": [
+      "AP Scholar with Distinction 🏆",
+      "AP Precalc, Calc AB & Eng Lang Grade 5 📐📖",
+      "5+ Years Teaching & Coaching Experience ♟️"
+    ]
+  },
+  {
+    "tutor_code": "MM-T037",
+    "display_name": "MM-T037",
+    "headline": "IB 44/45 🏅 | Island School Graduate 🎓 | CUHK Medicine GPS (Incoming) 🩺",
+    "subjects": ["Bio HL", "Chem HL", "Chin B HL", "Geog SL", "Eng A Lang Lit SL", "Math AA SL", "IGCSE Physics", "IGCSE Chemistry", "IGCSE Biology", "IGCSE Chinese", "IGCSE Math"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 550,
+    "badge": "CUHK Medicine (MBChB GPS)",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 3,
+    "languages": ["English", "Cantonese", "Mandarin"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Eng A Lang Lit SL" },
+          { "grade": "7", "subject": "Geog SL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "Chin B HL" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "female",
+    "university": "CUHK",
+    "target_students": ["IBDP", "IGCSE"],
+    "qualifications_summary": "• **IB 44/45** with Grade 7 in Chemistry HL, Biology HL, English A Lang & Lit SL, Geography SL, Math AA SL & Chinese B HL 🏅\n\n• Admitted to **CUHK Medicine — Global Physician-Leadership Stream (MBChB GPS)** 🩺\n\n• **Principal's Medal for four consecutive years (Y10–Y13)** at Island School; **IGCSE Triple Award** 🥇\n\n• Tutoring since Year 10; currently teaching 3 regular IB Chemistry and Biology students 👨‍🏫\n\n• Online-only lessons with HK/UK medical admissions guidance 🏥",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 44/45",
+    "secondary_school": "Island School",
+    "card_highlights": [
+      "IB 44/45 | CUHK MBChB GPS Incoming 🩺",
+      "5 Grade 7s incl. Chem HL & Bio HL 🧪🧬",
+      "IGCSE Triple Award | Principal's Medal ×4 🥇"
+    ]
+  },
+  {
+    "tutor_code": "MM-T038",
+    "display_name": "MM-T038",
+    "headline": "IB 41/45 🏅 | CUHK Nursing Student 🩺 | Science & Math Specialist 🎯",
+    "subjects": ["Chem HL", "Bio HL", "Econ SL", "Math AA SL"],
+    "district": "Within Hong Kong Island",
+    "stations": [],
+    "hourly_rate": 250,
+    "badge": "CUHK Nursing",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "Econ SL" },
+          { "grade": "6", "subject": "Bio HL" },
+          { "grade": "6", "subject": "Eng B HL" },
+          { "grade": "6", "subject": "Chin A Lang Lit SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "CUHK",
+    "target_students": ["IBDP"],
+    "qualifications_summary": "• **IB 41/45** with Grade 7 in Chemistry HL, Math AA SL & Economics SL 🏅\n\n• Currently studying **BSc in Nursing at The Chinese University of Hong Kong (CUHK)** 🩺\n\n• **IA feedback service:** structural review and guidance for Science and Math Internal Assessments 📝\n\n• IBDP / Pre-IB coaching in Chemistry, Biology & Math AA with in-person (location flexible) or online lessons 💻",
+    "achievements": [],
+    "ia_ee_tok_support": ["IA"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 41/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB 41/45 | CUHK BSc Nursing 🩺",
+      "Chem HL, Math AA SL & Econ SL Grade 7 🧪➗",
+      "Science & Math IA feedback service 📝"
+    ]
+  }
+]

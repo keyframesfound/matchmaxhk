@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { Search, SearchX } from "lucide-react";
+import { Search, SearchX, UserPlus } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
@@ -382,6 +382,16 @@ function TutorsDirectory() {
                     WhatsApp us
                   </a>
                 ) : null}
+                <Button
+                  asChild
+                  variant="outline"
+                  className="h-10 shrink-0 rounded-full px-5 text-sm font-bold shadow-sm sm:justify-self-start lg:col-span-2 lg:col-start-1 lg:justify-self-end xl:col-start-2"
+                >
+                  <Link to="/join">
+                    <UserPlus className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Tutor Join Request
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>
@@ -440,6 +450,12 @@ function TutorsDirectory() {
                   <Button asChild variant="solid" color="blue" className="font-bold">
                     <Link to="/tutor-requests" search={{ post: true }}>
                       {t("directory.empty_case")}
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="font-bold">
+                    <Link to="/join">
+                      <UserPlus className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Tutor Join Request
                     </Link>
                   </Button>
                 </div>

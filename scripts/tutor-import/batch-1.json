@@ -1,0 +1,461 @@
+[
+  {
+    "tutor_code": "MM-T001",
+    "display_name": "MM-T001",
+    "headline": "IB 42/45 | Double Subject Prize Winner (Geography HL & Biology SL) 🏆 | St. Stephen's College Graduate 🎓",
+    "subjects": ["Math AI HL", "Eng B HL", "Geog HL", "Bio SL", "Chem SL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 250,
+    "badge": null,
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Math AI HL" },
+          { "grade": "7", "subject": "Geog HL" },
+          { "grade": "7", "subject": "Eng B HL" },
+          { "grade": "7", "subject": "Bio SL" },
+          { "grade": "7", "subject": "Chem SL" },
+          { "grade": "5", "subject": "Chin A Lit SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP", "IGCSE"],
+    "qualifications_summary": "• **IB 42/45 overall**, with Grade 7 across Math AI HL, Geography HL, English B HL, Biology SL & Chemistry SL 🏅\n\n• **Double Subject Prize Winner:** Geography HL & Biology SL — the highest scores in the cohort 🏆\n\n• Graduate of St. Stephen's College with official IB transcripts and subject prize certificates available upon request 🎒\n\n• In-person (location flexible) and online lessons for IBDP / IGCSE plus general middle & primary tutoring 💻",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 42/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "IB 42/45 | Double Subject Prize Winner 🏆",
+      "Grade 7 in Math AI HL, Geog HL, Eng B HL & Sciences",
+      "St. Stephen's College Graduate"
+    ]
+  },
+  {
+    "tutor_code": "MM-T003",
+    "display_name": "MM-T003",
+    "headline": "Imperial College London Aeronautical Engineering ✈️ | IB 41/45 🏆 | Physics HL & Math AA HL Specialist 📐",
+    "subjects": ["Phys HL", "Math AA HL", "Econ SL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 300,
+    "badge": "Imperial College London",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 1,
+    "languages": ["English", "Cantonese", "Mandarin"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Phys HL" },
+          { "grade": "7", "subject": "Math AA HL" },
+          { "grade": "7", "subject": "Econ SL" }
+        ]
+      },
+      {
+        "system": "sat",
+        "subjects": [{ "grade": "1520", "subject": "SAT Total" }]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "male",
+    "university": "Imperial College London",
+    "target_students": ["IBDP", "IGCSE", "MYP"],
+    "qualifications_summary": "• **Imperial College London (MEng Aeronautical Engineering):** bringing university-level physics logic and mathematical problem-solving to secondary tutoring ✈️\n\n• **IB 41/45** with Grade 7 in Physics HL, Math AA HL & Economics SL, plus **Grade A in Physics EE and TOK** 📝\n\n• **SAT 1520/1600** — standardized test prep for SAT Math and Evidence-Based Reading & Writing 🎯\n\n• 1 year of tutoring experience with self-curated study resources, targeted question banks, and step-by-step formula breakdowns 👨‍🏫\n\n• Trilingual instruction (English / Cantonese / Mandarin) with 100% English-medium delivery available 🇬🇧",
+    "achievements": [],
+    "ia_ee_tok_support": ["EE", "TOK"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 41/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "Imperial College London Aeronautical Eng ✈️",
+      "IB 41/45 | Physics HL & Math AA HL Grade 7 📐",
+      "SAT 1520 | Physics EE & TOK Grade A 📝"
+    ]
+  },
+  {
+    "tutor_code": "MM-T004",
+    "display_name": "MM-T004",
+    "headline": "UCL Mathematics (World Top 10) 🎓 | IB 44/45 | Math, Physics & Chemistry Specialist 🎯",
+    "subjects": ["Math AA HL", "Phys HL", "Chem HL", "Econ SL", "Eng B SL", "Chin A Lang Lit SL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 400,
+    "badge": "UCL Mathematics",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Math AA HL" },
+          { "grade": "7", "subject": "Phys HL" },
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Econ SL" },
+          { "grade": "7", "subject": "Eng B SL" },
+          { "grade": "6", "subject": "Chin A Lang Lit SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "male",
+    "university": "University College London",
+    "target_students": ["IBDP", "IGCSE"],
+    "qualifications_summary": "• **UCL BSc Mathematics** — studying at one of the world's top-ranked universities (QS #8) 🎓\n\n• **IB 44/45** with Grade 7 in Math AA HL, Physics HL, Chemistry HL & Economics SL; **Maths EE Grade A (30/34)** and **TOK Grade A (9/10)** 📝\n\n• **International Mathematics Competition Winner** (QRT Award & HKYCAA Champion) 🏆\n\n• Former Vice-President of the Mathematics Society and Science Society Secretary; led educational workshops from primary to high school 🌟\n\n• In-person (location flexible) and online lessons 💻",
+    "achievements": [],
+    "ia_ee_tok_support": ["EE", "TOK"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 44/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "UCL BSc Mathematics (World #8) 🎓",
+      "IB 44/45 | Math AA HL, Physics & Chem HL 7 ⚡",
+      "International Math Competition Winner 🏆"
+    ]
+  },
+  {
+    "tutor_code": "MM-T006",
+    "display_name": "MM-T006",
+    "headline": "Weekly Text Support Specialist 📲 | DSE 5** Top Scorer | HKU Medify Programme 🎓",
+    "subjects": ["Math Compulsory", "Math Ext M2", "Physics", "Chemistry", "Biology"],
+    "district": "Within Kowloon",
+    "stations": ["Yau Tong"],
+    "hourly_rate": 150,
+    "badge": "HKU Medify Programme",
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "dse",
+        "subjects": [{ "grade": "5", "subject": "Math Compulsory" }]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "HKU",
+    "target_students": ["HKDSE", "Junior Secondary"],
+    "qualifications_summary": "• **HKU Medify Programme member** on a premier medical track, graduated from St. Stephen's College 🩺\n\n• **DSE top scores:** straight 5** distinctions across core and STEM disciplines; First in Class for 3 consecutive years 🏆\n\n• **24/7 text/voice feedback model:** photo-a-question overnight support replacing passive lesson 'cooking time' — built for past-paper drilling and mistake correction 📲\n\n• **JUPAS & medical-track mentorship:** strategic course selection, OEA portfolio building, and personal statement polish ⚖️\n\n• In-person lessons can be accommodated upon request 🤝",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "HKDSE Straight 5**",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "24/7 On-Demand Text & Voice Support 📲",
+      "DSE 5** Top Scorer | First in Class ×3 🏆",
+      "HKU Medify Programme Member 🩺"
+    ]
+  },
+  {
+    "tutor_code": "MM-T008",
+    "display_name": "MM-T008",
+    "headline": "IB 45/45 Perfect Scorer 🏅 | CIS Graduate 🎓 | Northeastern Chemistry PhD 🧪",
+    "subjects": ["Chem HL", "Chem SL", "Math AA SL", "Chin B HL", "Psych SL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 800,
+    "badge": "Northeastern Chemistry PhD",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 4,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Chin B HL" },
+          { "grade": "7", "subject": "Visual Arts HL" },
+          { "grade": "7", "subject": "Eng Lit SL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "Psych SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "female",
+    "university": "Northeastern University",
+    "target_students": ["IBDP", "A-Level"],
+    "qualifications_summary": "• **IB 45/45 perfect score** with Grade 7 across Chemistry HL, Chinese B HL, Visual Arts HL, English Lit SL, Math AA SL & Psychology SL 🏅\n\n• **Incoming fully funded Chemistry PhD at Northeastern University**; graduated magna cum laude with Chemistry honors from Wesleyan University (GPA 3.59) 🎓\n\n• **University-level teaching credentials:** official Organic Chemistry TA and Dean Peer Tutor mentoring pre-med students; former Columbia University chemistry research intern 🔬\n\n• 4 years of college-level and private tutoring experience across IBDP, AP & A-Level curricula 👨‍🏫\n\n• High school to university-level Organic & General Chemistry plus MCAT Chemistry preparation 🩺",
+    "achievements": [],
+    "ia_ee_tok_support": ["IA", "EE"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 45/45",
+    "secondary_school": "Chinese International School (CIS)",
+    "card_highlights": [
+      "IB 45/45 Perfect Scorer 🏅",
+      "Northeastern Chemistry PhD (Funded) 🧪",
+      "4 Yrs Teaching | Organic Chem TA 👨‍🏫"
+    ]
+  },
+  {
+    "tutor_code": "MM-T010",
+    "display_name": "MM-T010",
+    "headline": "IB 43/45 | St. Stephen's College Grad 🏫 | Math AA, Physics & Music Specialist 🎯",
+    "subjects": ["Math AA HL", "Phys HL", "Music HL", "Eng B SL", "Econ SL", "Chin A Lit SL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 300,
+    "badge": null,
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Math AA HL" },
+          { "grade": "7", "subject": "Phys HL" },
+          { "grade": "7", "subject": "Econ SL" },
+          { "grade": "7", "subject": "Eng B SL" },
+          { "grade": "6", "subject": "Music HL" },
+          { "grade": "5", "subject": "Chin A Lit SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP", "IGCSE"],
+    "qualifications_summary": "• **IB 43/45** with Grade 7 in Math AA HL, Physics HL, Economics SL & English B SL; **Music EE Grade A** 📝\n\n• **Double Subject Prize Winner:** school Physics Subject Prize & Music Subject Prize 🏆\n\n• **ABRSM Grade 8 Violin & Piano, Theory Grade 5 & 8**; Overall Champion of the Barbara Fei Vocal Scholarship Finals 🎻\n\n• 1st Place, 77th Hong Kong Schools Music Festival (Vocal Baritone/Bass U19); former SSC Choir Vice-President 🎵\n\n• WhatsApp homework support with curated question banks and answer frameworks 📲",
+    "achievements": [],
+    "ia_ee_tok_support": ["IA", "EE"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 43/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "IB 43/45 | Double Subject Prize Winner 🏆",
+      "Music EE Grade A | ABRSM Violin & Piano 8 🎻",
+      "Barbara Fei Champion | HK Music Fest 1st 🥇"
+    ]
+  },
+  {
+    "tutor_code": "MM-T011",
+    "display_name": "MM-T011",
+    "headline": "IB 40/45 | St. Stephen's Graduate 🎓 | English B & Math AA Specialist 🎯",
+    "subjects": ["Eng B HL", "Bio HL", "Chem HL", "Geog SL", "Math AA SL", "Chin A Lit SL"],
+    "district": "Within Hong Kong Island",
+    "stations": ["Shau Kei Wan"],
+    "hourly_rate": 250,
+    "badge": null,
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Eng B HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "6", "subject": "Bio HL" },
+          { "grade": "6", "subject": "Chem HL" },
+          { "grade": "6", "subject": "Geog SL" },
+          { "grade": "5", "subject": "Chin A Lit SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP", "IGCSE"],
+    "qualifications_summary": "• **IB 40/45** with Grade 7 in English B HL (92/100) and Math AA SL (91/100) 📚\n\n• **Biology Extended Essay Grade A** with TOK Grade B 📝\n\n• Graduate of St. Stephen's College offering in-person lessons across Hong Kong Island and online 🎒\n\n• IBDP / Pre-IB coaching in English B, Math AA & Geography plus lower-form and primary general tutoring 📈",
+    "achievements": [],
+    "ia_ee_tok_support": ["IA", "EE"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 40/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "IB 40/45 | Eng B HL & Math AA SL Grade 7 🇬🇧➗",
+      "Eng B HL 92/100 | Math AA SL 91/100 📈",
+      "Biology EE Grade A | HK Island / Online 💻"
+    ]
+  },
+  {
+    "tutor_code": "MM-T012",
+    "display_name": "MM-T012",
+    "headline": "IB 45/45 Perfect Scorer 🏅 | HKU Law First Class Honours 🎓 | Law Admissions Specialist ⚖️",
+    "subjects": ["Eng A Lang Lit HL", "Psych HL", "Theatre HL", "Math AA SL", "ESS SL", "Chin B SL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 600,
+    "badge": "HKU Law (LLB) First Class",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "papers": [{ "label": "Paper 1", "score": "38/40" }, { "label": "Paper 2", "score": "27/30" }], "subject": "Eng A Lang Lit HL" },
+          { "grade": "7", "subject": "Psych HL" },
+          { "grade": "7", "subject": "Theatre HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "ESS SL" },
+          { "grade": "7", "subject": "Chin B SL" }
+        ]
+      },
+      {
+        "system": "ielts",
+        "subjects": [{ "grade": "9.0", "subject": "IELTS Overall" }]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "male",
+    "university": "HKU",
+    "target_students": ["IBDP"],
+    "qualifications_summary": "• **IB 45/45 perfect score** with Grade 7 across English A Lang & Lit HL, Psychology HL, Theatre HL, Math AA SL, ESS SL & Chinese B SL 🏅\n\n• **HKU Bachelor of Laws (LLB), First Class Honours**; offers from UCL, KCL, Durham & Bristol 🎓\n\n• **Perfect core scores:** TOK Essay 20/20 & Exhibition 10/10; EE Grade A (32/34) 🧠\n\n• **IELTS Band 9.0** and LNAT 32+ (top 10% nationally) — LNAT prep, law interviews, and personal statement mentoring for US/UK/Australia ⚖️\n\n• In-person and online lessons 💻",
+    "achievements": [],
+    "ia_ee_tok_support": ["EE", "TOK"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 45/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB 45/45 Perfect Scorer 🏅",
+      "HKU LLB First Class Honours Graduate 🎓",
+      "TOK A & EE A | IELTS 9.0 | LNAT Top 10% ⚖️"
+    ]
+  },
+  {
+    "tutor_code": "MM-T014",
+    "display_name": "MM-T014",
+    "headline": "Math Specialist for Primary & Junior Secondary ➗ | DSE Math Core & M2 5** 🏆 | Band 1B School Grad 🎯",
+    "subjects": ["Math Compulsory", "Math Ext M2"],
+    "district": "Within New Territories",
+    "stations": ["LOHAS Park"],
+    "hourly_rate": 180,
+    "badge": null,
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["Cantonese", "English"],
+    "exam_results": [
+      {
+        "system": "dse",
+        "subjects": [
+          { "grade": "5*", "subject": "Math Compulsory" },
+          { "grade": "5*", "subject": "Math Ext M2" },
+          { "grade": "5", "subject": "Physics" },
+          { "grade": "5", "subject": "Chemistry" },
+          { "grade": "4", "subject": "Chinese Language" },
+          { "grade": "4", "subject": "English Language" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": null,
+    "target_students": ["Primary", "Junior Secondary"],
+    "qualifications_summary": "• **HKDSE 5* in Math Core & M2**, Grade 5 in Physics & Chemistry, from Band 1B Fukien Secondary School (Kwun Tong) 🏆\n\n• **Math specialist for Primary & Junior Secondary (F.1–3):** core foundations, exam sprints, and logic training ➗\n\n• **Competition record:** Hong Kong Physics Olympiad 2024 Honourable Mention; CMI 2025 Group Award; ISMC Certificate of Acknowledgement 🏅\n\n• Selected for the **Physics Enhancement Program for Gifted Students** (2024–25, Phase 1) 🧠\n\n• Former Vice Head of School Ambassador; in-person (flexible location) or online Zoom lessons 💻",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "HKDSE Math Core & M2: 5**",
+    "secondary_school": "Fukien Secondary School (Kwun Tong)",
+    "card_highlights": [
+      "DSE Math Core & M2 5** | Physics 5 🔬",
+      "Primary & Junior Secondary Math Specialist ➗",
+      "HK Physics Olympiad Honourable Mention 🏅"
+    ]
+  },
+  {
+    "tutor_code": "MM-T015",
+    "display_name": "MM-T015",
+    "headline": "IB 42/45 🏅 | Specialising in Biology, Chemistry & Math AA 🎯",
+    "subjects": ["Chin A Lit SL", "Bio HL", "Chem HL", "Hist SL", "Math AA SL", "Eng B HL"],
+    "district": "Within New Territories",
+    "stations": ["Fo Tan"],
+    "hourly_rate": 350,
+    "badge": null,
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "6", "subject": "Eng B HL" },
+          { "grade": "6", "subject": "Econ SL" },
+          { "grade": "6", "subject": "Chin A Lit SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": null,
+    "target_students": ["IBDP"],
+    "qualifications_summary": "• **IB 42/45** with Grade 7 in Biology HL, Chemistry HL & Math AA SL, plus full 3/3 core marks in TOK & EE 🏅\n\n• **IA / EE mentorship:** topic selection, structural revision, and critical review for science Internal Assessments and Extended Essays 📝\n\n• Shares personal high-scoring study methods, summarized conceptual notes, and curated topical past-paper banks 📑\n\n• IB / Pre-IB specialist coaching with regular follow-ups, exam sprints, and curriculum bridging 📐",
+    "achievements": [],
+    "ia_ee_tok_support": ["IA", "EE"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 42/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB 42/45 | Bio HL & Chem HL Grade 7 🧬🧪",
+      "TOK / EE 3/3 Full Core Marks ✅",
+      "Curated notes & topical past-paper banks 📑"
+    ]
+  },
+  {
+    "tutor_code": "MM-T016",
+    "display_name": "MM-T016",
+    "headline": "IB 44/45 Top Scorer 🏅 | HKU Medicine 🩺 | Science & Humanities Specialist 🎯",
+    "subjects": ["Eng A Lang Lit HL", "Geog HL", "Econ HL", "Bio SL", "Math AA SL", "Chin B HL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 700,
+    "badge": "HKU Medicine (MBBS)",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 4,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "7", "subject": "Hist SL" },
+          { "grade": "7", "subject": "Chin B HL" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "male",
+    "university": "HKU",
+    "target_students": ["IBDP", "IGCSE", "AP"],
+    "qualifications_summary": "• **IB 44/45 top scorer** with Grade 7 in Chemistry HL (IA 23/24), Biology HL (IA 22/24), Math AA SL, History SL & Chinese B HL 🏅\n\n• **History EE Grade A (30/34)** and TOK Grade A; English A SL Paper 2 29/30 📚\n\n• **Medical student** bringing rigorous science training to IB / AP / IGCSE coaching 🩺\n\n• Core-component specialist: topic selection, Research Question formulation, and structural review for IA / EE / TOK 📝\n\n• Medical admissions mentoring: interview training, personal statement editing & university course consultation 🩺",
+    "achievements": [],
+    "ia_ee_tok_support": ["IA", "EE", "TOK"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 44/45",
+    "secondary_school": null,
+    "card_highlights": [
+      "IB 44/45 | HKU Medicine Student 🩺",
+      "Chem HL & Bio HL Grade 7 (IA 23/24, 22/24) 🧪",
+      "IA / EE / TOK Full-Core Mentorship 📝"
+    ]
+  }
+]

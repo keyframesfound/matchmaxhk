@@ -1,0 +1,403 @@
+[
+  {
+    "tutor_code": "MM-T091",
+    "display_name": "MM-T091",
+    "headline": "IB 42/45 | The University of Hong Kong, Social Science 🎓 | Geography & Chemistry Specialist 🎯",
+    "subjects": ["Geog HL", "Geog SL", "Chemistry"],
+    "district": "Within Hong Kong Island",
+    "stations": ["HKU", "Sai Ying Pun", "Kennedy Town", "Tuen Mun", "Yuen Long"],
+    "hourly_rate": 350,
+    "badge": "HKU Social Sciences",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Geog HL" },
+          { "grade": "5-7 (pred.)", "subject": "Chem HL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": "HKU",
+    "target_students": ["IBDP", "Junior Secondary"],
+    "qualifications_summary": "• **IB 42/45** with **Geography HL Grade 7** and **Geography EE Grade A** 🌍📝\n\n• **The University of Hong Kong — Social Science** undergraduate; St. Stephen's College graduate 🎓\n\n• Chemistry HL predicted 5–7 (Paper 1b: 28/35, Paper 2: 74/90) — offers F3/F4 Chemistry bridging 🧪\n\n• Current university student with first-hand command of the latest IB syllabus and exam formats 🌟\n\n• In person around HKU / Sai Ying Pun / Kennedy Town or Tuen Mun / Yuen Long, plus online 💻",
+    "achievements": [],
+    "ia_ee_tok_support": ["EE"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 42/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "IB 42/45 | HKU Social Science 🎓",
+      "Geography HL Grade 7 | Geography EE Grade A 🌍📝",
+      "F3–F4 Chemistry bridging | HKU / Online 📍"
+    ]
+  },
+  {
+    "tutor_code": "MM-T092",
+    "display_name": "MM-T092",
+    "headline": "DSE | HKBU Bachelor of Social Science 🎓 | Chinese & C&SD Specialist 🎯",
+    "subjects": ["Citizenship and Social Development", "Chinese Language", "General Studies"],
+    "district": "Within Hong Kong Island",
+    "stations": ["Central", "Admiralty", "Wan Chai", "Causeway Bay", "North Point", "Quarry Bay", "Tai Koo", "Sai Wan Ho", "Shau Kei Wan"],
+    "hourly_rate": 150,
+    "badge": "HKBU Social Sciences",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "dse",
+        "subjects": [
+          { "grade": "5", "subject": "Chinese Language" },
+          { "grade": "5", "subject": "English Language" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "HKBU",
+    "target_students": ["Senior Secondary", "Junior Secondary"],
+    "qualifications_summary": "• **HKDSE Chinese Language 5** (5/5) and **English Language 5** (5/4/5/5) 📚\n\n• **HKBU Bachelor of Social Science** student; St. Stephen's College Class of 2026 🎓\n\n• C&SD attained; BAFS (Accounting) & Geography Level 4; JLPT N3 certified 🇯🇵\n\n• Builds DSE foundations for junior secondary (F1–F3 Chinese & General Studies) and C&SD exam guidance 📝\n\n• In person near Island Line stations or online 🚇",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "HKDSE Chinese & English: 5",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "DSE Chinese 5 & English 5 📚🇬🇧",
+      "HKBU Social Science | SSC Class of 2026 🎒",
+      "In person near Island Line stations 🚇"
+    ]
+  },
+  {
+    "tutor_code": "MM-T093",
+    "display_name": "MM-T093",
+    "headline": "HKUMed Scholar (IB 44/45) 🩺 | Triple Grade 7 Sciences & Math Specialist 🧬🧪📐",
+    "subjects": ["Bio HL", "Chem HL", "Math AA SL"],
+    "district": "Within Hong Kong Island",
+    "stations": ["Causeway Bay", "Central", "Kennedy Town", "Yuen Long", "Tin Shui Wai", "Tuen Mun"],
+    "hourly_rate": 300,
+    "badge": "HKU Medicine (MBBS)",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Chem HL" },
+          { "grade": "7", "subject": "Math AA SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": "HKU",
+    "target_students": ["IBDP", "Junior Secondary"],
+    "qualifications_summary": "• **IB 44/45** with straight Grade 7s in Biology HL, Chemistry HL & Math AA SL 🏆\n\n• **HKU Medicine (MBBS)** student with an HKU Entrance Scholarship and a CUHK LLB (FGLLF) offer ⚖️\n\n• St. Stephen's College Class of 2026; Athletics Team Captain 🏃\n\n• Patient primary/junior coaching with structured notes, practice sets, and topic summaries 📑\n\n• Online or in person: Causeway Bay, Central, Kennedy Town, Yuen Long, Tin Shui Wai & Tuen Mun 💻",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 44/45",
+    "secondary_school": "St. Stephen's College",
+    "card_highlights": [
+      "IB 44/45 | HKU Medicine (MBBS) 🩺",
+      "Bio HL, Chem HL & Math AA SL Grade 7 🧬📐",
+      "HKU Entrance Scholarship | CUHK LLB Offer 🏆"
+    ]
+  },
+  {
+    "tutor_code": "MM-T095",
+    "display_name": "MM-T095",
+    "headline": null,
+    "subjects": [],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 150,
+    "badge": null,
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": null,
+    "languages": [],
+    "exam_results": [],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": null,
+    "target_students": [],
+    "qualifications_summary": null,
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": null,
+    "secondary_school": null,
+    "card_highlights": []
+  },
+  {
+    "tutor_code": "MM-T096",
+    "display_name": "MM-T096",
+    "headline": "Oxford PhD Scholar & Perfect Scorer (IB 45/45) 🏛️📚 | Elite English Literature & Geography Specialist 🎯",
+    "subjects": ["Eng Lit HL", "Eng A Lang Lit HL", "Geog HL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 600,
+    "badge": "Oxford PhD Candidate (English Lit)",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 7,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Eng Lit HL" },
+          { "grade": "7", "subject": "Geog HL" },
+          { "grade": "7", "subject": "Econ HL" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "female",
+    "university": "University of Oxford",
+    "target_students": ["IBDP", "IGCSE"],
+    "qualifications_summary": "• **Perfect IB 45/45** with Grade 7 in English Literature A HL, Geography HL, Economics HL, Biology SL, Chinese B SL & Math SL 🏅\n\n• **Oxford PhD candidate in English Literature** with a First Class Oxford BA 🎓\n\n• **HKJC Graduate Scholarship & D.H. Chen Foundation Scholarship** (full funding); **Rhodes Scholar Finalist 2025** 🏆\n\n• **7+ years of elite tutoring** across HK, UK & NZ; tutees admitted to institutions including UPenn 🌍\n\n• Champion & 2nd Best Speaker, Oxford Novice Debate Tournament 2026; WSC Yale writing world #2 🗣️\n\n• Online-only with literary analysis rubrics, essay templates, and past-paper sets 💻",
+    "achievements": [],
+    "ia_ee_tok_support": ["IA", "EE"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 45/45",
+    "secondary_school": "King George V School (KGV)",
+    "card_highlights": [
+      "IB 45/45 Perfect Scorer | Oxford PhD Candidate 🏛️",
+      "HKJC + D.H. Chen Full Scholarships | Rhodes Finalist 🏆",
+      "7+ Yrs Elite Tutoring | UPenn Admissions Track 🌍"
+    ]
+  },
+  {
+    "tutor_code": "MM-T097",
+    "display_name": "MM-T097",
+    "headline": "M.Tech VLSI (Engineering) 🎓 | B.Tech ECE 83% | Math, Physics & Science Specialist 🔬",
+    "subjects": ["Mathematics", "Physics", "Science"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 300,
+    "badge": "M.Tech VLSI (in progress)",
+    "photo_url": null,
+    "is_published": false,
+    "experience_years": 1,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "other",
+        "subjects": [
+          { "grade": "93/100", "subject": "Mathematics" },
+          { "grade": "83/100", "subject": "Physics" },
+          { "grade": "78/100", "subject": "Science" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "female",
+    "university": "Assam University",
+    "target_students": ["Junior Secondary", "Senior Secondary"],
+    "qualifications_summary": "• **B.Tech in Electronics & Communication Engineering — 83%** with Mathematics 93/100 and Physics 83/100 ⚡\n\n• Pursuing **M.Tech in VLSI at Assam University, Silchar** 🔬\n\n• **National Scholarship Portal (NSP) for PG students** and the **Anundaram Boruah Award (2019)** 📜\n\n• 1 year of practical tutoring in Mathematics, Science & Physics 👨‍🏫\n\n• Online-only lessons in 100% English medium 💻",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "B.Tech ECE 83% | M.Tech VLSI",
+    "secondary_school": null,
+    "card_highlights": [
+      "B.Tech ECE 83% | M.Tech VLSI Candidate 🎓",
+      "Math 93/100 | Physics 83/100 ➗🧲",
+      "NSP Scholarship & Anundaram Boruah Award 📜"
+    ]
+  },
+  {
+    "tutor_code": "MM-T098",
+    "display_name": "MM-T098",
+    "headline": "HKU Dental Surgery (BDS) 🦷 | IB 41 (Straight 7s) 🎯 | Biology, Psychology & English Lit Specialist 🧬🧠",
+    "subjects": ["Bio HL", "Psych SL", "Eng Lit SL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 400,
+    "badge": "HKU Dental Surgery (BDS)",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 2,
+    "languages": ["English"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "subject": "Bio HL" },
+          { "grade": "7", "subject": "Psych SL" },
+          { "grade": "7", "subject": "Eng Lit SL" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "female",
+    "university": "HKU",
+    "target_students": ["IBDP"],
+    "qualifications_summary": "• **IB 41/45 with straight Grade 7s** across HL and SL subjects 🎯\n\n• Admitted to **HKU Bachelor of Dental Surgery (BDS)** — one of Asia's most competitive dental programs 🦷\n\n• **The ISF Academy Shuyuan Honorary Scholarship in Science and Technology (2024–25)** 🏅\n\n• Grade 7 in Biology HL, Psychology SL & English Literature SL with 2 years of tutoring experience 📚\n\n• Online-only lessons in 100% English with TOK and General Science support 💻",
+    "achievements": [],
+    "ia_ee_tok_support": ["TOK"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 41/45 (Straight 7s)",
+    "secondary_school": "The ISF Academy",
+    "card_highlights": [
+      "HKU BDS (Dental Surgery) Offer 🦷",
+      "IB 41/45 — Grade 7 in every subject 🎯",
+      "ISF Shuyuan Science & Tech Scholarship 🏅"
+    ]
+  },
+  {
+    "tutor_code": "MM-T099",
+    "display_name": "MM-T099",
+    "headline": "IB 41/45 🏅 | GT College Graduate 🎓 | PolyU Physiotherapy 🩺 & 2× iGEM Gold Medalist 🧬",
+    "subjects": ["Eng B HL", "Math AA SL", "Bio HL"],
+    "district": null,
+    "stations": [],
+    "hourly_rate": 300,
+    "badge": "PolyU Physiotherapy",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "ib",
+        "subjects": [
+          { "grade": "7", "papers": [{ "label": "Writing", "score": "29/30" }, { "label": "Oral", "score": "28/30" }], "subject": "Eng B HL" },
+          { "grade": "7", "subject": "Math AA SL" },
+          { "grade": "6", "subject": "Bio HL" }
+        ]
+      }
+    ],
+    "lesson_mode": "online",
+    "gender": "male",
+    "university": "PolyU",
+    "target_students": ["IBDP", "IGCSE"],
+    "qualifications_summary": "• **IB 41/45 (2025 cohort)** with English B HL **Grade 7** (Writing 29/30, Oral 28/30) and Math AA SL Grade 7 🏅\n\n• **Biology EE Grade A** with Grade-A quality IA/EE mentorship: topic selection, data analysis & structure 📝\n\n• **2× iGEM Gold Medalist (2023 & 2025)**; ISSF Outstanding Project Award; ISPC First Runner-Up 🥇\n\n• **BSc (Hons) Physiotherapy at The Hong Kong Polytechnic University (PolyU)**; former CUHK Robotics Lab intern 🩺🤖\n\n• Online 1-on-1 lessons via Zoom / Google Meet 💻",
+    "achievements": [],
+    "ia_ee_tok_support": ["EE", "IA"],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "IBDP 41/45",
+    "secondary_school": "GT (Ellen Yeung) College",
+    "card_highlights": [
+      "IB 41/45 | Eng B HL & Math AA SL Grade 7 ✍️➗",
+      "2× iGEM Gold Medalist (2023 & 2025) 🥇",
+      "PolyU Physiotherapy | CUHK Robotics Lab Intern 🤖"
+    ]
+  },
+  {
+    "tutor_code": "MM-T100",
+    "display_name": "MM-T100",
+    "headline": "HKUST BBA 🎓 | Holy Trinity College Alum 🏛️ | DSE BAFS 5* & Econ 5 Specialist 📊",
+    "subjects": ["BAFS", "Economics"],
+    "district": "Within Kowloon",
+    "stations": ["Po Lam", "Tseung Kwan O", "Choi Hung", "Diamond Hill", "Prince Edward", "Mong Kok"],
+    "hourly_rate": 250,
+    "badge": "HKUST BBA",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "dse",
+        "subjects": [
+          { "grade": "5*", "subject": "BAFS" },
+          { "grade": "5", "subject": "Economics" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": "HKUST",
+    "target_students": ["Senior Secondary"],
+    "qualifications_summary": "• **HKDSE BAFS 5\\*** and **Economics 5** with intimate familiarity with HKEAA marking rubrics 📊\n\n• **HKUST Bachelor of Business Administration** (2026 cohort); Holy Trinity College alumnus 🎓\n\n• Current **BAFS teaching assistant** at a leading large-scale tutorial institute — marking, diagnosis & case breakdowns 💼\n\n• Paper 1 MC skills, Paper 2 structured questions, case-study frameworks & graphical analysis training 📝\n\n• In person: Po Lam, TKO, Choi Hung, Diamond Hill, Prince Edward, Mong Kok — or online 💻",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "HKDSE BAFS: 5*",
+    "secondary_school": "Holy Trinity College",
+    "card_highlights": [
+      "DSE BAFS 5* & Economics 5 📊📈",
+      "HKUST BBA (2026 Cohort) 🎓",
+      "BAFS TA at a leading tutorial institute 💼"
+    ]
+  },
+  {
+    "tutor_code": "MM-T101",
+    "display_name": "MM-T101",
+    "headline": "HKUST Engineering 🎓 | GCE A-Level A/A* Specialist 🧪📐 | 4 Years Tutoring Mastery 👨‍🏫",
+    "subjects": ["IGCSE Mathematics", "IGCSE Chemistry", "IGCSE Physics", "A-Level Mathematics", "A-Level Chemistry"],
+    "district": "Within New Territories",
+    "stations": ["Tseung Kwan O", "Hang Hau"],
+    "hourly_rate": 330,
+    "badge": "HKUST Engineering",
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": 4,
+    "languages": ["English", "Cantonese"],
+    "exam_results": [
+      {
+        "system": "alevel",
+        "subjects": [
+          { "grade": "A*", "subject": "Chemistry" },
+          { "grade": "A*", "subject": "Physics" },
+          { "grade": "A", "subject": "Mathematics" },
+          { "grade": "A", "subject": "Further Mathematics" }
+        ]
+      }
+    ],
+    "lesson_mode": "either",
+    "gender": "male",
+    "university": "HKUST",
+    "target_students": ["A-Level", "IGCSE"],
+    "qualifications_summary": "• **GCE A-Level straight A/A\\***: Chemistry A*, Physics A*, Mathematics A, Further Mathematics A 🧪📐\n\n• **BEng Decision Analytics at HKUST** (2027 cohort) with rigorous modelling and analytical training 💻\n\n• **4 years of dedicated private tutoring** with consistent student grade improvements 📈\n\n• Deep mastery of **Edexcel & Cambridge CAIE** mark schemes, multi-step problems, and A* techniques ✍️\n\n• In person around Tseung Kwan O or online via Zoom / Google Meet 🚇",
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": "A-Level A* A* A A",
+    "secondary_school": null,
+    "card_highlights": [
+      "A-Level: Chem A*, Phy A*, Math & FM A 🧪⚡",
+      "HKUST BEng Decision Analytics (2027) 🎓",
+      "4 Yrs Tutoring | Edexcel & CAIE Boards ✍️"
+    ]
+  },
+  {
+    "tutor_code": "MM-T102",
+    "display_name": "MM-T102",
+    "headline": null,
+    "subjects": ["Theatre HL", "Chin B HL", "Chin B SL", "Math AA SL", "ESS SL", "IGCSE Chinese", "IGCSE Physics", "IGCSE Chemistry", "IGCSE Biology", "MYP Chinese", "MYP Maths"],
+    "district": "Within Kowloon",
+    "stations": ["To Kwa Wan", "Sung Wong Toi", "Kai Tak", "Tsim Sha Tsui", "Austin", "Kowloon", "Choi Hung"],
+    "hourly_rate": 300,
+    "badge": null,
+    "photo_url": null,
+    "is_published": true,
+    "experience_years": null,
+    "languages": ["English", "Cantonese", "Mandarin"],
+    "exam_results": [],
+    "lesson_mode": "either",
+    "gender": "female",
+    "university": null,
+    "target_students": ["IBDP", "IGCSE", "MYP"],
+    "qualifications_summary": null,
+    "achievements": [],
+    "ia_ee_tok_support": [],
+    "ia_ee_tok_notes": null,
+    "academic_headline": null,
+    "secondary_school": null,
+    "card_highlights": []
+  }
+]

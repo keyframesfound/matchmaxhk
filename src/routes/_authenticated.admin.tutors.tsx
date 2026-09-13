@@ -48,6 +48,13 @@ import {
 import { TutorEditor } from "@/features/tutors/admin/TutorEditor";
 
 export const Route = createFileRoute("/_authenticated/admin/tutors")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    create: search.create === "1" ? true : undefined,
+    applicationId:
+      typeof search.applicationId === "string" && search.applicationId.trim()
+        ? search.applicationId.trim()
+        : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Tutors — MatchMax Admin" },
@@ -61,6 +68,7 @@ export const Route = createFileRoute("/_authenticated/admin/tutors")({
 function AdminTutors() {
   const { hasAnyRole, loading, user } = useAuth();
   const navigate = useNavigate();
+  const routeSearch = Route.useSearch();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [editingTutor, setEditingTutor] = useState<Tutor | null>(null);
@@ -74,6 +82,21 @@ function AdminTutors() {
       navigate({ to: "/dashboard", replace: true });
     }
   }, [loading, hasAnyRole, navigate]);
+
+  // Arriving from an accepted join request opens the blank editor with the
+  // application linked as an AI autofill source.
+  useEffect(() => {
+    if (routeSearch.create) {
+      setIsCreating(true);
+      setEditingTutor(null);
+    }
+  }, [routeSearch.create]);
+
+  const clearCreateParams = () => {
+    if (routeSearch.create || routeSearch.applicationId) {
+      navigate({ to: "/admin/tutors", search: {}, replace: true }).catch(() => {});
+    }
+  };
 
   const { data: tutors = [], isLoading } = useQuery({
     queryKey: ["admin", "tutors"],
@@ -115,6 +138,7 @@ function AdminTutors() {
       queryClient.invalidateQueries({ queryKey: ["tutors", "published"] });
       setEditingTutor(null);
       setIsCreating(false);
+      clearCreateParams();
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -251,8 +275,10 @@ function AdminTutors() {
               onCancel={() => {
                 setEditingTutor(null);
                 setIsCreating(false);
+                clearCreateParams();
               }}
               isSaving={saveMutation.isPending}
+              applicationId={routeSearch.applicationId ?? null}
             />
           ) : (
             <div className="space-y-8">

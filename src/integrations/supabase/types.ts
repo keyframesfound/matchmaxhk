@@ -532,6 +532,39 @@ export type Database = {
           },
         ];
       };
+      tutor_applications: {
+        Row: {
+          attachment_files: Json;
+          created_at: string;
+          data: Json;
+          id: string;
+          purge_after: string | null;
+          rejected_at: string | null;
+          status: Database["public"]["Enums"]["tutor_application_status"];
+          updated_at: string;
+        };
+        Insert: {
+          attachment_files?: Json;
+          created_at?: string;
+          data: Json;
+          id?: string;
+          purge_after?: string | null;
+          rejected_at?: string | null;
+          status?: Database["public"]["Enums"]["tutor_application_status"];
+          updated_at?: string;
+        };
+        Update: {
+          attachment_files?: Json;
+          created_at?: string;
+          data?: Json;
+          id?: string;
+          purge_after?: string | null;
+          rejected_at?: string | null;
+          status?: Database["public"]["Enums"]["tutor_application_status"];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       tutoring_cases: {
         Row: {
           assigned_to: string | null;
@@ -844,6 +877,7 @@ export type Database = {
       org_member_status: "pending" | "active" | "revoked";
       org_plan: "business" | "enterprise";
       org_status: "pending" | "active" | "suspended";
+      tutor_application_status: "pending" | "accepted" | "rejected";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -974,6 +1008,7 @@ export const Constants = {
       org_member_status: ["pending", "active", "revoked"],
       org_plan: ["business", "enterprise"],
       org_status: ["pending", "active", "suspended"],
+      tutor_application_status: ["pending", "accepted", "rejected"],
     },
   },
 } as const;

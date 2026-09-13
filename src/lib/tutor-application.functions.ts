@@ -153,7 +153,7 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
       throw new Error("Application verification failed.");
     }
 
-    const { sendTutorApplication } = await import("./tutor-application.server");
-    await sendTutorApplication(application);
+    const { storeTutorApplication } = await import("./tutor-application.server");
+    await storeTutorApplication(application);
     return { ok: true as const };
   });

@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Building2,
   ClipboardList,
@@ -9,6 +10,7 @@ import {
   Image as ImageIcon,
   LayoutDashboard,
   Settings,
+  UserPlus,
   Users,
 } from "lucide-react";
 
@@ -17,6 +19,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/useAuth";
+import { fetchPendingApplicationCount } from "@/features/tutor-application/admin/queries";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
@@ -24,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 const ADMIN_TITLES: { prefix: string; title: string }[] = [
   { prefix: "/admin/tutors", title: "Manage tutors" },
+  { prefix: "/admin/join-requests", title: "Tutor join requests" },
   { prefix: "/admin/cases", title: "Cases" },
   { prefix: "/admin/users", title: "Users" },
   { prefix: "/admin/organizations", title: "Organizations" },
@@ -31,25 +35,36 @@ const ADMIN_TITLES: { prefix: string; title: string }[] = [
   { prefix: "/admin/settings", title: "Settings" },
 ];
 
-const ADMIN_GROUPS: ConsoleNavGroup[] = [
-  {
-    label: "Menu",
-    items: [
-      { label: "Overview", to: "/admin", icon: LayoutDashboard },
-      { label: "Tutors", to: "/admin/tutors", icon: GraduationCap },
-      { label: "Cases", to: "/admin/cases", icon: ClipboardList },
-    ],
-  },
-  {
-    label: "Administration",
-    items: [
-      { label: "Users", to: "/admin/users", icon: Users },
-      { label: "Organizations", to: "/admin/organizations", icon: Building2 },
-      { label: "R2 Images", to: "/admin/r2", icon: ImageIcon },
-      { label: "Settings", to: "/admin/settings", icon: Settings },
-    ],
-  },
-];
+function useAdminNavGroups(pendingJoinRequests: number | undefined): ConsoleNavGroup[] {
+  return [
+    {
+      label: "Menu",
+      items: [
+        { label: "Overview", to: "/admin", icon: LayoutDashboard },
+        { label: "Tutors", to: "/admin/tutors", icon: GraduationCap },
+        {
+          label: "Join Requests",
+          to: "/admin/join-requests",
+          icon: UserPlus,
+          badge:
+            pendingJoinRequests !== undefined && pendingJoinRequests > 0
+              ? String(pendingJoinRequests)
+              : undefined,
+        },
+        { label: "Cases", to: "/admin/cases", icon: ClipboardList },
+      ],
+    },
+    {
+      label: "Administration",
+      items: [
+        { label: "Users", to: "/admin/users", icon: Users },
+        { label: "Organizations", to: "/admin/organizations", icon: Building2 },
+        { label: "R2 Images", to: "/admin/r2", icon: ImageIcon },
+        { label: "Settings", to: "/admin/settings", icon: Settings },
+      ],
+    },
+  ];
+}
 
 function AdminLayout() {
   const { user, signOut, hasAnyRole, loading } = useAuth();
@@ -65,6 +80,15 @@ function AdminLayout() {
   const title =
     ADMIN_TITLES.find((entry) => pathname.startsWith(entry.prefix))?.title ?? "Admin overview";
 
+  const { data: pendingJoinRequests } = useQuery({
+    queryKey: ["admin", "join-requests", "pending-count"],
+    queryFn: fetchPendingApplicationCount,
+    enabled: hasAnyRole(["admin", "super_admin"]),
+    refetchInterval: 60_000,
+  });
+
+  const adminGroups = useAdminNavGroups(pendingJoinRequests);
+
   const accountName =
     user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Admin";
 
@@ -77,7 +101,7 @@ function AdminLayout() {
         className="min-h-0 flex-1"
         brandMark={<Logo className="h-5 w-auto" />}
         brandLabel="MatchMax Admin"
-        groups={ADMIN_GROUPS}
+        groups={adminGroups}
         title={title}
         headerExtra={
           <Button asChild variant="outline" size="sm">

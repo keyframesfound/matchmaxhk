@@ -34,6 +34,7 @@ import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedAdminCasesRouteImport } from './routes/_authenticated.admin.cases'
+import { Route as AuthenticatedAdminJoinRequestsRouteImport } from './routes/_authenticated.admin.join-requests'
 import { Route as AuthenticatedAdminOrganizationsRouteImport } from './routes/_authenticated.admin.organizations'
 import { Route as AuthenticatedAdminR2RouteImport } from './routes/_authenticated.admin.r2'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
@@ -172,6 +173,12 @@ const AuthenticatedAdminCasesRoute = AuthenticatedAdminCasesRouteImport.update({
   path: '/cases',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminJoinRequestsRoute =
+  AuthenticatedAdminJoinRequestsRouteImport.update({
+    id: '/join-requests',
+    path: '/join-requests',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminOrganizationsRoute =
   AuthenticatedAdminOrganizationsRouteImport.update({
     id: '/organizations',
@@ -271,6 +278,7 @@ export interface FileRoutesByFullPath {
   '/tutor-requests/': typeof TutorRequestsIndexRoute
   '/tutors/': typeof TutorsIndexRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
+  '/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
   '/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/admin/r2': typeof AuthenticatedAdminR2Route
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -309,6 +317,7 @@ export interface FileRoutesByTo {
   '/tutor-requests': typeof TutorRequestsIndexRoute
   '/tutors': typeof TutorsIndexRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
+  '/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
   '/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/admin/r2': typeof AuthenticatedAdminR2Route
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -350,6 +359,7 @@ export interface FileRoutesById {
   '/tutor-requests/': typeof TutorRequestsIndexRoute
   '/tutors/': typeof TutorsIndexRoute
   '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
+  '/_authenticated/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
   '/_authenticated/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/_authenticated/admin/r2': typeof AuthenticatedAdminR2Route
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -391,6 +401,7 @@ export interface FileRouteTypes {
     | '/tutor-requests/'
     | '/tutors/'
     | '/admin/cases'
+    | '/admin/join-requests'
     | '/admin/organizations'
     | '/admin/r2'
     | '/admin/settings'
@@ -429,6 +440,7 @@ export interface FileRouteTypes {
     | '/tutor-requests'
     | '/tutors'
     | '/admin/cases'
+    | '/admin/join-requests'
     | '/admin/organizations'
     | '/admin/r2'
     | '/admin/settings'
@@ -469,6 +481,7 @@ export interface FileRouteTypes {
     | '/tutor-requests/'
     | '/tutors/'
     | '/_authenticated/admin/cases'
+    | '/_authenticated/admin/join-requests'
     | '/_authenticated/admin/organizations'
     | '/_authenticated/admin/r2'
     | '/_authenticated/admin/settings'
@@ -688,6 +701,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCasesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/join-requests': {
+      id: '/_authenticated/admin/join-requests'
+      path: '/join-requests'
+      fullPath: '/admin/join-requests'
+      preLoaderRoute: typeof AuthenticatedAdminJoinRequestsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/organizations': {
       id: '/_authenticated/admin/organizations'
       path: '/organizations'
@@ -784,6 +804,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCasesRoute: typeof AuthenticatedAdminCasesRoute
+  AuthenticatedAdminJoinRequestsRoute: typeof AuthenticatedAdminJoinRequestsRoute
   AuthenticatedAdminOrganizationsRoute: typeof AuthenticatedAdminOrganizationsRoute
   AuthenticatedAdminR2Route: typeof AuthenticatedAdminR2Route
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
@@ -794,6 +815,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCasesRoute: AuthenticatedAdminCasesRoute,
+  AuthenticatedAdminJoinRequestsRoute: AuthenticatedAdminJoinRequestsRoute,
   AuthenticatedAdminOrganizationsRoute: AuthenticatedAdminOrganizationsRoute,
   AuthenticatedAdminR2Route: AuthenticatedAdminR2Route,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
