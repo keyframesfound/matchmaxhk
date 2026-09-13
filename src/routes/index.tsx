@@ -143,8 +143,12 @@ function CurriculumTutorSection({
   const [page, setPage] = useState(0);
 
   const pages: Tutor[][] = [];
-  for (let i = 0; i < tutors.length; i += TUTORS_PER_PAGE) {
-    pages.push(tutors.slice(i, i + TUTORS_PER_PAGE));
+  let visibleTutors = tutors;
+  if (tutors.length > TUTORS_PER_PAGE && tutors.length % TUTORS_PER_PAGE === 0) {
+    visibleTutors = tutors.slice(0, tutors.length - 1);
+  }
+  for (let i = 0; i < visibleTutors.length; i += TUTORS_PER_PAGE) {
+    pages.push(visibleTutors.slice(i, i + TUTORS_PER_PAGE));
   }
   const currentPage = Math.min(page, pages.length - 1);
   const goToPage = (next: number) => setPage(Math.max(0, Math.min(pages.length - 1, next)));
