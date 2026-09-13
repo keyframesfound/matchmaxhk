@@ -38,6 +38,7 @@ const searchSchema = z.object({
   station: z.string().optional(), // nearest MTR station to the student
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
+  status: z.string().optional(), // uni_student | full_part_time_tutor | examiner
   min_price: z.coerce.number().int().min(0).optional(),
   max_price: z.coerce.number().int().min(0).optional(),
   sort: z.string().optional(), // "" | price_asc | price_desc
@@ -93,13 +94,23 @@ function TutorsDirectory() {
     [t],
   );
 
+  const statusOptions = useMemo(
+    () => [
+      { value: "", label: t("search_panel.any_status") },
+      { value: "uni_student", label: t("search_panel.status_uni_student") },
+      { value: "full_part_time_tutor", label: t("search_panel.status_full_part_time") },
+      { value: "examiner", label: t("search_panel.status_examiner") },
+    ],
+    [t],
+  );
+
   const categoryOptions = useMemo(
     () => [
       { value: "", label: t("search_panel.any_category") },
       ...CATEGORY_VALUES.map((value) => ({ value, label: value })),
-      { value: "Primary", label: t("search_panel.category_primary") },
-      { value: "Secondary", label: t("search_panel.category_secondary") },
-      { value: "International", label: t("search_panel.category_international") },
+      { value: "Primary", label: t("search_panel.category_primary_school") },
+      { value: "Junior Secondary", label: t("search_panel.category_junior_secondary") },
+      { value: "Admissions", label: t("search_panel.category_admissions") },
     ],
     [t],
   );
@@ -168,6 +179,7 @@ function TutorsDirectory() {
   const stationFilter = draft.station ?? "";
   const modeFilter = draft.mode ?? "";
   const genderFilter = draft.gender ?? "";
+  const statusFilter = draft.status ?? "";
   const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
   const priceValue: [number, number] = [draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX];
 
@@ -194,6 +206,7 @@ function TutorsDirectory() {
         const g = (tut as unknown as { gender?: string | null }).gender ?? "";
         if (g !== genderFilter) return false;
       }
+      if (statusFilter && (tut.tutor_status ?? "") !== statusFilter) return false;
       if (
         query &&
         !(
@@ -224,6 +237,7 @@ function TutorsDirectory() {
     effectiveStationFilter,
     modeFilter,
     genderFilter,
+    statusFilter,
     draft.q,
     draft.min_price,
     draft.max_price,
@@ -291,7 +305,7 @@ function TutorsDirectory() {
                   </Button>
                 </div>
                 <div className="mt-4 border-t border-border pt-4">
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                     <SearchableSelect
                       value={draft.category ?? ""}
                       onChange={handleCategoryChange}
@@ -330,6 +344,13 @@ function TutorsDirectory() {
                       onChange={(v) => setDraftParam({ gender: v || undefined })}
                       options={genderOptions}
                       placeholder={t("search_panel.any_gender")}
+                      className="h-11 rounded-sm"
+                    />
+                    <SearchableSelect
+                      value={draft.status ?? ""}
+                      onChange={(v) => setDraftParam({ status: v || undefined })}
+                      options={statusOptions}
+                      placeholder={t("search_panel.any_status")}
                       className="h-11 rounded-sm"
                     />
                   </div>

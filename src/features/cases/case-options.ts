@@ -38,20 +38,26 @@ export const SUPPORT_TYPE_OPTIONS = [
 ];
 
 // Values reuse the legacy exam_system vocabulary (IB/DSE/A-Level/IGCSE)
-// so board grouping and the admin edit dialog keep working.
+// so board grouping and the admin edit dialog keep working. "Admissions"
+// is the curriculum auto-selected by the admissions support path.
+export const ADMISSIONS_CURRICULUM = "Admissions";
+
 export const CURRICULUM_OPTIONS = [
   { value: "IB", label: "IBDP" },
   { value: "DSE", label: "HKDSE" },
   { value: "A-Level", label: "A-Level" },
   { value: "IGCSE", label: "IGCSE" },
-  { value: "Local Primary", label: "Local Primary" },
-  { value: "Int'l Primary", label: "Int'l Primary" },
+  { value: "Primary School", label: "Primary School" },
+  { value: "Junior Secondary", label: "Junior Secondary" },
+  { value: ADMISSIONS_CURRICULUM, label: "Admissions & Standardized Tests" },
 ];
 
 // Curriculum-specific components. Curricula without components still show
 // the dropdown with a single "None" option (decided: show with 'None').
 export const CURRICULUM_COMPONENTS: Record<string, string[]> = {
   IB: ["IA", "EE", "TOK"],
+  "Primary School": ["Phonics"],
+  // Legacy primary curricula from before the "Primary School" merge.
   "Local Primary": ["Phonics"],
   "Int'l Primary": ["Phonics"],
 };
@@ -140,6 +146,7 @@ export function getComponentOptionsForCurriculum(curriculum: string): string[] {
 }
 
 // Subjects locked to the selected curriculum; empty until one is chosen.
+// Legacy primary values keep their per-track lists so old cases still edit.
 export function getSubjectOptionsForCurriculum(curriculum: string): string[] {
   if (curriculum === "Local Primary") return [...LOCAL_PRIMARY_SUBJECTS];
   if (curriculum === "Int'l Primary") return [...INTL_PRIMARY_SUBJECTS];

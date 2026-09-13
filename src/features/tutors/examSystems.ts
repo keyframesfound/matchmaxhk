@@ -363,7 +363,16 @@ export const EXAM_SYSTEMS: ExamSystem[] = [
     grades: [...IGCSE_GRADES_NUMERIC, ...IGCSE_GRADES_LEGACY.map((g) => `${g} (legacy)`)],
   },
   { id: "ap", label: "AP", subjects: AP_SUBJECTS, grades: AP_GRADES },
-  { id: "sat", label: "SAT", subjects: SAT_SUBJECTS, grades: [], gradesFor: satGradesFor },
+  {
+    id: "sat",
+    label: "SAT",
+    subjects: SAT_SUBJECTS,
+    grades: [],
+    gradesFor: satGradesFor,
+    // SAT "subjects" are score entries (Total/EBRW/Math), not teachable
+    // subjects — teachable SAT support lives in ADMISSIONS_TEST_SUBJECTS.
+    qualificationsOnly: true,
+  },
   {
     id: "ielts",
     label: "IELTS",

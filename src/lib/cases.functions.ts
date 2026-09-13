@@ -12,7 +12,7 @@ const CaseRequestInput = z
     contactPhone: z.string().trim().regex(phoneRegex, "Please enter a valid phone number."),
     contactEmail: z.string().trim().email("Please enter a valid email address.").max(120),
     supportType: z.enum(["subject_tutoring", "admissions"]),
-    // Path A: subject tutoring (null for admissions)
+    // "Admissions" for the admissions path; the chosen curriculum otherwise.
     curriculum: z.string().trim().max(40).optional().nullable(),
     subjects: z.array(z.string().trim().min(1).max(120)).max(4),
     specificComponent: z.string().trim().max(80).optional().nullable(),
@@ -43,10 +43,10 @@ const CaseRequestInput = z
     elapsedMs: z.number().int(),
   })
   .superRefine((data, ctx) => {
+    if (!data.curriculum) {
+      ctx.addIssue({ code: "custom", path: ["curriculum"], message: "Curriculum is required." });
+    }
     if (data.supportType === "subject_tutoring") {
-      if (!data.curriculum) {
-        ctx.addIssue({ code: "custom", path: ["curriculum"], message: "Curriculum is required." });
-      }
       if (data.subjects.length === 0) {
         ctx.addIssue({ code: "custom", path: ["subject1"], message: "Subject is required." });
       }
@@ -197,16 +197,17 @@ export const getPublicCaseByCode = createServerFn({ method: "GET" })
 
 function buildCaseTitle(data: CaseRequestPayload): string {
   const level = data.year?.trim() || "";
+  const subjectPart = data.subjects.slice(0, 2).join(", ");
+  const extra = data.subjects.length > 2 ? ` +${data.subjects.length - 2} more` : "";
   if (data.supportType === "admissions") {
     const bits = [
       TARGET_PATHWAY_LABELS[data.targetPathway ?? ""] ?? "",
       data.targetSchool?.trim() || data.interviewTest || "",
+      subjectPart ? `${subjectPart}${extra}` : "",
     ].filter(Boolean);
     const label = bits.length ? bits.join(" · ") : "University admissions";
     return level ? `${level}: ${label}` : label;
   }
-  const subjectPart = data.subjects.slice(0, 2).join(", ");
-  const extra = data.subjects.length > 2 ? ` +${data.subjects.length - 2} more` : "";
   if (!subjectPart) return level || "Tutor request";
   return level ? `${level}: ${subjectPart}${extra}` : `${subjectPart}${extra}`;
 }
@@ -292,7 +293,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       title: buildCaseTitle(data),
       description: data.notes?.trim() ? data.notes.trim() : null,
       subjects: data.subjects,
-      exam_system: data.supportType === "subject_tutoring" ? data.curriculum || null : null,
+      exam_system: data.curriculum || null,
       student_level: data.year?.trim() || "Unspecified",
       contact_email: data.contactEmail,
       requester_type: data.requesterType,

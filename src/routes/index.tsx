@@ -48,9 +48,9 @@ const HOME_CATEGORY_OPTIONS = [
   { value: "IGCSE", label: "IGCSE" },
   { value: "AP", label: "AP" },
   { value: "A-Level", label: "A-Level" },
-  { value: "Primary", label: "Primary" },
-  { value: "Secondary", label: "Secondary" },
-  { value: "International", label: "International" },
+  { value: "Primary", label: "Primary School" },
+  { value: "Junior Secondary", label: "Junior Secondary" },
+  { value: "Admissions", label: "Admissions & Standardized Tests" },
 ];
 
 const HOME_GENDER_OPTIONS = [

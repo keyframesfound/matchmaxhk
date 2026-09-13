@@ -58,6 +58,7 @@ export type Tutor = {
   district: string | null;
   stations: string[];
   gender: string | null;
+  tutor_status: string | null;
   lesson_mode: "online" | "in_person" | "either";
   hourly_rate: number;
   photo_url: string | null;
@@ -83,7 +84,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, university, secondary_school, target_students, qualifications_summary, subjects, district, stations, lesson_mode, hourly_rate, photo_url, tutor_code, is_published, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender";
+  "id, display_name, headline, card_highlights, academic_headline, university, secondary_school, target_students, qualifications_summary, subjects, district, stations, lesson_mode, hourly_rate, photo_url, tutor_code, is_published, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -221,6 +222,7 @@ function normalize(
     achievements: normalizeAchievements(row.achievements),
     ia_ee_tok_support: normalizeIaEeTokSupport(row.ia_ee_tok_support),
     ia_ee_tok_notes: typeof row.ia_ee_tok_notes === "string" ? row.ia_ee_tok_notes : null,
+    tutor_status: typeof row.tutor_status === "string" ? row.tutor_status : null,
     target_students: targetStudents,
     stations,
   };

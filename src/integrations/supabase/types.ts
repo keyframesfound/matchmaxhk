@@ -737,6 +737,7 @@ export type Database = {
           subjects: string[];
           target_students: string[];
           tutor_code: string;
+          tutor_status: string | null;
           university: string | null;
           updated_at: string;
         };
@@ -767,6 +768,7 @@ export type Database = {
           subjects?: string[];
           target_students?: string[];
           tutor_code: string;
+          tutor_status?: string | null;
           university?: string | null;
           updated_at?: string;
         };
@@ -797,6 +799,7 @@ export type Database = {
           subjects?: string[];
           target_students?: string[];
           tutor_code?: string;
+          tutor_status?: string | null;
           university?: string | null;
           updated_at?: string;
         };

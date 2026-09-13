@@ -257,7 +257,9 @@ function AdminSettings() {
               <div className="space-y-2">
                 <Label>Browse-page subjects</Label>
                 <p className="text-xs text-muted-foreground">
-                  Options shown in the "Any subject" filter on the Browse Tutors page.
+                  Reference list of teachable subjects across all curriculums (suggested subjects
+                  for admins). The public "Any subject" filter narrows automatically by the selected
+                  curriculum and is not driven by this list.
                 </p>
                 {form.subject_options.length > 0 && (
                   <div className="flex flex-wrap gap-2 rounded-md border border-border bg-background p-2">

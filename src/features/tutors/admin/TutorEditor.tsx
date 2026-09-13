@@ -126,6 +126,15 @@ const achievementSchema = z.object({
   detail_text: z.string().trim().max(1000).optional().or(z.literal("")),
 });
 
+export const TUTOR_STATUS_OPTIONS: {
+  value: "uni_student" | "full_part_time_tutor" | "examiner";
+  label: string;
+}[] = [
+  { value: "uni_student", label: "University student" },
+  { value: "full_part_time_tutor", label: "Full or part-time tutor" },
+  { value: "examiner", label: "Examiner / professional teacher" },
+];
+
 export const tutorFormSchema = z.object({
   headline: z.string().trim().max(200).optional().or(z.literal("")),
   card_highlights: z
@@ -151,6 +160,7 @@ export const tutorFormSchema = z.object({
   is_published: z.boolean(),
   languages: z.array(z.string().trim().min(1).max(60)),
   gender: z.enum(["male", "female", "other"]),
+  tutor_status: z.enum(["uni_student", "full_part_time_tutor", "examiner"]).or(z.literal("")),
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
   exam_results: z.array(examSchema).max(3, "Add no more than three exam systems"),
   achievements: z
@@ -179,6 +189,7 @@ export const emptyTutorForm: TutorFormData = {
   is_published: true,
   languages: ["English", "Cantonese"],
   gender: "female",
+  tutor_status: "",
   experience_years: "",
   exam_results: [],
   achievements: [],
@@ -210,6 +221,9 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     )
       ? (t as unknown as { gender: "male" | "female" | "other" }).gender
       : "female",
+    tutor_status: ["uni_student", "full_part_time_tutor", "examiner"].includes(t.tutor_status ?? "")
+      ? (t.tutor_status as "uni_student" | "full_part_time_tutor" | "examiner")
+      : "",
     experience_years: t.experience_years ?? "",
     exam_results: (t.exam_results ?? []).slice(0, 3).map((r) => ({
       system: r.system ?? "",
@@ -286,6 +300,7 @@ export function formDataToPayload(v: TutorFormData) {
     is_published: v.is_published,
     languages: v.languages,
     gender: v.gender,
+    tutor_status: v.tutor_status || null,
     experience_years: v.experience_years === "" ? null : Number(v.experience_years),
     exam_results: cleanExams,
     achievements: cleanAchievements,
@@ -762,6 +777,7 @@ export function TutorEditor({
       district: null,
       stations: form.lesson_mode === "online" ? [] : form.stations,
       gender: form.gender,
+      tutor_status: form.tutor_status || null,
       lesson_mode: form.lesson_mode,
       hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
       photo_url: form.photo_url?.trim() || null,
@@ -1042,6 +1058,21 @@ export function TutorEditor({
                       { value: "other", label: "Other" },
                     ]}
                     placeholder="Select gender"
+                  />
+                </FormField>
+
+                <FormField
+                  label="Tutor Status"
+                  error={errors.tutor_status}
+                  hint="University Student → uni_student · Full/Part-Time Tutor · Professional Teacher/ Examiner → examiner"
+                >
+                  <SearchableSelect
+                    value={form.tutor_status}
+                    onChange={(v) =>
+                      setForm({ ...form, tutor_status: v as TutorFormData["tutor_status"] })
+                    }
+                    options={TUTOR_STATUS_OPTIONS}
+                    placeholder="Not set"
                   />
                 </FormField>
               </div>

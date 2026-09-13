@@ -52,12 +52,31 @@ function rowTitle(item: PublicCaseBoardItem): string {
   return item.subjects.filter(Boolean).slice(0, 2).join(", ") || item.title;
 }
 
-const CASE_SECTION_ORDER = ["IB", "DSE", "IGCSE", "AP", "A-Level", "Not sure yet", "Other"];
+const CASE_SECTION_ORDER = [
+  "IB",
+  "DSE",
+  "IGCSE",
+  "AP",
+  "A-Level",
+  "Primary School",
+  "Junior Secondary",
+  "Admissions",
+  "Not sure yet",
+  "Other",
+];
 
-function caseSectionLabel(examSystem: string | null): string {
+// Legacy primary curricula group under the merged "Primary School" section.
+function caseSectionKey(examSystem: string | null): string {
   const value = examSystem?.trim();
   if (!value || value === "Other") return "Other";
-  return value === "IB" ? "IBDP" : value;
+  if (value === "Local Primary" || value === "Int'l Primary") return "Primary School";
+  return value;
+}
+
+function caseSectionLabel(section: string): string {
+  if (section === "IB") return "IBDP";
+  if (section === "Admissions") return "Admissions & Standardized Tests";
+  return section;
 }
 
 function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
@@ -181,7 +200,7 @@ function TutorRequestsPage() {
   const groups = useMemo(() => {
     const byExamSystem = new Map<string, PublicCaseBoardItem[]>();
     for (const item of cases) {
-      const section = item.examSystem?.trim() || "Other";
+      const section = caseSectionKey(item.examSystem);
       const list = byExamSystem.get(section) ?? [];
       list.push(item);
       byExamSystem.set(section, list);
