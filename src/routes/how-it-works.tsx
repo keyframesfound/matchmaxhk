@@ -369,7 +369,7 @@ function HowItWorksPage() {
           ]}
           callout={t("hiw.tutors_callout")}
           className="bg-[#0f1419] !text-white dark:bg-[#0f1419] dark:!text-white"
-          numberClassName="bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
+          numberClassName="bg-white/10 text-white"
           accentClassName="text-[color:var(--muted-foreground)]"
           bodyTextClassName="text-white"
         />
