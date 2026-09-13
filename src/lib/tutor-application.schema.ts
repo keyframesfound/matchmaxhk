@@ -17,7 +17,7 @@ export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export const STATUS_OPTIONS = [
   "University Student",
-  "Full-Time tutor",
+  "Full/Part-Time Tutor",
   "Professional Teacher/ Public Exam Examiner",
 ] as const;
 export const PROFESSIONAL_STATUS = "Professional Teacher/ Public Exam Examiner" as const;

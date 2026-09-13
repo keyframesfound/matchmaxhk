@@ -26,7 +26,7 @@ Fields, in the form's order (\* = required):
 2. Contact number / WhatsApp \*
 3. Email address \*
 4. Earliest start date (date picker)
-5. Current status \* — University student / Graduate / Full-time tutor / Part-time tutor / Other (+ free text)
+5. Current status \* — University student / Graduate / Full/Part-Time Tutor / Part-time tutor / Other (+ free text)
 6. Current university / institution
 7. Degree / programme
 8. High school and graduation year \*
