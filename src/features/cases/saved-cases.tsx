@@ -121,8 +121,8 @@ export function CaseSaveButton({ caseId, compact = false }: { caseId: string; co
         onKeyDown={(event) => event.stopPropagation()}
         className={
           compact
-            ? "h-10 w-8 shrink-0 rounded-sm border-0 bg-transparent p-0 text-[color:var(--ink)] shadow-none hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
-            : "h-9 w-9 shrink-0 rounded-sm border-0 bg-transparent text-[color:var(--ink)] shadow-none hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
+            ? "h-10 w-8 shrink-0 rounded-sm border-0 bg-transparent p-0 text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
+            : "h-9 w-9 shrink-0 rounded-sm border-0 bg-transparent text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
         }
       >
         <Bookmark className={saved ? "h-5 w-5 fill-current" : "h-5 w-5"} aria-hidden="true" />

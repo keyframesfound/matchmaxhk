@@ -20,7 +20,7 @@ export function Cta({ cta, invert }: { cta: CtaProps; invert?: boolean }) {
       color="blue"
       size={cta.size ?? "default"}
       className={cn(
-        invert && "[--btn:#ffffff] [--btn-fg:var(--ink)] [--btn-hover:#e2ecf5] shadow-md",
+        invert && "[--btn:#ffffff] [--btn-fg:var(--ink)] [--btn-hover:#e2ecf5]",
       )}
     >
       <Link to={cta.link as never}>{cta.text}</Link>

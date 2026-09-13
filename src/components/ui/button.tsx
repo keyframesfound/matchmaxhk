@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap font-semibold outline-none transition-[transform,background-color,border-color,color,box-shadow] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 focus-visible:ring-offset-2 active:scale-[0.97] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "relative inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap font-semibold outline-none transition-[transform,background-color,border-color,color] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 focus-visible:ring-offset-2 active:scale-[0.97] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       color: {
@@ -37,19 +37,19 @@ const buttonVariants = cva(
       },
       variant: {
         candy:
-          "border border-white/25 bg-gradient-to-b from-[var(--btn,var(--btn-neutral))] to-[var(--btn-hover,var(--btn-neutral-hover))] text-[var(--btn-fg,#fff)] shadow-md shadow-black/20 ring-1 ring-[color-mix(in_oklab,var(--foreground)_15%,var(--btn,var(--btn-neutral)))] hover:from-[var(--btn-hover,var(--btn-neutral-hover))] hover:to-[var(--btn-hover,var(--btn-neutral-hover))] [&_svg]:drop-shadow-sm",
+          "border border-white/25 bg-gradient-to-b from-[var(--btn,var(--btn-neutral))] to-[var(--btn-hover,var(--btn-neutral-hover))] text-[var(--btn-fg,#fff)] ring-1 ring-[color-mix(in_oklab,var(--foreground)_15%,var(--btn,var(--btn-neutral)))] hover:from-[var(--btn-hover,var(--btn-neutral-hover))] hover:to-[var(--btn-hover,var(--btn-neutral-hover))]",
         default:
-          "border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] text-[color:var(--foreground)] shadow-sm hover:border-[color:var(--foreground)]/25 hover:bg-[color:var(--muted)]",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] text-[color:var(--foreground)] hover:border-[color:var(--foreground)]/25 hover:bg-[color:var(--muted)]",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         ghost: "text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06]",
         link: "text-[color:var(--brand-link)] underline-offset-4 hover:underline",
         outline:
-          "border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] shadow-sm hover:border-[color:var(--foreground)]/25 hover:bg-[color:var(--foreground)]/[0.04]",
+          "border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] hover:border-[color:var(--foreground)]/25 hover:bg-[color:var(--foreground)]/[0.04]",
         secondary:
-          "bg-[var(--btn,var(--btn-neutral))] text-[color:var(--btn-fg,var(--btn-neutral-fg))] shadow-sm hover:bg-[var(--btn-hover,var(--btn-neutral-hover))]",
+          "bg-[var(--btn,var(--btn-neutral))] text-[color:var(--btn-fg,var(--btn-neutral-fg))] hover:bg-[var(--btn-hover,var(--btn-neutral-hover))]",
         soft: "bg-[color-mix(in_oklab,var(--btn,var(--foreground))_12%,transparent)] text-[var(--btn,var(--foreground))] hover:bg-[color-mix(in_oklab,var(--btn,var(--foreground))_18%,transparent)]",
         solid:
-          "bg-[var(--btn,var(--btn-neutral))] text-[var(--btn-fg,var(--btn-neutral-fg))] shadow-sm hover:bg-[var(--btn-hover,var(--btn-neutral-hover))]",
+          "bg-[var(--btn,var(--btn-neutral))] text-[var(--btn-fg,var(--btn-neutral-fg))] hover:bg-[var(--btn-hover,var(--btn-neutral-hover))]",
       },
     },
     defaultVariants: {

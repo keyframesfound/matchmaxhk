@@ -71,7 +71,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
   const hasContactButtons = !!(whatsappUrl || data.contactEmail || data.websiteUrl);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
       {/* Header card */}
       <div className="relative h-36 w-full">
         {data.coverUrl ? (
@@ -86,10 +86,10 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
             <img
               src={data.logoUrl}
               alt=""
-              className="h-20 w-20 rounded-full border-4 border-card object-cover shadow-md"
+              className="h-20 w-20 rounded-full border-4 border-card object-cover"
             />
           ) : (
-            <span className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-card bg-[color:var(--foreground)] text-[color:var(--background)] text-xl font-bold shadow-md">
+            <span className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-card bg-[color:var(--foreground)] text-[color:var(--background)] text-xl font-bold">
               {initials || "MM"}
             </span>
           )}
@@ -192,7 +192,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
 
 export function ProfilePreview({ data }: { data: ProfilePreviewData }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-muted/60 shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-border bg-muted/60">
       <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-2.5">
         <span className="flex gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-red-400" />

@@ -1261,7 +1261,7 @@ export function ApplicationForm() {
 
   if (done)
     return (
-      <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-8 text-center shadow-[var(--shadow-brand)] sm:p-12">
+      <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-8 text-center sm:p-12">
         <CheckCircle2
           className="mx-auto h-12 w-12 text-[color:var(--muted-foreground)]"
           aria-hidden="true"
@@ -1610,7 +1610,7 @@ export function ApplicationForm() {
       <aside className="mb-8 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] px-4 py-3 text-sm leading-relaxed text-foreground">
         {notice}
       </aside>
-      <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-5 shadow-[var(--shadow-brand)] sm:p-8">
+      <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-5 sm:p-8">
         <ol className="mb-8 flex items-center gap-2 sm:gap-3" aria-label="Form progress">
           {stepTitles.map((label, index) => {
             const stepNumber = index + 1;

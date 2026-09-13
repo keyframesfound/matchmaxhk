@@ -112,7 +112,7 @@ export function RichTextEditor({
   return (
     <div
       className={cn(
-        "rich-text-editor overflow-hidden rounded-md border border-input bg-transparent shadow-sm focus-within:ring-1 focus-within:ring-ring",
+        "rich-text-editor overflow-hidden rounded-md border border-input bg-transparent focus-within:ring-1 focus-within:ring-ring",
         disabled && "cursor-not-allowed opacity-50",
         className,
       )}

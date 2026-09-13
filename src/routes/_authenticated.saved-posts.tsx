@@ -137,7 +137,7 @@ function SavedPostsPage() {
                     footerAction={
                       <Button
                         asChild
-                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] shadow-none hover:bg-[color:var(--surface-invert-hover)]"
+                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                       >
                         <a
                           href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}

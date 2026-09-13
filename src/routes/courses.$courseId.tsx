@@ -98,7 +98,7 @@ function BusinessProfileCard({
   const memberSince = new Date(organization.created_at).getFullYear();
 
   return (
-    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-5">
       <div className="flex flex-col items-center gap-3 text-center">
         {organization.logo_url ? (
           <img
@@ -204,7 +204,7 @@ function MoreFromCentre({ orgId, currentCourseId }: { orgId: string; currentCour
             <a
               key={course.id}
               href={`/courses/${course.id}`}
-              className="group w-56 shrink-0 snap-start overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+              className="group w-56 shrink-0 snap-start overflow-hidden rounded-lg border border-border bg-card transition-all duration-200 hover:-translate-y-0.5"
             >
               <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
                 {course.image_url ? (
@@ -406,7 +406,7 @@ function CourseDetail() {
                     <BusinessProfileCard organization={course.organization} />
                   ) : null}
 
-                  <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+                  <div className="rounded-lg border border-border bg-card p-6">
                     {price ? (
                       <p className="text-2xl font-bold text-[color:var(--ink)]">{price}</p>
                     ) : null}

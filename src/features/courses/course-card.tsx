@@ -53,7 +53,7 @@ export function CourseCard({ course }: CourseCardProps) {
     <Link
       to="/courses/$courseId"
       params={{ courseId: course.id }}
-      className="group grid gap-4 rounded-lg border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-[color:var(--foreground)]/25 hover:shadow-md sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-6"
+      className="group grid gap-4 rounded-lg border border-border bg-card p-5 transition-[border-color] duration-200 hover:border-[color:var(--foreground)]/25 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-6"
     >
       {course.organization?.logo_url ? (
         <img

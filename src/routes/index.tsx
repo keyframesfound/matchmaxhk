@@ -432,7 +432,7 @@ function Landing() {
               <Button
                 asChild
                 size="lg"
-                className="h-12 w-full rounded-xl bg-[color:var(--surface-invert)] px-5 text-base font-bold text-[color:var(--surface-invert-fg)] shadow-brand hover:bg-[color:var(--surface-invert-hover)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
+                className="h-12 w-full rounded-xl bg-[color:var(--surface-invert)] px-5 text-base font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
               >
                 <Link
                   to="/tutors"
@@ -452,7 +452,7 @@ function Landing() {
 
       <section className="relative -mt-4 pb-14 md:-mt-7 md:pb-16">
         <div className="mx-auto max-w-[1440px] px-4 md:px-6">
-          <div className="relative rounded-sm border border-border bg-card p-2.5 shadow-sm sm:p-5">
+          <div className="relative rounded-sm border border-border bg-card p-2.5 sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-2.5 sm:pb-4">
               <p className="text-xs font-black uppercase tracking-wide text-[color:var(--ink)] sm:text-sm">
                 Find tutor

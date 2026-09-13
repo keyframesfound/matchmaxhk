@@ -46,7 +46,7 @@ function ForgotPasswordPage() {
       <SiteHeader />
       <main className="flex flex-1 items-center justify-center p-4 py-8 lg:p-8">
         <div className="w-full max-w-[420px]">
-          <div className="w-full rounded-3xl border border-border bg-card p-6 shadow-brand sm:p-8">
+          <div className="w-full rounded-3xl border border-border bg-card p-6 sm:p-8">
             <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)]">
               Reset your password
             </h1>

@@ -24,7 +24,7 @@ export function ConsolePanel({
   return (
     <Element
       className={cn(
-        "rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] shadow-[0_1px_3px_rgba(4,19,68,0.04)]",
+        "rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]",
         panelPadding[padding],
         className,
       )}

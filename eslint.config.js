@@ -32,6 +32,15 @@ export default tseslint.config(
           ],
         },
       ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "Literal[value=/\\bshadow-|\\bdrop-shadow|\\bbox-shadow\\b/], TemplateElement[value.raw=/\\bshadow-|\\bdrop-shadow|\\bbox-shadow\\b/]",
+          message:
+            "No shadows: this design system is flat and border-based. Remove shadow-*/drop-shadow/box-shadow; use borders, surface colors, or ring-* (focus only) instead.",
+        },
+      ],
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
     },

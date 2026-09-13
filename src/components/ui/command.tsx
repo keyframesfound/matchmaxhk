@@ -62,7 +62,7 @@ const CommandInput = React.forwardRef<
 
     return (
       <div
-        className="m-2 flex items-center rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-3 transition-[border-color,box-shadow,background-color] focus-within:border-[color:var(--ring)] focus-within:bg-[color:var(--surface)] focus-within:ring-4 focus-within:ring-[color:var(--ring)]/20"
+        className="m-2 flex items-center rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-3 transition-[border-color,background-color] focus-within:border-[color:var(--ring)] focus-within:bg-[color:var(--surface)] focus-within:ring-4 focus-within:ring-[color:var(--ring)]/20"
         cmdk-input-wrapper=""
       >
         <Search className="mr-2 h-4 w-4 shrink-0 text-[color:var(--ink)]/45" />

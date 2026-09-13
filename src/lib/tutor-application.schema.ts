@@ -260,7 +260,7 @@ export interface AnswerRow {
   value: string;
 }
 
-export function getApplicationPath(data: TutorApplication): string {
+export function getApplicationPath(data: Pick<TutorApplication, "status" | "curriculum">): string {
   return data.status === PROFESSIONAL_STATUS ? "Professional / Examiner" : data.curriculum;
 }
 

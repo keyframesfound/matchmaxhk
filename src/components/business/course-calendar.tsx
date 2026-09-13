@@ -148,7 +148,7 @@ export function CourseCalendar({ courses }: { courses: CalendarCourse[] }) {
           details.
         </p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
           <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <Button
@@ -182,7 +182,7 @@ export function CourseCalendar({ courses }: { courses: CalendarCourse[] }) {
                   className={cn(
                     "rounded-md px-3 py-1 text-sm font-medium capitalize transition-colors",
                     view === v
-                      ? "bg-card text-[color:var(--ink)] shadow-sm"
+                      ? "bg-card text-[color:var(--ink)]"
                       : "text-muted-foreground hover:text-[color:var(--ink)]",
                   )}
                 >
@@ -320,7 +320,7 @@ export function CourseCalendar({ courses }: { courses: CalendarCourse[] }) {
       )}
 
       {selected && (
-        <div className="relative mt-4 rounded-xl border border-border bg-card p-4 shadow-sm">
+        <div className="relative mt-4 rounded-xl border border-border bg-card p-4">
           <button
             type="button"
             aria-label="Close events"

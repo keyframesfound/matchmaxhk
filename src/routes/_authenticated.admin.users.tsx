@@ -281,7 +281,7 @@ function AdminUsers() {
             {/* ALL USERS TAB CONTENT */}
             <TabsContent value="users" className="mt-6 space-y-4 focus-visible:outline-none">
               {/* Filter Controls Bar */}
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border/70 bg-card p-3 shadow-xs">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border/70 bg-card p-3">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input

@@ -254,7 +254,7 @@ function BusinessOverview() {
         <Tabs value={tab} onValueChange={switchTab} className="mt-8 gap-6">
           <TabsContent value="overview">
             {/* Engagement stats (last 30 days) */}
-            <div className="grid grid-cols-2 divide-x divide-y divide-border rounded-lg border border-border bg-card shadow-sm sm:grid-cols-4 sm:divide-y-0">
+            <div className="grid grid-cols-2 divide-x divide-y divide-border rounded-lg border border-border bg-card sm:grid-cols-4 sm:divide-y-0">
               <EngagementStat
                 icon={Eye}
                 label="Impressions"
@@ -287,7 +287,7 @@ function BusinessOverview() {
 
             {/* Traffic charts */}
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
-              <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+              <section className="rounded-lg border border-border bg-card p-5">
                 <div>
                   <h2 className="text-base font-bold text-[color:var(--ink)]">Reach</h2>
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -367,7 +367,7 @@ function BusinessOverview() {
                 </div>
               </section>
 
-              <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+              <section className="rounded-lg border border-border bg-card p-5">
                 <div>
                   <h2 className="text-base font-bold text-[color:var(--ink)]">Engagement</h2>
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -436,7 +436,7 @@ function BusinessOverview() {
 
             <div className={cn("mt-4 grid gap-4", showOnboarding && "lg:grid-cols-[1.5fr_1fr]")}>
               {showOnboarding && (
-                <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                <section className="overflow-hidden rounded-lg border border-border bg-card">
                   <div className="flex items-start justify-between gap-3 border-b border-border p-6 pb-4">
                     <div className="flex flex-col gap-2">
                       <h2 className="text-base font-bold text-[color:var(--ink)]">
@@ -501,7 +501,7 @@ function BusinessOverview() {
                 </section>
               )}
 
-              <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
+              <section className="rounded-lg border border-border bg-card p-6">
                 <h2 className="text-base font-bold text-[color:var(--ink)]">Plan & usage</h2>
                 {usage ? (
                   <div className="mt-4 space-y-4">

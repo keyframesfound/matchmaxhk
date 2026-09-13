@@ -74,7 +74,7 @@ export function UserStatsOverview({ users, isLoading }: UserStatsOverviewProps) 
         return (
           <div
             key={i}
-            className="group relative overflow-hidden rounded-xl border border-border/70 bg-card p-5 shadow-xs transition-all duration-200 hover:border-border hover:shadow-sm"
+            className="group relative overflow-hidden rounded-xl border border-border/70 bg-card p-5 transition-all duration-200 hover:border-border"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-muted-foreground">{stat.title}</span>

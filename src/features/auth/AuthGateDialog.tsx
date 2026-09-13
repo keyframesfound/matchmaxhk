@@ -176,7 +176,7 @@ export function AuthGateDialog({
   return (
     <DialogEventBarrier>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="top-auto bottom-0 left-1/2 w-full max-w-[420px] translate-x-[-50%] translate-y-0 gap-0 rounded-t-3xl border-0 bg-[color:var(--surface)] p-6 pb-10 shadow-2xl data-[state=open]:slide-in-from-bottom-1/2 data-[state=closed]:slide-out-to-bottom-full sm:top-1/2 sm:bottom-auto sm:translate-y-[-50%] sm:rounded-3xl sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=open]:zoom-in-95">
+        <DialogContent className="top-auto bottom-0 left-1/2 w-full max-w-[420px] translate-x-[-50%] translate-y-0 gap-0 rounded-t-3xl border-0 bg-[color:var(--surface)] p-6 pb-10 data-[state=open]:slide-in-from-bottom-1/2 data-[state=closed]:slide-out-to-bottom-full sm:top-1/2 sm:bottom-auto sm:translate-y-[-50%] sm:rounded-3xl sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=open]:zoom-in-95">
           <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--muted)]">
             <Sparkles className="h-6 w-6 text-[color:var(--ink)]" aria-hidden="true" />
           </div>

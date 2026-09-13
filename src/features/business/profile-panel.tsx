@@ -121,7 +121,7 @@ function SettingsCard({
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-24 rounded-lg border border-border bg-card shadow-sm">
+    <section id={id} className="scroll-mt-24 rounded-lg border border-border bg-card">
       <div className="border-b border-border px-6 py-4">
         <h3 className="text-base font-bold tracking-tight text-[color:var(--ink)]">{title}</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
@@ -830,7 +830,7 @@ export function ProfilePanel() {
 
         <div
           className={cn(
-            "sticky bottom-4 z-30 rounded-xl border bg-card/95 p-4 shadow-lg backdrop-blur transition-colors",
+            "sticky bottom-4 z-30 rounded-xl border bg-card/95 p-4 backdrop-blur transition-colors",
             isDirty ? "border-[color:var(--ring)]/40" : "border-border",
           )}
         >
@@ -871,7 +871,7 @@ export function ProfilePanel() {
 
       {/* Live preview rail */}
       <aside className="min-w-0 self-start lg:sticky lg:top-6">
-        <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-lg border border-border bg-card p-5">
           <p className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]" />
             Improve your profile

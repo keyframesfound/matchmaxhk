@@ -51,6 +51,19 @@ Known gotchas:
 - On macOS, `strings` and other Xcode toolchain binaries may prompt installation and fail;
   prefer `grep -a` on binary-ish output.
 
+## Design Conventions
+
+**No shadows anywhere.** The site is flat and border-delineated by design:
+
+- Never introduce `shadow-*` utilities (including `shadow-none`), `drop-shadow-*`,
+  arbitrary `shadow-[...]` values, or `box-shadow` CSS (inline styles, `styles.css`,
+  or design tokens). This is enforced by a `no-restricted-syntax` ESLint rule in
+  `eslint.config.js`.
+- Express elevation with borders (`border-border`), surface colors (`bg-card` vs
+  `bg-muted`), or solid contrast. Convert any ring-like shadows to plain `border`.
+- `ring-*` classes are allowed for focus indicators only (accessibility, not decoration).
+- Transition lists must not reference `box-shadow`/`shadow`.
+
 ## UI Assets (21st.dev MCP)
 
 Use the 21st.dev MCP (`21st_search`, `21st_get_component`, `21st_get_theme`, etc.) freely when

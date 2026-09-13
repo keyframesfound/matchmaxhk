@@ -231,7 +231,7 @@ export function MtrStationPickerContent({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleInputKeyDown}
-            className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-base font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color,box-shadow] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40 sm:text-sm"
+            className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-base font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40 sm:text-sm"
           />
           {query && (
             <button
@@ -327,7 +327,7 @@ export function MtrStationSelect({
           aria-expanded={open}
           aria-invalid={invalid || undefined}
           className={cn(
-            "group flex h-11 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3.5 py-2 text-left text-sm font-medium text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50",
+            "group flex h-11 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3.5 py-2 text-left text-sm font-medium text-[color:var(--ink)] transition-[border-color,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50",
             invalid &&
               "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30",
             !value && "text-[color:var(--ink)]/50",
@@ -346,7 +346,7 @@ export function MtrStationSelect({
       <PopoverContent
         align="start"
         className={cn(
-          "z-[9999] w-(--radix-popover-trigger-width) min-w-[220px] overflow-hidden border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0 text-[color:var(--ink)] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.25)]",
+          "z-[9999] w-(--radix-popover-trigger-width) min-w-[220px] overflow-hidden border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0 text-[color:var(--ink)]",
           popoverClassName,
         )}
       >
@@ -417,7 +417,7 @@ export function MtrStationMultiSelect({
           disabled={disabled}
           aria-expanded={open}
           className={cn(
-            "group flex h-10 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3 py-2 text-left text-xs font-medium text-[color:var(--ink)] shadow-sm transition-[border-color,box-shadow] duration-150 hover:border-[color:var(--ink)]/30 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50",
+            "group flex h-10 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3 py-2 text-left text-xs font-medium text-[color:var(--ink)] transition-[border-color] duration-150 hover:border-[color:var(--ink)]/30 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50",
             value.length === 0 && "text-[color:var(--ink)]/50",
             className,
           )}
@@ -434,7 +434,7 @@ export function MtrStationMultiSelect({
       <PopoverContent
         align="start"
         className={cn(
-          "z-[9999] w-(--radix-popover-trigger-width) min-w-[240px] overflow-hidden border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0 text-[color:var(--ink)] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.25)]",
+          "z-[9999] w-(--radix-popover-trigger-width) min-w-[240px] overflow-hidden border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0 text-[color:var(--ink)]",
           popoverClassName,
         )}
       >

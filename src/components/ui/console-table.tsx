@@ -26,7 +26,7 @@ export function ConsoleTable({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] shadow-[0_1px_3px_rgba(4,19,68,0.04)]",
+        "overflow-hidden rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)]",
         className,
       )}
       {...props}

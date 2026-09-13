@@ -153,7 +153,7 @@ function StatCardView({ card, onOpen }: { card: StatCard; onOpen: () => void }) 
     <button
       type="button"
       onClick={onOpen}
-      className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 text-left transition-shadow duration-150 hover:shadow-sm"
+      className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 text-left duration-150"
     >
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-medium text-muted-foreground">{card.label}</p>

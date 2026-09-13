@@ -31,7 +31,7 @@ export function NotFoundComponent() {
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 py-2 text-sm font-medium text-[color:var(--foreground)] shadow-sm transition-colors hover:bg-[color:var(--muted)]"
+            className="inline-flex items-center justify-center rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 py-2 text-sm font-medium text-[color:var(--foreground)] transition-colors hover:bg-[color:var(--muted)]"
           >
             Go home
           </Link>
@@ -61,7 +61,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 py-2 text-sm font-medium text-[color:var(--foreground)] shadow-sm transition-colors hover:bg-[color:var(--muted)]"
+            className="inline-flex items-center justify-center rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 py-2 text-sm font-medium text-[color:var(--foreground)] transition-colors hover:bg-[color:var(--muted)]"
           >
             Try again
           </button>

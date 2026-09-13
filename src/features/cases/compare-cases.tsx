@@ -135,7 +135,7 @@ export function CaseCompareToggle({ caseId }: { caseId: string }) {
         mutation.mutate({ caseId, selected: !selected });
       }}
       onKeyDown={(event) => event.stopPropagation()}
-      className="h-10 w-8 shrink-0 rounded-sm border-0 bg-transparent p-0 text-[color:var(--ink)] shadow-none hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
+      className="h-10 w-8 shrink-0 rounded-sm border-0 bg-transparent p-0 text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
     >
       {selected ? (
         <Check className="h-5 w-5" strokeWidth={2.8} aria-hidden="true" />
@@ -164,7 +164,7 @@ function CaseCompareBar({
         "fixed bottom-20 left-1/2 z-40 w-[min(92vw,30rem)] -translate-x-1/2 sm:bottom-6"
       }
     >
-      <div className="flex items-center justify-between gap-3 rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 py-2.5 shadow-[0_16px_40px_rgba(4,19,68,0.18)]">
+      <div className="flex items-center justify-between gap-3 rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
           <ListChecks
             className="h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
@@ -285,7 +285,7 @@ function CaseCompareDialog({
     {
       label: "",
       render: (item) => (
-        <Button asChild size="sm" className="h-9 rounded-sm px-4 text-[13px] font-bold shadow-none">
+        <Button asChild size="sm" className="h-9 rounded-sm px-4 text-[13px] font-bold">
           <Link to="/tutor-requests/$caseCode" params={{ caseCode: item.caseCode }}>
             View details
           </Link>

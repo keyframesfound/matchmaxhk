@@ -97,7 +97,7 @@ export function LessonModeSelect({
           disabled={disabled}
           className={cn(
             className,
-            "group h-11 w-full justify-between rounded-sm border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-4 text-left font-semibold text-[color:var(--ink)] shadow-[0_1px_2px_rgba(4,19,68,0.04)] transition-[border-color,box-shadow,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40",
+            "group h-11 w-full justify-between rounded-sm border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-4 text-left font-semibold text-[color:var(--ink)] transition-[border-color,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40",
             !mode && "text-[color:var(--ink)]/50",
           )}
         >
@@ -116,7 +116,7 @@ export function LessonModeSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[--radix-popover-trigger-width] overflow-hidden rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)]/[0.96] p-0 text-[color:var(--ink)] shadow-[0_20px_45px_-18px_rgba(4,19,68,0.28)] backdrop-blur-xl data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1"
+        className="w-[--radix-popover-trigger-width] overflow-hidden rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)]/[0.96] p-0 text-[color:var(--ink)] backdrop-blur-xl data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1"
         align="start"
         sideOffset={6}
         collisionPadding={8}

@@ -32,7 +32,7 @@ export function YouTubePlayer({ url, title }: { url: string; title: string }) {
             className="h-full w-full object-cover"
           />
           <span className="absolute inset-0 flex items-center justify-center bg-black/10">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/65 text-white shadow-md transition-transform duration-200 group-hover:scale-110">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/65 text-white transition-transform duration-200 group-hover:scale-110">
               <Play className="ml-0.5 h-5 w-5 fill-current" />
             </span>
           </span>

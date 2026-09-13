@@ -454,7 +454,7 @@ function ModernPhotoUpload({
             <img
               src={value}
               alt="Avatar preview"
-              className="h-20 w-20 rounded-2xl object-cover ring-2 ring-[color:var(--ink)]/10 shadow-sm"
+              className="h-20 w-20 rounded-2xl object-cover ring-2 ring-[color:var(--ink)]/10"
             />
           ) : (
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[color:var(--ink)]/[0.05] ring-2 ring-dashed ring-[color:var(--ink)]/15 text-[color:var(--ink)]/40">
@@ -469,7 +469,7 @@ function ModernPhotoUpload({
                 setInputValue("");
               }}
               aria-label="Remove image"
-              className="absolute -top-1.5 -right-1.5 rounded-full bg-background border border-border p-1 text-destructive shadow-sm hover:bg-destructive hover:text-white transition-colors"
+              className="absolute -top-1.5 -right-1.5 rounded-full bg-background border border-border p-1 text-destructive hover:bg-destructive hover:text-white transition-colors"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -478,7 +478,7 @@ function ModernPhotoUpload({
 
         <div className="flex-1 space-y-2.5 w-full">
           <div className="flex flex-wrap items-center gap-2">
-            <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[color:var(--ink)] px-3.5 text-xs font-semibold text-[color:var(--surface)] shadow-sm hover:bg-[color:var(--ink)]/90 transition-colors">
+            <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[color:var(--ink)] px-3.5 text-xs font-semibold text-[color:var(--surface)] hover:bg-[color:var(--ink)]/90 transition-colors">
               {upload.isPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
@@ -575,7 +575,7 @@ function ModernPhotoUpload({
                         removeFromR2.mutate({ key: item.key, url: item.url });
                       }
                     }}
-                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 rounded-full bg-background/90 p-1 text-destructive shadow-sm hover:bg-destructive hover:text-white transition-all"
+                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 rounded-full bg-background/90 p-1 text-destructive hover:bg-destructive hover:text-white transition-all"
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -745,6 +745,7 @@ export function TutorEditor({
   const previewTutor = React.useMemo<Tutor>(
     () => ({
       id: initialData?.id ?? "preview-tutor",
+      created_at: initialData?.created_at ?? new Date().toISOString(),
       display_name: form.tutor_code.trim() || "MM-PREVIEW",
       headline:
         form.card_highlights
@@ -790,7 +791,7 @@ export function TutorEditor({
       ia_ee_tok_support: form.ia_ee_tok_support,
       ia_ee_tok_notes: form.ia_ee_tok_notes?.trim() || null,
     }),
-    [form, initialData?.id],
+    [form, initialData?.id, initialData?.created_at],
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -992,7 +993,7 @@ export function TutorEditor({
             type="button"
             onClick={handleSubmit}
             disabled={isSaving}
-            className="h-9 font-bold text-xs shadow-sm"
+            className="h-9 font-bold text-xs"
           >
             {isSaving ? (
               <>
@@ -1181,7 +1182,7 @@ export function TutorEditor({
                     return (
                       <div
                         key={examIdx}
-                        className="rounded-xl border border-[color:var(--ink)]/15 bg-[color:var(--surface-subtle)]/40 p-4 space-y-4 shadow-sm"
+                        className="rounded-xl border border-[color:var(--ink)]/15 bg-[color:var(--surface-subtle)]/40 p-4 space-y-4"
                       >
                         <div className="flex items-center justify-between gap-3 border-b border-[color:var(--ink)]/10 pb-3">
                           <div className="flex items-center gap-2 flex-1 max-w-xs">
@@ -1742,7 +1743,7 @@ export function TutorEditor({
               <Button
                 type="submit"
                 disabled={isSaving}
-                className="w-full h-11 font-bold text-sm shadow-md"
+                className="w-full h-11 font-bold text-sm"
               >
                 {isSaving ? (
                   <>

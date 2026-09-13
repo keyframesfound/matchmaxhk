@@ -41,7 +41,7 @@ export function RolesMatrixTab({ users }: RolesMatrixTabProps) {
           return (
             <div
               key={def.role}
-              className="flex flex-col justify-between rounded-xl border border-border/70 bg-card p-5 shadow-xs transition-all duration-200 hover:border-border hover:shadow-sm"
+              className="flex flex-col justify-between rounded-xl border border-border/70 bg-card p-5 transition-all duration-200 hover:border-border"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">

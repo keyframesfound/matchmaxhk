@@ -2,6 +2,7 @@ import * as React from "react";
 import { render } from "@react-email/render";
 import { Resend } from "resend";
 
+import type { Json } from "@/integrations/supabase/types";
 import { TutorJoinNotificationEmail } from "./email-templates/tutor-join-notification";
 import {
   ACCEPTED_FILE_TYPES,
@@ -119,7 +120,7 @@ export async function storeTutorApplication(
     .from("tutor_applications")
     .insert({
       status: "pending",
-      data: data as unknown as Record<string, unknown>,
+      data: data as unknown as Json,
       attachment_files: [],
     })
     .select("id")

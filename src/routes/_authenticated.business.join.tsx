@@ -102,7 +102,7 @@ function BusinessJoinPage() {
             onSubmit={(event) => {
               void handleSubmit(event);
             }}
-            className="mt-8 space-y-5 rounded-lg border border-border bg-card p-6 shadow-sm sm:p-8"
+            className="mt-8 space-y-5 rounded-lg border border-border bg-card p-6 sm:p-8"
           >
             <div className="space-y-1.5">
               <Label htmlFor="org-name">Business / centre name *</Label>

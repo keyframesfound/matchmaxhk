@@ -366,7 +366,7 @@ function AdminCases() {
                   <tr>
                     <ConsoleTh>
                       <Checkbox
-                        className="rounded-[4px] shadow-none"
+                        className="rounded-[4px]"
                         checked={allFilteredSelected}
                         onCheckedChange={toggleAll}
                         aria-label="Select all cases"
@@ -408,7 +408,7 @@ function AdminCases() {
                     >
                       <ConsoleTd>
                         <Checkbox
-                          className="rounded-[4px] shadow-none"
+                          className="rounded-[4px]"
                           checked={selectedIds.has(row.id)}
                           onCheckedChange={() => toggleOne(row.id)}
                           aria-label={`Select case ${row.case_code}`}
@@ -559,7 +559,7 @@ function AdminCases() {
 
       {/* Batch Delete Confirmation Dialog */}
       <AlertDialog open={confirmBatchDelete} onOpenChange={setConfirmBatchDelete}>
-        <AlertDialogContent className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] shadow-2xl">
+        <AlertDialogContent className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)]">
           <AlertDialogHeader>
             <AlertDialogTitle>
               Delete {selectedIds.size} Case Request{selectedIds.size === 1 ? "" : "s"}?
@@ -583,7 +583,7 @@ function AdminCases() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={Boolean(deletingId)} onOpenChange={(open) => !open && setDeletingId(null)}>
-        <AlertDialogContent className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] shadow-2xl">
+        <AlertDialogContent className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)]">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Case Request?</AlertDialogTitle>
             <AlertDialogDescription>

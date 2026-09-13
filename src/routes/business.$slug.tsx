@@ -124,7 +124,7 @@ function ListingCard({
   return (
     <a
       href={`/courses/${course.id}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:-translate-y-0.5"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
         {course.image_url ? (
@@ -387,7 +387,7 @@ function BusinessPublicProfile() {
             )}
 
             {/* Hero */}
-            <section className="mt-4 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+            <section className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
               <div className="group relative h-40 w-full sm:h-56">
                 {org.cover_image_url ? (
                   <img src={org.cover_image_url} alt="" className="h-full w-full object-cover" />
@@ -427,10 +427,10 @@ function BusinessPublicProfile() {
                       <img
                         src={org.logo_url}
                         alt=""
-                        className="h-24 w-24 rounded-full border-4 border-card object-cover shadow-md sm:h-28 sm:w-28"
+                        className="h-24 w-24 rounded-full border-4 border-card object-cover sm:h-28 sm:w-28"
                       />
                     ) : (
-                      <span className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-card bg-[color:var(--foreground)] text-[color:var(--background)] text-2xl font-bold leading-none shadow-md sm:h-28 sm:w-28">
+                      <span className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-card bg-[color:var(--foreground)] text-[color:var(--background)] text-2xl font-bold leading-none sm:h-28 sm:w-28">
                         {initials || "MM"}
                       </span>
                     )}
@@ -582,7 +582,7 @@ function BusinessPublicProfile() {
                   </Button>
                 )}
               </div>
-              <div className="mt-4 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+              <div className="mt-4 rounded-xl border border-border bg-card p-5 sm:p-6">
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,1fr)]">
                   <div className="min-w-0">
                     {parseYouTubeUrl(org.intro_video_url) ? (
@@ -791,7 +791,7 @@ function BusinessPublicProfile() {
                   </Button>
                 )}
               </div>
-              <div className="mt-4 grid gap-4 rounded-xl border border-border bg-card p-5 shadow-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-6">
+              <div className="mt-4 grid gap-4 rounded-xl border border-border bg-card p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-6">
                 <div className="flex flex-col gap-3 text-sm">
                   {org.website_url && (
                     <a

@@ -94,7 +94,11 @@ function AdminTutors() {
 
   const clearCreateParams = () => {
     if (routeSearch.create || routeSearch.applicationId) {
-      navigate({ to: "/admin/tutors", search: {}, replace: true }).catch(() => {});
+      navigate({
+        to: "/admin/tutors",
+        search: { create: undefined, applicationId: undefined },
+        replace: true,
+      }).catch(() => {});
     }
   };
 
@@ -297,7 +301,7 @@ function AdminTutors() {
                     Add, edit, and organize verified tutors and their public profiles.
                   </p>
                 </div>
-                <Button onClick={() => setIsCreating(true)} className="font-bold shadow-sm">
+                <Button onClick={() => setIsCreating(true)} className="font-bold">
                   <Plus className="mr-2 h-4 w-4" /> Add New Tutor
                 </Button>
               </div>
@@ -374,7 +378,7 @@ function AdminTutors() {
                   <tr>
                     <ConsoleTh>
                       <Checkbox
-                        className="rounded-[4px] shadow-none"
+                        className="rounded-[4px]"
                         checked={allFilteredSelected}
                         onCheckedChange={toggleAll}
                         aria-label="Select all tutors"
@@ -422,7 +426,7 @@ function AdminTutors() {
                     >
                       <ConsoleTd>
                         <Checkbox
-                          className="rounded-[4px] shadow-none"
+                          className="rounded-[4px]"
                           checked={selectedIds.has(row.id)}
                           onCheckedChange={() => toggleOne(row.id)}
                           aria-label={`Select ${row.tutor_code || "tutor"}`}
@@ -434,7 +438,7 @@ function AdminTutors() {
                             <img
                               src={row.photo_url}
                               alt=""
-                              className="h-10 w-10 rounded-xl object-cover ring-1 ring-[color:var(--ink)]/10 shadow-sm"
+                              className="h-10 w-10 rounded-xl object-cover ring-1 ring-[color:var(--ink)]/10"
                             />
                           ) : (
                             <div className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--ink)]/[0.06] text-xs font-bold text-[color:var(--ink)]/60">

@@ -132,7 +132,7 @@ export function TeamPanel() {
         </div>
       )}
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+      <div className="mt-4 overflow-hidden rounded-lg border border-border bg-card">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
             <tr>

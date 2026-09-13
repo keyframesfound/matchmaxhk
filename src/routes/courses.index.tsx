@@ -123,7 +123,7 @@ function CoursesDirectory() {
             </p>
 
             <form
-              className="relative mt-8 rounded-sm border border-border bg-card p-4 shadow-sm sm:p-5"
+              className="relative mt-8 rounded-sm border border-border bg-card p-4 sm:p-5"
               onSubmit={handleSearch}
             >
               <div className="flex items-center gap-2 border-b border-border pb-4">

@@ -110,7 +110,7 @@ export function TagInput({
             }
           }}
           className={cn(
-            "flex min-h-[44px] w-full flex-wrap items-center gap-1.5 rounded-lg border border-[color:var(--ink)]/15 bg-[color:var(--surface)] p-1.5 text-sm transition-[border-color,box-shadow,background-color] duration-150 focus-within:border-[color:var(--ring)] focus-within:ring-4 focus-within:ring-[color:var(--ring)]/20",
+            "flex min-h-[44px] w-full flex-wrap items-center gap-1.5 rounded-lg border border-[color:var(--ink)]/15 bg-[color:var(--surface)] p-1.5 text-sm transition-[border-color,background-color] duration-150 focus-within:border-[color:var(--ring)] focus-within:ring-4 focus-within:ring-[color:var(--ring)]/20",
             disabled && "cursor-not-allowed opacity-50",
           )}
         >
@@ -168,7 +168,7 @@ export function TagInput({
 
         <PopoverContent
           align="start"
-          className="w-(--radix-popover-trigger-width) min-w-[240px] p-0 shadow-[0_20px_45px_-18px_rgba(4,19,68,0.25)] backdrop-blur-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] text-[color:var(--ink)] z-[9999]"
+          className="w-(--radix-popover-trigger-width) min-w-[240px] p-0 backdrop-blur-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] text-[color:var(--ink)] z-[9999]"
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <div className="max-h-56 overflow-y-auto p-1 text-xs">

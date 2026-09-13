@@ -93,7 +93,7 @@ export function UsersTable({ users, isLoading, onManageRoles, onDeleteUser }: Us
                 <ConsoleTd>
                   <div className="flex items-center gap-3">
                     <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border font-bold text-xs shadow-2xs ${avatarColor}`}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border font-bold text-xs ${avatarColor}`}
                     >
                       {initial}
                     </div>

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { Search, SearchX, UserPlus } from "lucide-react";
+import { Search, SearchX, UserPlus, X } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
@@ -14,23 +14,32 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
 import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
 import {
   fetchPublishedTutors,
-  getTutorCardHighlights,
-  matchesLessonModeFilter,
-  matchesStationFilter,
+  HK_DISTRICTS,
   type Tutor,
 } from "@/features/tutors/queries";
-import {
-  getSubjectOptionsForCategory,
-  matchesCategoryFilter,
-  matchesSubjectQuery,
-} from "@/features/tutors/subjects";
+import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  EXPERIENCE_FILTER_VALUES,
+  PREFERRED_LANGUAGE_VALUES,
+  PRICE_MAX,
+  PRICE_MIN,
+  PRICE_STEP,
+  buildActiveFilterChips,
+  buildLanguageOptions,
+  filterTutors,
+  formatPrice,
+  isSameTutorSearch,
+  sortTutors,
+  type ActiveFilterChip,
+} from "@/features/tutors/search-filters";
 
 const searchSchema = z.object({
   category: z.string().optional(),
@@ -38,19 +47,18 @@ const searchSchema = z.object({
   station: z.string().optional(), // nearest MTR station to the student
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
+  district: z.string().optional(), // HK district or region group
+  language: z.string().optional(), // teaching language
+  experience: z.string().optional(), // min years of experience, e.g. "3"
+  ib_core: z.string().optional(), // "1" = requires IA/EE/TOK support
   min_price: z.coerce.number().int().min(0).optional(),
   max_price: z.coerce.number().int().min(0).optional(),
-  sort: z.string().optional(), // "" | price_asc | price_desc
+  sort: z.string().optional(), // "" | price_asc | price_desc | experience | newest
   q: z.string().optional(),
 });
 type SearchState = z.infer<typeof searchSchema>;
 
-const PRICE_MIN = 100;
-const PRICE_MAX = 1200;
-const PRICE_STEP = 10;
-
-const formatPrice = (price: number) =>
-  price === PRICE_MAX ? `HK$${price.toLocaleString()}+` : `HK$${price.toLocaleString()}`;
+const URL_SYNC_DEBOUNCE_MS = 350;
 
 export const Route = createFileRoute("/tutors/")({
   validateSearch: (s) => searchSchema.parse(s),
@@ -109,6 +117,27 @@ function TutorsDirectory() {
       { value: "", label: t("search_panel.sort_recommended") },
       { value: "price_asc", label: t("search_panel.sort_price_asc") },
       { value: "price_desc", label: t("search_panel.sort_price_desc") },
+      { value: "experience", label: t("search_panel.sort_experience") },
+      { value: "newest", label: t("search_panel.sort_newest") },
+    ],
+    [t],
+  );
+
+  const districtOptions = useMemo(
+    () => [
+      { value: "", label: t("search_panel.any_district") },
+      ...HK_DISTRICTS.map((d) => ({ value: d, label: d })),
+    ],
+    [t],
+  );
+
+  const experienceOptions = useMemo(
+    () => [
+      { value: "", label: t("search_panel.any_experience") },
+      ...EXPERIENCE_FILTER_VALUES.map((years) => ({
+        value: years,
+        label: `${years}+ ${t("search_panel.yrs_short")}`,
+      })),
     ],
     [t],
   );
@@ -116,6 +145,20 @@ function TutorsDirectory() {
   useEffect(() => {
     setDraft(search);
   }, [search]);
+
+  useEffect(() => {
+    if (isSameTutorSearch(draft, search)) return;
+    const timer = window.setTimeout(() => {
+      navigate({
+        search: {
+          ...draft,
+          station: draft.mode === "in_person" ? draft.station : undefined,
+        },
+        replace: true,
+      });
+    }, URL_SYNC_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [draft, search, navigate]);
 
   const setDraftParam = (patch: Partial<SearchState>) => {
     setDraft((prev) => {
@@ -148,7 +191,6 @@ function TutorsDirectory() {
     },
   });
 
-  const categoryFilter = (draft.category ?? "").toLowerCase();
   const subjectOptions = useMemo(
     () => getSubjectOptionsForCategory(draft.category),
     [draft.category],
@@ -164,71 +206,23 @@ function TutorsDirectory() {
     });
   };
 
-  const subjectFilter = (draft.subject ?? "").toLowerCase();
-  const stationFilter = draft.station ?? "";
-  const modeFilter = draft.mode ?? "";
-  const genderFilter = draft.gender ?? "";
-  const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
   const priceValue: [number, number] = [draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX];
 
-  const filtered = useMemo(() => {
-    const query = (draft.q ?? "").trim().toLowerCase();
-    const sort = draft.sort ?? "";
+  const languageOptions = useMemo(() => {
+    const fromTutors = buildLanguageOptions(tutors);
+    return fromTutors.length > 0 ? fromTutors : Array.from(PREFERRED_LANGUAGE_VALUES);
+  }, [tutors]);
 
-    const list = tutors.filter((tut) => {
-      if (
-        categoryFilter &&
-        !matchesCategoryFilter(categoryFilter, tut.subjects, [
-          ...tut.target_students,
-          ...getTutorCardHighlights(tut),
-        ])
-      )
-        return false;
-      if (subjectFilter && !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter)))
-        return false;
-      if (draft.min_price !== undefined && tut.hourly_rate < draft.min_price) return false;
-      if (draft.max_price !== undefined && tut.hourly_rate > draft.max_price) return false;
-      if (!matchesLessonModeFilter(modeFilter, tut.lesson_mode)) return false;
-      if (!matchesStationFilter(effectiveStationFilter, tut.stations)) return false;
-      if (genderFilter) {
-        const g = (tut as unknown as { gender?: string | null }).gender ?? "";
-        if (g !== genderFilter) return false;
-      }
-      if (
-        query &&
-        !(
-          tut.tutor_code.toLowerCase().includes(query) ||
-          tut.subjects.some((s) => matchesSubjectQuery(s, query)) ||
-          getTutorCardHighlights(tut).some((highlight) => highlight.toLowerCase().includes(query))
-        )
-      )
-        return false;
-      return true;
-    });
+  const filtered = useMemo(
+    () => sortTutors(filterTutors(tutors, draft), draft.sort),
+    [tutors, draft],
+  );
 
-    return [...list].sort((a, b) => {
-      if (sort === "price_asc")
-        return a.hourly_rate - b.hourly_rate || a.tutor_code.localeCompare(b.tutor_code);
-      if (sort === "price_desc")
-        return b.hourly_rate - a.hourly_rate || a.tutor_code.localeCompare(b.tutor_code);
-      return (
-        (b.experience_years ?? 0) - (a.experience_years ?? 0) ||
-        a.hourly_rate - b.hourly_rate ||
-        a.tutor_code.localeCompare(b.tutor_code)
-      );
-    });
-  }, [
-    tutors,
-    categoryFilter,
-    subjectFilter,
-    effectiveStationFilter,
-    modeFilter,
-    genderFilter,
-    draft.q,
-    draft.min_price,
-    draft.max_price,
-    draft.sort,
-  ]);
+  const activeChips = useMemo(() => buildActiveFilterChips(draft, t), [draft, t]);
+
+  const removeChip = (chip: ActiveFilterChip) => {
+    setDraftParam(chip.clear);
+  };
 
   const { compareIds, compareTutors, toggleCompare, compareOpen, setCompareOpen, clearCompare } =
     useTutorCompare(tutors);
@@ -256,7 +250,7 @@ function TutorsDirectory() {
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
               Start with a subject or tutor code, then narrow the list to the right fit.
             </p>
-            <div className="relative mt-7 overflow-hidden rounded-sm border border-border bg-card shadow-sm">
+            <div className="relative mt-7 overflow-hidden rounded-sm border border-border bg-card">
               <form
                 className="p-4 sm:p-5"
                 onSubmit={(event) => {
@@ -333,6 +327,53 @@ function TutorsDirectory() {
                       className="h-11 rounded-sm"
                     />
                   </div>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <SearchableSelect
+                      value={draft.district ?? ""}
+                      onChange={(v) => setDraftParam({ district: v || undefined })}
+                      options={districtOptions}
+                      placeholder={t("search_panel.any_district")}
+                      searchPlaceholder={t("search_panel.search_district")}
+                      className="h-11 rounded-sm"
+                    />
+                    <SearchableSelect
+                      value={draft.language ?? ""}
+                      onChange={(v) => setDraftParam({ language: v || undefined })}
+                      options={[
+                        { value: "", label: t("search_panel.any_language") },
+                        ...languageOptions.map((language) => ({
+                          value: language,
+                          label: language,
+                        })),
+                      ]}
+                      placeholder={t("search_panel.any_language")}
+                      searchPlaceholder={t("search_panel.search_language")}
+                      className="h-11 rounded-sm"
+                    />
+                    <SearchableSelect
+                      value={draft.experience ?? ""}
+                      onChange={(v) => setDraftParam({ experience: v || undefined })}
+                      options={experienceOptions}
+                      placeholder={t("search_panel.any_experience")}
+                      className="h-11 rounded-sm"
+                    />
+                    <div className="flex h-11 items-center justify-between gap-3 rounded-sm border border-border bg-background px-3">
+                      <Label
+                        htmlFor="tutor-ib-core"
+                        className="cursor-pointer text-sm font-normal text-muted-foreground"
+                      >
+                        {t("search_panel.ib_core")}
+                      </Label>
+                      <Switch
+                        id="tutor-ib-core"
+                        checked={draft.ib_core === "1"}
+                        onCheckedChange={(checked) =>
+                          setDraftParam({ ib_core: checked ? "1" : undefined })
+                        }
+                        aria-label={t("search_panel.ib_core")}
+                      />
+                    </div>
+                  </div>
                 </div>
               </form>
 
@@ -376,7 +417,7 @@ function TutorsDirectory() {
                     href={hotlineUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[color:var(--brand-whatsapp-hover)] sm:justify-self-start lg:col-span-2 lg:justify-self-end"
+                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-bold text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)] sm:justify-self-start lg:col-span-2 lg:justify-self-end"
                   >
                     <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
                     WhatsApp us
@@ -385,7 +426,7 @@ function TutorsDirectory() {
                 <Button
                   asChild
                   variant="outline"
-                  className="h-10 shrink-0 rounded-full px-5 text-sm font-bold shadow-sm sm:justify-self-start lg:col-span-2 lg:col-start-1 lg:justify-self-end xl:col-start-2"
+                  className="h-10 shrink-0 rounded-full px-5 text-sm font-bold sm:justify-self-start lg:col-span-2 lg:col-start-1 lg:justify-self-end xl:col-start-2"
                 >
                   <Link to="/join">
                     <UserPlus className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -399,6 +440,33 @@ function TutorsDirectory() {
 
         <section className="py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            {activeChips.length > 0 && (
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                {activeChips.map((chip) => (
+                  <Button
+                    key={chip.key}
+                    type="button"
+                    variant="outline"
+                    size="xs"
+                    className="rounded-full border-border bg-card font-medium"
+                    onClick={() => removeChip(chip)}
+                    aria-label={`${t("search_panel.remove_filter")}: ${chip.label}`}
+                  >
+                    {chip.label}
+                    <X aria-hidden="true" />
+                  </Button>
+                ))}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="xs"
+                  className="text-muted-foreground"
+                  onClick={clearAll}
+                >
+                  {t("search_panel.clear_all_filters")}
+                </Button>
+              </div>
+            )}
             <div className="mb-6 flex items-baseline justify-between">
               {isLoading ? (
                 <Skeleton className="h-4 w-28" />
@@ -477,7 +545,7 @@ function TutorsDirectory() {
                         <TutorSaveButton tutorId={tut.id} compact />
                         <Button
                           asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] shadow-none hover:bg-[color:var(--surface-invert-hover)]"
+                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                         >
                           <a
                             href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}

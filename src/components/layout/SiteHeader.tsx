@@ -182,7 +182,7 @@ export function SiteHeader({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-auto w-60 justify-start gap-3 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-2 text-left text-[color:var(--ink)] shadow-sm transition-colors hover:bg-[color:var(--surface)] hover:text-[color:var(--ink)]"
+                    className="relative h-auto w-60 justify-start gap-3 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-2 text-left text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface)] hover:text-[color:var(--ink)]"
                   >
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--foreground)] text-[color:var(--background)] text-sm font-bold">
                       {accountInitial}
@@ -202,7 +202,7 @@ export function SiteHeader({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-60 overflow-hidden rounded-lg border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0 shadow-xl"
+                  className="w-60 overflow-hidden rounded-lg border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0"
                 >
                   <DropdownMenuLabel className="border-b border-[color:var(--ink)]/10 px-4 py-3">
                     <div className="text-sm font-semibold text-[color:var(--ink)]">
@@ -300,7 +300,7 @@ export function SiteHeader({
                 <Button
                   variant="solid"
                   color="blue"
-                  className="h-11 rounded-full px-6 text-[15px] font-semibold shadow-sm transition-all duration-200 hover:shadow-md"
+                  className="h-11 rounded-full px-6 text-[15px] font-semibold transition-all duration-200"
                 >
                   {t("nav.sign_up")}
                 </Button>
@@ -330,7 +330,7 @@ export function SiteHeader({
                       <Button
                         variant="solid"
                         color="blue"
-                        className="h-10 w-full rounded-full text-sm font-semibold shadow-sm"
+                        className="h-10 w-full rounded-full text-sm font-semibold"
                       >
                         {t("nav.sign_up")}
                       </Button>

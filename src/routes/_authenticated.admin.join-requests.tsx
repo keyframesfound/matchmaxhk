@@ -45,7 +45,7 @@ import {
   type TutorApplicationRecord,
   type TutorApplicationStatus,
 } from "@/features/tutor-application/admin/queries";
-import type { TutorApplication } from "@/lib/tutor-application.schema";
+import { buildAnswerRows, type TutorApplication } from "@/lib/tutor-application.schema";
 
 export const Route = createFileRoute("/_authenticated/admin/join-requests")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -91,8 +91,37 @@ function getApplicationPathLabel(row: TutorApplicationRecord): string {
     : (row.data.curriculum ?? "—");
 }
 
+function ApplicationNotFound({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 border-b border-[color:var(--ink)]/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
+            Application not found
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            This join request no longer exists — it may have been permanently deleted after its
+            30-day recovery window.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onBack}
+          className="h-9 text-xs font-bold"
+        >
+          <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+          Back to all applications
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function AdminJoinRequests() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const search = Route.useSearch();
   const [tab, setTab] = useState<TutorApplicationStatus>("pending");
   const [searchText, setSearchText] = useState("");
@@ -125,21 +154,30 @@ function AdminJoinRequests() {
       rejectedAt?: string | null;
       purgeAfter?: string | null;
     }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("tutor_applications")
         .update({
           status,
           rejected_at: rejectedAt ?? null,
           purge_after: purgeAfter ?? null,
         } as never)
-        .eq("id", id);
+        .eq("id", id)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error(
+          "No changes were saved — your session may not have admin access to this application.",
+        );
+      }
     },
     onError: (e: Error) => toast.error(e.message),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ["admin", "join-requests"] });
+    },
   });
 
   const clearDetailParam = () => {
-    navigate({ to: "/admin/join-requests", search: {} as { application?: string } });
+    navigate({ to: "/admin/join-requests", search: { application: undefined } });
   };
 
   const openDetail = (id: string) => {
@@ -188,7 +226,7 @@ function AdminJoinRequests() {
           });
           navigate({
             to: "/admin/tutors",
-            search: { create: "1", applicationId: row.id },
+            search: { create: true, applicationId: row.id },
           });
         },
       },
@@ -235,6 +273,17 @@ function AdminJoinRequests() {
     );
   }
 
+  if (detailId && !isLoading && !isError) {
+    return (
+      <ApplicationNotFound
+        onBack={() => {
+          setDetailId(null);
+          clearDetailParam();
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -268,7 +317,7 @@ function AdminJoinRequests() {
               className={cn(
                 "rounded-lg px-3.5 py-1.5 text-xs font-bold transition-colors",
                 tab === value
-                  ? "bg-[color:var(--ink)] text-[color:var(--surface)] shadow-sm"
+                  ? "bg-[color:var(--ink)] text-[color:var(--surface)]"
                   : "text-muted-foreground hover:text-[color:var(--ink)]",
               )}
             >

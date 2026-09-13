@@ -22,7 +22,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:items-start! group-[.toaster]:gap-3! group-[.toaster]:rounded-lg! group-[.toaster]:bg-background! group-[.toaster]:border-border! group-[.toaster]:p-4! group-[.toaster]:shadow-sm! group-[.toaster]:text-foreground!",
+            "group toast group-[.toaster]:items-start! group-[.toaster]:gap-3! group-[.toaster]:rounded-lg! group-[.toaster]:bg-background! group-[.toaster]:border-border! group-[.toaster]:p-4! group-[.toaster]:text-foreground!",
           icon: "group-[.toast]:ml-0! group-[.toast]:mr-0! group-[.toast]:mt-0.5! group-[.toast]:size-5! group-[.toast]:shrink-0!",
           title: "group-[.toast]:text-sm group-[.toast]:font-semibold!",
           description: "group-[.toast]:text-xs group-[.toast]:text-muted-foreground!",
@@ -31,7 +31,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           cancelButton:
             "group-[.toast]:h-8 group-[.toast]:rounded-md group-[.toast]:border group-[.toast]:border-border group-[.toast]:bg-card group-[.toast]:px-3 group-[.toast]:text-xs group-[.toast]:font-semibold group-[.toast]:text-[color:var(--ink)]",
           closeButton:
-            "group-[.toast]:left-auto! group-[.toast]:right-3! group-[.toast]:top-3! group-[.toast]:transform-none! group-[.toast]:border-none! group-[.toast]:bg-transparent! group-[.toast]:p-0! group-[.toast]:shadow-none! group-[.toast]:text-muted-foreground! hover:group-[.toast]:bg-transparent! hover:group-[.toast]:text-foreground!",
+            "group-[.toast]:left-auto! group-[.toast]:right-3! group-[.toast]:top-3! group-[.toast]:transform-none! group-[.toast]:border-none! group-[.toast]:bg-transparent! group-[.toast]:p-0! group-[.toast]:text-muted-foreground! hover:group-[.toast]:bg-transparent! hover:group-[.toast]:text-foreground!",
         },
       }}
       {...props}

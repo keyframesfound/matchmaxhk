@@ -90,7 +90,7 @@ export function RoleManagementDialog({
                 key={def.role}
                 className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border p-3.5 transition-all ${
                   hasRole
-                    ? "border-border/80 bg-card shadow-xs"
+                    ? "border-border/80 bg-card"
                     : "border-border/40 bg-muted/20 opacity-85"
                 }`}
               >

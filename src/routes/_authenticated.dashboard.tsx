@@ -384,7 +384,7 @@ function SettingsPage() {
                         Delete account
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] shadow-2xl">
+                    <AlertDialogContent className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)]">
                       <AlertDialogHeader>
                         <AlertDialogTitle className="text-[color:var(--ink)]">
                           Delete your MatchMax account?

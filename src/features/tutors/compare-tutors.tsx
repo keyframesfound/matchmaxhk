@@ -199,7 +199,7 @@ function CompareDialog({
     {
       label: "",
       render: (t) => (
-        <Button asChild size="sm" className="h-9 rounded-sm px-4 text-[13px] font-bold shadow-none">
+        <Button asChild size="sm" className="h-9 rounded-sm px-4 text-[13px] font-bold">
           <a
             href={buildTutorWhatsAppUrl(whatsappNumber, t.tutor_code)}
             target="_blank"
