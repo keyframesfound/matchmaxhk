@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Clock3, MessageCircle, Search, UserRoundCheck } from "lucide-react";
+import { ArrowRight, Clock3, Search, UserRoundCheck } from "lucide-react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -406,20 +406,6 @@ function HowItWorksPage() {
                 {t("hiw.faq_parents")}
               </h3>
               <FaqAccordion className="mt-5" items={parentFaqItems} />
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
-          <div className="grid gap-10 sm:grid-cols-[1fr_auto] sm:items-end">
-            <div>
-              <MessageCircle className="h-7 w-7 text-[color:var(--muted-foreground)]" />
-              <h2 className="mt-7 max-w-4xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
-                {t("hiw.cta_title")}
-              </h2>
-              <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/68">
-                {t("hiw.cta_body")}
-              </p>
             </div>
           </div>
         </section>

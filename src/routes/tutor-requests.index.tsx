@@ -198,6 +198,33 @@ function TutorRequestsPage() {
 
   return (
     <PublicPage mainClassName="bg-[color:var(--surface-subtle)]">
+      {/* Page header with the post CTA */}
+      <section className="border-b border-border">
+        <PageContainer width="default" className="py-10 sm:py-12">
+          <Badge variant="outline" className="mb-4">
+            Tutor requests
+          </Badge>
+          <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+            Requesting a tutor that meets your requirements?
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            Fill in this form and tutors who&rsquo;re qualified and interested can apply for your
+            case!
+          </p>
+          <div className="mt-6">
+            <Button
+              onClick={toggleForm}
+              variant="solid"
+              color="neutral"
+              shape="pill"
+              className="h-11 px-6 font-bold"
+            >
+              {formOpen ? "Hide form" : "Post your request"}
+            </Button>
+          </div>
+        </PageContainer>
+      </section>
+
       {/* Klarna-style notice: bottom sheet on mobile, centered modal on desktop */}
       <Dialog open={noticeOpen} onOpenChange={setNoticeOpen}>
         <DialogContent className="max-h-[92dvh] w-full max-w-full gap-0 overflow-y-auto p-0 inset-x-0 top-auto bottom-0 translate-x-0 translate-y-0 rounded-none rounded-t-3xl border-x-0 border-b-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:rounded-3xl sm:border-x sm:border-b sm:data-[state=open]:zoom-in-95 sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=closed]:slide-out-to-bottom-0">
