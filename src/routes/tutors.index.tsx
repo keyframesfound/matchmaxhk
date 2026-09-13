@@ -382,16 +382,6 @@ function TutorsDirectory() {
                     WhatsApp us
                   </a>
                 ) : null}
-                <Button
-                  asChild
-                  variant="outline"
-                  className="h-10 shrink-0 rounded-full px-5 text-sm font-bold shadow-sm sm:justify-self-start lg:col-span-2 lg:col-start-1 lg:justify-self-end xl:col-start-2"
-                >
-                  <Link to="/join">
-                    <UserPlus className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Tutor Join Request
-                  </Link>
-                </Button>
               </div>
             </div>
           </div>
