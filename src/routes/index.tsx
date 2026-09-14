@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
+import { CompactSearchBar, compactChipTriggerClass } from "@/components/search/compact-search-bar";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
@@ -459,11 +460,60 @@ function Landing() {
               </p>
             </div>
 
-            <div className="mt-2.5 grid gap-2 sm:gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
+            <CompactSearchBar
+              className="mt-2.5 border-0 bg-transparent lg:hidden"
+              value={homeSearch.q ?? ""}
+              onValueChange={(q) => setHomeSearchParam({ q })}
+              placeholder="Search tutor code, subject, keyword…"
+              inputAriaLabel="Search tutors"
+              submitLabel="Search"
+              onSubmit={() => navigate({ to: "/tutors", search: tutorSearchParams })}
+            >
+              <SearchableSelect
+                value={homeSearch.category ?? ""}
+                onChange={handleHomeCategoryChange}
+                options={HOME_CATEGORY_OPTIONS}
+                placeholder="Curriculum"
+                searchPlaceholder="Search category..."
+                className={compactChipTriggerClass}
+              />
+              <SearchableSelect
+                value={homeSearch.subject ?? ""}
+                onChange={(v) => setHomeSearchParam({ subject: v || undefined })}
+                options={[
+                  { value: "", label: "Any subject" },
+                  ...homeSubjectOptions.map((s) => ({ value: s, label: s })),
+                ]}
+                placeholder="Subject"
+                searchPlaceholder="Search subject..."
+                className={compactChipTriggerClass}
+              />
+              <LessonModeSelect
+                mode={(homeSearch.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
+                station={homeSearch.station}
+                onChange={({ mode, station }) =>
+                  setHomeSearchParam({
+                    mode: mode || undefined,
+                    station: mode === "in_person" ? station : undefined,
+                  })
+                }
+                placeholder="Mode"
+                className={compactChipTriggerClass}
+              />
+              <SearchableSelect
+                value={homeSearch.gender ?? ""}
+                onChange={(v) => setHomeSearchParam({ gender: v || undefined })}
+                options={HOME_GENDER_OPTIONS}
+                placeholder="Gender"
+                className={compactChipTriggerClass}
+              />
+            </CompactSearchBar>
+
+            <div className="mt-2.5 hidden gap-3 lg:grid lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground md:h-4 md:w-4" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  className="h-9 rounded-sm pl-9 text-xs md:h-11 md:text-sm"
+                  className="h-11 rounded-sm pl-9 text-sm"
                   placeholder="Search tutor code, subject, keyword…"
                   value={homeSearch.q ?? ""}
                   onChange={(e) => setHomeSearchParam({ q: e.target.value })}
@@ -475,7 +525,7 @@ function Landing() {
                 options={HOME_CATEGORY_OPTIONS}
                 placeholder="Any curriculum"
                 searchPlaceholder="Search category..."
-                className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+                className="h-11 rounded-sm text-sm"
               />
               <SearchableSelect
                 value={homeSearch.subject ?? ""}
@@ -486,7 +536,7 @@ function Landing() {
                 ]}
                 placeholder="Any subject"
                 searchPlaceholder="Search subject..."
-                className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+                className="h-11 rounded-sm text-sm"
               />
               <LessonModeSelect
                 mode={(homeSearch.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
@@ -498,20 +548,20 @@ function Landing() {
                   })
                 }
                 placeholder="Any lesson mode"
-                className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+                className="h-11 rounded-sm text-sm"
               />
               <SearchableSelect
                 value={homeSearch.gender ?? ""}
                 onChange={(v) => setHomeSearchParam({ gender: v || undefined })}
                 options={HOME_GENDER_OPTIONS}
                 placeholder="Any gender"
-                className="h-9 rounded-sm text-xs md:h-11 md:text-sm"
+                className="h-11 rounded-sm text-sm"
               />
               <Button
-                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-xs font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] md:h-11 md:px-6 md:text-base"
+                className="h-11 rounded-sm bg-[color:var(--surface-invert)] px-6 text-base font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                 onClick={() => navigate({ to: "/tutors", search: tutorSearchParams })}
               >
-                <Search className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4" />
+                <Search className="mr-1.5 h-4 w-4" />
                 Search
               </Button>
             </div>

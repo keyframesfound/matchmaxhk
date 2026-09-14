@@ -101,6 +101,7 @@
     "status_uni_student": "University student",
     "status_full_part_time": "Full or part-time tutor",
     "status_examiner": "Examiner / professional teacher",
+    "more_filters": "More",
     "gender_female": "Female",
     "gender_male": "Male",
     "skip_prefix": "Skip the manual filters — tell us what you need and we'll",

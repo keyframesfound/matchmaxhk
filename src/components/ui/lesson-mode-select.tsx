@@ -96,8 +96,8 @@ export function LessonModeSelect({
           aria-expanded={open}
           disabled={disabled}
           className={cn(
-            className,
             "group h-11 w-full justify-between rounded-sm border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-4 text-left font-semibold text-[color:var(--ink)] transition-[border-color,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40",
+            className,
             !mode && "text-[color:var(--ink)]/50",
           )}
         >
