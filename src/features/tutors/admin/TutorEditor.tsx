@@ -1064,7 +1064,6 @@ export function TutorEditor({
                 <FormField
                   label="Tutor Status"
                   error={errors.tutor_status}
-                  hint="University Student → uni_student · Full/Part-Time Tutor · Professional Teacher/ Examiner → examiner"
                 >
                   <SearchableSelect
                     value={form.tutor_status}
