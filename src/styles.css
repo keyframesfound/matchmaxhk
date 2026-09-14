@@ -749,16 +749,3 @@
     border-radius: 0 0 12px 12px !important;
   }
 }
-
-/*
- * Compact search chip strips scroll horizontally on small screens; hide the
- * scrollbar while keeping the strip scrollable (separators come from
- * `divide-x` borders).
- */
-.mm-scroll-x-hidden {
-  scrollbar-width: none;
-}
-
-.mm-scroll-x-hidden::-webkit-scrollbar {
-  display: none;
-}

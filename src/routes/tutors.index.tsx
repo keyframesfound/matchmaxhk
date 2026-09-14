@@ -299,6 +299,7 @@ function TutorsDirectory() {
                 placeholder={t("search_panel.keyword_placeholder")}
                 inputAriaLabel={t("search_panel.keyword_aria")}
                 submitLabel={t("search_panel.search")}
+                closeLabel={t("search_panel.close_search")}
                 onSubmit={applySearch}
               >
                 <SearchableSelect
