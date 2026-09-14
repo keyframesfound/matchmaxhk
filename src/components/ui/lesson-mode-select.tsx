@@ -101,7 +101,9 @@ export function LessonModeSelect({
             !mode && "text-[color:var(--ink)]/50",
           )}
         >
-          <span className="truncate">{triggerLabel}</span>
+          <span className="truncate" title={triggerLabel}>
+            {triggerLabel}
+          </span>
           <motion.span
             className="ml-2 shrink-0 text-[color:var(--ink)]/55"
             animate={{ rotate: open ? 180 : 0 }}

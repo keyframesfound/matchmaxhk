@@ -142,7 +142,9 @@ export function SearchableSelect({
             className,
           )}
         >
-          <span className="truncate">{displayLabel}</span>
+          <span className="truncate" title={displayLabel}>
+            {displayLabel}
+          </span>
           <ChevronDown
             className={cn(
               "h-4 w-4 shrink-0 text-[color:var(--ink)]/50 transition-transform duration-200",
@@ -207,9 +209,9 @@ export function SearchableSelect({
                 )}
               >
                 <div className="flex flex-col min-w-0 pr-2">
-                  <span className="truncate">{option.label || "(Empty)"}</span>
+                  <span className="whitespace-normal break-words">{option.label || "(Empty)"}</span>
                   {option.description ? (
-                    <span className="truncate text-xs text-muted-foreground font-normal">
+                    <span className="whitespace-normal break-words text-xs text-muted-foreground font-normal">
                       {option.description}
                     </span>
                   ) : null}
