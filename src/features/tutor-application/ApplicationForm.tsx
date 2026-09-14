@@ -1635,14 +1635,6 @@ export function ApplicationForm() {
                 >
                   {isComplete ? <Check className="h-4 w-4" aria-hidden="true" /> : stepNumber}
                 </button>
-                <span
-                  className={cn(
-                    "hidden min-w-0 truncate text-xs font-bold sm:block sm:text-sm",
-                    isCurrent || isComplete ? "text-[color:var(--ink)]" : "text-muted-foreground",
-                  )}
-                >
-                  {label}
-                </span>
                 {stepNumber < stepTitles.length ? (
                   <span
                     className={cn(

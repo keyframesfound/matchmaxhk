@@ -210,10 +210,16 @@ function AdminJoinRequests() {
   const detailApplication = applications.find((row) => row.id === detailId) ?? null;
 
   const acceptApplication = (row: TutorApplicationRecord) => {
-    if (row.status === "rejected") {
+    if (row.status !== "pending") {
       updateStatus.mutate(
         { id: row.id, status: "pending", rejectedAt: null, purgeAfter: null },
-        { onSuccess: () => toast.success("Application restored to pending") },
+        {
+          onSuccess: () =>
+            toast.success("Application moved back to pending", {
+              description:
+                "You can accept or reject it again. Any tutor card already created from it is unaffected.",
+            }),
+        },
       );
       return;
     }
@@ -524,7 +530,6 @@ function ApplicationDetail({
   }, [row.data]);
   const sections = useMemo(() => groupRows(rows), [rows]);
   const purgeDays = getDaysUntilPurge(row.purge_after);
-  const canDecide = row.status === "pending" || row.status === "rejected";
 
   return (
     <div className="space-y-6">
@@ -558,47 +563,56 @@ function ApplicationDetail({
         </div>
 
         <div className="flex items-center gap-2">
-          {canDecide ? (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={isMutating}
-                onClick={onAccept}
-                className="h-9 text-xs font-bold"
-              >
-                {row.status === "rejected" ? (
-                  <>
-                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                    Re-accept (back to pending)
-                  </>
-                ) : (
-                  <>
-                    <Check className="mr-1.5 h-3.5 w-3.5" />
-                    Accept &amp; Create Tutor
-                  </>
-                )}
-              </Button>
-              {row.status === "pending" ? (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  disabled={isMutating}
-                  onClick={onReject}
-                  className="h-9 text-xs font-bold"
-                >
-                  <X className="mr-1.5 h-3.5 w-3.5" />
-                  Reject
-                </Button>
-              ) : null}
-            </>
+          {row.status === "rejected" ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isMutating}
+              onClick={onAccept}
+              className="h-9 text-xs font-bold"
+            >
+              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+              Re-accept (back to pending)
+            </Button>
+          ) : row.status === "accepted" ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isMutating}
+              onClick={onAccept}
+              className="h-9 text-xs font-bold"
+            >
+              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+              Move back to pending
+            </Button>
           ) : (
-            <p className="text-xs text-muted-foreground">
-              Accepted — create the tutor card from the Tutors page.
-            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isMutating}
+              onClick={onAccept}
+              className="h-9 text-xs font-bold"
+            >
+              <Check className="mr-1.5 h-3.5 w-3.5" />
+              Accept &amp; Create Tutor
+            </Button>
           )}
+          {row.status !== "rejected" ? (
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={isMutating}
+              onClick={onReject}
+              className="h-9 text-xs font-bold"
+            >
+              <X className="mr-1.5 h-3.5 w-3.5" />
+              Reject
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -611,8 +625,14 @@ function ApplicationDetail({
       ) : null}
       {row.status === "accepted" ? (
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] px-4 py-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-          Accepted. Use “AI Autofill → Load application data” in the tutor editor as a source while
-          you create the tutor card manually.
+          <p>
+            Accepted. Use “AI Autofill → Load application data” in the tutor editor as a source
+            while you create the tutor card manually.
+          </p>
+          <p className="mt-1">
+            You can move it back to pending or reject it — any tutor card already created from it is
+            unaffected.
+          </p>
         </div>
       ) : null}
 

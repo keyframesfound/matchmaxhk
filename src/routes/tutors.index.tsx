@@ -297,7 +297,7 @@ function TutorsDirectory() {
                   <Button
                     type="submit"
                     variant="solid"
-                    color="blue"
+                    color="neutral"
                     className="h-12 rounded-sm px-7 font-bold"
                   >
                     <Search className="mr-1.5 h-4 w-4" />
