@@ -38,7 +38,10 @@ export function SiteFooter({
       <div className="mx-auto max-w-7xl px-6 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <h3 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+            <h3
+              className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl"
+              style={{ fontFamily: "var(--font-wordmark)" }}
+            >
               MatchMax
             </h3>
             <p className="mt-4 max-w-md text-sm leading-relaxed text-foreground/70">
