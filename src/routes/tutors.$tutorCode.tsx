@@ -614,11 +614,13 @@ function TutorDetail() {
                     {t.subjects.length > 0 ? (
                       <div className="space-y-1">
                         {subjectGroups.map((group) => (
-                          <p
-                            key={group.systemId}
-                            className="font-bold leading-relaxed text-[color:var(--ink)]"
-                          >
-                            {group.systemLabel}: {group.subjects.join(", ")}
+                          <p key={group.systemId} className="leading-relaxed text-sm">
+                            <span className="font-bold text-[color:var(--ink)]">
+                              {group.systemLabel}:
+                            </span>{" "}
+                            <span className="text-muted-foreground">
+                              {group.subjects.join(", ")}
+                            </span>
                           </p>
                         ))}
                       </div>

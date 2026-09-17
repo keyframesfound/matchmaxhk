@@ -2,13 +2,13 @@ import { Link } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "mm_banner_dismissed_v1";
+const STORAGE_KEY = "mm_banner_dismissed_session_v1";
 
 export function AnnouncementBanner() {
   const [isDismissed, setIsDismissed] = useState(true);
 
   useEffect(() => {
-    setIsDismissed(window.localStorage.getItem(STORAGE_KEY) === "true");
+    setIsDismissed(window.sessionStorage.getItem(STORAGE_KEY) === "true");
   }, []);
 
   if (isDismissed) return null;
@@ -16,7 +16,7 @@ export function AnnouncementBanner() {
   const handleDismiss = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    window.localStorage.setItem(STORAGE_KEY, "true");
+    window.sessionStorage.setItem(STORAGE_KEY, "true");
     setIsDismissed(true);
   };
 
