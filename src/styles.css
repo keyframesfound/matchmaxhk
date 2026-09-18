@@ -379,6 +379,11 @@
     background-color: #0f1419;
   }
 
+  .hero-city-bg {
+    aspect-ratio: 2560 / 1080;
+    min-height: clamp(24rem, 42.1875vw, 38rem);
+  }
+
   .hero-city-video,
   .hero-city-overlay {
     position: absolute;
@@ -391,6 +396,7 @@
   .hero-city-video {
     z-index: 0;
     object-fit: cover;
+    object-position: center;
     opacity: 0.82;
     filter: saturate(0.92) contrast(1.05);
   }
@@ -405,6 +411,18 @@
   @media (prefers-reduced-motion: reduce) {
     .hero-city-video {
       display: none;
+    }
+  }
+
+  @media (max-width: 47.999rem) {
+    .hero-city-bg {
+      aspect-ratio: auto;
+      min-height: 30rem;
+    }
+
+    .hero-city-video {
+      object-fit: contain;
+      background: #0f1419;
     }
   }
 

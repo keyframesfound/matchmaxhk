@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, ChevronLeft, ChevronRight, Search } from "lucide-react";
@@ -293,7 +293,30 @@ function CurriculumTutorSection({
 function Landing() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
   const [homeSearch, setHomeSearch] = useState<HomeTutorSearchState>({});
+
+  useEffect(() => {
+    const video = heroVideoRef.current;
+    if (!video) return;
+
+    const tryPlay = () => {
+      video.muted = true;
+      video.defaultMuted = true;
+      void video.play().catch(() => {
+        // Safari may defer autoplay until the next readiness event.
+      });
+    };
+
+    video.addEventListener("loadedmetadata", tryPlay);
+    video.addEventListener("canplay", tryPlay);
+    tryPlay();
+
+    return () => {
+      video.removeEventListener("loadedmetadata", tryPlay);
+      video.removeEventListener("canplay", tryPlay);
+    };
+  }, []);
 
   const setHomeSearchParam = (patch: Partial<HomeTutorSearchState>) => {
     setHomeSearch((prev) => {
@@ -424,12 +447,14 @@ function Landing() {
       {/* HERO SECTION */}
       <section className="hero-startup-bg hero-city-bg relative overflow-hidden">
         <video
+          ref={heroVideoRef}
           className="hero-city-video"
           autoPlay
           muted
+          defaultMuted
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
           poster="/matchmax_city_background_poster.jpg"
           aria-hidden="true"
           tabIndex={-1}
