@@ -375,7 +375,7 @@
   }
 
   .hero-city-bg::before {
-    background-image: url("/matchmax_city_background_poster.jpg");
+    background-image: none;
     background-color: #0f1419;
   }
 
