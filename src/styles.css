@@ -374,6 +374,40 @@
     image-rendering: optimizeQuality;
   }
 
+  .hero-city-bg::before {
+    background-image: url("/matchmax_city_background_poster.jpg");
+    background-color: #0f1419;
+  }
+
+  .hero-city-video,
+  .hero-city-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .hero-city-video {
+    z-index: 0;
+    object-fit: cover;
+    opacity: 0.82;
+    filter: saturate(0.92) contrast(1.05);
+  }
+
+  .hero-city-overlay {
+    z-index: 1;
+    background:
+      linear-gradient(90deg, rgba(15, 20, 25, 0.9) 0%, rgba(15, 20, 25, 0.6) 42%, rgba(15, 20, 25, 0.22) 100%),
+      linear-gradient(180deg, rgba(15, 20, 25, 0.16) 0%, rgba(15, 20, 25, 0.08) 65%, rgba(15, 20, 25, 0.35) 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-city-video {
+      display: none;
+    }
+  }
+
   body {
     background-color: var(--surface);
     color: var(--color-foreground);
@@ -653,6 +687,14 @@
 /* Dark theme adjustments for photographic/pattern backdrops */
 .dark .hero-startup-bg::before {
   opacity: 0.18;
+}
+
+.dark .hero-city-bg::before {
+  opacity: 1;
+}
+
+.dark .hero-city-video {
+  opacity: 0.72;
 }
 
 .dark img.hero-illustration,

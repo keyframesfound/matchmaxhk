@@ -422,10 +422,24 @@ function Landing() {
       <SiteHeader />
 
       {/* HERO SECTION */}
-      <section className="hero-startup-bg relative overflow-hidden">
-        <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
+      <section className="hero-startup-bg hero-city-bg relative overflow-hidden">
+        <video
+          className="hero-city-video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/matchmax_city_background_poster.jpg"
+          aria-hidden="true"
+          tabIndex={-1}
+        >
+          <source src="/matchmax_city_background_2560x1080.mp4" type="video/mp4" />
+        </video>
+        <div className="hero-city-overlay" aria-hidden="true" />
+        <div className="relative z-10 mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col justify-center">
-            <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-[color:var(--ink)] sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
               {t("hero.title_a")}
               <br />
             </h1>
