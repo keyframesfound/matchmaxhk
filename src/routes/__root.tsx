@@ -11,7 +11,7 @@ import { type ReactNode, useEffect } from "react";
 import appCss from "../styles.css?url";
 import { I18nProvider } from "@/features/i18n/I18nProvider";
 import { AuthProvider } from "@/features/auth/useAuth";
-import { TosAcceptanceGate } from "@/features/auth/TosAcceptanceGate";
+import { OnboardingGate } from "@/features/auth/OnboardingGate";
 import { ThemeProvider } from "@/features/theme/ThemeProvider";
 
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
@@ -182,14 +182,14 @@ function RootComponent() {
       <I18nProvider>
         <AuthProvider>
           <ThemeProvider>
-            <TosAcceptanceGate>
+            <OnboardingGate>
               <main id="main-content">
                 <Outlet />
               </main>
               <BackToTopButton />
               <WhatsAppFloatButton />
               <CompareSelectionReset />
-            </TosAcceptanceGate>
+            </OnboardingGate>
             <Toaster />
           </ThemeProvider>
         </AuthProvider>

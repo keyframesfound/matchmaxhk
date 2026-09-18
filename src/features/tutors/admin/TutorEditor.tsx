@@ -1061,10 +1061,7 @@ export function TutorEditor({
                   />
                 </FormField>
 
-                <FormField
-                  label="Tutor Status"
-                  error={errors.tutor_status}
-                >
+                <FormField label="Tutor Status" error={errors.tutor_status}>
                   <SearchableSelect
                     value={form.tutor_status}
                     onChange={(v) =>

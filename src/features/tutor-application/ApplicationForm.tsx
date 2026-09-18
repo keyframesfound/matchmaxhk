@@ -15,6 +15,7 @@ import {
   Sparkles,
   Trash2,
   Upload,
+  User,
   X,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
@@ -50,6 +51,7 @@ import {
 import {
   ACCEPT_ATTRIBUTE,
   ACCEPTED_FILE_TYPES,
+  ACCEPTED_PROFILE_PHOTO_TYPES,
   COMMISSION_TEXT,
   CURRICULUM_OPTIONS,
   EMAIL_REGEX,
@@ -59,6 +61,7 @@ import {
   MAX_FILES,
   MAX_FILE_BYTES,
   PHONE_REGEX,
+  PROFILE_PHOTO_ACCEPT_ATTRIBUTE,
   PROFESSIONAL_ROLE_OPTIONS,
   PROFESSIONAL_STATUS,
   PRIVACY_TEXT,
@@ -193,16 +196,23 @@ function RequiredFlag() {
   return <span className="ml-2 align-middle text-xs font-medium text-destructive">Required</span>;
 }
 
+function OptionalFlag() {
+  return (
+    <span className="ml-2 align-middle text-xs font-medium text-muted-foreground">Optional</span>
+  );
+}
+
 type FieldProps = {
   label: string;
   required?: boolean;
+  optional?: boolean;
   error?: string;
   hint?: React.ReactNode;
   className?: string;
   children: React.ReactNode;
 };
 
-function Field({ label, error, hint, className, children }: FieldProps) {
+function Field({ label, error, optional, hint, className, children }: FieldProps) {
   const control =
     isValidElement(children) && children.type === Input
       ? cloneElement(
@@ -223,6 +233,7 @@ function Field({ label, error, hint, className, children }: FieldProps) {
       <label className={labelClassName}>
         {label}
         {error === "Required" ? <RequiredFlag /> : null}
+        {error !== "Required" && optional ? <OptionalFlag /> : null}
       </label>
       {control}
       {error && error !== "Required" ? (
@@ -266,6 +277,7 @@ const FIELD_LABELS: Record<string, string> = {
   name: "Full Name",
   phone: "Phone / WhatsApp Number",
   email: "Email",
+  profilePhoto: "Profile photo",
   country: "Country / Region",
   countryOther: "Country / Region — specify",
   status: "Current Status",
@@ -311,6 +323,10 @@ function describeFieldError(key: string): string {
 
 function isTranscriptImage(file: File) {
   return ["image/jpeg", "image/png"].includes(file.type) || /\.(jpe?g|png)$/i.test(file.name);
+}
+
+function isProfilePhoto(file: File) {
+  return ACCEPTED_PROFILE_PHOTO_TYPES.includes(file.type) || /\.(jpe?g|png)$/i.test(file.name);
 }
 
 function DocumentUpload({
@@ -419,6 +435,120 @@ function DocumentUpload({
           <span>{progress < 100 ? `Preparing upload ${progress}%` : "Ready"}</span>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function ProfilePhotoUpload({
+  file,
+  onSelect,
+  onRemove,
+}: {
+  file: File | null;
+  onSelect: (file: File) => void;
+  onRemove: () => void;
+}) {
+  const [dragging, setDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  const selectFile = (candidate: File | undefined) => {
+    if (!candidate) return;
+    if (!isProfilePhoto(candidate)) {
+      setError("Please choose a JPG or PNG image.");
+      return;
+    }
+    if (candidate.size > MAX_FILE_BYTES) {
+      setError(`Photo is too large. Maximum ${readableFileSize(MAX_FILE_BYTES)}.`);
+      return;
+    }
+    setError(null);
+    onSelect(candidate);
+  };
+
+  return (
+    <div className="grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:gap-4">
+      <div className="flex items-center gap-4">
+        <label
+          className={cn(
+            "relative grid h-20 w-20 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full border border-border bg-[color:var(--surface-subtle)] text-muted-foreground transition-colors focus-within:ring-2 focus-within:ring-[color:var(--ring)]/40 focus-within:ring-offset-2",
+            dragging && "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.05]",
+            error && "border-destructive",
+          )}
+          onDragEnter={(event) => {
+            event.preventDefault();
+            setDragging(true);
+          }}
+          onDragOver={(event) => event.preventDefault()}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(event) => {
+            event.preventDefault();
+            setDragging(false);
+            selectFile(event.dataTransfer.files[0]);
+          }}
+        >
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt="Profile photo preview"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="grid justify-items-center gap-1">
+              <User className="h-6 w-6" aria-hidden="true" />
+              <span className="text-[10px] font-semibold leading-none">Add photo</span>
+            </span>
+          )}
+          <input
+            type="file"
+            className="sr-only"
+            accept={PROFILE_PHOTO_ACCEPT_ATTRIBUTE}
+            onChange={(event) => {
+              selectFile(event.target.files?.[0]);
+              event.currentTarget.value = "";
+            }}
+          />
+        </label>
+        {file ? (
+          <div className="grid min-w-0 gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-fit"
+              onClick={() => {
+                setError(null);
+                onRemove();
+              }}
+            >
+              <X className="h-3.5 w-3.5" />
+              Remove photo
+            </Button>
+            <p className="break-all text-xs text-muted-foreground">
+              {file.name} ({readableFileSize(file.size)})
+            </p>
+          </div>
+        ) : null}
+      </div>
+      <div className="grid min-w-0 gap-1.5">
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Optional — adding a photo makes your profile more personal, easier for parents to
+          recognise, and helps build trust. A clear headshot works best.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          JPG or PNG, up to {readableFileSize(MAX_FILE_BYTES)}.
+        </p>
+        {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
+      </div>
     </div>
   );
 }
@@ -594,6 +724,7 @@ type ApplicationBaseState = {
   name: string;
   phone: string;
   email: string;
+  photo: File | null;
   country: string;
   countryOther: string;
   graduationYear: string;
@@ -653,6 +784,7 @@ export function ApplicationForm() {
     name: "",
     phone: "+852 ",
     email: "",
+    photo: null,
     country: "Hong Kong",
     countryOther: "",
     graduationYear: "",
@@ -697,6 +829,7 @@ export function ApplicationForm() {
     setBase((prev) => ({
       ...prev,
       ...restoredDraft.base,
+      photo: null,
       achievements: (restoredDraft.base.achievements ?? []).map((achievement) => ({
         ...achievement,
         proof: null,
@@ -730,6 +863,7 @@ export function ApplicationForm() {
       step,
       base: {
         ...base,
+        photo: null,
         achievements: base.achievements.map((achievement) => ({ ...achievement, proof: null })),
       },
       roles,
@@ -1178,6 +1312,14 @@ export function ApplicationForm() {
         name: base.name,
         phone: base.phone,
         email: base.email,
+        profilePhoto: base.photo
+          ? {
+              filename: base.photo.name,
+              contentType: base.photo.type,
+              size: base.photo.size,
+              content: await fileData(base.photo),
+            }
+          : undefined,
         country: base.country === "Other" ? base.countryOther : base.country,
         graduationYear: base.graduationYear,
         startDate: "",
@@ -1676,6 +1818,13 @@ export function ApplicationForm() {
                 step={1}
                 title={professional ? "Basic Details & Professional Status" : "Basic Details"}
               />
+              <Field label="Profile Photo" optional className="sm:col-span-2">
+                <ProfilePhotoUpload
+                  file={base.photo}
+                  onSelect={(photo) => setBaseField("photo", photo)}
+                  onRemove={() => setBaseField("photo", null)}
+                />
+              </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid content-start gap-4">
                   <Field label="Full Name" required error={fieldErrors.name}>

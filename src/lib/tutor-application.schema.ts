@@ -59,11 +59,24 @@ export const TEACHING_QUALIFICATION_OPTIONS = [
   "Registered Teacher (RT)",
 ] as const;
 
+export const ACCEPTED_PROFILE_PHOTO_TYPES = ["image/jpeg", "image/png"];
+export const PROFILE_PHOTO_ACCEPT_ATTRIBUTE = ".jpg,.jpeg,.png";
+
 export const attachmentSchema = z.object({
   filename: z.string().min(1).max(200),
   contentType: z.string().min(1).max(120),
   size: z.number().int().positive().max(MAX_ACHIEVEMENT_FILE_BYTES),
   content: z.string().min(1),
+});
+
+export const profilePhotoSchema = attachmentSchema.superRefine((photo, context) => {
+  if (!ACCEPTED_PROFILE_PHOTO_TYPES.includes(photo.contentType)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["contentType"],
+      message: "Profile photo must be a JPG or PNG image",
+    });
+  }
 });
 
 export const achievementSchema = z
@@ -125,6 +138,7 @@ export const tutorApplicationSchema = z
     awards: z.string().trim().max(2000).optional().default(""),
     achievements: z.array(achievementSchema).max(MAX_FILES).default([]),
     academicDocuments: z.array(academicDocumentSchema).max(MAX_FILES).default([]),
+    profilePhoto: profilePhotoSchema.optional(),
     experience: z.string().trim().max(2000).optional().default(""),
     hourlyRate: z.string().trim().min(1, "Required").max(20),
     materials: z.enum(MATERIALS_OPTIONS),
@@ -322,6 +336,7 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
           .join("\n") || "—",
     },
     { label: "Teaching / tutoring experience", value: data.experience },
+    { label: "Profile photo", value: data.profilePhoto?.filename ?? "—" },
     { label: "Normal hourly rate (HKD)", value: data.hourlyRate },
     { label: "Teaching materials available", value: data.materials },
     { label: "Preferred tutoring format", value: data.format },

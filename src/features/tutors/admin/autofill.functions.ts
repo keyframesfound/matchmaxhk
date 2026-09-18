@@ -81,7 +81,11 @@ const examEntrySchema = z.object({
 });
 
 const autofillResultSchema = z.object({
-  tutor_code: z.string().trim().regex(/^[A-Za-z0-9-]{2,20}$/).catch(""),
+  tutor_code: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9-]{2,20}$/)
+    .catch(""),
   gender: z.enum(["male", "female", "other"]).catch("other"),
   academic_headline: z.string().trim().max(200).catch(""),
   university: z.string().trim().max(200).catch(""),
@@ -103,7 +107,13 @@ const autofillResultSchema = z.object({
   experience_years: z.coerce.number().int().min(0).max(80).nullable().catch(null),
   languages: z.array(z.string().trim().min(1).max(60)).max(8).catch([]),
   card_highlights: z
-    .array(z.string().trim().min(1).max(TUTOR_CARD_HIGHLIGHT_ROW_LIMIT + 40))
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1)
+        .max(TUTOR_CARD_HIGHLIGHT_ROW_LIMIT + 40),
+    )
     .max(MAX_TUTOR_CARD_HIGHLIGHTS + 2)
     .catch([]),
   qualifications_summary: z.string().trim().min(1).max(2000).catch(""),

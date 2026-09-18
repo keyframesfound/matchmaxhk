@@ -79,7 +79,9 @@ export function AutofillDialog({
         result.tutor_code ? "tutor code" : null,
         result.subjects.length > 0 ? `${result.subjects.length} subjects` : null,
         result.exam_results.length > 0 ? `${result.exam_results.length} exam systems` : null,
-        result.card_highlights.length > 0 ? `${result.card_highlights.length} card highlights` : null,
+        result.card_highlights.length > 0
+          ? `${result.card_highlights.length} card highlights`
+          : null,
         result.qualifications_summary ? "bio" : null,
         result.stations.length > 0 ? `${result.stations.length} stations` : null,
         result.hourly_rate > 0 ? "rate" : null,
@@ -169,12 +171,7 @@ export function AutofillDialog({
                 Cancel
               </Button>
               {result ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={apply}
-                  className="h-8 text-xs font-bold"
-                >
+                <Button type="button" size="sm" onClick={apply} className="h-8 text-xs font-bold">
                   Apply to form
                 </Button>
               ) : (

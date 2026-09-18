@@ -673,7 +673,11 @@ function ApplicationDetail({
                       {file.filename}
                     </p>
                     <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                      {file.source === "transcript" ? "Transcript" : "Achievement evidence"}
+                      {file.source === "transcript"
+                        ? "Transcript"
+                        : file.source === "profile_photo"
+                          ? "Profile photo"
+                          : "Achievement evidence"}
                       {file.label ? ` · ${file.label}` : ""} · {formatFileSize(file.size)}
                     </p>
                   </div>

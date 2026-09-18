@@ -37,9 +37,6 @@
   "how": {
     "title": "點樣使用 MatchMax",
     "subtitle": "三個簡單步驟，輕鬆開始補習",
-    "step1_title": "嚴選已核實狀元導師及學校考官：IB、A-Levels、DSE 及 IGCSE。",
-    "step1_desc": "MatchMax 設立極高嘅學術門檻，只接納頂尖導師。每位導師嘅官方成績表及證書，均由我哋團隊親自人工核實，先會正式上架。家長可以喺全港最簡單透明嘅平台上，即時查閱導師嘅已核實成就、實際試卷分數及中學背景。",
-    "cta_find": "瀏覽導師",
     "step2_title": "聯絡我哋",
     "step2_desc": "將導師編號經 WhatsApp 發俾我哋，其餘安排交俾我哋跟進",
     "step3_title": "開始上堂",
@@ -124,11 +121,6 @@
     "dse": "DSE 補習",
     "ib": "IB 國際文憑",
     "view_all": "瀏覽全部科目"
-  },
-  "tutors_cta": {
-    "title": "你專心教學，我哋確保公平。",
-    "subtitle": "由熟悉行業嘅畢業生打造。賺幾多、袋幾多，平台費只係透明嘅 1.5 課時，冇中介大額抽成。匿名刊登保護你嘅私隱，時薪由你自訂，仲可以用港鐵（MTR）篩選工具，輕鬆搵到啱你時間表同通勤路線嘅個案。",
-    "cta": "申請任教"
   },
   "testimonials": {
     "title": "香港家長一致推薦",
@@ -233,7 +225,16 @@
     "tos_body_suffix": "。",
     "tos_accept": "接受",
     "tos_decline": "拒絕",
-    "tos_accept_error": "無法記錄你嘅接受，請再試一次。"
+    "tos_accept_error": "無法記錄你嘅接受，請再試一次。",
+    "onboarding_title": "歡迎嚟到 MatchMax！",
+    "onboarding_title_named": "{{name}}，歡迎嚟到 MatchMax！",
+    "onboarding_subtitle": "你嚟到想做咩？我哋會為你度身訂造體驗。",
+    "onboarding_parent_label": "我搵緊導師",
+    "onboarding_parent_desc": "我想為自己或子女搵補習導師。",
+    "onboarding_tutor_label": "我係導師",
+    "onboarding_tutor_desc": "我想教書同搵新學生。",
+    "onboarding_next": "下一步",
+    "onboarding_error": "無法儲存你嘅選擇，請再試一次。"
   },
   "dashboard": {
     "welcome": "歡迎返嚟",

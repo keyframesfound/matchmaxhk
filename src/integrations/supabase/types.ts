@@ -364,6 +364,7 @@ export type Database = {
           email: string | null;
           id: string;
           locale: string;
+          onboarding_completed_at: string | null;
           phone: string | null;
           theme_preference: string;
           tos_accepted_at: string | null;
@@ -377,6 +378,7 @@ export type Database = {
           email?: string | null;
           id: string;
           locale?: string;
+          onboarding_completed_at?: string | null;
           phone?: string | null;
           theme_preference?: string;
           tos_accepted_at?: string | null;
@@ -390,6 +392,7 @@ export type Database = {
           email?: string | null;
           id?: string;
           locale?: string;
+          onboarding_completed_at?: string | null;
           phone?: string | null;
           theme_preference?: string;
           tos_accepted_at?: string | null;
@@ -832,6 +835,7 @@ export type Database = {
     };
     Functions: {
       claim_org_memberships: { Args: never; Returns: number };
+      complete_onboarding: { Args: { _choice: string }; Returns: undefined };
       get_org_role: {
         Args: { _org_id: string; _user_id?: string };
         Returns: Database["public"]["Enums"]["org_member_role"];

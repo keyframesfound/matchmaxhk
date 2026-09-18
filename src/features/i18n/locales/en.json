@@ -34,9 +34,6 @@
   },
   "how": {
     "title": "Search for the right tutor",
-    "step1_title": "Verified Top Scorers & School Examiners: IB, A-Levels, DSE & IGCSE.",
-    "step1_desc": "MatchMax sets a strictly high academic bar, exclusively accepting premium tutors. Every official transcript and certificate is manually verified by our team before a profile ever goes live. Experience the easiest, most transparent platform in Hong Kong to instantly review verified tutor achievements, exact paper scores, and secondary school backgrounds.",
-    "cta_find": "Browse Tutors",
     "step2_title": "Get matched",
     "step2_desc": "Share your Tutor Code with our team and we'll connect you with your tutor.",
     "step3_title": "Start learning",
@@ -107,11 +104,6 @@
     "skip_prefix": "Skip the manual filters — tell us what you need and we'll",
     "skip_highlight": "source a match for free",
     "skip_suffix": "."
-  },
-  "tutors_cta": {
-    "title": "You Do the Teaching. We Keep It Fair.",
-    "subtitle": "Built by graduates who know the industry. Keep what you earn with a transparent 1.5-lesson platform fee—no massive agency cuts. Protect your privacy with anonymous listings, set your own hourly rates, and use our MTR filtering tool to seamlessly find cases that fit your schedule and commute.",
-    "cta": "Apply to Teach"
   },
   "footer": {
     "tagline": "Master your exams through 1-on-1 tutoring with the experts who grade them and the elite alumni who aced them. Connect instantly with verified official examiners and proven top scorers.",
@@ -207,7 +199,16 @@
     "tos_body_suffix": ".",
     "tos_accept": "Accept",
     "tos_decline": "Decline",
-    "tos_accept_error": "Could not record your acceptance. Please try again."
+    "tos_accept_error": "Could not record your acceptance. Please try again.",
+    "onboarding_title": "Welcome to MatchMax!",
+    "onboarding_title_named": "{{name}}, welcome to MatchMax!",
+    "onboarding_subtitle": "What brings you here? We'll tailor your experience to fit you.",
+    "onboarding_parent_label": "I'm looking for a tutor",
+    "onboarding_parent_desc": "I want to find tutoring for myself or my child.",
+    "onboarding_tutor_label": "I'm a tutor",
+    "onboarding_tutor_desc": "I want to teach and find new students.",
+    "onboarding_next": "Next",
+    "onboarding_error": "Could not save your choice. Please try again."
   },
   "dashboard": {
     "welcome": "Welcome back",
