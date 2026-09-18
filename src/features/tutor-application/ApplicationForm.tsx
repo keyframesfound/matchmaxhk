@@ -1017,6 +1017,7 @@ export function ApplicationForm() {
       if (professional) required("credentials", credentials);
       else {
         required("highSchool", base.highSchool.trim());
+        required("year", base.year.trim());
         qualifications.forEach((qualification, index) => {
           required(`curriculum-${index}`, qualification.curriculum);
           required(`overall-${index}`, qualification.overall.trim());
@@ -1188,6 +1189,7 @@ export function ApplicationForm() {
         university: base.university,
         programme: base.programme,
         highSchool: professional ? base.highSchool || "Not provided" : base.highSchool,
+        year: base.year.trim(),
         curriculum: primary.curriculum,
         curricula: qualifications.map((qualification) => qualification.curriculum),
         overallScore: professional ? "Not applicable - professional pathway" : primary.overall,
@@ -1850,7 +1852,7 @@ export function ApplicationForm() {
                         placeholder="Diocesan Boys' School, 2023"
                       />
                     </Field>
-                    <Field label="Current Year of Study">
+                    <Field label="Current Year of Study" required error={fieldErrors.year}>
                       <Input
                         value={base.year}
                         onChange={(event) => setBaseField("year", event.target.value)}

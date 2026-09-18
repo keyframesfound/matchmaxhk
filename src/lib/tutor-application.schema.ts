@@ -106,6 +106,7 @@ export const tutorApplicationSchema = z
     phone: z.string().trim().min(5, "Required").max(60),
     email: z.string().trim().email("Enter a valid email"),
     country: z.string().trim().min(1, "Required").max(100),
+    year: z.string().trim().max(40).optional().default(""),
     graduationYear: z.string().trim().max(40).optional().default(""),
     startDate: z.string().trim().max(40).optional().default(""),
     status: z.enum(STATUS_OPTIONS),
@@ -144,6 +145,14 @@ export const tutorApplicationSchema = z
   })
   .superRefine((data, context) => {
     const isProfessional = data.status === PROFESSIONAL_STATUS;
+
+    if (!isProfessional && !data.year) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["year"],
+        message: "Required",
+      });
+    }
 
     if (data.format !== "Online" && !data.locations) {
       context.addIssue({
@@ -285,6 +294,7 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
       : []),
     { label: "University / institution", value: data.university || "—" },
     { label: "Degree / programme", value: data.programme || "—" },
+    { label: "Current year of study", value: data.year || "—" },
     { label: "High school and graduation year", value: data.highSchool },
     { label: "Primary curriculum", value: data.curriculum },
     { label: "Curricula completed", value: data.curricula.join(", ") },
