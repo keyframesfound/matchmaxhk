@@ -607,7 +607,7 @@
     "price_min": "最低",
     "price_max": "最高",
     "pick_uni": "大學生",
-    "pick_examiner": "考官／教師",
+    "pick_examiner": "考官",
     "pick_full_part": "全職／兼職",
     "pick_budget": "HK$300 以下",
     "tab_cases": "個案",
@@ -616,6 +616,10 @@
     "pick_female": "女導師",
     "pick_male": "男導師",
     "pick_online": "網上",
-    "pick_in_person": "上門"
+    "pick_in_person": "上門",
+    "gender_title": "性別",
+    "status_title": "導師類型",
+    "sort_title": "排序方式",
+    "show_tutors": "顯示 {{count}} 位導師"
   }
 }

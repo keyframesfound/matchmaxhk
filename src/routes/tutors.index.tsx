@@ -35,6 +35,10 @@ const searchSchema = z.object({
   max_price: z.coerce.number().int().min(0).optional(),
   sort: z.string().optional(), // "" | price_asc | price_desc
   q: z.string().optional(),
+  open: z.preprocess(
+    (value) => (value === "1" || value === "true" || value === true ? true : undefined),
+    z.boolean().optional(),
+  ), // transient: opens the mobile search overlay when hopping tabs
 });
 type SearchState = z.infer<typeof searchSchema>;
 
@@ -217,6 +221,7 @@ function TutorsDirectory() {
               onClear={clearAll}
               resultCount={filtered.length}
               allPrices={tutors.map((tutor) => tutor.hourly_rate)}
+              defaultOverlayOpen={search.open === true}
               whatsappUrl={hotlineUrl || undefined}
             />
           </div>

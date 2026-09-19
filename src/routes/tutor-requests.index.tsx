@@ -33,14 +33,16 @@ import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functi
 export const Route = createFileRoute("/tutor-requests/")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { post?: true; q?: string; category?: string; district?: string } => {
-    const result: { post?: true; q?: string; category?: string; district?: string } = {};
+  ): { post?: true; q?: string; category?: string; district?: string; open?: true } => {
+    const result: { post?: true; q?: string; category?: string; district?: string; open?: true } =
+      {};
     if (search.post === "1" || search.post === true || search.post === "true") result.post = true;
     if (typeof search.q === "string" && search.q.trim()) result.q = search.q;
     if (typeof search.category === "string" && search.category.trim())
       result.category = search.category;
     if (typeof search.district === "string" && search.district.trim())
       result.district = search.district;
+    if (search.open === "1" || search.open === "true" || search.open === true) result.open = true;
     return result;
   },
   head: () => ({
@@ -332,6 +334,7 @@ function TutorRequestsPage() {
             onApply={applySearch}
             onClear={clearSearch}
             subjectOptions={boardSubjects}
+            defaultOverlayOpen={search.open === true}
           />
         </PageContainer>
       </section>

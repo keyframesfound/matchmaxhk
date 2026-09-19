@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { PanelLabel, SearchBigInput, SuggestedRow, type OptionRow } from "./search-controls";
 import { KeywordPanelContent, SearchPillBar, type PillSegment } from "./search-pill-bar";
 import { MobileSearchOverlay, type MobileSearchTab } from "./mobile-search-overlay";
+import { setSearchSlideDirection } from "./slide-direction";
 import { MobileSearchTrigger } from "./mobile-search-trigger";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
@@ -43,6 +44,8 @@ type CasesSearchProps = {
   onApply: (override?: Partial<CasesSearchState>) => void;
   onClear: () => void;
   subjectOptions: string[];
+  /** Open the mobile overlay on mount (used when hopping between search tabs). */
+  defaultOverlayOpen?: boolean;
   className?: string;
 };
 
@@ -53,11 +56,12 @@ export function CasesSearch({
   onApply,
   onClear,
   subjectOptions,
+  defaultOverlayOpen,
   className,
 }: CasesSearchProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [overlayOpen, setOverlayOpen] = useState(false);
+  const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
 
   const categoryOptions: OptionRow[] = CASE_CATEGORY_VALUES.map((value) => ({
     value,
@@ -116,10 +120,10 @@ export function CasesSearch({
       icon: <GraduationCap className="h-5 w-5" aria-hidden="true" />,
       active: false,
       onSelect: () => {
-        setOverlayOpen(false);
+        setSearchSlideDirection("prev");
         void navigate({
           to: "/tutors",
-          search: { q: draft.q, mode: undefined, subject: undefined },
+          search: { q: draft.q, mode: undefined, subject: undefined, open: true },
         });
       },
     },
@@ -131,10 +135,10 @@ export function CasesSearch({
             icon: <BookOpen className="h-5 w-5" aria-hidden="true" />,
             active: false,
             onSelect: () => {
-              setOverlayOpen(false);
+              setSearchSlideDirection("prev");
               void navigate({
                 to: "/courses",
-                search: { q: draft.q, subject: undefined, mode: undefined },
+                search: { q: draft.q, subject: undefined, mode: undefined, open: true },
               });
             },
           },

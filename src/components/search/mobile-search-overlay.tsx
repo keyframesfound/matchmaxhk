@@ -1,8 +1,10 @@
 import { Search, X } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { readSlideDirection } from "./slide-direction";
 
 export type MobileSearchTab = {
   id: string;
@@ -16,6 +18,7 @@ export type MobileSearchTab = {
 /**
  * Full-screen Airbnb-style mobile search overlay: tab row + close bubble up
  * top, a rounded panel body, and a sticky footer with "Clear all" + Search.
+ * Switching tabs cross-page slides the new overlay in from the side.
  */
 export function MobileSearchOverlay({
   open,
@@ -37,11 +40,23 @@ export function MobileSearchOverlay({
   onSubmit: () => void;
 }) {
   const { t } = useTranslation();
+  const [direction] = useState<"next" | "prev" | null>(() => readSlideDirection());
+  const [closing, setClosing] = useState(false);
+  const closeTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (!open) setClosing(false);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onOpenChange(false);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setClosing(true);
+        window.clearTimeout(closeTimer.current);
+        closeTimer.current = window.setTimeout(() => onOpenChange(false), 180);
+      }
     };
     document.addEventListener("keydown", onKey);
     const previousOverflow = document.body.style.overflow;
@@ -52,13 +67,41 @@ export function MobileSearchOverlay({
     };
   }, [open, onOpenChange]);
 
+  useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+
   if (!open) return null;
+
+  const requestClose = () => {
+    if (closing) return;
+    setClosing(true);
+    window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => onOpenChange(false), 180);
+  };
+
+  const enterClass =
+    direction === "next"
+      ? "slide-in-from-right"
+      : direction === "prev"
+        ? "slide-in-from-left"
+        : "fade-in";
+  const exitClass =
+    direction === "next"
+      ? "slide-out-to-right"
+      : direction === "prev"
+        ? "slide-out-to-left"
+        : "fade-out";
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[70] flex flex-col bg-[color:var(--surface-subtle)] lg:hidden"
+      className={cn(
+        "fixed inset-0 z-[70] flex flex-col bg-[color:var(--surface-subtle)] lg:hidden",
+        "animate-in ease-out",
+        closing
+          ? cn(exitClass, "animation-duration-200")
+          : cn(enterClass, "animation-duration-300"),
+      )}
     >
       <div className="relative flex items-center justify-center gap-5 px-10 pt-3 pb-1 sm:gap-7">
         {tabs?.map((tab) => (
@@ -90,7 +133,7 @@ export function MobileSearchOverlay({
         <button
           type="button"
           aria-label={t("search_ui.close_search")}
-          onClick={() => onOpenChange(false)}
+          onClick={requestClose}
           className="absolute right-3 top-2.5 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           <X className="h-4 w-4" aria-hidden="true" />

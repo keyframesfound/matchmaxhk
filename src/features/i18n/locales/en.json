@@ -582,7 +582,7 @@
     "price_min": "Minimum",
     "price_max": "Maximum",
     "pick_uni": "Uni student",
-    "pick_examiner": "Examiner / pro",
+    "pick_examiner": "Examiner",
     "pick_full_part": "Full / part-time",
     "pick_budget": "Under HK$300",
     "tab_cases": "Cases",
@@ -591,6 +591,10 @@
     "pick_female": "Female",
     "pick_male": "Male",
     "pick_online": "Online",
-    "pick_in_person": "In-person"
+    "pick_in_person": "In-person",
+    "gender_title": "Gender",
+    "status_title": "Tutor status",
+    "sort_title": "Sort",
+    "show_tutors": "Show {{count}} tutors"
   }
 }

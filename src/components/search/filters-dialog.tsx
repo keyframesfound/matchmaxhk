@@ -143,6 +143,7 @@ export function FiltersDialog({
           <div className="relative flex items-center">
             <input
               type="text"
+              autoFocus
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t("search_ui.search_all_filters")}
@@ -282,7 +283,7 @@ export function FilterQuickPicks({
             aria-pressed={option.active}
             onClick={option.onToggle}
             className={cn(
-              "flex w-24 shrink-0 flex-col items-center justify-center gap-2.5 rounded-2xl border px-2 py-3.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+              "flex w-28 shrink-0 flex-col items-center justify-center gap-2.5 rounded-2xl border px-2 py-3.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
               option.active
                 ? "border-[1.5px] border-[color:var(--foreground)] bg-card"
                 : "border-border bg-card hover:bg-[color:var(--surface-subtle)]",
@@ -297,7 +298,7 @@ export function FilterQuickPicks({
             />
             <span
               className={cn(
-                "text-center text-xs leading-tight",
+                "w-full truncate text-center text-xs whitespace-nowrap leading-tight",
                 option.active
                   ? "font-bold text-[color:var(--ink)]"
                   : "font-medium text-[color:var(--ink)]/75",

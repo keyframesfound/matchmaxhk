@@ -18,6 +18,7 @@ import {
 } from "./filters-dialog";
 import { KeywordPanelContent, SearchPillBar, type PillSegment } from "./search-pill-bar";
 import { MobileSearchOverlay, type MobileSearchTab } from "./mobile-search-overlay";
+import { setSearchSlideDirection } from "./slide-direction";
 import { MobileSearchTrigger } from "./mobile-search-trigger";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { COURSE_LEVEL_OPTIONS, COURSE_MODE_OPTIONS } from "@/features/courses/queries";
@@ -37,6 +38,8 @@ type CoursesSearchProps = {
   onApply: (override?: Partial<CoursesSearchState>) => void;
   onClear: () => void;
   subjectOptions: string[];
+  /** Open the mobile overlay on mount (used when hopping between search tabs). */
+  defaultOverlayOpen?: boolean;
   className?: string;
 };
 
@@ -46,12 +49,13 @@ export function CoursesSearch({
   onApply,
   onClear,
   subjectOptions,
+  defaultOverlayOpen,
   className,
 }: CoursesSearchProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [overlayOpen, setOverlayOpen] = useState(false);
+  const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
 
   const levelOptions: OptionRow[] = COURSE_LEVEL_OPTIONS.map((level) => ({
     value: level,
@@ -158,10 +162,10 @@ export function CoursesSearch({
       icon: <GraduationCap className="h-5 w-5" aria-hidden="true" />,
       active: false,
       onSelect: () => {
-        setOverlayOpen(false);
+        setSearchSlideDirection("prev");
         void navigate({
           to: "/tutors",
-          search: { q: draft.q, subject: draft.subject, mode: draft.mode },
+          search: { q: draft.q, subject: draft.subject, mode: draft.mode, open: true },
         });
       },
     },
@@ -178,8 +182,8 @@ export function CoursesSearch({
       icon: <ClipboardList className="h-5 w-5" aria-hidden="true" />,
       active: false,
       onSelect: () => {
-        setOverlayOpen(false);
-        void navigate({ to: "/tutor-requests", search: { q: draft.q } });
+        setSearchSlideDirection("next");
+        void navigate({ to: "/tutor-requests", search: { q: draft.q, open: true } });
       },
     },
   ];

@@ -20,6 +20,10 @@ const searchSchema = z.object({
   mode: z.string().optional(),
   district: z.string().optional(),
   q: z.string().optional(),
+  open: z.preprocess(
+    (value) => (value === "1" || value === "true" || value === true ? true : undefined),
+    z.boolean().optional(),
+  ), // transient: opens the mobile search overlay when hopping tabs
 });
 type SearchState = z.infer<typeof searchSchema>;
 
@@ -121,6 +125,7 @@ function CoursesDirectory() {
               onApply={handleSearch}
               onClear={clearAll}
               subjectOptions={subjects ?? []}
+              defaultOverlayOpen={search.open === true}
             />
           </div>
         </section>

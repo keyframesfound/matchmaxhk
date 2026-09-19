@@ -31,6 +31,7 @@ import {
 } from "./filters-dialog";
 import { KeywordPanelContent, SearchPillBar, type PillSegment } from "./search-pill-bar";
 import { MobileSearchOverlay, type MobileSearchTab } from "./mobile-search-overlay";
+import { setSearchSlideDirection } from "./slide-direction";
 import { MobileSearchTrigger } from "./mobile-search-trigger";
 import { MtrStationPickerContent } from "@/components/ui/mtr-station-select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -74,6 +75,8 @@ type TutorsSearchProps = {
   resultCount?: number;
   /** All published tutors' hourly rates — powers the price histogram. */
   allPrices?: number[];
+  /** Open the mobile overlay on mount (used when hopping between search tabs). */
+  defaultOverlayOpen?: boolean;
   whatsappUrl?: string;
   className?: string;
 };
@@ -85,13 +88,14 @@ export function TutorsSearch({
   onClear,
   resultCount,
   allPrices,
+  defaultOverlayOpen,
   whatsappUrl,
   className,
 }: TutorsSearchProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [overlayOpen, setOverlayOpen] = useState(false);
+  const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
   const [moreOpen, setMoreOpen] = useState(false);
 
   const subjectOptions = getSubjectOptionsForCategory(draft.category);
@@ -330,10 +334,10 @@ export function TutorsSearch({
             icon: <BookOpen className="h-5 w-5" aria-hidden="true" />,
             active: false,
             onSelect: () => {
-              setOverlayOpen(false);
+              setSearchSlideDirection("next");
               void navigate({
                 to: "/courses",
-                search: { q: draft.q, subject: draft.subject, mode: draft.mode },
+                search: { q: draft.q, subject: draft.subject, mode: draft.mode, open: true },
               });
             },
           },
@@ -345,8 +349,8 @@ export function TutorsSearch({
       icon: <ClipboardList className="h-5 w-5" aria-hidden="true" />,
       active: false,
       onSelect: () => {
-        setOverlayOpen(false);
-        void navigate({ to: "/tutor-requests", search: { q: draft.q } });
+        setSearchSlideDirection("next");
+        void navigate({ to: "/tutor-requests", search: { q: draft.q, open: true } });
       },
     },
   ];
