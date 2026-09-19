@@ -21,11 +21,7 @@ import {
   matchesStationFilter,
   type Tutor,
 } from "@/features/tutors/queries";
-import {
-  getSubjectOptionsForCategory,
-  matchesCategoryFilter,
-  matchesSubjectQuery,
-} from "@/features/tutors/subjects";
+import { matchesCategoryFilter, matchesSubjectQuery } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({
@@ -201,20 +197,6 @@ function TutorsDirectory() {
     });
   };
 
-  const handleQuickCategory = (category: string | undefined) => {
-    navigate({
-      search: (prev: SearchState) => {
-        const nextSubjectOptions = getSubjectOptionsForCategory(category);
-        return {
-          ...prev,
-          category: category || undefined,
-          subject:
-            prev.subject && nextSubjectOptions.includes(prev.subject) ? prev.subject : undefined,
-        };
-      },
-    });
-  };
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
@@ -232,9 +214,9 @@ function TutorsDirectory() {
               draft={draft}
               onDraftChange={setDraftParam}
               onApply={applySearch}
-              onQuickCategory={handleQuickCategory}
               onClear={clearAll}
               resultCount={filtered.length}
+              allPrices={tutors.map((tutor) => tutor.hourly_rate)}
               whatsappUrl={hotlineUrl || undefined}
             />
           </div>

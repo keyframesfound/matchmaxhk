@@ -9,8 +9,8 @@ export type OptionRow = {
 };
 
 /**
- * Airbnb-style "Type of place" segmented control. Flat pill track with a solid
- * ink thumb for the active option — elevation comes from contrast, not shadows.
+ * Airbnb-style "Type of place" segmented control: hairline track, outlined
+ * bold thumb for the active option — elevation from borders, not fills.
  */
 export function Segmented<T extends string>({
   value,
@@ -30,11 +30,11 @@ export function Segmented<T extends string>({
       role="radiogroup"
       aria-label={ariaLabel}
       className={cn(
-        "grid auto-cols-fr grid-flow-col rounded-full border border-border bg-card p-1",
+        "grid auto-cols-fr grid-flow-col overflow-hidden rounded-xl border border-border bg-card p-0",
         className,
       )}
     >
-      {options.map((option) => {
+      {options.map((option, index) => {
         const active = option.value === value;
         return (
           <button
@@ -44,10 +44,11 @@ export function Segmented<T extends string>({
             aria-checked={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              "flex h-9 min-w-0 items-center justify-center gap-1 rounded-full px-2 text-[13px] font-semibold whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:px-3.5",
+              "flex h-10 min-w-0 items-center justify-center gap-1 border-0 px-2 text-[13px] whitespace-nowrap transition-[background-color,border-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40 sm:px-4",
+              index > 0 && !active && "border-l border-border",
               active
-                ? "bg-[color:var(--foreground)] text-[color:var(--background)]"
-                : "text-[color:var(--ink)]/65 hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]",
+                ? "rounded-lg border-[1.5px] border-[color:var(--foreground)] font-bold text-[color:var(--ink)]"
+                : "font-medium text-[color:var(--ink)]/60 hover:bg-[color:var(--foreground)]/[0.04] hover:text-[color:var(--ink)]",
             )}
           >
             <span className="truncate">{option.label}</span>

@@ -1,23 +1,41 @@
-import { BookOpen, ChevronDown, GraduationCap } from "lucide-react";
+import {
+  BadgeCheck,
+  BookOpen,
+  Briefcase,
+  ChevronDown,
+  ClipboardList,
+  Coins,
+  GraduationCap,
+  MapPin,
+  Monitor,
+  UserRound,
+  Users,
+} from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
 import {
-  Segmented,
   PanelLabel,
   SearchBigInput,
+  Segmented,
   SuggestedRow,
   type OptionRow,
 } from "./search-controls";
-import { FiltersDialog, FiltersPillButton, FiltersSection } from "./filters-dialog";
+import {
+  FilterQuickPicks,
+  FiltersDialog,
+  FiltersPillButton,
+  FiltersSection,
+} from "./filters-dialog";
 import { KeywordPanelContent, SearchPillBar, type PillSegment } from "./search-pill-bar";
 import { MobileSearchOverlay, type MobileSearchTab } from "./mobile-search-overlay";
-import { MobileSearchTrigger, type QuickChip } from "./mobile-search-trigger";
+import { MobileSearchTrigger } from "./mobile-search-trigger";
 import { MtrStationPickerContent } from "@/components/ui/mtr-station-select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import { DEFAULT_SUBJECT_OPTIONS, getSubjectOptionsForCategory } from "@/features/tutors/subjects";
@@ -39,6 +57,7 @@ export type TutorsSearchState = {
 const PRICE_MIN = 100;
 const PRICE_MAX = 1200;
 const PRICE_STEP = 10;
+const HISTOGRAM_BUCKETS = 28;
 
 const CATEGORY_VALUES = ["IB", "DSE", "IGCSE", "AP", "A-Level"];
 
@@ -50,11 +69,11 @@ type TutorsSearchProps = {
   onDraftChange: (patch: Partial<TutorsSearchState>) => void;
   /** Apply the current draft (navigate). `override` merges values set in the same event. */
   onApply: (override?: Partial<TutorsSearchState>) => void;
-  /** Instantly apply a curriculum chip from the mobile trigger row. */
-  onQuickCategory: (category: string | undefined) => void;
   onClear: () => void;
   /** Live count for the "Show N tutors" button; omit for a plain "Search tutors" label. */
   resultCount?: number;
+  /** All published tutors' hourly rates — powers the price histogram. */
+  allPrices?: number[];
   whatsappUrl?: string;
   className?: string;
 };
@@ -63,9 +82,9 @@ export function TutorsSearch({
   draft,
   onDraftChange,
   onApply,
-  onQuickCategory,
   onClear,
   resultCount,
+  allPrices,
   whatsappUrl,
   className,
 }: TutorsSearchProps) {
@@ -93,7 +112,32 @@ export function TutorsSearch({
     });
   };
 
-  const priceValue: [number, number] = [draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX];
+  const priceValue = useMemo(
+    () => [draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX] as [number, number],
+    [draft.min_price, draft.max_price],
+  );
+
+  const priceHistogram = useMemo(() => {
+    if (!allPrices || allPrices.length === 0) return null;
+    const span = PRICE_MAX - PRICE_MIN;
+    const buckets = new Array<number>(HISTOGRAM_BUCKETS).fill(0);
+    for (const price of allPrices) {
+      const clamped = Math.min(Math.max(price, PRICE_MIN), PRICE_MAX);
+      const index = Math.min(
+        HISTOGRAM_BUCKETS - 1,
+        Math.floor(((clamped - PRICE_MIN) / span) * HISTOGRAM_BUCKETS),
+      );
+      buckets[index] += 1;
+    }
+    const peak = Math.max(...buckets, 1);
+    return buckets.map((count, index) => ({
+      level: count / peak,
+      inRange:
+        (index + 0.5) / HISTOGRAM_BUCKETS >= (priceValue[0] - PRICE_MIN) / span &&
+        (index + 0.5) / HISTOGRAM_BUCKETS <= (priceValue[1] - PRICE_MIN) / span,
+    }));
+    // priceValue is derived from draft; histogram re-tints when the range moves.
+  }, [allPrices, priceValue]);
 
   const filterCount = [
     draft.gender,
@@ -151,36 +195,67 @@ export function TutorsSearch({
       ? t("search_ui.search_tutors")
       : t("search_ui.show_tutors", { count: resultCount });
 
-  const quickChips: QuickChip[] = [
+  const quickPicks = [
     {
-      key: "all",
-      label: t("search_ui.chip_all"),
-      active: !draft.category,
-      onClick: () => onQuickCategory(undefined),
-    },
-    ...CATEGORY_VALUES.map((value) => ({
-      key: value,
-      label: value,
-      active: draft.category === value,
-      onClick: () => onQuickCategory(value),
-    })),
-    {
-      key: "Primary",
-      label: t("search_ui.chip_primary"),
-      active: draft.category === "Primary",
-      onClick: () => onQuickCategory("Primary"),
+      id: "uni",
+      label: t("search_ui.pick_uni"),
+      icon: GraduationCap,
+      active: draft.status === "uni_student",
+      onToggle: () =>
+        onDraftChange({ status: draft.status === "uni_student" ? undefined : "uni_student" }),
     },
     {
-      key: "Junior Secondary",
-      label: t("search_ui.chip_junior"),
-      active: draft.category === "Junior Secondary",
-      onClick: () => onQuickCategory("Junior Secondary"),
+      id: "examiner",
+      label: t("search_ui.pick_examiner"),
+      icon: BadgeCheck,
+      active: draft.status === "examiner",
+      onToggle: () =>
+        onDraftChange({ status: draft.status === "examiner" ? undefined : "examiner" }),
     },
     {
-      key: "Admissions",
-      label: t("search_ui.chip_admissions"),
-      active: draft.category === "Admissions",
-      onClick: () => onQuickCategory("Admissions"),
+      id: "fullpart",
+      label: t("search_ui.pick_full_part"),
+      icon: Briefcase,
+      active: draft.status === "full_part_time_tutor",
+      onToggle: () =>
+        onDraftChange({
+          status: draft.status === "full_part_time_tutor" ? undefined : "full_part_time_tutor",
+        }),
+    },
+    {
+      id: "female",
+      label: t("search_ui.pick_female"),
+      icon: UserRound,
+      active: draft.gender === "female",
+      onToggle: () => onDraftChange({ gender: draft.gender === "female" ? undefined : "female" }),
+    },
+    {
+      id: "male",
+      label: t("search_ui.pick_male"),
+      icon: Users,
+      active: draft.gender === "male",
+      onToggle: () => onDraftChange({ gender: draft.gender === "male" ? undefined : "male" }),
+    },
+    {
+      id: "budget",
+      label: t("search_ui.pick_budget"),
+      icon: Coins,
+      active: draft.max_price === 300,
+      onToggle: () => onDraftChange({ max_price: draft.max_price === 300 ? undefined : 300 }),
+    },
+    {
+      id: "online",
+      label: t("search_ui.pick_online"),
+      icon: Monitor,
+      active: draft.mode === "online",
+      onToggle: () => onDraftChange({ mode: draft.mode === "online" ? undefined : "online" }),
+    },
+    {
+      id: "inperson",
+      label: t("search_ui.pick_in_person"),
+      icon: MapPin,
+      active: draft.mode === "in_person",
+      onToggle: () => onDraftChange({ mode: draft.mode === "in_person" ? undefined : "in_person" }),
     },
   ];
 
@@ -264,6 +339,16 @@ export function TutorsSearch({
           },
         ]
       : []),
+    {
+      id: "cases",
+      label: t("search_ui.tab_cases"),
+      icon: <ClipboardList className="h-5 w-5" aria-hidden="true" />,
+      active: false,
+      onSelect: () => {
+        setOverlayOpen(false);
+        void navigate({ to: "/tutor-requests", search: { q: draft.q } });
+      },
+    },
   ];
 
   return (
@@ -304,31 +389,21 @@ export function TutorsSearch({
           ) : undefined
         }
       >
-        <FiltersSection title={t("search_panel.price_range")} hint={t("search_ui.price_hint")}>
-          <div className="space-y-3">
-            <Label className="text-sm tabular-nums text-[color:var(--ink)]">
-              {t("search_panel.price_from")} {formatPrice(priceValue[0])}{" "}
-              {t("search_panel.price_to")} {formatPrice(priceValue[1])}
-            </Label>
-            <Slider
-              value={priceValue}
-              onValueChange={([lo, hi]) =>
-                onDraftChange({
-                  min_price: lo > PRICE_MIN ? lo : undefined,
-                  max_price: hi < PRICE_MAX ? hi : undefined,
-                })
-              }
-              min={PRICE_MIN}
-              max={PRICE_MAX}
-              step={PRICE_STEP}
-              minStepsBetweenThumbs={1}
-              showTooltip
-              tooltipContent={formatPrice}
-              aria-label={t("search_panel.price_range")}
-            />
-          </div>
+        <FiltersSection id="recommended" title={t("search_ui.quick_title")}>
+          <FilterQuickPicks options={quickPicks} />
         </FiltersSection>
-        <FiltersSection title={t("search_ui.gender_title")}>
+        <FiltersSection
+          id="price"
+          title={t("search_panel.price_range")}
+          hint={t("search_ui.price_hint")}
+        >
+          <PriceFields
+            priceValue={priceValue}
+            histogram={priceHistogram}
+            onDraftChange={onDraftChange}
+          />
+        </FiltersSection>
+        <FiltersSection id="gender" title={t("search_ui.gender_title")}>
           <Segmented
             aria-label={t("search_panel.any_gender")}
             value={draft.gender ?? ""}
@@ -337,7 +412,7 @@ export function TutorsSearch({
             className="max-w-xs"
           />
         </FiltersSection>
-        <FiltersSection title={t("search_ui.status_title")}>
+        <FiltersSection id="status" title={t("search_ui.status_title")}>
           <SearchableSelect
             value={draft.status ?? ""}
             onChange={(value) => onDraftChange({ status: value || undefined })}
@@ -346,7 +421,7 @@ export function TutorsSearch({
             className="h-11 rounded-xl"
           />
         </FiltersSection>
-        <FiltersSection title={t("search_ui.sort_title")}>
+        <FiltersSection id="sort" title={t("search_ui.sort_title")}>
           <SearchableSelect
             value={draft.sort ?? ""}
             onChange={(value) => onDraftChange({ sort: value || undefined })}
@@ -361,7 +436,6 @@ export function TutorsSearch({
       <MobileSearchTrigger
         label={t("search_ui.start_search")}
         onClick={() => setOverlayOpen(true)}
-        chips={quickChips}
       />
 
       <MobileSearchOverlay
@@ -478,22 +552,7 @@ export function TutorsSearch({
                     {t("search_panel.price_from")} {formatPrice(priceValue[0])}{" "}
                     {t("search_panel.price_to")} {formatPrice(priceValue[1])}
                   </Label>
-                  <Slider
-                    value={priceValue}
-                    onValueChange={([lo, hi]) =>
-                      onDraftChange({
-                        min_price: lo > PRICE_MIN ? lo : undefined,
-                        max_price: hi < PRICE_MAX ? hi : undefined,
-                      })
-                    }
-                    min={PRICE_MIN}
-                    max={PRICE_MAX}
-                    step={PRICE_STEP}
-                    minStepsBetweenThumbs={1}
-                    showTooltip
-                    tooltipContent={formatPrice}
-                    aria-label={t("search_panel.price_range")}
-                  />
+                  <PriceFields priceValue={priceValue} onDraftChange={onDraftChange} />
                 </div>
                 <div className="space-y-2">
                   <PanelLabel>{t("search_ui.sort_title")}</PanelLabel>
@@ -511,6 +570,100 @@ export function TutorsSearch({
           </div>
         </div>
       </MobileSearchOverlay>
+    </div>
+  );
+}
+
+/** Airbnb-style price range: histogram (optional) + slider + min/max pills. */
+function PriceFields({
+  priceValue,
+  onDraftChange,
+  histogram,
+}: {
+  priceValue: [number, number];
+  onDraftChange: (patch: Partial<TutorsSearchState>) => void;
+  histogram?: Array<{ level: number; inRange: boolean }> | null;
+}) {
+  const { t } = useTranslation();
+  const span = PRICE_MAX - PRICE_MIN;
+  return (
+    <div className="space-y-3">
+      {histogram ? (
+        <div className="flex h-10 items-end gap-px" aria-hidden="true">
+          {histogram.map((bucket, index) => (
+            <span
+              key={index}
+              className={cn(
+                "w-full min-w-px",
+                bucket.inRange
+                  ? "bg-[color:var(--brand-royal)]"
+                  : "bg-[color:var(--foreground)]/[0.18]",
+              )}
+              style={{ height: `${Math.max(10, Math.round(bucket.level * 100))}%` }}
+            />
+          ))}
+        </div>
+      ) : null}
+      <Slider
+        value={priceValue}
+        onValueChange={([lo, hi]) =>
+          onDraftChange({
+            min_price: lo > PRICE_MIN ? lo : undefined,
+            max_price: hi < PRICE_MAX ? hi : undefined,
+          })
+        }
+        min={PRICE_MIN}
+        max={PRICE_MAX}
+        step={PRICE_STEP}
+        minStepsBetweenThumbs={1}
+        showTooltip
+        tooltipContent={formatPrice}
+        aria-label={t("search_panel.price_range")}
+      />
+      <div className="flex items-end justify-between gap-3">
+        <div className="w-28 space-y-1.5">
+          <span className="text-xs font-semibold text-[color:var(--ink)]/70">
+            {t("search_ui.price_min")}
+          </span>
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={PRICE_MIN}
+            max={priceValue[1] - PRICE_STEP}
+            step={PRICE_STEP}
+            value={priceValue[0]}
+            onChange={(event) => {
+              const raw = Number(event.target.value);
+              if (!Number.isFinite(raw)) return;
+              const clamped = Math.min(Math.max(raw, PRICE_MIN), priceValue[1] - PRICE_STEP);
+              onDraftChange({ min_price: clamped > PRICE_MIN ? clamped : undefined });
+            }}
+            aria-label={t("search_ui.price_min")}
+            className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-semibold tabular-nums"
+          />
+        </div>
+        <div className="w-28 space-y-1.5">
+          <span className="text-xs font-semibold text-[color:var(--ink)]/70">
+            {t("search_ui.price_max")}
+          </span>
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={priceValue[0] + PRICE_STEP}
+            max={PRICE_MAX}
+            step={PRICE_STEP}
+            value={priceValue[1]}
+            onChange={(event) => {
+              const raw = Number(event.target.value);
+              if (!Number.isFinite(raw)) return;
+              const clamped = Math.min(Math.max(raw, priceValue[0] + PRICE_STEP), PRICE_MAX);
+              onDraftChange({ max_price: clamped < PRICE_MAX ? clamped : undefined });
+            }}
+            aria-label={t("search_ui.price_max")}
+            className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-semibold tabular-nums"
+          />
+        </div>
+      </div>
     </div>
   );
 }

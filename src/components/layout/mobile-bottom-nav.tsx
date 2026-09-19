@@ -109,8 +109,12 @@ export function MobileBottomNav() {
       <Sheet open={accountOpen} onOpenChange={setAccountOpen}>
         <SheetContent
           side="bottom"
-          className="rounded-t-3xl border-border px-5 pt-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+          className="rounded-t-3xl border-border bg-[color:var(--surface)] px-5 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
         >
+          <div
+            aria-hidden="true"
+            className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-[color:var(--foreground)]/20"
+          />
           <SheetTitle className="sr-only">{t("nav.account_title")}</SheetTitle>
           <div className="space-y-1.5">
             {user ? (

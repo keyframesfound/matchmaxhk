@@ -19,7 +19,7 @@ import {
   getTutorCardHighlights,
   type Tutor,
 } from "@/features/tutors/queries";
-import { getSubjectOptionsForCategory, matchesCategoryFilter } from "@/features/tutors/subjects";
+import { matchesCategoryFilter } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
 const OG_IMAGE =
@@ -372,19 +372,6 @@ function Landing() {
     navigate({ to: "/tutors", search: params });
   };
 
-  const handleQuickCategory = (category: string | undefined) => {
-    const nextSubjects = getSubjectOptionsForCategory(category);
-    const subjectKept =
-      homeSearch.subject && nextSubjects.includes(homeSearch.subject)
-        ? homeSearch.subject
-        : undefined;
-    setHomeSearchParam({ category: category || undefined, subject: subjectKept });
-    navigate({
-      to: "/tutors",
-      search: { ...tutorSearchParams, category: category || undefined, subject: subjectKept },
-    });
-  };
-
   // JSON-LD
   const structuredData = {
     "@context": "https://schema.org",
@@ -433,12 +420,11 @@ function Landing() {
 
       <section className="relative pt-6 pb-14 md:pt-10 md:pb-16">
         <div className="mx-auto max-w-[1440px] px-4 md:px-6">
-          <div className="relative z-20 rounded-sm border border-border bg-card p-2.5 sm:p-5">
+          <div className="relative z-20 p-2.5 sm:p-5 lg:rounded-sm lg:border lg:bg-card">
             <TutorsSearch
               draft={homeSearch}
               onDraftChange={setHomeSearchParam}
               onApply={applyHomeSearch}
-              onQuickCategory={handleQuickCategory}
               onClear={() => setHomeSearch({})}
             />
           </div>

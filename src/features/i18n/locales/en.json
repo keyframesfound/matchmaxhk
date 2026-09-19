@@ -21,7 +21,8 @@
     "account_title": "MatchMax account",
     "account_subtitle": "Manage your profile and preferences",
     "account_menu_label": "Account menu",
-    "account_language": "Language"
+    "account_language": "Language",
+    "back": "Back"
   },
   "hero": {
     "title_a": "Match with your perfect tutor",
@@ -537,7 +538,8 @@
     "case": "Case",
     "explore": "Explore",
     "saved_posts": "Saved",
-    "account": "Account"
+    "account": "Account",
+    "quick_links": "Quick links"
   },
   "search_ui": {
     "start_search": "Start your search",
@@ -574,6 +576,21 @@
     "search_tutors": "Search tutors",
     "show_courses_plain": "Show courses",
     "tab_tutors": "Tutors",
-    "tab_courses": "Courses"
+    "tab_courses": "Courses",
+    "search_all_filters": "Search all filters",
+    "quick_title": "Recommended for you",
+    "price_min": "Minimum",
+    "price_max": "Maximum",
+    "pick_uni": "Uni student",
+    "pick_examiner": "Examiner / pro",
+    "pick_full_part": "Full / part-time",
+    "pick_budget": "Under HK$300",
+    "tab_cases": "Cases",
+    "case_other": "Other",
+    "cases_placeholder": "Search subject, district, keyword…",
+    "pick_female": "Female",
+    "pick_male": "Male",
+    "pick_online": "Online",
+    "pick_in_person": "In-person"
   }
 }

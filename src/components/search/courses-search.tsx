@@ -1,19 +1,24 @@
-import { BookOpen, GraduationCap } from "lucide-react";
+import { BookOpen, ClipboardList, GraduationCap } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
-  Segmented,
   PanelLabel,
   SearchBigInput,
+  Segmented,
   SuggestedRow,
   type OptionRow,
 } from "./search-controls";
-import { FiltersDialog, FiltersPillButton, FiltersSection } from "./filters-dialog";
+import {
+  FilterQuickPicks,
+  FiltersDialog,
+  FiltersPillButton,
+  FiltersSection,
+} from "./filters-dialog";
 import { KeywordPanelContent, SearchPillBar, type PillSegment } from "./search-pill-bar";
 import { MobileSearchOverlay, type MobileSearchTab } from "./mobile-search-overlay";
-import { MobileSearchTrigger, type QuickChip } from "./mobile-search-trigger";
+import { MobileSearchTrigger } from "./mobile-search-trigger";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { COURSE_LEVEL_OPTIONS, COURSE_MODE_OPTIONS } from "@/features/courses/queries";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
@@ -30,7 +35,6 @@ type CoursesSearchProps = {
   draft: CoursesSearchState;
   onDraftChange: (patch: Partial<CoursesSearchState>) => void;
   onApply: (override?: Partial<CoursesSearchState>) => void;
-  onQuickLevel: (level: string | undefined) => void;
   onClear: () => void;
   subjectOptions: string[];
   className?: string;
@@ -40,7 +44,6 @@ export function CoursesSearch({
   draft,
   onDraftChange,
   onApply,
-  onQuickLevel,
   onClear,
   subjectOptions,
   className,
@@ -81,20 +84,13 @@ export function CoursesSearch({
     return option.label;
   })();
 
-  const quickChips: QuickChip[] = [
-    {
-      key: "all",
-      label: t("search_ui.chip_all"),
-      active: !draft.level,
-      onClick: () => onQuickLevel(undefined),
-    },
-    ...COURSE_LEVEL_OPTIONS.map((level) => ({
-      key: level,
-      label: level,
-      active: draft.level === level,
-      onClick: () => onQuickLevel(level),
-    })),
-  ];
+  const quickPicks = COURSE_LEVEL_OPTIONS.map((level) => ({
+    id: level,
+    label: level,
+    icon: BookOpen,
+    active: draft.level === level,
+    onToggle: () => onDraftChange({ level: draft.level === level ? undefined : level }),
+  }));
 
   const segments: PillSegment[] = [
     {
@@ -176,6 +172,16 @@ export function CoursesSearch({
       active: true,
       onSelect: () => {},
     },
+    {
+      id: "cases",
+      label: t("search_ui.tab_cases"),
+      icon: <ClipboardList className="h-5 w-5" aria-hidden="true" />,
+      active: false,
+      onSelect: () => {
+        setOverlayOpen(false);
+        void navigate({ to: "/tutor-requests", search: { q: draft.q } });
+      },
+    },
   ];
 
   return (
@@ -203,11 +209,14 @@ export function CoursesSearch({
         onClear={onClear}
         onApply={() => onApply()}
       >
-        <FiltersSection title={t("search_ui.segment_district")}>
+        <FiltersSection id="recommended" title={t("search_ui.quick_title")}>
+          <FilterQuickPicks options={quickPicks} />
+        </FiltersSection>
+        <FiltersSection id="district" title={t("search_ui.segment_district")}>
           <SearchableSelect
             value={draft.district ?? ""}
             onChange={(value) => onDraftChange({ district: value || undefined })}
-            options={districtOptions}
+            options={[{ value: "", label: t("search_ui.any_district") }, ...districtOptions]}
             placeholder={t("search_ui.any_district")}
             searchPlaceholder={t("search_panel.search_subject")}
             className="h-11 rounded-xl"
@@ -218,7 +227,6 @@ export function CoursesSearch({
       <MobileSearchTrigger
         label={t("search_ui.start_search")}
         onClick={() => setOverlayOpen(true)}
-        chips={quickChips}
       />
 
       <MobileSearchOverlay
@@ -293,7 +301,7 @@ export function CoursesSearch({
             <SearchableSelect
               value={draft.district ?? ""}
               onChange={(value) => onDraftChange({ district: value || undefined })}
-              options={districtOptions}
+              options={[{ value: "", label: t("search_ui.any_district") }, ...districtOptions]}
               placeholder={t("search_ui.any_district")}
               searchPlaceholder={t("search_panel.search_subject")}
               className="h-12 rounded-2xl"

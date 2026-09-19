@@ -4,6 +4,7 @@ import { ArrowRight, Clock3, Search, UserRoundCheck } from "lucide-react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { PageBackButton } from "@/components/layout/page-back-button";
 import {
   Accordion,
   AccordionContent,
@@ -280,6 +281,9 @@ function HowItWorksPage() {
     <div className="how-it-works-paper flex min-h-screen flex-col text-[color:var(--ink)]">
       <SiteHeader className="!border-b-0 !bg-white/95 dark:!bg-[color:var(--surface)]" />
       <main className="flex-1">
+        <div className="mx-auto max-w-[1440px] px-5 pt-5 lg:hidden">
+          <PageBackButton />
+        </div>
         <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
           <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
             {t("hiw.hero_eyebrow")}

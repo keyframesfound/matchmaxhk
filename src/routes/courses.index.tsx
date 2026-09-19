@@ -100,12 +100,6 @@ function CoursesDirectory() {
     navigate({ search: { ...draft, ...override } });
   };
 
-  const handleQuickLevel = (level: string | undefined) => {
-    navigate({
-      search: (prev: SearchState) => ({ ...prev, level: level || undefined }),
-    });
-  };
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
@@ -125,7 +119,6 @@ function CoursesDirectory() {
               draft={draft}
               onDraftChange={setDraftParam}
               onApply={handleSearch}
-              onQuickLevel={handleQuickLevel}
               onClear={clearAll}
               subjectOptions={subjects ?? []}
             />

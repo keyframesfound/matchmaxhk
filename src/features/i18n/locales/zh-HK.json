@@ -21,7 +21,8 @@
     "account_title": "MatchMax 帳戶",
     "account_subtitle": "管理你嘅個人資料同偏好設定",
     "account_menu_label": "帳戶選單",
-    "account_language": "語言"
+    "account_language": "語言",
+    "back": "返回"
   },
   "hero": {
     "eyebrow": "香港智能補習配對平台",
@@ -563,7 +564,8 @@
     "case": "個案",
     "explore": "探索",
     "saved_posts": "已儲存",
-    "account": "帳戶"
+    "account": "帳戶",
+    "quick_links": "快速連結"
   },
   "search_ui": {
     "start_search": "開始搜尋",
@@ -599,6 +601,21 @@
     "search_tutors": "搜尋導師",
     "show_courses_plain": "顯示課程",
     "tab_tutors": "導師",
-    "tab_courses": "課程"
+    "tab_courses": "課程",
+    "search_all_filters": "搜尋所有篩選",
+    "quick_title": "為你推薦",
+    "price_min": "最低",
+    "price_max": "最高",
+    "pick_uni": "大學生",
+    "pick_examiner": "考官／教師",
+    "pick_full_part": "全職／兼職",
+    "pick_budget": "HK$300 以下",
+    "tab_cases": "個案",
+    "case_other": "其他",
+    "cases_placeholder": "搜尋科目、地區、關鍵字…",
+    "pick_female": "女導師",
+    "pick_male": "男導師",
+    "pick_online": "網上",
+    "pick_in_person": "上門"
   }
 }

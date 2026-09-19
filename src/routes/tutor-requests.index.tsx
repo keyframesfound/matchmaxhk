@@ -1,7 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, CalendarClock, Clock, Inbox, MapPin, Wallet } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import {
+  ArrowRight,
+  BadgeCheck,
+  CalendarClock,
+  Clock,
+  Inbox,
+  MapPin,
+  SearchX,
+  Wallet,
+} from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -10,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CaseRequestForm } from "@/features/cases/CaseRequestForm";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
+import { CasesSearch, type CasesSearchState } from "@/components/search/cases-search";
 import {
   CaseCompareBar,
   CaseCompareDialog,
@@ -20,9 +31,18 @@ import { CASE_MODE_LABEL, formatCaseBudget, formatCaseSchedule } from "@/feature
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
 export const Route = createFileRoute("/tutor-requests/")({
-  validateSearch: (search: Record<string, unknown>): { post?: true } => ({
-    post: search.post === "1" || search.post === true || search.post === "true" ? true : undefined,
-  }),
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { post?: true; q?: string; category?: string; district?: string } => {
+    const result: { post?: true; q?: string; category?: string; district?: string } = {};
+    if (search.post === "1" || search.post === true || search.post === "true") result.post = true;
+    if (typeof search.q === "string" && search.q.trim()) result.q = search.q;
+    if (typeof search.category === "string" && search.category.trim())
+      result.category = search.category;
+    if (typeof search.district === "string" && search.district.trim())
+      result.district = search.district;
+    return result;
+  },
   head: () => ({
     meta: [
       { title: "Tutor Request Board — Post a Request or Apply for Cases | MatchMax" },
@@ -150,11 +170,43 @@ function ListSkeleton({ rows }: { rows: number }) {
 const NOTICE_DISMISSED_KEY = "mm-case-request-notice-dismissed";
 
 function TutorRequestsPage() {
-  const initialPost = Route.useSearch().post;
+  const { t } = useTranslation();
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: "/tutor-requests/" });
+  const initialPost = search.post;
+  const [draft, setDraft] = useState<CasesSearchState>({
+    q: search.q,
+    category: search.category,
+    district: search.district,
+  });
   const [formOpen, setFormOpen] = useState(Boolean(initialPost));
   const [noticeOpen, setNoticeOpen] = useState(false);
   const formSectionRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    setDraft({ q: search.q, category: search.category, district: search.district });
+  }, [search]);
+
+  const setDraftParam = (patch: Partial<CasesSearchState>) => {
+    setDraft((prev) => ({ ...prev, ...patch }));
+  };
+
+  const applySearch = (override?: Partial<CasesSearchState>) => {
+    const next = { ...draft, ...override };
+    navigate({
+      search: {
+        post: initialPost,
+        q: next.q,
+        category: next.category,
+        district: next.district,
+      },
+    });
+  };
+
+  const clearSearch = () => {
+    setDraft({});
+    navigate({ search: { post: initialPost } });
+  };
 
   const { data } = useQuery({
     queryKey: ["cases", "board"],
@@ -162,6 +214,36 @@ function TutorRequestsPage() {
   });
   const cases = useMemo(() => data?.items ?? [], [data]);
   const isLoading = !data;
+
+  const boardSubjects = useMemo(
+    () =>
+      Array.from(new Set(cases.flatMap((item) => item.subjects.filter(Boolean)))).sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    [cases],
+  );
+
+  const filteredCases = useMemo(() => {
+    const query = (search.q ?? "").trim().toLowerCase();
+    return cases.filter((item) => {
+      if (search.category && caseSectionKey(item.examSystem) !== search.category) return false;
+      if (search.district && item.district !== search.district) return false;
+      if (query) {
+        const haystack = [
+          item.title,
+          item.description ?? "",
+          ...item.subjects,
+          item.district ?? "",
+          item.examSystem ?? "",
+          ...item.tags,
+        ]
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      return true;
+    });
+  }, [cases, search]);
 
   const { compareCases, compareOpen, setCompareOpen, clearCompare } = useCaseCompare(cases);
 
@@ -199,7 +281,7 @@ function TutorRequestsPage() {
   // Group the board by exam system, keeping the most common curricula first.
   const groups = useMemo(() => {
     const byExamSystem = new Map<string, PublicCaseBoardItem[]>();
-    for (const item of cases) {
+    for (const item of filteredCases) {
       const section = caseSectionKey(item.examSystem);
       const list = byExamSystem.get(section) ?? [];
       list.push(item);
@@ -213,7 +295,9 @@ function TutorRequestsPage() {
       section,
       items: byExamSystem.get(section)!,
     }));
-  }, [cases]);
+  }, [filteredCases]);
+
+  const hasActiveFilters = Boolean(search.q || search.category || search.district);
 
   return (
     <PublicPage mainClassName="bg-[color:var(--surface-subtle)]">
@@ -241,6 +325,14 @@ function TutorRequestsPage() {
               {formOpen ? "Hide form" : "Post your request"}
             </Button>
           </div>
+          <CasesSearch
+            className="mt-7"
+            draft={draft}
+            onDraftChange={setDraftParam}
+            onApply={applySearch}
+            onClear={clearSearch}
+            subjectOptions={boardSubjects}
+          />
         </PageContainer>
       </section>
 
@@ -313,6 +405,11 @@ function TutorRequestsPage() {
             <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
               Open requests
             </h2>
+            {hasActiveFilters ? (
+              <p className="mt-2 text-sm font-semibold text-[color:var(--ink)]/70">
+                {filteredCases.length} {filteredCases.length === 1 ? "match" : "matches"}
+              </p>
+            ) : null}
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
               Real tutoring requests from Hong Kong parents. Open a case for the full details and
               apply for the ones that fit your schedule.
@@ -349,6 +446,26 @@ function TutorRequestsPage() {
                     className="h-11 px-6 font-bold"
                   >
                     Post your request
+                  </Button>
+                </div>
+              </div>
+            ) : filteredCases.length === 0 ? (
+              <div className="p-8 text-center sm:p-12">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
+                  <SearchX
+                    className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                    aria-hidden="true"
+                  />
+                </div>
+                <h3 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                  {t("directory.empty_title")}
+                </h3>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                  {t("directory.empty_desc")}
+                </p>
+                <div className="mt-6 flex justify-center">
+                  <Button onClick={clearSearch} variant="outline">
+                    {t("search_ui.clear_all")}
                   </Button>
                 </div>
               </div>
