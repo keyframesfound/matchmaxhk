@@ -156,7 +156,6 @@ export function CoursesSearchBar({
       label: t("search_ui.segment_mode"),
       display: modeDisplay,
       filled: Boolean(draft.mode),
-      panelClassName: "w-[min(24rem,calc(100vw-2rem))]",
       content: (
         <div className="space-y-3">
           <p className="text-sm font-bold text-[color:var(--ink)]">{t("search_ui.segment_mode")}</p>

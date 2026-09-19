@@ -320,7 +320,6 @@ export function TutorsSearchBar({
       label: t("search_ui.segment_mode"),
       display: modeDisplay,
       filled: Boolean(draft.mode),
-      panelClassName: "w-[min(22rem,calc(100vw-2rem))]",
       content: (
         <ModePanelContent
           mode={draft.mode ?? ""}
