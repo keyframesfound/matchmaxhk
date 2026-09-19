@@ -86,8 +86,13 @@ export function SearchPillBar({
   const [internalOpenId, setInternalOpenId] = useState<string | null>(null);
   const openId = openSegmentId !== undefined ? openSegmentId : internalOpenId;
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [panelLeft, setPanelLeft] = useState(0);
   const openIdRef = useRef(openId);
   openIdRef.current = openId;
+  const firstSegmentIdRef = useRef<string | null>(null);
+  firstSegmentIdRef.current = segments[0]?.id ?? null;
+  const lastSegmentIdRef = useRef<string | null>(null);
+  lastSegmentIdRef.current = segments[segments.length - 1]?.id ?? null;
   const setOpenId = useCallback(
     (id: string | null) => {
       setInternalOpenId(id);
@@ -107,55 +112,58 @@ export function SearchPillBar({
   const hoverX = useMotionValue(0);
   const hoverWidth = useMotionValue(0);
   const hoverOpacity = useMotionValue(0);
-  const panelX = useMotionValue(0);
   const hasHighlight = useRef(false);
   const hasHoverPill = useRef(false);
-  const hasPanelPosition = useRef(false);
+
+  /** Geometry for a segment's pill: full bar height, flush with both caps. */
+  const pillGeometry = (segmentId: string) => {
+    const form = formRef.current;
+    const button = buttonRefs.current.get(segmentId);
+    if (!form || !button) return null;
+    // First segment starts flush at the left cap; the last segment's pill runs
+    // through the submit button to the right cap (the button renders above it)
+    // — rounded caps would otherwise leave a grey rim of the wash visible.
+    const x = firstSegmentIdRef.current === segmentId ? 0 : button.offsetLeft;
+    let width = button.offsetWidth;
+    if (lastSegmentIdRef.current === segmentId) {
+      width = form.clientWidth - x;
+    }
+    return { x, width, height: form.clientHeight };
+  };
 
   /** Place a full-height pill over a segment, snapping or spring-sliding. */
   const movePill = useCallback(
     (x: MotionValue<number>, width: MotionValue<number>, segmentId: string, snap: boolean) => {
-      const form = formRef.current;
-      const button = buttonRefs.current.get(segmentId);
-      if (!form || !button) return;
-      // Full bar height: the pill spans flush between the borders, Airbnb-style.
+      const geo = pillGeometry(segmentId);
+      if (!geo) return;
       if (snap || prefersReducedMotion === true) {
-        x.set(button.offsetLeft);
-        width.set(button.offsetWidth);
-        highlightHeight.set(form.clientHeight);
+        x.set(geo.x);
+        width.set(geo.width);
+        highlightHeight.set(geo.height);
       } else {
-        animate(x, button.offsetLeft, HIGHLIGHT_SPRING);
-        animate(width, button.offsetWidth, HIGHLIGHT_SPRING);
-        animate(highlightHeight, form.clientHeight, HIGHLIGHT_SPRING);
+        animate(x, geo.x, HIGHLIGHT_SPRING);
+        animate(width, geo.width, HIGHLIGHT_SPRING);
+        animate(highlightHeight, geo.height, HIGHLIGHT_SPRING);
       }
     },
+    // pillGeometry only reads refs, so a stale closure is safe here.
+
     [prefersReducedMotion, highlightHeight],
   );
 
   /** Wrapper-relative panel offset, left-aligned to the segment and clamped to the viewport. */
-  const movePanel = useCallback(
-    (segmentId: string, snap: boolean) => {
-      const wrapper = wrapperRef.current;
-      const button = buttonRefs.current.get(segmentId);
-      console.log("[movePanel]", segmentId, snap, {
-        wrapper: !!wrapper,
-        button: !!button,
-        wrapperLeft: wrapper?.getBoundingClientRect().left,
-        buttonLeft: button?.getBoundingClientRect().left,
-      });
-      if (!wrapper || !button) return;
-      const wrapperLeft = wrapper.getBoundingClientRect().left;
-      const buttonLeft = button.getBoundingClientRect().left;
-      const panelWidth = Math.min(PANEL_WIDTH, window.innerWidth - PANEL_VIEWPORT_MARGIN * 2);
-      const min = PANEL_VIEWPORT_MARGIN;
-      const max = Math.max(min, window.innerWidth - PANEL_VIEWPORT_MARGIN - panelWidth);
-      const clampedLeft = Math.min(Math.max(buttonLeft, min), max);
-      const target = clampedLeft - wrapperLeft;
-      if (snap || prefersReducedMotion === true) panelX.set(target);
-      else animate(panelX, target, HIGHLIGHT_SPRING);
-    },
-    [prefersReducedMotion, panelX],
-  );
+  const movePanel = useCallback((segmentId: string) => {
+    const wrapper = wrapperRef.current;
+    const button = buttonRefs.current.get(segmentId);
+    if (!wrapper || !button) return;
+    const wrapperLeft = wrapper.getBoundingClientRect().left;
+    const buttonLeft = button.getBoundingClientRect().left;
+    const panelWidth = Math.min(PANEL_WIDTH, window.innerWidth - PANEL_VIEWPORT_MARGIN * 2);
+    const min = PANEL_VIEWPORT_MARGIN;
+    const max = Math.max(min, window.innerWidth - PANEL_VIEWPORT_MARGIN - panelWidth);
+    const clampedLeft = Math.min(Math.max(buttonLeft, min), max);
+    setPanelLeft(clampedLeft - wrapperLeft);
+  }, []);
 
   /**
    * Drives the white pill: fades in when a panel opens, spring-slides to the
@@ -192,15 +200,11 @@ export function SearchPillBar({
     animate(hoverOpacity, 1, { duration: 0.15 });
   }, [hoveredId, openId, movePill, hoverX, hoverWidth, hoverOpacity]);
 
-  // Position the panel before first paint on open so it never flashes at x: 0.
+  // Position the panel before first paint on open/switch. State-driven so the
+  // value always reaches the DOM (a MotionValue.set during the mounting commit
+  // does not); the CSS left transition supplies the slide between segments.
   useIsomorphicLayoutEffect(() => {
-    console.log("[panelLayoutEffect]", openId, hasPanelPosition.current);
-    if (!openId) {
-      hasPanelPosition.current = false;
-      return;
-    }
-    movePanel(openId, !hasPanelPosition.current);
-    hasPanelPosition.current = true;
+    if (openId) movePanel(openId);
   }, [openId, movePanel]);
 
   /** Keep both pills glued to their segments across resizes/reflows. */
@@ -208,19 +212,19 @@ export function SearchPillBar({
     const form = formRef.current;
     if (!form) return;
     const sync = () => {
-      highlightHeight.set(form.clientHeight);
       if (openId) {
-        const button = buttonRefs.current.get(openId);
-        if (button) {
-          highlightX.set(button.offsetLeft);
-          highlightWidth.set(button.offsetWidth);
+        const geo = pillGeometry(openId);
+        if (geo) {
+          highlightX.set(geo.x);
+          highlightWidth.set(geo.width);
+          highlightHeight.set(geo.height);
         }
       }
       if (hoveredId && hoveredId !== openId) {
-        const button = buttonRefs.current.get(hoveredId);
-        if (button) {
-          hoverX.set(button.offsetLeft);
-          hoverWidth.set(button.offsetWidth);
+        const geo = pillGeometry(hoveredId);
+        if (geo) {
+          hoverX.set(geo.x);
+          hoverWidth.set(geo.width);
         }
       }
     };
@@ -240,7 +244,7 @@ export function SearchPillBar({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpenId(null);
     };
-    const onResize = () => movePanel(openId, true);
+    const onResize = () => movePanel(openId);
     document.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("resize", onResize);
@@ -360,8 +364,8 @@ export function SearchPillBar({
             animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
             exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98, y: -4 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="absolute left-0 top-[calc(100%+10px)] z-50 w-[min(24rem,calc(100vw-2rem))] rounded-3xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-4"
-            style={{ x: panelX }}
+            className="absolute top-[calc(100%+10px)] z-50 w-[min(24rem,calc(100vw-2rem))] rounded-3xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-4 transition-[left] duration-300 ease-out motion-reduce:transition-none"
+            style={{ left: panelLeft }}
           >
             <div key={openId}>
               {panelSegment.title ? (

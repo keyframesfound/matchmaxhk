@@ -1,19 +1,13 @@
-# Search pill bar: grey hover pill in both states, click-only panel switching
+# Remove remaining grey around the search button (last segment active)
 
-One file: `src/components/search/search-pill-bar.tsx`.
+One-line geometry change in `src/components/search/search-pill-bar.tsx`, in `pillGeometry()`.
 
-## Behavior (matching your two screenshots)
-1. **Nothing selected + hover** → the hovered segment gets a full-height **grey pill** (same grey tone as the bar wash, `--foreground` at 10%), spring-morphing between segments as you move across the bar. The bar itself stays white and no white pill shows.
-2. **One selected (panel open, clicked)** → unchanged: bar greys, **white pill** on the open segment. Hovering another segment now shows the **grey pill on the hovered segment** (slightly darker over the grey bar, like Airbnb) — the white pill and panel **stay put**.
-3. **Panels switch on click only.** Removing the hover-steal: hovering no longer moves the panel or white pill; clicking another segment swaps the persistent panel in place (no close/reopen flash) and springs the white pill over. This also removes the `switchedByHover` click-suppression workaround.
+## Problem
+When **Lesson mode** (the last segment) is active, its white pill spans only up to the submit button's left edge. The grey engagement wash therefore stays visible: in the small gap before the button, around the circular button, and across the bar's right cap — the grey area in your screenshot.
 
-## Implementation
-- Reintroduce `hoveredId` (pointer enter/focus per segment; cleared on wrapper pointer-leave and focus-left).
-- Second motion pill (`bg-[color:var(--foreground)]/[0.1]`) driven by its own motion values; generalize the existing `moveHighlight` into `movePill(x, width, segmentId, snap)` shared by both pills (both full bar height, shared spring, reduced-motion snap, ResizeObserver glue).
-- Grey pill hides when the hovered segment *is* the open one (white pill already covers it).
-- Dividers hide around whichever segment currently carries either pill.
-- `onPointerEnter` no longer calls `setOpenId`; click toggles open/close as before.
+## Fix
+Extend the last segment's pill (both the white clicked pill and the grey hover pill — they share `pillGeometry`) from "up to the submit button" to the bar's full inner width (`form.clientWidth - x`). The submit button renders above the pill, so it stays fully visible; the pill's `rounded-full` right end exactly matches the bar's rounded right cap, so the whole region around the button becomes white with no grey remainder. Middle segments keep the Airbnb grey to their right, and switching segments still springs the pill back to normal width.
 
 ## Verification
-- `npx tsc --noEmit`, targeted eslint on the file, `npm run build`.
-- Browser test on `/tutors` (dev server port 3101): idle hover → grey pill only, bar stays white; click → grey bar + white pill + panel; hover another segment while open → grey pill on it, panel and white pill unmoved; click it → panel swaps in place, white pill springs over; outside click / Esc still close.
+- `npx tsc --noEmit` + targeted eslint on the file.
+- Browser test on `/tutors` (dev server port 3101): open Lesson mode → measure that the white pill's right edge meets the bar's right inner edge (no grey between pill and cap, button still on top); hover Lesson mode while another panel is open → grey pill covers the same span; switch to a middle segment → grey correctly shows right of the white pill again. Screenshot to confirm.
