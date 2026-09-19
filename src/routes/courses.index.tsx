@@ -113,7 +113,7 @@ function CoursesDirectory() {
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
-        <section className="hero-startup-bg border-b border-border py-12">
+        <section className="border-b border-border py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <p className="text-sm font-semibold text-[color:var(--brand-link)]">Course directory</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">

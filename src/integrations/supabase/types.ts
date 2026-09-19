@@ -869,6 +869,10 @@ export type Database = {
         }[];
       };
       org_is_active: { Args: { _org_id: string }; Returns: boolean };
+      switch_role: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] };
+        Returns: undefined;
+      };
       tutor_card_highlights_valid: {
         Args: { highlight_values: string[] };
         Returns: boolean;

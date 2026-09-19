@@ -15,7 +15,6 @@ import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
 import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
-import { blurActive } from "@/lib/dom";
 import { cn } from "@/lib/utils";
 import {
   fetchPublishedTutors,
@@ -444,53 +443,7 @@ function Landing() {
 
       <SiteHeader />
 
-      {/* HERO SECTION */}
-      <section className="hero-startup-bg hero-city-bg relative overflow-hidden">
-        <video
-          ref={heroVideoRef}
-          className="hero-city-video"
-          autoPlay
-          muted
-          defaultMuted
-          loop
-          playsInline
-          preload="auto"
-          poster="/matchmax_city_background_poster.jpg"
-          aria-hidden="true"
-          tabIndex={-1}
-        >
-          <source src="/matchmax_city_background_2560x1080.mp4" type="video/mp4" />
-        </video>
-        <div className="hero-city-overlay" aria-hidden="true" />
-        <div className="relative z-10 mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-4 pt-6 pb-12 md:px-6 md:pt-24 md:pb-28 lg:grid-cols-2 lg:gap-16">
-          <div className="flex flex-col justify-center">
-            <h1 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
-              {t("hero.title_a")}
-              <br />
-            </h1>
-            <div className="mt-6 flex flex-wrap gap-3 md:mt-8">
-              <Button
-                asChild
-                size="lg"
-                className="h-12 w-full rounded-xl bg-[color:var(--surface-invert)] px-5 text-base font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] md:h-14 md:w-auto md:rounded-md md:px-8 md:text-lg"
-              >
-                <Link
-                  to="/tutors"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    blurActive();
-                  }}
-                >
-                  {t("hero.cta_primary")}
-                  <ArrowRight className="ml-2 h-6 w-6 md:h-5 md:w-5" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="relative z-20 -mt-4 pb-14 md:-mt-7 md:pb-16">
+      <section className="relative pt-6 pb-14 md:pt-10 md:pb-16">
         <div className="mx-auto max-w-[1440px] px-4 md:px-6">
           <div className="relative z-20 rounded-sm border border-border bg-card p-2.5 sm:p-5">
             <div className="flex items-center justify-between gap-2 border-b border-border pb-2.5 sm:pb-4">

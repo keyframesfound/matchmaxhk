@@ -148,7 +148,7 @@ function PricingPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
-        <section className="hero-startup-bg border-b border-border py-16">
+        <section className="border-b border-border py-16">
           <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
             <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
               For tutoring businesses

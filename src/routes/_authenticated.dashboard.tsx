@@ -2,13 +2,17 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   Bookmark,
+  Check,
   CircleUserRound,
+  GraduationCap,
   KeyRound,
   Monitor,
   Moon,
   Palette,
+  Search,
   Sun,
   Trash2,
+  UserCog,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -49,9 +53,30 @@ const THEME_OPTIONS: {
 
 const SETTINGS_SECTIONS = [
   { id: "profile", label: "Profile", icon: CircleUserRound },
+  { id: "account-type", label: "Account type", icon: UserCog },
   { id: "security", label: "Password", icon: KeyRound },
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "danger-zone", label: "Danger zone", icon: Trash2 },
+];
+
+const ACCOUNT_TYPE_OPTIONS: {
+  value: "parent" | "tutor";
+  label: string;
+  description: string;
+  icon: typeof Search;
+}[] = [
+  {
+    value: "parent",
+    label: "Looking for a tutor",
+    description: "Find tutoring for yourself or your child.",
+    icon: Search,
+  },
+  {
+    value: "tutor",
+    label: "Tutor",
+    description: "Offer tutoring and find new students.",
+    icon: GraduationCap,
+  },
 ];
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -66,7 +91,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function SettingsPage() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, hasRole, hasAnyRole, refreshRoles } = useAuth();
   const { theme, setTheme } = useTheme();
 
   const [displayName, setDisplayName] = useState("");
@@ -77,6 +102,18 @@ function SettingsPage() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [activeSection, setActiveSection] = useState("profile");
+
+  // Internal roles are managed by admins; the account type switcher is for
+  // self-serve users only.
+  const isInternal = hasAnyRole(["admin", "staff", "super_admin"]);
+  const currentRole: "parent" | "tutor" = hasRole("tutor") ? "tutor" : "parent";
+  const [roleChoice, setRoleChoice] = useState<"parent" | "tutor">(currentRole);
+  const [savingRole, setSavingRole] = useState(false);
+  const roleDirty = roleChoice !== currentRole;
+
+  useEffect(() => {
+    setRoleChoice(currentRole);
+  }, [currentRole]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -153,6 +190,21 @@ function SettingsPage() {
     }
   }
 
+  async function saveAccountType() {
+    if (!roleDirty || savingRole) return;
+    setSavingRole(true);
+    try {
+      const { error } = await supabase.rpc("switch_role", { _role: roleChoice });
+      if (error) throw error;
+      await refreshRoles();
+      toast.success("Your account type has been updated.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update your account type.");
+    } finally {
+      setSavingRole(false);
+    }
+  }
+
   async function changePassword(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (newPassword.length < 6) {
@@ -203,7 +255,10 @@ function SettingsPage() {
                   <Bookmark className="h-4 w-4" aria-hidden="true" />
                   Saved Posts
                 </Link>
-                {SETTINGS_SECTIONS.map(({ id, label, icon: Icon }) => {
+                {(isInternal
+                  ? SETTINGS_SECTIONS.filter((section) => section.id !== "account-type")
+                  : SETTINGS_SECTIONS
+                ).map(({ id, label, icon: Icon }) => {
                   const active = activeSection === id;
                   return (
                     <a
@@ -269,6 +324,81 @@ function SettingsPage() {
                   </Button>
                 </form>
               </ConsolePanel>
+
+              {!isInternal && (
+                <ConsolePanel id="account-type" padding="none" className="scroll-mt-28">
+                  <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
+                    <h2 className="text-lg font-bold text-[color:var(--ink)]">Account type</h2>
+                    <p className="mt-1 text-sm text-[color:var(--ink)]/65">
+                      Choose how you use MatchMax — as a parent or student, or as a tutor. You can
+                      switch anytime.
+                    </p>
+                  </div>
+                  <div className="space-y-5 px-6 py-6 sm:px-8">
+                    <div
+                      role="radiogroup"
+                      aria-label="Account type"
+                      className="grid gap-3 sm:grid-cols-2"
+                    >
+                      {ACCOUNT_TYPE_OPTIONS.map((option) => {
+                        const Icon = option.icon;
+                        const selected = roleChoice === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            disabled={savingRole}
+                            onClick={() => setRoleChoice(option.value)}
+                            className={cn(
+                              "relative flex flex-col items-start gap-3 rounded-xl border p-4 pr-9 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-60",
+                              selected
+                                ? "border-[color:var(--ring)] bg-[color:var(--ink)]/5"
+                                : "border-[color:var(--ink)]/10 hover:bg-[color:var(--ink)]/5",
+                            )}
+                          >
+                            <span
+                              aria-hidden
+                              className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center"
+                            >
+                              {selected ? (
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--ink)]">
+                                  <Check
+                                    className="h-3 w-3 text-[color:var(--surface)]"
+                                    strokeWidth={3}
+                                  />
+                                </span>
+                              ) : (
+                                <span className="h-5 w-5 rounded-full border-2 border-[color:var(--ink)]/20" />
+                              )}
+                            </span>
+                            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--primary)]/10 text-[color:var(--primary)]">
+                              <Icon className="h-5 w-5" aria-hidden="true" />
+                            </span>
+                            <span className="flex flex-col gap-0.5">
+                              <span className="text-sm font-bold text-[color:var(--ink)]">
+                                {option.label}
+                              </span>
+                              <span className="text-xs leading-5 text-[color:var(--ink)]/60">
+                                {option.description}
+                              </span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={saveAccountType}
+                      disabled={!roleDirty || savingRole}
+                      className="font-bold"
+                    >
+                      {savingRole ? "Saving…" : "Update account type"}
+                    </Button>
+                  </div>
+                </ConsolePanel>
+              )}
 
               <ConsolePanel id="security" padding="none" className="scroll-mt-28">
                 <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
