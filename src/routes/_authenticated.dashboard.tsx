@@ -6,6 +6,7 @@ import {
   CircleUserRound,
   GraduationCap,
   KeyRound,
+  LogOut,
   Monitor,
   Moon,
   Palette,
@@ -278,6 +279,14 @@ function SettingsPage() {
                   );
                 })}
               </nav>
+              <Button
+                variant="outline"
+                onClick={() => void signOut()}
+                className="mt-4 w-full justify-start gap-2 border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
+              >
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                Sign out
+              </Button>
             </aside>
 
             <div className="min-w-0 max-w-3xl space-y-6">

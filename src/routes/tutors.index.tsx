@@ -3,20 +3,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { ChevronDown, Search, SearchX } from "lucide-react";
+import { SearchX } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SearchableSelect } from "@/components/ui/searchable-select";
-import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CompactSearchBar, compactChipTriggerClass } from "@/components/search/compact-search-bar";
-import { cn } from "@/lib/utils";
-import { Slider } from "@/components/ui/slider";
-import { Label } from "@/components/ui/label";
+import { TutorsSearch } from "@/components/search/tutors-search";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
@@ -49,13 +42,6 @@ const searchSchema = z.object({
 });
 type SearchState = z.infer<typeof searchSchema>;
 
-const PRICE_MIN = 100;
-const PRICE_MAX = 1200;
-const PRICE_STEP = 10;
-
-const formatPrice = (price: number) =>
-  price === PRICE_MAX ? `HK$${price.toLocaleString()}+` : `HK$${price.toLocaleString()}`;
-
 export const Route = createFileRoute("/tutors/")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
@@ -80,52 +66,11 @@ export const Route = createFileRoute("/tutors/")({
   component: TutorsDirectory,
 });
 
-const CATEGORY_VALUES = ["IB", "DSE", "IGCSE", "AP", "A-Level"];
-
 function TutorsDirectory() {
   const { t } = useTranslation();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/tutors/" });
   const [draft, setDraft] = useState<SearchState>(search);
-
-  const genderOptions = useMemo(
-    () => [
-      { value: "", label: t("search_panel.any_gender") },
-      { value: "female", label: t("search_panel.gender_female") },
-      { value: "male", label: t("search_panel.gender_male") },
-    ],
-    [t],
-  );
-
-  const statusOptions = useMemo(
-    () => [
-      { value: "", label: t("search_panel.any_status") },
-      { value: "uni_student", label: t("search_panel.status_uni_student") },
-      { value: "full_part_time_tutor", label: t("search_panel.status_full_part_time") },
-      { value: "examiner", label: t("search_panel.status_examiner") },
-    ],
-    [t],
-  );
-
-  const categoryOptions = useMemo(
-    () => [
-      { value: "", label: t("search_panel.any_category") },
-      ...CATEGORY_VALUES.map((value) => ({ value, label: value })),
-      { value: "Primary", label: t("search_panel.category_primary_school") },
-      { value: "Junior Secondary", label: t("search_panel.category_junior_secondary") },
-      { value: "Admissions", label: t("search_panel.category_admissions") },
-    ],
-    [t],
-  );
-
-  const sortOptions = useMemo(
-    () => [
-      { value: "", label: t("search_panel.sort_recommended") },
-      { value: "price_asc", label: t("search_panel.sort_price_asc") },
-      { value: "price_desc", label: t("search_panel.sort_price_desc") },
-    ],
-    [t],
-  );
 
   useEffect(() => {
     setDraft(search);
@@ -163,20 +108,6 @@ function TutorsDirectory() {
   });
 
   const categoryFilter = (draft.category ?? "").toLowerCase();
-  const subjectOptions = useMemo(
-    () => getSubjectOptionsForCategory(draft.category),
-    [draft.category],
-  );
-
-  const handleCategoryChange = (category: string) => {
-    const nextSubjectOptions = getSubjectOptionsForCategory(category);
-    setDraftParam({
-      category: category || undefined,
-      ...(draft.subject && !nextSubjectOptions.includes(draft.subject)
-        ? { subject: undefined }
-        : {}),
-    });
-  };
 
   const subjectFilter = (draft.subject ?? "").toLowerCase();
   const stationFilter = draft.station ?? "";
@@ -184,7 +115,6 @@ function TutorsDirectory() {
   const genderFilter = draft.gender ?? "";
   const statusFilter = draft.status ?? "";
   const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
-  const priceValue: [number, number] = [draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX];
 
   const filtered = useMemo(() => {
     const query = (draft.q ?? "").trim().toLowerCase();
@@ -261,28 +191,35 @@ function TutorsDirectory() {
 
   const hotlineUrl = buildTutorWhatsAppUrl(whatsappNumber, "");
 
-  const applySearch = () => {
+  const applySearch = (override?: Partial<SearchState>) => {
+    const next = { ...draft, ...override };
     navigate({
       search: {
-        ...draft,
-        station: draft.mode === "in_person" ? draft.station : undefined,
+        ...next,
+        station: next.mode === "in_person" ? next.station : undefined,
       },
     });
   };
 
-  const moreFilterCount = [
-    draft.gender,
-    draft.status,
-    draft.min_price !== undefined ? "price" : "",
-    draft.max_price !== undefined ? "price" : "",
-    draft.sort,
-  ].filter(Boolean).length;
+  const handleQuickCategory = (category: string | undefined) => {
+    navigate({
+      search: (prev: SearchState) => {
+        const nextSubjectOptions = getSubjectOptionsForCategory(category);
+        return {
+          ...prev,
+          category: category || undefined,
+          subject:
+            prev.subject && nextSubjectOptions.includes(prev.subject) ? prev.subject : undefined,
+        };
+      },
+    });
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
-        <section className="border-b border-border py-12">
+        <section className="border-b border-border py-10 sm:py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
               Find verified tutors
@@ -290,257 +227,18 @@ function TutorsDirectory() {
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
               Start with a subject or tutor code, then narrow the list to the right fit.
             </p>
-            <div className="relative mt-7 overflow-hidden rounded-sm border border-border bg-card">
-              {/* Mobile: compact bar with keyword input, circle search and scrollable chips */}
-              <CompactSearchBar
-                className="border-0 lg:hidden"
-                value={draft.q ?? ""}
-                onValueChange={(q) => setDraftParam({ q })}
-                placeholder={t("search_panel.keyword_placeholder")}
-                inputAriaLabel={t("search_panel.keyword_aria")}
-                submitLabel={t("search_panel.search")}
-                closeLabel={t("search_panel.close_search")}
-                onSubmit={applySearch}
-              >
-                <SearchableSelect
-                  value={draft.category ?? ""}
-                  onChange={handleCategoryChange}
-                  options={categoryOptions}
-                  placeholder={t("search_panel.any_category")}
-                  searchPlaceholder={t("search_panel.search_category")}
-                  className={compactChipTriggerClass}
-                />
-                <SearchableSelect
-                  value={draft.subject ?? ""}
-                  onChange={(v) => setDraftParam({ subject: v || undefined })}
-                  options={[
-                    { value: "", label: t("search_panel.any_subject") },
-                    ...subjectOptions.map((s) => ({ value: s, label: s })),
-                  ]}
-                  placeholder={t("search_panel.any_subject")}
-                  searchPlaceholder={t("search_panel.search_subject")}
-                  className={compactChipTriggerClass}
-                />
-                <LessonModeSelect
-                  mode={(draft.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
-                  station={draft.station}
-                  onChange={({ mode, station }) =>
-                    setDraftParam({
-                      mode: mode || undefined,
-                      station: mode === "in_person" ? station : undefined,
-                    })
-                  }
-                  placeholder={t("search_panel.any_mode")}
-                  className={compactChipTriggerClass}
-                />
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className={cn(
-                        compactChipTriggerClass,
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
-                        moreFilterCount === 0 && "text-[color:var(--ink)]/50",
-                      )}
-                    >
-                      <span className="flex min-w-0 items-center gap-1">
-                        <span className="truncate">{t("search_panel.more_filters")}</span>
-                        {moreFilterCount > 0 && (
-                          <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-[color:var(--brand-link)] px-1 text-[10px] font-bold leading-none text-white">
-                            {moreFilterCount}
-                          </span>
-                        )}
-                      </span>
-                      <ChevronDown className="h-4 w-4 shrink-0 text-[color:var(--ink)]/50" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent align="start" className="z-[9999] w-80">
-                    <div className="space-y-3">
-                      <SearchableSelect
-                        value={draft.gender ?? ""}
-                        onChange={(v) => setDraftParam({ gender: v || undefined })}
-                        options={genderOptions}
-                        placeholder={t("search_panel.any_gender")}
-                        className="h-11 rounded-sm"
-                      />
-                      <SearchableSelect
-                        value={draft.status ?? ""}
-                        onChange={(v) => setDraftParam({ status: v || undefined })}
-                        options={statusOptions}
-                        placeholder={t("search_panel.any_status")}
-                        className="h-11 rounded-sm"
-                      />
-                      <div className="space-y-2.5">
-                        <Label className="tabular-nums">
-                          {t("search_panel.price_from")} {formatPrice(priceValue[0])}{" "}
-                          {t("search_panel.price_to")} {formatPrice(priceValue[1])}
-                        </Label>
-                        <Slider
-                          value={priceValue}
-                          onValueChange={([lo, hi]) =>
-                            setDraftParam({
-                              min_price: lo > PRICE_MIN ? lo : undefined,
-                              max_price: hi < PRICE_MAX ? hi : undefined,
-                            })
-                          }
-                          min={PRICE_MIN}
-                          max={PRICE_MAX}
-                          step={PRICE_STEP}
-                          minStepsBetweenThumbs={1}
-                          showTooltip
-                          tooltipContent={formatPrice}
-                          aria-label={t("search_panel.price_range")}
-                        />
-                      </div>
-                      <SearchableSelect
-                        value={draft.sort ?? ""}
-                        onChange={(v) =>
-                          navigate({
-                            search: (prev: SearchState) => ({ ...prev, sort: v || undefined }),
-                          })
-                        }
-                        options={sortOptions}
-                        placeholder={t("search_panel.sort_recommended")}
-                        searchPlaceholder={t("search_panel.search_sorting")}
-                        className="h-11 rounded-sm"
-                      />
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </CompactSearchBar>
-
-              <form
-                className="hidden p-4 sm:p-5 lg:block"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  applySearch();
-                }}
-              >
-                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-                  <div className="relative">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      className="h-12 rounded-sm pl-9 text-base"
-                      placeholder={t("search_panel.keyword_placeholder")}
-                      aria-label={t("search_panel.keyword_aria")}
-                      value={draft.q ?? ""}
-                      onChange={(e) => setDraftParam({ q: e.target.value })}
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    variant="solid"
-                    color="neutral"
-                    className="h-12 rounded-sm px-7 font-bold"
-                  >
-                    <Search className="mr-1.5 h-4 w-4" />
-                    {t("search_panel.search")}
-                  </Button>
-                </div>
-                <div className="mt-4 border-t border-border pt-4">
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                    <SearchableSelect
-                      value={draft.category ?? ""}
-                      onChange={handleCategoryChange}
-                      options={categoryOptions}
-                      placeholder={t("search_panel.any_category")}
-                      searchPlaceholder={t("search_panel.search_category")}
-                      className="h-11 rounded-sm"
-                    />
-                    <SearchableSelect
-                      value={draft.subject ?? ""}
-                      onChange={(v) => setDraftParam({ subject: v || undefined })}
-                      options={[
-                        { value: "", label: t("search_panel.any_subject") },
-                        ...subjectOptions.map((s) => ({ value: s, label: s })),
-                      ]}
-                      placeholder={t("search_panel.any_subject")}
-                      searchPlaceholder={t("search_panel.search_subject")}
-                      className="h-11 rounded-sm"
-                    />
-                    <LessonModeSelect
-                      mode={
-                        (draft.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""
-                      }
-                      station={draft.station}
-                      onChange={({ mode, station }) =>
-                        setDraftParam({
-                          mode: mode || undefined,
-                          station: mode === "in_person" ? station : undefined,
-                        })
-                      }
-                      placeholder={t("search_panel.any_mode")}
-                      className="h-11 rounded-sm"
-                    />
-                    <SearchableSelect
-                      value={draft.gender ?? ""}
-                      onChange={(v) => setDraftParam({ gender: v || undefined })}
-                      options={genderOptions}
-                      placeholder={t("search_panel.any_gender")}
-                      className="h-11 rounded-sm"
-                    />
-                    <SearchableSelect
-                      value={draft.status ?? ""}
-                      onChange={(v) => setDraftParam({ status: v || undefined })}
-                      options={statusOptions}
-                      placeholder={t("search_panel.any_status")}
-                      className="h-11 rounded-sm"
-                    />
-                  </div>
-                </div>
-              </form>
-
-              <div className="hidden gap-3 border-t border-border bg-[color:var(--surface-subtle)] px-4 py-4 sm:px-5 lg:grid lg:grid-cols-4 lg:items-center">
-                <div className="w-full space-y-3 sm:col-span-2 lg:col-span-1">
-                  <Label className="tabular-nums">
-                    {t("search_panel.price_from")} {formatPrice(priceValue[0])}{" "}
-                    {t("search_panel.price_to")} {formatPrice(priceValue[1])}
-                  </Label>
-                  <Slider
-                    value={priceValue}
-                    onValueChange={([lo, hi]) =>
-                      setDraftParam({
-                        min_price: lo > PRICE_MIN ? lo : undefined,
-                        max_price: hi < PRICE_MAX ? hi : undefined,
-                      })
-                    }
-                    min={PRICE_MIN}
-                    max={PRICE_MAX}
-                    step={PRICE_STEP}
-                    minStepsBetweenThumbs={1}
-                    showTooltip
-                    tooltipContent={formatPrice}
-                    aria-label={t("search_panel.price_range")}
-                  />
-                </div>
-                <SearchableSelect
-                  value={draft.sort ?? ""}
-                  onChange={(v) =>
-                    navigate({
-                      search: (prev: SearchState) => ({ ...prev, sort: v || undefined }),
-                    })
-                  }
-                  options={sortOptions}
-                  placeholder={t("search_panel.sort_recommended")}
-                  searchPlaceholder={t("search_panel.search_sorting")}
-                  className="h-11 rounded-sm"
-                />
-                {hotlineUrl ? (
-                  <a
-                    href={hotlineUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-bold text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)] sm:justify-self-start lg:col-span-2 lg:justify-self-end"
-                  >
-                    <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
-                    WhatsApp us
-                  </a>
-                ) : null}
-              </div>
-            </div>
+            <TutorsSearch
+              className="mt-7"
+              draft={draft}
+              onDraftChange={setDraftParam}
+              onApply={applySearch}
+              onQuickCategory={handleQuickCategory}
+              onClear={clearAll}
+              resultCount={filtered.length}
+              whatsappUrl={hotlineUrl || undefined}
+            />
           </div>
         </section>
-
         <section className="py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="mb-6 flex items-baseline justify-between">

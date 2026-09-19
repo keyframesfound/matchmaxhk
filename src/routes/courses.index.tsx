@@ -2,24 +2,16 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { Building2, Search, SlidersHorizontal } from "lucide-react";
+import { Building2, Search } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { EmptyState } from "@/components/business/empty-state";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SearchableSelect } from "@/components/ui/searchable-select";
-import { CompactSearchBar, compactChipTriggerClass } from "@/components/search/compact-search-bar";
+import { CoursesSearch } from "@/components/search/courses-search";
 import { CourseCard } from "@/features/courses/course-card";
 import { useBusinessTracker } from "@/features/business/use-analytics";
-import {
-  COURSE_LEVEL_OPTIONS,
-  COURSE_MODE_OPTIONS,
-  fetchPublishedCourseSubjects,
-  fetchPublishedCourses,
-} from "@/features/courses/queries";
-import { HK_DISTRICTS } from "@/features/tutors/queries";
+import { fetchPublishedCourseSubjects, fetchPublishedCourses } from "@/features/courses/queries";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 const searchSchema = z.object({
@@ -104,16 +96,21 @@ function CoursesDirectory() {
     ...(subjects ?? []).map((subject) => ({ value: subject, label: subject })),
   ];
 
-  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    navigate({ search: { ...draft } });
+  const handleSearch = (override?: Partial<SearchState>) => {
+    navigate({ search: { ...draft, ...override } });
+  };
+
+  const handleQuickLevel = (level: string | undefined) => {
+    navigate({
+      search: (prev: SearchState) => ({ ...prev, level: level || undefined }),
+    });
   };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
-        <section className="border-b border-border py-12">
+        <section className="border-b border-border py-10 sm:py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <p className="text-sm font-semibold text-[color:var(--brand-link)]">Course directory</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
@@ -123,120 +120,15 @@ function CoursesDirectory() {
               Compare structured courses from verified education centres across Hong Kong.
             </p>
 
-            <div className="relative mt-8 rounded-sm border border-border bg-card p-4 sm:p-5">
-              <div className="flex items-center gap-2 border-b border-border pb-4">
-                <SlidersHorizontal className="h-4 w-4 text-[color:var(--brand-link)]" />
-                <p className="text-sm font-bold text-[color:var(--ink)]">Search and filter</p>
-              </div>
-
-              <CompactSearchBar
-                className="mt-4 border-0 bg-transparent lg:hidden"
-                value={draft.q ?? ""}
-                onValueChange={(q) => setDraftParam({ q })}
-                placeholder="Search course title, subject, keyword…"
-                inputAriaLabel="Search courses"
-                submitLabel="Search"
-                submitColor="blue"
-                onSubmit={() => navigate({ search: { ...draft } })}
-              >
-                <SearchableSelect
-                  value={draft.level ?? ""}
-                  onChange={(v) => setDraftParam({ level: v || undefined })}
-                  options={[
-                    { value: "", label: "Any level" },
-                    ...COURSE_LEVEL_OPTIONS.map((level) => ({ value: level, label: level })),
-                  ]}
-                  placeholder="Level"
-                  searchPlaceholder="Search level..."
-                  className={compactChipTriggerClass}
-                />
-                <SearchableSelect
-                  value={draft.subject ?? ""}
-                  onChange={(v) => setDraftParam({ subject: v || undefined })}
-                  options={subjectOptions}
-                  placeholder="Subject"
-                  searchPlaceholder="Search subject..."
-                  className={compactChipTriggerClass}
-                />
-                <SearchableSelect
-                  value={draft.mode ?? ""}
-                  onChange={(v) => setDraftParam({ mode: v || undefined })}
-                  options={COURSE_MODE_OPTIONS}
-                  placeholder="Mode"
-                  className={compactChipTriggerClass}
-                />
-                <SearchableSelect
-                  value={draft.district ?? ""}
-                  onChange={(v) => setDraftParam({ district: v || undefined })}
-                  options={[
-                    { value: "", label: "Any district" },
-                    ...HK_DISTRICTS.map((d) => ({ value: d, label: d })),
-                  ]}
-                  placeholder="District"
-                  searchPlaceholder="Search district..."
-                  className={compactChipTriggerClass}
-                />
-              </CompactSearchBar>
-
-              <form className="mt-4 hidden lg:block" onSubmit={handleSearch}>
-                <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
-                  <div className="relative">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      className="h-11 rounded-sm pl-9"
-                      placeholder="Search course title, subject, keyword…"
-                      value={draft.q ?? ""}
-                      onChange={(e) => setDraftParam({ q: e.target.value })}
-                    />
-                  </div>
-                  <SearchableSelect
-                    value={draft.level ?? ""}
-                    onChange={(v) => setDraftParam({ level: v || undefined })}
-                    options={[
-                      { value: "", label: "Any level" },
-                      ...COURSE_LEVEL_OPTIONS.map((level) => ({ value: level, label: level })),
-                    ]}
-                    placeholder="Any level"
-                    searchPlaceholder="Search level..."
-                    className="h-11 rounded-sm"
-                  />
-                  <SearchableSelect
-                    value={draft.subject ?? ""}
-                    onChange={(v) => setDraftParam({ subject: v || undefined })}
-                    options={subjectOptions}
-                    placeholder="Any subject"
-                    searchPlaceholder="Search subject..."
-                    className="h-11 rounded-sm"
-                  />
-                  <SearchableSelect
-                    value={draft.mode ?? ""}
-                    onChange={(v) => setDraftParam({ mode: v || undefined })}
-                    options={COURSE_MODE_OPTIONS}
-                    placeholder="Any lesson mode"
-                    className="h-11 rounded-sm"
-                  />
-                  <SearchableSelect
-                    value={draft.district ?? ""}
-                    onChange={(v) => setDraftParam({ district: v || undefined })}
-                    options={[
-                      { value: "", label: "Any district" },
-                      ...HK_DISTRICTS.map((d) => ({ value: d, label: d })),
-                    ]}
-                    placeholder="Any district"
-                    searchPlaceholder="Search district..."
-                    className="h-11 rounded-sm"
-                  />
-                  <Button
-                    type="submit"
-                    variant="solid"
-                    color="blue"
-                    className="h-11 rounded-sm px-6 font-bold"
-                  >
-                    Search
-                  </Button>
-                </div>
-              </form>
-            </div>
+            <CoursesSearch
+              className="mt-8"
+              draft={draft}
+              onDraftChange={setDraftParam}
+              onApply={handleSearch}
+              onQuickLevel={handleQuickLevel}
+              onClear={clearAll}
+              subjectOptions={subjects ?? []}
+            />
           </div>
         </section>
 

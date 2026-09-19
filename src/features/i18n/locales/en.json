@@ -20,7 +20,8 @@
     "light_mode": "Light mode",
     "account_title": "MatchMax account",
     "account_subtitle": "Manage your profile and preferences",
-    "account_menu_label": "Account menu"
+    "account_menu_label": "Account menu",
+    "account_language": "Language"
   },
   "hero": {
     "title_a": "Match with your perfect tutor",
@@ -531,5 +532,48 @@
         "a": "Tuition is paid directly to the tutor based on the agreed hourly rate and schedule. MatchMax does not hold or handle your tuition fees, keeping the payment process direct and transparent."
       }
     }
+  },
+  "nav_mobile": {
+    "case": "Case",
+    "explore": "Explore",
+    "saved_posts": "Saved",
+    "account": "Account"
+  },
+  "search_ui": {
+    "start_search": "Start your search",
+    "filters": "Filters",
+    "clear_all": "Clear all",
+    "close_search": "Close search",
+    "segment_keyword": "Keyword",
+    "segment_curriculum": "Curriculum",
+    "segment_subject": "Subject",
+    "segment_mode": "Lesson mode",
+    "segment_level": "Level",
+    "segment_district": "District",
+    "segment_gender": "Gender",
+    "segment_status": "Tutor status",
+    "segment_sort": "Sort",
+    "any_value": "Any",
+    "any_district": "Any district",
+    "panel_keyword_title": "Search",
+    "suggested_subjects": "Suggested subjects",
+    "suggested_hint": "Filter by subject",
+    "price_hint": "Hourly rate, per tutor",
+    "more_filters": "More filters",
+    "chip_all": "All",
+    "chip_primary": "Primary",
+    "chip_junior": "Junior Sec",
+    "chip_admissions": "Admissions",
+    "mode_any": "Any",
+    "mode_online": "Online",
+    "mode_in_person": "In-person",
+    "mode_open": "Open",
+    "gender_any": "Any",
+    "show_tutors_one": "Show {{count}} tutor",
+    "show_tutors_other": "Show {{count}} tutors",
+    "search_tutors": "Search tutors",
+    "show_courses_plain": "Show courses",
+    "tab_tutors": "Tutors",
+    "tab_courses": "Courses"
   }
 }

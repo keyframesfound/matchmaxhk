@@ -35,7 +35,7 @@ export function SiteFooter({
 
   return (
     <footer className={`border-t border-border bg-background ${className ?? ""}`}>
-      <div className="mx-auto max-w-7xl px-6 py-12">
+      <div className="mx-auto max-w-7xl px-6 pt-12 pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <h3

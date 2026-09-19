@@ -2,15 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { SearchableSelect } from "@/components/ui/searchable-select";
-import { LessonModeSelect } from "@/components/ui/lesson-mode-select";
-import { CompactSearchBar, compactChipTriggerClass } from "@/components/search/compact-search-bar";
+import { TutorsSearch } from "@/components/search/tutors-search";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
@@ -22,11 +19,7 @@ import {
   getTutorCardHighlights,
   type Tutor,
 } from "@/features/tutors/queries";
-import {
-  DEFAULT_SUBJECT_OPTIONS,
-  getSubjectOptionsForCategory,
-  matchesCategoryFilter,
-} from "@/features/tutors/subjects";
+import { getSubjectOptionsForCategory, matchesCategoryFilter } from "@/features/tutors/subjects";
 import { supabase } from "@/integrations/supabase/client";
 
 const OG_IMAGE =
@@ -40,24 +33,6 @@ type HomeTutorSearchState = {
   gender?: string;
   q?: string;
 };
-
-const HOME_CATEGORY_OPTIONS = [
-  { value: "", label: "Any curriculum" },
-  { value: "IB", label: "IB" },
-  { value: "DSE", label: "DSE" },
-  { value: "IGCSE", label: "IGCSE" },
-  { value: "AP", label: "AP" },
-  { value: "A-Level", label: "A-Level" },
-  { value: "Primary", label: "Primary School" },
-  { value: "Junior Secondary", label: "Junior Secondary" },
-  { value: "Admissions", label: "Admissions & Standardized Tests" },
-];
-
-const HOME_GENDER_OPTIONS = [
-  { value: "", label: "Any gender" },
-  { value: "female", label: "Female" },
-  { value: "male", label: "Male" },
-];
 
 const CURRICULUM_CATEGORIES = [
   { label: "IBDP", value: "IB" },
@@ -368,21 +343,6 @@ function Landing() {
     navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
   };
 
-  const homeSubjectOptions = useMemo(
-    () => getSubjectOptionsForCategory(homeSearch.category) ?? DEFAULT_SUBJECT_OPTIONS,
-    [homeSearch.category],
-  );
-
-  const handleHomeCategoryChange = (category: string) => {
-    const nextSubjectOptions = getSubjectOptionsForCategory(category);
-    setHomeSearchParam({
-      category: category || undefined,
-      ...(homeSearch.subject && !nextSubjectOptions.includes(homeSearch.subject)
-        ? { subject: undefined }
-        : {}),
-    });
-  };
-
   const tutorSearchParams = useMemo(() => {
     const params: HomeTutorSearchState = {
       category: homeSearch.category,
@@ -396,6 +356,34 @@ function Landing() {
     }
     return params;
   }, [homeSearch]);
+
+  const applyHomeSearch = (override?: Partial<HomeTutorSearchState>) => {
+    const next = { ...homeSearch, ...override };
+    const params: HomeTutorSearchState = {
+      category: next.category,
+      subject: next.subject,
+      mode: next.mode,
+      gender: next.gender,
+      q: next.q,
+    };
+    if (next.mode === "in_person") {
+      params.station = next.station;
+    }
+    navigate({ to: "/tutors", search: params });
+  };
+
+  const handleQuickCategory = (category: string | undefined) => {
+    const nextSubjects = getSubjectOptionsForCategory(category);
+    const subjectKept =
+      homeSearch.subject && nextSubjects.includes(homeSearch.subject)
+        ? homeSearch.subject
+        : undefined;
+    setHomeSearchParam({ category: category || undefined, subject: subjectKept });
+    navigate({
+      to: "/tutors",
+      search: { ...tutorSearchParams, category: category || undefined, subject: subjectKept },
+    });
+  };
 
   // JSON-LD
   const structuredData = {
@@ -446,117 +434,13 @@ function Landing() {
       <section className="relative pt-6 pb-14 md:pt-10 md:pb-16">
         <div className="mx-auto max-w-[1440px] px-4 md:px-6">
           <div className="relative z-20 rounded-sm border border-border bg-card p-2.5 sm:p-5">
-            <div className="flex items-center justify-between gap-2 border-b border-border pb-2.5 sm:pb-4">
-              <p className="text-xs font-black uppercase tracking-wide text-[color:var(--ink)] sm:text-sm">
-                Find tutor
-              </p>
-            </div>
-
-            <CompactSearchBar
-              className="mt-2.5 border-0 bg-transparent lg:hidden"
-              value={homeSearch.q ?? ""}
-              onValueChange={(q) => setHomeSearchParam({ q })}
-              placeholder="Search tutor code, subject, keyword…"
-              inputAriaLabel="Search tutors"
-              submitLabel="Search"
-              onSubmit={() => navigate({ to: "/tutors", search: tutorSearchParams })}
-            >
-              <SearchableSelect
-                value={homeSearch.category ?? ""}
-                onChange={handleHomeCategoryChange}
-                options={HOME_CATEGORY_OPTIONS}
-                placeholder="Curriculum"
-                searchPlaceholder="Search category..."
-                className={compactChipTriggerClass}
-              />
-              <SearchableSelect
-                value={homeSearch.subject ?? ""}
-                onChange={(v) => setHomeSearchParam({ subject: v || undefined })}
-                options={[
-                  { value: "", label: "Any subject" },
-                  ...homeSubjectOptions.map((s) => ({ value: s, label: s })),
-                ]}
-                placeholder="Subject"
-                searchPlaceholder="Search subject..."
-                className={compactChipTriggerClass}
-              />
-              <LessonModeSelect
-                mode={(homeSearch.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
-                station={homeSearch.station}
-                onChange={({ mode, station }) =>
-                  setHomeSearchParam({
-                    mode: mode || undefined,
-                    station: mode === "in_person" ? station : undefined,
-                  })
-                }
-                placeholder="Mode"
-                className={compactChipTriggerClass}
-              />
-              <SearchableSelect
-                value={homeSearch.gender ?? ""}
-                onChange={(v) => setHomeSearchParam({ gender: v || undefined })}
-                options={HOME_GENDER_OPTIONS}
-                placeholder="Gender"
-                className={compactChipTriggerClass}
-              />
-            </CompactSearchBar>
-
-            <div className="mt-2.5 hidden gap-3 lg:grid lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto]">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  className="h-11 rounded-sm pl-9 text-sm"
-                  placeholder="Search tutor code, subject, keyword…"
-                  value={homeSearch.q ?? ""}
-                  onChange={(e) => setHomeSearchParam({ q: e.target.value })}
-                />
-              </div>
-              <SearchableSelect
-                value={homeSearch.category ?? ""}
-                onChange={handleHomeCategoryChange}
-                options={HOME_CATEGORY_OPTIONS}
-                placeholder="Any curriculum"
-                searchPlaceholder="Search category..."
-                className="h-11 rounded-sm text-sm"
-              />
-              <SearchableSelect
-                value={homeSearch.subject ?? ""}
-                onChange={(v) => setHomeSearchParam({ subject: v || undefined })}
-                options={[
-                  { value: "", label: "Any subject" },
-                  ...homeSubjectOptions.map((s) => ({ value: s, label: s })),
-                ]}
-                placeholder="Any subject"
-                searchPlaceholder="Search subject..."
-                className="h-11 rounded-sm text-sm"
-              />
-              <LessonModeSelect
-                mode={(homeSearch.mode as "" | "online" | "in_person" | "either" | undefined) ?? ""}
-                station={homeSearch.station}
-                onChange={({ mode, station }) =>
-                  setHomeSearchParam({
-                    mode: mode || undefined,
-                    station: mode === "in_person" ? station : undefined,
-                  })
-                }
-                placeholder="Any lesson mode"
-                className="h-11 rounded-sm text-sm"
-              />
-              <SearchableSelect
-                value={homeSearch.gender ?? ""}
-                onChange={(v) => setHomeSearchParam({ gender: v || undefined })}
-                options={HOME_GENDER_OPTIONS}
-                placeholder="Any gender"
-                className="h-11 rounded-sm text-sm"
-              />
-              <Button
-                className="h-11 rounded-sm bg-[color:var(--surface-invert)] px-6 text-base font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                onClick={() => navigate({ to: "/tutors", search: tutorSearchParams })}
-              >
-                <Search className="mr-1.5 h-4 w-4" />
-                Search
-              </Button>
-            </div>
+            <TutorsSearch
+              draft={homeSearch}
+              onDraftChange={setHomeSearchParam}
+              onApply={applyHomeSearch}
+              onQuickCategory={handleQuickCategory}
+              onClear={() => setHomeSearch({})}
+            />
           </div>
 
           <div className="mt-8 space-y-10 md:mt-10 md:space-y-12">

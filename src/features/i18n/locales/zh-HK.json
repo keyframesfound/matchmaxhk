@@ -20,7 +20,8 @@
     "light_mode": "淺色模式",
     "account_title": "MatchMax 帳戶",
     "account_subtitle": "管理你嘅個人資料同偏好設定",
-    "account_menu_label": "帳戶選單"
+    "account_menu_label": "帳戶選單",
+    "account_language": "語言"
   },
   "hero": {
     "eyebrow": "香港智能補習配對平台",
@@ -557,5 +558,47 @@
         "a": "學費會按協議嘅每小時收費同時間表，直接支付俾導師。MatchMax 唔會經手或托管學費，付款過程直接又透明。"
       }
     }
+  },
+  "nav_mobile": {
+    "case": "個案",
+    "explore": "探索",
+    "saved_posts": "已儲存",
+    "account": "帳戶"
+  },
+  "search_ui": {
+    "start_search": "開始搜尋",
+    "filters": "篩選",
+    "clear_all": "全部清除",
+    "close_search": "關閉搜尋",
+    "segment_keyword": "關鍵字",
+    "segment_curriculum": "課程體系",
+    "segment_subject": "科目",
+    "segment_mode": "授課模式",
+    "segment_level": "程度",
+    "segment_district": "地區",
+    "segment_gender": "性別",
+    "segment_status": "導師類型",
+    "segment_sort": "排序",
+    "any_value": "不限",
+    "any_district": "任何地區",
+    "panel_keyword_title": "搜尋",
+    "suggested_subjects": "建議科目",
+    "suggested_hint": "以科目篩選",
+    "price_hint": "導師時薪",
+    "more_filters": "更多篩選",
+    "chip_all": "全部",
+    "chip_primary": "小學",
+    "chip_junior": "初中",
+    "chip_admissions": "升學",
+    "mode_any": "不限",
+    "mode_online": "網上",
+    "mode_in_person": "上門",
+    "mode_open": "均可",
+    "gender_any": "不限",
+    "show_tutors_other": "顯示 {{count}} 位導師",
+    "search_tutors": "搜尋導師",
+    "show_courses_plain": "顯示課程",
+    "tab_tutors": "導師",
+    "tab_courses": "課程"
   }
 }
