@@ -1,5 +1,12 @@
 import { Search } from "lucide-react";
-import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  type MotionValue,
+} from "motion/react";
 import {
   useCallback,
   useEffect,
@@ -59,10 +66,12 @@ type SearchPillBarProps = {
 };
 
 /**
- * Desktop Airbnb-style segmented search pill. Opening a segment (click) greys
- * the bar and slides a full-height white pill under it; one persistent panel
- * below the bar survives segment-to-segment moves (content swaps in place).
- * Flat by design — hairline borders and washes instead of shadows.
+ * Desktop Airbnb-style segmented search pill. Clicking a segment greys the
+ * bar, slides a full-height white pill under it and opens its panel below;
+ * the panel persists across segment switches (click-driven, content swaps in
+ * place). Hovering a segment shows a grey pill — whether or not a panel is
+ * already open — but never moves the white pill or panel. Flat by design —
+ * hairline borders and washes instead of shadows.
  */
 export function SearchPillBar({
   segments,
@@ -76,10 +85,9 @@ export function SearchPillBar({
   const { t } = useTranslation();
   const [internalOpenId, setInternalOpenId] = useState<string | null>(null);
   const openId = openSegmentId !== undefined ? openSegmentId : internalOpenId;
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const openIdRef = useRef(openId);
   openIdRef.current = openId;
-  /** Set when a hover (not a click) switched the open segment, so the follow-up click keeps the panel open. */
-  const switchedByHover = useRef(false);
   const setOpenId = useCallback(
     (id: string | null) => {
       setInternalOpenId(id);
@@ -96,27 +104,32 @@ export function SearchPillBar({
   const highlightWidth = useMotionValue(0);
   const highlightHeight = useMotionValue(0);
   const highlightOpacity = useMotionValue(0);
+  const hoverX = useMotionValue(0);
+  const hoverWidth = useMotionValue(0);
+  const hoverOpacity = useMotionValue(0);
   const panelX = useMotionValue(0);
   const hasHighlight = useRef(false);
+  const hasHoverPill = useRef(false);
   const hasPanelPosition = useRef(false);
 
-  const moveHighlight = useCallback(
-    (segmentId: string, snap: boolean) => {
+  /** Place a full-height pill over a segment, snapping or spring-sliding. */
+  const movePill = useCallback(
+    (x: MotionValue<number>, width: MotionValue<number>, segmentId: string, snap: boolean) => {
       const form = formRef.current;
       const button = buttonRefs.current.get(segmentId);
       if (!form || !button) return;
       // Full bar height: the pill spans flush between the borders, Airbnb-style.
       if (snap || prefersReducedMotion === true) {
-        highlightX.set(button.offsetLeft);
-        highlightWidth.set(button.offsetWidth);
+        x.set(button.offsetLeft);
+        width.set(button.offsetWidth);
         highlightHeight.set(form.clientHeight);
       } else {
-        animate(highlightX, button.offsetLeft, HIGHLIGHT_SPRING);
-        animate(highlightWidth, button.offsetWidth, HIGHLIGHT_SPRING);
+        animate(x, button.offsetLeft, HIGHLIGHT_SPRING);
+        animate(width, button.offsetWidth, HIGHLIGHT_SPRING);
         animate(highlightHeight, form.clientHeight, HIGHLIGHT_SPRING);
       }
     },
-    [prefersReducedMotion, highlightX, highlightWidth, highlightHeight],
+    [prefersReducedMotion, highlightHeight],
   );
 
   /** Wrapper-relative panel offset, left-aligned to the segment and clamped to the viewport. */
@@ -124,6 +137,12 @@ export function SearchPillBar({
     (segmentId: string, snap: boolean) => {
       const wrapper = wrapperRef.current;
       const button = buttonRefs.current.get(segmentId);
+      console.log("[movePanel]", segmentId, snap, {
+        wrapper: !!wrapper,
+        button: !!button,
+        wrapperLeft: wrapper?.getBoundingClientRect().left,
+        buttonLeft: button?.getBoundingClientRect().left,
+      });
       if (!wrapper || !button) return;
       const wrapperLeft = wrapper.getBoundingClientRect().left;
       const buttonLeft = button.getBoundingClientRect().left;
@@ -139,9 +158,9 @@ export function SearchPillBar({
   );
 
   /**
-   * Drives the shared white pill: fades in on open, spring-slides to the open
-   * segment (including hover switches between open segments), fades out on
-   * close while keeping its position so the next open starts from a clean fade.
+   * Drives the white pill: fades in when a panel opens, spring-slides to the
+   * open segment, fades out on close while keeping its position so the next
+   * open starts from a clean fade.
    */
   useEffect(() => {
     if (!openId) {
@@ -151,36 +170,64 @@ export function SearchPillBar({
     }
     const snap = !hasHighlight.current;
     hasHighlight.current = true;
-    moveHighlight(openId, snap);
+    movePill(highlightX, highlightWidth, openId, snap);
     animate(highlightOpacity, 1, { duration: 0.2 });
-  }, [openId, moveHighlight, highlightOpacity]);
+  }, [openId, movePill, highlightX, highlightWidth, highlightOpacity]);
+
+  /**
+   * Drives the grey hover pill: shown over the hovered segment whether or not
+   * a panel is open, except on the open segment itself (the white pill is
+   * already there). Spring-slides between segments like the white pill.
+   */
+  useEffect(() => {
+    const target = hoveredId && hoveredId !== openId ? hoveredId : null;
+    if (!target) {
+      hasHoverPill.current = false;
+      animate(hoverOpacity, 0, { duration: 0.15 });
+      return;
+    }
+    const snap = !hasHoverPill.current;
+    hasHoverPill.current = true;
+    movePill(hoverX, hoverWidth, target, snap);
+    animate(hoverOpacity, 1, { duration: 0.15 });
+  }, [hoveredId, openId, movePill, hoverX, hoverWidth, hoverOpacity]);
 
   // Position the panel before first paint on open so it never flashes at x: 0.
   useIsomorphicLayoutEffect(() => {
+    console.log("[panelLayoutEffect]", openId, hasPanelPosition.current);
     if (!openId) {
       hasPanelPosition.current = false;
-      switchedByHover.current = false;
       return;
     }
     movePanel(openId, !hasPanelPosition.current);
     hasPanelPosition.current = true;
   }, [openId, movePanel]);
 
-  /** Keep the white pill glued to the open segment across resizes/reflows. */
+  /** Keep both pills glued to their segments across resizes/reflows. */
   useEffect(() => {
     const form = formRef.current;
-    const button = openId ? buttonRefs.current.get(openId) : undefined;
-    if (!form || !button) return;
+    if (!form) return;
     const sync = () => {
-      highlightX.set(button.offsetLeft);
-      highlightWidth.set(button.offsetWidth);
       highlightHeight.set(form.clientHeight);
+      if (openId) {
+        const button = buttonRefs.current.get(openId);
+        if (button) {
+          highlightX.set(button.offsetLeft);
+          highlightWidth.set(button.offsetWidth);
+        }
+      }
+      if (hoveredId && hoveredId !== openId) {
+        const button = buttonRefs.current.get(hoveredId);
+        if (button) {
+          hoverX.set(button.offsetLeft);
+          hoverWidth.set(button.offsetWidth);
+        }
+      }
     };
     const observer = new ResizeObserver(sync);
     observer.observe(form);
-    observer.observe(button);
     return () => observer.disconnect();
-  }, [openId, highlightX, highlightWidth, highlightHeight]);
+  }, [openId, hoveredId, highlightX, highlightWidth, highlightHeight, hoverX, hoverWidth]);
 
   /** Dismiss on outside pointerdown / Escape; re-clamp the panel on resize. */
   useEffect(() => {
@@ -216,8 +263,9 @@ export function SearchPillBar({
     <div
       ref={wrapperRef}
       className={cn("relative", className)}
-      onPointerLeave={() => {
-        switchedByHover.current = false;
+      onPointerLeave={() => setHoveredId(null)}
+      onBlur={(event) => {
+        if (!wrapperRef.current?.contains(event.relatedTarget as Node)) setHoveredId(null);
       }}
     >
       <form
@@ -235,6 +283,11 @@ export function SearchPillBar({
         />
         <motion.div
           aria-hidden="true"
+          className="pointer-events-none absolute left-0 top-0 rounded-full bg-[color:var(--foreground)]/[0.1]"
+          style={{ x: hoverX, width: hoverWidth, height: highlightHeight, opacity: hoverOpacity }}
+        />
+        <motion.div
+          aria-hidden="true"
           className="pointer-events-none absolute left-0 top-0 rounded-full bg-card"
           style={{
             x: highlightX,
@@ -243,54 +296,49 @@ export function SearchPillBar({
             opacity: highlightOpacity,
           }}
         />
-        {segments.map((segment, index) => {
-          const adjacentActive = openId === segment.id || openId === segments[index - 1]?.id;
-          return (
-            <button
-              key={segment.id}
-              ref={(node) => {
-                if (node) buttonRefs.current.set(segment.id, node);
-                else buttonRefs.current.delete(segment.id);
-              }}
-              type="button"
-              aria-expanded={openId === segment.id}
-              aria-haspopup="dialog"
-              onPointerEnter={() => {
-                if (openIdRef.current !== null && openIdRef.current !== segment.id) {
-                  setOpenId(segment.id);
-                  switchedByHover.current = true;
-                }
-              }}
-              onClick={() => {
-                if (switchedByHover.current && openIdRef.current === segment.id) {
-                  switchedByHover.current = false;
-                  return;
-                }
-                setOpenId(openIdRef.current === segment.id ? null : segment.id);
-              }}
-              className={cn(
-                "relative flex min-w-0 flex-col justify-center gap-0.5 rounded-full px-4 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:px-5",
-                index > 0 &&
-                  (adjacentActive ? "border-l border-transparent" : "border-l border-border"),
-                segment.grow ?? "flex-1",
-              )}
-            >
-              <span className="truncate text-[11px] font-bold tracking-wide text-[color:var(--ink)]">
-                {segment.label}
-              </span>
-              <span
+        {(() => {
+          // Hide the divider next to whichever segment currently carries a pill.
+          const pillIds = [openId, hoveredId].filter((id): id is string => !!id);
+          return segments.map((segment, index) => {
+            const dividerHidden =
+              pillIds.includes(segment.id) || pillIds.includes(segments[index - 1]?.id ?? "");
+            return (
+              <button
+                key={segment.id}
+                ref={(node) => {
+                  if (node) buttonRefs.current.set(segment.id, node);
+                  else buttonRefs.current.delete(segment.id);
+                }}
+                type="button"
+                aria-expanded={openId === segment.id}
+                aria-haspopup="dialog"
+                onPointerEnter={() => setHoveredId(segment.id)}
+                onFocus={() => setHoveredId(segment.id)}
+                onClick={() => setOpenId(openIdRef.current === segment.id ? null : segment.id)}
                 className={cn(
-                  "truncate text-sm",
-                  segment.filled
-                    ? "font-semibold text-[color:var(--ink)]"
-                    : "text-muted-foreground",
+                  "relative flex min-w-0 flex-col justify-center gap-0.5 rounded-full px-4 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:px-5",
+                  index > 0 &&
+                    (dividerHidden ? "border-l border-transparent" : "border-l border-border"),
+                  segment.grow ?? "flex-1",
                 )}
               >
-                {segment.display}
-              </span>
-            </button>
-          );
-        })}
+                <span className="truncate text-[11px] font-bold tracking-wide text-[color:var(--ink)]">
+                  {segment.label}
+                </span>
+                <span
+                  className={cn(
+                    "truncate text-sm",
+                    segment.filled
+                      ? "font-semibold text-[color:var(--ink)]"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {segment.display}
+                </span>
+              </button>
+            );
+          });
+        })()}
         <Button
           type="submit"
           variant="solid"
