@@ -2,7 +2,6 @@ import {
   BadgeCheck,
   BookOpen,
   Briefcase,
-  ChevronDown,
   ClipboardList,
   Coins,
   GraduationCap,
@@ -37,7 +36,6 @@ import { MtrStationPickerContent } from "@/components/ui/mtr-station-select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import { DEFAULT_SUBJECT_OPTIONS, getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { cn } from "@/lib/utils";
@@ -95,8 +93,8 @@ export function TutorsSearch({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [pillOpenId, setPillOpenId] = useState<string | null>(null);
   const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
-  const [moreOpen, setMoreOpen] = useState(false);
 
   const subjectOptions = getSubjectOptionsForCategory(draft.category);
   const suggestedSubjects = subjectOptions.length > 0 ? subjectOptions : DEFAULT_SUBJECT_OPTIONS;
@@ -364,11 +362,16 @@ export function TutorsSearch({
           submitColor="blue"
           onSubmit={() => onApply()}
           className="min-w-0 flex-1"
+          openSegmentId={pillOpenId}
+          onOpenSegmentIdChange={setPillOpenId}
         />
         <FiltersPillButton
           label={t("search_ui.filters")}
           count={filterCount || undefined}
-          onClick={() => setFiltersOpen(true)}
+          onClick={() => {
+            setPillOpenId(null);
+            setFiltersOpen(true);
+          }}
         />
       </div>
 
@@ -516,61 +519,35 @@ export function TutorsSearch({
             />
           </div>
 
-          <div>
-            <button
-              type="button"
-              aria-expanded={moreOpen}
-              onClick={() => setMoreOpen((open) => !open)}
-              className="flex w-full items-center justify-between gap-2 rounded-xl px-1 py-2 text-[15px] font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-            >
-              <span className="flex items-center gap-2">
-                {t("search_ui.more_filters")}
-                {filterCount > 0 ? (
-                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[color:var(--brand-link)] px-1.5 text-[11px] font-bold text-white">
-                    {filterCount}
-                  </span>
-                ) : null}
-              </span>
-              <ChevronDown
-                className={cn(
-                  "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
-                  moreOpen && "rotate-180",
-                )}
-                aria-hidden="true"
-              />
-            </button>
-            {moreOpen ? (
-              <div className="mt-2 space-y-5 border-t border-border pt-4">
-                <div className="space-y-2">
-                  <PanelLabel>{t("search_ui.status_title")}</PanelLabel>
-                  <SearchableSelect
-                    value={draft.status ?? ""}
-                    onChange={(value) => onDraftChange({ status: value || undefined })}
-                    options={statusOptions}
-                    placeholder={t("search_panel.any_status")}
-                    className="h-12 rounded-2xl"
-                  />
-                </div>
-                <div className="space-y-2.5">
-                  <Label className="text-sm tabular-nums text-[color:var(--ink)]">
-                    {t("search_panel.price_from")} {formatPrice(priceValue[0])}{" "}
-                    {t("search_panel.price_to")} {formatPrice(priceValue[1])}
-                  </Label>
-                  <PriceFields priceValue={priceValue} onDraftChange={onDraftChange} />
-                </div>
-                <div className="space-y-2">
-                  <PanelLabel>{t("search_ui.sort_title")}</PanelLabel>
-                  <SearchableSelect
-                    value={draft.sort ?? ""}
-                    onChange={(value) => onDraftChange({ sort: value || undefined })}
-                    options={sortOptions}
-                    placeholder={t("search_panel.sort_recommended")}
-                    searchPlaceholder={t("search_panel.search_sorting")}
-                    className="h-12 rounded-2xl"
-                  />
-                </div>
-              </div>
-            ) : null}
+          <div className="space-y-2">
+            <PanelLabel>{t("search_ui.status_title")}</PanelLabel>
+            <SearchableSelect
+              value={draft.status ?? ""}
+              onChange={(value) => onDraftChange({ status: value || undefined })}
+              options={statusOptions}
+              placeholder={t("search_panel.any_status")}
+              className="h-12 rounded-2xl"
+            />
+          </div>
+
+          <div className="space-y-2.5">
+            <PanelLabel className="tabular-nums">
+              {t("search_panel.price_from")} {formatPrice(priceValue[0])}{" "}
+              {t("search_panel.price_to")} {formatPrice(priceValue[1])}
+            </PanelLabel>
+            <PriceFields priceValue={priceValue} onDraftChange={onDraftChange} />
+          </div>
+
+          <div className="space-y-2">
+            <PanelLabel>{t("search_ui.sort_title")}</PanelLabel>
+            <SearchableSelect
+              value={draft.sort ?? ""}
+              onChange={(value) => onDraftChange({ sort: value || undefined })}
+              options={sortOptions}
+              placeholder={t("search_panel.sort_recommended")}
+              searchPlaceholder={t("search_panel.search_sorting")}
+              className="h-12 rounded-2xl"
+            />
           </div>
         </div>
       </MobileSearchOverlay>

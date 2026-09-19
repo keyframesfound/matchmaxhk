@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 /**
- * Mobile Airbnb-style search entry: a naked (borderless, background-free)
- * "Start your search" label above the quick-nav pills row (Case / How it
- * works / Become tutor) that doubles as the mobile top navigation.
+ * Mobile Airbnb-style search entry: a bordered, card-backed "Start your
+ * search" bar above the quick-nav pills row (Case / How it works / Become
+ * tutor) that doubles as the mobile top navigation.
  */
 export function MobileSearchTrigger({
   label,
@@ -33,7 +33,7 @@ export function MobileSearchTrigger({
       <button
         type="button"
         onClick={onClick}
-        className="flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[15px] font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+        className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-[15px] font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
       >
         <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
         <span className="truncate">{label}</span>

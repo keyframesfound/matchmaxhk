@@ -55,6 +55,7 @@ export function CoursesSearch({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [pillOpenId, setPillOpenId] = useState<string | null>(null);
   const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
 
   const levelOptions: OptionRow[] = COURSE_LEVEL_OPTIONS.map((level) => ({
@@ -197,11 +198,16 @@ export function CoursesSearch({
           submitColor="blue"
           onSubmit={() => onApply()}
           className="min-w-0 flex-1"
+          openSegmentId={pillOpenId}
+          onOpenSegmentIdChange={setPillOpenId}
         />
         <FiltersPillButton
           label={t("search_ui.filters")}
           count={draft.district ? 1 : undefined}
-          onClick={() => setFiltersOpen(true)}
+          onClick={() => {
+            setPillOpenId(null);
+            setFiltersOpen(true);
+          }}
         />
       </div>
 
