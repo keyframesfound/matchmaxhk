@@ -166,6 +166,7 @@
   /* Themed app surfaces */
   --ink: #0f1419;
   --surface: #ffffff;
+  --surface-header: #fefefe; /* grouped nav + directory search band (Airbnb grey) */
   --surface-subtle: #f7f9fa;
   --surface-hover: #eff3f4;
   --surface-invert: #0f1419;
@@ -205,6 +206,7 @@
 .dark {
   --ink: #e7e9ea;
   --surface: #121212;
+  --surface-header: #121212;
   --surface-subtle: #1a1c1e;
   --surface-raised: #232327;
   --surface-hover: #26282c;

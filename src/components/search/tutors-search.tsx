@@ -63,7 +63,24 @@ const CATEGORY_VALUES = ["IB", "DSE", "IGCSE", "AP", "A-Level"];
 const formatPrice = (price: number) =>
   price === PRICE_MAX ? `HK$${price.toLocaleString()}+` : `HK$${price.toLocaleString()}`;
 
-type TutorsSearchProps = {
+const tutorsCategoryLabel = (value: string, t: (key: string) => string) => {
+  if (value === "Primary") return t("search_panel.category_primary_school");
+  if (value === "Junior Secondary") return t("search_panel.category_junior_secondary");
+  if (value === "Admissions") return t("search_panel.category_admissions");
+  return value;
+};
+
+const tutorsModeDisplay = (draft: TutorsSearchState, t: (key: string) => string) => {
+  if (draft.mode === "in_person") {
+    return draft.station
+      ? `${t("search_panel.mode_in_person")} · ${draft.station}`
+      : t("search_panel.mode_in_person");
+  }
+  if (draft.mode === "online") return t("search_panel.mode_online");
+  return t("search_ui.any_value");
+};
+
+export type TutorsSearchProps = {
   draft: TutorsSearchState;
   onDraftChange: (patch: Partial<TutorsSearchState>) => void;
   /** Apply the current draft (navigate). `override` merges values set in the same event. */
@@ -79,25 +96,38 @@ type TutorsSearchProps = {
   className?: string;
 };
 
-export function TutorsSearch({
+/** One-line summary for the compact nav pill while the full bar is retracted. */
+export function useTutorsCompactSummary(draft: TutorsSearchState): string {
+  const { t } = useTranslation();
+  const parts = [
+    draft.q?.trim() ?? "",
+    draft.category ? tutorsCategoryLabel(draft.category, t) : "",
+    draft.subject ?? "",
+    draft.mode ? tutorsModeDisplay(draft, t) : "",
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(" · ") : t("search_ui.search_tutors");
+}
+
+/**
+ * Desktop Airbnb-style pill row (segment bar + filters). On directory pages
+ * this is hosted by StickySearchBar so it pins under the nav and retracts on
+ * scroll; on the homepage it renders in the hero as before.
+ */
+export function TutorsSearchBar({
   draft,
   onDraftChange,
   onApply,
   onClear,
   resultCount,
   allPrices,
-  defaultOverlayOpen,
   whatsappUrl,
   className,
 }: TutorsSearchProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [pillOpenId, setPillOpenId] = useState<string | null>(null);
-  const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
 
   const subjectOptions = getSubjectOptionsForCategory(draft.category);
-  const suggestedSubjects = subjectOptions.length > 0 ? subjectOptions : DEFAULT_SUBJECT_OPTIONS;
 
   const handleCategorySelect = (category: string) => {
     const nextSubjects = getSubjectOptionsForCategory(category);
@@ -149,13 +179,6 @@ export function TutorsSearch({
     draft.sort,
   ].filter(Boolean).length;
 
-  const categoryLabel = (value: string) => {
-    if (value === "Primary") return t("search_panel.category_primary_school");
-    if (value === "Junior Secondary") return t("search_panel.category_junior_secondary");
-    if (value === "Admissions") return t("search_panel.category_admissions");
-    return value;
-  };
-
   const categoryOptions: OptionRow[] = [
     ...CATEGORY_VALUES.map((value) => ({ value, label: value })),
     { value: "Primary", label: t("search_panel.category_primary_school") },
@@ -182,15 +205,7 @@ export function TutorsSearch({
     { value: "male", label: t("search_panel.gender_male") },
   ];
 
-  const modeDisplay = (() => {
-    if (draft.mode === "in_person") {
-      return draft.station
-        ? `${t("search_panel.mode_in_person")} · ${draft.station}`
-        : t("search_panel.mode_in_person");
-    }
-    if (draft.mode === "online") return t("search_panel.mode_online");
-    return t("search_ui.any_value");
-  })();
+  const modeDisplay = tutorsModeDisplay(draft, t);
 
   const applyLabel =
     resultCount === undefined
@@ -281,7 +296,7 @@ export function TutorsSearch({
     {
       id: "category",
       label: t("search_ui.segment_curriculum"),
-      display: draft.category ? categoryLabel(draft.category) : t("search_ui.any_value"),
+      display: draft.category ? tutorsCategoryLabel(draft.category, t) : t("search_ui.any_value"),
       filled: Boolean(draft.category),
       options: categoryOptions,
       currentValue: draft.category,
@@ -313,43 +328,6 @@ export function TutorsSearch({
           onChange={handleModeChange}
         />
       ),
-    },
-  ];
-
-  const overlayTabs: MobileSearchTab[] = [
-    {
-      id: "tutors",
-      label: t("search_ui.tab_tutors"),
-      icon: <GraduationCap className="h-5 w-5" aria-hidden="true" />,
-      active: true,
-      onSelect: () => {},
-    },
-    ...(CENTRE_MARKET_ENABLED
-      ? [
-          {
-            id: "courses",
-            label: t("search_ui.tab_courses"),
-            icon: <BookOpen className="h-5 w-5" aria-hidden="true" />,
-            active: false,
-            onSelect: () => {
-              setSearchSlideDirection("next");
-              void navigate({
-                to: "/courses",
-                search: { q: draft.q, subject: draft.subject, mode: draft.mode, open: true },
-              });
-            },
-          },
-        ]
-      : []),
-    {
-      id: "cases",
-      label: t("search_ui.tab_cases"),
-      icon: <ClipboardList className="h-5 w-5" aria-hidden="true" />,
-      active: false,
-      onSelect: () => {
-        setSearchSlideDirection("next");
-        void navigate({ to: "/tutor-requests", search: { q: draft.q, open: true } });
-      },
     },
   ];
 
@@ -439,7 +417,121 @@ export function TutorsSearch({
           />
         </FiltersSection>
       </FiltersDialog>
+    </div>
+  );
+}
 
+/**
+ * Mobile search entry: "Start your search" trigger + quick-nav pills and the
+ * full-screen overlay. Rendered inside the hero section, untouched by the
+ * desktop sticky search group.
+ */
+export function TutorsSearchMobile({
+  draft,
+  onDraftChange,
+  onApply,
+  onClear,
+  resultCount,
+  defaultOverlayOpen,
+  className,
+}: TutorsSearchProps) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
+
+  const subjectOptions = getSubjectOptionsForCategory(draft.category);
+  const suggestedSubjects = subjectOptions.length > 0 ? subjectOptions : DEFAULT_SUBJECT_OPTIONS;
+
+  const handleCategorySelect = (category: string) => {
+    const nextSubjects = getSubjectOptionsForCategory(category);
+    onDraftChange({
+      category: category || undefined,
+      ...(draft.subject && !nextSubjects.includes(draft.subject) ? { subject: undefined } : {}),
+    });
+  };
+
+  const handleModeChange = (next: { mode: string; station?: string }) => {
+    onDraftChange({
+      mode: next.mode || undefined,
+      station: next.mode === "in_person" ? next.station : undefined,
+    });
+  };
+
+  const priceValue = useMemo(
+    () => [draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX] as [number, number],
+    [draft.min_price, draft.max_price],
+  );
+
+  const categoryOptions: OptionRow[] = [
+    ...CATEGORY_VALUES.map((value) => ({ value, label: value })),
+    { value: "Primary", label: t("search_panel.category_primary_school") },
+    { value: "Junior Secondary", label: t("search_panel.category_junior_secondary") },
+    { value: "Admissions", label: t("search_panel.category_admissions") },
+  ];
+
+  const statusOptions = [
+    { value: "", label: t("search_panel.any_status") },
+    { value: "uni_student", label: t("search_panel.status_uni_student") },
+    { value: "full_part_time_tutor", label: t("search_panel.status_full_part_time") },
+    { value: "examiner", label: t("search_panel.status_examiner") },
+  ];
+
+  const sortOptions = [
+    { value: "", label: t("search_panel.sort_recommended") },
+    { value: "price_asc", label: t("search_panel.sort_price_asc") },
+    { value: "price_desc", label: t("search_panel.sort_price_desc") },
+  ];
+
+  const genderOptions = [
+    { value: "", label: t("search_ui.gender_any") },
+    { value: "female", label: t("search_panel.gender_female") },
+    { value: "male", label: t("search_panel.gender_male") },
+  ];
+
+  const applyLabel =
+    resultCount === undefined
+      ? t("search_ui.search_tutors")
+      : t("search_ui.show_tutors", { count: resultCount });
+
+  const overlayTabs: MobileSearchTab[] = [
+    {
+      id: "tutors",
+      label: t("search_ui.tab_tutors"),
+      icon: <GraduationCap className="h-5 w-5" aria-hidden="true" />,
+      active: true,
+      onSelect: () => {},
+    },
+    ...(CENTRE_MARKET_ENABLED
+      ? [
+          {
+            id: "courses",
+            label: t("search_ui.tab_courses"),
+            icon: <BookOpen className="h-5 w-5" aria-hidden="true" />,
+            active: false,
+            onSelect: () => {
+              setSearchSlideDirection("next");
+              void navigate({
+                to: "/courses",
+                search: { q: draft.q, subject: draft.subject, mode: draft.mode, open: true },
+              });
+            },
+          },
+        ]
+      : []),
+    {
+      id: "cases",
+      label: t("search_ui.tab_cases"),
+      icon: <ClipboardList className="h-5 w-5" aria-hidden="true" />,
+      active: false,
+      onSelect: () => {
+        setSearchSlideDirection("next");
+        void navigate({ to: "/tutor-requests", search: { q: draft.q, open: true } });
+      },
+    },
+  ];
+
+  return (
+    <div className={className}>
       <MobileSearchTrigger
         label={t("search_ui.start_search")}
         onClick={() => setOverlayOpen(true)}
@@ -551,6 +643,17 @@ export function TutorsSearch({
           </div>
         </div>
       </MobileSearchOverlay>
+    </div>
+  );
+}
+
+/** Homepage composition: desktop pill row + mobile entry in one wrapper. */
+export function TutorsSearch(props: TutorsSearchProps) {
+  const { className, ...rest } = props;
+  return (
+    <div className={className}>
+      <TutorsSearchBar {...rest} />
+      <TutorsSearchMobile {...rest} />
     </div>
   );
 }

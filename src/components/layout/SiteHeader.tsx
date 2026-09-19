@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { Logo } from "@/components/brand/Logo";
+import { CompactPillSlot, useSearchGroup } from "@/components/search/sticky-search-group";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -77,9 +78,19 @@ function DesktopNavLink({
 export function SiteHeader({
   className,
   tone = "light",
+  merged = false,
+  centerSlot,
 }: {
   className?: string;
   tone?: "light" | "dark";
+  /**
+   * Grouped search-header mode (directory pages): no divider under the nav,
+   * shared #FEFEFE band with the search area below, and the nav links fade
+   * out while the compact search pill is showing.
+   */
+  merged?: boolean;
+  /** Compact search pill rendered centered in the nav row (merged mode). */
+  centerSlot?: React.ReactNode;
 }) {
   const { t } = useTranslation();
   const { user, signOut, hasAnyRole } = useAuth();
@@ -89,6 +100,9 @@ export function SiteHeader({
   const isAdmin = hasAnyRole(["admin", "super_admin"]);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
+  const searchGroup = useSearchGroup();
+  const linksVisible = !merged || searchGroup.phase === "top";
+  const compactVisible = merged && searchGroup.phase === "compact";
   const accountName =
     user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
   const accountInitial = accountName.charAt(0).toUpperCase();
@@ -101,13 +115,22 @@ export function SiteHeader({
   return (
     <>
       <header
+        data-site-header=""
         className={cn(
-          "sticky top-0 z-50 hidden w-full border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm lg:block",
+          "sticky top-0 z-50 hidden w-full lg:block",
+          merged
+            ? "bg-[color:var(--surface-header)]"
+            : "border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm",
           tone === "dark" && "site-header--dark",
           className,
         )}
       >
-        <div className="mx-auto flex h-[64px] max-w-[1440px] items-center gap-2 px-4 sm:px-8 lg:gap-0 lg:px-10">
+        <div className="relative mx-auto flex h-[64px] max-w-[1440px] items-center gap-2 px-4 sm:px-8 lg:gap-0 lg:px-10">
+          {merged && centerSlot ? (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <CompactPillSlot visible={compactVisible}>{centerSlot}</CompactPillSlot>
+            </div>
+          ) : null}
           <Link to="/" className="flex shrink-0 items-center" aria-label="MatchMax home">
             <div className="flex items-center gap-2">
               <Logo className="shrink-0" />
@@ -115,7 +138,12 @@ export function SiteHeader({
             </div>
           </Link>
 
-          <nav className="ml-12 flex items-center gap-9">
+          <nav
+            className={cn(
+              "ml-12 flex items-center gap-9 transition-opacity duration-200 motion-reduce:transition-none",
+              linksVisible ? "opacity-100" : "pointer-events-none opacity-0",
+            )}
+          >
             <DesktopNavLink to="/how-it-works" active={isActive("/how-it-works")}>
               {t("nav.how")}
             </DesktopNavLink>

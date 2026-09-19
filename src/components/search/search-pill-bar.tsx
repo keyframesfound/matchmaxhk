@@ -157,9 +157,17 @@ export function SearchPillBar({
         className,
       )}
     >
+      {/* Engagement wash: greys the whole bar while a panel is open (light and dark). */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute inset-0 rounded-full bg-[color:var(--foreground)] transition-opacity duration-200",
+          openId ? "opacity-[0.1]" : "opacity-0",
+        )}
+      />
       <motion.div
         aria-hidden="true"
-        className="pointer-events-none absolute left-0 top-0 rounded-full bg-[color:var(--foreground)]/[0.06]"
+        className="pointer-events-none absolute left-0 top-0 rounded-full bg-card"
         style={{
           x: highlightX,
           y: highlightY,
@@ -185,7 +193,8 @@ export function SearchPillBar({
                 type="button"
                 aria-expanded={openId === segment.id}
                 className={cn(
-                  "relative flex min-w-0 flex-col justify-center gap-0.5 rounded-full px-4 py-1.5 text-left transition-colors hover:bg-[color:var(--foreground)]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:px-5",
+                  "relative flex min-w-0 flex-col justify-center gap-0.5 rounded-full px-4 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:px-5",
+                  openId === null && "hover:bg-[color:var(--foreground)]/[0.05]",
                   index > 0 &&
                     (adjacentActive ? "border-l border-transparent" : "border-l border-border"),
                   segment.grow ?? "flex-1",

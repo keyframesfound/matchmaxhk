@@ -568,6 +568,7 @@
   },
   "search_ui": {
     "start_search": "開始搜尋",
+    "compact_expand": "展開搜尋",
     "filters": "篩選",
     "clear_all": "全部清除",
     "close_search": "關閉搜尋",

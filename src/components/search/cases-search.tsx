@@ -18,17 +18,18 @@ export type CasesSearchState = {
   district?: string;
 };
 
-const CASE_CATEGORY_VALUES = [
-  "IB",
-  "DSE",
-  "IGCSE",
-  "AP",
-  "A-Level",
-  "Primary School",
-  "Junior Secondary",
-  "Admissions",
-  "Other",
-];
+type CasesSearchProps = {
+  draft: CasesSearchState;
+  onDraftChange: (patch: Partial<CasesSearchState>) => void;
+  /** Apply the current draft (navigate). `override` merges values set in the same event. */
+  onApply: (override?: Partial<CasesSearchState>) => void;
+  onClear: () => void;
+  /** Subjects on the board — powers the suggested rows in the mobile overlay. */
+  subjectOptions?: string[];
+  /** Open the mobile overlay on mount (used when hopping between search tabs). */
+  defaultOverlayOpen?: boolean;
+  className?: string;
+};
 
 const caseCategoryLabel = (value: string, t: (key: string) => string) => {
   if (value === "Primary School") return t("search_panel.category_primary_school");
@@ -38,39 +39,29 @@ const caseCategoryLabel = (value: string, t: (key: string) => string) => {
   return value;
 };
 
-type CasesSearchProps = {
-  draft: CasesSearchState;
-  onDraftChange: (patch: Partial<CasesSearchState>) => void;
-  onApply: (override?: Partial<CasesSearchState>) => void;
-  onClear: () => void;
-  subjectOptions: string[];
-  /** Open the mobile overlay on mount (used when hopping between search tabs). */
-  defaultOverlayOpen?: boolean;
-  className?: string;
-};
+/** One-line summary for the compact nav pill while the full bar is retracted. */
+export function useCasesCompactSummary(draft: CasesSearchState): string {
+  const { t } = useTranslation();
+  const parts = [
+    draft.q?.trim() ?? "",
+    draft.category ? caseCategoryLabel(draft.category, t) : "",
+    draft.district ?? "",
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(" · ") : t("search_ui.cases_placeholder");
+}
 
-/** Same Airbnb-style search pattern as the tutors/courses directories, for the case board. */
-export function CasesSearch({
+/**
+ * Desktop Airbnb-style pill row (segment bar) for the case board,
+ * hosted by StickySearchBar so it pins under the nav and retracts on scroll.
+ */
+export function CasesSearchBar({
   draft,
   onDraftChange,
   onApply,
   onClear,
-  subjectOptions,
-  defaultOverlayOpen,
   className,
-}: CasesSearchProps) {
+}: Omit<CasesSearchProps, "defaultOverlayOpen">) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
-
-  const categoryOptions: OptionRow[] = CASE_CATEGORY_VALUES.map((value) => ({
-    value,
-    label: caseCategoryLabel(value, t),
-  }));
-  const districtOptions: OptionRow[] = HK_DISTRICTS.map((district) => ({
-    value: district,
-    label: district,
-  }));
 
   const segments: PillSegment[] = [
     {
@@ -94,7 +85,10 @@ export function CasesSearch({
       label: t("search_ui.segment_curriculum"),
       display: draft.category ? caseCategoryLabel(draft.category, t) : t("search_ui.any_value"),
       filled: Boolean(draft.category),
-      options: categoryOptions,
+      options: CASE_CATEGORY_VALUES.map((value) => ({
+        value,
+        label: caseCategoryLabel(value, t),
+      })),
       currentValue: draft.category,
       searchPlaceholder: t("search_panel.search_category"),
       emptyText: t("search_panel.no_matches"),
@@ -105,13 +99,45 @@ export function CasesSearch({
       label: t("search_ui.segment_district"),
       display: draft.district ?? t("search_ui.any_value"),
       filled: Boolean(draft.district),
-      options: districtOptions,
+      options: HK_DISTRICTS.map((district) => ({
+        value: district,
+        label: district,
+      })),
       currentValue: draft.district,
       searchPlaceholder: t("search_panel.search_subject"),
       emptyText: t("search_panel.no_matches"),
       onSelect: (value) => onDraftChange({ district: value || undefined }),
     },
   ];
+
+  return (
+    <div className={className}>
+      <div className="hidden items-stretch gap-2 lg:flex">
+        <SearchPillBar
+          segments={segments}
+          submitLabel={t("search_panel.search")}
+          submitColor="blue"
+          onSubmit={() => onApply()}
+          className="min-w-0 flex-1"
+        />
+      </div>
+    </div>
+  );
+}
+
+/** Mobile search entry for the case board, rendered inside the hero. */
+export function CasesSearchMobile({
+  draft,
+  onDraftChange,
+  onApply,
+  onClear,
+  subjectOptions,
+  defaultOverlayOpen,
+  className,
+}: CasesSearchProps) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
 
   const overlayTabs: MobileSearchTab[] = [
     {
@@ -155,16 +181,6 @@ export function CasesSearch({
 
   return (
     <div className={className}>
-      <div className="hidden items-stretch gap-2 lg:flex">
-        <SearchPillBar
-          segments={segments}
-          submitLabel={t("search_panel.search")}
-          submitColor="blue"
-          onSubmit={() => onApply()}
-          className="min-w-0 flex-1"
-        />
-      </div>
-
       <MobileSearchTrigger
         label={t("search_ui.start_search")}
         onClick={() => setOverlayOpen(true)}
@@ -201,18 +217,24 @@ export function CasesSearch({
             <SearchableSelect
               value={draft.category ?? ""}
               onChange={(value) => onDraftChange({ category: value || undefined })}
-              options={[{ value: "", label: t("search_panel.any_category") }, ...categoryOptions]}
+              options={[
+                { value: "", label: t("search_panel.any_category") },
+                ...CASE_CATEGORY_VALUES.map((value) => ({
+                  value,
+                  label: caseCategoryLabel(value, t),
+                })),
+              ]}
               placeholder={t("search_panel.any_category")}
               searchPlaceholder={t("search_panel.search_category")}
               className="h-12 rounded-2xl"
             />
           </div>
 
-          {subjectOptions.length > 0 ? (
+          {(subjectOptions?.length ?? 0) > 0 ? (
             <div className="space-y-1">
               <PanelLabel>{t("search_ui.suggested_subjects")}</PanelLabel>
               <div className="-mx-2">
-                {subjectOptions.slice(0, 5).map((subject) => (
+                {subjectOptions!.slice(0, 5).map((subject) => (
                   <SuggestedRow
                     key={subject}
                     title={subject}
@@ -232,7 +254,10 @@ export function CasesSearch({
             <SearchableSelect
               value={draft.district ?? ""}
               onChange={(value) => onDraftChange({ district: value || undefined })}
-              options={[{ value: "", label: t("search_ui.any_district") }, ...districtOptions]}
+              options={[
+                { value: "", label: t("search_ui.any_district") },
+                ...HK_DISTRICTS.map((district) => ({ value: district, label: district })),
+              ]}
               placeholder={t("search_ui.any_district")}
               searchPlaceholder={t("search_panel.search_subject")}
               className="h-12 rounded-2xl"
@@ -243,3 +268,27 @@ export function CasesSearch({
     </div>
   );
 }
+
+/** Combined composition (kept for parity with the tutors search). */
+export function CasesSearch(props: CasesSearchProps) {
+  const { className, ...rest } = props;
+  return (
+    <div className={className}>
+      <CasesSearchBar {...rest} />
+      <CasesSearchMobile {...rest} />
+    </div>
+  );
+}
+
+/* Preserved original lists from cases-search.tsx. */
+const CASE_CATEGORY_VALUES = [
+  "IB",
+  "DSE",
+  "IGCSE",
+  "AP",
+  "A-Level",
+  "Primary School",
+  "Junior Secondary",
+  "Admissions",
+  "Other",
+];

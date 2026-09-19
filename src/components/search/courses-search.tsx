@@ -35,6 +35,7 @@ export type CoursesSearchState = {
 type CoursesSearchProps = {
   draft: CoursesSearchState;
   onDraftChange: (patch: Partial<CoursesSearchState>) => void;
+  /** Apply the current draft (navigate). `override` merges values set in the same event. */
   onApply: (override?: Partial<CoursesSearchState>) => void;
   onClear: () => void;
   subjectOptions: string[];
@@ -43,20 +44,41 @@ type CoursesSearchProps = {
   className?: string;
 };
 
-export function CoursesSearch({
+const coursesModeLabel = (value: string, t: (key: string) => string) => {
+  if (value === "") return t("search_ui.mode_any");
+  if (value === "online") return t("search_ui.mode_online");
+  if (value === "in_person") return t("search_ui.mode_in_person");
+  return t("search_ui.mode_open");
+};
+
+/** One-line summary for the compact nav pill while the full bar is retracted. */
+export function useCoursesCompactSummary(draft: CoursesSearchState): string {
+  const { t } = useTranslation();
+  const parts = [
+    draft.q?.trim() ?? "",
+    draft.level ?? "",
+    draft.subject ?? "",
+    draft.mode ? coursesModeLabel(draft.mode, t) : "",
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(" · ") : t("search_ui.show_courses_plain");
+}
+
+/**
+ * Desktop Airbnb-style pill row (segment bar + filters) for the course
+ * directory, hosted by StickySearchBar so it pins under the nav and retracts
+ * on scroll.
+ */
+export function CoursesSearchBar({
   draft,
   onDraftChange,
   onApply,
   onClear,
   subjectOptions,
-  defaultOverlayOpen,
   className,
 }: CoursesSearchProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [pillOpenId, setPillOpenId] = useState<string | null>(null);
-  const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
 
   const levelOptions: OptionRow[] = COURSE_LEVEL_OPTIONS.map((level) => ({
     value: level,
@@ -73,14 +95,7 @@ export function CoursesSearch({
 
   const modeSegmentOptions = COURSE_MODE_OPTIONS.map((option) => ({
     value: option.value,
-    label:
-      option.value === ""
-        ? t("search_ui.mode_any")
-        : option.value === "online"
-          ? t("search_ui.mode_online")
-          : option.value === "in_person"
-            ? t("search_ui.mode_in_person")
-            : t("search_ui.mode_open"),
+    label: coursesModeLabel(option.value, t),
   }));
 
   const modeDisplay = (() => {
@@ -156,39 +171,6 @@ export function CoursesSearch({
     },
   ];
 
-  const overlayTabs: MobileSearchTab[] = [
-    {
-      id: "tutors",
-      label: t("search_ui.tab_tutors"),
-      icon: <GraduationCap className="h-5 w-5" aria-hidden="true" />,
-      active: false,
-      onSelect: () => {
-        setSearchSlideDirection("prev");
-        void navigate({
-          to: "/tutors",
-          search: { q: draft.q, subject: draft.subject, mode: draft.mode, open: true },
-        });
-      },
-    },
-    {
-      id: "courses",
-      label: t("search_ui.tab_courses"),
-      icon: <BookOpen className="h-5 w-5" aria-hidden="true" />,
-      active: true,
-      onSelect: () => {},
-    },
-    {
-      id: "cases",
-      label: t("search_ui.tab_cases"),
-      icon: <ClipboardList className="h-5 w-5" aria-hidden="true" />,
-      active: false,
-      onSelect: () => {
-        setSearchSlideDirection("next");
-        void navigate({ to: "/tutor-requests", search: { q: draft.q, open: true } });
-      },
-    },
-  ];
-
   return (
     <div className={className}>
       <div className="hidden items-stretch gap-2 lg:flex">
@@ -233,7 +215,77 @@ export function CoursesSearch({
           />
         </FiltersSection>
       </FiltersDialog>
+    </div>
+  );
+}
 
+/** Mobile search entry for the course directory, rendered inside the hero. */
+export function CoursesSearchMobile({
+  draft,
+  onDraftChange,
+  onApply,
+  onClear,
+  subjectOptions,
+  defaultOverlayOpen,
+  className,
+}: CoursesSearchProps) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
+
+  const levelOptions: OptionRow[] = COURSE_LEVEL_OPTIONS.map((level) => ({
+    value: level,
+    label: level,
+  }));
+  const districtOptions: OptionRow[] = HK_DISTRICTS.map((district) => ({
+    value: district,
+    label: district,
+  }));
+  const subjectRows: OptionRow[] = subjectOptions.map((subject) => ({
+    value: subject,
+    label: subject,
+  }));
+
+  const modeSegmentOptions = COURSE_MODE_OPTIONS.map((option) => ({
+    value: option.value,
+    label: coursesModeLabel(option.value, t),
+  }));
+
+  const overlayTabs: MobileSearchTab[] = [
+    {
+      id: "tutors",
+      label: t("search_ui.tab_tutors"),
+      icon: <GraduationCap className="h-5 w-5" aria-hidden="true" />,
+      active: false,
+      onSelect: () => {
+        setSearchSlideDirection("prev");
+        void navigate({
+          to: "/tutors",
+          search: { q: draft.q, subject: draft.subject, mode: draft.mode, open: true },
+        });
+      },
+    },
+    {
+      id: "courses",
+      label: t("search_ui.tab_courses"),
+      icon: <BookOpen className="h-5 w-5" aria-hidden="true" />,
+      active: true,
+      onSelect: () => {},
+    },
+    {
+      id: "cases",
+      label: t("search_ui.tab_cases"),
+      icon: <ClipboardList className="h-5 w-5" aria-hidden="true" />,
+      active: false,
+      onSelect: () => {
+        setSearchSlideDirection("next");
+        void navigate({ to: "/tutor-requests", search: { q: draft.q, open: true } });
+      },
+    },
+  ];
+
+  return (
+    <div className={className}>
       <MobileSearchTrigger
         label={t("search_ui.start_search")}
         onClick={() => setOverlayOpen(true)}
@@ -319,6 +371,17 @@ export function CoursesSearch({
           </div>
         </div>
       </MobileSearchOverlay>
+    </div>
+  );
+}
+
+/** Combined composition (kept for parity with the tutors search). */
+export function CoursesSearch(props: CoursesSearchProps) {
+  const { className, ...rest } = props;
+  return (
+    <div className={className}>
+      <CoursesSearchBar {...rest} />
+      <CoursesSearchMobile {...rest} />
     </div>
   );
 }

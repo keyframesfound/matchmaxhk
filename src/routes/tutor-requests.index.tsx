@@ -13,14 +13,25 @@ import {
   Wallet,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { PublicPage } from "@/components/layout/PublicPage";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CaseRequestForm } from "@/features/cases/CaseRequestForm";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
-import { CasesSearch, type CasesSearchState } from "@/components/search/cases-search";
+import {
+  CasesSearchBar,
+  CasesSearchMobile,
+  useCasesCompactSummary,
+  type CasesSearchState,
+} from "@/components/search/cases-search";
+import {
+  CompactSearchPill,
+  SearchGroupProvider,
+  StickySearchBar,
+} from "@/components/search/sticky-search-group";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import {
   CaseCompareBar,
   CaseCompareDialog,
@@ -301,214 +312,237 @@ function TutorRequestsPage() {
 
   const hasActiveFilters = Boolean(search.q || search.category || search.district);
 
+  const compactSummary = useCasesCompactSummary(draft);
+
   return (
-    <PublicPage mainClassName="bg-[color:var(--surface-subtle)]">
-      {/* Page header with the post CTA */}
-      <section className="border-b border-border">
-        <PageContainer width="default" className="py-10 sm:py-12">
-          <Badge variant="outline" className="mb-4">
-            Tutor requests
-          </Badge>
-          <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-            Requesting a tutor that meets your requirements?
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Fill in this form and tutors who&rsquo;re qualified and interested can apply for your
-            case!
-          </p>
-          <div className="mt-6">
-            <Button
-              onClick={toggleForm}
-              variant="solid"
-              color="neutral"
-              shape="pill"
-              className="h-11 px-6 font-bold"
-            >
-              {formOpen ? "Hide form" : "Post your request"}
-            </Button>
-          </div>
-          <CasesSearch
-            className="mt-7"
-            draft={draft}
-            onDraftChange={setDraftParam}
-            onApply={applySearch}
-            onClear={clearSearch}
-            subjectOptions={boardSubjects}
-            defaultOverlayOpen={search.open === true}
-          />
-        </PageContainer>
-      </section>
-
-      {/* Klarna-style notice: bottom sheet on mobile, centered modal on desktop */}
-      <Dialog open={noticeOpen} onOpenChange={setNoticeOpen}>
-        <DialogContent className="max-h-[92dvh] w-full max-w-full gap-0 overflow-y-auto p-0 inset-x-0 top-auto bottom-0 translate-x-0 translate-y-0 rounded-none rounded-t-3xl border-x-0 border-b-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:rounded-3xl sm:border-x sm:border-b sm:data-[state=open]:zoom-in-95 sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=closed]:slide-out-to-bottom-0">
-          <div className="flex flex-col items-stretch p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:p-8">
-            <BadgeCheck
-              className="h-12 w-12 text-[color:var(--ink)]"
-              strokeWidth={1.75}
-              aria-hidden="true"
-            />
-            <DialogTitle className="mt-6 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-[28px]">
-              Requesting a tutor that meets your requirements?
-            </DialogTitle>
-            <DialogDescription className="mt-2 text-base leading-relaxed">
-              Fill in this form and tutors who&rsquo;re qualified and interested can apply for your
-              case!
-            </DialogDescription>
-            <div className="mt-8 flex flex-col gap-2">
-              <Button
-                onClick={() => {
-                  setNoticeOpen(false);
-                  openForm();
-                }}
-                variant="solid"
-                color="neutral"
-                shape="pill"
-                className="h-13 w-full text-base font-bold"
-              >
-                Post your request
-              </Button>
-              <Button
-                onClick={dismissNoticePermanently}
-                variant="ghost"
-                className="h-10 w-full text-sm text-muted-foreground"
-              >
-                Don&rsquo;t show again
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Collapsible request form */}
-      {formOpen ? (
-        <div ref={formSectionRef} className="scroll-mt-24">
-          <PageContainer width="default" className="py-10 sm:py-12">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                Post your request
-              </h2>
+    <SearchGroupProvider>
+      <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-[color:var(--surface-subtle)] text-foreground">
+        <SiteHeader merged centerSlot={<CompactSearchPill summary={compactSummary} />} />
+        <main className="min-w-0 flex-1 bg-[color:var(--surface-subtle)]">
+          {/* Page header with the post CTA */}
+          <section className="border-b border-border bg-[color:var(--surface-header)] lg:border-b-0">
+            <PageContainer width="default" className="py-10 sm:py-12">
+              <Badge variant="outline" className="mb-4">
+                Tutor requests
+              </Badge>
+              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                Requesting a tutor that meets your requirements?
+              </h1>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                Tell us what you need and our team will review it — approved requests appear on this
-                board so qualified tutors can apply directly.
+                Fill in this form and tutors who&rsquo;re qualified and interested can apply for
+                your case!
               </p>
-            </div>
-            <CaseRequestForm idPrefix="tr" />
-          </PageContainer>
-        </div>
-      ) : null}
-
-      {/* Board */}
-      <section className="py-10 sm:py-12">
-        <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
-          <div className="mb-10">
-            <Badge variant="outline" className="mb-4">
-              Tutor requests
-            </Badge>
-            <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-              Open requests
-            </h2>
-            {hasActiveFilters ? (
-              <p className="mt-2 text-sm font-semibold text-[color:var(--ink)]/70">
-                {filteredCases.length} {filteredCases.length === 1 ? "match" : "matches"}
-              </p>
-            ) : null}
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              Real tutoring requests from Hong Kong parents. Open a case for the full details and
-              apply for the ones that fit your schedule.
-            </p>
-          </div>
-
-          <div className="p-0 sm:p-2">
-            {isLoading ? (
-              <div className="flex flex-col gap-8">
-                <ListSkeleton rows={3} />
-                <ListSkeleton rows={2} />
+              <div className="mt-6">
+                <Button
+                  onClick={toggleForm}
+                  variant="solid"
+                  color="neutral"
+                  shape="pill"
+                  className="h-11 px-6 font-bold"
+                >
+                  {formOpen ? "Hide form" : "Post your request"}
+                </Button>
               </div>
-            ) : cases.length === 0 ? (
-              <div className="p-8 text-center sm:p-12">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center">
-                  <Inbox
-                    className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                    aria-hidden="true"
-                  />
-                </div>
-                <h3 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
-                  No open requests right now
-                </h3>
-                <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                  Approved parent requests appear here for tutors to apply. Be the first — post your
-                  requirements and let tutors come to you.
-                </p>
-                <div className="mt-6 flex justify-center">
+              <CasesSearchMobile
+                className="mt-7"
+                draft={draft}
+                onDraftChange={setDraftParam}
+                onApply={applySearch}
+                onClear={clearSearch}
+                subjectOptions={boardSubjects}
+                defaultOverlayOpen={search.open === true}
+              />
+            </PageContainer>
+          </section>
+          <StickySearchBar>
+            <PageContainer width="default" className="py-3">
+              <CasesSearchBar
+                draft={draft}
+                onDraftChange={setDraftParam}
+                onApply={applySearch}
+                onClear={clearSearch}
+                subjectOptions={boardSubjects}
+              />
+            </PageContainer>
+          </StickySearchBar>
+
+          {/* Klarna-style notice: bottom sheet on mobile, centered modal on desktop */}
+          <Dialog open={noticeOpen} onOpenChange={setNoticeOpen}>
+            <DialogContent className="max-h-[92dvh] w-full max-w-full gap-0 overflow-y-auto p-0 inset-x-0 top-auto bottom-0 translate-x-0 translate-y-0 rounded-none rounded-t-3xl border-x-0 border-b-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:rounded-3xl sm:border-x sm:border-b sm:data-[state=open]:zoom-in-95 sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=closed]:slide-out-to-bottom-0">
+              <div className="flex flex-col items-stretch p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:p-8">
+                <BadgeCheck
+                  className="h-12 w-12 text-[color:var(--ink)]"
+                  strokeWidth={1.75}
+                  aria-hidden="true"
+                />
+                <DialogTitle className="mt-6 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-[28px]">
+                  Requesting a tutor that meets your requirements?
+                </DialogTitle>
+                <DialogDescription className="mt-2 text-base leading-relaxed">
+                  Fill in this form and tutors who&rsquo;re qualified and interested can apply for
+                  your case!
+                </DialogDescription>
+                <div className="mt-8 flex flex-col gap-2">
                   <Button
-                    onClick={openForm}
+                    onClick={() => {
+                      setNoticeOpen(false);
+                      openForm();
+                    }}
                     variant="solid"
                     color="neutral"
                     shape="pill"
-                    className="h-11 px-6 font-bold"
+                    className="h-13 w-full text-base font-bold"
                   >
                     Post your request
                   </Button>
-                </div>
-              </div>
-            ) : filteredCases.length === 0 ? (
-              <div className="p-8 text-center sm:p-12">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
-                  <SearchX
-                    className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                    aria-hidden="true"
-                  />
-                </div>
-                <h3 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
-                  {t("directory.empty_title")}
-                </h3>
-                <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                  {t("directory.empty_desc")}
-                </p>
-                <div className="mt-6 flex justify-center">
-                  <Button onClick={clearSearch} variant="outline">
-                    {t("search_ui.clear_all")}
+                  <Button
+                    onClick={dismissNoticePermanently}
+                    variant="ghost"
+                    className="h-10 w-full text-sm text-muted-foreground"
+                  >
+                    Don&rsquo;t show again
                   </Button>
                 </div>
               </div>
-            ) : (
-              <div className="flex flex-col gap-8">
-                {groups.map((group) => (
-                  <div key={group.section} className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-xs font-semibold text-muted-foreground">
-                        {caseSectionLabel(group.section)}
-                      </h3>
-                      <span className="text-xs tabular-nums text-muted-foreground">
-                        {group.items.length}
-                      </span>
-                    </div>
-                    <ul className="flex flex-col overflow-hidden rounded-xl border border-border divide-y divide-border">
-                      {group.items.map((item) => (
-                        <CaseListRow key={item.id} item={item} />
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
+            </DialogContent>
+          </Dialog>
 
-            <p className="mt-8 text-center text-xs text-muted-foreground sm:text-sm">
-              Interested in a case? Apply via WhatsApp and the MatchMax team will connect you with
-              the parent. Free for parents, our team replies within one business day.
-            </p>
-          </div>
-        </div>
-      </section>
-      {compareCases.length > 0 && !compareOpen ? (
-        <CaseCompareBar
-          count={compareCases.length}
-          onOpenCompare={() => setCompareOpen(true)}
-          onClear={clearCompare}
-        />
-      ) : null}
-      <CaseCompareDialog open={compareOpen} onOpenChange={setCompareOpen} cases={compareCases} />
-    </PublicPage>
+          {/* Collapsible request form */}
+          {formOpen ? (
+            <div ref={formSectionRef} className="scroll-mt-24">
+              <PageContainer width="default" className="py-10 sm:py-12">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                    Post your request
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                    Tell us what you need and our team will review it — approved requests appear on
+                    this board so qualified tutors can apply directly.
+                  </p>
+                </div>
+                <CaseRequestForm idPrefix="tr" />
+              </PageContainer>
+            </div>
+          ) : null}
+
+          {/* Board */}
+          <section className="py-10 sm:py-12">
+            <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+              <div className="mb-10">
+                <Badge variant="outline" className="mb-4">
+                  Tutor requests
+                </Badge>
+                <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                  Open requests
+                </h2>
+                {hasActiveFilters ? (
+                  <p className="mt-2 text-sm font-semibold text-[color:var(--ink)]/70">
+                    {filteredCases.length} {filteredCases.length === 1 ? "match" : "matches"}
+                  </p>
+                ) : null}
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                  Real tutoring requests from Hong Kong parents. Open a case for the full details
+                  and apply for the ones that fit your schedule.
+                </p>
+              </div>
+
+              <div className="p-0 sm:p-2">
+                {isLoading ? (
+                  <div className="flex flex-col gap-8">
+                    <ListSkeleton rows={3} />
+                    <ListSkeleton rows={2} />
+                  </div>
+                ) : cases.length === 0 ? (
+                  <div className="p-8 text-center sm:p-12">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center">
+                      <Inbox
+                        className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <h3 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                      No open requests right now
+                    </h3>
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                      Approved parent requests appear here for tutors to apply. Be the first — post
+                      your requirements and let tutors come to you.
+                    </p>
+                    <div className="mt-6 flex justify-center">
+                      <Button
+                        onClick={openForm}
+                        variant="solid"
+                        color="neutral"
+                        shape="pill"
+                        className="h-11 px-6 font-bold"
+                      >
+                        Post your request
+                      </Button>
+                    </div>
+                  </div>
+                ) : filteredCases.length === 0 ? (
+                  <div className="p-8 text-center sm:p-12">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
+                      <SearchX
+                        className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <h3 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                      {t("directory.empty_title")}
+                    </h3>
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                      {t("directory.empty_desc")}
+                    </p>
+                    <div className="mt-6 flex justify-center">
+                      <Button onClick={clearSearch} variant="outline">
+                        {t("search_ui.clear_all")}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-8">
+                    {groups.map((group) => (
+                      <div key={group.section} className="flex flex-col gap-3">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-xs font-semibold text-muted-foreground">
+                            {caseSectionLabel(group.section)}
+                          </h3>
+                          <span className="text-xs tabular-nums text-muted-foreground">
+                            {group.items.length}
+                          </span>
+                        </div>
+                        <ul className="flex flex-col overflow-hidden rounded-xl border border-border divide-y divide-border">
+                          {group.items.map((item) => (
+                            <CaseListRow key={item.id} item={item} />
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <p className="mt-8 text-center text-xs text-muted-foreground sm:text-sm">
+                  Interested in a case? Apply via WhatsApp and the MatchMax team will connect you
+                  with the parent. Free for parents, our team replies within one business day.
+                </p>
+              </div>
+            </div>
+          </section>
+          {compareCases.length > 0 && !compareOpen ? (
+            <CaseCompareBar
+              count={compareCases.length}
+              onOpenCompare={() => setCompareOpen(true)}
+              onClear={clearCompare}
+            />
+          ) : null}
+          <CaseCompareDialog
+            open={compareOpen}
+            onOpenChange={setCompareOpen}
+            cases={compareCases}
+          />
+        </main>
+        <SiteFooter />
+      </div>
+    </SearchGroupProvider>
   );
 }

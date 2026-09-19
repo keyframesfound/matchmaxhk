@@ -9,7 +9,16 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TutorsSearch } from "@/components/search/tutors-search";
+import {
+  CompactSearchPill,
+  SearchGroupProvider,
+  StickySearchBar,
+} from "@/components/search/sticky-search-group";
+import {
+  TutorsSearchBar,
+  TutorsSearchMobile,
+  useTutorsCompactSummary,
+} from "@/components/search/tutors-search";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
@@ -201,139 +210,154 @@ function TutorsDirectory() {
     });
   };
 
+  const compactSummary = useTutorsCompactSummary(draft);
+
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
-      <main className="flex-1">
-        <section className="border-b border-border py-10 sm:py-12">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
-              Find verified tutors
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Start with a subject or tutor code, then narrow the list to the right fit.
-            </p>
-            <TutorsSearch
-              className="mt-7"
-              draft={draft}
-              onDraftChange={setDraftParam}
-              onApply={applySearch}
-              onClear={clearAll}
-              resultCount={filtered.length}
-              allPrices={tutors.map((tutor) => tutor.hourly_rate)}
-              defaultOverlayOpen={search.open === true}
-              whatsappUrl={hotlineUrl || undefined}
-            />
-          </div>
-        </section>
-        <section className="py-12">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="mb-6 flex items-baseline justify-between">
-              {isLoading ? (
-                <Skeleton className="h-4 w-28" />
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-bold text-foreground">{filtered.length}</span>{" "}
-                  {filtered.length === 1 ? "tutor" : "tutors"} found
-                </p>
+    <SearchGroupProvider>
+      <div className="flex min-h-screen flex-col bg-background">
+        <SiteHeader merged centerSlot={<CompactSearchPill summary={compactSummary} />} />
+        <main className="flex-1">
+          <section className="border-b border-border bg-[color:var(--surface-header)] pt-10 pb-6 sm:pt-12 sm:pb-8 lg:border-b-0">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6">
+              <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
+                Find verified tutors
+              </h1>
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                Start with a subject or tutor code, then narrow the list to the right fit.
+              </p>
+              <TutorsSearchMobile
+                className="mt-7"
+                draft={draft}
+                onDraftChange={setDraftParam}
+                onApply={applySearch}
+                onClear={clearAll}
+                defaultOverlayOpen={search.open === true}
+                whatsappUrl={hotlineUrl || undefined}
+              />
+            </div>
+          </section>
+          <StickySearchBar>
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
+              <TutorsSearchBar
+                draft={draft}
+                onDraftChange={setDraftParam}
+                onApply={applySearch}
+                onClear={clearAll}
+                resultCount={filtered.length}
+                allPrices={tutors.map((tutor) => tutor.hourly_rate)}
+                whatsappUrl={hotlineUrl || undefined}
+              />
+            </div>
+          </StickySearchBar>
+          <section className="py-12">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6">
+              <div className="mb-6 flex items-baseline justify-between">
+                {isLoading ? (
+                  <Skeleton className="h-4 w-28" />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-bold text-foreground">{filtered.length}</span>{" "}
+                    {filtered.length === 1 ? "tutor" : "tutors"} found
+                  </p>
+                )}
+              </div>
+
+              {isLoading && (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={i} className="h-[23rem] rounded-[10px] border border-border" />
+                  ))}
+                </div>
+              )}
+
+              {!isLoading && filtered.length === 0 && (
+                <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
+                    <SearchX
+                      className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                    {t("directory.empty_title")}
+                  </h2>
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                    {t("directory.empty_desc")}
+                  </p>
+                  <div className="mt-6 flex flex-wrap justify-center gap-3">
+                    <Button variant="outline" onClick={clearAll}>
+                      {t("directory.empty_clear")}
+                    </Button>
+                    {hotlineUrl ? (
+                      <Button asChild variant="ghost">
+                        <a href={hotlineUrl} target="_blank" rel="noreferrer">
+                          <WhatsAppIcon
+                            className="mr-2 h-4 w-4 text-[color:var(--muted-foreground)]"
+                            aria-hidden="true"
+                          />
+                          {t("directory.empty_whatsapp")}
+                        </a>
+                      </Button>
+                    ) : null}
+                    <Button asChild variant="solid" color="blue" className="font-bold">
+                      <Link to="/tutor-requests" search={{ post: true }}>
+                        {t("directory.empty_case")}
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {!isLoading && filtered.length > 0 && (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {filtered.map((tut: Tutor) => (
+                    <PublicTutorCard
+                      key={tut.id}
+                      tutor={tut}
+                      priceSuffix={t("featured.per_hour")}
+                      onOpen={openTutorDetail}
+                      onCompareToggle={() => toggleCompare(tut)}
+                      compareSelected={compareIds.includes(tut.id)}
+                      footerAction={
+                        <>
+                          <TutorSaveButton tutorId={tut.id} compact />
+                          <Button
+                            asChild
+                            className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                          >
+                            <a
+                              href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              Request tutor
+                            </a>
+                          </Button>
+                        </>
+                      }
+                    />
+                  ))}
+                </div>
               )}
             </div>
-
-            {isLoading && (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className="h-[23rem] rounded-[10px] border border-border" />
-                ))}
-              </div>
-            )}
-
-            {!isLoading && filtered.length === 0 && (
-              <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
-                  <SearchX
-                    className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                    aria-hidden="true"
-                  />
-                </div>
-                <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
-                  {t("directory.empty_title")}
-                </h2>
-                <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                  {t("directory.empty_desc")}
-                </p>
-                <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  <Button variant="outline" onClick={clearAll}>
-                    {t("directory.empty_clear")}
-                  </Button>
-                  {hotlineUrl ? (
-                    <Button asChild variant="ghost">
-                      <a href={hotlineUrl} target="_blank" rel="noreferrer">
-                        <WhatsAppIcon
-                          className="mr-2 h-4 w-4 text-[color:var(--muted-foreground)]"
-                          aria-hidden="true"
-                        />
-                        {t("directory.empty_whatsapp")}
-                      </a>
-                    </Button>
-                  ) : null}
-                  <Button asChild variant="solid" color="blue" className="font-bold">
-                    <Link to="/tutor-requests" search={{ post: true }}>
-                      {t("directory.empty_case")}
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {!isLoading && filtered.length > 0 && (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filtered.map((tut: Tutor) => (
-                  <PublicTutorCard
-                    key={tut.id}
-                    tutor={tut}
-                    priceSuffix={t("featured.per_hour")}
-                    onOpen={openTutorDetail}
-                    onCompareToggle={() => toggleCompare(tut)}
-                    compareSelected={compareIds.includes(tut.id)}
-                    footerAction={
-                      <>
-                        <TutorSaveButton tutorId={tut.id} compact />
-                        <Button
-                          asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                        >
-                          <a
-                            href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(event) => event.stopPropagation()}
-                          >
-                            Request tutor
-                          </a>
-                        </Button>
-                      </>
-                    }
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      </main>
-      <SiteFooter />
-      {compareTutors.length > 0 && !compareOpen ? (
-        <CompareBar
-          selectedTutors={compareTutors}
-          onOpenCompare={() => setCompareOpen(true)}
-          onClear={clearCompare}
+          </section>
+        </main>
+        <SiteFooter />
+        {compareTutors.length > 0 && !compareOpen ? (
+          <CompareBar
+            selectedTutors={compareTutors}
+            onOpenCompare={() => setCompareOpen(true)}
+            onClear={clearCompare}
+          />
+        ) : null}
+        <CompareDialog
+          open={compareOpen}
+          onOpenChange={setCompareOpen}
+          tutors={compareTutors}
+          whatsappNumber={whatsappNumber}
         />
-      ) : null}
-      <CompareDialog
-        open={compareOpen}
-        onOpenChange={setCompareOpen}
-        tutors={compareTutors}
-        whatsappNumber={whatsappNumber}
-      />
-    </div>
+      </div>
+    </SearchGroupProvider>
   );
 }

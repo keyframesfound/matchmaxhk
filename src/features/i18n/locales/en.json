@@ -542,6 +542,7 @@
   },
   "search_ui": {
     "start_search": "Start your search",
+    "compact_expand": "Expand search",
     "filters": "Filters",
     "clear_all": "Clear all",
     "close_search": "Close search",
