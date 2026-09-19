@@ -5,14 +5,12 @@ import {
   Building2,
   ChevronsUpDown,
   LogOut,
-  Menu,
   Moon,
   Settings,
   ShieldCheck,
   Sun,
   UserRound,
 } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
@@ -27,7 +25,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
@@ -36,6 +33,7 @@ import { cn } from "@/lib/utils";
 
 import { AnnouncementBanner } from "./AnnouncementBanner";
 import { MobileBottomNav } from "./mobile-bottom-nav";
+import { StaggeredMobileMenu } from "./StaggeredMobileMenu";
 
 type NavDestination =
   | "/how-it-works"
@@ -104,7 +102,6 @@ export function SiteHeader({
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
   const searchGroup = useSearchGroup();
-  const [menuOpen, setMenuOpen] = useState(false);
   const linksVisible = !merged || searchGroup.phase === "top";
   const compactVisible = merged && searchGroup.phase === "compact";
   const accountName =
@@ -113,16 +110,25 @@ export function SiteHeader({
   const useDarkTheme = theme !== "dark";
   const brandLabelClassName = "text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
 
-  // Mobile keeps a slim top bar (logo + hamburger nav sheet); the fixed bottom
+  // Mobile keeps a slim top bar (logo + staggered menu); the fixed bottom
   // tab bar handles account navigation and must render outside the header.
-  const mobileNavItems: { to: NavDestination; label: string }[] = [
-    { to: "/how-it-works", label: t("nav.how") },
-    { to: "/tutors", label: t("nav.find") },
-    ...(CENTRE_MARKET_ENABLED ? [{ to: "/courses" as const, label: t("nav.courses") }] : []),
-    { to: "/saved-posts", label: t("nav.saved_posts") },
-    { to: "/join", label: t("nav.become_tutor") },
-    ...(CENTRE_MARKET_ENABLED ? [{ to: "/pricing" as const, label: t("nav.for_business") }] : []),
-    { to: "/tutor-requests", label: t("nav.request_tutor") },
+  const mobileItems = [
+    { label: t("nav.how"), ariaLabel: t("nav.how"), to: "/how-it-works" },
+    { label: t("nav.find"), ariaLabel: t("nav.find"), to: "/tutors" },
+    ...(CENTRE_MARKET_ENABLED
+      ? [{ label: t("nav.courses"), ariaLabel: t("nav.courses"), to: "/courses" }]
+      : []),
+    { label: t("nav.saved_posts"), ariaLabel: t("nav.saved_posts"), to: "/saved-posts" },
+    { label: t("nav.become_tutor"), ariaLabel: t("nav.become_tutor"), to: "/join" },
+    ...(CENTRE_MARKET_ENABLED
+      ? [{ label: t("nav.for_business"), ariaLabel: t("nav.for_business"), to: "/pricing" }]
+      : []),
+    ...(hasOrg
+      ? [{ label: t("nav.my_business"), ariaLabel: t("nav.my_business"), to: "/business" }]
+      : []),
+    { label: t("nav.request_tutor"), ariaLabel: t("nav.request_tutor"), to: "/tutor-requests" },
+    ...(user ? [{ label: t("nav.settings"), ariaLabel: t("nav.settings"), to: "/dashboard" }] : []),
+    ...(isAdmin ? [{ label: t("nav.admin"), ariaLabel: t("nav.admin"), to: "/admin" }] : []),
   ];
   return (
     <>
@@ -330,64 +336,55 @@ export function SiteHeader({
               <span className={brandLabelClassName}>MatchMax</span>
             </div>
           </Link>
-          <button
-            type="button"
-            aria-label={t("nav_mobile.quick_links")}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-          >
-            <Menu className="h-5 w-5" aria-hidden="true" />
-          </button>
+          <StaggeredMobileMenu
+            items={mobileItems}
+            socialItems={[
+              { label: "LinkedIn", link: "https://www.linkedin.com/company/matchmax/" },
+              { label: "Instagram", link: "https://www.instagram.com/match_max/" },
+              { label: "Email", link: "mailto:contact@matchmax.hk" },
+            ]}
+            renderFooter={(closeMenu) => (
+              <div className="flex flex-col gap-3">
+                {!user ? (
+                  <>
+                    <Link to="/auth" onClick={closeMenu}>
+                      <Button
+                        variant="outline"
+                        className="h-10 w-full rounded-full border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
+                      >
+                        {t("nav.sign_in")}
+                      </Button>
+                    </Link>
+                    <Link to="/auth" search={{ mode: "sign_up" }} onClick={closeMenu}>
+                      <Button
+                        variant="solid"
+                        color="blue"
+                        className="h-10 w-full rounded-full text-sm font-semibold"
+                      >
+                        {t("nav.sign_up")}
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void signOut();
+                      closeMenu();
+                    }}
+                    className="h-10 w-full rounded-full border border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
+                  >
+                    {t("nav.sign_out")}
+                  </button>
+                )}
+                <div className="flex items-center justify-start pt-2">
+                  <LanguageToggle />
+                </div>
+              </div>
+            )}
+          />
         </div>
       </div>
-      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-        <SheetContent
-          side="right"
-          className="w-80 max-w-[85vw] border-border bg-[color:var(--surface)] p-5"
-        >
-          <SheetTitle className="sr-only">{t("nav_mobile.quick_links")}</SheetTitle>
-          <nav aria-label={t("nav_mobile.quick_links")} className="mt-4 flex flex-col gap-1">
-            {mobileNavItems.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setMenuOpen(false)}
-                aria-current={isActive(item.to) ? "page" : undefined}
-                className={cn(
-                  "flex items-center justify-between rounded-xl px-3 py-3 text-[15px] font-semibold transition-colors hover:bg-[color:var(--foreground)]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
-                  isActive(item.to) ? "text-[color:var(--brand-link)]" : "text-[color:var(--ink)]",
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          {!user ? (
-            <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
-              <Button
-                asChild
-                variant="outline"
-                className="h-11 w-full rounded-full text-sm font-bold"
-              >
-                <Link to="/auth" onClick={() => setMenuOpen(false)}>
-                  {t("nav.sign_in")}
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="solid"
-                color="blue"
-                className="h-11 w-full rounded-full text-sm font-bold"
-              >
-                <Link to="/auth" search={{ mode: "sign_up" }} onClick={() => setMenuOpen(false)}>
-                  {t("nav.sign_up")}
-                </Link>
-              </Button>
-            </div>
-          ) : null}
-        </SheetContent>
-      </Sheet>
       <MobileBottomNav />
     </>
   );
