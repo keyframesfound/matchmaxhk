@@ -16,14 +16,14 @@ import { supabase } from "@/integrations/supabase/client";
 const ACCOUNT_TYPE_OPTIONS = [
   {
     value: "parent" as const,
-    labelKey: "account.type_parent",
-    descKey: "account.type_parent_desc",
+    labelKey: "settings.account.type_parent",
+    descKey: "settings.account.type_parent_desc",
     icon: Search,
   },
   {
     value: "tutor" as const,
-    labelKey: "account.type_tutor",
-    descKey: "account.type_tutor_desc",
+    labelKey: "settings.account.type_tutor",
+    descKey: "settings.account.type_tutor_desc",
     icon: GraduationCap,
   },
 ];
@@ -47,7 +47,7 @@ function OverviewRow({ label, value }: { label: string; value: React.ReactNode }
 }
 
 export function AccountSection({ user, profile, updateProfile }: SettingsSectionProps) {
-  const { t, i18n } = useTranslation("settings");
+  const { t, i18n } = useTranslation();
   const { hasRole, hasAnyRole, refreshRoles } = useAuth();
   const { membership } = useMyOrganization();
   const isInternal = hasAnyRole(["admin", "staff", "super_admin"]);
@@ -76,9 +76,9 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
       const { error } = await supabase.rpc("switch_role", { _role: roleChoice });
       if (error) throw error;
       await refreshRoles();
-      toast.success(t("account.type_saved"));
+      toast.success(t("settings.account.type_saved"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("account.type_error"));
+      toast.error(error instanceof Error ? error.message : t("settings.account.type_error"));
     } finally {
       setSavingRole(false);
     }
@@ -96,12 +96,14 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
       // With email confirmation enabled the change only lands after the user
       // clicks the link Resend emails them; without it the update is instant.
       if (data.user?.email?.toLowerCase() === nextEmail) {
-        toast.success(t("account.email_changed"));
+        toast.success(t("settings.account.email_changed"));
       } else {
-        toast.success(t("account.email_change_sent"));
+        toast.success(t("settings.account.email_change_sent"));
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("account.email_change_error"));
+      toast.error(
+        error instanceof Error ? error.message : t("settings.account.email_change_error"),
+      );
     } finally {
       setChangingEmail(false);
     }
@@ -109,37 +111,39 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
 
   return (
     <div className="space-y-6">
-      <SettingsCard title={t("account.overview_title")}>
+      <SettingsCard title={t("settings.account.overview_title")}>
         <div className="space-y-3">
           <OverviewRow
-            label={t("account.sign_in_method")}
+            label={t("settings.account.sign_in_method")}
             value={
-              provider === "google" ? t("account.sign_in_google") : t("account.sign_in_password")
+              provider === "google"
+                ? t("settings.account.sign_in_google")
+                : t("settings.account.sign_in_password")
             }
           />
           {memberSince ? (
-            <OverviewRow label={t("account.member_since")} value={memberSince} />
+            <OverviewRow label={t("settings.account.member_since")} value={memberSince} />
           ) : null}
           <OverviewRow
-            label={t("account.tos_accepted")}
+            label={t("settings.account.tos_accepted")}
             value={
               tosAccepted ?? (
                 <span className="font-medium text-[color:var(--ink)]/55">
-                  {t("account.tos_not_accepted")}
+                  {t("settings.account.tos_not_accepted")}
                 </span>
               )
             }
           />
           {membership ? (
             <OverviewRow
-              label={t("account.business_label")}
+              label={t("settings.account.business_label")}
               value={
                 <Link
                   to="/business"
                   search={{ tab: undefined }}
                   className="font-semibold text-[color:var(--brand-link)] underline underline-offset-2"
                 >
-                  {t("account.business_link")}
+                  {t("settings.account.business_link")}
                 </Link>
               }
             />
@@ -147,11 +151,14 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
         </div>
       </SettingsCard>
 
-      <SettingsCard title={t("account.email_title")} description={t("account.email_desc")}>
+      <SettingsCard
+        title={t("settings.account.email_title")}
+        description={t("settings.account.email_desc")}
+      >
         <form onSubmit={changeEmail} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="settings-current-email" className="text-[color:var(--ink)]">
-              {t("account.email_current")}
+              {t("settings.account.email_current")}
             </Label>
             <Input
               id="settings-current-email"
@@ -163,30 +170,37 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
           </div>
           <div className="space-y-2">
             <Label htmlFor="settings-new-email" className="text-[color:var(--ink)]">
-              {t("account.email_new")}
+              {t("settings.account.email_new")}
             </Label>
             <Input
               id="settings-new-email"
               type="email"
               value={newEmail}
               onChange={(event) => setNewEmail(event.target.value)}
-              placeholder={t("account.email_new_placeholder")}
+              placeholder={t("settings.account.email_new_placeholder")}
               autoComplete="email"
               required
               className="bg-[color:var(--surface)]"
             />
-            <p className="text-xs text-[color:var(--ink)]/55">{t("account.email_change_hint")}</p>
+            <p className="text-xs text-[color:var(--ink)]/55">
+              {t("settings.account.email_change_hint")}
+            </p>
           </div>
           <Button type="submit" disabled={changingEmail} className="font-bold">
-            {changingEmail ? t("account.email_changing") : t("account.email_change")}
+            {changingEmail
+              ? t("settings.account.email_changing")
+              : t("settings.account.email_change")}
           </Button>
         </form>
       </SettingsCard>
 
       {!isInternal && (
-        <SettingsCard title={t("account.type_title")} description={t("account.type_desc")}>
+        <SettingsCard
+          title={t("settings.account.type_title")}
+          description={t("settings.account.type_desc")}
+        >
           <div className="space-y-5">
-            <OptionCardGroup label={t("account.type_title")} columns={2}>
+            <OptionCardGroup label={t("settings.account.type_title")} columns={2}>
               {ACCOUNT_TYPE_OPTIONS.map((option) => {
                 const Icon = option.icon;
                 const selected = roleChoice === option.value;
@@ -224,7 +238,7 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
               disabled={!roleDirty || savingRole}
               className="font-bold"
             >
-              {savingRole ? t("account.type_saving") : t("account.type_update")}
+              {savingRole ? t("settings.account.type_saving") : t("settings.account.type_update")}
             </Button>
           </div>
         </SettingsCard>

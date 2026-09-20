@@ -15,13 +15,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
-import {
-  PanelLabel,
-  SearchBigInput,
-  Segmented,
-  SuggestedRow,
-  type OptionRow,
-} from "./search-controls";
+import { PanelLabel, SearchBigInput, Segmented, type OptionRow } from "./search-controls";
 import {
   FilterQuickPicks,
   FiltersDialog,
@@ -37,7 +31,7 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
-import { DEFAULT_SUBJECT_OPTIONS, getSubjectOptionsForCategory } from "@/features/tutors/subjects";
+import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { cn } from "@/lib/utils";
 
 export type TutorsSearchState = {
@@ -78,6 +72,99 @@ const tutorsModeDisplay = (draft: TutorsSearchState, t: (key: string) => string)
   }
   if (draft.mode === "online") return t("search_panel.mode_online");
   return t("search_ui.any_value");
+};
+
+/** Quick-pick chips shared by the desktop filters dialog and the mobile overlay. */
+const tutorsQuickPicks = (
+  draft: TutorsSearchState,
+  onDraftChange: (patch: Partial<TutorsSearchState>) => void,
+  t: (key: string) => string,
+) => [
+  {
+    id: "uni",
+    label: t("search_ui.pick_uni"),
+    icon: GraduationCap,
+    active: draft.status === "uni_student",
+    onToggle: () =>
+      onDraftChange({ status: draft.status === "uni_student" ? undefined : "uni_student" }),
+  },
+  {
+    id: "examiner",
+    label: t("search_ui.pick_examiner"),
+    icon: BadgeCheck,
+    active: draft.status === "examiner",
+    onToggle: () => onDraftChange({ status: draft.status === "examiner" ? undefined : "examiner" }),
+  },
+  {
+    id: "fullpart",
+    label: t("search_ui.pick_full_part"),
+    icon: Briefcase,
+    active: draft.status === "full_part_time_tutor",
+    onToggle: () =>
+      onDraftChange({
+        status: draft.status === "full_part_time_tutor" ? undefined : "full_part_time_tutor",
+      }),
+  },
+  {
+    id: "female",
+    label: t("search_ui.pick_female"),
+    icon: UserRound,
+    active: draft.gender === "female",
+    onToggle: () => onDraftChange({ gender: draft.gender === "female" ? undefined : "female" }),
+  },
+  {
+    id: "male",
+    label: t("search_ui.pick_male"),
+    icon: Users,
+    active: draft.gender === "male",
+    onToggle: () => onDraftChange({ gender: draft.gender === "male" ? undefined : "male" }),
+  },
+  {
+    id: "budget",
+    label: t("search_ui.pick_budget"),
+    icon: Coins,
+    active: draft.max_price === 300,
+    onToggle: () => onDraftChange({ max_price: draft.max_price === 300 ? undefined : 300 }),
+  },
+  {
+    id: "online",
+    label: t("search_ui.pick_online"),
+    icon: Monitor,
+    active: draft.mode === "online",
+    onToggle: () => onDraftChange({ mode: draft.mode === "online" ? undefined : "online" }),
+  },
+  {
+    id: "inperson",
+    label: t("search_ui.pick_in_person"),
+    icon: MapPin,
+    active: draft.mode === "in_person",
+    onToggle: () => onDraftChange({ mode: draft.mode === "in_person" ? undefined : "in_person" }),
+  },
+];
+
+/** Bucketed rate distribution for the price slider, tinted by the active range. */
+const buildPriceHistogram = (
+  allPrices: number[] | undefined,
+  priceValue: [number, number],
+): Array<{ level: number; inRange: boolean }> | null => {
+  if (!allPrices || allPrices.length === 0) return null;
+  const span = PRICE_MAX - PRICE_MIN;
+  const buckets = new Array<number>(HISTOGRAM_BUCKETS).fill(0);
+  for (const price of allPrices) {
+    const clamped = Math.min(Math.max(price, PRICE_MIN), PRICE_MAX);
+    const index = Math.min(
+      HISTOGRAM_BUCKETS - 1,
+      Math.floor(((clamped - PRICE_MIN) / span) * HISTOGRAM_BUCKETS),
+    );
+    buckets[index] += 1;
+  }
+  const peak = Math.max(...buckets, 1);
+  return buckets.map((count, index) => ({
+    level: count / peak,
+    inRange:
+      (index + 0.5) / HISTOGRAM_BUCKETS >= (priceValue[0] - PRICE_MIN) / span &&
+      (index + 0.5) / HISTOGRAM_BUCKETS <= (priceValue[1] - PRICE_MIN) / span,
+  }));
 };
 
 export type TutorsSearchProps = {
@@ -149,27 +236,11 @@ export function TutorsSearchBar({
     [draft.min_price, draft.max_price],
   );
 
-  const priceHistogram = useMemo(() => {
-    if (!allPrices || allPrices.length === 0) return null;
-    const span = PRICE_MAX - PRICE_MIN;
-    const buckets = new Array<number>(HISTOGRAM_BUCKETS).fill(0);
-    for (const price of allPrices) {
-      const clamped = Math.min(Math.max(price, PRICE_MIN), PRICE_MAX);
-      const index = Math.min(
-        HISTOGRAM_BUCKETS - 1,
-        Math.floor(((clamped - PRICE_MIN) / span) * HISTOGRAM_BUCKETS),
-      );
-      buckets[index] += 1;
-    }
-    const peak = Math.max(...buckets, 1);
-    return buckets.map((count, index) => ({
-      level: count / peak,
-      inRange:
-        (index + 0.5) / HISTOGRAM_BUCKETS >= (priceValue[0] - PRICE_MIN) / span &&
-        (index + 0.5) / HISTOGRAM_BUCKETS <= (priceValue[1] - PRICE_MIN) / span,
-    }));
+  const priceHistogram = useMemo(
     // priceValue is derived from draft; histogram re-tints when the range moves.
-  }, [allPrices, priceValue]);
+    () => buildPriceHistogram(allPrices, priceValue),
+    [allPrices, priceValue],
+  );
 
   const filterCount = [
     draft.gender,
@@ -212,69 +283,7 @@ export function TutorsSearchBar({
       ? t("search_ui.search_tutors")
       : t("search_ui.show_tutors", { count: resultCount });
 
-  const quickPicks = [
-    {
-      id: "uni",
-      label: t("search_ui.pick_uni"),
-      icon: GraduationCap,
-      active: draft.status === "uni_student",
-      onToggle: () =>
-        onDraftChange({ status: draft.status === "uni_student" ? undefined : "uni_student" }),
-    },
-    {
-      id: "examiner",
-      label: t("search_ui.pick_examiner"),
-      icon: BadgeCheck,
-      active: draft.status === "examiner",
-      onToggle: () =>
-        onDraftChange({ status: draft.status === "examiner" ? undefined : "examiner" }),
-    },
-    {
-      id: "fullpart",
-      label: t("search_ui.pick_full_part"),
-      icon: Briefcase,
-      active: draft.status === "full_part_time_tutor",
-      onToggle: () =>
-        onDraftChange({
-          status: draft.status === "full_part_time_tutor" ? undefined : "full_part_time_tutor",
-        }),
-    },
-    {
-      id: "female",
-      label: t("search_ui.pick_female"),
-      icon: UserRound,
-      active: draft.gender === "female",
-      onToggle: () => onDraftChange({ gender: draft.gender === "female" ? undefined : "female" }),
-    },
-    {
-      id: "male",
-      label: t("search_ui.pick_male"),
-      icon: Users,
-      active: draft.gender === "male",
-      onToggle: () => onDraftChange({ gender: draft.gender === "male" ? undefined : "male" }),
-    },
-    {
-      id: "budget",
-      label: t("search_ui.pick_budget"),
-      icon: Coins,
-      active: draft.max_price === 300,
-      onToggle: () => onDraftChange({ max_price: draft.max_price === 300 ? undefined : 300 }),
-    },
-    {
-      id: "online",
-      label: t("search_ui.pick_online"),
-      icon: Monitor,
-      active: draft.mode === "online",
-      onToggle: () => onDraftChange({ mode: draft.mode === "online" ? undefined : "online" }),
-    },
-    {
-      id: "inperson",
-      label: t("search_ui.pick_in_person"),
-      icon: MapPin,
-      active: draft.mode === "in_person",
-      onToggle: () => onDraftChange({ mode: draft.mode === "in_person" ? undefined : "in_person" }),
-    },
-  ];
+  const quickPicks = tutorsQuickPicks(draft, onDraftChange, t);
 
   const segments: PillSegment[] = [
     {
@@ -431,6 +440,7 @@ export function TutorsSearchMobile({
   onApply,
   onClear,
   resultCount,
+  allPrices,
   defaultOverlayOpen,
   className,
 }: TutorsSearchProps) {
@@ -439,7 +449,6 @@ export function TutorsSearchMobile({
   const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
 
   const subjectOptions = getSubjectOptionsForCategory(draft.category);
-  const suggestedSubjects = subjectOptions.length > 0 ? subjectOptions : DEFAULT_SUBJECT_OPTIONS;
 
   const handleCategorySelect = (category: string) => {
     const nextSubjects = getSubjectOptionsForCategory(category);
@@ -459,6 +468,13 @@ export function TutorsSearchMobile({
   const priceValue = useMemo(
     () => [draft.min_price ?? PRICE_MIN, draft.max_price ?? PRICE_MAX] as [number, number],
     [draft.min_price, draft.max_price],
+  );
+
+  const quickPicks = tutorsQuickPicks(draft, onDraftChange, t);
+
+  const priceHistogram = useMemo(
+    () => buildPriceHistogram(allPrices, priceValue),
+    [allPrices, priceValue],
   );
 
   const categoryOptions: OptionRow[] = [
@@ -562,6 +578,11 @@ export function TutorsSearchMobile({
             />
           </div>
 
+          <div className="space-y-2">
+            <PanelLabel>{t("search_ui.quick_title")}</PanelLabel>
+            <FilterQuickPicks options={quickPicks} />
+          </div>
+
           <div className="space-y-1.5">
             <PanelLabel>{t("search_ui.segment_curriculum")}</PanelLabel>
             <SearchableSelect
@@ -574,21 +595,19 @@ export function TutorsSearchMobile({
             />
           </div>
 
-          <div className="space-y-1">
-            <PanelLabel>{t("search_ui.suggested_subjects")}</PanelLabel>
-            <div className="-mx-2">
-              {suggestedSubjects.slice(0, 5).map((subject) => (
-                <SuggestedRow
-                  key={subject}
-                  title={subject}
-                  hint={t("search_ui.suggested_hint")}
-                  onClick={() => {
-                    onApply({ q: subject });
-                    setOverlayOpen(false);
-                  }}
-                />
-              ))}
-            </div>
+          <div className="space-y-1.5">
+            <PanelLabel>{t("search_ui.segment_subject")}</PanelLabel>
+            <SearchableSelect
+              value={draft.subject ?? ""}
+              onChange={(value) => onDraftChange({ subject: value || undefined })}
+              options={[
+                { value: "", label: t("search_ui.any_value") },
+                ...subjectOptions.map((subject) => ({ value: subject, label: subject })),
+              ]}
+              placeholder={t("search_ui.any_value")}
+              searchPlaceholder={t("search_panel.search_subject")}
+              className="h-12 rounded-2xl"
+            />
           </div>
 
           <div className="space-y-2">
@@ -626,7 +645,11 @@ export function TutorsSearchMobile({
               {t("search_panel.price_from")} {formatPrice(priceValue[0])}{" "}
               {t("search_panel.price_to")} {formatPrice(priceValue[1])}
             </PanelLabel>
-            <PriceFields priceValue={priceValue} onDraftChange={onDraftChange} />
+            <PriceFields
+              priceValue={priceValue}
+              histogram={priceHistogram}
+              onDraftChange={onDraftChange}
+            />
           </div>
 
           <div className="space-y-2">

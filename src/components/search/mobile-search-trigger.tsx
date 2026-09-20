@@ -40,7 +40,7 @@ export function MobileSearchTrigger({
       </button>
       <nav
         aria-label={t("nav_mobile.quick_links")}
-        className="mt-1 flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="mt-3 flex gap-3 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {navPills.map((pill) => {
           const active = isActive(pill.to);

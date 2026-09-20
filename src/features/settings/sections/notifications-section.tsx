@@ -13,7 +13,7 @@ import {
 import { useAuth } from "@/features/auth/useAuth";
 
 export function NotificationsSection({ profile, updateProfile }: SettingsSectionProps) {
-  const { t } = useTranslation("settings");
+  const { t } = useTranslation();
   const { hasRole } = useAuth();
   const [prefs, setPrefs] = useState<NotificationPrefs | null>(null);
 
@@ -28,10 +28,10 @@ export function NotificationsSection({ profile, updateProfile }: SettingsSection
     const ok = await updateProfile({ notification_preferences: optimistic });
     if (!ok) {
       setPrefs(prefs);
-      toast.error(t("notifications.save_error"));
+      toast.error(t("settings.notifications.save_error"));
       return;
     }
-    toast.success(t("notifications.saved"));
+    toast.success(t("settings.notifications.saved"));
   }
 
   const rows: {
@@ -41,34 +41,37 @@ export function NotificationsSection({ profile, updateProfile }: SettingsSection
   }[] = [
     {
       key: "case_updates",
-      titleKey: "notifications.case_updates",
-      descKey: "notifications.case_updates_desc",
+      titleKey: "settings.notifications.case_updates",
+      descKey: "settings.notifications.case_updates_desc",
     },
     {
       key: "match_suggestions",
-      titleKey: "notifications.match_suggestions",
-      descKey: "notifications.match_suggestions_desc",
+      titleKey: "settings.notifications.match_suggestions",
+      descKey: "settings.notifications.match_suggestions_desc",
     },
     ...(hasRole("tutor")
       ? [
           {
             key: "tutor_leads" as const,
-            titleKey: "notifications.tutor_leads",
-            descKey: "notifications.tutor_leads_desc",
+            titleKey: "settings.notifications.tutor_leads",
+            descKey: "settings.notifications.tutor_leads_desc",
           },
         ]
       : []),
     {
       key: "product_news",
-      titleKey: "notifications.product_news",
-      descKey: "notifications.product_news_desc",
+      titleKey: "settings.notifications.product_news",
+      descKey: "settings.notifications.product_news_desc",
     },
   ];
 
   return (
-    <SettingsCard title={t("notifications.title")} description={t("notifications.description")}>
+    <SettingsCard
+      title={t("settings.notifications.title")}
+      description={t("settings.notifications.description")}
+    >
       <p className="mb-5 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3 text-xs leading-5 text-[color:var(--ink)]/65">
-        {t("notifications.hint")}
+        {t("settings.notifications.hint")}
       </p>
       {prefs ? (
         <div className="divide-y divide-[color:var(--ink)]/10">

@@ -178,42 +178,6 @@ export function OptionRowsList({
   );
 }
 
-/** Airbnb "suggested destinations" row: letter tile + title + hint. */
-export function SuggestedRow({
-  title,
-  hint,
-  onClick,
-  className,
-}: {
-  title: string;
-  hint?: string;
-  onClick: () => void;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex w-full items-center gap-4 rounded-2xl p-2 text-left transition-colors hover:bg-[color:var(--foreground)]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
-        className,
-      )}
-    >
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-[color:var(--surface-subtle)] text-base font-bold text-[color:var(--ink)]">
-        {title.charAt(0).toUpperCase()}
-      </span>
-      <span className="min-w-0">
-        <span className="block truncate text-[15px] font-semibold text-[color:var(--ink)]">
-          {title}
-        </span>
-        {hint ? (
-          <span className="block truncate text-sm font-normal text-muted-foreground">{hint}</span>
-        ) : null}
-      </span>
-    </button>
-  );
-}
-
 /** Panel section heading, Airbnb "Suggested destinations" style. */
 export function PanelLabel({ children, className }: { children: ReactNode; className?: string }) {
   return <p className={cn("text-sm font-bold text-[color:var(--ink)]", className)}>{children}</p>;

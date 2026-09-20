@@ -32,10 +32,20 @@ npx eslint src/path/to/file.tsx
 
 # Auto-fix prettier/format errors before re-linting
 npx eslint --fix src/path/to/file.tsx
+
+# i18n guard (always run after adding/changing any user-facing text)
+npm run check:i18n
 ```
 
 Known gotchas:
 
+- **i18n has a single default `translation` namespace.** Never pass a namespace to
+  `useTranslation()` — call it bare and prefix keys with their JSON subtree
+  (`t("settings.title")`, `t("nav.how")`). Passing a namespace (or referencing a key missing
+  from `src/features/i18n/locales/{en,zh-HK}.json`) makes `t()` silently render raw key text
+  or nothing at all. Enforced by the `i18n-guards` ESLint rules (run automatically when you
+  lint touched files) and `npm run check:i18n` (also checks en/zh-HK key parity and empty
+  values). New copy must be added to BOTH locale files.
 - **ESLint can hang** (stalled daemon / cache lock). If an eslint invocation exceeds ~60s,
   kill it (`pkill -f eslint`) and retry with `--no-cache`, redirecting output to a file
   (`> /tmp/lint.txt 2>&1; echo "exit=$?"`). Do not retry the same hanging command unchanged.

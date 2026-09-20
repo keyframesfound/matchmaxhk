@@ -228,14 +228,6 @@ function TutorRequestsPage() {
   const cases = useMemo(() => data?.items ?? [], [data]);
   const isLoading = !data;
 
-  const boardSubjects = useMemo(
-    () =>
-      Array.from(new Set(cases.flatMap((item) => item.subjects.filter(Boolean)))).sort((a, b) =>
-        a.localeCompare(b),
-      ),
-    [cases],
-  );
-
   const filteredCases = useMemo(() => {
     const query = (search.q ?? "").trim().toLowerCase();
     return cases.filter((item) => {
@@ -349,7 +341,6 @@ function TutorRequestsPage() {
                 onDraftChange={setDraftParam}
                 onApply={applySearch}
                 onClear={clearSearch}
-                subjectOptions={boardSubjects}
                 defaultOverlayOpen={search.open === true}
               />
             </PageContainer>
@@ -361,7 +352,6 @@ function TutorRequestsPage() {
                 onDraftChange={setDraftParam}
                 onApply={applySearch}
                 onClear={clearSearch}
-                subjectOptions={boardSubjects}
               />
             </PageContainer>
           </StickySearchBar>

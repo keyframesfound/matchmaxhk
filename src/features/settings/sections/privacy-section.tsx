@@ -16,7 +16,7 @@ const SESSION_STORAGE_PREFIXES = ["matchmax.draft."];
 const SESSION_STORAGE_KEYS = ["mm_banner_dismissed_session_v1"];
 
 export function PrivacySection({ user, profile }: SettingsSectionProps) {
-  const { t } = useTranslation("settings");
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [exporting, setExporting] = useState(false);
   const [clearing, setClearing] = useState(false);
@@ -54,7 +54,7 @@ export function PrivacySection({ user, profile }: SettingsSectionProps) {
       anchor.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error(t("privacy.export_error"));
+      toast.error(t("settings.privacy.export_error"));
     } finally {
       setExporting(false);
     }
@@ -71,7 +71,7 @@ export function PrivacySection({ user, profile }: SettingsSectionProps) {
           if (key?.startsWith(prefix)) window.sessionStorage.removeItem(key);
         }
       }
-      toast.success(t("privacy.local_cleared"));
+      toast.success(t("settings.privacy.local_cleared"));
     } finally {
       setClearing(false);
     }
@@ -79,7 +79,10 @@ export function PrivacySection({ user, profile }: SettingsSectionProps) {
 
   return (
     <div className="space-y-6">
-      <SettingsCard title={t("privacy.export_title")} description={t("privacy.export_desc")}>
+      <SettingsCard
+        title={t("settings.privacy.export_title")}
+        description={t("settings.privacy.export_desc")}
+      >
         <Button
           type="button"
           variant="outline"
@@ -87,11 +90,14 @@ export function PrivacySection({ user, profile }: SettingsSectionProps) {
           disabled={exporting}
           className="border-[color:var(--ink)]/15 font-bold text-[color:var(--ink)] hover:bg-[color:var(--ink)]/5"
         >
-          {exporting ? t("privacy.exporting") : t("privacy.export_button")}
+          {exporting ? t("settings.privacy.exporting") : t("settings.privacy.export_button")}
         </Button>
       </SettingsCard>
 
-      <SettingsCard title={t("privacy.local_title")} description={t("privacy.local_desc")}>
+      <SettingsCard
+        title={t("settings.privacy.local_title")}
+        description={t("settings.privacy.local_desc")}
+      >
         <Button
           type="button"
           variant="outline"
@@ -99,7 +105,7 @@ export function PrivacySection({ user, profile }: SettingsSectionProps) {
           disabled={clearing}
           className="border-[color:var(--ink)]/15 font-bold text-[color:var(--ink)] hover:bg-[color:var(--ink)]/5"
         >
-          {t("privacy.local_button")}
+          {t("settings.privacy.local_button")}
         </Button>
       </SettingsCard>
 
@@ -108,7 +114,7 @@ export function PrivacySection({ user, profile }: SettingsSectionProps) {
           to="/privacy-policy"
           className="font-semibold text-[color:var(--ink)] underline underline-offset-2"
         >
-          {t("privacy.policy_link")}
+          {t("settings.privacy.policy_link")}
         </Link>
       </p>
     </div>

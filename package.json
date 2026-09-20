@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development && node scripts/sync-dist.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "check:i18n": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

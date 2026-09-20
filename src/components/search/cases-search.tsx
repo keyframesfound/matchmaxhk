@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { PanelLabel, SearchBigInput, SuggestedRow, type OptionRow } from "./search-controls";
+import { PanelLabel, SearchBigInput } from "./search-controls";
 import { KeywordPanelContent, SearchPillBar, type PillSegment } from "./search-pill-bar";
 import { MobileSearchOverlay, type MobileSearchTab } from "./mobile-search-overlay";
 import { setSearchSlideDirection } from "./slide-direction";
@@ -24,8 +24,6 @@ type CasesSearchProps = {
   /** Apply the current draft (navigate). `override` merges values set in the same event. */
   onApply: (override?: Partial<CasesSearchState>) => void;
   onClear: () => void;
-  /** Subjects on the board — powers the suggested rows in the mobile overlay. */
-  subjectOptions?: string[];
   /** Open the mobile overlay on mount (used when hopping between search tabs). */
   defaultOverlayOpen?: boolean;
   className?: string;
@@ -131,7 +129,6 @@ export function CasesSearchMobile({
   onDraftChange,
   onApply,
   onClear,
-  subjectOptions,
   defaultOverlayOpen,
   className,
 }: CasesSearchProps) {
@@ -229,25 +226,6 @@ export function CasesSearchMobile({
               className="h-12 rounded-2xl"
             />
           </div>
-
-          {(subjectOptions?.length ?? 0) > 0 ? (
-            <div className="space-y-1">
-              <PanelLabel>{t("search_ui.suggested_subjects")}</PanelLabel>
-              <div className="-mx-2">
-                {subjectOptions!.slice(0, 5).map((subject) => (
-                  <SuggestedRow
-                    key={subject}
-                    title={subject}
-                    hint={t("search_ui.suggested_hint")}
-                    onClick={() => {
-                      onApply({ q: subject });
-                      setOverlayOpen(false);
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : null}
 
           <div className="space-y-1.5">
             <PanelLabel>{t("search_ui.segment_district")}</PanelLabel>

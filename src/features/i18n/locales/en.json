@@ -172,7 +172,9 @@
   },
   "hero": {
     "title_a": "Match with your perfect tutor",
-    "cta_primary": "Browse tutors"
+    "cta_primary": "Browse tutors",
+    "eyebrow": "Hong Kong's smart tutor matching platform",
+    "cta_secondary": "Browse tutors"
   },
   "trust": {
     "students": "Students matched",
@@ -185,7 +187,8 @@
     "step2_title": "Get matched",
     "step2_desc": "Share your Tutor Code with our team and we'll connect you with your tutor.",
     "step3_title": "Start learning",
-    "step3_desc": "Connect with your tutor and get started with your lessons."
+    "step3_desc": "Connect with your tutor and get started with your lessons.",
+    "subtitle": "Three simple steps to get started"
   },
   "how_accordion": {
     "item1_title": "Finding a tutor?",
@@ -250,7 +253,8 @@
     "gender_male": "Male",
     "skip_prefix": "Skip the manual filters — tell us what you need and we'll",
     "skip_highlight": "source a match for free",
-    "skip_suffix": "."
+    "skip_suffix": ".",
+    "close_search": "Close search"
   },
   "footer": {
     "tagline": "Master your exams through 1-on-1 tutoring with the experts who grade them and the elite alumni who aced them. Connect instantly with verified official examiners and proven top scorers.",
@@ -457,7 +461,7 @@
     "browse_tutors": "Browse tutors"
   },
   "directory": {
-    "subtitle": "",
+    "subtitle": "Every tutor is transcript-verified and team-approved before going live.",
     "empty_title": "No tutors match these filters yet",
     "empty_desc": "Widen the price range or clear a filter to see more profiles — or let our team match one for you, free.",
     "empty_clear": "Clear all filters",
@@ -704,8 +708,6 @@
     "any_value": "Any",
     "any_district": "Any district",
     "panel_keyword_title": "Search",
-    "suggested_subjects": "Suggested subjects",
-    "suggested_hint": "Filter by subject",
     "price_hint": "Hourly rate, per tutor",
     "chip_all": "All",
     "chip_primary": "Primary",
@@ -741,5 +743,27 @@
     "status_title": "Tutor status",
     "sort_title": "Sort",
     "show_tutors": "Show {{count}} tutors"
+  },
+  "subjects": {
+    "title": "Popular subjects",
+    "math": "Mathematics",
+    "english": "English",
+    "chinese": "Chinese",
+    "physics": "Physics",
+    "chemistry": "Chemistry",
+    "biology": "Biology",
+    "economics": "Economics",
+    "dse": "DSE tutoring",
+    "ib": "IB",
+    "view_all": "View all subjects"
+  },
+  "testimonials": {
+    "title": "Trusted by Hong Kong parents",
+    "t1": "Found a great DSE Maths tutor within a day — my daughter's grades have improved so much.",
+    "t1_by": "Mrs. Chan, Kowloon Tong",
+    "t2": "Clear tutor profiles and easy communication — no hard selling at all.",
+    "t2_by": "Mr. Lam, Sha Tin",
+    "t3": "The match was spot on — we hired the first tutor we contacted.",
+    "t3_by": "Mrs. Wong, Central"
   }
 }

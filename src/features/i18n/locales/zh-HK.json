@@ -730,8 +730,6 @@
     "any_value": "不限",
     "any_district": "任何地區",
     "panel_keyword_title": "搜尋",
-    "suggested_subjects": "建議科目",
-    "suggested_hint": "以科目篩選",
     "price_hint": "導師時薪",
     "chip_all": "全部",
     "chip_primary": "小學",
@@ -765,6 +763,7 @@
     "gender_title": "性別",
     "status_title": "導師類型",
     "sort_title": "排序方式",
-    "show_tutors": "顯示 {{count}} 位導師"
+    "show_tutors": "顯示 {{count}} 位導師",
+    "show_tutors_one": "顯示 {{count}} 位導師"
   }
 }

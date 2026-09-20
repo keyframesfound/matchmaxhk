@@ -24,7 +24,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 export function SecuritySection(_props: SettingsSectionProps) {
-  const { t } = useTranslation("settings");
+  const { t } = useTranslation();
   const { signOutEverywhere } = useAuth();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -36,11 +36,11 @@ export function SecuritySection(_props: SettingsSectionProps) {
   async function changePassword(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (newPassword.length < 6) {
-      toast.error(t("security.password_min"));
+      toast.error(t("settings.security.password_min"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error(t("security.password_mismatch"));
+      toast.error(t("settings.security.password_mismatch"));
       return;
     }
 
@@ -50,9 +50,9 @@ export function SecuritySection(_props: SettingsSectionProps) {
       if (error) throw error;
       setNewPassword("");
       setConfirmPassword("");
-      toast.success(t("security.password_updated"));
+      toast.success(t("settings.security.password_updated"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("security.password_error"));
+      toast.error(error instanceof Error ? error.message : t("settings.security.password_error"));
     } finally {
       setChangingPassword(false);
     }
@@ -70,12 +70,15 @@ export function SecuritySection(_props: SettingsSectionProps) {
 
   return (
     <div className="space-y-6">
-      <SettingsCard title={t("security.password_title")} description={t("security.password_desc")}>
+      <SettingsCard
+        title={t("settings.security.password_title")}
+        description={t("settings.security.password_desc")}
+      >
         <form onSubmit={changePassword} className="space-y-5">
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
               <Label htmlFor="new-password" className="text-[color:var(--ink)]">
-                {t("security.new_password")}
+                {t("settings.security.new_password")}
               </Label>
               <button
                 type="button"
@@ -87,7 +90,9 @@ export function SecuritySection(_props: SettingsSectionProps) {
                 ) : (
                   <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                 )}
-                {showPassword ? t("security.hide_password") : t("security.show_password")}
+                {showPassword
+                  ? t("settings.security.hide_password")
+                  : t("settings.security.show_password")}
               </button>
             </div>
             <Input
@@ -105,7 +110,7 @@ export function SecuritySection(_props: SettingsSectionProps) {
           {newPassword ? (
             <div className="space-y-1.5 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-[color:var(--ink)]/55">
-                {t("security.password_rules")}
+                {t("settings.security.password_rules")}
               </p>
               <ul className="space-y-1">
                 {strength.rules.map((rule) => (
@@ -125,7 +130,7 @@ export function SecuritySection(_props: SettingsSectionProps) {
           ) : null}
           <div className="space-y-2">
             <Label htmlFor="confirm-new-password" className="text-[color:var(--ink)]">
-              {t("security.confirm_password")}
+              {t("settings.security.confirm_password")}
             </Label>
             <Input
               id="confirm-new-password"
@@ -139,15 +144,20 @@ export function SecuritySection(_props: SettingsSectionProps) {
             />
           </div>
           <Button type="submit" disabled={changingPassword} className="font-bold">
-            {changingPassword ? t("security.updating_password") : t("security.update_password")}
+            {changingPassword
+              ? t("settings.security.updating_password")
+              : t("settings.security.update_password")}
           </Button>
         </form>
       </SettingsCard>
 
-      <SettingsCard title={t("security.sessions_title")} description={t("security.sessions_desc")}>
+      <SettingsCard
+        title={t("settings.security.sessions_title")}
+        description={t("settings.security.sessions_desc")}
+      >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-md text-sm leading-6 text-[color:var(--ink)]/70">
-            {t("security.sessions_body")}
+            {t("settings.security.sessions_body")}
           </p>
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -157,21 +167,21 @@ export function SecuritySection(_props: SettingsSectionProps) {
                 disabled={signingOutAll}
                 className="shrink-0 border-[color:var(--ink)]/15 font-bold text-[color:var(--ink)] hover:bg-[color:var(--ink)]/5"
               >
-                {t("security.sign_out_all")}
+                {t("settings.security.sign_out_all")}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)]">
               <AlertDialogHeader>
                 <AlertDialogTitle className="text-[color:var(--ink)]">
-                  {t("security.sign_out_all_confirm_title")}
+                  {t("settings.security.sign_out_all_confirm_title")}
                 </AlertDialogTitle>
                 <AlertDialogDescription className="text-[color:var(--ink)]/70">
-                  {t("security.sign_out_all_confirm_desc")}
+                  {t("settings.security.sign_out_all_confirm_desc")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel disabled={signingOutAll}>
-                  {t("security.cancel")}
+                  {t("settings.security.cancel")}
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={(event) => {
@@ -181,7 +191,7 @@ export function SecuritySection(_props: SettingsSectionProps) {
                   disabled={signingOutAll}
                   className="font-bold"
                 >
-                  {t("security.sign_out_all_confirm")}
+                  {t("settings.security.sign_out_all_confirm")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

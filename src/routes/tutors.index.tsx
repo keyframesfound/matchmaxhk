@@ -231,6 +231,7 @@ function TutorsDirectory() {
                 onDraftChange={setDraftParam}
                 onApply={applySearch}
                 onClear={clearAll}
+                allPrices={tutors.map((tutor) => tutor.hourly_rate)}
                 defaultOverlayOpen={search.open === true}
                 whatsappUrl={hotlineUrl || undefined}
               />
@@ -249,7 +250,7 @@ function TutorsDirectory() {
               />
             </div>
           </StickySearchBar>
-          <section className="py-12">
+          <section className="pt-6 pb-12 sm:pt-8">
             <div className="mx-auto max-w-7xl px-4 sm:px-6">
               <div className="mb-6 flex items-baseline justify-between">
                 {isLoading ? (

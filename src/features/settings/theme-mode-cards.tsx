@@ -20,25 +20,31 @@ function ThemeMiniature({ dark }: { dark: boolean }) {
   return (
     <div
       aria-hidden
-      className="h-[74px] w-full rounded-lg border p-2"
+      className="h-[64px] w-full min-w-0 rounded-lg border p-1.5"
       style={{ backgroundColor: canvas, borderColor: line }}
     >
-      <div className="flex items-center gap-1.5">
-        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: azure }} />
-        <span className="h-1 w-7 rounded-full" style={{ backgroundColor: ink }} />
-        <span className="h-1 w-5 rounded-full" style={{ backgroundColor: line }} />
-        <span className="h-1 w-5 rounded-full" style={{ backgroundColor: line }} />
+      <div className="flex min-w-0 items-center gap-1">
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: azure }} />
+        <span className="h-1 w-4 shrink-0 rounded-full" style={{ backgroundColor: ink }} />
+        <span className="h-1 w-3 shrink-0 rounded-full" style={{ backgroundColor: line }} />
+        <span className="h-1 w-3 shrink-0 rounded-full" style={{ backgroundColor: line }} />
       </div>
       <div
-        className="mt-1.5 rounded-md border p-1.5"
+        className="mt-1 min-w-0 rounded-md border p-1"
         style={{ backgroundColor: surface, borderColor: line }}
       >
-        <div className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full" style={{ backgroundColor: azure, opacity: 0.4 }} />
-          <span className="h-1 w-10 rounded-full" style={{ backgroundColor: ink }} />
-          <span className="ml-auto h-2.5 w-6 rounded-full" style={{ backgroundColor: azure }} />
+        <div className="flex min-w-0 items-center gap-1">
+          <span
+            className="h-2.5 w-2.5 shrink-0 rounded-full"
+            style={{ backgroundColor: azure, opacity: 0.4 }}
+          />
+          <span className="h-1 w-6 shrink-0 rounded-full" style={{ backgroundColor: ink }} />
+          <span
+            className="ml-auto h-2 w-4 shrink-0 rounded-full"
+            style={{ backgroundColor: azure }}
+          />
         </div>
-        <span className="mt-1 block h-1 w-14 rounded-full" style={{ backgroundColor: line }} />
+        <span className="mt-0.5 block h-1 w-8 rounded-full" style={{ backgroundColor: line }} />
       </div>
     </div>
   );
@@ -53,7 +59,7 @@ export function ThemeModeCards({
   onPick: (theme: ThemePreference) => void;
   disabled?: boolean;
 }) {
-  const { t } = useTranslation("settings");
+  const { t } = useTranslation();
   const options: {
     value: ThemePreference;
     label: string;
@@ -62,26 +68,26 @@ export function ThemeModeCards({
   }[] = [
     {
       value: "system",
-      label: t("general.theme_system"),
-      description: t("general.theme_system_desc"),
+      label: t("settings.general.theme_system"),
+      description: t("settings.general.theme_system_desc"),
       preview: <Monitor className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />,
     },
     {
       value: "light",
-      label: t("general.theme_light"),
-      description: t("general.theme_light_desc"),
+      label: t("settings.general.theme_light"),
+      description: t("settings.general.theme_light_desc"),
       preview: <ThemeMiniature dark={false} />,
     },
     {
       value: "dark",
-      label: t("general.theme_dark"),
-      description: t("general.theme_dark_desc"),
+      label: t("settings.general.theme_dark"),
+      description: t("settings.general.theme_dark_desc"),
       preview: <ThemeMiniature dark />,
     },
   ];
 
   return (
-    <OptionCardGroup label={t("general.color_mode")}>
+    <OptionCardGroup label={t("settings.general.color_mode")}>
       {options.map((option) => (
         <OptionCard
           key={option.value}

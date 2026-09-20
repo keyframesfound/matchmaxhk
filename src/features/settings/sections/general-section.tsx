@@ -7,12 +7,20 @@ import type { SettingsSectionProps } from "@/features/settings/types";
 import { useTheme, type ThemePreference } from "@/features/theme/ThemeProvider";
 
 const LOCALE_OPTIONS = [
-  { value: "en", labelKey: "general.language_en", descKey: "general.language_en_desc" },
-  { value: "zh-HK", labelKey: "general.language_zh", descKey: "general.language_zh_desc" },
+  {
+    value: "en",
+    labelKey: "settings.general.language_en",
+    descKey: "settings.general.language_en_desc",
+  },
+  {
+    value: "zh-HK",
+    labelKey: "settings.general.language_zh",
+    descKey: "settings.general.language_zh_desc",
+  },
 ] as const;
 
 export function GeneralSection({ profile, updateProfile }: SettingsSectionProps) {
-  const { t, i18n } = useTranslation("settings");
+  const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
   const currentLocale = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
 
@@ -20,22 +28,27 @@ export function GeneralSection({ profile, updateProfile }: SettingsSectionProps)
     if (locale === currentLocale) return;
     void i18n.changeLanguage(locale);
     void updateProfile({ locale }).then((ok) => {
-      if (ok) toast.success(t("general.language_saved"));
+      if (ok) toast.success(t("settings.general.language_saved"));
     });
   }
 
   return (
     <div className="space-y-6">
       <SettingsCard
-        title={t("general.appearance_title")}
-        description={t("general.appearance_desc")}
+        title={t("settings.general.appearance_title")}
+        description={t("settings.general.appearance_desc")}
       >
-        <p className="mb-3 text-sm font-bold text-[color:var(--ink)]">{t("general.color_mode")}</p>
+        <p className="mb-3 text-sm font-bold text-[color:var(--ink)]">
+          {t("settings.general.color_mode")}
+        </p>
         <ThemeModeCards theme={theme} onPick={(next: ThemePreference) => setTheme(next)} />
       </SettingsCard>
 
-      <SettingsCard title={t("general.language_title")} description={t("general.language_desc")}>
-        <OptionCardGroup label={t("general.language_title")} columns={2}>
+      <SettingsCard
+        title={t("settings.general.language_title")}
+        description={t("settings.general.language_desc")}
+      >
+        <OptionCardGroup label={t("settings.general.language_title")} columns={2}>
           {LOCALE_OPTIONS.map((option) => (
             <OptionCard
               key={option.value}

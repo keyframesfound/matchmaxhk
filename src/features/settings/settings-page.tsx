@@ -37,13 +37,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof Settings2 }> = {
-  general: { labelKey: "nav.general", icon: Settings2 },
-  profile: { labelKey: "nav.profile", icon: CircleUserRound },
-  account: { labelKey: "nav.account", icon: UserCog },
-  security: { labelKey: "nav.security", icon: KeyRound },
-  notifications: { labelKey: "nav.notifications", icon: Bell },
-  privacy: { labelKey: "nav.privacy", icon: Database },
-  "danger-zone": { labelKey: "nav.danger", icon: Trash2 },
+  general: { labelKey: "settings.nav.general", icon: Settings2 },
+  profile: { labelKey: "settings.nav.profile", icon: CircleUserRound },
+  account: { labelKey: "settings.nav.account", icon: UserCog },
+  security: { labelKey: "settings.nav.security", icon: KeyRound },
+  notifications: { labelKey: "settings.nav.notifications", icon: Bell },
+  privacy: { labelKey: "settings.nav.privacy", icon: Database },
+  "danger-zone": { labelKey: "settings.nav.danger", icon: Trash2 },
 };
 
 const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSectionProps>> = {
@@ -57,7 +57,7 @@ const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSection
 };
 
 export function SettingsPage() {
-  const { t } = useTranslation("settings");
+  const { t } = useTranslation();
   const { user, signOut, hasAnyRole } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -90,7 +90,7 @@ export function SettingsPage() {
 
   useEffect(() => {
     if (profileQuery.isError) {
-      toast.error(t("load_error"));
+      toast.error(t("settings.load_error"));
     }
   }, [profileQuery.isError, t]);
 
@@ -141,12 +141,14 @@ export function SettingsPage() {
       <main className="flex-1">
         <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
           <header className="border-b border-[color:var(--ink)]/10 pb-8">
-            <p className="text-xs font-medium text-[color:var(--ink)]/65">{t("eyebrow")}</p>
+            <p className="text-xs font-medium text-[color:var(--ink)]/65">
+              {t("settings.eyebrow")}
+            </p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
-              {t("title")}
+              {t("settings.title")}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--ink)]/70">
-              {t("subtitle")}
+              {t("settings.subtitle")}
             </p>
           </header>
 
@@ -154,7 +156,7 @@ export function SettingsPage() {
             <aside className="lg:sticky lg:top-24 lg:self-start">
               {/* Mobile: horizontally scrollable category pills */}
               <nav
-                aria-label={t("title")}
+                aria-label={t("settings.title")}
                 className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden"
               >
                 {categories.map((category) => {
@@ -181,13 +183,13 @@ export function SettingsPage() {
               </nav>
 
               {/* Desktop: sidebar category list */}
-              <nav className="hidden space-y-1 lg:block" aria-label={t("title")}>
+              <nav className="hidden space-y-1 lg:block" aria-label={t("settings.title")}>
                 <Link
                   to="/saved-posts"
                   className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--ink)]/70 transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
                 >
                   <Bookmark className="h-4 w-4" aria-hidden="true" />
-                  {t("nav.saved_posts")}
+                  {t("settings.nav.saved_posts")}
                 </Link>
                 <div className="my-2 border-t border-[color:var(--ink)]/10" aria-hidden />
                 {categories.map((category) => {
@@ -213,7 +215,7 @@ export function SettingsPage() {
                   className="w-full justify-start gap-2 border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
                 >
                   <LogOut className="h-4 w-4" aria-hidden="true" />
-                  {t("nav.sign_out")}
+                  {t("settings.nav.sign_out")}
                 </Button>
               </nav>
             </aside>

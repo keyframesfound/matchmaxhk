@@ -3,13 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  PanelLabel,
-  SearchBigInput,
-  Segmented,
-  SuggestedRow,
-  type OptionRow,
-} from "./search-controls";
+import { PanelLabel, SearchBigInput, Segmented, type OptionRow } from "./search-controls";
 import {
   FilterQuickPicks,
   FiltersDialog,
@@ -329,21 +323,16 @@ export function CoursesSearchMobile({
           </div>
 
           {subjectRows.length > 0 ? (
-            <div className="space-y-1">
-              <PanelLabel>{t("search_ui.suggested_subjects")}</PanelLabel>
-              <div className="-mx-2">
-                {subjectRows.slice(0, 5).map((option) => (
-                  <SuggestedRow
-                    key={option.value}
-                    title={option.label}
-                    hint={t("search_ui.suggested_hint")}
-                    onClick={() => {
-                      onApply({ subject: option.value });
-                      setOverlayOpen(false);
-                    }}
-                  />
-                ))}
-              </div>
+            <div className="space-y-1.5">
+              <PanelLabel>{t("search_ui.segment_subject")}</PanelLabel>
+              <SearchableSelect
+                value={draft.subject ?? ""}
+                onChange={(value) => onDraftChange({ subject: value || undefined })}
+                options={[{ value: "", label: t("search_ui.any_value") }, ...subjectRows]}
+                placeholder={t("search_ui.any_value")}
+                searchPlaceholder={t("search_panel.search_subject")}
+                className="h-12 rounded-2xl"
+              />
             </div>
           ) : null}
 

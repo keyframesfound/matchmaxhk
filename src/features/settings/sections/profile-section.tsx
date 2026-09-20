@@ -9,7 +9,7 @@ import { SettingsCard } from "@/features/settings/option-card";
 import { isValidPhone, type SettingsSectionProps } from "@/features/settings/types";
 
 export function ProfileSection({ user, profile, updateProfile }: SettingsSectionProps) {
-  const { t } = useTranslation("settings");
+  const { t } = useTranslation();
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
@@ -24,12 +24,12 @@ export function ProfileSection({ user, profile, updateProfile }: SettingsSection
     event.preventDefault();
     const nextName = displayName.trim();
     if (!nextName) {
-      toast.error(t("profile.name_required"));
+      toast.error(t("settings.profile.name_required"));
       return;
     }
     const nextPhone = phone.trim();
     if (nextPhone && !isValidPhone(nextPhone)) {
-      toast.error(t("profile.phone_invalid"));
+      toast.error(t("settings.profile.phone_invalid"));
       return;
     }
     setSaving(true);
@@ -38,21 +38,24 @@ export function ProfileSection({ user, profile, updateProfile }: SettingsSection
       phone: nextPhone || null,
     });
     setSaving(false);
-    if (ok) toast.success(t("profile.saved"));
+    if (ok) toast.success(t("settings.profile.saved"));
   }
 
   return (
-    <SettingsCard title={t("profile.title")} description={t("profile.description")}>
+    <SettingsCard
+      title={t("settings.profile.title")}
+      description={t("settings.profile.description")}
+    >
       <form onSubmit={save} className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="settings-name" className="text-[color:var(--ink)]">
-            {t("profile.name")}
+            {t("settings.profile.name")}
           </Label>
           <Input
             id="settings-name"
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
-            placeholder={t("profile.name_placeholder")}
+            placeholder={t("settings.profile.name_placeholder")}
             maxLength={80}
             disabled={!profile || saving}
             autoComplete="name"
@@ -61,24 +64,24 @@ export function ProfileSection({ user, profile, updateProfile }: SettingsSection
         </div>
         <div className="space-y-2">
           <Label htmlFor="settings-phone" className="text-[color:var(--ink)]">
-            {t("profile.phone")}
+            {t("settings.profile.phone")}
           </Label>
           <Input
             id="settings-phone"
             type="tel"
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
-            placeholder={t("profile.phone_placeholder")}
+            placeholder={t("settings.profile.phone_placeholder")}
             maxLength={20}
             disabled={!profile || saving}
             autoComplete="tel"
             className="bg-[color:var(--surface)]"
           />
-          <p className="text-xs text-[color:var(--ink)]/55">{t("profile.phone_hint")}</p>
+          <p className="text-xs text-[color:var(--ink)]/55">{t("settings.profile.phone_hint")}</p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="settings-email" className="text-[color:var(--ink)]">
-            {t("profile.email")}
+            {t("settings.profile.email")}
           </Label>
           <Input
             id="settings-email"
@@ -87,10 +90,12 @@ export function ProfileSection({ user, profile, updateProfile }: SettingsSection
             readOnly
             className="border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] text-[color:var(--ink)]/60"
           />
-          <p className="text-xs text-[color:var(--ink)]/55">{t("profile.email_readonly_hint")}</p>
+          <p className="text-xs text-[color:var(--ink)]/55">
+            {t("settings.profile.email_readonly_hint")}
+          </p>
         </div>
         <Button type="submit" disabled={!profile || saving} className="font-bold">
-          {saving ? t("profile.saving") : t("profile.save")}
+          {saving ? t("settings.profile.saving") : t("settings.profile.save")}
         </Button>
       </form>
     </SettingsCard>
