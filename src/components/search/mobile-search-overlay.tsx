@@ -1,5 +1,6 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
@@ -17,8 +18,8 @@ export type MobileSearchTab = {
 
 /**
  * Full-screen Airbnb-style mobile search overlay: tab row + close bubble up
- * top, a rounded panel body, and a sticky footer with "Clear all" + Search.
- * Switching tabs cross-page slides the new overlay in from the side.
+ * top, an edge-to-edge panel body, and a sticky footer with "Clear all" +
+ * Search. Switching tabs cross-page slides the new overlay in from the side.
  */
 export function MobileSearchOverlay({
   open,
@@ -91,7 +92,9 @@ export function MobileSearchOverlay({
         ? "slide-out-to-left"
         : "fade-out";
 
-  return (
+  // Portal to <body>: rendered deep inside the hero's z-20 stacking context,
+  // the fixed overlay would otherwise paint under the z-50 mobile top bar.
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -139,8 +142,8 @@ export function MobileSearchOverlay({
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto px-3 pt-2 pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
-        <div className="rounded-3xl border border-border bg-card p-4 sm:p-5">{children}</div>
+      <div className="flex-1 overflow-y-auto pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
+        <div className="min-h-full bg-card px-4 pt-3 pb-6 sm:px-5">{children}</div>
       </div>
       <div className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-between gap-3 border-t border-border bg-card px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <Button
@@ -162,6 +165,7 @@ export function MobileSearchOverlay({
           <span className="truncate">{submitLabel}</span>
         </Button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

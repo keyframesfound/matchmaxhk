@@ -1,13 +1,30 @@
-# Remove remaining grey around the search button (last segment active)
+# Mobile home: tighten hero spacing + make the search overlay full-screen
 
-One-line geometry change in `src/components/search/search-pill-bar.tsx`, in `pillGeometry()`.
+## Findings (from code exploration)
 
-## Problem
-When **Lesson mode** (the last segment) is active, its white pill spans only up to the submit button's left edge. The grey engagement wash therefore stays visible: in the small gap before the button, around the circular button, and across the bar's right cap — the grey area in your screenshot.
+**Spacing** — `src/routes/index.tsx`: the hero section is `pt-6 pb-14 md:pt-10 md:pb-16` (line 421) and the categories wrapper is `mt-8 space-y-10 md:mt-10 md:space-y-12` (line 432). On mobile that means ~34px of grey between the mobile top bar and the search button, and a 32px gap before the tutor-category sections.
 
-## Fix
-Extend the last segment's pill (both the white clicked pill and the grey hover pill — they share `pillGeometry`) from "up to the submit button" to the bar's full inner width (`form.clientWidth - x`). The submit button renders above the pill, so it stays fully visible; the pill's `rounded-full` right end exactly matches the bar's rounded right cap, so the whole region around the button becomes white with no grey remainder. Middle segments keep the Airbnb grey to their right, and switching segments still springs the pill back to normal width.
+**"Start your search"** — it already opens `MobileSearchOverlay` (`src/components/search/mobile-search-overlay.tsx`), which is technically full-screen (`fixed inset-0`), but the form fields sit inside a floating `rounded-3xl border bg-card` card (line 143) with grey (`--surface-subtle`) background visible around and below it — that's why it reads as a popup.
+
+## Changes
+
+### 1. Tighten home hero spacing (mobile only, desktop values untouched)
+
+`src/routes/index.tsx`:
+- Line 421: `pt-6 pb-14 md:pt-10 md:pb-16` → `pt-2 pb-10 md:pt-10 md:pb-16` (less space between top nav bar and search block, and before the footer).
+- Line 432: `mt-8` → `mt-4` (keep `md:mt-10`) — less space between the search/pills block and the category listings.
+- `src/components/search/mobile-search-trigger.tsx`: tighten the trigger's own padding — search button `py-2.5` → `py-2`, pills row `mt-1.5 … pb-1` → `mt-1 … pb-0.5`.
+
+### 2. Full-screen search overlay (no more popup look)
+
+`src/components/search/mobile-search-overlay.tsx` (shared by tutors/courses/cases mobile overlays, so all three become consistent):
+- Line 142: scroll area `px-3` → `px-0` (no side gutters).
+- Line 143: replace the floating `rounded-3xl border border-border bg-card p-4 sm:p-5` card with a full-bleed surface: `min-h-full bg-card px-4 pt-3 pb-6` — no rounded corners, no border, fills the whole area between the tab row and the sticky footer, edge-to-edge.
+- Tab row and sticky "Clear all + Search" footer stay as they are.
+
+Constraints honored: no shadows anywhere (borders/surfaces only), no dependency changes, mobile-only spacing (md/lg layouts unchanged).
 
 ## Verification
-- `npx tsc --noEmit` + targeted eslint on the file.
-- Browser test on `/tutors` (dev server port 3101): open Lesson mode → measure that the white pill's right edge meets the bar's right inner edge (no grey between pill and cap, button still on top); hover Lesson mode while another panel is open → grey pill covers the same span; switch to a middle segment → grey correctly shows right of the white pill again. Screenshot to confirm.
+- `npx tsc --noEmit`; targeted `eslint --fix --no-cache` on the three touched files.
+- `npm run build`.
+- Dev server on port 3101 (killed after): at 390×844 measure the nav-bar→search and search→categories gaps, screenshot the tightened hero; open "Start your search" and confirm the panel is edge-to-edge full-screen white (no floating card / grey popup look), tab row + footer intact; at 1440px confirm the desktop home hero and desktop pill bar are unchanged.

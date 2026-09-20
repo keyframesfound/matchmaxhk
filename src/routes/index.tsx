@@ -418,9 +418,9 @@ function Landing() {
 
       <SiteHeader />
 
-      <section className="relative pt-6 pb-14 md:pt-10 md:pb-16">
+      <section className="relative pt-2 pb-10 md:pt-10 md:pb-16">
         <div className="mx-auto max-w-[1440px] px-4 md:px-6">
-          <div className="relative z-20 p-2.5 sm:p-5 lg:rounded-sm lg:border lg:bg-card">
+          <div className="relative z-20 p-2.5 sm:p-5 lg:bg-card">
             <TutorsSearch
               draft={homeSearch}
               onDraftChange={setHomeSearchParam}
@@ -429,7 +429,7 @@ function Landing() {
             />
           </div>
 
-          <div className="mt-8 space-y-10 md:mt-10 md:space-y-12">
+          <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
             {CURRICULUM_CATEGORIES.map(({ label, value }) => (
               <CurriculumTutorSection
                 key={value}
