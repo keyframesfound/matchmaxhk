@@ -120,7 +120,7 @@
   top: 0.9rem;
   right: 0;
   content: counter(menu-item, decimal-leading-zero);
-  color: var(--muted-foreground);
+  color: var(--brand-link);
   font-size: 0.75rem;
   font-weight: 700;
   opacity: var(--smm-number-opacity, 0);
