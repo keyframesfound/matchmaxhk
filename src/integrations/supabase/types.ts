@@ -364,6 +364,7 @@ export type Database = {
           email: string | null;
           id: string;
           locale: string;
+          notification_preferences: Json;
           onboarding_completed_at: string | null;
           phone: string | null;
           theme_preference: string;
@@ -378,6 +379,7 @@ export type Database = {
           email?: string | null;
           id: string;
           locale?: string;
+          notification_preferences?: Json;
           onboarding_completed_at?: string | null;
           phone?: string | null;
           theme_preference?: string;
@@ -392,6 +394,7 @@ export type Database = {
           email?: string | null;
           id?: string;
           locale?: string;
+          notification_preferences?: Json;
           onboarding_completed_at?: string | null;
           phone?: string | null;
           theme_preference?: string;

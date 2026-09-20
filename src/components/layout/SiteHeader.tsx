@@ -338,11 +338,6 @@ export function SiteHeader({
           </Link>
           <StaggeredMobileMenu
             items={mobileItems}
-            socialItems={[
-              { label: "LinkedIn", link: "https://www.linkedin.com/company/matchmax/" },
-              { label: "Instagram", link: "https://www.instagram.com/match_max/" },
-              { label: "Email", link: "mailto:contact@matchmax.hk" },
-            ]}
             renderFooter={(closeMenu) => (
               <div className="flex flex-col gap-3">
                 {!user ? (

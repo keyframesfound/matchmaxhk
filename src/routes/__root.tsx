@@ -10,6 +10,7 @@ import {
 import { type ReactNode, useEffect } from "react";
 import appCss from "../styles.css?url";
 import { I18nProvider } from "@/features/i18n/I18nProvider";
+import { ProfileLocaleSync } from "@/features/i18n/ProfileLocaleSync";
 import { AuthProvider } from "@/features/auth/useAuth";
 import { OnboardingGate } from "@/features/auth/OnboardingGate";
 import { ThemeProvider } from "@/features/theme/ThemeProvider";
@@ -181,6 +182,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <AuthProvider>
+          <ProfileLocaleSync />
           <ThemeProvider>
             <OnboardingGate>
               <main id="main-content">

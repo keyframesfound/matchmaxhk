@@ -14,6 +14,8 @@ type AuthContextValue = {
   hasRole: (role: AppRole) => boolean;
   hasAnyRole: (roles: AppRole[]) => boolean;
   signOut: () => Promise<void>;
+  /** Sign out on this device and every other signed-in session. */
+  signOutEverywhere: () => Promise<void>;
   refreshRoles: () => Promise<void>;
 };
 
@@ -111,6 +113,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await queryClient.cancelQueries();
       queryClient.clear();
       await supabase.auth.signOut();
+      router.navigate({ to: "/", replace: true });
+    },
+    signOutEverywhere: async () => {
+      await queryClient.cancelQueries();
+      queryClient.clear();
+      await supabase.auth.signOut({ scope: "global" });
       router.navigate({ to: "/", replace: true });
     },
   };

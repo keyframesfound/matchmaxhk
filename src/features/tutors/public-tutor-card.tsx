@@ -256,10 +256,7 @@ export function PublicTutorCard({
 
           {genderLabel ? (
             <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)] @max-sm:px-1.5 @max-sm:py-0.5 @max-sm:text-[11px]">
-              <UserRound
-                className="h-3 w-3 text-[color:var(--muted-foreground)]"
-                aria-hidden="true"
-              />
+              <UserRound className="h-3 w-3 text-[color:var(--brand-link)]" aria-hidden="true" />
               {genderLabel}
             </span>
           ) : null}
@@ -271,7 +268,7 @@ export function PublicTutorCard({
           <section className="border-b border-border pb-2.5 md:pb-3">
             <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)] @max-sm:text-xs">
               <BookOpen
-                className="h-3.5 w-3.5 text-[color:var(--muted-foreground)] @max-sm:h-3 @max-sm:w-3"
+                className="h-3.5 w-3.5 text-[color:var(--brand-link)] @max-sm:h-3 @max-sm:w-3"
                 strokeWidth={2.5}
                 aria-hidden="true"
               />
@@ -311,7 +308,7 @@ export function PublicTutorCard({
         >
           <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)] @max-sm:text-xs">
             <Award
-              className="h-3.5 w-3.5 text-[color:var(--muted-foreground)] @max-sm:h-3 @max-sm:w-3"
+              className="h-3.5 w-3.5 text-[color:var(--brand-link)] @max-sm:h-3 @max-sm:w-3"
               strokeWidth={2.5}
               aria-hidden="true"
             />

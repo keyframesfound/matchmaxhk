@@ -18,7 +18,6 @@
 }
 
 .smm-toggle:focus-visible,
-.smm-social-link:focus-visible,
 .smm-menu-item a:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 4px;
@@ -139,46 +138,6 @@
 .smm-footer-controls {
   margin-top: auto;
   padding-top: 2rem;
-}
-
-.smm-socials {
-  padding-top: 1.75rem;
-}
-
-.smm-socials-title {
-  margin: 0 0 0.65rem;
-  color: var(--muted-foreground);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.smm-socials ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.95rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.smm-social-link {
-  color: var(--ink);
-  font-size: 0.95rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition:
-    color 180ms ease,
-    opacity 180ms ease;
-}
-
-.smm-socials:hover .smm-social-link {
-  opacity: 0.4;
-}
-
-.smm-socials:hover .smm-social-link:hover,
-.smm-socials:focus-within .smm-social-link:focus-visible {
-  color: var(--brand-link);
-  opacity: 1;
 }
 
 @media (min-width: 640px) {

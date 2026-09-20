@@ -20,24 +20,14 @@ export type StaggeredMobileMenuItem = {
   hash?: string;
 };
 
-export type StaggeredMobileMenuSocialItem = {
-  label: string;
-  link: string;
-};
-
 type StaggeredMobileMenuProps = {
   items: StaggeredMobileMenuItem[];
-  socialItems: StaggeredMobileMenuSocialItem[];
   renderFooter?: (closeMenu: () => void) => ReactNode;
 };
 
 const LAYER_COLORS = ["#0f1419", "#1d9bf0", "#8ecdf8"];
 
-export function StaggeredMobileMenu({
-  items,
-  socialItems,
-  renderFooter,
-}: StaggeredMobileMenuProps) {
+export function StaggeredMobileMenu({ items, renderFooter }: StaggeredMobileMenuProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const openRef = useRef(false);
@@ -78,13 +68,9 @@ export function StaggeredMobileMenu({
 
     const labels = panel.querySelectorAll<HTMLElement>(".smm-item-label");
     const numbers = panel.querySelectorAll<HTMLElement>(".smm-menu-item");
-    const socialTitle = panel.querySelector<HTMLElement>(".smm-socials-title");
-    const socialLinks = panel.querySelectorAll<HTMLElement>(".smm-social-link");
 
     gsap.set(labels, { yPercent: 140, rotate: 8 });
     gsap.set(numbers, { "--smm-number-opacity": 0 });
-    gsap.set(socialTitle, { opacity: 0 });
-    gsap.set(socialLinks, { y: 20, opacity: 0 });
 
     const timeline = gsap.timeline();
     layers.forEach((layer, index) => {
@@ -102,12 +88,6 @@ export function StaggeredMobileMenu({
       numbers,
       { "--smm-number-opacity": 1, duration: 0.45, ease: "power2.out", stagger: 0.07 },
       panelStart + 0.2,
-    );
-    timeline.to(socialTitle, { opacity: 1, duration: 0.35, ease: "power2.out" }, panelStart + 0.36);
-    timeline.to(
-      socialLinks,
-      { y: 0, opacity: 1, duration: 0.45, ease: "power3.out", stagger: 0.07 },
-      panelStart + 0.4,
     );
 
     openTimelineRef.current = timeline;
@@ -227,27 +207,6 @@ export function StaggeredMobileMenu({
                 </nav>
 
                 <div className="smm-footer-controls">{renderFooter?.(() => closeMenu())}</div>
-
-                <div className="smm-socials" aria-label="MatchMax social links">
-                  <h2 className="smm-socials-title">Connect</h2>
-                  <ul>
-                    {socialItems.map((item) => {
-                      const isExternal = item.link.startsWith("http");
-                      return (
-                        <li key={item.link}>
-                          <a
-                            className="smm-social-link"
-                            href={item.link}
-                            target={isExternal ? "_blank" : undefined}
-                            rel={isExternal ? "noopener noreferrer" : undefined}
-                          >
-                            {item.label}
-                          </a>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
               </div>
             </aside>
           </>,
