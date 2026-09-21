@@ -1747,6 +1747,7 @@ export function TutorEditor({
               <PublicTutorCard
                 tutor={previewTutor}
                 priceSuffix="/hr"
+                shareable={false}
                 footerAction={
                   <Button
                     type="button"

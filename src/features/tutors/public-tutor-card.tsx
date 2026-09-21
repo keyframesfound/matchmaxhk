@@ -1,6 +1,6 @@
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Award, BookOpen, Check, Columns2, UserRound } from "lucide-react";
+import { Award, BookOpen, Check, Columns2, Share2, UserRound } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getTutorCardHighlights, type Tutor } from "@/features/tutors/queries";
 import {
@@ -9,6 +9,7 @@ import {
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
 import { useFitText } from "@/hooks/use-fit-text";
+import { shareOrCopy } from "@/lib/share";
 import { cn } from "@/lib/utils";
 
 function getTutorInitials(tutorCode?: string | null) {
@@ -88,6 +89,7 @@ type PublicTutorCardProps = {
   className?: string;
   compareSelected?: boolean;
   onCompareToggle?: () => void;
+  shareable?: boolean;
 };
 
 export function PublicTutorCard({
@@ -99,6 +101,7 @@ export function PublicTutorCard({
   className,
   compareSelected,
   onCompareToggle,
+  shareable = true,
 }: PublicTutorCardProps) {
   const { t } = useTranslation();
   const interactive = typeof onOpen === "function";
@@ -186,6 +189,18 @@ export function PublicTutorCard({
   const handleCompareToggle = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onCompareToggle?.();
+  };
+
+  const handleShare = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    void shareOrCopy(
+      {
+        title: `Tutor ${formatTutorCode(tutor.tutor_code)} | MatchMax`,
+        text: `Check out tutor ${tutor.tutor_code} on MatchMax — HK$${tutor.hourly_rate}/hr.`,
+        url: `${window.location.origin}/tutors/${tutor.tutor_code}`,
+      },
+      t("profile.link_copied"),
+    );
   };
 
   return (
@@ -402,6 +417,26 @@ export function PublicTutorCard({
             </TooltipProvider>
           ) : null}
           {saveAction}
+          {shareable ? (
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={t("tutor_card.share", { code: formatTutorCode(tutor.tutor_code) })}
+                    onClick={handleShare}
+                    onKeyDown={(event) => event.stopPropagation()}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)]/55 transition-colors hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8"
+                  >
+                    <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  {t("tutor_card.share", { code: formatTutorCode(tutor.tutor_code) })}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : null}
           {footerAction}
         </div>
       </footer>

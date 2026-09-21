@@ -525,6 +525,7 @@
     "tutor_alt": "導師 {{code}}",
     "compare_add": "將導師 {{code}} 加入比較",
     "compare_remove": "將導師 {{code}} 移出比較",
+    "share": "分享導師 {{code}}",
     "gender_male": "男",
     "gender_female": "女",
     "gender_other": "其他"

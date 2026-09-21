@@ -503,6 +503,7 @@
     "tutor_alt": "Tutor {{code}}",
     "compare_add": "Add tutor {{code}} to comparison",
     "compare_remove": "Remove tutor {{code}} from comparison",
+    "share": "Share tutor {{code}}",
     "gender_male": "Male",
     "gender_female": "Female",
     "gender_other": "Other"
