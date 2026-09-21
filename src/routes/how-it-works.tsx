@@ -98,6 +98,7 @@ function useHowItWorksContent() {
     "negotiate",
     "trial",
     "matching",
+    "involvement",
     "verification",
     "payments",
   ]);

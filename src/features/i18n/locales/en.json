@@ -511,7 +511,7 @@
   "hiw": {
     "hero_eyebrow": "How MatchMax works",
     "hero_title": "Built By Students: Why MatchMax Works Better",
-    "hero_body": "MatchMax was founded by recent IB and DSE graduates to fix a broken system. Traditional agencies take massive cuts, driving up costs for families and underpaying educators. We believe that when an agency takes less, everyone wins. By strictly limiting our commission to just the first one and a half lessons, we make elite tutoring more accessible for parents and significantly more rewarding for tutors. When you use MatchMax, you aren't just finding a tutor—you are directly supporting dedicated educators in a fairer, transparent community.",
+    "hero_body": "MatchMax was founded by recent IB and DSE graduates to fix a broken system. Traditional agencies take massive cuts, driving up costs for families and underpaying educators. We believe that when an agency takes less, everyone wins. By strictly limiting our commission to just the first one and a half lessons, we make elite tutoring more accessible for parents and significantly more rewarding for tutors. As a high-touch concierge, we also personally manage your onboarding and your first 2 lessons, then step back and leave parents and tutors to run the ongoing schedule directly. When you use MatchMax, you aren't just finding a tutor—you are directly supporting dedicated educators in a fairer, transparent community.",
     "hero_cta_browse": "Browse Tutor Profiles",
     "hero_cta_apply": "Apply to Teach",
     "card_view_profile": "View profile",
@@ -590,7 +590,7 @@
     "flow_eyebrow": "02 / The matching flow",
     "flow_speed": "Instant direct connection",
     "flow_title": "The New Standard for Tutor Matching.",
-    "flow_body": "We manually verify every top scorer and school examiner so you don't have to. Experience Hong Kong's most transparent, easy-to-use platform for finding and comparing premium tutors.",
+    "flow_body": "We manually verify every top scorer and school examiner so you don't have to. Experience Hong Kong's most transparent, easy-to-use platform for finding and comparing premium tutors. Once you are matched, our concierge team actively manages the communication for your first 2 lessons—then parents and tutors take over the ongoing schedule directly.",
     "parents_eyebrow": "For parents & students",
     "parents_audience": "For Parents",
     "parents_title": "Manually verified top scorers, transparent paper scores, zero guesswork.",
@@ -605,7 +605,7 @@
       },
       "s3": {
         "title": "Instant Direct Connection",
-        "detail": "Skip the agency waiting time. Once a match is made, you connect directly with the tutor via WhatsApp. No middlemen, no phone tag—just direct communication to confirm your first lesson."
+        "detail": "Skip the agency waiting time. Once a match is made, you connect with your tutor via WhatsApp, and our concierge team actively manages the communication for your first 2 lessons. Once this initial matching phase is complete, you and your tutor manage the ongoing schedule directly—no middlemen, no phone tag."
       }
     },
     "parents_link_find": "Find a tutor",
@@ -674,6 +674,10 @@
       "matching": {
         "q": "How does matching work?",
         "a": "You have two straightforward options: you can click forward directly on any tutor's profile card to request that specific tutor, or reach out to our WhatsApp hotline and tell us exactly what you are looking for so we can match you. Once confirmed, we connect you directly with the tutor to finalize lesson times."
+      },
+      "involvement": {
+        "q": "How long does MatchMax stay involved in our tutoring arrangement?",
+        "a": "MatchMax operates as a high-touch concierge matching service. We actively oversee your onboarding, ensure your trial lesson goes smoothly, and manage the communication for your first 2 lessons until the administrative matching fee is settled. Once this initial matching phase is successfully completed, MatchMax steps back, leaving parents and tutors to manage their ongoing schedule directly."
       },
       "verification": {
         "q": "How does MatchMax verify tutor qualifications and grades?",
