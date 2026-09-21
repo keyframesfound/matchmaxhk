@@ -103,8 +103,24 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
     ],
   },
   {
-    title: "3. Accounts and eligibility",
+    title: "3. Non-Circumvention & Tutor Referral Program",
     blocks: [
+      {
+        kind: "p",
+        text: "3.1 Tutor Referral Program: MatchMax operates an official Tutor Referral Program to reward verified tutors who introduce new qualified tutors to the platform. Under this program, an active verified Tutor earns a 15% referral commission cut of MatchMax's platform matching fee upon the referred tutor's first confirmed lesson contract with a customer.",
+      },
+      {
+        kind: "p",
+        text: "3.2 Referral Rules & Eligibility: Referral claims must be initiated through official MatchMax platform channels prior to the referred tutor's first lesson arrangement. Referrals cannot be claimed retroactively or for tutors already registered in the MatchMax directory.",
+      },
+      {
+        kind: "p",
+        text: "3.3 Strict Non-Circumvention: Users, Tutors, and Customers shall not engage in unauthorized, uncompensated, or secondary off-platform referrals designed to circumvent MatchMax matching fees, platform verification, or payment mechanisms. Any circumvention or unapproved referral arrangements will result in immediate forfeiture of referral bonuses and Account termination under Section 18.",
+      },
+      {
+        kind: "p",
+        text: "3.4 Accounts & Eligibility: All standard account eligibility, safeguarding, age verification (18+ for tutors), and background checks continue to apply to participating tutors under platform policies.",
+      },
       { kind: "p", text: "Public Tutor listings may be browsed without an Account." },
       {
         kind: "p",
