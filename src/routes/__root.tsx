@@ -185,6 +185,21 @@ function RootComponent() {
           <ProfileLocaleSync />
           <ThemeProvider>
             <OnboardingGate>
+              {/* Global Dark Blue Top Banner: 15% Tutor Referral Program */}
+              <aside
+                aria-label="Tutor Referral Program"
+                className="bg-[#0f172a] text-slate-100 py-2.5 px-4 text-center text-xs sm:text-sm font-medium flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-b border-slate-800 shadow-sm"
+              >
+                <span>
+                  🎓 <strong className="font-semibold text-white">Tutor Referral Program:</strong> Earn a 15% commission on the matching fee for every tutor friend you refer!
+                </span>
+                <Link
+                  to="/tos"
+                  className="inline-flex items-center text-sky-400 hover:text-sky-300 underline underline-offset-2 text-xs font-semibold ml-1"
+                >
+                  View referral terms & rules →
+                </Link>
+              </aside>
               <main id="main-content">
                 <Outlet />
               </main>
