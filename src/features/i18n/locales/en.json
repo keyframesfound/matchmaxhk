@@ -604,8 +604,8 @@
         "detail": "Treat tutor hunting like simple online shopping. Add candidates to your shortlist, compare their \"Subjects Taught\" and credentials side-by-side, and submit your lesson preferences with zero hassle."
       },
       "s3": {
-        "title": "Instant Direct Connection",
-        "detail": "Skip the agency waiting time. Once a match is made, you connect with your tutor via WhatsApp, and our concierge team actively manages the communication for your first 2 lessons. Once this initial matching phase is complete, you and your tutor manage the ongoing schedule directly—no middlemen, no phone tag."
+        "title": "Meet & Settle",
+        "detail": "We guide you through your first 2 lessons. Once you're happy, settle the 1.5-lesson administrative fee directly with MatchMax via FPS, and enjoy direct learning!"
       }
     },
     "parents_link_find": "Find a tutor",
@@ -691,7 +691,7 @@
     "billing_faq": {
       "pay": {
         "q": "How and when do I pay for the lessons?",
-        "a": "To keep the process simple and secure, MatchMax charges a one-time administrative matching fee (equivalent to 1.5 lessons) directly to the parent via FPS, payable within 24 hours after a successful first trial lesson. All subsequent lessons are paid directly to your tutor using your mutually preferred payment method."
+        "a": "To keep the process simple and secure, MatchMax charges our administrative matching fee (equivalent to your first 1.5 lessons) directly to us via FPS, payable within 24 hours after your successful first trial lesson. All subsequent lessons after these initial 2 lessons are paid directly to your tutor."
       },
       "rematch": {
         "q": "What if the tutor isn't a good fit after the first lesson?",

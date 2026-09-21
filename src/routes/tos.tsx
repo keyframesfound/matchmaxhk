@@ -52,10 +52,10 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
       {
         kind: "ul",
         items: [
-          "This fee is equivalent to 1.5 times the agreed-upon hourly rate of the tutor.",
-          "This fee is payable by the Client to MatchMax via FPS within 24 hours following the successful completion of the first trial lesson.",
+          "This fee is equivalent to 1.5 times the agreed-upon hourly rate of the tutor (covering the initial matching phase and first 2 lessons).",
+          "This fee is payable by the Client directly to MatchMax via FPS within 24 hours following the successful completion of the first trial lesson.",
           "**Late Payments & Default:** If the Client fails to remit the Administrative Matching Fee within the stipulated timeframe, MatchMax reserves the right to suspend the match, advise the Tutor to halt future lessons, and restrict the Client from future use of the platform.",
-          "MatchMax does not extract commissions or deductions from the independent contractor's (tutor's) ongoing wages. Following the initial 1.5-lesson equivalent, all financial transactions occur directly between the Client and the Tutor.",
+          "MatchMax does not extract commissions or deductions from the independent contractor's (tutor's) ongoing wages. Following the initial 1.5-lesson introductory fee, all financial transactions occur directly between the Client and the Tutor.",
         ],
       },
     ],
