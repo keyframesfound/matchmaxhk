@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Clock3, Search, UserRoundCheck } from "lucide-react";
+import { ArrowRight, Clock3, CreditCard, Search, UserRoundCheck } from "lucide-react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -76,7 +76,10 @@ function useHowItWorksContent() {
     t(`hiw.tutors_steps.${key}.detail`),
   ]);
 
-  const faqItems = (group: "tutor_faq" | "parent_faq", keys: readonly string[]): FaqItem[] =>
+  const faqItems = (
+    group: "tutor_faq" | "parent_faq" | "billing_faq",
+    keys: readonly string[],
+  ): FaqItem[] =>
     keys.map((key, index) => ({
       id: String(index + 1),
       title: t(`hiw.${group}.${key}.q`),
@@ -98,6 +101,7 @@ function useHowItWorksContent() {
     "verification",
     "payments",
   ]);
+  const billingFaqItems = faqItems("billing_faq", ["pay", "rematch", "reschedule", "account"]);
 
   return {
     t,
@@ -107,6 +111,7 @@ function useHowItWorksContent() {
     tutorSteps,
     tutorFaqItems,
     parentFaqItems,
+    billingFaqItems,
   };
 }
 
@@ -275,6 +280,7 @@ function HowItWorksPage() {
     tutorSteps,
     tutorFaqItems,
     parentFaqItems,
+    billingFaqItems,
   } = useHowItWorksContent();
 
   return (
@@ -410,6 +416,17 @@ function HowItWorksPage() {
                 {t("hiw.faq_parents")}
               </h3>
               <FaqAccordion className="mt-5" items={parentFaqItems} />
+            </div>
+
+            <div className="mt-14">
+              <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+                <CreditCard
+                  className="h-6 w-6 text-[color:var(--muted-foreground)]"
+                  aria-hidden="true"
+                />
+                {t("hiw.faq_billing")}
+              </h3>
+              <FaqAccordion className="mt-5" items={billingFaqItems} />
             </div>
           </div>
         </section>

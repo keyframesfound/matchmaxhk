@@ -634,6 +634,7 @@
     "faq_title": "Frequently Asked Questions",
     "faq_tutors": "For Tutors",
     "faq_parents": "For Parents",
+    "faq_billing": "Payments & Policies",
     "tutor_faq": {
       "paid": {
         "q": "How do I get paid?",
@@ -680,6 +681,24 @@
       "payments": {
         "q": "How do payments work between parents and tutors?",
         "a": "Tuition is paid directly to the tutor based on the agreed hourly rate and schedule. MatchMax does not hold or handle your tuition fees, keeping the payment process direct and transparent."
+      }
+    },
+    "billing_faq": {
+      "pay": {
+        "q": "How and when do I pay for the lessons?",
+        "a": "To keep the process simple and secure, MatchMax charges a one-time administrative matching fee (equivalent to 1.5 lessons) directly to the parent via FPS, payable within 24 hours after a successful first trial lesson. All subsequent lessons are paid directly to your tutor using your mutually preferred payment method."
+      },
+      "rematch": {
+        "q": "What if the tutor isn't a good fit after the first lesson?",
+        "a": "We offer a First-Lesson Free Rematch Guarantee. If you feel the tutor is not the perfect match for your child, simply compensate the tutor directly for that single hour of teaching, and MatchMax will immediately waive our administrative fee to personally hand-select a new, better-suited candidate for you at no additional platform cost."
+      },
+      "reschedule": {
+        "q": "What happens if my child is sick or we need to reschedule?",
+        "a": "We understand that schedules change and emergencies happen. We simply ask that parents and tutors communicate directly in your dedicated MatchMax WhatsApp group and aim to provide at least 24 hours' notice out of mutual respect."
+      },
+      "account": {
+        "q": "Do I need to create an account to request a tutor?",
+        "a": "No. You can request a tutor directly through our website as a guest, and our concierge team will handle the matching process personally via WhatsApp."
       }
     }
   },
