@@ -48,10 +48,13 @@ type NavDestination =
 function DesktopNavLink({
   to,
   active,
+  icon,
   children,
 }: {
   to: NavDestination;
   active: boolean;
+  /** Optional icon asset (public/ path) rendered before the label. */
+  icon?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -59,12 +62,21 @@ function DesktopNavLink({
       to={to}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative text-[15px] font-semibold transition-colors duration-200 focus-visible:text-[color:var(--brand-link)]",
+        "group relative flex items-center gap-1.5 whitespace-nowrap text-[15px] font-semibold transition-colors duration-200 focus-visible:text-[color:var(--brand-link)]",
         active
           ? "text-[color:var(--brand-link)]"
           : "text-[color:var(--ink)]/85 hover:text-[color:var(--brand-link)]",
       )}
     >
+      {icon ? (
+        <img
+          src={icon}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          className="h-4 w-4 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
+        />
+      ) : null}
       {children}
       <span
         className={cn(
@@ -143,7 +155,7 @@ export function SiteHeader({
           className,
         )}
       >
-        <div className="relative mx-auto flex h-[64px] max-w-[1440px] items-center gap-2 px-4 sm:px-8 lg:gap-0 lg:px-10">
+        <div className="relative mx-auto flex h-[64px] max-w-[1440px] items-center gap-2 px-4 sm:px-8 lg:gap-0 xl:px-10">
           {merged && centerSlot ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <CompactPillSlot visible={compactVisible}>{centerSlot}</CompactPillSlot>
@@ -158,11 +170,15 @@ export function SiteHeader({
 
           <nav
             className={cn(
-              "ml-12 flex items-center gap-9 transition-opacity duration-200 motion-reduce:transition-none",
+              "ml-8 flex items-center gap-4 transition-opacity duration-200 motion-reduce:transition-none xl:ml-12 xl:gap-9",
               linksVisible ? "opacity-100" : "pointer-events-none opacity-0",
             )}
           >
-            <DesktopNavLink to="/how-it-works" active={isActive("/how-it-works")}>
+            <DesktopNavLink
+              to="/how-it-works"
+              active={isActive("/how-it-works")}
+              icon="/nav-how-it-works.png"
+            >
               {t("nav.how")}
             </DesktopNavLink>
             <DesktopNavLink to="/tutors" active={isActive("/tutors")}>
@@ -176,7 +192,7 @@ export function SiteHeader({
             <DesktopNavLink to="/saved-posts" active={isActive("/saved-posts")}>
               {t("nav.saved_posts")}
             </DesktopNavLink>
-            <DesktopNavLink to="/join" active={isActive("/join")}>
+            <DesktopNavLink to="/join" active={isActive("/join")} icon="/nav-become-tutor.png">
               {t("nav.become_tutor")}
             </DesktopNavLink>
             {CENTRE_MARKET_ENABLED && (
@@ -184,7 +200,11 @@ export function SiteHeader({
                 {t("nav.for_business")}
               </DesktopNavLink>
             )}
-            <DesktopNavLink to="/tutor-requests" active={isActive("/tutor-requests")}>
+            <DesktopNavLink
+              to="/tutor-requests"
+              active={isActive("/tutor-requests")}
+              icon="/nav-case-board.png"
+            >
               {t("nav.request_tutor")}
             </DesktopNavLink>
           </nav>
@@ -309,7 +329,7 @@ export function SiteHeader({
               <>
                 <Link
                   to="/auth"
-                  className="text-[15px] font-semibold text-[color:var(--ink)] transition-colors hover:text-[color:var(--brand-link)]"
+                  className="whitespace-nowrap text-[15px] font-semibold text-[color:var(--ink)] transition-colors hover:text-[color:var(--brand-link)]"
                 >
                   {t("nav.sign_in")}
                 </Link>

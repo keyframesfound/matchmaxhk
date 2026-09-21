@@ -23,9 +23,24 @@ export function MobileSearchTrigger({
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
 
   const navPills = [
-    { key: "case", label: t("nav_mobile.case"), to: "/tutor-requests" as const },
-    { key: "how", label: t("nav.how"), to: "/how-it-works" as const },
-    { key: "join", label: t("nav.become_tutor"), to: "/join" as const },
+    {
+      key: "case",
+      label: t("nav_mobile.case"),
+      to: "/tutor-requests" as const,
+      icon: "/nav-case-board.png",
+    },
+    {
+      key: "how",
+      label: t("nav.how"),
+      to: "/how-it-works" as const,
+      icon: "/nav-how-it-works.png",
+    },
+    {
+      key: "join",
+      label: t("nav.become_tutor"),
+      to: "/join" as const,
+      icon: "/nav-become-tutor.png",
+    },
   ];
 
   return (
@@ -56,7 +71,16 @@ export function MobileSearchTrigger({
                   : "border-border bg-card font-medium text-[color:var(--ink)]/75 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]",
               )}
             >
-              {pill.label}
+              <span className="flex items-center justify-center gap-1.5">
+                <img
+                  src={pill.icon}
+                  alt=""
+                  aria-hidden="true"
+                  draggable={false}
+                  className="h-4 w-4 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
+                />
+                {pill.label}
+              </span>
             </Link>
           );
         })}
