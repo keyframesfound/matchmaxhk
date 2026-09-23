@@ -94,10 +94,7 @@ export function MobileBottomNav() {
           <button
             type="button"
             aria-expanded={accountOpen}
-            className={cn(
-              tabButtonClass,
-              "text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]",
-            )}
+            className={cn(tabButtonClass, "text-[color:var(--ink)]")}
             onClick={() => setAccountOpen(true)}
           >
             <CircleUserRound className="h-5 w-5" aria-hidden="true" />
@@ -137,7 +134,7 @@ export function MobileBottomNav() {
                   onClick={() => setAccountOpen(false)}
                   className={itemRowClass}
                 >
-                  <Settings className="h-5 w-5 text-[color:var(--ink)]/70" aria-hidden="true" />
+                  <Settings className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
                   {t("nav.settings")}
                 </Link>
                 <Link
@@ -146,7 +143,7 @@ export function MobileBottomNav() {
                   onClick={() => setAccountOpen(false)}
                   className={itemRowClass}
                 >
-                  <UserRound className="h-5 w-5 text-[color:var(--ink)]/70" aria-hidden="true" />
+                  <UserRound className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
                   {t("nav.profile")}
                 </Link>
                 {(CENTRE_MARKET_ENABLED || hasOrg) && (
@@ -155,16 +152,13 @@ export function MobileBottomNav() {
                     onClick={() => setAccountOpen(false)}
                     className={itemRowClass}
                   >
-                    <Building2 className="h-5 w-5 text-[color:var(--ink)]/70" aria-hidden="true" />
+                    <Building2 className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
                     {hasOrg ? t("nav.my_business") : t("nav.for_business")}
                   </Link>
                 )}
                 {isAdmin && (
                   <Link to="/admin" onClick={() => setAccountOpen(false)} className={itemRowClass}>
-                    <ShieldCheck
-                      className="h-5 w-5 text-[color:var(--ink)]/70"
-                      aria-hidden="true"
-                    />
+                    <ShieldCheck className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
                     {t("nav.admin")}
                   </Link>
                 )}
@@ -206,15 +200,15 @@ export function MobileBottomNav() {
               className={cn(itemRowClass, "border-t border-border pt-3")}
             >
               {useDarkTheme ? (
-                <Moon className="h-5 w-5 text-[color:var(--ink)]/70" aria-hidden="true" />
+                <Moon className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
               ) : (
-                <Sun className="h-5 w-5 text-[color:var(--ink)]/70" aria-hidden="true" />
+                <Sun className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
               )}
               {useDarkTheme ? t("nav.dark_mode") : t("nav.light_mode")}
             </button>
             <div className="mt-2 flex items-center justify-between gap-3 border-t border-border px-3 pt-3">
               <span className="flex items-center gap-3 text-[15px] font-semibold text-[color:var(--ink)]">
-                <Globe className="h-5 w-5 text-[color:var(--ink)]/70" aria-hidden="true" />
+                <Globe className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
                 {t("nav.account_language")}
               </span>
               <LanguageToggle />

@@ -398,7 +398,7 @@ export function PublicTutorCard({
                       "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
                       compareSelected
                         ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
-                        : "text-[color:var(--ink)]/55 hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]",
+                        : "text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06]",
                     )}
                   >
                     {compareSelected ? (
@@ -426,7 +426,7 @@ export function PublicTutorCard({
                     aria-label={t("tutor_card.share", { code: formatTutorCode(tutor.tutor_code) })}
                     onClick={handleShare}
                     onKeyDown={(event) => event.stopPropagation()}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)]/55 transition-colors hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8"
                   >
                     <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
                   </button>
