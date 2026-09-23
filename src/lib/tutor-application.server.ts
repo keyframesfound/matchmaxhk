@@ -32,7 +32,7 @@ export type StoredApplicationFile = {
   filename: string;
   contentType: string;
   size: number;
-  source: "achievement" | "transcript" | "profile_photo";
+  source: "achievement" | "transcript" | "profile_photo" | "student_card";
   label: string;
 };
 
@@ -67,7 +67,7 @@ async function uploadApplicationFile(
   config: ReturnType<typeof getR2Config>,
   file: { filename: string; contentType: string; content: string; size: number },
   meta: {
-    source: "achievement" | "transcript" | "profile_photo";
+    source: "achievement" | "transcript" | "profile_photo" | "student_card";
     label: string;
     applicationId: string;
     index: number;
@@ -119,6 +119,9 @@ export async function storeTutorApplication(
     ),
     ...(data.profilePhoto
       ? [{ file: data.profilePhoto, source: "profile_photo" as const, label: "Profile photo" }]
+      : []),
+    ...(data.studentCard
+      ? [{ file: data.studentCard, source: "student_card" as const, label: "Student ID card" }]
       : []),
   ];
   validateAttachmentBytes(attachments.map((entry) => entry.file));

@@ -129,6 +129,7 @@ export const tutorApplicationSchema = z
     teachingQualifications: z.array(z.enum(TEACHING_QUALIFICATION_OPTIONS)).default([]),
     university: z.string().trim().max(200).optional().default(""),
     programme: z.string().trim().max(200).optional().default(""),
+    studentCard: attachmentSchema.optional(),
     highSchool: z.string().trim().min(1, "Required").max(200),
     curriculum: z.enum(CURRICULUM_OPTIONS),
     curricula: z.array(z.enum(CURRICULUM_OPTIONS)).min(1, "Select at least one curriculum"),
@@ -166,6 +167,30 @@ export const tutorApplicationSchema = z
         path: ["year"],
         message: "Required",
       });
+    }
+
+    if (!isProfessional) {
+      if (!data.university) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["university"],
+          message: "Required",
+        });
+      }
+      if (!data.programme) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["programme"],
+          message: "Required",
+        });
+      }
+      if (!data.studentCard) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["studentCard"],
+          message: "Upload your student ID card as evidence of your university and major",
+        });
+      }
     }
 
     if (data.format !== "Online" && !data.locations) {
@@ -308,6 +333,7 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
       : []),
     { label: "University / institution", value: data.university || "—" },
     { label: "Degree / programme", value: data.programme || "—" },
+    { label: "Student ID card", value: data.studentCard?.filename ?? "—" },
     { label: "Current year of study", value: data.year || "—" },
     { label: "High school and graduation year", value: data.highSchool },
     { label: "Primary curriculum", value: data.curriculum },

@@ -9,7 +9,7 @@ export type StoredApplicationFile = {
   filename: string;
   contentType: string;
   size: number;
-  source: "achievement" | "transcript" | "profile_photo";
+  source: "achievement" | "transcript" | "profile_photo" | "student_card";
   label: string;
 };
 
@@ -47,7 +47,9 @@ function normalizeFiles(raw: unknown): StoredApplicationFile[] {
             ? "transcript"
             : entry.source === "profile_photo"
               ? "profile_photo"
-              : "achievement",
+              : entry.source === "student_card"
+                ? "student_card"
+                : "achievement",
         label: typeof entry.label === "string" ? entry.label : "",
       },
     ];

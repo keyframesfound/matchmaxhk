@@ -31,7 +31,11 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
-import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
+import {
+  ADMISSIONS_APPLICATION_SUPPORT_CATEGORY,
+  ADMISSIONS_STANDARDIZED_TEST_CATEGORY,
+  getSubjectOptionsForCategory,
+} from "@/features/tutors/subjects";
 import { cn } from "@/lib/utils";
 
 export type TutorsSearchState = {
@@ -61,8 +65,33 @@ const tutorsCategoryLabel = (value: string, t: (key: string) => string) => {
   if (value === "Primary") return t("search_panel.category_primary_school");
   if (value === "Junior Secondary") return t("search_panel.category_junior_secondary");
   if (value === "Admissions") return t("search_panel.category_admissions");
+  if (value === ADMISSIONS_STANDARDIZED_TEST_CATEGORY)
+    return t("search_panel.category_admissions_tests");
+  if (value === ADMISSIONS_APPLICATION_SUPPORT_CATEGORY)
+    return t("search_panel.category_admissions_support");
   return value;
 };
+
+/** Curriculum picker rows: exam systems, school stages, then the University
+ * Admissions & Test Prep umbrella with its two indented sub-categories. */
+const tutorsCategoryOptions = (t: (key: string) => string): OptionRow[] => [
+  ...CATEGORY_VALUES.map((value) => ({ value, label: value })),
+  { value: "Primary", label: t("search_panel.category_primary_school") },
+  { value: "Junior Secondary", label: t("search_panel.category_junior_secondary") },
+  { value: "Admissions", label: t("search_panel.category_admissions") },
+  {
+    value: ADMISSIONS_STANDARDIZED_TEST_CATEGORY,
+    label: t("search_panel.category_admissions_tests"),
+    description: t("search_panel.category_admissions_tests_desc"),
+    indent: true,
+  },
+  {
+    value: ADMISSIONS_APPLICATION_SUPPORT_CATEGORY,
+    label: t("search_panel.category_admissions_support"),
+    description: t("search_panel.category_admissions_support_desc"),
+    indent: true,
+  },
+];
 
 const tutorsModeDisplay = (draft: TutorsSearchState, t: (key: string) => string) => {
   if (draft.mode === "in_person") {
@@ -250,12 +279,7 @@ export function TutorsSearchBar({
     draft.sort,
   ].filter(Boolean).length;
 
-  const categoryOptions: OptionRow[] = [
-    ...CATEGORY_VALUES.map((value) => ({ value, label: value })),
-    { value: "Primary", label: t("search_panel.category_primary_school") },
-    { value: "Junior Secondary", label: t("search_panel.category_junior_secondary") },
-    { value: "Admissions", label: t("search_panel.category_admissions") },
-  ];
+  const categoryOptions: OptionRow[] = tutorsCategoryOptions(t);
 
   const statusOptions = [
     { value: "", label: t("search_panel.any_status") },
@@ -477,12 +501,7 @@ export function TutorsSearchMobile({
     [allPrices, priceValue],
   );
 
-  const categoryOptions: OptionRow[] = [
-    ...CATEGORY_VALUES.map((value) => ({ value, label: value })),
-    { value: "Primary", label: t("search_panel.category_primary_school") },
-    { value: "Junior Secondary", label: t("search_panel.category_junior_secondary") },
-    { value: "Admissions", label: t("search_panel.category_admissions") },
-  ];
+  const categoryOptions: OptionRow[] = tutorsCategoryOptions(t);
 
   const statusOptions = [
     { value: "", label: t("search_panel.any_status") },

@@ -118,6 +118,9 @@ function formatExamSystemLabel(system: string) {
   if (normalized === "ielts") return "IELTS";
   if (normalized === "isat") return "ISAT";
   if (normalized === "ucat") return "UCAT";
+  if (normalized === "primary") return "Primary School";
+  if (normalized === "junior secondary") return "Junior Secondary";
+  if (normalized === "admissions") return "University Admissions & Test Prep";
 
   const systemName = system.trim();
   return (getSystem(normalized)?.label ?? systemName) || "Exam system";

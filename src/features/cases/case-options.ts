@@ -1,5 +1,8 @@
 // Select options shared by the public case request form and the admin edit dialog.
 import {
+  ADMISSIONS_APPLICATION_SUPPORT_CATEGORY,
+  ADMISSIONS_CURRICULUM_LABEL,
+  ADMISSIONS_STANDARDIZED_TEST_CATEGORY,
   INTL_PRIMARY_SUBJECTS,
   LOCAL_PRIMARY_SUBJECTS,
   getSubjectOptionsForCategory,
@@ -33,7 +36,7 @@ export const SUPPORT_TYPE_OPTIONS = [
   { value: "subject_tutoring", label: "Subject Tutoring & School Exams" },
   {
     value: "admissions",
-    label: "University Admissions & Standardized Tests (SAT, IELTS, UCAT, ISAT)",
+    label: "University Admissions & Test Prep (SAT, IELTS, UCAT, ISAT)",
   },
 ];
 
@@ -42,6 +45,10 @@ export const SUPPORT_TYPE_OPTIONS = [
 // is the curriculum auto-selected by the admissions support path.
 export const ADMISSIONS_CURRICULUM = "Admissions";
 
+// Display name of the admissions umbrella curriculum, re-exported so the
+// case request form can render it without importing subjects.ts directly.
+export { ADMISSIONS_CURRICULUM_LABEL };
+
 export const CURRICULUM_OPTIONS = [
   { value: "IB", label: "IBDP" },
   { value: "DSE", label: "HKDSE" },
@@ -49,7 +56,23 @@ export const CURRICULUM_OPTIONS = [
   { value: "IGCSE", label: "IGCSE" },
   { value: "Primary School", label: "Primary School" },
   { value: "Junior Secondary", label: "Junior Secondary" },
-  { value: ADMISSIONS_CURRICULUM, label: "Admissions & Standardized Tests" },
+  { value: ADMISSIONS_CURRICULUM, label: ADMISSIONS_CURRICULUM_LABEL },
+];
+
+// Optional second-level filter for admissions requests: the umbrella splits
+// into the standardized-test hurdle and the application-support hurdle.
+// Purely a UI scope — narrowing the subject dropdown; the stored value stays
+// the subject itself.
+export const ADMISSIONS_CATEGORY_OPTIONS = [
+  { value: "", label: "All admissions subjects" },
+  {
+    value: ADMISSIONS_STANDARDIZED_TEST_CATEGORY,
+    label: ADMISSIONS_STANDARDIZED_TEST_CATEGORY,
+  },
+  {
+    value: ADMISSIONS_APPLICATION_SUPPORT_CATEGORY,
+    label: ADMISSIONS_APPLICATION_SUPPORT_CATEGORY,
+  },
 ];
 
 // Curriculum-specific components. Curricula without components still show

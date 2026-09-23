@@ -44,8 +44,18 @@ type ComparisonRow = {
 
 type FaqItem = { id: string; title: string; content: string };
 
+type QualityRow = { curriculum: string; floor: string; subject: string };
+
 function useHowItWorksContent() {
   const { t } = useTranslation();
+
+  const qualityRows: QualityRow[] = (
+    ["ib", "alevel", "igcse", "dse", "primary", "tests", "admissions"] as const
+  ).map((key) => ({
+    curriculum: t(`hiw.quality_rows.${key}.curriculum`),
+    floor: t(`hiw.quality_rows.${key}.floor`),
+    subject: t(`hiw.quality_rows.${key}.subject`),
+  }));
 
   const comparisonRow = (group: "edu" | "parent_cmp", key: string): ComparisonRow => ({
     aspect: t(`hiw.${group}.${key}.aspect`),
@@ -92,7 +102,7 @@ function useHowItWorksContent() {
     "rates",
     "experience",
     "modes",
-    "protection",
+    "after_trial",
   ]);
   const parentFaqItems = faqItems("parent_faq", [
     "negotiate",
@@ -110,6 +120,7 @@ function useHowItWorksContent() {
     parentComparison,
     parentSteps,
     tutorSteps,
+    qualityRows,
     tutorFaqItems,
     parentFaqItems,
     billingFaqItems,
@@ -257,6 +268,54 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
   );
 }
 
+/** Academic Requirements Matrix — minimum results per curriculum, flat card
+ * styled like the comparison tables (borders only, no shadows). */
+function QualityStandardsTable({ rows }: { rows: QualityRow[] }) {
+  const { t } = useTranslation();
+  return (
+    <div className="mt-10 rounded-2xl border border-[color:var(--hiw-compare-card-border)] bg-[color:var(--hiw-compare-card)] p-5 md:p-8">
+      <div className="hidden gap-x-10 border-b border-[color:var(--ink)]/20 pb-4 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.4fr)]">
+        <p className="text-sm font-bold text-[color:var(--ink)]/55">
+          {t("hiw.quality_col_curriculum")}
+        </p>
+        <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.quality_col_floor")}</p>
+        <p className="text-sm font-bold text-[color:var(--brand-link)]">
+          {t("hiw.quality_col_subject")}
+        </p>
+      </div>
+      <ul>
+        {rows.map((row, index) => {
+          const isLast = index === rows.length - 1;
+          return (
+            <li
+              key={row.curriculum}
+              className={`max-md:py-5 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.4fr)] md:gap-x-10 md:py-6 ${
+                isLast ? "" : "border-b border-[color:var(--ink)]/12"
+              }`}
+            >
+              <h3 className="text-base font-bold tracking-tight md:text-lg">{row.curriculum}</h3>
+              <div className="max-md:mt-3">
+                <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--ink)]/45 md:hidden">
+                  {t("hiw.quality_col_floor")}
+                </p>
+                <p className="text-sm leading-6 text-[color:var(--ink)]/60">{row.floor}</p>
+              </div>
+              <div className="max-md:mt-3">
+                <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--brand-link)] md:hidden">
+                  {t("hiw.quality_col_subject")}
+                </p>
+                <p className="text-sm font-semibold leading-6 text-[color:var(--ink)]">
+                  {row.subject}
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 function FaqAccordion({ items, className }: { items: FaqItem[]; className?: string }) {
   return (
     <Accordion type="single" collapsible className={className}>
@@ -279,6 +338,7 @@ function HowItWorksPage() {
     parentComparison,
     parentSteps,
     tutorSteps,
+    qualityRows,
     tutorFaqItems,
     parentFaqItems,
     billingFaqItems,
@@ -384,6 +444,27 @@ function HowItWorksPage() {
           accentClassName="text-[color:var(--muted-foreground)]"
           bodyTextClassName="text-white"
         />
+
+        <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
+          <div className="mx-auto max-w-4xl">
+            <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+              {t("hiw.quality_eyebrow")}
+            </p>
+            <h2 className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
+              {t("hiw.quality_title")}
+            </h2>
+            <h3 className="mt-12 text-2xl font-bold tracking-tight sm:text-3xl">
+              {t("hiw.quality_sub_title")}
+            </h3>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-[color:var(--ink)]/65">
+              {t("hiw.quality_body")}
+            </p>
+            <QualityStandardsTable rows={qualityRows} />
+            <p className="mt-6 max-w-3xl text-sm leading-6 text-[color:var(--ink)]/55">
+              {t("hiw.quality_pro_note")}
+            </p>
+          </div>
+        </section>
 
         <section
           id="faq"

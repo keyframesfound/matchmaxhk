@@ -14,7 +14,9 @@ import { MtrStationSelect } from "@/components/ui/mtr-station-select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { submitCaseRequest } from "@/lib/cases.functions";
 import {
+  ADMISSIONS_CATEGORY_OPTIONS,
   ADMISSIONS_CURRICULUM,
+  ADMISSIONS_CURRICULUM_LABEL,
   CURRICULUM_OPTIONS,
   DELIVERY_MODE_OPTIONS,
   INSTRUCTION_LANGUAGE_OPTIONS,
@@ -29,6 +31,7 @@ import {
   getComponentOptionsForCurriculum,
   getSubjectOptionsForCurriculum,
 } from "@/features/cases/case-options";
+import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { cn } from "@/lib/utils";
 
@@ -81,6 +84,7 @@ type FormState = {
   schoolName: string;
   schoolType: string;
   // Page 2 — Path B: Admissions
+  admissionsCategory: string;
   targetPathway: string;
   targetSchool: string;
   interviewTest: string;
@@ -108,6 +112,7 @@ const INITIAL_FORM: FormState = {
   year: "",
   schoolName: "",
   schoolType: "",
+  admissionsCategory: "",
   targetPathway: "",
   targetSchool: "",
   interviewTest: "",
@@ -165,6 +170,11 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
 
   const isAdmissions = form.supportType === "admissions";
   const subjectOptions = getSubjectOptionsForCurriculum(form.curriculum);
+  // Admissions sub-category ("Standardized Testing & Language" vs
+  // "Application & Admissions Support") narrows the umbrella's subject pool.
+  const admissionsSubjectOptions = form.admissionsCategory
+    ? getSubjectOptionsForCategory(form.admissionsCategory)
+    : subjectOptions;
   const componentOptions = getComponentOptionsForCurriculum(form.curriculum);
   const showMtr = form.deliveryMode !== "" && form.deliveryMode !== "online";
 
@@ -174,15 +184,17 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     update({ curriculum: value, subject1: "", subject2: "", specificComponent: "" });
   };
 
-  // Admissions auto-locks the curriculum to "Admissions & Standardized
-  // Tests" — its subjects (IELTS, SAT, UCAT, ISAT, Personal Statement…)
-  // come from that pool; the tutoring curriculum resets when switching back.
+  // Admissions auto-locks the curriculum to "University Admissions & Test
+  // Prep" — its subjects (IELTS, SAT, ACT, TOEFL, UCAT, ISAT, Personal
+  // Statement…) come from that pool; the tutoring curriculum resets when
+  // switching back.
   const handleSupportTypeChange = (value: string) => {
     update(
       value === "admissions"
         ? {
             supportType: value,
             curriculum: ADMISSIONS_CURRICULUM,
+            admissionsCategory: "",
             subject1: "",
             subject2: "",
             specificComponent: "",
@@ -190,11 +202,18 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         : {
             supportType: value,
             curriculum: form.curriculum === ADMISSIONS_CURRICULUM ? "" : form.curriculum,
+            admissionsCategory: "",
             subject1: "",
             subject2: "",
             specificComponent: "",
           },
     );
+  };
+
+  // Switching the admissions sub-category narrows the subject pool and
+  // clears any subject that may no longer belong.
+  const handleAdmissionsCategoryChange = (value: string) => {
+    update({ admissionsCategory: value, subject1: "", subject2: "" });
   };
 
   // MTR is hidden for online-only requests — clear any stale selection.
@@ -687,16 +706,33 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 options={[
                   {
                     value: ADMISSIONS_CURRICULUM,
-                    label: "Admissions & Standardized Tests",
+                    label: ADMISSIONS_CURRICULUM_LABEL,
                   },
                 ]}
                 disabled
-                placeholder="Admissions & Standardized Tests"
+                placeholder={ADMISSIONS_CURRICULUM_LABEL}
                 searchPlaceholder="Search curriculum..."
                 className={controlClassName}
               />
               <p className="mt-1 text-xs font-medium text-muted-foreground">
                 Locked for university admissions & standardized test requests.
+              </p>
+            </div>
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-admissions-category`}>
+                Category (Optional)
+              </label>
+              <SearchableSelect
+                value={form.admissionsCategory}
+                onChange={handleAdmissionsCategoryChange}
+                options={ADMISSIONS_CATEGORY_OPTIONS}
+                placeholder="All admissions subjects"
+                searchPlaceholder="Search category..."
+                className={controlClassName}
+              />
+              <p className="mt-1 text-xs font-medium text-muted-foreground">
+                Standardized Testing &amp; Language (SAT, ACT, IELTS, TOEFL, UCAT, ISAT) or
+                Application &amp; Admissions Support (interviews, personal statement, portfolio).
               </p>
             </div>
             <div>
@@ -707,7 +743,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               <SearchableSelect
                 value={form.subject1}
                 onChange={(v) => update({ subject1: v })}
-                options={getSubjectOptionsForCurriculum(form.curriculum || ADMISSIONS_CURRICULUM)}
+                options={admissionsSubjectOptions}
                 allowCustom
                 placeholder="e.g. IELTS, SAT, Personal Statement"
                 searchPlaceholder="Search subject..."
@@ -726,7 +762,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               <SearchableSelect
                 value={form.subject2}
                 onChange={(v) => update({ subject2: v })}
-                options={getSubjectOptionsForCurriculum(form.curriculum || ADMISSIONS_CURRICULUM)}
+                options={admissionsSubjectOptions}
                 allowCustom
                 placeholder="e.g. UCAT"
                 searchPlaceholder="Search subject..."

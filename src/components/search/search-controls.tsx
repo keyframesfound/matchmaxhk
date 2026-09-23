@@ -6,6 +6,8 @@ export type OptionRow = {
   value: string;
   label: string;
   description?: string;
+  /** Render as a nested child of the preceding option (sub-category rows). */
+  indent?: boolean;
 };
 
 /**
@@ -151,6 +153,7 @@ export function OptionRowsList({
             onClick={() => onSelect(option.value)}
             className={cn(
               "flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[color:var(--foreground)]/[0.05]",
+              option.indent && "pl-8",
               selected && "font-semibold",
             )}
           >

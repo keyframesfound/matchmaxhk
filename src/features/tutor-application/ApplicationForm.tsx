@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
+  GraduationCap,
   LocateFixed,
   Paperclip,
   Plus,
@@ -83,7 +84,11 @@ import {
   ISAT_COMPONENT_LABELS,
   UCAT_COMPONENT_LABELS,
 } from "@/features/tutors/examSystems";
-import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
+import {
+  DEFAULT_SUBJECT_OPTIONS,
+  TEACHING_CURRICULA,
+  getSubjectOptionsForCategory,
+} from "@/features/tutors/subjects";
 
 type ScoreRow = {
   subject: string;
@@ -282,6 +287,9 @@ const FIELD_LABELS: Record<string, string> = {
   countryOther: "Country / Region — specify",
   status: "Current Status",
   statusOther: "Current Status — specify",
+  university: "University / Institution",
+  programme: "Degree / Programme Major",
+  studentCard: "Student ID card (evidence of university and major)",
   medium: "Medium of Instruction",
   roles: "Professional Role",
   boards: "Examining Board(s)",
@@ -734,6 +742,7 @@ type ApplicationBaseState = {
   highSchool: string;
   university: string;
   programme: string;
+  studentCard: File | null;
   year: string;
   subjectsTaught: string[];
   format: string;
@@ -794,6 +803,7 @@ export function ApplicationForm() {
     highSchool: "",
     university: "",
     programme: "",
+    studentCard: null,
     year: "",
     subjectsTaught: [] as string[],
     format: "",
@@ -810,6 +820,9 @@ export function ApplicationForm() {
   const [boards, setBoards] = useState<string[]>([]);
   const [credentials, setCredentials] = useState<string[]>([]);
   const [removedStudiedSubjects, setRemovedStudiedSubjects] = useState<string[]>([]);
+  // Curriculum scope for the "Subjects Willing to Teach" picker — display
+  // only; it narrows the suggestion list, never the submitted selection.
+  const [taughtCurriculum, setTaughtCurriculum] = useState("");
   const [qualifications, setQualifications] = useState<Qualification[]>([blankQualification()]);
   const professional = base.status === PROFESSIONAL_STATUS;
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
@@ -830,6 +843,7 @@ export function ApplicationForm() {
       ...prev,
       ...restoredDraft.base,
       photo: null,
+      studentCard: null,
       achievements: (restoredDraft.base.achievements ?? []).map((achievement) => ({
         ...achievement,
         proof: null,
@@ -864,6 +878,7 @@ export function ApplicationForm() {
       base: {
         ...base,
         photo: null,
+        studentCard: null,
         achievements: base.achievements.map((achievement) => ({ ...achievement, proof: null })),
       },
       roles,
@@ -1152,6 +1167,9 @@ export function ApplicationForm() {
       else {
         required("highSchool", base.highSchool.trim());
         required("year", base.year.trim());
+        required("university", base.university.trim());
+        required("programme", base.programme.trim());
+        required("studentCard", base.studentCard);
         qualifications.forEach((qualification, index) => {
           required(`curriculum-${index}`, qualification.curriculum);
           required(`overall-${index}`, qualification.overall.trim());
@@ -1330,6 +1348,14 @@ export function ApplicationForm() {
         teachingQualifications: credentials,
         university: base.university,
         programme: base.programme,
+        studentCard: base.studentCard
+          ? {
+              filename: base.studentCard.name,
+              contentType: base.studentCard.type,
+              size: base.studentCard.size,
+              content: await fileData(base.studentCard),
+            }
+          : undefined,
         highSchool: professional ? base.highSchool || "Not provided" : base.highSchool,
         year: base.year.trim(),
         curriculum: primary.curriculum,
@@ -1723,6 +1749,62 @@ export function ApplicationForm() {
   return (
     <form onSubmit={handleSubmit}>
       <aside
+        aria-label="Minimum academic requirements"
+        className="mb-4 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
+      >
+        <p className="flex items-center gap-2 text-xs font-medium text-[color:var(--ink)]">
+          <GraduationCap className="h-4 w-4" aria-hidden="true" />
+          Before You Apply
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-foreground">
+          MatchMax requires verifiable academic excellence. Please review our minimum entry
+          requirements before submitting your documents. Applications that do not meet these
+          minimums for the specific subject or test they wish to teach will be automatically
+          rejected.
+        </p>
+        <ul className="mt-3 grid gap-x-8 gap-y-2 text-sm leading-relaxed text-foreground md:grid-cols-2">
+          <li>
+            <span className="font-semibold">IB tutors:</span> a 40+ overall score AND a Level 7 in
+            your chosen subject.
+          </li>
+          <li>
+            <span className="font-semibold">A-Level tutors:</span> an A* in your chosen subject
+            (overall report card must be A*AA or equivalent).
+          </li>
+          <li>
+            <span className="font-semibold">IGCSE tutors:</span> a Grade 9 or A* in your chosen
+            subject.
+          </li>
+          <li>
+            <span className="font-semibold">DSE (senior cases):</span> a Level 5* or 5** in the
+            subject.
+          </li>
+          <li>
+            <span className="font-semibold">DSE (primary/junior cases):</span> at least a Level 4 or
+            5 in the subject and enrolment in a UGC-funded university.
+          </li>
+          <li>
+            <span className="font-semibold">Test prep (SAT/IELTS/etc.):</span> proof of a
+            top-percentile score (e.g. SAT 1500+, IELTS 8.0+).
+          </li>
+          <li>
+            <span className="font-semibold">Admissions consulting:</span> proof of admission to a
+            top-tier global university or a highly competitive local flagship programme.
+          </li>
+          <li>
+            <span className="font-semibold">Full-time tutors:</span> your university degree and a CV
+            highlighting your teaching experience.
+          </li>
+        </ul>
+        <p className="mt-3 flex gap-2.5 border-t border-[color:var(--ink)]/10 pt-3 text-xs leading-relaxed text-muted-foreground">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>
+            Please ensure the name on your transcript matches your HKID/Passport. MatchMax securely
+            processes all documents strictly for internal verification.
+          </span>
+        </p>
+      </aside>
+      <aside
         aria-label="Display rules and legal warning"
         className="mb-4 grid gap-3 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
       >
@@ -2010,20 +2092,47 @@ export function ApplicationForm() {
                     </Field>
                   </>
                 )}
-                <Field label="University / Institution">
+                <Field label="University / Institution" required error={fieldErrors.university}>
                   <Input
                     value={base.university}
                     onChange={(event) => setBaseField("university", event.target.value)}
                     placeholder="HKUST"
                   />
                 </Field>
-                <Field label="Degree / Programme Major">
+                <Field label="Degree / Programme Major" required error={fieldErrors.programme}>
                   <Input
                     value={base.programme}
                     onChange={(event) => setBaseField("programme", event.target.value)}
                     placeholder="BBA Global Business & BSc Computer Science"
                   />
                 </Field>
+                {!professional ? (
+                  <Field
+                    label="Student ID Card"
+                    required
+                    error={fieldErrors.studentCard}
+                    hint="Upload a photo or scan of your student ID card showing your university and programme, so we can verify your enrollment. JPG, PNG, PDF, or DOC, up to 5 MB."
+                    className="sm:col-span-2"
+                  >
+                    <DocumentUpload
+                      file={base.studentCard}
+                      invalid={Boolean(fieldErrors.studentCard)}
+                      prompt="Drop your student ID card here or choose a file"
+                      onRemove={() => setBaseField("studentCard", null)}
+                      onSelect={(file) => {
+                        if (
+                          !ACCEPTED_FILE_TYPES.includes(file.type) ||
+                          file.size > MAX_FILE_BYTES
+                        ) {
+                          setError("Choose a supported student ID file no larger than 5 MB.");
+                          return;
+                        }
+                        setBaseField("studentCard", file);
+                      }}
+                    />
+                    <EvidenceNote className="mt-2" />
+                  </Field>
+                ) : null}
                 {!professional ? (
                   <div className="sm:col-span-2">
                     <Hint>
@@ -2305,6 +2414,27 @@ export function ApplicationForm() {
             <>
               <Heading step={professional ? 3 : 3} title="Subjects Taught" />
               <Field
+                label="Curriculum"
+                optional
+                hint="Narrow the subject list to one curriculum — Primary School, Junior Secondary, or University Admissions & Test Prep (SAT, ACT, IELTS, TOEFL, UCAT, ISAT, personal statement, interview and portfolio support)."
+                className="mb-5"
+              >
+                <SearchableSelect
+                  value={taughtCurriculum}
+                  onChange={setTaughtCurriculum}
+                  options={[
+                    { value: "", label: "All curricula" },
+                    ...TEACHING_CURRICULA.map((curriculum) => ({
+                      value: curriculum.value,
+                      label: curriculum.label,
+                    })),
+                  ]}
+                  placeholder="All curricula"
+                  searchPlaceholder="Search curriculum..."
+                  className={controlClassName}
+                />
+              </Field>
+              <Field
                 label="Subjects Willing to Teach"
                 required
                 hint="Select subjects from your academic profile that you are confident and capable of teaching. You can choose more than one."
@@ -2315,7 +2445,14 @@ export function ApplicationForm() {
                     (subject) => !removedStudiedSubjects.includes(subject),
                   )}
                   addedSubjects={base.subjectsTaught}
-                  options={[...new Set([...DEFAULT_SUBJECT_OPTIONS, ...allResultSubjects])]}
+                  options={[
+                    ...new Set([
+                      ...(taughtCurriculum
+                        ? getSubjectOptionsForCategory(taughtCurriculum)
+                        : DEFAULT_SUBJECT_OPTIONS),
+                      ...allResultSubjects,
+                    ]),
+                  ]}
                   invalid={Boolean(fieldErrors.subjectsTaught)}
                   onToggle={(subject) => {
                     if (allResultSubjects.includes(subject)) {

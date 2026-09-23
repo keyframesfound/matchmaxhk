@@ -4,7 +4,13 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-export type SearchableOption = { value: string; label?: string; description?: string };
+export type SearchableOption = {
+  value: string;
+  label?: string;
+  description?: string;
+  /** Render as a nested child of the preceding option (sub-category rows). */
+  indent?: boolean;
+};
 
 type Props = {
   value: string;
@@ -51,6 +57,7 @@ export function SearchableSelect({
               value: option.value,
               label: option.label !== undefined ? option.label : option.value,
               description: option.description,
+              indent: option.indent,
             },
       ),
     [options],
@@ -202,6 +209,7 @@ export function SearchableSelect({
                 onMouseEnter={() => setHighlightedIndex(idx)}
                 className={cn(
                   "flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium text-[color:var(--ink)] transition-colors",
+                  option.indent && "pl-8",
                   isHighlighted
                     ? "bg-[color:var(--ring)]/[0.08]"
                     : "hover:bg-[color:var(--surface-subtle)]",

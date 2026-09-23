@@ -45,7 +45,11 @@ import {
   type TutorApplicationRecord,
   type TutorApplicationStatus,
 } from "@/features/tutor-application/admin/queries";
-import { buildAnswerRows, type TutorApplication } from "@/lib/tutor-application.schema";
+import {
+  buildAnswerRows,
+  PROFESSIONAL_STATUS,
+  type TutorApplication,
+} from "@/lib/tutor-application.schema";
 
 export const Route = createFileRoute("/_authenticated/admin/join-requests")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -525,7 +529,10 @@ function ApplicationDetail({
   const rows = useMemo(() => {
     const all = buildAnswerRows(row.data as unknown as TutorApplication);
     return all.filter(
-      (entry) => entry.label !== "Achievement evidence" && entry.label !== "Academic documents",
+      (entry) =>
+        entry.label !== "Achievement evidence" &&
+        entry.label !== "Academic documents" &&
+        entry.label !== "Student ID card",
     );
   }, [row.data]);
   const sections = useMemo(() => groupRows(rows), [rows]);
@@ -677,7 +684,9 @@ function ApplicationDetail({
                         ? "Transcript"
                         : file.source === "profile_photo"
                           ? "Profile photo"
-                          : "Achievement evidence"}
+                          : file.source === "student_card"
+                            ? "Student ID card"
+                            : "Achievement evidence"}
                       {file.label ? ` · ${file.label}` : ""} · {formatFileSize(file.size)}
                     </p>
                   </div>
@@ -708,10 +717,37 @@ function ApplicationDetail({
 function DocumentStatusSummary({ application }: { application: TutorApplicationRecord }) {
   const transcripts = application.data.academicDocuments ?? [];
   const achievements = application.data.achievements ?? [];
-  if (transcripts.length === 0 && achievements.length === 0) return null;
+  const studentCard = application.data.studentCard;
+  const isProfessional = application.data.status === PROFESSIONAL_STATUS;
+  if (transcripts.length === 0 && achievements.length === 0 && !studentCard) return null;
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
+      {!isProfessional ? (
+        <div className="rounded-xl border border-[color:var(--ink)]/10 p-3.5">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+            Student ID card
+          </p>
+          <ul className="mt-2 space-y-1.5 text-xs">
+            <li className="flex items-center gap-2">
+              <ImageIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <span className="font-semibold text-[color:var(--ink)]">
+                Enrollment evidence for university / major
+              </span>
+              <span
+                className={cn(
+                  "ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold",
+                  studentCard
+                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                    : "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+                )}
+              >
+                {studentCard ? "Stored" : "Not provided"}
+              </span>
+            </li>
+          </ul>
+        </div>
+      ) : null}
       {transcripts.length > 0 ? (
         <div className="rounded-xl border border-[color:var(--ink)]/10 p-3.5">
           <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">

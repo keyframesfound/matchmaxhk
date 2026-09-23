@@ -4,6 +4,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { EXAM_SYSTEMS } from "@/features/tutors/examSystems";
 import { MTR_STATION_OPTIONS } from "@/features/tutor-application/mtr";
 import {
+  ADMISSIONS_TEST_SUBJECTS,
+  JUNIOR_SECONDARY_SUBJECTS,
+  PRIMARY_SCHOOL_SUBJECTS,
+} from "@/features/tutors/subjects";
+import {
   IA_EE_TOK_SUPPORT_OPTIONS,
   MAX_TUTOR_CARD_HIGHLIGHTS,
   TUTOR_CARD_HIGHLIGHT_ROW_LIMIT,
@@ -163,6 +168,16 @@ function buildExamSystemVocab(): string {
     .join("\n");
 }
 
+// Teachable subjects that live outside the exam-system lists: primary school,
+// junior secondary, and the University Admissions & Test Prep pools.
+function buildCurriculumSubjectVocab(): string {
+  return [
+    `Primary School: ${PRIMARY_SCHOOL_SUBJECTS.join(" | ")}`,
+    `Junior Secondary: ${JUNIOR_SECONDARY_SUBJECTS.join(" | ")}`,
+    `University Admissions & Test Prep: ${ADMISSIONS_TEST_SUBJECTS.join(" | ")}`,
+  ].join("\n");
+}
+
 function nextTutorCode(rows: { tutor_code?: string | null }[]): string {
   let max = 0;
   for (const row of rows) {
@@ -181,8 +196,8 @@ Return ONLY a JSON object with these keys:
 - academic_headline (string <= 120 chars, e.g. "IBDP 44/45", "HKDSE Best 5: 32", "Official IB Maths Examiner & School Teacher")
 - university (short name e.g. "HKU", "CUHK", "University College London"; empty if unknown)
 - secondary_school (empty if unknown)
-- subjects (array of teachable subject names, using the exam-system vocabulary below where possible)
-- target_students (subset of: Primary, Junior Secondary, IBDP, IGCSE, HKDSE, A-Level, AP, SAT, University, Adult learners)
+- subjects (array of teachable subject names, using the exam-system vocabulary below where possible, or the curriculum subject vocabulary for primary school, junior secondary, and admissions/test-prep support)
+- target_students (subset of: Primary, Junior Secondary, IBDP, IGCSE, HKDSE, A-Level, AP, SAT, Admissions, University, Adult learners)
 - exam_results (array of at most 3 objects: { system: "<system id>", subjects: [{ subject, grade, papers?: [{ label, score }] }] }). Grade formats: IB "7"-"1" (TOK/EE "A"-"E"); DSE "5**","5*","5"...; IGCSE "A* (legacy)" or "9"-"1"; A-Level "A*"-"U"; AP "5"-"1"; IELTS bands like "8.5". Only include papers when the source gives component scores (labels "Paper 1", "Paper 2", "Paper 3").
 - lesson_mode ("online" | "in_person" | "either"; "Face to face" -> in_person, "Online" -> online, "Both" -> either)
 - hourly_rate (integer HKD)
@@ -202,6 +217,9 @@ STRICT RULES:
 
 EXAM SYSTEM VOCABULARY (system id: allowed subject names):
 ${buildExamSystemVocab()}
+
+CURRICULUM SUBJECT VOCABULARY (teachable subjects outside exam systems — use these exact names for primary, junior secondary, and admissions/test-prep support):
+${buildCurriculumSubjectVocab()}
 
 MTR STATION NAMES (use exact names):
 ${MTR_STATION_OPTIONS.join(", ")}

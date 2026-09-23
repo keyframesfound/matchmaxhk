@@ -46,18 +46,45 @@ export const JUNIOR_SECONDARY_SUBJECTS = [
   "Design & Technology",
 ].sort((a, b) => a.localeCompare(b));
 
-// University admissions & standardized tests.
-export const ADMISSIONS_TEST_SUBJECTS = [
-  "IELTS",
+// "University Admissions & Test Prep" umbrella, split into the two
+// sub-categories parents pick from: the test/language hurdle and the
+// application-support hurdle.
+export const ADMISSIONS_STANDARDIZED_TEST_SUBJECTS = [
   "SAT",
+  "ACT",
+  "IELTS",
+  "TOEFL",
   "UCAT",
   "ISAT",
-  "TOEFL",
+].sort((a, b) => a.localeCompare(b));
+
+export const ADMISSIONS_APPLICATION_SUPPORT_SUBJECTS = [
   "Personal Statement",
   "University Interview Prep",
   "Oxbridge Interview",
   "Medicine Interview (MMI)",
+  "Portfolio Building",
 ].sort((a, b) => a.localeCompare(b));
+
+export const ADMISSIONS_TEST_SUBJECTS = Array.from(
+  new Set([...ADMISSIONS_STANDARDIZED_TEST_SUBJECTS, ...ADMISSIONS_APPLICATION_SUPPORT_SUBJECTS]),
+).sort((a, b) => a.localeCompare(b));
+
+export const ADMISSIONS_STANDARDIZED_TEST_CATEGORY = "Standardized Testing & Language";
+export const ADMISSIONS_APPLICATION_SUPPORT_CATEGORY = "Application & Admissions Support";
+
+export const ADMISSIONS_SUBCATEGORY_OPTIONS = [
+  {
+    value: ADMISSIONS_STANDARDIZED_TEST_CATEGORY,
+    label: ADMISSIONS_STANDARDIZED_TEST_CATEGORY,
+  },
+  {
+    value: ADMISSIONS_APPLICATION_SUPPORT_CATEGORY,
+    label: ADMISSIONS_APPLICATION_SUPPORT_CATEGORY,
+  },
+];
+
+export const ADMISSIONS_CURRICULUM_LABEL = "University Admissions & Test Prep";
 
 // Canonical teachable-subject pool across every curriculum. Exam systems
 // contribute their subject lists (qualification-only systems — IELTS, ISAT,
@@ -122,8 +149,16 @@ const CURRICULUM_SUBJECT_MAP: Record<string, string[]> = {
   admissions: ADMISSIONS_TEST_SUBJECTS,
   "admissions & standardized tests": ADMISSIONS_TEST_SUBJECTS,
   "admissions and standardized tests": ADMISSIONS_TEST_SUBJECTS,
+  "university admissions & test prep": ADMISSIONS_TEST_SUBJECTS,
+  "university admissions and test prep": ADMISSIONS_TEST_SUBJECTS,
+  "standardized testing & language": ADMISSIONS_STANDARDIZED_TEST_SUBJECTS,
+  "standardized testing and language": ADMISSIONS_STANDARDIZED_TEST_SUBJECTS,
+  "application & admissions support": ADMISSIONS_APPLICATION_SUPPORT_SUBJECTS,
+  "application and admissions support": ADMISSIONS_APPLICATION_SUPPORT_SUBJECTS,
   ielts: ADMISSIONS_TEST_SUBJECTS,
   sat: ADMISSIONS_TEST_SUBJECTS,
+  act: ADMISSIONS_TEST_SUBJECTS,
+  toefl: ADMISSIONS_TEST_SUBJECTS,
   isat: ADMISSIONS_TEST_SUBJECTS,
   ucat: ADMISSIONS_TEST_SUBJECTS,
 };
@@ -133,6 +168,34 @@ export function getSubjectOptionsForCategory(category: string | undefined): stri
   if (!pool) return DEFAULT_SUBJECT_OPTIONS;
   return [...pool];
 }
+
+export type TeachingCurriculum = {
+  /** Stored value — reuses the legacy case exam_system vocabulary. */
+  value: string;
+  label: string;
+  subjects: string[];
+};
+
+/**
+ * Canonical tutor-facing curriculum list: the five exam systems plus the
+ * Primary School, Junior Secondary and University Admissions & Test Prep
+ * categories. Powers the curriculum pickers in the tutor form and the
+ * application form; subject suggestions narrow via getSubjectOptionsForCategory.
+ */
+export const TEACHING_CURRICULA: TeachingCurriculum[] = [
+  { value: "IB", label: "IBDP", subjects: systemSubjects("ib") },
+  { value: "DSE", label: "HKDSE", subjects: systemSubjects("dse") },
+  { value: "A-Level", label: "A-Level", subjects: systemSubjects("alevel") },
+  { value: "IGCSE", label: "IGCSE", subjects: systemSubjects("igcse") },
+  { value: "AP", label: "AP", subjects: systemSubjects("ap") },
+  { value: "Primary School", label: "Primary School", subjects: PRIMARY_SCHOOL_SUBJECTS },
+  { value: "Junior Secondary", label: "Junior Secondary", subjects: JUNIOR_SECONDARY_SUBJECTS },
+  {
+    value: "Admissions",
+    label: ADMISSIONS_CURRICULUM_LABEL,
+    subjects: ADMISSIONS_TEST_SUBJECTS,
+  },
+];
 
 /**
  * True when the tutor plausibly teaches the selected curriculum category.

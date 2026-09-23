@@ -1,5 +1,10 @@
 import type { Tutor } from "@/features/tutors/queries";
 import { EXAM_SYSTEMS } from "@/features/tutors/examSystems";
+import {
+  ADMISSIONS_TEST_SUBJECTS,
+  JUNIOR_SECONDARY_SUBJECTS,
+  PRIMARY_SCHOOL_SUBJECTS,
+} from "@/features/tutors/subjects";
 
 export type TutorSubjectChip = {
   subject: string;
@@ -95,11 +100,46 @@ const SYSTEM_SHORT_LABELS: Record<string, string> = {
   ielts: "IELTS",
   isat: "ISAT",
   ucat: "UCAT",
+  primary: "Primary School",
+  "junior secondary": "Junior Secondary",
+  admissions: "University Admissions & Test Prep",
 };
 
 export function getExamSystemShortLabel(systemId: string): string {
   return SYSTEM_SHORT_LABELS[systemId] ?? "";
 }
+
+/** Display label for a subject-group id returned by getTutorSubjectGroups. */
+export function getCurriculumGroupLabel(systemId: string): string {
+  if (systemId === "other") return "Other";
+  return SYSTEM_SHORT_LABELS[systemId] ?? "";
+}
+
+/**
+ * Subject name -> curriculum group id, for subjects that belong to a
+ * curriculum category rather than an exam-system subject list (Primary
+ * School, Junior Secondary, University Admissions & Test Prep). Junior
+ * secondary names shared with exam-system lists ("Mathematics", "Physics")
+ * are omitted so those keep inferring from the tutor's exam results.
+ */
+const CURRICULUM_GROUP_IDS: Record<string, string> = (() => {
+  const map: Record<string, string> = {};
+  for (const subject of PRIMARY_SCHOOL_SUBJECTS) {
+    map[normalizeSubjectKey(subject)] = "primary";
+  }
+  for (const subject of ADMISSIONS_TEST_SUBJECTS) {
+    map[normalizeSubjectKey(subject)] = "admissions";
+  }
+  const examSubjectKeys = new Set<string>();
+  for (const system of EXAM_SYSTEMS) {
+    for (const subject of system.subjects) examSubjectKeys.add(normalizeSubjectKey(subject));
+  }
+  for (const subject of JUNIOR_SECONDARY_SUBJECTS) {
+    const key = normalizeSubjectKey(subject);
+    if (!examSubjectKeys.has(key)) map[key] = "junior secondary";
+  }
+  return map;
+})();
 
 type TaughtSubjectGroup = {
   base: string;
@@ -170,6 +210,17 @@ export function getTutorSubjectSentence(tutor: Pick<Tutor, "subjects" | "exam_re
   for (const raw of tutor.subjects ?? []) {
     let trimmed = raw.trim();
     if (!trimmed) continue;
+
+    // Curriculum-category subjects ("IELTS", "Primary English") are
+    // self-descriptive: print them without a system prefix. Checking before
+    // the alias strip below keeps bare test names from being dropped.
+    if (CURRICULUM_GROUP_IDS[normalizeSubjectKey(trimmed)]) {
+      const baseKey = normalizeSubjectKey(trimmed);
+      if (!groups.some((g) => normalizeSubjectKey(g.base) === baseKey)) {
+        groups.push({ base: trimmed, systemId: "", levels: new Set<string>() });
+      }
+      continue;
+    }
 
     // A subject string may itself carry a system prefix, e.g. "IGCSE Chem".
     // That explicit prefix wins over any exam-result inference.
@@ -290,6 +341,16 @@ export function getTutorSubjectGroups(
         ? inferredSystemId
         : matchingSystemIds[0];
       addSubject(systemId, subject);
+      continue;
+    }
+
+    // Curriculum-category subjects ("IELTS", "Primary English", "Personal
+    // Statement") group under their curriculum instead of "other". This also
+    // keeps bare test names from being consumed by the alias-prefix strip
+    // below, which would silently drop them.
+    const curriculumGroupId = CURRICULUM_GROUP_IDS[normalizeSubjectKey(subject)];
+    if (curriculumGroupId) {
+      addSubject(curriculumGroupId, subject);
       continue;
     }
 

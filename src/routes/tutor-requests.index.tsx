@@ -108,7 +108,7 @@ function caseSectionKey(examSystem: string | null): string {
 
 function caseSectionLabel(section: string): string {
   if (section === "IB") return "IBDP";
-  if (section === "Admissions") return "Admissions & Standardized Tests";
+  if (section === "Admissions") return "University Admissions & Test Prep";
   return section;
 }
 

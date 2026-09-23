@@ -54,7 +54,13 @@ import {
   uploadTutorProfileImage,
   type R2TutorImage,
 } from "@/features/tutors/r2.functions";
-import { DEFAULT_SUBJECT_OPTIONS as SUBJECT_OPTIONS } from "@/features/tutors/subjects";
+import {
+  ADMISSIONS_SUBCATEGORY_OPTIONS,
+  DEFAULT_SUBJECT_OPTIONS as SUBJECT_OPTIONS,
+  TEACHING_CURRICULA,
+  getSubjectOptionsForCategory,
+} from "@/features/tutors/subjects";
+import { getCurriculumGroupLabel, getTutorSubjectGroups } from "@/features/tutors/tutor-display";
 import {
   IA_EE_TOK_SUPPORT_OPTIONS,
   MAX_TUTOR_ACHIEVEMENTS,
@@ -86,6 +92,7 @@ const TARGET_STUDENT_OPTIONS = [
   "A-Level",
   "AP",
   "SAT",
+  "Admissions",
   "University",
   "Adult learners",
 ];
@@ -699,6 +706,27 @@ export function TutorEditor({
   );
   const [addedCount, setAddedCount] = React.useState(0);
   const [autofillOpen, setAutofillOpen] = React.useState(false);
+  // Curriculum scoping for the subject picker: pick a curriculum (optionally
+  // an admissions sub-category) to narrow the suggestion pool. Selected
+  // subjects still live in the flat `subjects` array.
+  const [subjectCurriculum, setSubjectCurriculum] = React.useState("");
+  const [admissionsSubcategory, setAdmissionsSubcategory] = React.useState("");
+
+  const isAdmissionsSubjectCurriculum = subjectCurriculum === "Admissions";
+  const subjectCurriculumLabel = TEACHING_CURRICULA.find(
+    (curriculum) => curriculum.value === subjectCurriculum,
+  )?.label;
+  const subjectSuggestions = (() => {
+    if (!subjectCurriculum) return SUBJECT_OPTIONS;
+    if (isAdmissionsSubjectCurriculum && admissionsSubcategory) {
+      return getSubjectOptionsForCategory(admissionsSubcategory);
+    }
+    return getSubjectOptionsForCategory(subjectCurriculum);
+  })();
+  const selectedSubjectGroups = React.useMemo(
+    () => getTutorSubjectGroups({ subjects: form.subjects, exam_results: form.exam_results }),
+    [form.subjects, form.exam_results],
+  );
 
   const applyAutofill = (result: TutorAutofillResult) => {
     const snapshot = form;
@@ -1123,9 +1151,48 @@ export function TutorEditor({
             <EditorSection
               icon={BookOpen}
               title="Subjects & Levels"
-              description="Subjects taught and student target levels with instant search tags."
+              description="Pick a curriculum to narrow suggestions, then tag what the tutor can specifically teach for each one."
               id="subjects"
             >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  label="Teaching Curriculum"
+                  hint="Narrows the subject suggestions — Primary School, Junior Secondary, and University Admissions & Test Prep included."
+                >
+                  <SearchableSelect
+                    value={subjectCurriculum}
+                    onChange={(v) => {
+                      setSubjectCurriculum(v);
+                      setAdmissionsSubcategory("");
+                    }}
+                    options={[
+                      { value: "", label: "All curricula" },
+                      ...TEACHING_CURRICULA.map((curriculum) => ({
+                        value: curriculum.value,
+                        label: curriculum.label,
+                      })),
+                    ]}
+                    placeholder="All curricula"
+                  />
+                </FormField>
+                {isAdmissionsSubjectCurriculum ? (
+                  <FormField
+                    label="Admissions Sub-category"
+                    hint="Standardized Testing & Language (SAT, ACT, IELTS, TOEFL, UCAT, ISAT) or Application & Admissions Support (personal statement, interviews, portfolio)."
+                  >
+                    <SearchableSelect
+                      value={admissionsSubcategory}
+                      onChange={(v) => setAdmissionsSubcategory(v)}
+                      options={[
+                        { value: "", label: "All admissions subjects" },
+                        ...ADMISSIONS_SUBCATEGORY_OPTIONS,
+                      ]}
+                      placeholder="All admissions subjects"
+                    />
+                  </FormField>
+                ) : null}
+              </div>
+
               <FormField
                 label="Subjects Taught"
                 required
@@ -1135,10 +1202,30 @@ export function TutorEditor({
                 <TagInput
                   value={form.subjects}
                   onChange={(subjects) => setForm({ ...form, subjects })}
-                  suggestions={SUBJECT_OPTIONS}
-                  placeholder="Add subjects (e.g. IB Biology, Math HL)..."
+                  suggestions={subjectSuggestions}
+                  placeholder={
+                    subjectCurriculumLabel
+                      ? `Add ${subjectCurriculumLabel} subjects (e.g. IB Biology, Math HL)...`
+                      : "Add subjects (e.g. IB Biology, Math HL)..."
+                  }
                 />
               </FormField>
+
+              {selectedSubjectGroups.length > 0 ? (
+                <div className="space-y-1.5 rounded-sm border border-border bg-[color:var(--surface-subtle)]/60 p-3">
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    Taught subjects by curriculum
+                  </p>
+                  {selectedSubjectGroups.map((group) => (
+                    <p key={group.systemId} className="text-xs leading-relaxed">
+                      <span className="font-bold text-[color:var(--ink)]">
+                        {getCurriculumGroupLabel(group.systemId)}:
+                      </span>{" "}
+                      <span className="text-muted-foreground">{group.subjects.join(", ")}</span>
+                    </p>
+                  ))}
+                </div>
+              ) : null}
 
               <FormField
                 label="Target Student Levels"

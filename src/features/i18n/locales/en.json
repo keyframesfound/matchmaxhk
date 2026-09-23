@@ -244,7 +244,11 @@
     "price_to": "to",
     "category_primary_school": "Primary School",
     "category_junior_secondary": "Junior Secondary",
-    "category_admissions": "Admissions & Standardized Tests",
+    "category_admissions": "University Admissions & Test Prep",
+    "category_admissions_tests": "Standardized Testing & Language",
+    "category_admissions_tests_desc": "SAT, ACT, IELTS, TOEFL",
+    "category_admissions_support": "Application & Admissions Support",
+    "category_admissions_support_desc": "Interview Coaching, Personal Statement Review, Portfolio Building",
     "any_status": "Any tutor status",
     "status_uni_student": "University student",
     "status_full_part_time": "Full or part-time tutor",
@@ -631,7 +635,52 @@
     "tutors_link_cases": "Browse open cases",
     "tutors_link_apply": "Apply as a tutor",
     "tutors_callout": "Want to fill your schedule faster? Browse our Open Cases Board anytime to claim student requests that match your expertise.",
-    "faq_eyebrow": "03 / Good to know",
+    "quality_eyebrow": "03 / Trust & Quality",
+    "quality_title": "Our Tutor Quality Standards",
+    "quality_sub_title": "The MatchMax Academic Standard",
+    "quality_body": "To maintain our premium matching quality, all MatchMax tutors must pass a strict verification process. We evaluate applicants based on the specific curriculum they intend to teach. All student tutors must provide verified transcripts and university ID.",
+    "quality_col_curriculum": "Curriculum / Category",
+    "quality_col_floor": "Overall Academic Floor",
+    "quality_col_subject": "Subject-Specific Minimum",
+    "quality_rows": {
+      "ib": {
+        "curriculum": "IB (Diploma)",
+        "floor": "40+ points overall",
+        "subject": "Level 7 in the requested subject"
+      },
+      "alevel": {
+        "curriculum": "UK A-Level",
+        "floor": "A*AA minimum overall",
+        "subject": "A* in the requested subject"
+      },
+      "igcse": {
+        "curriculum": "IGCSE",
+        "floor": "Evaluated via Senior grades",
+        "subject": "Grade 9 or A* in the requested subject"
+      },
+      "dse": {
+        "curriculum": "HKDSE (Senior Secondary)",
+        "floor": "Top 3 UGC university enrolled",
+        "subject": "Level 5* or 5** in the requested subject"
+      },
+      "primary": {
+        "curriculum": "Primary & Junior Secondary",
+        "floor": "Any UGC university enrolled",
+        "subject": "Level 4 or 5 in the requested subject"
+      },
+      "tests": {
+        "curriculum": "Standardized Tests",
+        "floor": "N/A",
+        "subject": "SAT: 1500+ · ACT: 33+ · IELTS: 8.0+ · TOEFL: 110+"
+      },
+      "admissions": {
+        "curriculum": "Admissions Support",
+        "floor": "Verified offer/enrolment at a Top 50 global university (e.g. Ivy League, Oxbridge, G5) or a highly competitive local flagship degree",
+        "subject": "N/A"
+      }
+    },
+    "quality_pro_note": "Note for full-time professionals: full-time tutors, certified teachers, and industry professionals are evaluated on their university degrees, PGDE qualifications, and verifiable teaching track records rather than high school public exam scores.",
+    "faq_eyebrow": "04 / Good to know",
     "faq_title": "Frequently Asked Questions",
     "faq_tutors": "For Tutors",
     "faq_parents": "For Parents",
@@ -657,9 +706,9 @@
         "q": "Can I teach both online and in person?",
         "a": "Yes. You can set your preferred lesson modes and target locations in your profile and update them anytime as your schedule changes."
       },
-      "protection": {
-        "q": "What happens if a parent doesn't pay me?",
-        "a": "While payment arrangements are made directly between you and the parent, MatchMax takes payment protection seriously. If a parent fails to pay for completed lessons, we will intervene, follow up directly with the parent, and use all appropriate lawful methods to help you recover your unpaid fees."
+      "after_trial": {
+        "q": "How do payments work after the trial lessons?",
+        "a": "To give you full financial control and ensure you keep 100% of your earnings, all ongoing lesson fees are paid directly from the parent to you using your preferred method. Because you manage your own ongoing schedule and billing, we recommend collecting payment on a lesson-by-lesson basis or upfront for the month. If a payment issue ever arises, you can report it to our team; while we do not act as a collection agency, we take community safety seriously and will restrict non-paying users from future matching."
       }
     },
     "parent_faq": {

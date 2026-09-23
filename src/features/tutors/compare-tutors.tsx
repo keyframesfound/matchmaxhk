@@ -18,6 +18,7 @@ import {
 import {
   buildTutorWhatsAppUrl,
   formatTutorCode,
+  getCurriculumGroupLabel,
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { setCompareBarVisible } from "@/lib/compare-bar";
@@ -26,10 +27,7 @@ export const MAX_COMPARE = 4;
 
 function formatSubjectGroups(tutor: Tutor): string[] {
   return getTutorSubjectGroups(tutor).map((group) => {
-    const systemLabel =
-      { ib: "IBDP", dse: "HKDSE", alevel: "A-Level", igcse: "IGCSE", ap: "AP", sat: "SAT" }[
-        group.systemId
-      ] ?? "Other";
+    const systemLabel = getCurriculumGroupLabel(group.systemId) || "Other";
     return `${systemLabel}: ${group.subjects.join(", ")}`;
   });
 }

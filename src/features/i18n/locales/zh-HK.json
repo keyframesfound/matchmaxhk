@@ -245,7 +245,11 @@
     "price_to": "至",
     "category_primary_school": "小學",
     "category_junior_secondary": "初中",
-    "category_admissions": "升學及標準化考試",
+    "category_admissions": "大學升學及考試準備",
+    "category_admissions_tests": "標準化考試及語言測試",
+    "category_admissions_tests_desc": "SAT、ACT、IELTS、TOEFL",
+    "category_admissions_support": "申請及入學支援",
+    "category_admissions_support_desc": "面試訓練、個人陳述潤飾、作品集指導",
     "any_status": "任何導師類型",
     "status_uni_student": "大學生",
     "status_full_part_time": "全職/兼職導師",
@@ -653,7 +657,52 @@
     "tutors_link_cases": "瀏覽公開個案",
     "tutors_link_apply": "申請做導師",
     "tutors_callout": "想快啲填滿你嘅時間表？隨時瀏覽公開個案板，認領啱你專長嘅學生申請。",
-    "faq_eyebrow": "03 / 貼士",
+    "quality_eyebrow": "03 / 信任與品質",
+    "quality_title": "我哋嘅導師品質標準",
+    "quality_sub_title": "MatchMax 學術標準",
+    "quality_body": "為維持高質素配對，所有 MatchMax 導師都必須通過嚴格嘅審核程序。我哋會按導師擬任教嘅課程逐項評估申請。所有學生導師必須提交經核實嘅成績表同大學學生證。",
+    "quality_col_curriculum": "課程 / 類別",
+    "quality_col_floor": "整體學術要求",
+    "quality_col_subject": "科目最低要求",
+    "quality_rows": {
+      "ib": {
+        "curriculum": "IB（文憑課程）",
+        "floor": "總分 40 或以上",
+        "subject": "擬教科目達第 7 級"
+      },
+      "alevel": {
+        "curriculum": "英國 A-Level",
+        "floor": "整體最少 A*AA",
+        "subject": "擬教科目達 A*"
+      },
+      "igcse": {
+        "curriculum": "IGCSE",
+        "floor": "以高中（Senior）成績評估",
+        "subject": "擬教科目達 9 級或 A*"
+      },
+      "dse": {
+        "curriculum": "HKDSE（高中）",
+        "floor": "就讀三大 UGC 資助大學",
+        "subject": "擬教科目達 5* 或 5**"
+      },
+      "primary": {
+        "curriculum": "小學及初中",
+        "floor": "就讀任何 UGC 資助大學",
+        "subject": "擬教科目達第 4 或 5 級"
+      },
+      "tests": {
+        "curriculum": "標準化考試",
+        "floor": "不適用",
+        "subject": "SAT：1500+ · ACT：33+ · IELTS：8.0+ · TOEFL：110+"
+      },
+      "admissions": {
+        "curriculum": "入學申請支援",
+        "floor": "獲全球前 50 大學（例如長春藤盟校、牛津劍橋、G5）取錄或就讀，或就讀競爭激烈嘅本地旗艦學位課程",
+        "subject": "不適用"
+      }
+    },
+    "quality_pro_note": "全職專業導師須知：全職導師、認證教師及業內專業人士會按其大學學位、PGDE 教育文憑及可查證嘅教學往績評估，而非中學公開試成績。",
+    "faq_eyebrow": "04 / 貼士",
     "faq_title": "常見問題",
     "faq_tutors": "俾導師",
     "faq_parents": "俾家長",
@@ -679,9 +728,9 @@
         "q": "可以同時教網上同上門嗎？",
         "a": "可以。你可以在檔案設定偏好的授課模式同目標地區，之後隨時按時間表更改。"
       },
-      "protection": {
-        "q": "如果家長唔俾錢點算？",
-        "a": "雖然付款安排由你同家長直接處理，但 MatchMax 非常重視付款保障。如果家長拖欠已上堂嘅學費，我哋會介入、直接跟進家長，並用一切合法途徑協助你追討欠款。"
+      "after_trial": {
+        "q": "試堂之後嘅學費係點樣處理？",
+        "a": "為咗等你完全掌控自己嘅財務，並確保你 100% 保留所有收入，所有後續學費都會由家長直接用你偏好嘅方式支付俾你。由於往後嘅時間表同收費都由你自行安排，我哋建議逐堂收費，或者預先收取成個月學費。如果遇到付款問題，你可以向我哋團隊反映；雖然我哋唔會替你追討欠款，但我哋非常重視社群安全，會限制冇付款嘅用戶日後再參與配對。"
       }
     },
     "parent_faq": {
