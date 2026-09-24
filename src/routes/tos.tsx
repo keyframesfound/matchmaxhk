@@ -95,7 +95,7 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
           {
             scenario: "Client Cancels < 6 Hours Prior",
             resolution:
-              "Client forfeits the right to a free trial lesson cancellation. MatchMax may invoice the Client for a portion of the fee to compensate the Tutor for reserved calendar time.",
+              "Client forfeits the right to cancel the trial lesson at no charge. MatchMax may invoice the Client for a portion of the fee to compensate the Tutor for reserved calendar time.",
           },
           {
             scenario: "Tutor Cancels Last Minute",
