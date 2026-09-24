@@ -24,7 +24,7 @@ type Block =
   | { kind: "table"; columns: [string, string]; rows: { scenario: string; resolution: string }[] };
 
 const INTRO_TEXT = `MatchMax Platform Terms of Service
-Effective date: September 21, 2026
+Effective date: September 24, 2026
 Operator: Hau Yui Chan, trading as MatchMax
 Business Registration number: 41690777
 Registered address: Shop T163, 3/F, The Capital, 61-65 Chatham Road South, Tsim Sha Tsui, Kowloon, Hong Kong
@@ -54,6 +54,7 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
         items: [
           "This fee is equivalent to 1.5 times the agreed-upon hourly rate of the tutor (covering the initial matching phase and first 2 lessons).",
           "This fee is payable by the Client directly to MatchMax via FPS within 24 hours following the successful completion of the first trial lesson.",
+          "**Short-Term Case Exemption:** In the event that the Client explicitly requests a finite, short-term tutoring arrangement—strictly defined as five (5) scheduled lessons or fewer—the standard 1.5-lesson Administrative Matching Fee shall be waived. In its place, MatchMax will charge an adjusted fee equal to twenty percent (20%) of the total gross value of the scheduled lessons. This Short-Term Fee is payable by the Client to MatchMax via FPS within 24 hours of the completion of the first trial lesson. Any attempt to artificially declare a case “short-term” to bypass the standard fee, followed by continued direct lessons, constitutes a violation of the non-circumvention clause.",
           "**Late Payments & Default:** If the Client fails to remit the Administrative Matching Fee within the stipulated timeframe, MatchMax reserves the right to suspend the match, advise the Tutor to halt future lessons, and restrict the Client from future use of the platform.",
           "MatchMax does not extract commissions or deductions from the independent contractor's (tutor's) ongoing wages. Following the initial 1.5-lesson introductory fee, all financial transactions occur directly between the Client and the Tutor.",
         ],
@@ -146,7 +147,7 @@ function TermsOfUsePage() {
       <PageIntro
         description="The ground rules for using MatchMax — what you can expect from us and what we expect from you."
         eyebrow="Legal"
-        meta="Effective 21 September 2026"
+        meta="Effective 24 September 2026"
         title="Terms and Conditions"
       />
 

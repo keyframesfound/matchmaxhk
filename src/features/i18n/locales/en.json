@@ -687,8 +687,8 @@
     "faq_billing": "Payments & Policies",
     "tutor_faq": {
       "paid": {
-        "q": "How do I get paid?",
-        "a": "Parents pay you directly for your lessons via your preferred payment method. MatchMax charges a one-time flat fee per successful match — 100% of the 1st lesson and 50% of the 2nd lesson (1.5 lessons in total). All earnings for every lesson after that are 100% yours."
+        "q": "How much is the MatchMax commission?",
+        "a": "MatchMax is entirely free to join. For standard, ongoing tutoring cases, we charge a one-time administrative fee equivalent to your first 1.5 lessons. You keep 100% of your earnings for every lesson after that. For Short-Term Cases: If a parent explicitly requests a short-term assignment (defined as 5 lessons or fewer), our fee is automatically adjusted to just 20% of the total assignment value, so you always retain an 80% majority cut."
       },
       "anonymity": {
         "q": "Will my name and photo be publicly visible on Google?",
@@ -748,7 +748,7 @@
     "billing_faq": {
       "pay": {
         "q": "How and when do I pay for the lessons?",
-        "a": "To keep the process simple and secure, MatchMax charges our administrative matching fee (equivalent to your first 1.5 lessons) directly to us via FPS, payable within 24 hours after your successful first trial lesson. All subsequent lessons after these initial 2 lessons are paid directly to your tutor."
+        "a": "To keep the process simple and secure, MatchMax charges our one-time administrative matching fee directly to us via FPS within 24 hours after a successful trial lesson. For standard ongoing cases, this fee is equivalent to the cost of 1.5 lessons. For short-term assignments (5 lessons or fewer), the fee is strictly 20% of the total scheduled package. After this initial matching fee is settled, you pay your tutor directly for all remaining lessons."
       },
       "rematch": {
         "q": "What if the tutor isn't a good fit after the first lesson?",
