@@ -9,3 +9,4 @@ MatchMax connects Hong Kong families with vetted local tutors. Parents post a ca
 - [Home](/): Overview, featured tutors, live stats, and parent reviews.
 - [Browse tutors](/tutors): Directory of verified Hong Kong tutors filterable by subject and district.
 - [Become a tutor](/become-a-tutor): How tutors join the MatchMax marketplace.
+- [Tutor Playbook](/tutor-playbook): Parent-relations and etiquette playbook for MatchMax tutors.

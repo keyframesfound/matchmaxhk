@@ -22,6 +22,7 @@ import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TosRouteImport } from './routes/tos'
+import { Route as TutorPlaybookRouteImport } from './routes/tutor-playbook'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
@@ -111,6 +112,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const TosRoute = TosRouteImport.update({
   id: '/tos',
   path: '/tos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TutorPlaybookRoute = TutorPlaybookRouteImport.update({
+  id: '/tutor-playbook',
+  path: '/tutor-playbook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -267,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
+  '/tutor-playbook': typeof TutorPlaybookRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
@@ -307,6 +314,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
+  '/tutor-playbook': typeof TutorPlaybookRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
@@ -348,6 +356,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
+  '/tutor-playbook': typeof TutorPlaybookRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
@@ -390,6 +399,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/tos'
+    | '/tutor-playbook'
     | '/admin'
     | '/dashboard'
     | '/saved-posts'
@@ -430,6 +440,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/tos'
+    | '/tutor-playbook'
     | '/dashboard'
     | '/saved-posts'
     | '/business/$slug'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/tos'
+    | '/tutor-playbook'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/saved-posts'
@@ -512,6 +524,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TosRoute: typeof TosRoute
+  TutorPlaybookRoute: typeof TutorPlaybookRoute
   BusinessSlugRoute: typeof BusinessSlugRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
   TutorRequestsCaseCodeRoute: typeof TutorRequestsCaseCodeRoute
@@ -615,6 +628,13 @@ declare module '@tanstack/react-router' {
       path: '/tos'
       fullPath: '/tos'
       preLoaderRoute: typeof TosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tutor-playbook': {
+      id: '/tutor-playbook'
+      path: '/tutor-playbook'
+      fullPath: '/tutor-playbook'
+      preLoaderRoute: typeof TutorPlaybookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -867,6 +887,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TosRoute: TosRoute,
+  TutorPlaybookRoute: TutorPlaybookRoute,
   BusinessSlugRoute: BusinessSlugRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
   TutorRequestsCaseCodeRoute: TutorRequestsCaseCodeRoute,

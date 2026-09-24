@@ -147,7 +147,11 @@ function AudienceSection({
   title: string;
   icon: typeof Search;
   steps: [string, string, string][];
-  links: { to: "/tutors" | "/join" | "/tutor-requests"; label: string; search?: { post?: true } }[];
+  links: {
+    to: "/tutors" | "/join" | "/tutor-requests" | "/tutor-playbook";
+    label: string;
+    search?: { post?: true };
+  }[];
   callout?: string;
   className: string;
   numberClassName: string;
@@ -439,6 +443,7 @@ function HowItWorksPage() {
           links={[
             { to: "/tutor-requests", label: t("hiw.tutors_link_cases") },
             { to: "/join", label: t("hiw.tutors_link_apply") },
+            { to: "/tutor-playbook", label: t("hiw.tutors_link_playbook") },
           ]}
           callout={t("hiw.tutors_callout")}
           className="bg-[#0f1419] !text-white dark:bg-[#0f1419] dark:!text-white"

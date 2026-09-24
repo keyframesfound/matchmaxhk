@@ -14,6 +14,7 @@ const productLinks = [
 
 const companyLinks = [
   { key: "footer.faq", to: "/how-it-works", hash: "faq" },
+  { key: "footer.playbook", to: "/tutor-playbook" },
   { key: "footer.terms", to: "/tos" },
   { key: "footer.privacy", to: "/privacy-policy" },
 ] as const;
