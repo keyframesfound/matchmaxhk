@@ -54,6 +54,8 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
         items: [
           "This fee is equivalent to 1.5 times the agreed-upon hourly rate of the tutor (covering the initial matching phase and first 2 lessons).",
           "This fee is payable by the Client directly to MatchMax via FPS within 24 hours following the successful completion of the first trial lesson.",
+          "**Non-Refundable Administrative Fee:** MatchMax provides an introductory matching service. Once a trial lesson has been successfully completed, the Administrative Matching Fee is strictly non-refundable. MatchMax does not guarantee the longevity of any tutoring arrangement.",
+          "**Early Terminations:** If a Client or Tutor terminates the arrangement after the initial lesson(s), MatchMax is not liable to issue refunds, partial refunds, or guaranteed payouts to either party. MatchMax evaluates early terminations strictly for internal quality control and platform safety.",
           "**Short-Term Case Exemption:** In the event that the Client explicitly requests a finite, short-term tutoring arrangement—strictly defined as five (5) scheduled lessons or fewer—the standard 1.5-lesson Administrative Matching Fee shall be waived. In its place, MatchMax will charge an adjusted fee equal to twenty percent (20%) of the total gross value of the scheduled lessons. This Short-Term Fee is payable by the Client to MatchMax via FPS within 24 hours of the completion of the first trial lesson. Any attempt to artificially declare a case “short-term” to bypass the standard fee, followed by continued direct lessons, constitutes a violation of the non-circumvention clause.",
           "**Late Payments & Default:** If the Client fails to remit the Administrative Matching Fee within the stipulated timeframe, MatchMax reserves the right to suspend the match, advise the Tutor to halt future lessons, and restrict the Client from future use of the platform.",
           "MatchMax does not extract commissions or deductions from the independent contractor's (tutor's) ongoing wages. Following the initial 1.5-lesson introductory fee, all financial transactions occur directly between the Client and the Tutor.",
@@ -67,6 +69,10 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
       {
         kind: "p",
         text: "By utilizing MatchMax to connect with a tutor or client, both parties agree not to bypass the platform to avoid the initial Administrative Matching Fee. If MatchMax determines that a parent and tutor have colluded to schedule private lessons prior to the payment of the MatchMax fee, both parties will be **permanently banned** from the network, and the Client agrees to a liquidated damages penalty of **HK$2,000** for breach of contract.",
+      },
+      {
+        kind: "p",
+        text: "**Anti-Collusion & Non-Circumvention:** Any attempt by a Client and Tutor to falsely declare an “Early Termination” to evade standard platform fees, while continuing to conduct lessons privately, constitutes a material breach of this agreement. Such actions will result in an immediate platform ban for the Tutor and the activation of the HK$2,000 Liquidated Damages penalty against the Client.",
       },
     ],
   },
