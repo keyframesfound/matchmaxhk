@@ -1805,6 +1805,24 @@ export function ApplicationForm() {
         </p>
       </aside>
       <aside
+        aria-label="Your privacy and anonymity"
+        className="mb-4 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
+      >
+        <p className="flex items-center gap-2 text-xs font-medium text-[color:var(--ink)]">
+          <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+          Your Privacy &amp; Anonymity
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-foreground">
+          MatchMax guarantees strict identity protection. We will{" "}
+          <strong className="font-semibold">never</strong> publish your name, contact details, or
+          identifying documents on our public directory. Your public profile will be entirely
+          anonymous (e.g., displayed as “MM-T104”). When a parent requests your profile, our
+          concierge team will only introduce you by your professional title and last name (e.g.,
+          “Tutor Chan” or “Miss Lee”) in the private chat. You retain full control over when to
+          share your full name directly with the parent.
+        </p>
+      </aside>
+      <aside
         aria-label="Display rules and legal warning"
         className="mb-4 grid gap-3 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
       >

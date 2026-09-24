@@ -690,6 +690,10 @@
         "q": "How do I get paid?",
         "a": "Parents pay you directly for your lessons via your preferred payment method. MatchMax charges a one-time flat fee per successful match — 100% of the 1st lesson and 50% of the 2nd lesson (1.5 lessons in total). All earnings for every lesson after that are 100% yours."
       },
+      "anonymity": {
+        "q": "Will my name and photo be publicly visible on Google?",
+        "a": "No. MatchMax respects the privacy of our top scholars and university students. Your public directory profile is completely anonymous and focuses solely on your academic achievements. Furthermore, our concierge team will only ever introduce you to parents using your last name (e.g., “Tutor Chan”). You have complete control over sharing your full name once your lessons begin."
+      },
       "speed": {
         "q": "How many days does it usually take to find students?",
         "a": "Matching speed depends on subject demand, your profile quality, and availability. Many tutors receive relevant student matching requests within 1 to 2 weeks."
@@ -723,6 +727,10 @@
       "matching": {
         "q": "How does matching work?",
         "a": "You have two straightforward options: you can click forward directly on any tutor's profile card to request that specific tutor, or reach out to our WhatsApp hotline and tell us exactly what you are looking for so we can match you. Once confirmed, we connect you directly with the tutor to finalize lesson times."
+      },
+      "anonymity": {
+        "q": "Why don't I see the tutors' full names on their profiles?",
+        "a": "To attract the highest tier of university scholars and official examiners—many of whom require strict privacy and prefer not to have their tutoring profiles publicly searchable—MatchMax utilizes anonymous profiles (e.g., “MM-T104”). Once you request a specific profile, our concierge team will introduce you to your match using their professional title and last name (e.g., “Tutor Chan” or “Miss Lee”) to arrange the trial lesson."
       },
       "involvement": {
         "q": "How long does MatchMax stay involved in our tutoring arrangement?",

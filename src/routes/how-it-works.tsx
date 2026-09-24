@@ -98,6 +98,7 @@ function useHowItWorksContent() {
 
   const tutorFaqItems = faqItems("tutor_faq", [
     "paid",
+    "anonymity",
     "speed",
     "rates",
     "experience",
@@ -108,6 +109,7 @@ function useHowItWorksContent() {
     "negotiate",
     "trial",
     "matching",
+    "anonymity",
     "involvement",
     "verification",
     "payments",
