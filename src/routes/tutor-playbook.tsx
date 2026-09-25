@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BookOpen, Briefcase, ChevronRight, UserRoundCheck } from "lucide-react";
 
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/tutor-playbook")({
   head: () => ({
@@ -484,7 +485,7 @@ function SectionBlocks({ blocks }: { blocks: Block[] }) {
                 className="list-disc space-y-3 pl-5 marker:text-[color:var(--brand-link)]"
               >
                 {block.items.map((item, itemIndex) => (
-                  <li key={itemIndex} className="pl-1 text-sm leading-7 text-muted-foreground">
+                  <li key={itemIndex} className="pl-1 text-base leading-7 text-muted-foreground">
                     {renderInline(item)}
                   </li>
                 ))}
@@ -515,7 +516,7 @@ function SectionBlocks({ blocks }: { blocks: Block[] }) {
             );
           default:
             return (
-              <p key={index} className="text-sm leading-7 text-muted-foreground sm:text-base">
+              <p key={index} className="text-base leading-7 text-muted-foreground sm:text-[17px]">
                 {renderInline(block.text)}
               </p>
             );
@@ -528,16 +529,19 @@ function SectionBlocks({ blocks }: { blocks: Block[] }) {
 const EXPLORE_CARDS = [
   {
     to: "/how-it-works",
+    icon: BookOpen,
     title: "How it works",
     subtitle: "Matching, fees, and the concierge window.",
   },
   {
     to: "/tutor-requests",
+    icon: Briefcase,
     title: "Browse open cases",
     subtitle: "Find your next matched student.",
   },
   {
     to: "/join",
+    icon: UserRoundCheck,
     title: "Apply as a tutor",
     subtitle: "Get verified and start receiving leads.",
   },
@@ -599,26 +603,34 @@ function TutorPlaybookPage() {
         meta="Parent relations & etiquette · For MatchMax tutors"
       />
 
-      {/* Mobile section chips — persona-tab style, sticky under the mobile top bar */}
+      {/* Mobile section tabs — Airbnb persona-tab style, sticky under the mobile top bar */}
       <nav
         aria-label="Playbook sections"
         className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-sm lg:hidden"
       >
-        <div className="flex gap-2 overflow-x-auto px-4 py-3">
-          {SECTIONS.map((section, index) => (
-            <a
-              key={section.id}
-              ref={activeSection === section.id ? activeChipRef : undefined}
-              href={`#${section.id}`}
-              className={`whitespace-nowrap rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                activeSection === section.id
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              {SECTION_NUMBERS[index]} · {section.shortTitle}
-            </a>
-          ))}
+        <div className="relative">
+          <div className="flex gap-6 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {SECTIONS.map((section) => (
+              <a
+                key={section.id}
+                ref={activeSection === section.id ? activeChipRef : undefined}
+                href={`#${section.id}`}
+                className={`-mb-px whitespace-nowrap border-b-[3px] py-3 text-[15px] transition-colors ${
+                  activeSection === section.id
+                    ? "border-foreground font-semibold text-foreground"
+                    : "border-transparent text-muted-foreground"
+                }`}
+              >
+                {section.shortTitle}
+              </a>
+            ))}
+          </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-background to-transparent pl-8 pr-1.5"
+          >
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </div>
         </div>
       </nav>
 
@@ -652,8 +664,14 @@ function TutorPlaybookPage() {
           </nav>
 
           <div className="min-w-0">
-            <div className="space-y-5">
-              <p className="text-sm leading-7 text-muted-foreground sm:text-base">
+            <Button asChild size="lg" variant="solid" color="accent" className="w-full sm:w-auto">
+              <Link to="/tutor-requests">
+                Browse open cases <ArrowRight />
+              </Link>
+            </Button>
+
+            <div className="mt-8 space-y-5">
+              <p className="text-base leading-7 text-muted-foreground sm:text-[17px]">
                 Parents booking through MatchMax aren't just looking for someone who knows the
                 syllabus; they are paying for peace of mind, reliability, and an elite service
                 experience. Every tutor represents MatchMax and shapes our reputation, so your
@@ -678,7 +696,7 @@ function TutorPlaybookPage() {
                   <span className="text-sm font-bold text-[color:var(--brand-link)]">
                     {SECTION_NUMBERS[index]}
                   </span>
-                  <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                  <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
                     {section.title}
                   </h2>
                 </div>
@@ -701,14 +719,15 @@ function TutorPlaybookPage() {
               <Link
                 key={card.to}
                 to={card.to}
-                className="group rounded-2xl border border-white/15 bg-white/5 p-5 transition-colors hover:bg-white/10"
+                className="group flex overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] transition-colors hover:bg-white/10"
               >
-                <p className="text-lg font-bold">{card.title}</p>
-                <p className="mt-1 text-sm leading-6 text-white/70">{card.subtitle}</p>
-                <ArrowRight
-                  className="mt-4 h-4 w-4 text-white/70 transition-transform group-hover:translate-x-1"
-                  aria-hidden="true"
-                />
+                <div className="flex w-20 shrink-0 items-center justify-center self-stretch bg-white sm:w-24">
+                  <card.icon className="h-8 w-8 text-[#0f1419]" aria-hidden="true" />
+                </div>
+                <div className="flex flex-1 flex-col justify-center p-5">
+                  <p className="text-lg font-bold text-white">{card.title}</p>
+                  <p className="mt-1 text-sm leading-6 text-white/70">{card.subtitle}</p>
+                </div>
               </Link>
             ))}
           </div>
