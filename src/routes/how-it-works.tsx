@@ -72,7 +72,7 @@ function useHowItWorksContent() {
     (key) => comparisonRow("parent_cmp", key),
   );
 
-  const parentSteps: [string, string, string][] = (["s1", "s2", "s3"] as const).map(
+  const parentSteps: [string, string, string][] = (["s1", "s2", "s3", "s4"] as const).map(
     (key, index) => [
       String(index + 1).padStart(2, "0"),
       t(`hiw.parents_steps.${key}.title`),
@@ -80,11 +80,13 @@ function useHowItWorksContent() {
     ],
   );
 
-  const tutorSteps: [string, string, string][] = (["s1", "s2", "s3"] as const).map((key, index) => [
-    String(index + 1).padStart(2, "0"),
-    t(`hiw.tutors_steps.${key}.title`),
-    t(`hiw.tutors_steps.${key}.detail`),
-  ]);
+  const tutorSteps: [string, string, string][] = (["s1", "s2", "s3", "s4"] as const).map(
+    (key, index) => [
+      String(index + 1).padStart(2, "0"),
+      t(`hiw.tutors_steps.${key}.title`),
+      t(`hiw.tutors_steps.${key}.detail`),
+    ],
+  );
 
   const faqItems = (
     group: "tutor_faq" | "parent_faq" | "billing_faq",
@@ -114,7 +116,13 @@ function useHowItWorksContent() {
     "verification",
     "payments",
   ]);
-  const billingFaqItems = faqItems("billing_faq", ["pay", "rematch", "reschedule", "account"]);
+  const billingFaqItems = faqItems("billing_faq", [
+    "pay",
+    "notes",
+    "rematch",
+    "reschedule",
+    "account",
+  ]);
 
   return {
     t,

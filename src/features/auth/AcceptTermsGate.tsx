@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { toast } from "sonner";
 
 /** Effective date of the current Terms of Service (see /tos). Bump to re-prompt all users. */
-export const TOS_VERSION = "2026-09-24.2";
+export const TOS_VERSION = "2026-09-25.1";
 
 type AcceptTermsDialogProps = {
   userId: string;

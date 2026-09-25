@@ -24,13 +24,13 @@ type Block =
   | { kind: "table"; columns: [string, string]; rows: { scenario: string; resolution: string }[] };
 
 const INTRO_TEXT = `MatchMax Platform Terms of Service
-Effective date: September 24, 2026
+Effective date: September 25, 2026
 Operator: Hau Yui Chan, trading as MatchMax
 Business Registration number: 41690777
 Registered address: Shop T163, 3/F, The Capital, 61-65 Chatham Road South, Tsim Sha Tsui, Kowloon, Hong Kong
 Email: contact@matchmax.hk
 
-These Terms govern MatchMax.hk and MatchMax's digital introductory platform and concierge matching services.`;
+These Terms govern MatchMax.hk and MatchMax's digital introductory platform, concierge matching services, and digital study materials marketplace.`;
 
 const SECTIONS: { title: string; blocks: Block[] }[] = [
   {
@@ -133,6 +133,37 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
       },
     ],
   },
+  {
+    title: "7. Two-Tier Verification and Academic Claims",
+    blocks: [
+      {
+        kind: "p",
+        text: "MatchMax operates a two-tier verification system. **Tier 1 (Standard) Accounts** display academic results that are entirely self-reported by the user and presented as “Stated Qualifications”. MatchMax does not independently, cryptographically, or forensically guarantee the accuracy of any self-reported Tier 1 score, grade, or admission result. Clients acknowledge that self-reported academic claims are unverified statements made by the user, and are strongly advised to request photographic proof of results directly from the tutor prior to the first lesson. All users certify at registration that all self-reported academic scores are accurate and that they will provide photographic proof directly to their client prior to the first lesson upon request.",
+      },
+      {
+        kind: "p",
+        text: "**Tier 2 (Verified) Accounts** have voluntarily submitted identity and academic documents and passed manual verification by the MatchMax team. These profiles carry the Verified Scholar Badge. False statements in any self-reported field, forged documents, or misrepresentation of verification tier constitute a material breach of these Terms and will result in immediate profile removal and a permanent platform ban.",
+      },
+    ],
+  },
+  {
+    title: "8. Digital Materials Marketplace and Copyright Safe Harbor",
+    blocks: [
+      {
+        kind: "p",
+        text: "MatchMax operates a digital marketplace through which independent tutors (“Creators”) sell user-generated digital study materials (e.g., custom notes, mock exams, and original past-paper solutions). MatchMax acts strictly as a **third-party marketplace and escrow distributor**. MatchMax is not the author, publisher, licensor, or seller of any uploaded material, and does not prescreen files for copyright compliance.",
+      },
+      {
+        kind: "ul",
+        items: [
+          "**Escrow and Commission:** MatchMax collects 100% of the sale price upfront into the MatchMax official business account, retains a twenty percent (20%) platform commission, and distributes the Creator's 80% share via FPS on the 1st of the following month.",
+          "**All Sales Final:** Digital files cannot be returned. Buyers must review the free watermarked preview before purchasing. Because digital goods cannot be returned once delivered, MatchMax does not offer refunds for completed marketplace transactions.",
+          "**Copyright Safe Harbor:** Materials uploaded to the marketplace are user-generated content. MatchMax hosts such content on the Creator's warranty that they hold the copyright or legal right to distribute it, and MatchMax holds no liability for copyright infringement committed by its users. Each Creator indemnifies MatchMax against any third-party copyright claim arising from materials they upload.",
+          "**Takedown Policy:** Upon receiving a credible infringement complaint from a rights holder, MatchMax will remove the disputed listing, warn or permanently ban the responsible Creator, and permanently ban repeat infringers. MatchMax's determination on takedown is final.",
+        ],
+      },
+    ],
+  },
 ];
 
 function renderInline(text: string) {
@@ -153,7 +184,7 @@ function TermsOfUsePage() {
       <PageIntro
         description="The ground rules for using MatchMax — what you can expect from us and what we expect from you."
         eyebrow="Legal"
-        meta="Effective 24 September 2026"
+        meta="Effective 25 September 2026"
         title="Terms and Conditions"
       />
 

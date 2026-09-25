@@ -611,6 +611,10 @@
       "s3": {
         "title": "Meet & Settle",
         "detail": "We guide you through your first 2 lessons. Once you're happy, settle the 1.5-lesson administrative fee directly with MatchMax via FPS, and enjoy direct learning!"
+      },
+      "s4": {
+        "title": "📚 Exclusive Study Materials",
+        "detail": "Browse and purchase school-specific past-paper solutions, mock exams, and custom notes created by our top scholars. Payments are securely held in escrow by MatchMax to guarantee file delivery, with a 20% platform fee supporting our creators. Want them for free? Unlock them after 3 paid lessons with the author!"
       }
     },
     "parents_link_find": "Find a tutor",
@@ -631,6 +635,10 @@
       "s3": {
         "title": "Teach & Keep What You Earn",
         "detail": "Accept student requests that fit your schedule and commute. Keep 100% of your earnings after a fair, transparent 1.5-lesson platform fee—no massive agency commission cuts."
+      },
+      "s4": {
+        "title": "Passive Income with Digital Notes",
+        "detail": "Upload your best study materials and sell them to parents. MatchMax handles all marketing and secure payment collection, takes a low 20% fee, and deposits your earnings directly into your FPS account on the 1st of every month."
       }
     },
     "tutors_link_cases": "Browse open cases",
@@ -740,7 +748,7 @@
       },
       "verification": {
         "q": "How does MatchMax verify tutor qualifications and grades?",
-        "a": "Every tutor on our platform must submit official supporting documentation—such as exam score certificates, diplomas, or university transcripts. Our team verifies these credentials before any profile goes live."
+        "a": "MatchMax uses a two-tier system. Tier 1 tutors list self-reported results as “Stated Qualifications”—MatchMax does not cryptographically verify these claims, so you can request photographic proof directly from the tutor before the first lesson. Tier 2 tutors carry the blue Verified Scholar Badge, meaning our team has manually checked their identity and academic documents. Either way, you can always ask for proof before committing."
       },
       "payments": {
         "q": "How do payments work between parents and tutors?",
@@ -763,6 +771,10 @@
       "account": {
         "q": "Do I need to create an account to request a tutor?",
         "a": "No. You can request a tutor directly through our website as a guest, and our concierge team will handle the matching process personally via WhatsApp."
+      },
+      "notes": {
+        "q": "How do purchases of digital study materials work?",
+        "a": "Study materials are sold through the MatchMax escrow. You pay the full amount to the MatchMax official business account via FPS, and we hold the payment until the file is delivered before the tutor receives their 80% share on the 1st of the following month (MatchMax retains a 20% platform commission). Because digital files cannot be returned, all sales are final—please review the free watermarked preview before purchasing."
       }
     }
   },

@@ -50,16 +50,32 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
     ],
   },
   {
-    title: "3. Document Verification (Tutors)",
+    title: "3. Document Verification and Tiered Data Handling (Tutors)",
     blocks: [
       {
         kind: "p",
-        text: "Independent contractors (tutors) applying to the MatchMax directory are required to submit identity and academic verification documents (e.g., transcripts, university credentials). These documents are processed securely via the MatchMax admin dashboard. Verification evidence is stored purely for internal auditing and platform integrity; it is never published publicly or shared with third parties.",
+        text: "MatchMax operates a two-tier verification model built around data minimization:",
+      },
+      {
+        kind: "ul",
+        items: [
+          "**Tier 1 (Standard) users:** Academic results are self-reported and displayed as “Stated Qualifications”. MatchMax does not require, collect, or store physical HKID cards or academic transcripts from Tier 1 users. Documentary proof of grades, when requested, is provided by the tutor directly to the client prior to the first lesson and never passes through MatchMax systems.",
+          "**Tier 2 (Verified) users:** Members who apply for the Verified Scholar Badge voluntarily submit identity and academic verification documents (e.g., transcripts, university credentials, HKID) through secure MatchMax admin channels for manual verification. Verification evidence is stored purely for internal auditing and platform integrity; it is never published publicly or shared with third parties.",
+        ],
       },
     ],
   },
   {
-    title: "4. Data Sharing and Third Parties",
+    title: "4. Digital Materials Marketplace Records",
+    blocks: [
+      {
+        kind: "p",
+        text: "When you purchase study materials through the MatchMax marketplace, we retain the minimum order record required to deliver the file, calculate creator payouts, and resolve delivery disputes (item title, price, transaction date, and the contact identifier you provide). We do not receive or store your banking credentials; payments travel directly via FPS to the MatchMax official business account. Uploaded study materials are hosted on behalf of the uploading user, who remains the data controller of the content they create.",
+      },
+    ],
+  },
+  {
+    title: "5. Data Sharing and Third Parties",
     blocks: [
       {
         kind: "p",
@@ -68,7 +84,16 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
     ],
   },
   {
-    title: "5. Client Feedback and Testimonials",
+    title: "6. Peer-to-Peer Document Exchanges (Outside MatchMax)",
+    blocks: [
+      {
+        kind: "p",
+        text: "Once a match is confirmed, any private exchange of documents (e.g., proof of grades, lesson materials, receipts) that occurs directly between users via personal WhatsApp or other user-to-user channels takes place entirely outside MatchMax's systems. Such exchanges are **outside MatchMax's data jurisdiction**: MatchMax does not host, store, process, or access those files, and therefore cannot retrieve, moderate, or delete them. Users should exercise their own judgment before sharing sensitive documents peer-to-peer.",
+      },
+    ],
+  },
+  {
+    title: "7. Client Feedback and Testimonials",
     blocks: [
       {
         kind: "p",
@@ -96,7 +121,7 @@ function PrivacyPolicyPage() {
       <PageIntro
         description="Your privacy matters to us. This policy explains how MatchMax collects and handles your personal data."
         eyebrow="Legal"
-        meta="Current as of 21 September 2026"
+        meta="Current as of 25 September 2026"
         title="Privacy Policy"
       />
 
