@@ -39,7 +39,8 @@
       "privacy": "私隱與資料",
       "danger": "危險區域",
       "saved_posts": "已儲存個案",
-      "sign_out": "登出"
+      "sign_out": "登出",
+      "availability": "可開始日期"
     },
     "referrals": {
       "title": "推薦朋友，賺 15% 獎賞",
@@ -184,6 +185,22 @@
       "confirm": "永久刪除",
       "deleted": "你嘅帳戶已刪除。",
       "delete_error": "無法刪除你嘅帳戶。"
+    },
+    "availability": {
+      "title": "最早可開始日期",
+      "description": "話我哋知你幾時可以真正開始接學生。你嘅開始日期會顯示喺個人檔案，並且自動控制預約同埋搜尋結果嘅顯示。",
+      "question": "你可以幾時開始授課？",
+      "option_immediately": "即刻可以",
+      "option_date": "指定日期",
+      "date_label": "最早可開始日期",
+      "date_hint": "8至30日後先開始嘅導師會顯示預約按鈕；超過30日後先開始嘅導師會暫時唔會喺公開搜尋結果出現。",
+      "status_immediate": "你目前顯示為即刻可以開始——家長可以直接查詢。",
+      "status_pre_booking": "你目前顯示「{{date}}起可上課」，家長可以預約你。",
+      "status_future": "你嘅檔案暫時隱藏於公開搜尋結果，直到 {{date}} 前30日先會重新出現。",
+      "saved": "已更新最早可開始日期",
+      "saving": "儲存中…",
+      "not_linked": "你嘅帳戶仲未連結導師檔案。",
+      "save": "儲存"
     }
   },
   "hero": {
@@ -552,7 +569,9 @@
     "share": "分享導師 {{code}}",
     "gender_male": "男",
     "gender_female": "女",
-    "gender_other": "其他"
+    "gender_other": "其他",
+    "available_from": "{{date}}起可上課",
+    "prebook_cta": "預約 {{date}} 起"
   },
   "hiw": {
     "hero_eyebrow": "MatchMax 點樣運作",

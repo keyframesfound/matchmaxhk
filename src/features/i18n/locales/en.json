@@ -39,7 +39,8 @@
       "privacy": "Privacy & data",
       "danger": "Danger zone",
       "saved_posts": "Saved Posts",
-      "sign_out": "Sign out"
+      "sign_out": "Sign out",
+      "availability": "Availability"
     },
     "referrals": {
       "title": "Refer & Earn 15%",
@@ -184,6 +185,22 @@
       "confirm": "Delete permanently",
       "deleted": "Your account has been deleted.",
       "delete_error": "Unable to delete your account."
+    },
+    "availability": {
+      "title": "Earliest availability",
+      "description": "Tell parents when you can realistically take on students. Your start date shows on your profile and controls pre-booking visibility automatically.",
+      "question": "When can you start taking students?",
+      "option_immediately": "Immediately",
+      "option_date": "From a specific date",
+      "date_label": "Earliest start date",
+      "date_hint": "Tutors starting in 8–30 days show a pre-booking button; tutors starting more than 30 days out are hidden from public search until then.",
+      "status_immediate": "You're listed as available now — parents can inquire straight away.",
+      "status_pre_booking": "You're showing “Available from {{date}}” — parents can pre-book you.",
+      "status_future": "Your profile is hidden from public search until 30 days before {{date}}.",
+      "saved": "Availability updated",
+      "saving": "Saving…",
+      "not_linked": "Your account isn't linked to a tutor card yet.",
+      "save": "Save"
     }
   },
   "hero": {
@@ -530,7 +547,9 @@
     "share": "Share tutor {{code}}",
     "gender_male": "Male",
     "gender_female": "Female",
-    "gender_other": "Other"
+    "gender_other": "Other",
+    "available_from": "Available from {{date}}",
+    "prebook_cta": "Pre-book for {{date}}"
   },
   "hiw": {
     "hero_eyebrow": "How MatchMax works",

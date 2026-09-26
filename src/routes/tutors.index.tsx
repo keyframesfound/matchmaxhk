@@ -23,6 +23,7 @@ import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
 import {
+  buildTutorWhatsAppUrl,
   getTutorBaseRate,
   getTutorInquiryAction,
 } from "@/features/tutors/tutor-display";
@@ -321,32 +322,32 @@ function TutorsDirectory() {
                   {filtered.map((tut: Tutor) => {
                     const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
                     return (
-                    <PublicTutorCard
-                      key={tut.id}
-                      tutor={tut}
-                      priceSuffix={t("featured.per_hour")}
-                      onOpen={openTutorDetail}
-                      onCompareToggle={() => toggleCompare(tut)}
-                      compareSelected={compareIds.includes(tut.id)}
-                      footerAction={
-                        <>
-                          <TutorSaveButton tutorId={tut.id} compact />
-                          <Button
-                            asChild
-                            className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                          >
-                            <a
-                              href={inquiry.href}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(event) => event.stopPropagation()}
+                      <PublicTutorCard
+                        key={tut.id}
+                        tutor={tut}
+                        priceSuffix={t("featured.per_hour")}
+                        onOpen={openTutorDetail}
+                        onCompareToggle={() => toggleCompare(tut)}
+                        compareSelected={compareIds.includes(tut.id)}
+                        footerAction={
+                          <>
+                            <TutorSaveButton tutorId={tut.id} compact />
+                            <Button
+                              asChild
+                              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                             >
-                              {inquiry.label}
-                            </a>
-                          </Button>
-                        </>
-                      }
-                    />
+                              <a
+                                href={inquiry.href}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                {inquiry.label}
+                              </a>
+                            </Button>
+                          </>
+                        }
+                      />
                     );
                   })}
                 </div>

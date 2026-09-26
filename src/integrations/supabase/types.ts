@@ -804,6 +804,8 @@ export type Database = {
           referral_code: string | null;
           referred_by: string | null;
           secondary_school: string | null;
+          start_immediately: boolean;
+          earliest_start_date: string | null;
           stations: string[];
           subjects: string[];
           target_students: string[];
@@ -839,6 +841,8 @@ export type Database = {
           referral_code?: string | null;
           referred_by?: string | null;
           secondary_school?: string | null;
+          start_immediately?: boolean;
+          earliest_start_date?: string | null;
           stations?: string[];
           subjects?: string[];
           target_students?: string[];
@@ -874,6 +878,8 @@ export type Database = {
           referral_code?: string | null;
           referred_by?: string | null;
           secondary_school?: string | null;
+          start_immediately?: boolean;
+          earliest_start_date?: string | null;
           stations?: string[];
           subjects?: string[];
           target_students?: string[];
@@ -930,6 +936,10 @@ export type Database = {
       complete_onboarding: { Args: { _choice: string }; Returns: undefined };
       find_user_id_by_email: { Args: { _email: string }; Returns: string };
       get_my_referral_dashboard: { Args: never; Returns: Json };
+      update_my_availability: {
+        Args: { _start_immediately: boolean; _earliest_start_date?: string | null };
+        Returns: undefined;
+      };
       get_org_role: {
         Args: { _org_id: string; _user_id?: string };
         Returns: Database["public"]["Enums"]["org_member_role"];
