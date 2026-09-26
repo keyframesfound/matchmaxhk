@@ -66,6 +66,7 @@ import { getCurriculumGroupLabel, getTutorSubjectGroups } from "@/features/tutor
 import { supabase } from "@/integrations/supabase/client";
 import {
   IA_EE_TOK_SUPPORT_OPTIONS,
+  MAX_PRICING_TIERS,
   MAX_TUTOR_ACHIEVEMENTS,
   MAX_TUTOR_CARD_HIGHLIGHTS,
   TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT,
@@ -73,6 +74,7 @@ import {
   normalizeTutorCardHighlights,
   type Tutor,
   type IaEeTokSupport,
+  type PricingTier,
   type TutorAchievement,
 } from "@/features/tutors/queries";
 import {
@@ -160,6 +162,14 @@ export const tutorFormSchema = z.object({
   stations: z.array(z.string().trim().min(1).max(80)).max(200),
   lesson_mode: z.enum(["online", "in_person", "either"]),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
+  pricing_tiers: z
+    .array(
+      z.object({
+        curriculum: z.string().trim().max(80),
+        rate: z.coerce.number().int().min(0).max(100000),
+      }),
+    )
+    .max(MAX_PRICING_TIERS),
   photo_url: z.string().trim().max(1000).optional().or(z.literal("")),
   tutor_code: z
     .string()
@@ -182,6 +192,21 @@ export const tutorFormSchema = z.object({
 
 export type TutorFormData = z.infer<typeof tutorFormSchema>;
 
+// Drop half-filled rows, dedupe curricula case-insensitively, cheapest first.
+export function cleanFormPricingTiers(tiers: TutorFormData["pricing_tiers"]): PricingTier[] {
+  const cleaned: PricingTier[] = [];
+  const seen = new Set<string>();
+  for (const tier of tiers) {
+    const curriculum = tier.curriculum.trim();
+    if (!curriculum) continue;
+    const key = curriculum.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    cleaned.push({ curriculum, rate: Math.round(tier.rate) });
+  }
+  return cleaned.sort((a, b) => a.rate - b.rate).slice(0, MAX_PRICING_TIERS);
+}
+
 export const emptyTutorForm: TutorFormData = {
   headline: "",
   card_highlights: ["", "", ""],
@@ -194,6 +219,7 @@ export const emptyTutorForm: TutorFormData = {
   stations: [],
   lesson_mode: "either",
   hourly_rate: 0,
+  pricing_tiers: [],
   photo_url: "",
   tutor_code: "",
   is_published: true,
@@ -222,6 +248,7 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     stations: t.stations ?? [],
     lesson_mode: t.lesson_mode ?? "either",
     hourly_rate: t.hourly_rate ?? 0,
+    pricing_tiers: (t.pricing_tiers ?? []).slice(0, MAX_PRICING_TIERS),
     photo_url: t.photo_url ?? "",
     tutor_code: t.tutor_code ?? "",
     is_published: t.is_published ?? true,
@@ -280,6 +307,9 @@ export function formDataToPayload(v: TutorFormData) {
     .filter((achievement) => achievement.short_text)
     .slice(0, MAX_TUTOR_ACHIEVEMENTS);
 
+  // Drop half-filled rows, dedupe curricula case-insensitively, cheapest first.
+  const cleanPricingTiersResult = cleanFormPricingTiers(v.pricing_tiers);
+
   return {
     display_name: v.tutor_code.trim(),
     headline:
@@ -305,6 +335,7 @@ export function formDataToPayload(v: TutorFormData) {
         : [...new Set(v.stations.map((station) => station.trim()).filter(Boolean))],
     lesson_mode: v.lesson_mode,
     hourly_rate: v.hourly_rate,
+    pricing_tiers: cleanPricingTiersResult,
     photo_url: v.photo_url?.trim() || null,
     tutor_code: v.tutor_code.trim(),
     is_published: v.is_published,
@@ -879,6 +910,7 @@ export function TutorEditor({
       tutor_status: form.tutor_status || null,
       lesson_mode: form.lesson_mode,
       hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
+      pricing_tiers: cleanFormPricingTiers(form.pricing_tiers),
       photo_url: form.photo_url?.trim() || null,
       tutor_code: form.tutor_code.trim() || "MM-PREVIEW",
       is_published: form.is_published,
@@ -977,6 +1009,35 @@ export function TutorEditor({
     setForm((prev) => ({
       ...prev,
       exam_results: prev.exam_results.filter((_, idx) => idx !== index),
+    }));
+  };
+
+  // Pricing tier rows
+  const addPricingTier = () => {
+    setForm((prev) => ({
+      ...prev,
+      pricing_tiers: [
+        ...prev.pricing_tiers,
+        { curriculum: "", rate: Number.isFinite(prev.hourly_rate) ? prev.hourly_rate : 0 },
+      ],
+    }));
+  };
+
+  const updatePricingTier = (
+    index: number,
+    patch: Partial<TutorFormData["pricing_tiers"][number]>,
+  ) => {
+    setForm((prev) => {
+      const tiers = [...prev.pricing_tiers];
+      tiers[index] = { ...tiers[index], ...patch };
+      return { ...prev, pricing_tiers: tiers };
+    });
+  };
+
+  const removePricingTier = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      pricing_tiers: prev.pricing_tiers.filter((_, idx) => idx !== index),
     }));
   };
 
@@ -1658,6 +1719,82 @@ export function TutorEditor({
                     />
                   </div>
                 </FormField>
+              </div>
+
+              <div className="mt-6">
+                <div className="flex flex-wrap items-end justify-between gap-2">
+                  <div>
+                    <Label className="text-xs font-semibold">Per-curriculum rates</Label>
+                    <p className="mt-1 max-w-md text-xs text-muted-foreground">
+                      Optional. Search cards show the lowest rate as “HK$X up” and the profile lists
+                      every rate. Leave empty to use the flat hourly rate everywhere.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addPricingTier}
+                    disabled={form.pricing_tiers.length >= MAX_PRICING_TIERS}
+                  >
+                    <Plus className="mr-1.5 h-3.5 w-3.5" />
+                    Add rate tier
+                  </Button>
+                </div>
+                {form.pricing_tiers.length > 0 ? (
+                  <div className="mt-3 space-y-2">
+                    {form.pricing_tiers.map((tier, index) => (
+                      <div
+                        key={index}
+                        className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_9rem_auto] sm:items-center"
+                      >
+                        <Select
+                          value={tier.curriculum}
+                          onValueChange={(val) => updatePricingTier(index, { curriculum: val })}
+                        >
+                          <SelectTrigger className="h-9 text-xs">
+                            <SelectValue placeholder="Curriculum" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TEACHING_CURRICULA.map((curriculum) => (
+                              <SelectItem
+                                key={curriculum.value}
+                                value={curriculum.value}
+                                className="text-xs"
+                              >
+                                {curriculum.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                            HK$
+                          </span>
+                          <Input
+                            type="number"
+                            value={tier.rate}
+                            onChange={(e) =>
+                              updatePricingTier(index, { rate: Number(e.target.value) })
+                            }
+                            className="pl-10 text-xs font-semibold"
+                            aria-label={`Rate for ${tier.curriculum || "new tier"}`}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 shrink-0"
+                          aria-label={`Remove ${tier.curriculum || "tier"} rate`}
+                          onClick={() => removePricingTier(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2">

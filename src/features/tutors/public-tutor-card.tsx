@@ -1,10 +1,13 @@
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Award, BookOpen, Check, Columns2, Share2, UserRound } from "lucide-react";
+import { Award, BookOpen, CalendarDays, Check, Columns2, Share2, UserRound } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getTutorCardHighlights, type Tutor } from "@/features/tutors/queries";
 import {
+  formatAvailabilityDate,
   formatTutorCode,
+  getTutorAvailabilityReadiness,
+  getTutorPriceDisplay,
   getTutorSubjectChips,
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
@@ -103,10 +106,12 @@ export function PublicTutorCard({
   onCompareToggle,
   shareable = true,
 }: PublicTutorCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const interactive = typeof onOpen === "function";
   const academicChips = useMemo(() => getTutorSubjectChips(tutor), [tutor]);
   const cardHighlights = useMemo(() => getTutorCardHighlights(tutor), [tutor]);
+  const price = useMemo(() => getTutorPriceDisplay(tutor), [tutor]);
+  const availabilityReadiness = useMemo(() => getTutorAvailabilityReadiness(tutor), [tutor]);
   const academicChipsRef = useRef<HTMLDivElement | null>(null);
   const academicWidthRef = useRef<number | null>(null);
   const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
@@ -196,7 +201,7 @@ export function PublicTutorCard({
     void shareOrCopy(
       {
         title: `Tutor ${formatTutorCode(tutor.tutor_code)} | MatchMax`,
-        text: `Check out tutor ${tutor.tutor_code} on MatchMax — HK$${tutor.hourly_rate}/hr.`,
+        text: `Check out tutor ${tutor.tutor_code} on MatchMax — HK$${price.baseRate}/hr.`,
         url: `${window.location.origin}/tutors/${tutor.tutor_code}`,
       },
       t("profile.link_copied"),
@@ -277,6 +282,15 @@ export function PublicTutorCard({
           ) : null}
         </div>
       </header>
+
+      {availabilityReadiness === "pre_booking" && tutor.earliest_start_date ? (
+        <p className="flex items-center gap-1.5 border-b border-border bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-700 md:px-4 dark:text-amber-400">
+          <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          {t("tutor_card.available_from", {
+            date: formatAvailabilityDate(tutor.earliest_start_date, i18n.language),
+          })}
+        </p>
+      ) : null}
 
       <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
         {academicChips.length > 0 ? (
@@ -369,10 +383,15 @@ export function PublicTutorCard({
         <FitText
           as="p"
           maxLines={1}
-          contentKey={`${tutor.hourly_rate}-${priceSuffix}`}
+          contentKey={`${price.baseRate}-${price.isRange}-${priceSuffix}`}
           className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
         >
-          ${tutor.hourly_rate}
+          ${price.baseRate}
+          {price.isRange ? (
+            <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
+              {t("tutor_card.price_up")}
+            </span>
+          ) : null}
           <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
             {priceSuffix}
           </span>

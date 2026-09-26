@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { isTutorPubliclyListed } from "./tutor-display";
 import { normalizeExamResults, type ExamResult } from "./examSystems";
 
 export const MAX_TUTOR_ACHIEVEMENTS = 3;
@@ -11,6 +12,38 @@ export type TutorAchievement = {
   short_text: string;
   detail_text?: string;
 };
+
+/** One per-curriculum hourly rate, e.g. { curriculum: "DSE", rate: 400 }. */
+export type PricingTier = {
+  curriculum: string;
+  rate: number;
+};
+
+export const MAX_PRICING_TIERS = 8;
+export const PRICING_TIER_CURRICULUM_LIMIT = 80;
+
+export function normalizePricingTiers(raw: unknown): PricingTier[] {
+  if (!Array.isArray(raw)) return [];
+
+  const tiers: PricingTier[] = [];
+  const seen = new Set<string>();
+  for (const value of raw.slice(0, MAX_PRICING_TIERS * 2)) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+    const entry = value as Record<string, unknown>;
+    const curriculum = typeof entry.curriculum === "string" ? entry.curriculum.trim() : "";
+    const rate = typeof entry.rate === "number" ? entry.rate : Number(entry.rate);
+    if (!curriculum || !Number.isFinite(rate) || rate < 0) continue;
+    const key = curriculum.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    tiers.push({
+      curriculum: curriculum.slice(0, PRICING_TIER_CURRICULUM_LIMIT),
+      rate: Math.round(rate),
+    });
+    if (tiers.length >= MAX_PRICING_TIERS) break;
+  }
+  return tiers;
+}
 
 export function normalizeTutorCardHighlights(
   raw: unknown,
@@ -61,9 +94,12 @@ export type Tutor = {
   tutor_status: string | null;
   lesson_mode: "online" | "in_person" | "either";
   hourly_rate: number;
+  pricing_tiers: PricingTier[];
   photo_url: string | null;
   tutor_code: string;
   is_published: boolean;
+  start_immediately: boolean | null;
+  earliest_start_date: string | null;
   created_at: string;
   experience_years: number | null;
   languages: string[];
@@ -84,7 +120,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, university, secondary_school, target_students, qualifications_summary, subjects, district, stations, lesson_mode, hourly_rate, photo_url, tutor_code, is_published, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status";
+  "id, display_name, headline, card_highlights, academic_headline, university, secondary_school, target_students, qualifications_summary, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -107,16 +143,44 @@ function removeSelectColumn(selectCols: string, column: string): string {
     .join(", ");
 }
 
+/**
+ * PostgREST or-filter that keeps future-scheduled tutors (issue #106) out of
+ * public queries: a tutor is listed when they start immediately or their
+ * earliest start date is within 30 days. Tutors starting later are excluded
+ * server-side so counts and the featured rail stay accurate.
+ */
+function publicAvailabilityFilter(): string {
+  const cutoff = new Date();
+  cutoff.setUTCDate(cutoff.getUTCDate() + 30);
+  return `start_immediately.eq.true,earliest_start_date.is.null,earliest_start_date.lte.${cutoff
+    .toISOString()
+    .slice(0, 10)}`;
+}
+
+const AVAILABILITY_FILTER_COLUMNS = ["start_immediately", "earliest_start_date"] as const;
+
 async function withTutorSelectFallback<T>(
-  run: (selectCols: string) => PromiseLike<{ data: unknown; error: unknown }>,
+  run: (
+    selectCols: string,
+    availabilityFilter: string | null,
+  ) => PromiseLike<{ data: unknown; error: unknown }>,
+  availabilityFilter: string | null = publicAvailabilityFilter(),
 ): Promise<T> {
   let selectCols = SELECT_COLS;
-  for (let i = 0; i < 20; i++) {
-    const result = await run(selectCols);
+  let filter = availabilityFilter;
+  for (let i = 0; i < 24; i++) {
+    const result = await run(selectCols, filter);
     if (!result.error) return (result.data ?? []) as T;
 
     const missing = extractMissingColumn(result.error);
     if (!missing) throw result.error;
+
+    // Availability columns not migrated yet: degrade to is_published-only
+    // listing instead of breaking every public feed.
+    if (filter && (AVAILABILITY_FILTER_COLUMNS as readonly string[]).includes(missing)) {
+      filter = null;
+      continue;
+    }
 
     const nextCols = removeSelectColumn(selectCols, missing);
     if (nextCols === selectCols) throw result.error;
@@ -220,9 +284,12 @@ function normalize(
       typeof row.qualifications_summary === "string" ? row.qualifications_summary : null,
     exam_results: exams,
     achievements: normalizeAchievements(row.achievements),
+    pricing_tiers: normalizePricingTiers(row.pricing_tiers),
     ia_ee_tok_support: normalizeIaEeTokSupport(row.ia_ee_tok_support),
     ia_ee_tok_notes: typeof row.ia_ee_tok_notes === "string" ? row.ia_ee_tok_notes : null,
     tutor_status: typeof row.tutor_status === "string" ? row.tutor_status : null,
+    start_immediately: typeof row.start_immediately === "boolean" ? row.start_immediately : null,
+    earliest_start_date: typeof row.earliest_start_date === "string" ? row.earliest_start_date : null,
     target_students: targetStudents,
     stations,
   };
@@ -238,27 +305,30 @@ export function getTutorGenderLabel(gender: string | null | undefined): string {
 
 export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
   const defaults = await fetchTutorPhotoDefaults();
-  const data = await withTutorSelectFallback<Record<string, unknown>[]>((selectCols) =>
-    supabase
-      .from("tutors")
-      .select(selectCols)
-      .eq("is_published", true)
-      .order("created_at", { ascending: false })
-      .limit(limit),
+  const data = await withTutorSelectFallback<Record<string, unknown>[]>(
+    (selectCols, availabilityFilter) => {
+      let query = supabase.from("tutors").select(selectCols).eq("is_published", true);
+      if (availabilityFilter) query = query.or(availabilityFilter);
+      return query.order("created_at", { ascending: false }).limit(limit);
+    },
   );
-  return (data ?? []).map((row) => normalize(row, defaults));
+  return (data ?? [])
+    .map((row) => normalize(row, defaults))
+    .filter((tutor) => isTutorPubliclyListed(tutor));
 }
 
 export async function fetchPublishedTutors(): Promise<Tutor[]> {
   const defaults = await fetchTutorPhotoDefaults();
-  const data = await withTutorSelectFallback<Record<string, unknown>[]>((selectCols) =>
-    supabase
-      .from("tutors")
-      .select(selectCols)
-      .eq("is_published", true)
-      .order("created_at", { ascending: false }),
+  const data = await withTutorSelectFallback<Record<string, unknown>[]>(
+    (selectCols, availabilityFilter) => {
+      let query = supabase.from("tutors").select(selectCols).eq("is_published", true);
+      if (availabilityFilter) query = query.or(availabilityFilter);
+      return query.order("created_at", { ascending: false });
+    },
   );
-  return (data ?? []).map((row) => normalize(row, defaults));
+  return (data ?? [])
+    .map((row) => normalize(row, defaults))
+    .filter((tutor) => isTutorPubliclyListed(tutor));
 }
 
 export async function fetchAllTutors(): Promise<Tutor[]> {
@@ -379,17 +449,42 @@ export async function fetchLandingStats(): Promise<{
   activeTutors: number;
   subjectsCovered: number;
 }> {
-  const { data, error } = await supabase.from("tutors").select("subjects").eq("is_published", true);
-  if (error) throw error;
-  const rows = (data ?? []) as { subjects: string[] | null }[];
+  type LandingRow = {
+    subjects: string[] | null;
+    start_immediately?: boolean | null;
+    earliest_start_date?: string | null;
+  };
+
+  let rows: LandingRow[];
+  // Availability columns may not be migrated yet; degrade to counting every
+  // published tutor rather than failing the landing page.
+  const withAvailability = await supabase
+    .from("tutors")
+    .select("subjects, start_immediately, earliest_start_date")
+    .eq("is_published", true);
+  if (withAvailability.error) {
+    if (!extractMissingColumn(withAvailability.error)) throw withAvailability.error;
+    const fallback = await supabase.from("tutors").select("subjects").eq("is_published", true);
+    if (fallback.error) throw fallback.error;
+    rows = (fallback.data ?? []) as LandingRow[];
+  } else {
+    rows = (withAvailability.data ?? []) as LandingRow[];
+  }
+
+  const visible = rows.filter((row) =>
+    isTutorPubliclyListed({
+      start_immediately: row.start_immediately ?? null,
+      earliest_start_date: row.earliest_start_date ?? null,
+    }),
+  );
   const set = new Set<string>();
-  for (const r of rows) {
+  for (const r of visible) {
     for (const s of r.subjects ?? []) {
       const v = (s ?? "").trim();
       if (v) set.add(v);
     }
   }
-  return { activeTutors: rows.length, subjectsCovered: set.size };
+  return { activeTutors: visible.length, subjectsCovered: set.size };
 }
 
 export const HK_DISTRICTS = [

@@ -4,7 +4,47 @@ import {
   ADMISSIONS_TEST_SUBJECTS,
   JUNIOR_SECONDARY_SUBJECTS,
   PRIMARY_SCHOOL_SUBJECTS,
+  TEACHING_CURRICULA,
 } from "@/features/tutors/subjects";
+
+export type TutorPriceDisplay = {
+  /** Lowest hourly rate — the "$X" shown on cards, filters and sorts. */
+  baseRate: number;
+  /** True when other curricula cost more than the base rate ("$X up"). */
+  isRange: boolean;
+};
+
+/**
+ * Card price model derived from the per-curriculum pricing tiers; tutors
+ * without tiers fall back to the flat hourly_rate.
+ */
+export function getTutorPriceDisplay(
+  tutor: Pick<Tutor, "hourly_rate" | "pricing_tiers">,
+): TutorPriceDisplay {
+  const rates = (tutor.pricing_tiers ?? [])
+    .map((tier) => tier.rate)
+    .filter((rate) => Number.isFinite(rate));
+  if (rates.length === 0) return { baseRate: tutor.hourly_rate, isRange: false };
+  const baseRate = Math.min(...rates);
+  return { baseRate, isRange: rates.some((rate) => rate > baseRate) };
+}
+
+/** Lowest base hourly rate — shared by price filters, sorting and the histogram. */
+export function getTutorBaseRate(tutor: Pick<Tutor, "hourly_rate" | "pricing_tiers">): number {
+  return getTutorPriceDisplay(tutor).baseRate;
+}
+
+/** Pricing tiers sorted cheapest-first for the profile pricing breakdown. */
+export function getSortedPricingTiers<T extends { rate: number }>(tiers: T[]): T[] {
+  return [...tiers].sort((a, b) => a.rate - b.rate);
+}
+
+/** Display label for a stored pricing-tier curriculum ("DSE" -> "HKDSE"). */
+export function getCurriculumPricingLabel(curriculum: string): string {
+  const normalized = curriculum.trim().toLowerCase();
+  const match = TEACHING_CURRICULA.find((entry) => entry.value.toLowerCase() === normalized);
+  return match?.label ?? curriculum;
+}
 
 export type TutorSubjectChip = {
   subject: string;
@@ -26,6 +66,96 @@ export function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorC
 
   const message = `Hi MatchMax! I'd like to request tutor ${formatTutorCode(tutorCode)}.`;
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
+
+export type TutorAvailabilityReadiness = "immediate" | "pre_booking" | "future_scheduled";
+
+/** Whole UTC calendar days since the epoch — date-only math without timezones. */
+function utcDay(date: Date): number {
+  return Math.floor(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / 86_400_000,
+  );
+}
+
+/**
+ * Derived availability status (issue #106): immediate covers tutors starting
+ * now or within 7 days, pre_booking is 8–30 days out (badge + pre-book CTA),
+ * future_scheduled is more than 30 days out (hidden from public browse).
+ * Missing or malformed availability data always reads as immediate, matching
+ * the DB default start_immediately = true.
+ */
+export function getTutorAvailabilityReadiness(
+  tutor: Pick<Tutor, "start_immediately" | "earliest_start_date">,
+  today: Date = new Date(),
+): TutorAvailabilityReadiness {
+  if (tutor.start_immediately !== false || !tutor.earliest_start_date) return "immediate";
+  const start = Date.parse(`${tutor.earliest_start_date}T00:00:00Z`);
+  if (Number.isNaN(start)) return "immediate";
+  const daysUntilStart = Math.floor(start / 86_400_000) - utcDay(today);
+  if (daysUntilStart > 30) return "future_scheduled";
+  if (daysUntilStart >= 8) return "pre_booking";
+  return "immediate";
+}
+
+/** True while the profile belongs in public browse feeds and category grids. */
+export function isTutorPubliclyListed(
+  tutor: Pick<Tutor, "start_immediately" | "earliest_start_date">,
+  today: Date = new Date(),
+): boolean {
+  return getTutorAvailabilityReadiness(tutor, today) !== "future_scheduled";
+}
+
+/** "15 Oct" (English) / "10月15日" (Chinese) for badges and pre-book CTAs. */
+export function formatAvailabilityDate(date: string, language: string): string {
+  const parsed = Date.parse(`${date}T00:00:00Z`);
+  if (Number.isNaN(parsed)) return date;
+  return new Intl.DateTimeFormat(language.toLowerCase().startsWith("zh") ? "zh-HK" : "en-HK", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  }).format(new Date(parsed));
+}
+
+/** WhatsApp deep link pre-filled for advance pre-bookings (issue #106). */
+export function buildTutorPreBookingWhatsAppUrl(
+  whatsappNumber: string | undefined,
+  tutorCode: string,
+  startDate: string,
+  language: string,
+) {
+  const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
+  if (!digits) return "";
+
+  const message = `Hi MatchMax! I'd like to pre-book tutor ${formatTutorCode(tutorCode)} for their start date around ${formatAvailabilityDate(startDate, language)}.`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
+
+export type TutorInquiryAction = { href: string; label: string };
+
+/**
+ * Card CTA for reaching a tutor: the default inquiry, or the pre-book flavor
+ * (label + date-stamped WhatsApp message) while the tutor is 8–30 days out.
+ */
+export function getTutorInquiryAction(
+  tutor: Pick<Tutor, "tutor_code" | "start_immediately" | "earliest_start_date">,
+  whatsappNumber: string | undefined,
+  language: string,
+): TutorInquiryAction {
+  if (
+    getTutorAvailabilityReadiness(tutor) === "pre_booking" &&
+    tutor.earliest_start_date
+  ) {
+    return {
+      href: buildTutorPreBookingWhatsAppUrl(
+        whatsappNumber,
+        tutor.tutor_code,
+        tutor.earliest_start_date,
+        language,
+      ),
+      label: `Pre-book for ${formatAvailabilityDate(tutor.earliest_start_date, language)}`,
+    };
+  }
+  return { href: buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code), label: "Request tutor" };
 }
 
 function normalizeSubjectKey(value: string) {

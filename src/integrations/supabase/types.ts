@@ -799,6 +799,7 @@ export type Database = {
           languages: string[];
           lesson_mode: Database["public"]["Enums"]["case_mode"];
           photo_url: string | null;
+          pricing_tiers: Json;
           qualifications_summary: string | null;
           referral_code: string | null;
           referred_by: string | null;
@@ -833,6 +834,7 @@ export type Database = {
           languages?: string[];
           lesson_mode?: Database["public"]["Enums"]["case_mode"];
           photo_url?: string | null;
+          pricing_tiers?: Json;
           qualifications_summary?: string | null;
           referral_code?: string | null;
           referred_by?: string | null;
@@ -867,6 +869,7 @@ export type Database = {
           languages?: string[];
           lesson_mode?: Database["public"]["Enums"]["case_mode"];
           photo_url?: string | null;
+          pricing_tiers?: Json;
           qualifications_summary?: string | null;
           referral_code?: string | null;
           referred_by?: string | null;

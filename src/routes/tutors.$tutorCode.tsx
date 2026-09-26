@@ -6,6 +6,7 @@ import {
   MessageCircle,
   ArrowLeft,
   Award,
+  Coins,
   Globe,
   Languages,
   Layers,
@@ -29,7 +30,15 @@ import {
   type Tutor,
 } from "@/features/tutors/queries";
 import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
-import { getTutorSubjectGroups } from "@/features/tutors/tutor-display";
+import {
+  formatAvailabilityDate,
+  getCurriculumPricingLabel,
+  getSortedPricingTiers,
+  getTutorAvailabilityReadiness,
+  getTutorInquiryAction,
+  getTutorPriceDisplay,
+  getTutorSubjectGroups,
+} from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -422,6 +431,8 @@ function TutorDetail() {
   const tutorLanguages = (t.languages ?? []).filter(Boolean);
   const lessonLanguages =
     tutorLanguages.length > 0 ? tutorLanguages.join(", ") : translate("profile.not_specified");
+  const price = getTutorPriceDisplay(t);
+  const sortedPricingTiers = getSortedPricingTiers(t.pricing_tiers);
   const lessonFormat = (getTutorLessonModeLabel(t.lesson_mode) ?? "To be confirmed").replace(
     / tutoring$/,
     "",
@@ -434,7 +445,7 @@ function TutorDetail() {
     void shareOrCopy(
       {
         title: `Tutor ${t.tutor_code} | MatchMax`,
-        text: `Check out tutor ${t.tutor_code} on MatchMax — HK$${t.hourly_rate}/hr.`,
+        text: `Check out tutor ${t.tutor_code} on MatchMax — HK$${price.baseRate}/hr.`,
         url: window.location.href,
       },
       translate("profile.link_copied"),
@@ -520,7 +531,12 @@ function TutorDetail() {
               <div className="w-full sm:w-auto sm:text-right">
                 <div className="flex items-center justify-start gap-1.5 sm:justify-end">
                   <p className="text-3xl font-bold text-[color:var(--ink)]">
-                    HK${t.hourly_rate}
+                    HK${price.baseRate}
+                    {price.isRange ? (
+                      <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                        {translate("tutor_card.price_up")}
+                      </span>
+                    ) : null}
                     <span className="ml-1 text-sm font-semibold text-muted-foreground">
                       {translate("featured.per_hour")}
                     </span>
@@ -636,6 +652,32 @@ function TutorDetail() {
                       </p>
                     ) : null}
                   </div>
+                </ProfileSection>
+              ) : null}
+
+              {sortedPricingTiers.length > 0 ? (
+                <ProfileSection icon={Coins} title={translate("profile.section_pricing")}>
+                  <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border">
+                    {sortedPricingTiers.map((tier) => (
+                      <li
+                        key={tier.curriculum}
+                        className="flex items-center justify-between gap-4 px-4 py-2.5"
+                      >
+                        <span className="text-sm font-semibold text-[color:var(--ink)]">
+                          {getCurriculumPricingLabel(tier.curriculum)}
+                        </span>
+                        <span className="shrink-0 text-sm font-bold text-[color:var(--ink)]">
+                          HK${tier.rate}
+                          <span className="ml-0.5 text-xs font-medium text-muted-foreground">
+                            {translate("featured.per_hour")}
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-3 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                    {translate("profile.pricing_disclaimer")}
+                  </p>
                 </ProfileSection>
               ) : null}
 

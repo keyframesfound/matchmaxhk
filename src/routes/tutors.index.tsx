@@ -22,7 +22,10 @@ import {
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
-import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
+import {
+  getTutorBaseRate,
+  getTutorInquiryAction,
+} from "@/features/tutors/tutor-display";
 import {
   fetchPublishedTutors,
   getTutorCardHighlights,
@@ -76,7 +79,7 @@ export const Route = createFileRoute("/tutors/")({
 });
 
 function TutorsDirectory() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/tutors/" });
   const [draft, setDraft] = useState<SearchState>(search);
@@ -140,8 +143,8 @@ function TutorsDirectory() {
         return false;
       if (subjectFilter && !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter)))
         return false;
-      if (draft.min_price !== undefined && tut.hourly_rate < draft.min_price) return false;
-      if (draft.max_price !== undefined && tut.hourly_rate > draft.max_price) return false;
+      if (draft.min_price !== undefined && getTutorBaseRate(tut) < draft.min_price) return false;
+      if (draft.max_price !== undefined && getTutorBaseRate(tut) > draft.max_price) return false;
       if (!matchesLessonModeFilter(modeFilter, tut.lesson_mode)) return false;
       if (!matchesStationFilter(effectiveStationFilter, tut.stations)) return false;
       if (genderFilter) {
@@ -163,12 +166,16 @@ function TutorsDirectory() {
 
     return [...list].sort((a, b) => {
       if (sort === "price_asc")
-        return a.hourly_rate - b.hourly_rate || a.tutor_code.localeCompare(b.tutor_code);
+        return (
+          getTutorBaseRate(a) - getTutorBaseRate(b) || a.tutor_code.localeCompare(b.tutor_code)
+        );
       if (sort === "price_desc")
-        return b.hourly_rate - a.hourly_rate || a.tutor_code.localeCompare(b.tutor_code);
+        return (
+          getTutorBaseRate(b) - getTutorBaseRate(a) || a.tutor_code.localeCompare(b.tutor_code)
+        );
       return (
         (b.experience_years ?? 0) - (a.experience_years ?? 0) ||
-        a.hourly_rate - b.hourly_rate ||
+        getTutorBaseRate(a) - getTutorBaseRate(b) ||
         a.tutor_code.localeCompare(b.tutor_code)
       );
     });
@@ -231,7 +238,7 @@ function TutorsDirectory() {
                 onDraftChange={setDraftParam}
                 onApply={applySearch}
                 onClear={clearAll}
-                allPrices={tutors.map((tutor) => tutor.hourly_rate)}
+                allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
                 defaultOverlayOpen={search.open === true}
                 whatsappUrl={hotlineUrl || undefined}
               />
@@ -245,7 +252,7 @@ function TutorsDirectory() {
                 onApply={applySearch}
                 onClear={clearAll}
                 resultCount={filtered.length}
-                allPrices={tutors.map((tutor) => tutor.hourly_rate)}
+                allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
                 whatsappUrl={hotlineUrl || undefined}
               />
             </div>
@@ -311,7 +318,9 @@ function TutorsDirectory() {
 
               {!isLoading && filtered.length > 0 && (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filtered.map((tut: Tutor) => (
+                  {filtered.map((tut: Tutor) => {
+                    const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
+                    return (
                     <PublicTutorCard
                       key={tut.id}
                       tutor={tut}
@@ -327,18 +336,19 @@ function TutorsDirectory() {
                             className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                           >
                             <a
-                              href={buildTutorWhatsAppUrl(whatsappNumber, tut.tutor_code)}
+                              href={inquiry.href}
                               target="_blank"
                               rel="noreferrer"
                               onClick={(event) => event.stopPropagation()}
                             >
-                              Request tutor
+                              {inquiry.label}
                             </a>
                           </Button>
                         </>
                       }
                     />
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

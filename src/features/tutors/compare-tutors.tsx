@@ -16,9 +16,10 @@ import {
   type Tutor,
 } from "@/features/tutors/queries";
 import {
-  buildTutorWhatsAppUrl,
   formatTutorCode,
   getCurriculumGroupLabel,
+  getTutorInquiryAction,
+  getTutorPriceDisplay,
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { setCompareBarVisible } from "@/lib/compare-bar";
@@ -93,12 +94,18 @@ function CompareDialog({
   const rows: { label: string; render: (t: Tutor) => React.ReactNode }[] = [
     {
       label: "Rate",
-      render: (t) => (
-        <p className="text-lg font-bold text-[color:var(--ink)]">
-          HK${t.hourly_rate}
-          <span className="ml-1 text-xs font-semibold text-muted-foreground">/hr</span>
-        </p>
-      ),
+      render: (t) => {
+        const price = getTutorPriceDisplay(t);
+        return (
+          <p className="text-lg font-bold text-[color:var(--ink)]">
+            HK${price.baseRate}
+            {price.isRange ? (
+              <span className="ml-0.5 text-xs font-semibold text-muted-foreground">up</span>
+            ) : null}
+            <span className="ml-1 text-xs font-semibold text-muted-foreground">/hr</span>
+          </p>
+        );
+      },
     },
     {
       label: "Academic background",
@@ -196,17 +203,16 @@ function CompareDialog({
     },
     {
       label: "",
-      render: (t) => (
-        <Button asChild size="sm" className="h-9 rounded-sm px-4 text-[13px] font-bold">
-          <a
-            href={buildTutorWhatsAppUrl(whatsappNumber, t.tutor_code)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Request tutor
-          </a>
-        </Button>
-      ),
+      render: (t) => {
+        const inquiry = getTutorInquiryAction(t, whatsappNumber, "en");
+        return (
+          <Button asChild size="sm" className="h-9 rounded-sm px-4 text-[13px] font-bold">
+            <a href={inquiry.href} target="_blank" rel="noreferrer">
+              {inquiry.label}
+            </a>
+          </Button>
+        );
+      },
     },
   ];
 
