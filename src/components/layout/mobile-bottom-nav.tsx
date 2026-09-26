@@ -1,9 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  Bookmark,
   Building2,
   CircleUserRound,
-  Compass,
   Globe,
   LogIn,
   Moon,
@@ -72,7 +70,16 @@ export function MobileBottomNav() {
             {isActive("/tutors") ? (
               <span className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-[color:var(--foreground)]" />
             ) : null}
-            <Compass className="h-5 w-5" aria-hidden="true" />
+            <img
+              src="/nav-find.png"
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              className={cn(
+                "h-5 w-5 shrink-0 dark:invert-[0.85] dark:hue-rotate-180",
+                !isActive("/tutors") && "opacity-55",
+              )}
+            />
             {t("nav_mobile.explore")}
           </Link>
           <Link
@@ -88,7 +95,16 @@ export function MobileBottomNav() {
             {isActive("/saved-posts") ? (
               <span className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-[color:var(--foreground)]" />
             ) : null}
-            <Bookmark className="h-5 w-5" aria-hidden="true" />
+            <img
+              src="/nav-saved.png"
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              className={cn(
+                "h-5 w-5 shrink-0 dark:invert-[0.85] dark:hue-rotate-180",
+                !isActive("/saved-posts") && "opacity-55",
+              )}
+            />
             {t("nav_mobile.saved_posts")}
           </Link>
           <button

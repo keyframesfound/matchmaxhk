@@ -181,7 +181,7 @@ export function SiteHeader({
             >
               {t("nav.how")}
             </DesktopNavLink>
-            <DesktopNavLink to="/tutors" active={isActive("/tutors")}>
+            <DesktopNavLink to="/tutors" active={isActive("/tutors")} icon="/nav-find.png">
               {t("nav.find")}
             </DesktopNavLink>
             {CENTRE_MARKET_ENABLED && (
@@ -189,7 +189,11 @@ export function SiteHeader({
                 {t("nav.courses")}
               </DesktopNavLink>
             )}
-            <DesktopNavLink to="/saved-posts" active={isActive("/saved-posts")}>
+            <DesktopNavLink
+              to="/saved-posts"
+              active={isActive("/saved-posts")}
+              icon="/nav-saved.png"
+            >
               {t("nav.saved_posts")}
             </DesktopNavLink>
             <DesktopNavLink to="/join" active={isActive("/join")} icon="/nav-become-tutor.png">
