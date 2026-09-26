@@ -369,7 +369,7 @@ function AuthPage() {
               </Button>
             </div>
           ) : (
-            <div className="flex min-h-0 flex-1 flex-col justify-center-safe overflow-y-auto py-6">
+            <div className="flex min-h-0 flex-1 flex-col justify-center-safe overflow-y-auto py-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="mb-2 flex justify-center">
                 <Logo
                   className="h-16 w-16 sm:h-20 sm:w-20"
