@@ -365,19 +365,17 @@ function HowItWorksPage() {
         <div className="mx-auto max-w-[1440px] px-5 pt-5 lg:hidden">
           <PageBackButton />
         </div>
-        <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
-          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+        <section className="mx-auto max-w-[1440px] px-5 py-20 text-center sm:px-8 sm:py-28 lg:px-12">
+          <p className="inline-flex items-center rounded-full border border-[color:var(--brand-link)]/25 bg-[color:var(--brand-link)]/10 px-4 py-1.5 text-sm font-bold text-[color:var(--brand-link)]">
             {t("hiw.hero_eyebrow")}
           </p>
-          <div className="mt-5">
-            <h1 className="max-w-2xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
-              {t("hiw.hero_title")}
-            </h1>
-          </div>
-          <p className="mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/65">
+          <h1 className="mx-auto mt-6 max-w-4xl text-5xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+            {t("hiw.hero_title")}
+          </h1>
+          <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/65">
             {t("hiw.hero_body")}
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg" variant="solid" color="accent">
               <Link to="/tutors">
                 {t("hiw.hero_cta_browse")} <ArrowRight />
