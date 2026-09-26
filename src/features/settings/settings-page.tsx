@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Bell,
   Bookmark,
+  CalendarClock,
   CircleUserRound,
   Database,
   Gift,
@@ -21,6 +22,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
 import { AccountSection } from "@/features/settings/sections/account-section";
+import { AvailabilitySection } from "@/features/settings/sections/availability-section";
 import { DangerZoneSection } from "@/features/settings/sections/danger-zone-section";
 import { GeneralSection } from "@/features/settings/sections/general-section";
 import { NotificationsSection } from "@/features/settings/sections/notifications-section";
@@ -41,6 +43,7 @@ import { cn } from "@/lib/utils";
 const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof Settings2 }> = {
   general: { labelKey: "settings.nav.general", icon: Settings2 },
   profile: { labelKey: "settings.nav.profile", icon: CircleUserRound },
+  availability: { labelKey: "settings.nav.availability", icon: CalendarClock },
   account: { labelKey: "settings.nav.account", icon: UserCog },
   security: { labelKey: "settings.nav.security", icon: KeyRound },
   notifications: { labelKey: "settings.nav.notifications", icon: Bell },
@@ -52,6 +55,7 @@ const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof S
 const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSectionProps>> = {
   general: GeneralSection,
   profile: ProfileSection,
+  availability: AvailabilitySection,
   account: AccountSection,
   security: SecuritySection,
   notifications: NotificationsSection,
@@ -94,7 +98,9 @@ export function SettingsPage() {
     const all = Object.keys(CATEGORY_META) as SettingsCategory[];
     return all.filter((category) => {
       if (category === "account" && isInternal) return false;
-      if (category === "referrals") return hasLinkedTutor;
+      // Availability and referrals are tutor-only: both need the signed-in
+      // account to be linked to a tutor card (tutors.user_id, set by admins).
+      if (category === "availability" || category === "referrals") return hasLinkedTutor;
       return true;
     });
   }, [isInternal, hasLinkedTutor]);

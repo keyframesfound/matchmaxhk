@@ -178,6 +178,10 @@ export const tutorFormSchema = z.object({
     .max(20)
     .regex(/^[A-Za-z0-9-]+$/, "Letters, numbers, and dashes only"),
   is_published: z.boolean(),
+  // Issue #106: derived availability readiness drives pre-booking badges and
+  // public listing; tutors self-serve these fields from their dashboard.
+  start_immediately: z.boolean(),
+  earliest_start_date: z.string().trim(),
   languages: z.array(z.string().trim().min(1).max(60)),
   gender: z.enum(["male", "female", "other"]),
   tutor_status: z.enum(["uni_student", "full_part_time_tutor", "examiner"]).or(z.literal("")),
@@ -223,6 +227,8 @@ export const emptyTutorForm: TutorFormData = {
   photo_url: "",
   tutor_code: "",
   is_published: true,
+  start_immediately: true,
+  earliest_start_date: "",
   languages: ["English", "Cantonese"],
   gender: "female",
   tutor_status: "",
@@ -252,6 +258,8 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     photo_url: t.photo_url ?? "",
     tutor_code: t.tutor_code ?? "",
     is_published: t.is_published ?? true,
+    start_immediately: t.start_immediately ?? true,
+    earliest_start_date: t.earliest_start_date ?? "",
     languages: t.languages ?? ["English"],
     gender: ["male", "female", "other"].includes(
       (t as unknown as { gender?: string | null }).gender ?? "",
@@ -339,6 +347,8 @@ export function formDataToPayload(v: TutorFormData) {
     photo_url: v.photo_url?.trim() || null,
     tutor_code: v.tutor_code.trim(),
     is_published: v.is_published,
+    start_immediately: v.start_immediately,
+    earliest_start_date: v.start_immediately ? null : v.earliest_start_date.trim() || null,
     languages: v.languages,
     gender: v.gender,
     tutor_status: v.tutor_status || null,
@@ -382,6 +392,10 @@ function mergeAutofillResult(prev: TutorFormData, result: TutorAutofillResult): 
       ? result.lesson_mode
       : prev.lesson_mode,
     hourly_rate: result.hourly_rate > 0 ? result.hourly_rate : prev.hourly_rate,
+    start_immediately: result.start_immediately,
+    earliest_start_date: result.start_immediately
+      ? ""
+      : (result.earliest_start_date ?? prev.earliest_start_date),
     stations:
       result.lesson_mode !== "online" && result.stations.length > 0
         ? [...new Set(result.stations)]
@@ -914,6 +928,8 @@ export function TutorEditor({
       photo_url: form.photo_url?.trim() || null,
       tutor_code: form.tutor_code.trim() || "MM-PREVIEW",
       is_published: form.is_published,
+      start_immediately: form.start_immediately,
+      earliest_start_date: form.start_immediately ? null : form.earliest_start_date || null,
       experience_years: form.experience_years === "" ? null : Number(form.experience_years),
       languages: form.languages,
       exam_results: form.exam_results
@@ -968,6 +984,13 @@ export function TutorEditor({
       if (parsed.data.lesson_mode !== "online" && parsed.data.stations.length === 0) {
         publishErrors.stations =
           "Select at least one MTR station for in-person or hybrid tutoring.";
+      }
+      if (
+        !parsed.data.start_immediately &&
+        !/^\d{4}-\d{2}-\d{2}$/.test(parsed.data.earliest_start_date)
+      ) {
+        publishErrors.earliest_start_date =
+          "Pick the earliest date you can start, or switch to available immediately.";
       }
     }
 
@@ -1277,6 +1300,48 @@ export function TutorEditor({
                   onChange={(url) => setForm({ ...form, photo_url: url })}
                 />
               </FormField>
+
+              <FormField
+                label="Earliest Availability"
+                hint="Drives the pre-booking badge and hides the tutor from public browse beyond 30 days out."
+              >
+                <ToggleGroup
+                  type="single"
+                  variant="outline"
+                  value={form.start_immediately ? "immediate" : "date"}
+                  onValueChange={(val) => {
+                    if (!val) return;
+                    setForm({
+                      ...form,
+                      start_immediately: val === "immediate",
+                      earliest_start_date: val === "immediate" ? "" : form.earliest_start_date,
+                    });
+                  }}
+                >
+                  <ToggleGroupItem value="immediate" className="text-xs">
+                    Available immediately
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="date" className="text-xs">
+                    From a specific date
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </FormField>
+
+              {!form.start_immediately ? (
+                <FormField
+                  label="Earliest Start Date"
+                  required
+                  error={errors.earliest_start_date}
+                  className="sm:max-w-xs"
+                >
+                  <Input
+                    type="date"
+                    value={form.earliest_start_date}
+                    min={new Date().toISOString().slice(0, 10)}
+                    onChange={(e) => setForm({ ...form, earliest_start_date: e.target.value })}
+                  />
+                </FormField>
+              ) : null}
             </EditorSection>
 
             {/* Referral program */}

@@ -6,6 +6,7 @@ import {
   MessageCircle,
   ArrowLeft,
   Award,
+  CalendarDays,
   Coins,
   Globe,
   Languages,
@@ -351,7 +352,7 @@ function TutorErrorComponent({ error, reset }: { error: Error; reset: () => void
 function TutorDetail() {
   const { tutor } = Route.useLoaderData();
   const navigate = useNavigate();
-  const { t: translate } = useTranslation();
+  const { t: translate, i18n } = useTranslation();
 
   const { data: whatsappNumber } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
@@ -402,9 +403,9 @@ function TutorDetail() {
   }, [allPublished, t]);
 
   const waDigits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
-  const waUrl = waDigits
-    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`I would like to request tutor ${t.tutor_code}`)}`
-    : "";
+  const inquiry = getTutorInquiryAction(t, whatsappNumber, i18n.language);
+  const waUrl = waDigits ? inquiry.href : "";
+  const availabilityReadiness = getTutorAvailabilityReadiness(t);
   const genderLabel = getTutorGenderLabel(t.gender);
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
   const subjectGroups = getTutorSubjectGroups(t).map((group) => {
@@ -554,6 +555,14 @@ function TutorDetail() {
                     <Share2 className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </div>
+                {availabilityReadiness === "pre_booking" && t.earliest_start_date ? (
+                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
+                    <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+                    {translate("tutor_card.available_from", {
+                      date: formatAvailabilityDate(t.earliest_start_date, i18n.language),
+                    })}
+                  </p>
+                ) : null}
                 {waUrl ? (
                   <Button
                     asChild
@@ -562,7 +571,7 @@ function TutorDetail() {
                     className="mt-3 w-full rounded-sm font-bold sm:w-auto"
                   >
                     <a href={waUrl} target="_blank" rel="noopener noreferrer">
-                      <MessageCircle className="mr-2 h-4 w-4" /> Request tutor
+                      <MessageCircle className="mr-2 h-4 w-4" /> {inquiry.label}
                     </a>
                   </Button>
                 ) : (
@@ -724,31 +733,45 @@ function TutorDetail() {
                 </Button>
               </div>
               <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {suggestedTutors.map((candidate) => (
-                  <PublicTutorCard
-                    key={candidate.id}
-                    tutor={candidate}
-                    priceSuffix={translate("featured.per_hour")}
-                    onOpen={(code) =>
-                      void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
-                    }
-                    footerAction={
-                      <Button
-                        asChild
-                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                      >
-                        <a
-                          href={`https://wa.me/${(whatsappNumber ?? "").replace(/[^\d]/g, "")}?text=${encodeURIComponent(`I would like to request tutor ${candidate.tutor_code}`)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(event) => event.stopPropagation()}
+                {suggestedTutors.map((candidate) => {
+                  const candidateInquiry = getTutorInquiryAction(
+                    candidate,
+                    whatsappNumber,
+                    i18n.language,
+                  );
+                  return (
+                    <PublicTutorCard
+                      key={candidate.id}
+                      tutor={candidate}
+                      priceSuffix={translate("featured.per_hour")}
+                      onOpen={(code) =>
+                        void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
+                      }
+                      footerAction={
+                        <Button
+                          asChild
+                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                         >
-                          {translate("profile.request_tutor")}
-                        </a>
-                      </Button>
-                    }
-                  />
-                ))}
+                          <a
+                            href={candidateInquiry.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            {candidateInquiry.kind === "pre_book" && candidate.earliest_start_date
+                              ? translate("tutor_card.prebook_cta", {
+                                  date: formatAvailabilityDate(
+                                    candidate.earliest_start_date,
+                                    i18n.language,
+                                  ),
+                                })
+                              : translate("profile.request_tutor")}
+                          </a>
+                        </Button>
+                      }
+                    />
+                  );
+                })}
               </div>
               <div className="mt-8 rounded-sm border border-border bg-[color:var(--surface)] px-5 py-4 sm:px-6">
                 <p className="text-sm text-muted-foreground sm:text-base">

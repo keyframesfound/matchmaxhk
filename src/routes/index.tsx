@@ -11,7 +11,7 @@ import { TutorsSearch } from "@/components/search/tutors-search";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
-import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
+import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
 import { cn } from "@/lib/utils";
 import {
   fetchPublishedTutors,
@@ -114,7 +114,7 @@ function CurriculumTutorSection({
   compareSelectedIds: string[];
   onCompareToggle: (tutor: Tutor) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [page, setPage] = useState(0);
 
   const pages: Tutor[][] = [];
@@ -128,35 +128,38 @@ function CurriculumTutorSection({
   const currentPage = Math.min(page, pages.length - 1);
   const goToPage = (next: number) => setPage(Math.max(0, Math.min(pages.length - 1, next)));
 
-  const renderTutorCard = (tutor: Tutor, className?: string) => (
-    <div key={tutor.id} className={cn("min-w-0", className)}>
-      <PublicTutorCard
-        tutor={tutor}
-        priceSuffix={priceSuffix}
-        onOpen={onOpen}
-        compareSelected={compareSelectedIds.includes(tutor.id)}
-        onCompareToggle={() => onCompareToggle(tutor)}
-        footerAction={
-          <>
-            <TutorSaveButton tutorId={tutor.id} compact />
-            <Button
-              asChild
-              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
-            >
-              <a
-                href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}
-                target="_blank"
-                rel="noreferrer"
-                onClick={(event) => event.stopPropagation()}
+  const renderTutorCard = (tutor: Tutor, className?: string) => {
+    const inquiry = getTutorInquiryAction(tutor, whatsappNumber, i18n.language);
+    return (
+      <div key={tutor.id} className={cn("min-w-0", className)}>
+        <PublicTutorCard
+          tutor={tutor}
+          priceSuffix={priceSuffix}
+          onOpen={onOpen}
+          compareSelected={compareSelectedIds.includes(tutor.id)}
+          onCompareToggle={() => onCompareToggle(tutor)}
+          footerAction={
+            <>
+              <TutorSaveButton tutorId={tutor.id} compact />
+              <Button
+                asChild
+                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
               >
-                Request tutor
-              </a>
-            </Button>
-          </>
-        }
-      />
-    </div>
-  );
+                <a
+                  href={inquiry.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {inquiry.label}
+                </a>
+              </Button>
+            </>
+          }
+        />
+      </div>
+    );
+  };
 
   const seeAllTile = (className: string) => (
     <Link

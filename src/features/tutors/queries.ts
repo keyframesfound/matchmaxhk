@@ -289,7 +289,8 @@ function normalize(
     ia_ee_tok_notes: typeof row.ia_ee_tok_notes === "string" ? row.ia_ee_tok_notes : null,
     tutor_status: typeof row.tutor_status === "string" ? row.tutor_status : null,
     start_immediately: typeof row.start_immediately === "boolean" ? row.start_immediately : null,
-    earliest_start_date: typeof row.earliest_start_date === "string" ? row.earliest_start_date : null,
+    earliest_start_date:
+      typeof row.earliest_start_date === "string" ? row.earliest_start_date : null,
     target_students: targetStudents,
     stations,
   };

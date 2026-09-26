@@ -121,6 +121,10 @@ export const tutorApplicationSchema = z
     country: z.string().trim().min(1, "Required").max(100),
     year: z.string().trim().max(40).optional().default(""),
     graduationYear: z.string().trim().max(40).optional().default(""),
+    // Issue #106: tutors pick "Immediately" or a concrete earliest start date
+    // (stored as an ISO yyyy-mm-dd string) so profiles can pre-book or hide
+    // themselves from public browse automatically.
+    startImmediately: z.boolean().default(true),
     startDate: z.string().trim().max(40).optional().default(""),
     status: z.enum(STATUS_OPTIONS),
     statusOther: z.string().trim().max(200).optional().default(""),
@@ -299,6 +303,21 @@ export const tutorApplicationSchema = z
         message: "Select at least one examining board",
       });
     }
+    if (!data.startImmediately) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(data.startDate)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["startDate"],
+          message: "Pick the date you can start taking students",
+        });
+      } else if (data.startDate < new Date().toISOString().slice(0, 10)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["startDate"],
+          message: "Pick today or a later date",
+        });
+      }
+    }
   });
 
 export type TutorApplicationInput = z.input<typeof tutorApplicationSchema>;
@@ -327,7 +346,10 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     { label: "Email", value: data.email },
     { label: "Country / region", value: data.country },
     { label: "Graduation year", value: data.graduationYear || "—" },
-    { label: "Earliest start date", value: data.startDate || "—" },
+    {
+      label: "Earliest start date",
+      value: data.startImmediately ? "Immediately" : data.startDate || "—",
+    },
     { label: "Current status", value: data.status },
     ...(data.professionalRoles.length
       ? [{ label: "Professional roles", value: data.professionalRoles.join(", ") }]

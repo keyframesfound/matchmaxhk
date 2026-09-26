@@ -47,6 +47,7 @@ export type SettingsProfile = {
 export type SettingsCategory =
   | "general"
   | "profile"
+  | "availability"
   | "account"
   | "security"
   | "notifications"
@@ -57,6 +58,7 @@ export type SettingsCategory =
 export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   "general",
   "profile",
+  "availability",
   "account",
   "security",
   "notifications",

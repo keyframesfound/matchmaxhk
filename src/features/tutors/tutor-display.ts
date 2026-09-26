@@ -130,22 +130,25 @@ export function buildTutorPreBookingWhatsAppUrl(
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
-export type TutorInquiryAction = { href: string; label: string };
+export type TutorInquiryAction = {
+  kind: "request" | "pre_book";
+  href: string;
+  label: string;
+};
 
 /**
  * Card CTA for reaching a tutor: the default inquiry, or the pre-book flavor
  * (label + date-stamped WhatsApp message) while the tutor is 8–30 days out.
+ * Surfaces with i18n'd CTAs can key off `kind` for their own default label.
  */
 export function getTutorInquiryAction(
   tutor: Pick<Tutor, "tutor_code" | "start_immediately" | "earliest_start_date">,
   whatsappNumber: string | undefined,
   language: string,
 ): TutorInquiryAction {
-  if (
-    getTutorAvailabilityReadiness(tutor) === "pre_booking" &&
-    tutor.earliest_start_date
-  ) {
+  if (getTutorAvailabilityReadiness(tutor) === "pre_booking" && tutor.earliest_start_date) {
     return {
+      kind: "pre_book",
       href: buildTutorPreBookingWhatsAppUrl(
         whatsappNumber,
         tutor.tutor_code,
@@ -155,7 +158,11 @@ export function getTutorInquiryAction(
       label: `Pre-book for ${formatAvailabilityDate(tutor.earliest_start_date, language)}`,
     };
   }
-  return { href: buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code), label: "Request tutor" };
+  return {
+    kind: "request",
+    href: buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code),
+    label: "Request tutor",
+  };
 }
 
 function normalizeSubjectKey(value: string) {

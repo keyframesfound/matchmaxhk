@@ -108,6 +108,15 @@ const autofillResultSchema = z.object({
     .catch([]),
   lesson_mode: z.enum(["online", "in_person", "either"]).catch("either"),
   hourly_rate: z.coerce.number().int().min(0).max(100000).catch(0),
+  // Issue #106: earliest availability from the application ("Immediately" or
+  // a concrete date), used to pre-fill the availability fields in the editor.
+  start_immediately: z.boolean().catch(true),
+  earliest_start_date: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .catch(null),
   stations: z.array(z.string().trim().min(1).max(80)).max(100).catch([]),
   experience_years: z.coerce.number().int().min(0).max(80).nullable().catch(null),
   languages: z.array(z.string().trim().min(1).max(60)).max(8).catch([]),
@@ -201,6 +210,8 @@ Return ONLY a JSON object with these keys:
 - exam_results (array of at most 3 objects: { system: "<system id>", subjects: [{ subject, grade, papers?: [{ label, score }] }] }). Grade formats: IB "7"-"1" (TOK/EE "A"-"E"); DSE "5**","5*","5"...; IGCSE "A* (legacy)" or "9"-"1"; A-Level "A*"-"U"; AP "5"-"1"; IELTS bands like "8.5". Only include papers when the source gives component scores (labels "Paper 1", "Paper 2", "Paper 3").
 - lesson_mode ("online" | "in_person" | "either"; "Face to face" -> in_person, "Online" -> online, "Both" -> either)
 - hourly_rate (integer HKD)
+- start_immediately (boolean; false only when the source states a concrete future earliest start date)
+- earliest_start_date (ISO "yyyy-mm-dd" from the source's earliest start date; null when starting immediately or unknown)
 - stations (array of exact MTR station names from the list below; empty if online only or unknown)
 - experience_years (integer or null)
 - languages (array e.g. ["English","Cantonese","Mandarin"])

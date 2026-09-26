@@ -737,6 +737,8 @@ type ApplicationBaseState = {
   country: string;
   countryOther: string;
   graduationYear: string;
+  startImmediately: boolean;
+  startDate: string;
   status: string;
   statusOther: string;
   medium: string[];
@@ -805,6 +807,8 @@ export function ApplicationForm() {
     country: "Hong Kong",
     countryOther: "",
     graduationYear: "",
+    startImmediately: true,
+    startDate: "",
     status: "",
     statusOther: "",
     medium: [] as string[],
@@ -1161,6 +1165,17 @@ export function ApplicationForm() {
       required("status", base.status);
       required("medium", base.medium);
       if (base.status === "Other") required("statusOther", base.statusOther.trim());
+      if (!base.startImmediately) {
+        required("startDate", base.startDate.trim());
+        if (
+          !next.startDate &&
+          base.startDate.trim() &&
+          (!/^\d{4}-\d{2}-\d{2}$/.test(base.startDate.trim()) ||
+            base.startDate.trim() < new Date().toISOString().slice(0, 10))
+        ) {
+          next.startDate = "Pick today or a later date";
+        }
+      }
       if (!next.phone && base.phone.trim() && !PHONE_REGEX.test(base.phone.trim()))
         next.phone = "Enter a valid phone / WhatsApp number (e.g. +852 9123 4567)";
       if (!next.email && base.email.trim() && !EMAIL_REGEX.test(base.email.trim()))
@@ -1348,7 +1363,8 @@ export function ApplicationForm() {
           : undefined,
         country: base.country === "Other" ? base.countryOther : base.country,
         graduationYear: base.graduationYear,
-        startDate: "",
+        startImmediately: base.startImmediately,
+        startDate: base.startImmediately ? "" : base.startDate,
         status: base.status,
         statusOther: base.statusOther,
         professionalRoles: roles,
@@ -2023,6 +2039,43 @@ export function ApplicationForm() {
                       onChange={(event) => setBaseField("graduationYear", event.target.value)}
                       placeholder="2023"
                     />
+                  </Field>
+                  <Field
+                    label="Earliest Availability"
+                    required
+                    error={fieldErrors.startDate}
+                    hint="Parents see this on your profile — pick when you can truly start."
+                  >
+                    <SingleChoice
+                      options={["Immediately", "From a specific date"]}
+                      value={base.startImmediately ? "Immediately" : "From a specific date"}
+                      onChange={(value) => {
+                        const immediate = value === "Immediately";
+                        setBaseField("startImmediately", immediate);
+                        if (immediate) setBaseField("startDate", "");
+                      }}
+                      invalid={Boolean(fieldErrors.startDate)}
+                    />
+                    {!base.startImmediately ? (
+                      <div className="mt-2">
+                        <Input
+                          type="date"
+                          className={cn(
+                            controlClassName,
+                            fieldErrors.startDate && invalidInputClassName,
+                          )}
+                          aria-invalid={fieldErrors.startDate ? true : undefined}
+                          value={base.startDate}
+                          min={new Date().toISOString().slice(0, 10)}
+                          onChange={(event) => setBaseField("startDate", event.target.value)}
+                        />
+                        {fieldErrors.startDate ? (
+                          <p className="mt-1 text-xs font-semibold text-destructive">
+                            {fieldErrors.startDate}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </Field>
                 </div>
                 <Field

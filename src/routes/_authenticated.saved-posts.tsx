@@ -21,7 +21,7 @@ import {
 import { CASE_MODE_LABEL, formatCaseBudget, formatCaseSchedule } from "@/features/cases/display";
 import { getPublicCaseBoard } from "@/lib/cases.functions";
 import { courseModeLabel, formatCoursePrice } from "@/features/courses/queries";
-import { buildTutorWhatsAppUrl } from "@/features/tutors/tutor-display";
+import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 export const Route = createFileRoute("/_authenticated/saved-posts")({
@@ -123,34 +123,37 @@ function SavedPostsPage() {
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {savedTutors.map((tutor) => (
-                  <PublicTutorCard
-                    key={tutor.id}
-                    tutor={tutor}
-                    priceSuffix="/hr"
-                    onOpen={(code) =>
-                      void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
-                    }
-                    onCompareToggle={() => toggleCompare(tutor)}
-                    compareSelected={compareIds.includes(tutor.id)}
-                    saveAction={<TutorSaveButton tutorId={tutor.id} />}
-                    footerAction={
-                      <Button
-                        asChild
-                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                      >
-                        <a
-                          href={buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code)}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(event) => event.stopPropagation()}
+                {savedTutors.map((tutor) => {
+                  const inquiry = getTutorInquiryAction(tutor, whatsappNumber, "en");
+                  return (
+                    <PublicTutorCard
+                      key={tutor.id}
+                      tutor={tutor}
+                      priceSuffix="/hr"
+                      onOpen={(code) =>
+                        void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
+                      }
+                      onCompareToggle={() => toggleCompare(tutor)}
+                      compareSelected={compareIds.includes(tutor.id)}
+                      saveAction={<TutorSaveButton tutorId={tutor.id} />}
+                      footerAction={
+                        <Button
+                          asChild
+                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                         >
-                          Request tutor
-                        </a>
-                      </Button>
-                    }
-                  />
-                ))}
+                          <a
+                            href={inquiry.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            {inquiry.label}
+                          </a>
+                        </Button>
+                      }
+                    />
+                  );
+                })}
               </div>
             )}
 
