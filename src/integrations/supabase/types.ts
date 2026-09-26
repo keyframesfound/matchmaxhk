@@ -404,6 +404,57 @@ export type Database = {
         };
         Relationships: [];
       };
+      referral_bounties: {
+        Row: {
+          amount_cents: number;
+          created_at: string;
+          id: string;
+          paid_at: string | null;
+          ready_at: string | null;
+          referring_tutor_id: string;
+          referred_tutor_id: string;
+          status: Database["public"]["Enums"]["referral_bounty_status"];
+          updated_at: string;
+        };
+        Insert: {
+          amount_cents: number;
+          created_at?: string;
+          id?: string;
+          paid_at?: string | null;
+          ready_at?: string | null;
+          referring_tutor_id: string;
+          referred_tutor_id: string;
+          status?: Database["public"]["Enums"]["referral_bounty_status"];
+          updated_at?: string;
+        };
+        Update: {
+          amount_cents?: number;
+          created_at?: string;
+          id?: string;
+          paid_at?: string | null;
+          ready_at?: string | null;
+          referring_tutor_id?: string;
+          referred_tutor_id?: string;
+          status?: Database["public"]["Enums"]["referral_bounty_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "referral_bounties_referred_tutor_id_fkey";
+            columns: ["referred_tutor_id"];
+            isOneToOne: true;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "referral_bounties_referring_tutor_id_fkey";
+            columns: ["referring_tutor_id"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       saved_cases: {
         Row: {
           case_id: string;
@@ -545,6 +596,7 @@ export type Database = {
           data: Json;
           id: string;
           purge_after: string | null;
+          referred_by: string | null;
           rejected_at: string | null;
           status: Database["public"]["Enums"]["tutor_application_status"];
           updated_at: string;
@@ -555,6 +607,7 @@ export type Database = {
           data: Json;
           id?: string;
           purge_after?: string | null;
+          referred_by?: string | null;
           rejected_at?: string | null;
           status?: Database["public"]["Enums"]["tutor_application_status"];
           updated_at?: string;
@@ -565,11 +618,20 @@ export type Database = {
           data?: Json;
           id?: string;
           purge_after?: string | null;
+          referred_by?: string | null;
           rejected_at?: string | null;
           status?: Database["public"]["Enums"]["tutor_application_status"];
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "tutor_applications_referred_by_fkey";
+            columns: ["referred_by"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       tutoring_cases: {
         Row: {
@@ -738,6 +800,8 @@ export type Database = {
           lesson_mode: Database["public"]["Enums"]["case_mode"];
           photo_url: string | null;
           qualifications_summary: string | null;
+          referral_code: string | null;
+          referred_by: string | null;
           secondary_school: string | null;
           stations: string[];
           subjects: string[];
@@ -746,6 +810,7 @@ export type Database = {
           tutor_status: string | null;
           university: string | null;
           updated_at: string;
+          user_id: string | null;
         };
         Insert: {
           achievements?: Json;
@@ -769,6 +834,8 @@ export type Database = {
           lesson_mode?: Database["public"]["Enums"]["case_mode"];
           photo_url?: string | null;
           qualifications_summary?: string | null;
+          referral_code?: string | null;
+          referred_by?: string | null;
           secondary_school?: string | null;
           stations?: string[];
           subjects?: string[];
@@ -777,6 +844,7 @@ export type Database = {
           tutor_status?: string | null;
           university?: string | null;
           updated_at?: string;
+          user_id?: string | null;
         };
         Update: {
           achievements?: Json;
@@ -800,6 +868,8 @@ export type Database = {
           lesson_mode?: Database["public"]["Enums"]["case_mode"];
           photo_url?: string | null;
           qualifications_summary?: string | null;
+          referral_code?: string | null;
+          referred_by?: string | null;
           secondary_school?: string | null;
           stations?: string[];
           subjects?: string[];
@@ -808,8 +878,24 @@ export type Database = {
           tutor_status?: string | null;
           university?: string | null;
           updated_at?: string;
+          user_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "tutors_referred_by_fkey";
+            columns: ["referred_by"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tutors_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       user_roles: {
         Row: {
@@ -839,6 +925,8 @@ export type Database = {
     Functions: {
       claim_org_memberships: { Args: never; Returns: number };
       complete_onboarding: { Args: { _choice: string }; Returns: undefined };
+      find_user_id_by_email: { Args: { _email: string }; Returns: string };
+      get_my_referral_dashboard: { Args: never; Returns: Json };
       get_org_role: {
         Args: { _org_id: string; _user_id?: string };
         Returns: Database["public"]["Enums"]["org_member_role"];
@@ -891,6 +979,7 @@ export type Database = {
       org_member_status: "pending" | "active" | "revoked";
       org_plan: "business" | "enterprise";
       org_status: "pending" | "active" | "suspended";
+      referral_bounty_status: "pending" | "ready_for_payout" | "paid";
       tutor_application_status: "pending" | "accepted" | "rejected";
     };
     CompositeTypes: {
@@ -1022,6 +1111,7 @@ export const Constants = {
       org_member_status: ["pending", "active", "revoked"],
       org_plan: ["business", "enterprise"],
       org_status: ["pending", "active", "suspended"],
+      referral_bounty_status: ["pending", "ready_for_payout", "paid"],
       tutor_application_status: ["pending", "accepted", "rejected"],
     },
   },

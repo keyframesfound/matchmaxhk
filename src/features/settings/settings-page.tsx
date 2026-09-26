@@ -6,6 +6,7 @@ import {
   Bookmark,
   CircleUserRound,
   Database,
+  Gift,
   KeyRound,
   LogOut,
   Settings2,
@@ -25,6 +26,7 @@ import { GeneralSection } from "@/features/settings/sections/general-section";
 import { NotificationsSection } from "@/features/settings/sections/notifications-section";
 import { PrivacySection } from "@/features/settings/sections/privacy-section";
 import { ProfileSection } from "@/features/settings/sections/profile-section";
+import { ReferralsSection } from "@/features/settings/sections/referrals-section";
 import { SecuritySection } from "@/features/settings/sections/security-section";
 import {
   categoryFromHash,
@@ -42,6 +44,7 @@ const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof S
   account: { labelKey: "settings.nav.account", icon: UserCog },
   security: { labelKey: "settings.nav.security", icon: KeyRound },
   notifications: { labelKey: "settings.nav.notifications", icon: Bell },
+  referrals: { labelKey: "settings.nav.referrals", icon: Gift },
   privacy: { labelKey: "settings.nav.privacy", icon: Database },
   "danger-zone": { labelKey: "settings.nav.danger", icon: Trash2 },
 };
@@ -52,6 +55,7 @@ const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSection
   account: AccountSection,
   security: SecuritySection,
   notifications: NotificationsSection,
+  referrals: ReferralsSection,
   privacy: PrivacySection,
   "danger-zone": DangerZoneSection,
 };
@@ -66,12 +70,34 @@ export function SettingsPage() {
   const activeCategory = categoryFromHash(location.hash);
   const isInternal = hasAnyRole(["admin", "staff", "super_admin"]);
 
+  const userId = user?.id;
+
+  // The referral program is tutor-only: the tab appears once the signed-in
+  // account is linked to a tutor card (tutors.user_id, set by admins).
+  const tutorLinkQuery = useQuery({
+    queryKey: ["settings", "tutor-link", userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("Not signed in");
+      const { data, error } = await supabase
+        .from("tutors")
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { id: string } | null;
+    },
+    enabled: Boolean(userId),
+  });
+  const hasLinkedTutor = Boolean(tutorLinkQuery.data);
+
   const categories = useMemo(() => {
     const all = Object.keys(CATEGORY_META) as SettingsCategory[];
-    return isInternal ? all.filter((category) => category !== "account") : all;
-  }, [isInternal]);
-
-  const userId = user?.id;
+    return all.filter((category) => {
+      if (category === "account" && isInternal) return false;
+      if (category === "referrals") return hasLinkedTutor;
+      return true;
+    });
+  }, [isInternal, hasLinkedTutor]);
 
   const profileQuery = useQuery({
     queryKey: ["settings", "profile", userId],

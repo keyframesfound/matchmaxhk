@@ -35,10 +35,26 @@
       "account": "帳戶",
       "security": "安全",
       "notifications": "通知",
+      "referrals": "推薦獎賞",
       "privacy": "私隱與資料",
       "danger": "危險區域",
       "saved_posts": "已儲存個案",
       "sign_out": "登出"
+    },
+    "referrals": {
+      "title": "推薦朋友，賺 15% 獎賞",
+      "description": "識得啲學術頂尖、可以做 MatchMax 星級導師嘅朋友？將你嘅專屬連結傳俾佢哋。佢成功開展第一個個案後，你會自動獲得配對費 15% 獎賞。推薦人數不限。",
+      "link_label": "你的專屬推薦連結",
+      "copy": "複製",
+      "copied": "已複製推薦連結",
+      "copy_error": "複製失敗，請手動選取並複製連結。",
+      "stats_title": "你的數據",
+      "friends_joined": "朋友已報名",
+      "pending": "待發放獎賞",
+      "pending_cleared": "當中 {{amount}} 已通過審核，等待 FPS 轉帳。",
+      "paid": "已發放獎賞總額",
+      "note": "當你推薦嘅朋友成功完成首位客戶嘅兩堂試教期後，待發放獎賞就會正式通過審核，以 FPS 轉帳俾你。",
+      "not_linked": "你嘅導師檔案尚未連結到此帳戶。申請獲批後，團隊會為你連結檔案，到時你嘅專屬推薦連結就會喺呢度顯示。"
     },
     "general": {
       "appearance_title": "外觀",

@@ -35,10 +35,26 @@
       "account": "Account",
       "security": "Security",
       "notifications": "Notifications",
+      "referrals": "Referrals & rewards",
       "privacy": "Privacy & data",
       "danger": "Danger zone",
       "saved_posts": "Saved Posts",
       "sign_out": "Sign out"
+    },
+    "referrals": {
+      "title": "Refer & Earn 15%",
+      "description": "Know a top-tier scholar who would make a great MatchMax tutor? Send them your unique link. When they land their first case, you automatically earn a 15% cut of the matching fee. No limits on how many friends you can invite.",
+      "link_label": "Your referral link",
+      "copy": "Copy",
+      "copied": "Referral link copied",
+      "copy_error": "Couldn't copy the link — select and copy it manually.",
+      "stats_title": "Your stats",
+      "friends_joined": "Friends joined",
+      "pending": "Bounties pending",
+      "pending_cleared": "Includes {{amount}} already cleared for FPS payout.",
+      "paid": "Total bounties paid",
+      "note": "Pending bounties are officially cleared for payout via FPS once your referred friend successfully completes the 2-lesson concierge window with their first client.",
+      "not_linked": "Your tutor profile isn't linked to this account yet. After your application is accepted, our team will connect your profile and your referral link will appear here."
     },
     "general": {
       "appearance_title": "Appearance",

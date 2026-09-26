@@ -38,6 +38,7 @@ import { Route as AuthenticatedAdminCasesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminJoinRequestsRouteImport } from './routes/_authenticated.admin.join-requests'
 import { Route as AuthenticatedAdminOrganizationsRouteImport } from './routes/_authenticated.admin.organizations'
 import { Route as AuthenticatedAdminR2RouteImport } from './routes/_authenticated.admin.r2'
+import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated.admin.referrals'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
 import { Route as AuthenticatedAdminTutorsRouteImport } from './routes/_authenticated.admin.tutors'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
@@ -196,6 +197,12 @@ const AuthenticatedAdminR2Route = AuthenticatedAdminR2RouteImport.update({
   path: '/r2',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminReferralsRoute =
+  AuthenticatedAdminReferralsRouteImport.update({
+    id: '/referrals',
+    path: '/referrals',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: '/settings',
@@ -288,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
   '/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/admin/r2': typeof AuthenticatedAdminR2Route
+  '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -328,6 +336,7 @@ export interface FileRoutesByTo {
   '/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
   '/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/admin/r2': typeof AuthenticatedAdminR2Route
+  '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -371,6 +380,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
   '/_authenticated/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/_authenticated/admin/r2': typeof AuthenticatedAdminR2Route
+  '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -414,6 +424,7 @@ export interface FileRouteTypes {
     | '/admin/join-requests'
     | '/admin/organizations'
     | '/admin/r2'
+    | '/admin/referrals'
     | '/admin/settings'
     | '/admin/tutors'
     | '/admin/users'
@@ -454,6 +465,7 @@ export interface FileRouteTypes {
     | '/admin/join-requests'
     | '/admin/organizations'
     | '/admin/r2'
+    | '/admin/referrals'
     | '/admin/settings'
     | '/admin/tutors'
     | '/admin/users'
@@ -496,6 +508,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/join-requests'
     | '/_authenticated/admin/organizations'
     | '/_authenticated/admin/r2'
+    | '/_authenticated/admin/referrals'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/tutors'
     | '/_authenticated/admin/users'
@@ -742,6 +755,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminR2RouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/referrals': {
+      id: '/_authenticated/admin/referrals'
+      path: '/referrals'
+      fullPath: '/admin/referrals'
+      preLoaderRoute: typeof AuthenticatedAdminReferralsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/settings': {
       id: '/_authenticated/admin/settings'
       path: '/settings'
@@ -827,6 +847,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminJoinRequestsRoute: typeof AuthenticatedAdminJoinRequestsRoute
   AuthenticatedAdminOrganizationsRoute: typeof AuthenticatedAdminOrganizationsRoute
   AuthenticatedAdminR2Route: typeof AuthenticatedAdminR2Route
+  AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTutorsRoute: typeof AuthenticatedAdminTutorsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
@@ -838,6 +859,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminJoinRequestsRoute: AuthenticatedAdminJoinRequestsRoute,
   AuthenticatedAdminOrganizationsRoute: AuthenticatedAdminOrganizationsRoute,
   AuthenticatedAdminR2Route: AuthenticatedAdminR2Route,
+  AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTutorsRoute: AuthenticatedAdminTutorsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,

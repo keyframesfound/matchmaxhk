@@ -153,6 +153,13 @@ export const tutorApplicationSchema = z
       .default(""),
     medium: z.string().trim().min(1, "Required").max(200),
     notes: z.string().trim().max(2000).optional().default(""),
+    referralCode: z
+      .string()
+      .trim()
+      .max(64)
+      .regex(/^[A-Za-z0-9_-]*$/, "Invalid referral code")
+      .optional()
+      .default(""),
     certificatesLater: z.boolean().default(false),
     commissionAck: z.literal(true),
     privacyAck: z.literal(true),

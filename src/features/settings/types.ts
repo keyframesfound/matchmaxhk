@@ -45,7 +45,14 @@ export type SettingsProfile = {
 };
 
 export type SettingsCategory =
-  "general" | "profile" | "account" | "security" | "notifications" | "privacy" | "danger-zone";
+  | "general"
+  | "profile"
+  | "account"
+  | "security"
+  | "notifications"
+  | "referrals"
+  | "privacy"
+  | "danger-zone";
 
 export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   "general",
@@ -53,6 +60,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   "account",
   "security",
   "notifications",
+  "referrals",
   "privacy",
   "danger-zone",
 ];

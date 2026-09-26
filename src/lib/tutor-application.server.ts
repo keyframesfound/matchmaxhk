@@ -96,6 +96,25 @@ async function uploadApplicationFile(
 }
 
 /**
+ * Resolves a referral code captured at /join to the referring tutor's id.
+ * Invalid or stale codes resolve to NULL — the application must still go
+ * through, it just loses the attribution.
+ */
+async function resolveReferringTutor(
+  supabaseAdmin: import("@supabase/supabase-js").SupabaseClient,
+  referralCode: string | undefined,
+): Promise<string | null> {
+  const code = referralCode?.trim();
+  if (!code) return null;
+  const { data } = await supabaseAdmin
+    .from("tutors")
+    .select("id")
+    .eq("referral_code", code)
+    .maybeSingle();
+  return (data as { id: string } | null)?.id ?? null;
+}
+
+/**
  * Persists a tutor application as the system of record:
  * 1. Insert the application row (status=pending) via the service-role client.
  * 2. Upload evidence attachments to R2 and link them on the row.
@@ -127,12 +146,14 @@ export async function storeTutorApplication(
   validateAttachmentBytes(attachments.map((entry) => entry.file));
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const referredBy = await resolveReferringTutor(supabaseAdmin, data.referralCode);
   const { data: inserted, error: insertError } = await supabaseAdmin
     .from("tutor_applications")
     .insert({
       status: "pending",
       data: data as unknown as Json,
       attachment_files: [],
+      referred_by: referredBy,
     })
     .select("id")
     .single();

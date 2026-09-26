@@ -243,9 +243,20 @@ function AdminTutors() {
           .eq("id", id as string);
         if (error) throw error;
       } else {
+        // Carry the referral attribution from the accepted application onto
+        // the new tutor card so the bounty flow can track it.
+        let referredBy: string | null = null;
+        if (routeSearch.applicationId) {
+          const { data: application } = await supabase
+            .from("tutor_applications")
+            .select("referred_by")
+            .eq("id", routeSearch.applicationId)
+            .maybeSingle();
+          referredBy = (application as { referred_by: string | null } | null)?.referred_by ?? null;
+        }
         const { error } = await supabase
           .from("tutors")
-          .insert({ ...payload, created_by: user?.id ?? null } as never);
+          .insert({ ...payload, created_by: user?.id ?? null, referred_by: referredBy } as never);
         if (error) throw error;
       }
     },

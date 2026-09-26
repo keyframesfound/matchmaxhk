@@ -11,6 +11,7 @@ import {
   Check,
   ChevronRight,
   ExternalLink,
+  Gift,
   GraduationCap,
   Info,
   Loader2,
@@ -21,6 +22,7 @@ import {
   Trash2,
   Upload,
   User,
+  UserCheck,
   X,
 } from "lucide-react";
 import { z } from "zod";
@@ -61,6 +63,7 @@ import {
   getSubjectOptionsForCategory,
 } from "@/features/tutors/subjects";
 import { getCurriculumGroupLabel, getTutorSubjectGroups } from "@/features/tutors/tutor-display";
+import { supabase } from "@/integrations/supabase/client";
 import {
   IA_EE_TOK_SUPPORT_OPTIONS,
   MAX_TUTOR_ACHIEVEMENTS,
@@ -741,6 +744,74 @@ export function TutorEditor({
     });
   };
 
+  // Referral program (issue #127): identity link + shareable code are managed
+  // outside the form payload — they mutate the tutors row directly.
+  const queryClient = useQueryClient();
+  const [linkEmail, setLinkEmail] = React.useState("");
+  const tutorReferralQuery = useQuery({
+    queryKey: ["admin", "tutor-referral", initialData?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tutors")
+        .select(
+          `id, referral_code, user_id,
+           referrer:tutors!tutors_referred_by_fkey(id, tutor_code, display_name)`,
+        )
+        .eq("id", initialData!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as {
+        id: string;
+        referral_code: string | null;
+        user_id: string | null;
+        referrer: { id: string; tutor_code: string; display_name: string } | null;
+      } | null;
+    },
+    enabled: Boolean(initialData?.id),
+  });
+
+  const linkAccount = useMutation({
+    mutationFn: async (email: string) => {
+      const { data: userId, error: rpcError } = await supabase.rpc("find_user_id_by_email", {
+        _email: email.trim(),
+      });
+      if (rpcError) throw rpcError;
+      if (!userId) {
+        throw new Error("No MatchMax account found with that email.");
+      }
+      const { error } = await supabase
+        .from("tutors")
+        .update({ user_id: userId } as never)
+        .eq("id", initialData!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Account linked — the tutor now sees the Referrals & Rewards tab");
+      setLinkEmail("");
+      void queryClient.invalidateQueries({
+        queryKey: ["admin", "tutor-referral", initialData?.id],
+      });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const unlinkAccount = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("tutors")
+        .update({ user_id: null } as never)
+        .eq("id", initialData!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Account unlinked");
+      void queryClient.invalidateQueries({
+        queryKey: ["admin", "tutor-referral", initialData?.id],
+      });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const locateOrigin = () => {
     if (!navigator.geolocation) {
       setLocationMessage("Location is not available in this browser. Choose a station manually.");
@@ -1145,6 +1216,93 @@ export function TutorEditor({
                   onChange={(url) => setForm({ ...form, photo_url: url })}
                 />
               </FormField>
+            </EditorSection>
+
+            {/* Referral program */}
+            <EditorSection
+              icon={Gift}
+              title="Referral Program"
+              description="Every tutor gets a unique shareable link automatically. Link their MatchMax account so the Referrals & Rewards tab appears in their dashboard."
+              id="referral"
+            >
+              {!initialData ? (
+                <p className="text-sm text-muted-foreground">
+                  The referral code is generated when the profile is created. Save the tutor first,
+                  then link their account here.
+                </p>
+              ) : (
+                <div className="space-y-5">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4">
+                      <p className="text-xs font-medium text-[color:var(--ink)]/60">
+                        Referral code
+                      </p>
+                      <p className="mt-1 font-mono text-lg font-bold text-[color:var(--ink)]">
+                        {tutorReferralQuery.data?.referral_code ?? "—"}
+                      </p>
+                      {tutorReferralQuery.data?.referral_code ? (
+                        <p className="mt-1 font-mono text-xs text-muted-foreground">
+                          matchmax.hk/join?ref={tutorReferralQuery.data.referral_code}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4">
+                      <p className="text-xs font-medium text-[color:var(--ink)]/60">Referred by</p>
+                      <p className="mt-1 text-sm font-bold text-[color:var(--ink)]">
+                        {tutorReferralQuery.data?.referrer
+                          ? `${tutorReferralQuery.data.referrer.display_name} (${tutorReferralQuery.data.referrer.tutor_code})`
+                          : "—"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-bold text-[color:var(--ink)]">
+                      Linked account
+                    </Label>
+                    {tutorReferralQuery.data?.user_id ? (
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span className="flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink)]">
+                          <UserCheck className="h-4 w-4" aria-hidden="true" />
+                          Linked — this tutor can see the Referrals &amp; Rewards tab.
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={unlinkAccount.isPending}
+                          onClick={() => unlinkAccount.mutate()}
+                        >
+                          Unlink
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                        <Input
+                          type="email"
+                          value={linkEmail}
+                          onChange={(e) => setLinkEmail(e.target.value)}
+                          placeholder="Tutor's MatchMax account email"
+                          className="sm:max-w-sm"
+                        />
+                        <Button
+                          type="button"
+                          disabled={!linkEmail.trim() || linkAccount.isPending}
+                          onClick={() => linkAccount.mutate(linkEmail)}
+                        >
+                          {linkAccount.isPending ? (
+                            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                          ) : null}
+                          Link account
+                        </Button>
+                      </div>
+                    )}
+                    <p className="mt-1.5 text-xs text-muted-foreground">
+                      Use the email the tutor signed up with — usually the one on their application.
+                    </p>
+                  </div>
+                </div>
+              )}
             </EditorSection>
 
             {/* 2. Subjects & Target Levels */}

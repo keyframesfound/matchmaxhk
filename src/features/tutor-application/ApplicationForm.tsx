@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
+  Gift,
   GraduationCap,
   LocateFixed,
   Paperclip,
@@ -768,6 +769,13 @@ type ApplicationDraft = {
 export function ApplicationForm() {
   const { t } = useTranslation();
   const submit = useServerFn(submitTutorApplication);
+  // Referral attribution: captured from ?ref= once so the code survives the
+  // multi-step wizard and is validated again as part of the submit payload.
+  const [referralCode] = useState(() => {
+    const raw = new URLSearchParams(window.location.search).get("ref") ?? "";
+    const match = /^[A-Za-z0-9_-]{1,64}$/.exec(raw.trim());
+    return match ? match[0] : "";
+  });
   const extractTranscript = useServerFn(extractTranscriptQualification);
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
@@ -1405,6 +1413,7 @@ export function ApplicationForm() {
         locations: base.stations.join(", "),
         medium: base.medium.join(", "),
         notes: "",
+        referralCode,
         certificatesLater: base.certificatesLater,
         commissionAck: base.commission,
         privacyAck: base.privacy,
@@ -1894,6 +1903,16 @@ export function ApplicationForm() {
         </ol>
 
         <div ref={stepperRef}>
+          {referralCode ? (
+            <div className="mb-6 flex items-start gap-2.5 rounded-sm border border-border bg-[color:var(--surface)] px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+              <Gift className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>
+                Applied with referral code{" "}
+                <span className="font-semibold text-[color:var(--ink)]">{referralCode}</span> — they
+                earn a 15% reward once you complete your first case.
+              </span>
+            </div>
+          ) : null}
           {error ? (
             <div
               role="alert"

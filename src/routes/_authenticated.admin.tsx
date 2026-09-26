@@ -6,6 +6,7 @@ import {
   Building2,
   ClipboardList,
   ExternalLink,
+  Gift,
   GraduationCap,
   Image as ImageIcon,
   LayoutDashboard,
@@ -29,6 +30,7 @@ const ADMIN_TITLES: { prefix: string; title: string }[] = [
   { prefix: "/admin/tutors", title: "Manage tutors" },
   { prefix: "/admin/join-requests", title: "Tutor join requests" },
   { prefix: "/admin/cases", title: "Cases" },
+  { prefix: "/admin/referrals", title: "Referrals & bounties" },
   { prefix: "/admin/users", title: "Users" },
   { prefix: "/admin/organizations", title: "Organizations" },
   { prefix: "/admin/r2", title: "R2 images" },
@@ -52,6 +54,7 @@ function useAdminNavGroups(pendingJoinRequests: number | undefined): ConsoleNavG
               : undefined,
         },
         { label: "Cases", to: "/admin/cases", icon: ClipboardList },
+        { label: "Referrals", to: "/admin/referrals", icon: Gift },
       ],
     },
     {
