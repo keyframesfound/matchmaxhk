@@ -397,8 +397,8 @@ function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="px-5 py-20 text-[#0f1419] dark:bg-[color:var(--surface-subtle)] dark:text-white sm:px-8 sm:py-28 lg:px-12">
-          <div className="mx-auto max-w-[1440px]">
+        <section className="py-20 text-[#0f1419] dark:bg-[color:var(--surface-subtle)] dark:text-white sm:py-28">
+          <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
             <div className="grid gap-6 md:grid-cols-[0.7fr_1.3fr] md:items-end">
               <div>
                 <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
