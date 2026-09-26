@@ -372,7 +372,7 @@ function HowItWorksPage() {
           <h1 className="mx-auto mt-6 max-w-4xl text-5xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
             {t("hiw.hero_title")}
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-[color:var(--ink)]/65">
+          <p className="mx-auto mt-6 max-w-4xl text-lg leading-8 text-[color:var(--ink)]/65">
             {t("hiw.hero_body")}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
