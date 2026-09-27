@@ -7,6 +7,7 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
+  Flag,
   Pencil,
   Plus,
   Search,
@@ -48,6 +49,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
+import { getTutorFlagInfo } from "@/features/tutors/field-flags";
 import {
   fetchAllTutors,
   getTutorCardHighlights,
@@ -55,6 +57,25 @@ import {
   type Tutor,
 } from "@/features/tutors/queries";
 import { TutorEditor } from "@/features/tutors/admin/TutorEditor";
+
+/** Issue #125: amber/red chip summarizing a tutor's flagged profile fields. */
+function TutorFlagChip({ flags }: { flags: Tutor["field_flags"] }) {
+  const info = getTutorFlagInfo(flags ?? {});
+  if (info.count === 0) return null;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
+        info.hasCrucial
+          ? "bg-destructive/10 text-destructive"
+          : "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+      )}
+    >
+      <Flag className="h-3 w-3" />
+      {info.count} flagged{info.hasCrucial ? " · action required" : ""}
+    </span>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/admin/tutors")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -233,15 +254,37 @@ function AdminTutors() {
     });
   }, [filtered]);
 
+  // Issue #125: internal flag notes live in the admin-only tutor_field_flags
+  // table, re-synced to the saved flag registry on every save (delete-all +
+  // re-insert; rows are tiny and admin-only).
+  const syncFieldFlagNotes = async (tutorId: string, flags: unknown, notes: unknown) => {
+    const { error: deleteError } = await supabase
+      .from("tutor_field_flags")
+      .delete()
+      .eq("tutor_id", tutorId);
+    if (deleteError) throw deleteError;
+    const flagKeys = Object.keys((flags ?? {}) as Record<string, unknown>);
+    if (flagKeys.length === 0) return;
+    const noteMap = (notes ?? {}) as Record<string, unknown>;
+    const rows = flagKeys.map((field) => ({
+      tutor_id: tutorId,
+      field,
+      note: typeof noteMap[field] === "string" ? (noteMap[field] as string).trim() : "",
+    }));
+    const { error: insertError } = await supabase.from("tutor_field_flags").insert(rows);
+    if (insertError) throw insertError;
+  };
+
   const saveMutation = useMutation({
     mutationFn: async (payload: Record<string, unknown> & { id?: string }) => {
-      if (payload.id) {
-        const { id, ...rest } = payload;
+      const { id, field_flags, field_flag_notes, ...rest } = payload;
+      if (id) {
         const { error } = await supabase
           .from("tutors")
-          .update(rest as never)
+          .update({ ...rest, field_flags: field_flags ?? {} } as never)
           .eq("id", id as string);
         if (error) throw error;
+        await syncFieldFlagNotes(id, field_flags, field_flag_notes);
       } else {
         // Carry the referral attribution from the accepted application onto
         // the new tutor card so the bounty flow can track it.
@@ -254,10 +297,18 @@ function AdminTutors() {
             .maybeSingle();
           referredBy = (application as { referred_by: string | null } | null)?.referred_by ?? null;
         }
-        const { error } = await supabase
+        const { data: created, error } = await supabase
           .from("tutors")
-          .insert({ ...payload, created_by: user?.id ?? null, referred_by: referredBy } as never);
+          .insert({
+            ...rest,
+            field_flags: field_flags ?? {},
+            created_by: user?.id ?? null,
+            referred_by: referredBy,
+          } as never)
+          .select("id")
+          .single();
         if (error) throw error;
+        await syncFieldFlagNotes((created as { id: string }).id, field_flags, field_flag_notes);
       }
     },
     onSuccess: () => {
@@ -689,6 +740,7 @@ function AdminTutors() {
                                   · {getTutorGenderLabel(row.gender)}
                                 </span>
                               )}
+                              <TutorFlagChip flags={row.field_flags} />
                             </div>
                             <div className="mt-0.5 max-w-sm space-y-0.5 text-xs text-muted-foreground">
                               {getTutorCardHighlights(row).length > 0 ? (

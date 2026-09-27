@@ -458,7 +458,11 @@ function TutorDetail() {
     void shareOrCopy(
       {
         title: `Tutor ${t.tutor_code} | MatchMax`,
-        text: `Check out tutor ${t.tutor_code} on MatchMax — HK$${price.baseRate}/hr.`,
+        // Issue #125: flagged pricing strips the rate — omit it from shares.
+        text:
+          price.baseRate > 0
+            ? `Check out tutor ${t.tutor_code} on MatchMax — HK$${price.baseRate}/hr.`
+            : `Check out tutor ${t.tutor_code} on MatchMax.`,
         url: window.location.href,
       },
       translate("profile.link_copied"),
@@ -574,17 +578,21 @@ function TutorDetail() {
               </div>
               <div className="w-full sm:w-auto sm:text-right">
                 <div className="flex items-center justify-start gap-1.5 sm:justify-end">
-                  <p className="text-3xl font-bold text-[color:var(--ink)]">
-                    HK${price.baseRate}
-                    {price.isRange ? (
+                  {/* Issue #125: flagged pricing strips the rate — hide the
+                      hero price instead of rendering HK$0. */}
+                  {price.baseRate > 0 ? (
+                    <p className="text-3xl font-bold text-[color:var(--ink)]">
+                      HK${price.baseRate}
+                      {price.isRange ? (
+                        <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                          {translate("tutor_card.price_up")}
+                        </span>
+                      ) : null}
                       <span className="ml-1 text-sm font-semibold text-muted-foreground">
-                        {translate("tutor_card.price_up")}
+                        {translate("featured.per_hour")}
                       </span>
-                    ) : null}
-                    <span className="ml-1 text-sm font-semibold text-muted-foreground">
-                      {translate("featured.per_hour")}
-                    </span>
-                  </p>
+                    </p>
+                  ) : null}
                   <TutorSaveButton tutorId={t.id} compact />
                   <Button
                     type="button"

@@ -213,7 +213,11 @@ export function PublicTutorCard({
     void shareOrCopy(
       {
         title: `Tutor ${formatTutorCode(tutor.tutor_code)} | MatchMax`,
-        text: `Check out tutor ${tutor.tutor_code} on MatchMax — HK$${price.baseRate}/hr.`,
+        // Issue #125: a flagged pricing field strips the rate — omit it.
+        text:
+          price.baseRate > 0
+            ? `Check out tutor ${tutor.tutor_code} on MatchMax — HK$${price.baseRate}/hr.`
+            : `Check out tutor ${tutor.tutor_code} on MatchMax.`,
         url: `${window.location.origin}/tutors/${tutor.tutor_code}`,
       },
       t("profile.link_copied"),
@@ -403,22 +407,27 @@ export function PublicTutorCard({
       </div>
 
       <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
-        <FitText
-          as="p"
-          maxLines={1}
-          contentKey={`${price.baseRate}-${price.isRange}-${priceSuffix}`}
-          className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
-        >
-          ${price.baseRate}
-          {price.isRange ? (
+        {price.baseRate > 0 ? (
+          <FitText
+            as="p"
+            maxLines={1}
+            contentKey={`${price.baseRate}-${price.isRange}-${priceSuffix}`}
+            className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
+          >
+            ${price.baseRate}
+            {price.isRange ? (
+              <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
+                {t("tutor_card.price_up")}
+              </span>
+            ) : null}
             <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
-              {t("tutor_card.price_up")}
+              {priceSuffix}
             </span>
-          ) : null}
-          <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
-            {priceSuffix}
-          </span>
-        </FitText>
+          </FitText>
+        ) : (
+          // Pricing flagged (issue #125) or unset: the card shows no rate.
+          <div className="flex-1" />
+        )}
         <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2">
           {onCompareToggle ? (
             <TooltipProvider delayDuration={300}>

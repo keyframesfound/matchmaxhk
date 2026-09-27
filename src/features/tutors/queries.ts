@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { isTutorPubliclyListed } from "./tutor-display";
 import { normalizeExamResults, type ExamResult } from "./examSystems";
+import { normalizeFieldFlags, stripFlaggedTutorRow, type TutorFieldFlags } from "./field-flags";
 
 export const MAX_TUTOR_ACHIEVEMENTS = 3;
 export const TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT = 60;
@@ -113,6 +114,8 @@ export type Tutor = {
   achievements: TutorAchievement[];
   ia_ee_tok_support: IaEeTokSupport[];
   ia_ee_tok_notes: string | null;
+  /** Issue #125: flagged profile fields hidden from public surfaces. */
+  field_flags: TutorFieldFlags;
 };
 
 export type TutorPhotoDefaults = {
@@ -126,7 +129,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, field_flags";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -307,6 +310,7 @@ function normalize(
       typeof row.earliest_start_date === "string" ? row.earliest_start_date : null,
     target_students: targetStudents,
     stations,
+    field_flags: normalizeFieldFlags(row.field_flags),
   };
 }
 
@@ -327,8 +331,10 @@ export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
       return query.order("created_at", { ascending: false }).limit(limit);
     },
   );
+  // Issue #125: flagged fields are stripped from the raw row before
+  // normalize() so hidden values never reach the client.
   return (data ?? [])
-    .map((row) => normalize(row, defaults))
+    .map((row) => normalize(stripFlaggedTutorRow(row), defaults))
     .filter((tutor) => isTutorPubliclyListed(tutor));
 }
 
@@ -342,7 +348,7 @@ export async function fetchPublishedTutors(): Promise<Tutor[]> {
     },
   );
   return (data ?? [])
-    .map((row) => normalize(row, defaults))
+    .map((row) => normalize(stripFlaggedTutorRow(row), defaults))
     .filter((tutor) => isTutorPubliclyListed(tutor));
 }
 
@@ -364,7 +370,9 @@ export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
       .eq("is_published", true)
       .maybeSingle(),
   );
-  return data ? normalize(data as Record<string, unknown>, defaults) : null;
+  // fetchAllTutors (admin) intentionally skips the flag strip — the admin
+  // editor must see and manage every field, flagged or not.
+  return data ? normalize(stripFlaggedTutorRow(data as Record<string, unknown>), defaults) : null;
 }
 
 export function getTutorLessonModeLabel(mode: Tutor["lesson_mode"]): string {

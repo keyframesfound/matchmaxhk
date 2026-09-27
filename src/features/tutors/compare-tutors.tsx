@@ -97,6 +97,10 @@ function CompareDialog({
       label: "Rate",
       render: (t) => {
         const price = getTutorPriceDisplay(t);
+        // Issue #125: flagged pricing strips the rate — show a dash.
+        if (price.baseRate <= 0) {
+          return <p className="text-lg font-bold text-muted-foreground">—</p>;
+        }
         return (
           <p className="text-lg font-bold text-[color:var(--ink)]">
             HK${price.baseRate}

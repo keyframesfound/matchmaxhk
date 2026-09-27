@@ -542,6 +542,38 @@ export type Database = {
           },
         ];
       };
+      tutor_field_flags: {
+        Row: {
+          created_at: string;
+          field: string;
+          note: string;
+          tutor_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          field: string;
+          note?: string;
+          tutor_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          field?: string;
+          note?: string;
+          tutor_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tutor_field_flags_tutor_id_fkey";
+            columns: ["tutor_id"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       tutor_reviews: {
         Row: {
           author_alias: string;
@@ -818,6 +850,7 @@ export type Database = {
           undergrad_graduation_year: string | null;
           postgrad_university: string | null;
           postgrad_degree: string | null;
+          field_flags: Json;
           updated_at: string;
           user_id: string | null;
         };
@@ -861,6 +894,7 @@ export type Database = {
           undergrad_graduation_year?: string | null;
           postgrad_university?: string | null;
           postgrad_degree?: string | null;
+          field_flags?: Json;
           updated_at?: string;
           user_id?: string | null;
         };
@@ -904,6 +938,7 @@ export type Database = {
           undergrad_graduation_year?: string | null;
           postgrad_university?: string | null;
           postgrad_degree?: string | null;
+          field_flags?: Json;
           updated_at?: string;
           user_id?: string | null;
         };
