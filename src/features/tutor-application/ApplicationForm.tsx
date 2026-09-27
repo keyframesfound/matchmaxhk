@@ -24,6 +24,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
+import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -45,6 +46,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormDraft } from "@/lib/use-form-draft";
+import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
 import {
   extractTranscriptQualification,
@@ -787,6 +789,9 @@ export function ApplicationForm() {
   const extractTranscript = useServerFn(extractTranscriptQualification);
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
+  // Remembered at submit time so the WhatsApp activation deep link can greet
+  // the MatchMax team with the applicant's name.
+  const [applicantName, setApplicantName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -849,6 +854,14 @@ export function ApplicationForm() {
   const professional = base.status === PROFESSIONAL_STATUS;
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
+  // Hotline digits for the Step 2 activation link; fetched once the
+  // application is submitted.
+  const whatsappDigits = useWhatsAppNumber(done);
+  const whatsappActivateHref = whatsappDigits
+    ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
+        `Hi MatchMax! I have just completed my tutor application. My name is ${applicantName}.`,
+      )}`
+    : "";
 
   const {
     restored: restoredDraft,
@@ -1460,6 +1473,7 @@ export function ApplicationForm() {
       }
       await submit({ data: parsed.data });
       clearDraft();
+      setApplicantName(base.name.trim());
       setDone(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (reason) {
@@ -1474,16 +1488,63 @@ export function ApplicationForm() {
 
   if (done)
     return (
-      <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-8 text-center sm:p-12">
-        <CheckCircle2
-          className="mx-auto h-12 w-12 text-[color:var(--muted-foreground)]"
-          aria-hidden="true"
-        />
-        <h1 className="mt-4 text-3xl font-bold text-[color:var(--ink)]">Application received</h1>
-        <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
-          Your application has been received{professional ? " securely" : ""}! Parents can directly
-          request you through the MatchMax WhatsApp hotline. Keep an eye on your messages.
-        </p>
+      <div className="grid gap-6">
+        <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-8 text-center sm:p-12">
+          <CheckCircle2
+            className="mx-auto h-12 w-12 text-[color:var(--muted-foreground)]"
+            aria-hidden="true"
+          />
+          <h1 className="mt-4 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
+            Application received
+          </h1>
+          <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
+            Your application has been received{professional ? " securely" : ""}! That’s step 1
+            complete — one quick step left to activate it.
+          </p>
+        </div>
+        <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-8 text-center sm:p-12">
+          <WhatsAppIcon
+            className="mx-auto h-12 w-12 text-[color:var(--brand-whatsapp)]"
+            aria-hidden="true"
+          />
+          <h2 className="mt-4 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
+            Step 2: Activate Your Application via WhatsApp
+          </h2>
+          <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
+            Required. WhatsApp does not let businesses message you first, so your application stays
+            inactive until you open the chat. Tap below and send the pre-filled message — it starts
+            the thread the MatchMax team will use for all your application updates.
+          </p>
+          {whatsappActivateHref ? (
+            <Button
+              asChild
+              variant="solid"
+              size="lg"
+              className="mt-6 h-12 rounded-sm bg-[color:var(--brand-whatsapp)] px-8 font-bold text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
+            >
+              <a href={whatsappActivateHref} target="_blank" rel="noreferrer">
+                <WhatsAppIcon className="mr-2 h-5 w-5" aria-hidden="true" />
+                Open WhatsApp
+              </a>
+            </Button>
+          ) : (
+            <Button
+              variant="solid"
+              size="lg"
+              disabled
+              className="mt-6 h-12 rounded-sm bg-[color:var(--brand-whatsapp)] px-8 font-bold text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
+            >
+              <WhatsAppIcon className="mr-2 h-5 w-5" aria-hidden="true" />
+              Open WhatsApp
+            </Button>
+          )}
+          {applicantName ? (
+            <p className="mx-auto mt-5 max-w-md rounded-sm border border-border bg-[color:var(--surface-subtle)] px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+              Your message will say: “Hi MatchMax! I have just completed my tutor application. My
+              name is {applicantName}.”
+            </p>
+          ) : null}
+        </div>
       </div>
     );
 
