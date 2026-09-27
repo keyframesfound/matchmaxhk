@@ -131,6 +131,8 @@ const autofillResultSchema = z.object({
     .max(MAX_TUTOR_CARD_HIGHLIGHTS + 2)
     .catch([]),
   qualifications_summary: z.string().trim().min(1).max(2000).catch(""),
+  // Issue #119: the tutor's own self-introduction, copied near-verbatim.
+  self_introduction: z.string().trim().max(2000).catch(""),
   ia_ee_tok_support: z.array(z.enum(IA_EE_TOK_SUPPORT_OPTIONS)).max(3).catch([]),
   ia_ee_tok_notes: z.string().trim().max(1000).catch(""),
   notes: z.array(z.string().trim().min(1).max(300)).max(10).catch([]),
@@ -217,6 +219,7 @@ Return ONLY a JSON object with these keys:
 - languages (array e.g. ["English","Cantonese","Mandarin"])
 - card_highlights (array of EXACTLY 1-3 strings, each <= 55 characters, headline style, no trailing period; may end with one relevant emoji; these are the tutor's strongest credential hooks)
 - qualifications_summary (markdown <= 1500 chars. House style: blocks of "**• <Award or honor title> :** <one-sentence description of what it is and why it matters>" separated by blank lines, title bold, institution names italic when natural, a relevant emoji at the end of each block. Finish with a lighter unbolded bullet about tutoring experience. NEVER invent awards, scores, scholarships, or schools that are not in the source. If the source has no awards, write a simple experience-focused summary instead.)
+- self_introduction (<= 2000 chars. Copy the source's self-introduction answer VERBATIM in the tutor's own words, preserving their paragraph breaks and language (English, Chinese, or both). Only omit any personal contact info such as phone numbers, WhatsApp, WeChat, Instagram handles or email addresses, and fix obvious typos. Empty string when the source has no self-introduction answer.)
 - ia_ee_tok_support (subset of ["IA","EE","TOK"]; only when the source clearly indicates IB coursework mentoring or examiner status)
 - ia_ee_tok_notes (short optional string)
 - notes (array of strings flagging anything uncertain, invented nothing: e.g. "University not mentioned - left blank", "Award X could not be verified from source")

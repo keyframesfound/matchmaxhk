@@ -801,6 +801,7 @@ export type Database = {
           photo_url: string | null;
           pricing_tiers: Json;
           qualifications_summary: string | null;
+          self_introduction: string | null;
           referral_code: string | null;
           referred_by: string | null;
           secondary_school: string | null;
@@ -843,6 +844,7 @@ export type Database = {
           photo_url?: string | null;
           pricing_tiers?: Json;
           qualifications_summary?: string | null;
+          self_introduction?: string | null;
           referral_code?: string | null;
           referred_by?: string | null;
           secondary_school?: string | null;
@@ -885,6 +887,7 @@ export type Database = {
           photo_url?: string | null;
           pricing_tiers?: Json;
           qualifications_summary?: string | null;
+          self_introduction?: string | null;
           referral_code?: string | null;
           referred_by?: string | null;
           secondary_school?: string | null;

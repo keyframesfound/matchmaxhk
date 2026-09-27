@@ -756,6 +756,7 @@ type ApplicationBaseState = {
   format: string;
   stations: string[];
   achievements: Achievement[];
+  selfIntroduction: string;
   hourlyRate: string;
   materials: string;
   certificatesLater: boolean;
@@ -829,6 +830,7 @@ export function ApplicationForm() {
     format: "",
     stations: [] as string[],
     achievements: [] as Achievement[],
+    selfIntroduction: "",
     hourlyRate: "",
     materials: "",
     certificatesLater: false,
@@ -1437,6 +1439,7 @@ export function ApplicationForm() {
         experience: base.achievements
           .map((achievement) => `${achievement.title}: ${achievement.description}`)
           .join("\n"),
+        selfIntroduction: base.selfIntroduction,
         hourlyRate: base.hourlyRate,
         materials: base.materials,
         format: base.format,
@@ -2920,6 +2923,27 @@ export function ApplicationForm() {
                     <Plus /> Add achievement or experience
                   </Button>
                 ) : null}
+              </div>
+              <div className="mt-6 border-t border-border pt-5">
+                <Field
+                  label="Self-Introduction / 簡介"
+                  optional
+                  hint="Write a detailed introduction for parents! Mention your teaching style, past tutoring experience, academic awards, and how you approach your lessons. You may write in English, Chinese, or both. Paragraph breaks are kept."
+                >
+                  <Textarea
+                    rows={6}
+                    maxLength={2000}
+                    value={base.selfIntroduction}
+                    onChange={(event) => setBaseField("selfIntroduction", event.target.value)}
+                    placeholder={
+                      "Hello! I am a current HKU BBA student with 3 years of experience teaching IB and DSE Mathematics.\n\nMy teaching philosophy focuses on breaking down complex concepts into simple, digestible steps. I provide custom notes, past-paper drills, and 24/7 WhatsApp support for my students.\n\nI successfully helped my last student jump from a Level 4 to a Level 5* in just one semester..."
+                    }
+                    className="w-full rounded-sm"
+                  />
+                  <p className="mt-1 text-right text-xs text-muted-foreground" aria-live="polite">
+                    {base.selfIntroduction.length}/2000
+                  </p>
+                </Field>
               </div>
             </>
           ) : null}

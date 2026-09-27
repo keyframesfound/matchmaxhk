@@ -165,6 +165,9 @@ export const tutorFormSchema = z.object({
   postgrad_degree: z.string().trim().max(120).optional().or(z.literal("")),
   secondary_school: z.string().trim().max(120).optional().or(z.literal("")),
   qualifications_summary: z.string().trim().max(1500).optional().or(z.literal("")),
+  // Issue #119: tutor-written self-introduction; admins proofread and strip
+  // personal contact info before publishing.
+  self_introduction: z.string().trim().max(2000).optional().or(z.literal("")),
   stations: z.array(z.string().trim().min(1).max(80)).max(200),
   lesson_mode: z.enum(["online", "in_person", "either"]),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
@@ -231,6 +234,7 @@ export const emptyTutorForm: TutorFormData = {
   postgrad_degree: "",
   secondary_school: "",
   qualifications_summary: "",
+  self_introduction: "",
   stations: [],
   lesson_mode: "either",
   hourly_rate: 0,
@@ -267,6 +271,7 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     postgrad_degree: t.postgrad_degree ?? "",
     secondary_school: t.secondary_school ?? "",
     qualifications_summary: t.qualifications_summary ?? "",
+    self_introduction: t.self_introduction ?? "",
     stations: t.stations ?? [],
     lesson_mode: t.lesson_mode ?? "either",
     hourly_rate: t.hourly_rate ?? 0,
@@ -356,6 +361,7 @@ export function formDataToPayload(v: TutorFormData) {
     postgrad_degree: v.has_postgrad ? v.postgrad_degree?.trim() || null : null,
     secondary_school: v.secondary_school?.trim() || null,
     qualifications_summary: v.qualifications_summary?.trim() || null,
+    self_introduction: v.self_introduction?.trim() || null,
     subjects: v.subjects,
     target_students: v.target_students,
     stations:
@@ -431,6 +437,7 @@ function mergeAutofillResult(prev: TutorFormData, result: TutorAutofillResult): 
         ? result.card_highlights.concat(["", "", ""]).slice(0, MAX_TUTOR_CARD_HIGHLIGHTS)
         : prev.card_highlights,
     qualifications_summary: result.qualifications_summary || prev.qualifications_summary,
+    self_introduction: result.self_introduction || prev.self_introduction,
     ia_ee_tok_support:
       result.ia_ee_tok_support.length > 0 ? result.ia_ee_tok_support : prev.ia_ee_tok_support,
     ia_ee_tok_notes: result.ia_ee_tok_notes || prev.ia_ee_tok_notes,
@@ -943,6 +950,7 @@ export function TutorEditor({
       secondary_school: form.secondary_school?.trim() || null,
       target_students: form.target_students,
       qualifications_summary: form.qualifications_summary?.trim() || null,
+      self_introduction: form.self_introduction?.trim() || null,
       subjects: form.subjects,
       district: null,
       stations: form.lesson_mode === "online" ? [] : form.stations,
@@ -2184,6 +2192,26 @@ export function TutorEditor({
                   placeholder="e.g. Full-time IB & DSE specialist with 5+ years experience. Proven track record guiding 30+ students to grade 7 in IB Biology and Chemistry..."
                   maxLength={1500}
                 />
+              </FormField>
+
+              {/* Issue #119: tutor-written self-introduction, shown verbatim
+                  (line breaks preserved) on the public profile when non-empty. */}
+              <FormField
+                label="Self-Introduction / 簡介 (verbatim from tutor)"
+                error={errors.self_introduction}
+                hint="Remove personal contact info · line breaks kept · blank hides the section"
+              >
+                <Textarea
+                  rows={6}
+                  maxLength={2000}
+                  value={form.self_introduction}
+                  onChange={(e) => setForm({ ...form, self_introduction: e.target.value })}
+                  placeholder="The tutor's self-introduction in their own words..."
+                  className="text-xs"
+                />
+                <p className="mt-1 text-right text-[11px] text-muted-foreground" aria-live="polite">
+                  {form.self_introduction?.length ?? 0}/2000
+                </p>
               </FormField>
 
               {/* IA / EE / TOK Mentorship */}

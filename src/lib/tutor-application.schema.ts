@@ -149,6 +149,10 @@ export const tutorApplicationSchema = z
     academicDocuments: z.array(academicDocumentSchema).max(MAX_FILES).default([]),
     profilePhoto: profilePhotoSchema.optional(),
     experience: z.string().trim().max(2000).optional().default(""),
+    // Issue #119: optional tutor-written pitch shown on the public profile
+    // once the concierge team has proofread it (2,000-char cap, line breaks
+    // preserved).
+    selfIntroduction: z.string().trim().max(2000).optional().default(""),
     hourlyRate: z.string().trim().min(1, "Required").max(20),
     materials: z.enum(MATERIALS_OPTIONS),
     format: z.enum(FORMAT_OPTIONS),
@@ -421,6 +425,7 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
           .join("\n") || "—",
     },
     { label: "Teaching / tutoring experience", value: data.experience },
+    { label: "Self-introduction", value: data.selfIntroduction || "—" },
     { label: "Profile photo", value: data.profilePhoto?.filename ?? "—" },
     { label: "Normal hourly rate (HKD)", value: data.hourlyRate },
     { label: "Teaching materials available", value: data.materials },

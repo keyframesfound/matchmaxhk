@@ -16,6 +16,7 @@ import {
   School,
   Share2,
   Sparkles,
+  User,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -435,6 +436,7 @@ function TutorDetail() {
     result.subjects.some((entry) => entry.subject.trim()),
   );
   const profileBio = t.qualifications_summary?.trim() ?? "";
+  const selfIntroduction = t.self_introduction?.trim() ?? "";
   const lessonLocation = (() => {
     const area = getTutorStationsText(t);
     return area ? `Hong Kong — ${area}` : "Hong Kong";
@@ -674,6 +676,16 @@ function TutorDetail() {
                       </ul>
                     ) : null}
                   </div>
+                </ProfileSection>
+              ) : null}
+
+              {/* Issue #119: tutor-written self-introduction; hidden entirely
+                  when blank so profiles without one keep no empty gap. */}
+              {selfIntroduction ? (
+                <ProfileSection icon={User} title={translate("profile.section_about")}>
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-[color:var(--ink)] sm:text-base">
+                    {selfIntroduction}
+                  </p>
                 </ProfileSection>
               ) : null}
 
