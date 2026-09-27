@@ -29,6 +29,7 @@ import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authentic
 import { Route as BusinessSlugRouteImport } from './routes/business.$slug'
 import { Route as CoursesIndexRouteImport } from './routes/courses.index'
 import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
+import { Route as HelpIndexRouteImport } from './routes/help.index'
 import { Route as TutorRequestsIndexRouteImport } from './routes/tutor-requests.index'
 import { Route as TutorRequestsCaseCodeRouteImport } from './routes/tutor-requests.$caseCode'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
@@ -47,6 +48,7 @@ import { Route as AuthenticatedBusinessCoursesRouteImport } from './routes/_auth
 import { Route as AuthenticatedBusinessJoinRouteImport } from './routes/_authenticated.business.join'
 import { Route as AuthenticatedBusinessSettingsRouteImport } from './routes/_authenticated.business.settings'
 import { Route as AuthenticatedBusinessTeamRouteImport } from './routes/_authenticated.business.team'
+import { Route as HelpCategorySlugRouteImport } from './routes/help.$category.$slug'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -150,6 +152,11 @@ const CoursesCourseIdRoute = CoursesCourseIdRouteImport.update({
   path: '/courses/$courseId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HelpIndexRoute = HelpIndexRouteImport.update({
+  id: '/help/',
+  path: '/help/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TutorRequestsIndexRoute = TutorRequestsIndexRouteImport.update({
   id: '/tutor-requests/',
   path: '/tutor-requests/',
@@ -250,6 +257,11 @@ const AuthenticatedBusinessTeamRoute =
     path: '/business/team',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const HelpCategorySlugRoute = HelpCategorySlugRouteImport.update({
+  id: '/help/$category/$slug',
+  path: '/help/$category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   id: '/lovable/email/auth/preview',
   path: '/lovable/email/auth/preview',
@@ -289,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/tutor-requests/$caseCode': typeof TutorRequestsCaseCodeRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses/': typeof CoursesIndexRoute
+  '/help/': typeof HelpIndexRoute
   '/tutor-requests/': typeof TutorRequestsIndexRoute
   '/tutors/': typeof TutorsIndexRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -303,6 +316,7 @@ export interface FileRoutesByFullPath {
   '/business/join': typeof AuthenticatedBusinessJoinRoute
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
+  '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/business/': typeof AuthenticatedBusinessIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -330,6 +344,7 @@ export interface FileRoutesByTo {
   '/tutor-requests/$caseCode': typeof TutorRequestsCaseCodeRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses': typeof CoursesIndexRoute
+  '/help': typeof HelpIndexRoute
   '/tutor-requests': typeof TutorRequestsIndexRoute
   '/tutors': typeof TutorsIndexRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -344,6 +359,7 @@ export interface FileRoutesByTo {
   '/business/join': typeof AuthenticatedBusinessJoinRoute
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
+  '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/business': typeof AuthenticatedBusinessIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -374,6 +390,7 @@ export interface FileRoutesById {
   '/tutor-requests/$caseCode': typeof TutorRequestsCaseCodeRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses/': typeof CoursesIndexRoute
+  '/help/': typeof HelpIndexRoute
   '/tutor-requests/': typeof TutorRequestsIndexRoute
   '/tutors/': typeof TutorsIndexRoute
   '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -388,6 +405,7 @@ export interface FileRoutesById {
   '/_authenticated/business/join': typeof AuthenticatedBusinessJoinRoute
   '/_authenticated/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/_authenticated/business/team': typeof AuthenticatedBusinessTeamRoute
+  '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/business/': typeof AuthenticatedBusinessIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -418,6 +436,7 @@ export interface FileRouteTypes {
     | '/tutor-requests/$caseCode'
     | '/tutors/$tutorCode'
     | '/courses/'
+    | '/help/'
     | '/tutor-requests/'
     | '/tutors/'
     | '/admin/cases'
@@ -432,6 +451,7 @@ export interface FileRouteTypes {
     | '/business/join'
     | '/business/settings'
     | '/business/team'
+    | '/help/$category/$slug'
     | '/admin/'
     | '/business/'
     | '/lovable/email/auth/preview'
@@ -459,6 +479,7 @@ export interface FileRouteTypes {
     | '/tutor-requests/$caseCode'
     | '/tutors/$tutorCode'
     | '/courses'
+    | '/help'
     | '/tutor-requests'
     | '/tutors'
     | '/admin/cases'
@@ -473,6 +494,7 @@ export interface FileRouteTypes {
     | '/business/join'
     | '/business/settings'
     | '/business/team'
+    | '/help/$category/$slug'
     | '/admin'
     | '/business'
     | '/lovable/email/auth/preview'
@@ -502,6 +524,7 @@ export interface FileRouteTypes {
     | '/tutor-requests/$caseCode'
     | '/tutors/$tutorCode'
     | '/courses/'
+    | '/help/'
     | '/tutor-requests/'
     | '/tutors/'
     | '/_authenticated/admin/cases'
@@ -516,6 +539,7 @@ export interface FileRouteTypes {
     | '/_authenticated/business/join'
     | '/_authenticated/business/settings'
     | '/_authenticated/business/team'
+    | '/help/$category/$slug'
     | '/_authenticated/admin/'
     | '/_authenticated/business/'
     | '/lovable/email/auth/preview'
@@ -543,8 +567,10 @@ export interface RootRouteChildren {
   TutorRequestsCaseCodeRoute: typeof TutorRequestsCaseCodeRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
   CoursesIndexRoute: typeof CoursesIndexRoute
+  HelpIndexRoute: typeof HelpIndexRoute
   TutorRequestsIndexRoute: typeof TutorRequestsIndexRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
+  HelpCategorySlugRoute: typeof HelpCategorySlugRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -692,6 +718,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoursesCourseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/help/': {
+      id: '/help/'
+      path: '/help'
+      fullPath: '/help/'
+      preLoaderRoute: typeof HelpIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tutor-requests/': {
       id: '/tutor-requests/'
       path: '/tutor-requests'
@@ -818,6 +851,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBusinessTeamRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/help/$category/$slug': {
+      id: '/help/$category/$slug'
+      path: '/help/$category/$slug'
+      fullPath: '/help/$category/$slug'
+      preLoaderRoute: typeof HelpCategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/auth/preview': {
       id: '/lovable/email/auth/preview'
       path: '/lovable/email/auth/preview'
@@ -915,8 +955,10 @@ const rootRouteChildren: RootRouteChildren = {
   TutorRequestsCaseCodeRoute: TutorRequestsCaseCodeRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
   CoursesIndexRoute: CoursesIndexRoute,
+  HelpIndexRoute: HelpIndexRoute,
   TutorRequestsIndexRoute: TutorRequestsIndexRoute,
   TutorsIndexRoute: TutorsIndexRoute,
+  HelpCategorySlugRoute: HelpCategorySlugRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,

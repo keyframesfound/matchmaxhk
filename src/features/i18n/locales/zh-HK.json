@@ -22,7 +22,8 @@
     "account_subtitle": "管理你嘅個人資料同偏好設定",
     "account_menu_label": "帳戶選單",
     "account_language": "語言",
-    "back": "返回"
+    "back": "返回",
+    "help": "幫助中心"
   },
   "settings": {
     "eyebrow": "你的帳戶",
@@ -575,6 +576,37 @@
     "gender_other": "其他",
     "available_from": "{{date}}起可上課",
     "prebook_cta": "預約 {{date}} 起"
+  },
+  "help": {
+    "title": "你好，有咩可以幫到你？",
+    "search_placeholder": "搜尋教學指南、溝通技巧同政策…",
+    "search_label": "搜尋幫助中心",
+    "clear_search": "清除搜尋",
+    "tabs_label": "按角色瀏覽幫助內容",
+    "tab_tutors": "導師專區",
+    "tab_parents": "家長及學生專區",
+    "featured_title": "新手指南",
+    "topics_title": "瀏覽全部主題",
+    "must_read": "導師必讀",
+    "coming_soon_badge": "即將推出",
+    "coming_soon_title": "指南即將推出",
+    "coming_soon_body": "我哋正在準備呢份指南。有任何疑問，歡迎透過 WhatsApp 直接聯絡協調員團隊。",
+    "results_title": "搜尋結果",
+    "results_summary": "「{{query}}」嘅搜尋結果：{{total}} 篇",
+    "no_results_title": "搵唔到「{{query}}」相關嘅結果",
+    "no_results_body": "試下其他關鍵字，或者直接聯絡我哋，我哋好樂意幫你搵啱方向。",
+    "contact_title": "需要聯絡我哋？",
+    "contact_body": "我哋嘅團隊全星期無休，為導師同家長提供支援。",
+    "contact_cta": "透過 WhatsApp 聯絡協調員",
+    "feedback_link": "畀平台意見",
+    "toc_title": "本頁內容",
+    "breadcrumb_home": "幫助中心",
+    "reading_time": "約 {{minutes}} 分鐘讀完",
+    "related_title": "相關指南",
+    "back_to_help": "返回幫助中心",
+    "audience_tutor": "導師適用",
+    "audience_parent": "家長及學生適用",
+    "audience_all": "所有人適用"
   },
   "hiw": {
     "hero_eyebrow": "MatchMax 點樣運作",

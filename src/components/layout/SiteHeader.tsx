@@ -4,6 +4,7 @@ import {
   BookOpen,
   Building2,
   ChevronsUpDown,
+  CircleHelp,
   LogOut,
   Moon,
   Settings,
@@ -42,19 +43,23 @@ type NavDestination =
   | "/saved-posts"
   | "/join"
   | "/pricing"
-  | "/tutor-requests";
+  | "/tutor-requests"
+  | "/help";
 
 /** Compact top-bar link for desktop — retained for the lg+ navigation row. */
 function DesktopNavLink({
   to,
   active,
   icon,
+  iconNode,
   children,
 }: {
   to: NavDestination;
   active: boolean;
   /** Optional icon asset (public/ path) rendered before the label. */
   icon?: string;
+  /** Optional lucide icon for links without a dedicated PNG asset. */
+  iconNode?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -77,6 +82,7 @@ function DesktopNavLink({
           className="h-4 w-4 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
         />
       ) : null}
+      {iconNode}
       {children}
       <span
         className={cn(
@@ -139,6 +145,7 @@ export function SiteHeader({
       ? [{ label: t("nav.my_business"), ariaLabel: t("nav.my_business"), to: "/business" }]
       : []),
     { label: t("nav.request_tutor"), ariaLabel: t("nav.request_tutor"), to: "/tutor-requests" },
+    { label: t("nav.help"), ariaLabel: t("nav.help"), to: "/help" },
     ...(user ? [{ label: t("nav.settings"), ariaLabel: t("nav.settings"), to: "/dashboard" }] : []),
     ...(isAdmin ? [{ label: t("nav.admin"), ariaLabel: t("nav.admin"), to: "/admin" }] : []),
   ];
@@ -210,6 +217,13 @@ export function SiteHeader({
               icon="/nav-case-board.png"
             >
               {t("nav.request_tutor")}
+            </DesktopNavLink>
+            <DesktopNavLink
+              to="/help"
+              active={isActive("/help")}
+              iconNode={<CircleHelp className="h-4 w-4 shrink-0" aria-hidden="true" />}
+            >
+              {t("nav.help")}
             </DesktopNavLink>
           </nav>
 

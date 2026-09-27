@@ -20,6 +20,7 @@ const companyLinks = [
 ] as const;
 
 const supportLinks = [
+  { key: "footer.help", to: "/help" },
   { key: "footer.home", to: "/" },
   { key: "footer.contact", href: "mailto:contact@matchmax.hk" },
 ] as const;

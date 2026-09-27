@@ -22,7 +22,8 @@
     "account_subtitle": "Manage your profile and preferences",
     "account_menu_label": "Account menu",
     "account_language": "Language",
-    "back": "Back"
+    "back": "Back",
+    "help": "Help"
   },
   "settings": {
     "eyebrow": "Your account",
@@ -553,6 +554,37 @@
     "gender_other": "Other",
     "available_from": "Available from {{date}}",
     "prebook_cta": "Pre-book for {{date}}"
+  },
+  "help": {
+    "title": "Hi, how can we help?",
+    "search_placeholder": "Search how-tos, communication tips, and policies...",
+    "search_label": "Search the Help Centre",
+    "clear_search": "Clear search",
+    "tabs_label": "Browse help by role",
+    "tab_tutors": "For Tutors",
+    "tab_parents": "For Parents & Students",
+    "featured_title": "Guides for getting started",
+    "topics_title": "Browse all topics",
+    "must_read": "Must-Read for Tutors",
+    "coming_soon_badge": "Coming soon",
+    "coming_soon_title": "Guide coming soon",
+    "coming_soon_body": "We're putting the finishing touches on this guide. In the meantime, our coordinator team can answer any questions directly on WhatsApp.",
+    "results_title": "Search results",
+    "results_summary": "{{total}} results for “{{query}}”",
+    "no_results_title": "No results for “{{query}}”",
+    "no_results_body": "Try a different keyword, or get in touch and we'll point you in the right direction.",
+    "contact_title": "Need to get in touch?",
+    "contact_body": "Our team is available 7 days a week to support tutors and parents.",
+    "contact_cta": "Contact Coordinator via WhatsApp",
+    "feedback_link": "Give platform feedback",
+    "toc_title": "On this page",
+    "breadcrumb_home": "Help Centre",
+    "reading_time": "{{minutes}} min read",
+    "related_title": "Related guides",
+    "back_to_help": "Back to Help Centre",
+    "audience_tutor": "For tutors",
+    "audience_parent": "For parents & students",
+    "audience_all": "For everyone"
   },
   "hiw": {
     "hero_eyebrow": "How MatchMax works",
