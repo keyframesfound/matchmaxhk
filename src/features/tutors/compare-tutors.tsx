@@ -18,6 +18,7 @@ import {
 import {
   formatTutorCode,
   getCurriculumGroupLabel,
+  getTutorEducationLines,
   getTutorInquiryAction,
   getTutorPriceDisplay,
   getTutorSubjectGroups,
@@ -109,24 +110,29 @@ function CompareDialog({
     },
     {
       label: "Academic background",
-      render: (t) => (
-        <div className="space-y-0.5">
-          {[t.academic_headline, t.university, t.secondary_school]
-            .filter(Boolean)
-            .slice(0, 2)
-            .map((line, index) => (
+      render: (t) => {
+        const educationLines = getTutorEducationLines(t);
+        return (
+          <div className="space-y-0.5">
+            {t.academic_headline ? (
+              <p className="text-[13px] font-semibold leading-snug text-[color:var(--ink)]">
+                {t.academic_headline}
+              </p>
+            ) : null}
+            {educationLines.map((line, index) => (
               <p
-                key={index}
+                key={`${line.icon}-${index}`}
                 className="text-[13px] font-semibold leading-snug text-[color:var(--ink)]"
               >
-                {line}
+                {line.text}
               </p>
             ))}
-          {!t.academic_headline && !t.university && !t.secondary_school ? (
-            <span className="text-sm text-muted-foreground">—</span>
-          ) : null}
-        </div>
-      ),
+            {!t.academic_headline && educationLines.length === 0 ? (
+              <span className="text-sm text-muted-foreground">—</span>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       label: "Subjects",

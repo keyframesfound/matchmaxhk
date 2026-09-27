@@ -83,7 +83,12 @@ export type Tutor = {
   headline: string | null;
   card_highlights: string[];
   academic_headline: string | null;
-  university: string | null;
+  undergrad_university: string | null;
+  undergrad_degree: string | null;
+  undergrad_graduation_year: string | null;
+  has_postgrad: boolean;
+  postgrad_university: string | null;
+  postgrad_degree: string | null;
   secondary_school: string | null;
   target_students: string[];
   qualifications_summary: string | null;
@@ -120,7 +125,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, university, secondary_school, target_students, qualifications_summary, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -278,7 +283,15 @@ function normalize(
     photo_url: resolvedPhotoUrl,
     card_highlights: normalizeTutorCardHighlights(row.card_highlights, row.headline),
     academic_headline: typeof row.academic_headline === "string" ? row.academic_headline : null,
-    university: typeof row.university === "string" ? row.university : null,
+    undergrad_university:
+      typeof row.undergrad_university === "string" ? row.undergrad_university : null,
+    undergrad_degree: typeof row.undergrad_degree === "string" ? row.undergrad_degree : null,
+    undergrad_graduation_year:
+      typeof row.undergrad_graduation_year === "string" ? row.undergrad_graduation_year : null,
+    has_postgrad: typeof row.has_postgrad === "boolean" ? row.has_postgrad : false,
+    postgrad_university:
+      typeof row.postgrad_university === "string" ? row.postgrad_university : null,
+    postgrad_degree: typeof row.postgrad_degree === "string" ? row.postgrad_degree : null,
     secondary_school: typeof row.secondary_school === "string" ? row.secondary_school : null,
     qualifications_summary:
       typeof row.qualifications_summary === "string" ? row.qualifications_summary : null,

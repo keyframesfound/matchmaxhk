@@ -527,3 +527,162 @@ export function formatTaughtSubjectLabel(
   if (prefix && prefix.toLowerCase() === base.toLowerCase()) return `${prefix}${suffix}`;
   return `${prefix ? `${prefix}: ` : ""}${base}${suffix}`;
 }
+
+// ---------------------------------------------------------------------------
+// Education formatting (issue #107): tutors may list an undergraduate plus a
+// postgraduate degree. Cards show abbreviated forms ("Edinburgh (MSc) •
+// Durham (BSc)") on a single line; the profile spells everything out.
+// ---------------------------------------------------------------------------
+
+/** Spelled-out degree names -> acronyms, matched case-insensitively. */
+const DEGREE_PHRASE_SHORT_LABELS: Record<string, string> = {
+  "bachelor of science": "BSc",
+  "bachelor of arts": "BA",
+  "bachelor of business administration": "BBA",
+  "bachelor of engineering": "BEng",
+  "bachelor of education": "BEd",
+  "bachelor of laws": "LLB",
+  "bachelor of medicine and bachelor of surgery": "MBBS",
+  "master of science": "MSc",
+  "master of arts": "MA",
+  "master of business administration": "MBA",
+  "master of engineering": "MEng",
+  "master of education": "MEd",
+  "master of laws": "LLM",
+  "master of philosophy": "MPhil",
+  "master of research": "MRes",
+  "master of public health": "MPH",
+  "master of fine arts": "MFA",
+  "doctor of philosophy": "PhD",
+  "doctor of business administration": "DBA",
+  "doctor of education": "EdD",
+  "doctor of medicine": "MD",
+};
+
+/** Acronym tokens, longest first so \b alternation matches BBA before BA. */
+const DEGREE_ACRONYMS = [
+  "MBBS",
+  "BBA",
+  "BEng",
+  "MEng",
+  "BEd",
+  "MEd",
+  "BSc",
+  "MSc",
+  "BArch",
+  "BMus",
+  "LLB",
+  "LLM",
+  "MPhil",
+  "MRes",
+  "MPH",
+  "MFA",
+  "BFA",
+  "MBA",
+  "DBA",
+  "EdD",
+  "PhD",
+  "DPhil",
+  "PGDE",
+  "PGCE",
+  "JD",
+  "MD",
+  "BA",
+  "MA",
+];
+
+const DEGREE_ACRONYM_PATTERN = new RegExp(`\\b(${DEGREE_ACRONYMS.join("|")})\\b`, "gi");
+
+const DEGREE_ACRONYM_CASE: Record<string, string> = Object.fromEntries(
+  DEGREE_ACRONYMS.map((acronym) => [acronym.toLowerCase(), acronym]),
+);
+
+/**
+ * "MSc Theoretical Physics" -> "MSc"; "BBA Global Business & BSc Computer
+ * Science" -> "BBA/BSc"; degrees without a recognisable qualification word
+ * come back unchanged so nothing is invented.
+ */
+export function shortenDegree(degree: string | null | undefined): string | null {
+  const trimmed = degree?.trim() ?? "";
+  if (!trimmed) return null;
+
+  let normalized = trimmed;
+  for (const [phrase, acronym] of Object.entries(DEGREE_PHRASE_SHORT_LABELS)) {
+    normalized = normalized.replace(new RegExp(`\\b${phrase}\\b`, "gi"), acronym);
+  }
+
+  const found: string[] = [];
+  for (const match of normalized.matchAll(DEGREE_ACRONYM_PATTERN)) {
+    const acronym = DEGREE_ACRONYM_CASE[match[1].toLowerCase()];
+    if (acronym && !found.includes(acronym)) found.push(acronym);
+  }
+
+  if (found.length === 0) return trimmed;
+  return found.slice(0, 2).join("/");
+}
+
+/**
+ * Conservative university shortener for tight card rows:
+ * "University of Edinburgh" -> "Edinburgh", "Durham University" -> "Durham".
+ * Anything it cannot strip confidently (HKUST, Imperial College London,
+ * King's College London) is returned unchanged.
+ */
+export function shortenUniversity(university: string | null | undefined): string | null {
+  const trimmed = university?.trim() ?? "";
+  if (!trimmed) return null;
+
+  let shortened = trimmed.replace(/^the\s+/i, "").replace(/^university\s+of\s+/i, "");
+  shortened = shortened.replace(/\s+university$/i, "").trim();
+  return shortened || trimmed;
+}
+
+export type TutorEducationLine = {
+  icon: "graduation" | "school";
+  text: string;
+};
+
+/**
+ * Education rows for compact surfaces (browse card, compare dialog).
+ * With a postgraduate degree the two institutions share one abbreviated
+ * line; otherwise the undergraduate row shows the full degree text. The
+ * secondary school always gets its own line.
+ */
+export function getTutorEducationLines(
+  tutor: Pick<
+    Tutor,
+    | "undergrad_university"
+    | "undergrad_degree"
+    | "has_postgrad"
+    | "postgrad_university"
+    | "postgrad_degree"
+    | "secondary_school"
+  >,
+): TutorEducationLine[] {
+  const lines: TutorEducationLine[] = [];
+  const undergradUniversity = tutor.undergrad_university?.trim() || null;
+  const undergradDegreeShort = shortenDegree(tutor.undergrad_degree);
+  const postgradUniversity = tutor.postgrad_university?.trim() || null;
+  const postgradDegreeShort = shortenDegree(tutor.postgrad_degree);
+
+  if (tutor.has_postgrad && (postgradUniversity || postgradDegreeShort)) {
+    const postgradPart = [postgradUniversity, postgradDegreeShort && `(${postgradDegreeShort})`]
+      .filter(Boolean)
+      .join(" ");
+    const undergradPart = [undergradUniversity, undergradDegreeShort && `(${undergradDegreeShort})`]
+      .filter(Boolean)
+      .join(" ");
+    const text = [postgradPart, undergradPart].filter(Boolean).join(" • ");
+    if (text) lines.push({ icon: "graduation", text });
+  } else if (undergradUniversity) {
+    const degree = tutor.undergrad_degree?.trim();
+    lines.push({
+      icon: "graduation",
+      text: degree ? `${undergradUniversity} - ${degree}` : undergradUniversity,
+    });
+  }
+
+  const secondarySchool = tutor.secondary_school?.trim();
+  if (secondarySchool) lines.push({ icon: "school", text: secondarySchool });
+
+  return lines;
+}

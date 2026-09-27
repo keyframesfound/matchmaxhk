@@ -389,7 +389,15 @@ function AdminTutors() {
       },
       { label: "Languages", value: (row) => (row.languages ?? []).join("; ") },
       { label: "Academic headline", value: (row) => row.academic_headline ?? "" },
-      { label: "University", value: (row) => row.university ?? "" },
+      { label: "Undergraduate university", value: (row) => row.undergrad_university ?? "" },
+      { label: "Undergraduate degree", value: (row) => row.undergrad_degree ?? "" },
+      {
+        label: "Postgraduate",
+        value: (row) =>
+          row.has_postgrad
+            ? [row.postgrad_university, row.postgrad_degree].filter(Boolean).join(" - ")
+            : "",
+      },
       { label: "Secondary school", value: (row) => row.secondary_school ?? "" },
       { label: "Card highlights", value: (row) => getTutorCardHighlights(row).join(" | ") },
       { label: "Published", value: (row) => (row.is_published ? "yes" : "no") },

@@ -460,6 +460,8 @@ const SECTION_LABELS = {
     "Teaching qualifications",
     "University / institution",
     "Degree / programme",
+    "Postgraduate university",
+    "Postgraduate degree / qualification",
     "High school and graduation year",
     "Primary curriculum",
     "Curricula completed",

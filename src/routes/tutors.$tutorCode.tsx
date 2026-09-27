@@ -9,9 +9,11 @@ import {
   CalendarDays,
   Coins,
   Globe,
+  GraduationCap,
   Languages,
   Layers,
   LineChart,
+  School,
   Share2,
   Sparkles,
   type LucideIcon,
@@ -61,6 +63,14 @@ function buildTutorSeoMeta(tutor: Tutor, url: string) {
   const description = `Tutor ${tutor.tutor_code} offers ${subjectText || "subject"} support${locationText}. Browse profile details, lesson mode, rates and availability on MatchMax.`;
 
   return { title, description, url };
+}
+
+/** "HKUST - BSc Mathematics" / just the institution when no degree is stored. */
+function formatInstitutionDegree(institution: string | null, degree: string | null) {
+  const school = institution?.trim() ?? "";
+  const programme = degree?.trim() ?? "";
+  if (school && programme) return `${school} - ${programme}`;
+  return school || programme;
 }
 
 function ProfileSection({
@@ -517,14 +527,45 @@ function TutorDetail() {
                     ) : null}
                   </h1>
                 </div>
-                {t.academic_headline || t.university || t.secondary_school ? (
+                {t.academic_headline || t.undergrad_university || t.secondary_school ? (
                   <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
                     {t.academic_headline ? (
                       <p className="break-words">{t.academic_headline}</p>
                     ) : null}
-                    {t.university ? <p className="break-words">{t.university}</p> : null}
+                    {t.has_postgrad && (t.postgrad_university || t.postgrad_degree) ? (
+                      <p className="flex items-start gap-1.5">
+                        <GraduationCap
+                          className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                          aria-hidden="true"
+                        />
+                        <span className="break-words">
+                          {translate("profile.education_postgraduate")}:{" "}
+                          {formatInstitutionDegree(t.postgrad_university, t.postgrad_degree)}
+                        </span>
+                      </p>
+                    ) : null}
+                    {t.undergrad_university || t.undergrad_degree ? (
+                      <p className="flex items-start gap-1.5">
+                        <GraduationCap
+                          className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                          aria-hidden="true"
+                        />
+                        <span className="break-words">
+                          {translate("profile.education_undergraduate")}:{" "}
+                          {formatInstitutionDegree(t.undergrad_university, t.undergrad_degree)}
+                        </span>
+                      </p>
+                    ) : null}
                     {t.secondary_school ? (
-                      <p className="break-words">{t.secondary_school}</p>
+                      <p className="flex items-start gap-1.5">
+                        <School
+                          className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                          aria-hidden="true"
+                        />
+                        <span className="break-words">
+                          {translate("profile.education_secondary")}: {t.secondary_school}
+                        </span>
+                      </p>
                     ) : null}
                   </div>
                 ) : null}

@@ -133,6 +133,10 @@ export const tutorApplicationSchema = z
     teachingQualifications: z.array(z.enum(TEACHING_QUALIFICATION_OPTIONS)).default([]),
     university: z.string().trim().max(200).optional().default(""),
     programme: z.string().trim().max(200).optional().default(""),
+    // Issue #107: optional Master's / postgraduate / dual-degree history.
+    hasPostgrad: z.boolean().default(false),
+    postgradUniversity: z.string().trim().max(200).optional().default(""),
+    postgradDegree: z.string().trim().max(200).optional().default(""),
     studentCard: attachmentSchema.optional(),
     highSchool: z.string().trim().min(1, "Required").max(200),
     curriculum: z.enum(CURRICULUM_OPTIONS),
@@ -200,6 +204,23 @@ export const tutorApplicationSchema = z
           code: z.ZodIssueCode.custom,
           path: ["studentCard"],
           message: "Upload your student ID card as evidence of your university and major",
+        });
+      }
+    }
+
+    if (data.hasPostgrad) {
+      if (!data.postgradUniversity) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["postgradUniversity"],
+          message: "Required",
+        });
+      }
+      if (!data.postgradDegree) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["postgradDegree"],
+          message: "Required",
         });
       }
     }
@@ -362,6 +383,15 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
       : []),
     { label: "University / institution", value: data.university || "—" },
     { label: "Degree / programme", value: data.programme || "—" },
+    ...(data.hasPostgrad
+      ? [
+          { label: "Postgraduate university", value: data.postgradUniversity || "—" },
+          {
+            label: "Postgraduate degree / qualification",
+            value: data.postgradDegree || "—",
+          },
+        ]
+      : []),
     { label: "Student ID card", value: data.studentCard?.filename ?? "—" },
     { label: "Current year of study", value: data.year || "—" },
     { label: "High school and graduation year", value: data.highSchool },

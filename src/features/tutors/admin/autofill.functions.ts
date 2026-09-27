@@ -93,7 +93,7 @@ const autofillResultSchema = z.object({
     .catch(""),
   gender: z.enum(["male", "female", "other"]).catch("other"),
   academic_headline: z.string().trim().max(200).catch(""),
-  university: z.string().trim().max(200).catch(""),
+  undergrad_university: z.string().trim().max(200).catch(""),
   secondary_school: z.string().trim().max(200).catch(""),
   subjects: z.array(z.string().trim().min(1).max(80)).max(20).catch([]),
   target_students: z.array(z.string().trim().min(1).max(80)).max(10).catch([]),
@@ -142,7 +142,7 @@ const STYLE_COLUMNS = [
   "tutor_code",
   "gender",
   "academic_headline",
-  "university",
+  "undergrad_university",
   "secondary_school",
   "subjects",
   "target_students",
@@ -203,7 +203,7 @@ Return ONLY a JSON object with these keys:
 - tutor_code (suggest "${suggestedCode}" unless the source specifies a code)
 - gender ("male" | "female" | "other")
 - academic_headline (string <= 120 chars, e.g. "IBDP 44/45", "HKDSE Best 5: 32", "Official IB Maths Examiner & School Teacher")
-- university (short name e.g. "HKU", "CUHK", "University College London"; empty if unknown)
+- undergrad_university (short name e.g. "HKU", "CUHK", "University College London"; empty if unknown)
 - secondary_school (empty if unknown)
 - subjects (array of teachable subject names, using the exam-system vocabulary below where possible, or the curriculum subject vocabulary for primary school, junior secondary, and admissions/test-prep support)
 - target_students (subset of: Primary, Junior Secondary, IBDP, IGCSE, HKDSE, A-Level, AP, SAT, Admissions, University, Adult learners)
@@ -254,7 +254,7 @@ export const generateTutorAutofill = createServerFn({ method: "POST" })
     const { data: tutorRows, error: tutorError } = await context.supabase
       .from("tutors")
       .select(
-        "tutor_code, gender, academic_headline, university, secondary_school, subjects, target_students, exam_results, lesson_mode, hourly_rate, stations, experience_years, languages, card_highlights, qualifications_summary, ia_ee_tok_support",
+        "tutor_code, gender, academic_headline, undergrad_university, secondary_school, subjects, target_students, exam_results, lesson_mode, hourly_rate, stations, experience_years, languages, card_highlights, qualifications_summary, ia_ee_tok_support",
       )
       .eq("is_published", true)
       .gt("hourly_rate", 0)

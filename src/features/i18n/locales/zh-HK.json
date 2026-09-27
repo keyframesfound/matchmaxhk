@@ -531,6 +531,9 @@
   "profile": {
     "verified": "已核實",
     "verified_detail": "成績表已核對",
+    "education_postgraduate": "研究院",
+    "education_undergraduate": "學士",
+    "education_secondary": "中學",
     "section_academic": "核心學術成績",
     "section_achievements": "成就同經驗",
     "section_subjects": "教授科目",

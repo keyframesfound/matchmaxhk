@@ -509,6 +509,9 @@
   "profile": {
     "verified": "Verified",
     "verified_detail": "Transcript checked",
+    "education_postgraduate": "Postgraduate",
+    "education_undergraduate": "Undergraduate",
+    "education_secondary": "Secondary School",
     "section_academic": "Core Academic Breakdown",
     "section_achievements": "Achievement & Experience",
     "section_subjects": "Subjects Taught",

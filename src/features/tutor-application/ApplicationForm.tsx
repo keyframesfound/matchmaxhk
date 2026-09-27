@@ -290,6 +290,8 @@ const FIELD_LABELS: Record<string, string> = {
   statusOther: "Current Status — specify",
   university: "University / Institution",
   programme: "Degree / Programme Major",
+  postgradUniversity: "Postgraduate University / Institution",
+  postgradDegree: "Postgraduate Degree / Qualification",
   studentCard: "Student ID card (evidence of university and major)",
   medium: "Medium of Instruction",
   roles: "Professional Role",
@@ -745,6 +747,9 @@ type ApplicationBaseState = {
   highSchool: string;
   university: string;
   programme: string;
+  hasPostgrad: boolean;
+  postgradUniversity: string;
+  postgradDegree: string;
   studentCard: File | null;
   year: string;
   subjectsTaught: string[];
@@ -815,6 +820,9 @@ export function ApplicationForm() {
     highSchool: "",
     university: "",
     programme: "",
+    hasPostgrad: false,
+    postgradUniversity: "",
+    postgradDegree: "",
     studentCard: null,
     year: "",
     subjectsTaught: [] as string[],
@@ -1192,6 +1200,10 @@ export function ApplicationForm() {
         required("year", base.year.trim());
         required("university", base.university.trim());
         required("programme", base.programme.trim());
+        if (base.hasPostgrad) {
+          required("postgradUniversity", base.postgradUniversity.trim());
+          required("postgradDegree", base.postgradDegree.trim());
+        }
         required("studentCard", base.studentCard);
         qualifications.forEach((qualification, index) => {
           required(`curriculum-${index}`, qualification.curriculum);
@@ -1372,6 +1384,9 @@ export function ApplicationForm() {
         teachingQualifications: credentials,
         university: base.university,
         programme: base.programme,
+        hasPostgrad: base.hasPostgrad,
+        postgradUniversity: base.hasPostgrad ? base.postgradUniversity : "",
+        postgradDegree: base.hasPostgrad ? base.postgradDegree : "",
         studentCard: base.studentCard
           ? {
               filename: base.studentCard.name,
@@ -2196,6 +2211,51 @@ export function ApplicationForm() {
                     placeholder="BBA Global Business & BSc Computer Science"
                   />
                 </Field>
+                {!professional ? (
+                  <div className="sm:col-span-2">
+                    <label className="flex cursor-pointer items-center gap-2 text-sm text-[color:var(--ink)]">
+                      <Checkbox
+                        checked={base.hasPostgrad}
+                        onCheckedChange={(checked) => {
+                          setBaseField("hasPostgrad", checked === true);
+                          if (!checked) {
+                            clearFieldError("postgradUniversity");
+                            clearFieldError("postgradDegree");
+                          }
+                        }}
+                      />
+                      <span>
+                        I hold or am pursuing a Master&apos;s / Postgraduate / Dual Degree
+                      </span>
+                    </label>
+                  </div>
+                ) : null}
+                {base.hasPostgrad ? (
+                  <>
+                    <Field
+                      label="Postgraduate University / Institution"
+                      required
+                      error={fieldErrors.postgradUniversity}
+                    >
+                      <Input
+                        value={base.postgradUniversity}
+                        onChange={(event) => setBaseField("postgradUniversity", event.target.value)}
+                        placeholder="University of Edinburgh"
+                      />
+                    </Field>
+                    <Field
+                      label="Postgraduate Degree / Qualification"
+                      required
+                      error={fieldErrors.postgradDegree}
+                    >
+                      <Input
+                        value={base.postgradDegree}
+                        onChange={(event) => setBaseField("postgradDegree", event.target.value)}
+                        placeholder="MSc Theoretical Physics"
+                      />
+                    </Field>
+                  </>
+                ) : null}
                 {!professional ? (
                   <Field
                     label="Student ID Card"

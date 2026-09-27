@@ -1,12 +1,23 @@
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Award, BookOpen, CalendarDays, Check, Columns2, Share2, UserRound } from "lucide-react";
+import {
+  Award,
+  BookOpen,
+  CalendarDays,
+  Check,
+  Columns2,
+  GraduationCap,
+  School,
+  Share2,
+  UserRound,
+} from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getTutorCardHighlights, type Tutor } from "@/features/tutors/queries";
 import {
   formatAvailabilityDate,
   formatTutorCode,
   getTutorAvailabilityReadiness,
+  getTutorEducationLines,
   getTutorPriceDisplay,
   getTutorSubjectChips,
   type TutorSubjectChip,
@@ -124,14 +135,15 @@ export function PublicTutorCard({
   }) as string;
   const primaryCredential = removeEmoji(
     tutor.academic_headline ??
-      tutor.university ??
+      tutor.undergrad_university ??
       tutor.secondary_school ??
       t("tutor_card.verified_fallback"),
   );
-  const supportingCredentials = [tutor.university, tutor.secondary_school]
-    .map((value) => (value ? removeEmoji(value) : ""))
-    .filter((value) => value && value !== primaryCredential)
-    .slice(0, 2);
+  // Issue #107: degree line (postgrad • undergrad) + secondary school, each
+  // clamped to one line so cards in the browse grid keep a uniform header.
+  const educationLines = getTutorEducationLines(tutor).filter(
+    (line) => removeEmoji(line.text) !== primaryCredential,
+  );
 
   useEffect(() => {
     setAreAcademicChipsExpanded(false);
@@ -264,12 +276,23 @@ export function PublicTutorCard({
             >
               {primaryCredential}
             </FitText>
-            {supportingCredentials.map((credential, index) => (
+            {educationLines.map((line, index) => (
               <p
-                key={`${credential}-${index}`}
-                className="mt-1 text-xs leading-snug text-muted-foreground"
+                key={`${line.icon}-${index}`}
+                className="mt-1 flex min-w-0 items-center gap-1.5 text-xs leading-snug text-muted-foreground"
               >
-                {credential}
+                {line.icon === "graduation" ? (
+                  <GraduationCap
+                    className="h-3 w-3 shrink-0 text-[color:var(--brand-link)]"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <School
+                    className="h-3 w-3 shrink-0 text-[color:var(--brand-link)]"
+                    aria-hidden="true"
+                  />
+                )}
+                <span className="truncate">{removeEmoji(line.text)}</span>
               </p>
             ))}
           </div>

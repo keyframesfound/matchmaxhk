@@ -156,7 +156,13 @@ export const tutorFormSchema = z.object({
   subjects: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one subject"),
   target_students: z.array(z.string().trim().min(1).max(80)),
   academic_headline: z.string().trim().max(120).optional().or(z.literal("")),
-  university: z.string().trim().max(120).optional().or(z.literal("")),
+  // Issue #107: undergraduate + optional postgraduate degree history.
+  undergrad_university: z.string().trim().max(120).optional().or(z.literal("")),
+  undergrad_degree: z.string().trim().max(120).optional().or(z.literal("")),
+  undergrad_graduation_year: z.string().trim().max(40).optional().or(z.literal("")),
+  has_postgrad: z.boolean(),
+  postgrad_university: z.string().trim().max(120).optional().or(z.literal("")),
+  postgrad_degree: z.string().trim().max(120).optional().or(z.literal("")),
   secondary_school: z.string().trim().max(120).optional().or(z.literal("")),
   qualifications_summary: z.string().trim().max(1500).optional().or(z.literal("")),
   stations: z.array(z.string().trim().min(1).max(80)).max(200),
@@ -217,7 +223,12 @@ export const emptyTutorForm: TutorFormData = {
   subjects: [],
   target_students: [],
   academic_headline: "",
-  university: "",
+  undergrad_university: "",
+  undergrad_degree: "",
+  undergrad_graduation_year: "",
+  has_postgrad: false,
+  postgrad_university: "",
+  postgrad_degree: "",
   secondary_school: "",
   qualifications_summary: "",
   stations: [],
@@ -248,7 +259,12 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     subjects: t.subjects ?? [],
     target_students: t.target_students ?? [],
     academic_headline: t.academic_headline ?? "",
-    university: t.university ?? "",
+    undergrad_university: t.undergrad_university ?? "",
+    undergrad_degree: t.undergrad_degree ?? "",
+    undergrad_graduation_year: t.undergrad_graduation_year ?? "",
+    has_postgrad: t.has_postgrad ?? false,
+    postgrad_university: t.postgrad_university ?? "",
+    postgrad_degree: t.postgrad_degree ?? "",
     secondary_school: t.secondary_school ?? "",
     qualifications_summary: t.qualifications_summary ?? "",
     stations: t.stations ?? [],
@@ -332,7 +348,12 @@ export function formDataToPayload(v: TutorFormData) {
       .filter(Boolean)
       .slice(0, MAX_TUTOR_CARD_HIGHLIGHTS),
     academic_headline: v.academic_headline?.trim() || null,
-    university: v.university?.trim() || null,
+    undergrad_university: v.undergrad_university?.trim() || null,
+    undergrad_degree: v.undergrad_degree?.trim() || null,
+    undergrad_graduation_year: v.undergrad_graduation_year?.trim() || null,
+    has_postgrad: v.has_postgrad,
+    postgrad_university: v.has_postgrad ? v.postgrad_university?.trim() || null : null,
+    postgrad_degree: v.has_postgrad ? v.postgrad_degree?.trim() || null : null,
     secondary_school: v.secondary_school?.trim() || null,
     qualifications_summary: v.qualifications_summary?.trim() || null,
     subjects: v.subjects,
@@ -380,7 +401,7 @@ function mergeAutofillResult(prev: TutorFormData, result: TutorAutofillResult): 
       ? (result.gender as TutorFormData["gender"])
       : prev.gender,
     academic_headline: result.academic_headline || prev.academic_headline,
-    university: result.university || prev.university,
+    undergrad_university: result.undergrad_university || prev.undergrad_university,
     secondary_school: result.secondary_school || prev.secondary_school,
     subjects: result.subjects.length > 0 ? result.subjects.slice(0, 20) : prev.subjects,
     target_students:
@@ -913,7 +934,12 @@ export function TutorEditor({
         .filter(Boolean)
         .slice(0, MAX_TUTOR_CARD_HIGHLIGHTS),
       academic_headline: form.academic_headline?.trim() || null,
-      university: form.university?.trim() || null,
+      undergrad_university: form.undergrad_university?.trim() || null,
+      undergrad_degree: form.undergrad_degree?.trim() || null,
+      undergrad_graduation_year: form.undergrad_graduation_year?.trim() || null,
+      has_postgrad: form.has_postgrad,
+      postgrad_university: form.has_postgrad ? form.postgrad_university?.trim() || null : null,
+      postgrad_degree: form.has_postgrad ? form.postgrad_degree?.trim() || null : null,
       secondary_school: form.secondary_school?.trim() || null,
       target_students: form.target_students,
       qualifications_summary: form.qualifications_summary?.trim() || null,
@@ -969,11 +995,11 @@ export function TutorEditor({
     if (parsed.data.is_published) {
       if (
         !(parsed.data.academic_headline ?? "").trim() &&
-        !(parsed.data.university ?? "").trim() &&
+        !(parsed.data.undergrad_university ?? "").trim() &&
         !(parsed.data.secondary_school ?? "").trim()
       ) {
         publishErrors.academic_headline =
-          "Add an academic headline, university, or secondary school before publishing.";
+          "Add an academic headline, undergraduate university, or secondary school before publishing.";
       }
       if (
         !(parsed.data.qualifications_summary ?? "").trim() &&
@@ -1270,13 +1296,13 @@ export function TutorEditor({
                 </FormField>
 
                 <FormField
-                  label="University"
-                  error={errors.university}
-                  hint="Current tertiary institution"
+                  label="Undergraduate University"
+                  error={errors.undergrad_university}
+                  hint="Undergrad tertiary institution"
                 >
                   <Input
-                    value={form.university}
-                    onChange={(e) => setForm({ ...form, university: e.target.value })}
+                    value={form.undergrad_university}
+                    onChange={(e) => setForm({ ...form, undergrad_university: e.target.value })}
                     placeholder="e.g. The University of Hong Kong"
                   />
                 </FormField>
@@ -1292,6 +1318,66 @@ export function TutorEditor({
                     placeholder="e.g. Diocesan Boys' School"
                   />
                 </FormField>
+
+                <FormField
+                  label="Undergraduate Degree"
+                  error={errors.undergrad_degree}
+                  hint="Degree / programme major"
+                >
+                  <Input
+                    value={form.undergrad_degree}
+                    onChange={(e) => setForm({ ...form, undergrad_degree: e.target.value })}
+                    placeholder="e.g. BSc Theoretical Physics"
+                  />
+                </FormField>
+
+                <FormField label="Graduation Year" error={errors.undergrad_graduation_year}>
+                  <Input
+                    value={form.undergrad_graduation_year}
+                    onChange={(e) =>
+                      setForm({ ...form, undergrad_graduation_year: e.target.value })
+                    }
+                    placeholder="e.g. 2023"
+                  />
+                </FormField>
+              </div>
+
+              <div className="rounded-sm border border-border p-4">
+                <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-[color:var(--ink)]">
+                  <Checkbox
+                    checked={form.has_postgrad}
+                    onCheckedChange={(checked) =>
+                      setForm({ ...form, has_postgrad: checked === true })
+                    }
+                  />
+                  <span>Master&apos;s / Postgraduate / Dual Degree</span>
+                </label>
+                {form.has_postgrad ? (
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      label="Postgraduate University"
+                      error={errors.postgrad_university}
+                      hint="Shown abbreviated on cards"
+                    >
+                      <Input
+                        value={form.postgrad_university}
+                        onChange={(e) => setForm({ ...form, postgrad_university: e.target.value })}
+                        placeholder="e.g. University of Edinburgh"
+                      />
+                    </FormField>
+                    <FormField
+                      label="Postgraduate Degree"
+                      error={errors.postgrad_degree}
+                      hint="Cards abbreviate to MSc / MA / PhD etc."
+                    >
+                      <Input
+                        value={form.postgrad_degree}
+                        onChange={(e) => setForm({ ...form, postgrad_degree: e.target.value })}
+                        placeholder="e.g. MSc Theoretical Physics"
+                      />
+                    </FormField>
+                  </div>
+                ) : null}
               </div>
 
               <FormField label="Profile Photo" error={errors.photo_url}>
