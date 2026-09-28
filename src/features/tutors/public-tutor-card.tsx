@@ -144,8 +144,8 @@ export function PublicTutorCard({
       tutor.secondary_school ??
       t("tutor_card.verified_fallback"),
   );
-  // Issue #107: degree line (postgrad • undergrad) + secondary school, each
-  // clamped to one line so cards in the browse grid keep a uniform header.
+  // Issue #107: degree line (postgrad • undergrad) + secondary school. Issue
+  // #138: each school/uni line may wrap to two lines instead of truncating.
   const educationLines = getTutorEducationLines(tutor).filter(
     (line) => removeEmoji(line.text) !== primaryCredential,
   );
@@ -305,7 +305,7 @@ export function PublicTutorCard({
                     aria-hidden="true"
                   />
                 )}
-                <span className="truncate">{removeEmoji(line.text)}</span>
+                <span className="min-w-0 break-words line-clamp-2">{removeEmoji(line.text)}</span>
               </p>
             ))}
           </div>
@@ -381,7 +381,7 @@ export function PublicTutorCard({
           </h3>
 
           {tutor.achievements.length > 0 ? (
-            <ul className="mt-1.5 space-y-1.5">
+            <ul className="mt-1.5 list-disc space-y-1.5 pl-4 marker:text-[color:var(--brand-link)]">
               {tutor.achievements.slice(0, 3).map((achievement, index) => (
                 <FitText
                   key={`${achievement.short_text}-${index}`}
@@ -397,7 +397,10 @@ export function PublicTutorCard({
             </ul>
           ) : null}
 
-          <ul className="mt-2.5 space-y-1 md:mt-3" aria-label={t("tutor_card.highlights_label")}>
+          <ul
+            className="mt-2.5 list-disc space-y-1 pl-4 marker:text-[color:var(--brand-link)] md:mt-3"
+            aria-label={t("tutor_card.highlights_label")}
+          >
             {(cardHighlights.length > 0
               ? cardHighlights
               : [t("tutor_card.highlight_fallback")]
