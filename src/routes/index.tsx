@@ -423,7 +423,7 @@ function Landing() {
 
       <section className="relative pt-2 pb-10 md:pt-10 md:pb-16">
         <div className="mx-auto max-w-[1440px] px-4 md:px-6">
-          <div className="relative z-20 p-2.5 sm:p-5 lg:bg-card">
+          <div className="relative z-20 py-2.5 sm:p-5">
             <TutorsSearch
               draft={homeSearch}
               onDraftChange={setHomeSearchParam}

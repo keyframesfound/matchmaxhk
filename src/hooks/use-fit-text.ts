@@ -3,6 +3,8 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 type UseFitTextOptions = {
   maxLines?: 1 | 2;
   contentKey?: string | number;
+  /** Upper bound for single-line text growing into spare width (defaults to no growth). */
+  maxFontSizePx?: number;
 };
 
 const MIN_FONT_SIZE_PX = 6;
@@ -15,6 +17,7 @@ const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : us
 export function useFitText<T extends HTMLElement = HTMLElement>({
   maxLines = 1,
   contentKey,
+  maxFontSizePx,
 }: UseFitTextOptions = {}) {
   const ref = useRef<T | null>(null);
 
@@ -43,17 +46,31 @@ export function useFitText<T extends HTMLElement = HTMLElement>({
       }
     };
 
+    const fits = () =>
+      maxLines === 1
+        ? el.scrollWidth <= el.clientWidth + FIT_TOLERANCE_PX
+        : el.scrollHeight <= el.clientHeight + FIT_TOLERANCE_PX;
+
     let size = baseSize;
+    applySize(size);
+
+    // Single-line text may also grow into spare width, capped at maxFontSizePx.
+    const maxSize = maxFontSizePx && maxFontSizePx > baseSize ? maxFontSizePx : baseSize;
+    if (maxLines === 1 && maxSize > baseSize && fits()) {
+      while (size < maxSize) {
+        const next = Math.min(maxSize, size + SHRINK_STEP_PX);
+        applySize(next);
+        if (!fits()) break;
+        size = next;
+      }
+    }
+
     for (;;) {
       applySize(size);
-      const fits =
-        maxLines === 1
-          ? el.scrollWidth <= el.clientWidth + FIT_TOLERANCE_PX
-          : el.scrollHeight <= el.clientHeight + FIT_TOLERANCE_PX;
-      if (fits || size <= MIN_FONT_SIZE_PX) break;
+      if (fits() || size <= MIN_FONT_SIZE_PX) break;
       size = Math.max(MIN_FONT_SIZE_PX, size - SHRINK_STEP_PX);
     }
-  }, [maxLines]);
+  }, [maxLines, maxFontSizePx]);
 
   useIsomorphicLayoutEffect(() => {
     measure();

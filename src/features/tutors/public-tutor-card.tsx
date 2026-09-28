@@ -72,12 +72,17 @@ type FitTextProps = {
   as: "p" | "li";
   maxLines: 1 | 2;
   contentKey: string | number;
+  maxFontSizePx?: number;
   className?: string;
   children: ReactNode;
 };
 
-function FitText({ as, maxLines, contentKey, className, children }: FitTextProps) {
-  const ref = useFitText<HTMLParagraphElement & HTMLLIElement>({ maxLines, contentKey });
+function FitText({ as, maxLines, contentKey, maxFontSizePx, className, children }: FitTextProps) {
+  const ref = useFitText<HTMLParagraphElement & HTMLLIElement>({
+    maxLines,
+    contentKey,
+    maxFontSizePx,
+  });
 
   if (as === "li") {
     return (
@@ -276,7 +281,11 @@ export function PublicTutorCard({
               as="p"
               maxLines={2}
               contentKey={primaryCredential}
-              className="break-words text-sm font-bold leading-tight text-[color:var(--ink)] md:text-base @max-sm:text-xs!"
+              className={cn(
+                "break-words text-sm font-bold leading-tight text-[color:var(--ink)] md:text-base @max-sm:text-xs!",
+                // Keep the headline clear of the absolutely-positioned gender badge.
+                genderLabel && "pr-16 md:pr-[4.5rem]",
+              )}
             >
               {primaryCredential}
             </FitText>
@@ -302,7 +311,7 @@ export function PublicTutorCard({
           </div>
 
           {genderLabel ? (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)] @max-sm:px-1.5 @max-sm:py-0.5 @max-sm:text-[11px]">
+            <span className="absolute right-3 top-2.5 inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)] @max-sm:px-1.5 @max-sm:py-0.5 @max-sm:text-[11px] md:right-4 md:top-3">
               <UserRound className="h-3 w-3 text-[color:var(--brand-link)]" aria-hidden="true" />
               {genderLabel}
             </span>
@@ -379,6 +388,7 @@ export function PublicTutorCard({
                   as="li"
                   maxLines={1}
                   contentKey={achievement.short_text}
+                  maxFontSizePx={16}
                   className="whitespace-nowrap text-xs leading-snug text-[color:var(--ink)]"
                 >
                   {removeEmoji(achievement.short_text)}
@@ -397,6 +407,7 @@ export function PublicTutorCard({
                 as="li"
                 maxLines={1}
                 contentKey={highlight}
+                maxFontSizePx={16}
                 className="whitespace-nowrap text-xs font-semibold leading-snug text-[color:var(--ink)] md:text-sm @max-sm:text-xs!"
               >
                 {removeEmoji(highlight)}

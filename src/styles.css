@@ -677,3 +677,63 @@
     border-radius: 0 0 12px 12px !important;
   }
 }
+
+/*
+ * Airbnb-style elevation — the ONLY sanctioned shadow usage in this flat,
+ * border-delineated design system (explicit user exception). Scope: the
+ * mobile "Start your search" trigger and quick-nav pills rendered by
+ * src/components/search/mobile-search-trigger.tsx. Do not reuse these
+ * classes anywhere else, and do not add new shadow rules.
+ */
+.pill-elevate,
+.pill-elevate-lg {
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+}
+
+.pill-elevate {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.1),
+    0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.pill-elevate-lg {
+  box-shadow:
+    0 2px 4px rgba(15, 23, 42, 0.1),
+    0 8px 20px rgba(15, 23, 42, 0.1);
+}
+
+/* Pressed state: pill sinks into the surface — the tactile 3D push. */
+.pill-elevate:active,
+.pill-elevate-lg:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 2px rgba(15, 23, 42, 0.1),
+    0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.dark .pill-elevate,
+.dark .pill-elevate-lg {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+}
+
+.dark .pill-elevate:active,
+.dark .pill-elevate-lg:active {
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.5),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill-elevate,
+  .pill-elevate-lg {
+    transition: none;
+  }
+
+  .pill-elevate:active,
+  .pill-elevate-lg:active {
+    transform: none;
+  }
+}
