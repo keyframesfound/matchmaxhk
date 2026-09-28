@@ -25,6 +25,16 @@ export function useFitText<T extends HTMLElement = HTMLElement>({
     const el = ref.current;
     if (!el) return;
 
+    // A zero-width element cannot be measured meaningfully (pre-layout mounts,
+    // hidden carousel items); keep the natural size until it has width.
+    if (el.clientWidth === 0) {
+      el.style.removeProperty("font-size");
+      el.style.removeProperty("line-height");
+      el.style.removeProperty("max-height");
+      el.style.removeProperty("overflow");
+      return;
+    }
+
     el.style.removeProperty("font-size");
     el.style.removeProperty("line-height");
     el.style.removeProperty("max-height");

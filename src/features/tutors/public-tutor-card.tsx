@@ -72,16 +72,14 @@ type FitTextProps = {
   as: "p" | "li";
   maxLines: 1 | 2;
   contentKey: string | number;
-  maxFontSizePx?: number;
   className?: string;
   children: ReactNode;
 };
 
-function FitText({ as, maxLines, contentKey, maxFontSizePx, className, children }: FitTextProps) {
+function FitText({ as, maxLines, contentKey, className, children }: FitTextProps) {
   const ref = useFitText<HTMLParagraphElement & HTMLLIElement>({
     maxLines,
     contentKey,
-    maxFontSizePx,
   });
 
   if (as === "li") {
@@ -388,8 +386,7 @@ export function PublicTutorCard({
                   as="li"
                   maxLines={1}
                   contentKey={achievement.short_text}
-                  maxFontSizePx={16}
-                  className="whitespace-nowrap text-xs leading-snug text-[color:var(--ink)]"
+                  className="whitespace-nowrap text-[13px] leading-snug text-[color:var(--ink)]"
                 >
                   {removeEmoji(achievement.short_text)}
                 </FitText>
@@ -410,7 +407,6 @@ export function PublicTutorCard({
                 as="li"
                 maxLines={1}
                 contentKey={highlight}
-                maxFontSizePx={16}
                 className="whitespace-nowrap text-xs font-semibold leading-snug text-[color:var(--ink)] md:text-sm @max-sm:text-xs!"
               >
                 {removeEmoji(highlight)}
