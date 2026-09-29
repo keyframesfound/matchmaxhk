@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { isSchemaDriftError } from "@/lib/schema-drift";
 import {
   Download,
   ExternalLink,
@@ -320,7 +321,16 @@ function AdminTutors() {
       setIsCreating(false);
       clearCreateParams();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      if (isSchemaDriftError(e)) {
+        toast.error(
+          "This page was loaded before a database update and can no longer save changes. Hard-refresh (Cmd+Shift+R) to load the current version, then retry.",
+          { description: e.message, duration: 15000 },
+        );
+        return;
+      }
+      toast.error(e.message);
+    },
   });
 
   const removeMutation = useMutation({
