@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+
+      - name: Install dependencies (frozen lockfile)
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bunx tsc --noEmit
+
+      - name: Lint changed files
+        run: |
+          git fetch --depth=1 origin main
+          FILES=$(git diff --name-only --diff-filter=ACM origin/main...HEAD -- 'src/**/*.ts' 'src/**/*.tsx' '*.ts' '*.js' | tr '\n' ' ')
+          if [ -n "$FILES" ]; then
+            bunx eslint $FILES
+          else
+            echo "No lintable files changed"
+          fi
+
+      - name: i18n key parity guard
+        run: npm run check:i18n
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Build (Workers preset)
+        run: npm run build
