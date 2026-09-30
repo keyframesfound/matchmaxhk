@@ -45,16 +45,14 @@ const coursesModeLabel = (value: string, t: (key: string) => string) => {
   return t("search_ui.mode_open");
 };
 
-/** One-line summary for the compact nav pill while the full bar is retracted. */
-export function useCoursesCompactSummary(draft: CoursesSearchState): string {
+/** Segments for the compact nav pill — Airbnb "Anywhere | Anytime" style. */
+export function useCoursesCompactSegments(draft: CoursesSearchState): string[] {
   const { t } = useTranslation();
-  const parts = [
-    draft.q?.trim() ?? "",
-    draft.level ?? "",
-    draft.subject ?? "",
-    draft.mode ? coursesModeLabel(draft.mode, t) : "",
-  ].filter(Boolean);
-  return parts.length > 0 ? parts.join(" · ") : t("search_ui.show_courses_plain");
+  return [
+    draft.q?.trim() || draft.subject || t("search_ui.compact_any_subject"),
+    draft.level || t("search_ui.compact_any_level"),
+    draft.mode ? coursesModeLabel(draft.mode, t) : t("search_ui.compact_any_mode"),
+  ];
 }
 
 /**

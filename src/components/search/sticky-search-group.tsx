@@ -2,6 +2,7 @@ import { Search } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   createContext,
+  Fragment,
   useCallback,
   useContext,
   useEffect,
@@ -185,7 +186,8 @@ export function StickySearchBar({
       />
       <div
         className={cn(
-          "border-b border-border bg-[color:var(--surface-header)] transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none",
+          "border-b border-border bg-[color:var(--surface-header)] transition-[transform,opacity,background-color] duration-300 ease-out motion-reduce:transition-none",
+          scrimVisible && "bg-[color:var(--surface-subtle)]",
           collapsed
             ? cn("pointer-events-none opacity-0", !prefersReducedMotion && "-translate-y-[120%]")
             : "pointer-events-auto opacity-100",
@@ -199,11 +201,20 @@ export function StickySearchBar({
 }
 
 /**
- * Compact Airbnb-style pill for the center of the nav row: single-line search
- * summary with the circular azure submit mark. Clicking it expands the full
- * search bar again (tinted state).
+ * Compact Airbnb-style pill for the center of the nav row: segmented
+ * "Anywhere | Anytime | Add guests"-style summary with hairline dividers, an
+ * optional vertical icon, and the circular azure submit mark. Clicking it
+ * expands the full search bar again (tinted state).
  */
-export function CompactSearchPill({ summary }: { summary: string }) {
+export function CompactSearchPill({
+  segments,
+  icon,
+}: {
+  /** Pre-translated display values, one per segment (placeholders included). */
+  segments: string[];
+  /** Optional icon asset (public/ path) for the vertical, Airbnb-style. */
+  icon?: string;
+}) {
   const { t } = useTranslation();
   const { expand } = useSearchGroup();
   const prefersReducedMotion = useReducedMotion();
@@ -214,11 +225,32 @@ export function CompactSearchPill({ summary }: { summary: string }) {
       onClick={expand}
       aria-label={t("search_ui.compact_expand")}
       className={cn(
-        "group flex h-12 w-[min(30rem,calc(100vw-44rem))] min-w-56 items-center gap-2 rounded-full border border-border bg-card py-1 pr-1.5 pl-5 text-left transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+        "group flex h-12 w-[min(30rem,calc(100vw-44rem))] min-w-56 items-center gap-2.5 rounded-full border border-border bg-card py-1 pr-1.5 pl-4 text-left transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
       )}
     >
-      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[color:var(--ink)]">
-        {summary}
+      {icon ? (
+        <img
+          src={icon}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          className="h-5 w-5 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
+        />
+      ) : null}
+      <span className="flex min-w-0 flex-1 items-center">
+        {segments.map((segment, index) => (
+          <Fragment key={segment + index}>
+            {index > 0 && (
+              <span
+                aria-hidden="true"
+                className="mx-2.5 h-6 w-px shrink-0 bg-[color:var(--border)]"
+              />
+            )}
+            <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[color:var(--ink)]">
+              {segment}
+            </span>
+          </Fragment>
+        ))}
       </span>
       <span
         aria-hidden="true"
@@ -230,7 +262,7 @@ export function CompactSearchPill({ summary }: { summary: string }) {
   );
 }
 
-/** Fades the compact pill in/out inside the nav row. */
+/** Springs the compact pill in/out inside the nav row — Airbnb-style pop. */
 export function CompactPillSlot({ visible, children }: { visible: boolean; children: ReactNode }) {
   const prefersReducedMotion = useReducedMotion();
   return (
@@ -238,10 +270,18 @@ export function CompactPillSlot({ visible, children }: { visible: boolean; child
       {visible ? (
         <motion.div
           key="compact-pill"
-          initial={{ opacity: 0, scale: 0.94, y: -6 }}
+          initial={{ opacity: 0, scale: 0.7, y: -14 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: -4 }}
-          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: "easeOut" }}
+          exit={
+            prefersReducedMotion
+              ? { opacity: 0, transition: { duration: 0 } }
+              : { opacity: 0, scale: 0.85, y: -10, transition: { duration: 0.15, ease: "easeIn" } }
+          }
+          transition={
+            prefersReducedMotion
+              ? { duration: 0 }
+              : { type: "spring", stiffness: 480, damping: 34, mass: 0.9 }
+          }
           className="pointer-events-auto"
         >
           {children}

@@ -4,7 +4,6 @@ import {
   Building2,
   CircleHelp,
   Globe,
-  LogOut,
   Menu,
   Moon,
   Settings,
@@ -21,7 +20,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -48,7 +46,25 @@ type NavDestination =
 
 /** Shared item styling for the Airbnb-style header popovers. */
 const menuLinkClassName =
-  "cursor-pointer rounded-lg px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]";
+  "cursor-pointer gap-3 rounded-lg px-3 py-2.5 text-[15px] font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]";
+
+/** Promo-card row styling (bold title + muted subtitle). */
+const menuCardClassName =
+  "cursor-pointer gap-3 rounded-lg px-3 py-2.5 text-[15px] text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]";
+
+/** Wraps a lucide icon so the item's `[&>svg]` sizing rule leaves it at 20px. */
+function MenuIcon({ children }: { children: React.ReactNode }) {
+  return (
+    <span aria-hidden="true" className="flex size-5 shrink-0 items-center justify-center">
+      {children}
+    </span>
+  );
+}
+
+/** Full-bleed hairline between the menu's sections. */
+function MenuDivider() {
+  return <DropdownMenuSeparator className="mx-0 my-0 bg-[color:var(--ink)]/10" />;
+}
 
 /** Round icon trigger for the header popovers (avatar / burger). */
 const headerCircleClassName =
@@ -122,7 +138,9 @@ export function SiteHeader({
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
   const searchGroup = useSearchGroup();
-  const linksVisible = !merged || searchGroup.phase === "top";
+  // Tabs share the center with the compact pill: hidden while the compact
+  // pill is showing, visible at the top AND in the expanded (tinted) state.
+  const linksVisible = !merged || searchGroup.phase !== "compact";
   const compactVisible = merged && searchGroup.phase === "compact";
   const accountName =
     user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
@@ -224,87 +242,22 @@ export function SiteHeader({
               {t("nav.become_tutor")}
             </Link>
 
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  aria-label={t("nav.account_menu_label")}
-                  className={headerCircleClassName}
-                >
-                  {user ? (
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--foreground)] text-sm font-bold text-[color:var(--background)]">
-                      {accountInitial}
-                    </span>
-                  ) : (
-                    <UserRound className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-64 overflow-hidden rounded-xl border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0"
+            {user ? (
+              <Link
+                to="/dashboard"
+                hash="profile"
+                aria-label={t("nav.profile")}
+                className={headerCircleClassName}
               >
-                {user ? (
-                  <>
-                    <DropdownMenuLabel className="border-b border-[color:var(--ink)]/10 px-4 py-3">
-                      <div className="text-sm font-semibold text-[color:var(--ink)]">
-                        {t("nav.account_title")}
-                      </div>
-                      <div className="mt-0.5 truncate text-xs font-normal text-[color:var(--ink)]/60">
-                        {user.email}
-                      </div>
-                    </DropdownMenuLabel>
-                    <div className="p-1.5">
-                      <DropdownMenuItem asChild className={menuLinkClassName}>
-                        <Link to="/dashboard" hash="profile">
-                          <UserRound aria-hidden="true" />
-                          {t("nav.profile")}
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild className={menuLinkClassName}>
-                        <Link to="/dashboard">
-                          <Settings aria-hidden="true" />
-                          {t("nav.settings")}
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild className={menuLinkClassName}>
-                        <Link to="/saved-posts">
-                          <Bookmark aria-hidden="true" />
-                          {t("nav.saved_posts")}
-                        </Link>
-                      </DropdownMenuItem>
-                      {isAdmin && (
-                        <DropdownMenuItem asChild className={menuLinkClassName}>
-                          <Link to="/admin">
-                            <ShieldCheck aria-hidden="true" />
-                            {t("nav.admin")}
-                          </Link>
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator className="my-1.5" />
-                      <DropdownMenuItem
-                        onSelect={() => void signOut()}
-                        className="cursor-pointer rounded-lg px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--destructive)]/10 focus:text-[color:var(--destructive)]"
-                      >
-                        <LogOut aria-hidden="true" />
-                        {t("nav.sign_out")}
-                      </DropdownMenuItem>
-                    </div>
-                  </>
-                ) : (
-                  <div className="p-1.5">
-                    <DropdownMenuItem asChild className={menuLinkClassName}>
-                      <Link to="/auth">{t("nav.sign_in")}</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className={menuLinkClassName}>
-                      <Link to="/auth" search={{ mode: "sign_up" }}>
-                        {t("nav.sign_up")}
-                      </Link>
-                    </DropdownMenuItem>
-                  </div>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--foreground)] text-sm font-bold text-[color:var(--background)]">
+                  {accountInitial}
+                </span>
+              </Link>
+            ) : (
+              <Link to="/auth" aria-label={t("nav.sign_in")} className={headerCircleClassName}>
+                <UserRound className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
+              </Link>
+            )}
 
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
@@ -322,39 +275,76 @@ export function SiteHeader({
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-64 overflow-hidden rounded-xl border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0"
+                className="w-80 overflow-hidden rounded-2xl border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0"
               >
-                <div className="p-1.5">
-                  <DropdownMenuItem asChild className={menuLinkClassName}>
-                    <Link to="/help">
-                      <CircleHelp aria-hidden="true" />
-                      {t("nav.help")}
-                    </Link>
-                  </DropdownMenuItem>
-                  {hasOrg && (
+                {user ? (
+                  <div className="px-1.5 py-1.5">
                     <DropdownMenuItem asChild className={menuLinkClassName}>
-                      <Link to="/business" search={{ tab: undefined }}>
-                        <Building2 aria-hidden="true" />
-                        {t("nav.my_business")}
+                      <Link to="/saved-posts">
+                        <MenuIcon>
+                          <Bookmark className="size-5" />
+                        </MenuIcon>
+                        {t("nav.saved_posts")}
                       </Link>
                     </DropdownMenuItem>
-                  )}
-                  {CENTRE_MARKET_ENABLED && (
+                    {hasOrg && (
+                      <DropdownMenuItem asChild className={menuLinkClassName}>
+                        <Link to="/business" search={{ tab: undefined }}>
+                          <MenuIcon>
+                            <Building2 className="size-5" />
+                          </MenuIcon>
+                          {t("nav.my_business")}
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild className={menuLinkClassName}>
-                      <Link to="/courses">{t("nav.courses")}</Link>
+                      <Link to="/dashboard" hash="profile">
+                        <MenuIcon>
+                          <UserRound className="size-5" />
+                        </MenuIcon>
+                        {t("nav.profile")}
+                      </Link>
                     </DropdownMenuItem>
-                  )}
-                  {CENTRE_MARKET_ENABLED && (
                     <DropdownMenuItem asChild className={menuLinkClassName}>
-                      <Link to="/pricing">{t("nav.for_business")}</Link>
+                      <Link to="/dashboard">
+                        <MenuIcon>
+                          <Settings className="size-5" />
+                        </MenuIcon>
+                        {t("nav.settings")}
+                      </Link>
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator className="my-1.5" />
+                    {isAdmin && (
+                      <DropdownMenuItem asChild className={menuLinkClassName}>
+                        <Link to="/admin">
+                          <MenuIcon>
+                            <ShieldCheck className="size-5" />
+                          </MenuIcon>
+                          {t("nav.admin")}
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                  </div>
+                ) : (
+                  <div className="px-1.5 py-1.5">
+                    <DropdownMenuItem asChild className={menuLinkClassName}>
+                      <Link to="/auth" search={{ mode: "sign_up" }}>
+                        {t("nav.sign_up")}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className={menuLinkClassName}>
+                      <Link to="/auth">{t("nav.sign_in")}</Link>
+                    </DropdownMenuItem>
+                  </div>
+                )}
+                <MenuDivider />
+                <div className="px-1.5 py-1.5">
                   <DropdownMenuItem
                     onSelect={() => void i18n.changeLanguage(nextLang)}
                     className={menuLinkClassName}
                   >
-                    <Globe aria-hidden="true" />
+                    <MenuIcon>
+                      <Globe className="size-5" />
+                    </MenuIcon>
                     {t("nav.account_language")}
                     <span className="ml-auto text-xs font-bold text-[color:var(--ink)]/55">
                       {currentLang === "en" ? "EN" : "繁"}
@@ -364,23 +354,71 @@ export function SiteHeader({
                     onSelect={() => setTheme(useDarkTheme ? "dark" : "light")}
                     className={menuLinkClassName}
                   >
-                    {useDarkTheme ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
+                    <MenuIcon>
+                      {useDarkTheme ? <Moon className="size-5" /> : <Sun className="size-5" />}
+                    </MenuIcon>
                     {useDarkTheme ? t("nav.dark_mode") : t("nav.light_mode")}
                   </DropdownMenuItem>
-                  {!user && (
-                    <>
-                      <DropdownMenuSeparator className="my-1.5" />
-                      <DropdownMenuItem asChild className={menuLinkClassName}>
-                        <Link to="/auth">{t("nav.sign_in")}</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild className={menuLinkClassName}>
-                        <Link to="/auth" search={{ mode: "sign_up" }}>
-                          {t("nav.sign_up")}
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
+                  <DropdownMenuItem asChild className={menuLinkClassName}>
+                    <Link to="/help">
+                      <MenuIcon>
+                        <CircleHelp className="size-5" />
+                      </MenuIcon>
+                      {t("nav.help")}
+                    </Link>
+                  </DropdownMenuItem>
+                </div>
+                <MenuDivider />
+                <div className="px-1.5 py-1.5">
+                  <DropdownMenuItem asChild className={menuCardClassName}>
+                    <Link to="/join">
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-semibold leading-5">
+                          {t("nav.become_tutor")}
+                        </span>
+                        <span className="mt-1 block text-[13px] font-normal leading-4 text-[color:var(--ink)]/60">
+                          {t("nav.become_tutor_subtitle")}
+                        </span>
+                      </span>
+                      <img
+                        src="/nav-become-tutor.png"
+                        alt=""
+                        aria-hidden="true"
+                        draggable={false}
+                        className="h-12 w-12 shrink-0 object-contain dark:invert-[0.85] dark:hue-rotate-180"
+                      />
+                    </Link>
+                  </DropdownMenuItem>
+                </div>
+                <MenuDivider />
+                <div className="px-1.5 py-1.5">
+                  <DropdownMenuItem asChild className={menuLinkClassName}>
+                    <Link to="/case-request">{t("nav.post_case")}</Link>
+                  </DropdownMenuItem>
+                  {CENTRE_MARKET_ENABLED && (
+                    <DropdownMenuItem asChild className={menuLinkClassName}>
+                      <Link to="/pricing">{t("nav.for_business")}</Link>
+                    </DropdownMenuItem>
+                  )}
+                  {CENTRE_MARKET_ENABLED && (
+                    <DropdownMenuItem asChild className={menuLinkClassName}>
+                      <Link to="/courses">{t("nav.courses")}</Link>
+                    </DropdownMenuItem>
                   )}
                 </div>
+                {user && (
+                  <>
+                    <MenuDivider />
+                    <div className="px-1.5 py-1.5">
+                      <DropdownMenuItem
+                        onSelect={() => void signOut()}
+                        className={menuLinkClassName}
+                      >
+                        {t("nav.sign_out")}
+                      </DropdownMenuItem>
+                    </div>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

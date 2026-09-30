@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { DropdownModalContext } from "@/components/ui/searchable-select";
 
 /** The standalone "Filters" pill that sits beside the search bar. */
 export function FiltersPillButton({
@@ -181,9 +182,11 @@ export function FiltersDialog({
           ) : null}
         </div>
         <div ref={scrollBodyRef} className="max-h-[62dvh] space-y-7 overflow-y-auto px-6 py-5">
-          <FiltersSectionContext.Provider value={{ register, focusId }}>
-            {children}
-          </FiltersSectionContext.Provider>
+          <DropdownModalContext.Provider value={true}>
+            <FiltersSectionContext.Provider value={{ register, focusId }}>
+              {children}
+            </FiltersSectionContext.Provider>
+          </DropdownModalContext.Provider>
         </div>
         <div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4">
           <Button

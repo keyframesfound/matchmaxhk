@@ -17,7 +17,7 @@ import {
 import {
   TutorsSearchBar,
   TutorsSearchMobile,
-  useTutorsCompactSummary,
+  useTutorsCompactSegments,
 } from "@/components/search/tutors-search";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
@@ -261,12 +261,15 @@ function TutorsDirectory() {
     });
   };
 
-  const compactSummary = useTutorsCompactSummary(draft);
+  const compactSegments = useTutorsCompactSegments(draft);
 
   return (
     <SearchGroupProvider>
       <div className="flex min-h-screen flex-col bg-background">
-        <SiteHeader merged centerSlot={<CompactSearchPill summary={compactSummary} />} />
+        <SiteHeader
+          merged
+          centerSlot={<CompactSearchPill segments={compactSegments} icon="/nav-find.png" />}
+        />
         <main className="flex-1">
           <section className="border-b border-border bg-[color:var(--surface-header)] pt-10 pb-6 sm:pt-12 sm:pb-8 lg:border-b-0">
             <div className="mx-auto max-w-7xl px-4 sm:px-6">

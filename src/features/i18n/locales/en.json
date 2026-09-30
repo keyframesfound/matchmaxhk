@@ -27,7 +27,9 @@
     "tab_tutors": "Tutors",
     "tab_saved": "Saved",
     "tab_cases": "Cases",
-    "site_menu": "Main menu"
+    "site_menu": "Main menu",
+    "become_tutor_subtitle": "It's easy to start tutoring and earn extra income.",
+    "post_case": "Post a case"
   },
   "settings": {
     "eyebrow": "Your account",
@@ -1007,6 +1009,12 @@
     "tab_cases": "Cases",
     "case_other": "Other",
     "cases_placeholder": "Search subject, district, keyword…",
+    "compact_any_subject": "Any subject",
+    "compact_any_curriculum": "Any curriculum",
+    "compact_any_mode": "Any mode",
+    "compact_any_keyword": "Any keyword",
+    "compact_any_level": "Any level",
+    "compact_anywhere": "Anywhere",
     "pick_female": "Female",
     "pick_male": "Male",
     "pick_online": "Online",

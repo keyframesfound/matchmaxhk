@@ -16,7 +16,7 @@ import {
 import {
   CoursesSearchBar,
   CoursesSearchMobile,
-  useCoursesCompactSummary,
+  useCoursesCompactSegments,
 } from "@/components/search/courses-search";
 import { CourseCard } from "@/features/courses/course-card";
 import { useBusinessTracker } from "@/features/business/use-analytics";
@@ -113,12 +113,12 @@ function CoursesDirectory() {
     navigate({ search: { ...draft, ...override } });
   };
 
-  const compactSummary = useCoursesCompactSummary(draft);
+  const compactSegments = useCoursesCompactSegments(draft);
 
   return (
     <SearchGroupProvider>
       <div className="flex min-h-screen flex-col bg-background">
-        <SiteHeader merged centerSlot={<CompactSearchPill summary={compactSummary} />} />
+        <SiteHeader merged centerSlot={<CompactSearchPill segments={compactSegments} />} />
         <main className="flex-1">
           <section className="border-b border-border bg-[color:var(--surface-header)] py-10 sm:py-12 lg:border-b-0">
             <div className="mx-auto max-w-7xl px-4 sm:px-6">

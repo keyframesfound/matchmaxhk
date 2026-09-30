@@ -218,16 +218,14 @@ export type TutorsSearchProps = {
   className?: string;
 };
 
-/** One-line summary for the compact nav pill while the full bar is retracted. */
-export function useTutorsCompactSummary(draft: TutorsSearchState): string {
+/** Segments for the compact nav pill — Airbnb "Anywhere | Anytime" style. */
+export function useTutorsCompactSegments(draft: TutorsSearchState): string[] {
   const { t } = useTranslation();
-  const parts = [
-    draft.q?.trim() ?? "",
-    draft.category ? tutorsCategoryLabel(draft.category, t) : "",
-    draft.subject ?? "",
-    draft.mode ? tutorsModeDisplay(draft, t) : "",
-  ].filter(Boolean);
-  return parts.length > 0 ? parts.join(" · ") : t("search_ui.search_tutors");
+  return [
+    draft.q?.trim() || draft.subject || t("search_ui.compact_any_subject"),
+    draft.category ? tutorsCategoryLabel(draft.category, t) : t("search_ui.compact_any_curriculum"),
+    draft.mode ? tutorsModeDisplay(draft, t) : t("search_ui.compact_any_mode"),
+  ];
 }
 
 /**

@@ -23,7 +23,7 @@ import { CaseSaveButton } from "@/features/cases/saved-cases";
 import {
   CasesSearchBar,
   CasesSearchMobile,
-  useCasesCompactSummary,
+  useCasesCompactSegments,
   type CasesSearchState,
 } from "@/components/search/cases-search";
 import {
@@ -318,12 +318,15 @@ function TutorRequestsPage() {
 
   const hasActiveFilters = Boolean(search.q || search.category || search.district);
 
-  const compactSummary = useCasesCompactSummary(draft);
+  const compactSegments = useCasesCompactSegments(draft);
 
   return (
     <SearchGroupProvider>
       <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-[color:var(--surface-subtle)] text-foreground">
-        <SiteHeader merged centerSlot={<CompactSearchPill summary={compactSummary} />} />
+        <SiteHeader
+          merged
+          centerSlot={<CompactSearchPill segments={compactSegments} icon="/nav-case-board.png" />}
+        />
         <main className="min-w-0 flex-1 bg-[color:var(--surface-subtle)]">
           {/* Page header with the post CTA */}
           <section className="border-b border-border bg-[color:var(--surface-header)] lg:border-b-0">

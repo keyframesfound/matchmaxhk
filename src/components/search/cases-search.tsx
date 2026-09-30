@@ -37,15 +37,14 @@ const caseCategoryLabel = (value: string, t: (key: string) => string) => {
   return value;
 };
 
-/** One-line summary for the compact nav pill while the full bar is retracted. */
-export function useCasesCompactSummary(draft: CasesSearchState): string {
+/** Segments for the compact nav pill — Airbnb "Anywhere | Anytime" style. */
+export function useCasesCompactSegments(draft: CasesSearchState): string[] {
   const { t } = useTranslation();
-  const parts = [
-    draft.q?.trim() ?? "",
-    draft.category ? caseCategoryLabel(draft.category, t) : "",
-    draft.district ?? "",
-  ].filter(Boolean);
-  return parts.length > 0 ? parts.join(" · ") : t("search_ui.cases_placeholder");
+  return [
+    draft.q?.trim() || t("search_ui.compact_any_keyword"),
+    draft.category ? caseCategoryLabel(draft.category, t) : t("search_ui.compact_any_curriculum"),
+    draft.district || t("search_ui.compact_anywhere"),
+  ];
 }
 
 /**

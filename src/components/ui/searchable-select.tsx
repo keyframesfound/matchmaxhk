@@ -4,6 +4,15 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
+/**
+ * Set to true by modal containers (e.g. the FiltersDialog) hosting this
+ * select. A modal Radix Dialog scroll-locks the document, and the lock
+ * preventDefaults every wheel/touchmove aimed at the portaled list — so the
+ * list itself must run its own scroll lock (Popover `modal`) to stay
+ * scrollable while open.
+ */
+export const DropdownModalContext = React.createContext(false);
+
 export type SearchableOption = {
   value: string;
   label?: string;
@@ -41,6 +50,7 @@ export function SearchableSelect({
   popoverClassName,
 }: Props) {
   const { t } = useTranslation();
+  const modal = React.useContext(DropdownModalContext);
   const emptyLabel = emptyText ?? t("search_panel.no_matches");
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -134,7 +144,7 @@ export function SearchableSelect({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={modal}>
       <PopoverTrigger asChild>
         <button
           type="button"

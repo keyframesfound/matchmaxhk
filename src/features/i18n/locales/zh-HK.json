@@ -27,7 +27,9 @@
     "tab_tutors": "導師",
     "tab_saved": "已儲存",
     "tab_cases": "個案",
-    "site_menu": "主選單"
+    "site_menu": "主選單",
+    "become_tutor_subtitle": "開始補習賺取額外收入，原來咁容易。",
+    "post_case": "刊登個案"
   },
   "settings": {
     "eyebrow": "你的帳戶",
@@ -1028,6 +1030,12 @@
     "tab_cases": "個案",
     "case_other": "其他",
     "cases_placeholder": "搜尋科目、地區、關鍵字…",
+    "compact_any_subject": "任何科目",
+    "compact_any_curriculum": "任何課程",
+    "compact_any_mode": "任何模式",
+    "compact_any_keyword": "任何關鍵字",
+    "compact_any_level": "任何級別",
+    "compact_anywhere": "任何地區",
     "pick_female": "女導師",
     "pick_male": "男導師",
     "pick_online": "網上",
