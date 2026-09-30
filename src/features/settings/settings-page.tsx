@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
+import { SuggestedActionsSection } from "@/features/dashboard/action-cards";
 import { AccountSection } from "@/features/settings/sections/account-section";
 import { AvailabilitySection } from "@/features/settings/sections/availability-section";
 import { DangerZoneSection } from "@/features/settings/sections/danger-zone-section";
@@ -66,7 +67,7 @@ const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSection
 
 export function SettingsPage() {
   const { t } = useTranslation();
-  const { user, signOut, hasAnyRole } = useAuth();
+  const { user, signOut, hasAnyRole, hasRole } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -183,6 +184,13 @@ export function SettingsPage() {
               {t("settings.subtitle")}
             </p>
           </header>
+
+          <div className="grid gap-6 pt-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-14 lg:pt-10">
+            <div className="min-w-0 lg:col-span-2 lg:max-w-3xl">
+              {/* Issue #147: suggested-action cards switch on account type. */}
+              <SuggestedActionsSection isTutor={hasRole("tutor") || hasLinkedTutor} />
+            </div>
+          </div>
 
           <div className="grid gap-6 pt-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-14 lg:pt-10">
             <aside className="lg:sticky lg:top-24 lg:self-start">
