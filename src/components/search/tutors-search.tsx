@@ -6,9 +6,9 @@ import {
   Coins,
   GraduationCap,
   MapPin,
+  Mars,
   Monitor,
-  UserRound,
-  Users,
+  Venus,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -137,14 +137,14 @@ const tutorsQuickPicks = (
   {
     id: "female",
     label: t("search_ui.pick_female"),
-    icon: UserRound,
+    icon: Venus,
     active: draft.gender === "female",
     onToggle: () => onDraftChange({ gender: draft.gender === "female" ? undefined : "female" }),
   },
   {
     id: "male",
     label: t("search_ui.pick_male"),
-    icon: Users,
+    icon: Mars,
     active: draft.gender === "male",
     onToggle: () => onDraftChange({ gender: draft.gender === "male" ? undefined : "male" }),
   },
