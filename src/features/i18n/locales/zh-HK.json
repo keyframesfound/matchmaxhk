@@ -527,7 +527,10 @@
     "empty_desc": "試下放寬價格範圍或者清除篩選，又或者等我哋團隊免費幫你配對。",
     "empty_clear": "清除所有篩選",
     "empty_case": "免費提出配對",
-    "empty_whatsapp": "WhatsApp 查詢"
+    "empty_whatsapp": "WhatsApp 查詢",
+    "empty_edu_title": "暫時沒有來自這個背景的導師",
+    "empty_edu_desc": "我們暫時沒有符合這間學校或大學的導師——不過以下來自相近院校的高分導師同樣值得參考。",
+    "empty_edu_clear": "顯示所有導師"
   },
   "profile": {
     "verified": "已核實",
@@ -933,6 +936,32 @@
     "status_title": "導師類型",
     "sort_title": "排序方式",
     "show_tutors": "顯示 {{count}} 位導師",
-    "show_tutors_one": "顯示 {{count}} 位導師"
+    "show_tutors_one": "顯示 {{count}} 位導師",
+    "university_title": "大學",
+    "high_school_title": "中學",
+    "university_any": "任何大學",
+    "high_school_any": "任何中學",
+    "university_hku": "香港大學（HKU）",
+    "university_cuhk": "香港中文大學（CUHK）",
+    "university_hkust": "香港科技大學（HKUST）",
+    "university_polyu": "香港理工大學（PolyU）",
+    "university_cityu": "香港城市大學（CityU）",
+    "university_hkmu": "香港都會大學（HKMU）",
+    "university_eduhk": "香港教育大學（EdUHK）",
+    "university_overseas": "海外／非本地院校",
+    "high_school_st-stephens": "聖士提反書院",
+    "high_school_dgs": "拔萃女書院（DGS）",
+    "high_school_cis": "漢基國際學校（CIS）",
+    "high_school_kgv": "英皇佐治五世學校（KGV）",
+    "high_school_la-salle": "喇沙書院",
+    "high_school_st-pauls": "聖保羅男女中學",
+    "high_school_st-marys": "聖瑪利書院",
+    "high_school_wah-yan": "華仁書院",
+    "high_school_sha-tin-college": "沙田學院（ESF）",
+    "high_school_south-island": "南島中學（ESF）",
+    "high_school_west-island": "西島中學（ESF）",
+    "high_school_island-school": "港島中學（ESF）",
+    "high_school_hku-space-ccc-heung-yee-chung": "港大附屬學院／香島專科學校",
+    "high_school_queen-elizabeth": "伊利沙伯中學（QES）"
   }
 }
