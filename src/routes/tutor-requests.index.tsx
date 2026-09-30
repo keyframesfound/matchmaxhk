@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CaseRequestForm } from "@/features/cases/CaseRequestForm";
+import { CasePillBadge, casePillsForCard } from "@/features/cases/case-pills";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
 import {
   CasesSearchBar,
@@ -113,6 +114,7 @@ function caseSectionLabel(section: string): string {
 }
 
 function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
+  const { pills, overflow } = casePillsForCard(item);
   return (
     <li>
       <Link
@@ -144,6 +146,18 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
               {formatCaseBudget(item.budgetMin, item.budgetMax)}
             </span>
           </div>
+          {pills.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {pills.map((pill) => (
+                <CasePillBadge key={pill.key} pill={pill} />
+              ))}
+              {overflow > 0 ? (
+                <span className="text-xs font-medium text-muted-foreground">
+                  +{overflow} more requirement{overflow === 1 ? "" : "s"}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
         </div>
         <span className="flex shrink-0 items-center gap-1 text-sm font-semibold text-[color:var(--ink)]">
           <CaseCompareToggle caseId={item.id} />

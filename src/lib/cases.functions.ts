@@ -107,6 +107,8 @@ export type PublicCaseBoardItem = {
   sessionLengthMinutes: number;
   languageOfInstruction: string | null;
   tutorBackground: string | null;
+  specificComponent: string | null;
+  targetSchool: string | null;
   tags: string[];
   preferredGender: "any" | "male" | "female";
   startTiming: string | null;
@@ -117,7 +119,7 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, tags, preferred_gender, start_timing, budget_min, budget_max, board_published_at, created_at";
+  "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, preferred_gender, start_timing, budget_min, budget_max, board_published_at, created_at";
 
 // Never contact_name / contact_phone / contact_email / student_school / student_grade_current.
 function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
@@ -135,6 +137,8 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
     sessionLengthMinutes: (row.session_length_minutes as number | null) ?? 60,
     languageOfInstruction: (row.language_of_instruction as string | null) ?? null,
     tutorBackground: (row.tutor_background as string | null) ?? null,
+    specificComponent: (row.specific_component as string | null) ?? null,
+    targetSchool: (row.target_school as string | null) ?? null,
     tags: (row.tags as string[] | null) ?? [],
     preferredGender: (row.preferred_gender as "any" | "male" | "female") ?? "any",
     startTiming: (row.start_timing as string | null) ?? null,
