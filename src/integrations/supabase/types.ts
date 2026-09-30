@@ -1033,6 +1033,10 @@ export type Database = {
       claim_org_memberships: { Args: never; Returns: number };
       complete_onboarding: { Args: { _choice: string }; Returns: undefined };
       find_user_id_by_email: { Args: { _email: string }; Returns: string };
+      list_accounts_for_assignment: {
+        Args: { _search: string };
+        Returns: { id: string; email: string | null; display_name: string | null }[];
+      };
       get_my_referral_dashboard: { Args: never; Returns: Json };
       update_my_availability: {
         Args: { _start_immediately: boolean; _earliest_start_date?: string | null };
