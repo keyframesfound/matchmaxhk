@@ -29,6 +29,8 @@ import {
 } from "@/features/cases/display";
 import { TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
+import { CasePillBadge, casePills } from "@/features/cases/case-pills";
+import type { CasePill, CasePillTone } from "@/features/cases/case-pills";
 import { getPublicCaseByCode, type PublicCaseBoardItem } from "@/lib/cases.functions";
 import { shareOrCopy } from "@/lib/share";
 
@@ -137,6 +139,19 @@ function CaseDetailPage() {
     preferences.push(`Tutor background: ${backgroundLabel}`);
   }
 
+  // Requirement pills grouped by category for the details view (issue #149).
+  const GROUP_TITLES: Record<CasePillTone, string> = {
+    hard: "Requirements",
+    background: "Background & schools",
+    curriculum: "Curriculum & coursework",
+  };
+  const pillGroups = (["hard", "background", "curriculum"] as CasePillTone[])
+    .map((tone) => ({
+      title: GROUP_TITLES[tone],
+      pills: casePills(item).filter((pill: CasePill) => pill.tone === tone),
+    }))
+    .filter((group) => group.pills.length > 0);
+
   return (
     <PublicPage>
       <section className="flex w-full justify-center px-4 py-10 sm:px-6 sm:py-14">
@@ -171,12 +186,20 @@ function CaseDetailPage() {
                   </span>
                 ) : null}
               </div>
-              {item.tags.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {item.tags.map((tag) => (
-                    <Badge key={tag} variant="outline" className="rounded-sm font-semibold">
-                      {tag}
-                    </Badge>
+              {pillGroups.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Parent&apos;s special requirements
+                  </p>
+                  {pillGroups.map((group) => (
+                    <div key={group.title} className="flex flex-wrap items-center gap-1.5">
+                      <span className="mr-1 text-xs font-medium text-muted-foreground">
+                        {group.title}:
+                      </span>
+                      {group.pills.map((pill) => (
+                        <CasePillBadge key={pill.key} pill={pill} />
+                      ))}
+                    </div>
                   ))}
                 </div>
               ) : null}
