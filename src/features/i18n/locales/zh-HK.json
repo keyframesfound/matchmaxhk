@@ -202,6 +202,27 @@
       "saving": "儲存中…",
       "not_linked": "你嘅帳戶仲未連結導師檔案。",
       "save": "儲存"
+    },
+    "capacity": {
+      "title": "容量與時間",
+      "description": "控制你可以接幾多位學生同你偏好嘅教學時間。更改會即時生效——無需管理員審核。",
+      "accepting_label": "接受新學生",
+      "state_active": "開放中——家長可以查詢",
+      "state_paused": "已暫停——你嘅檔案會顯示為已滿額",
+      "slots_label": "剩餘學生名額",
+      "slots_increase": "增加名額",
+      "slots_decrease": "減少名額",
+      "slots_hint": "你仲可以接嘅學生數目",
+      "slots_full": "你將會顯示為「已滿額」",
+      "windows_label": "偏好時段",
+      "windows_hint": "確實時間會喺查詢後同家長協調。",
+      "saving": "儲存中……",
+      "saved": "容量已更新",
+      "window_weekday_afternoon": "平日下午（4–7 PM）",
+      "window_weekday_evening": "平日晚上（7–10 PM）",
+      "window_weekend_morning": "週末上午（9 AM–1 PM）",
+      "window_weekend_afternoon": "週末下午（1–6 PM）",
+      "save_capacity": "儲存更改"
     }
   },
   "hero": {
@@ -561,7 +582,14 @@
     "error_title": "呢個導師檔案載入失敗",
     "error_body": "我哋嗰邊出咗啲問題。請再試一次，或者瀏覽導師目錄搵其他導師。",
     "not_found_title": "搵唔到呢位導師",
-    "not_found_body": "呢個導師編號未有對應嘅已上架導師。"
+    "not_found_body": "呢個導師編號未有對應嘅已上架導師。",
+    "fully_booked": "🔒 已滿額",
+    "prefers_prefix": "🕒 偏好：",
+    "time_window_disclaimer": "確實時間喺查詢後協調。通常可以配合自訂時間。",
+    "time_window_weekday_afternoon": "平日下午",
+    "time_window_weekday_evening": "平日晚上",
+    "time_window_weekend_morning": "週末上午",
+    "time_window_weekend_afternoon": "週末下午"
   },
   "tutor_card": {
     "verified_fallback": "學術資料已核實",
@@ -936,7 +964,6 @@
     "status_title": "導師類型",
     "sort_title": "排序方式",
     "show_tutors": "顯示 {{count}} 位導師",
-    "show_tutors_one": "顯示 {{count}} 位導師",
     "university_title": "大學",
     "high_school_title": "中學",
     "university_any": "任何大學",
@@ -963,6 +990,36 @@
     "high_school_west-island": "西島中學（ESF）",
     "high_school_island-school": "港島中學（ESF）",
     "high_school_hku-space-ccc-heung-yee-chung": "港大附屬學院／香島專科學校",
-    "high_school_queen-elizabeth": "伊利沙伯中學（QES）"
+    "high_school_queen-elizabeth": "伊利沙伯中學（QES）",
+    "show_tutors_one": "顯示 {{count}} 位導師"
+  },
+  "feedback": {
+    "routing_title": "評價你嘅 MatchMax 體驗",
+    "routing_desc": "為咗將你嘅意見轉介到正確嘅團隊，請話返我哋知你係：",
+    "role_parent": "我係家長／學生",
+    "role_tutor": "我係導師",
+    "form_eyebrow": "平台意見",
+    "form_title": "評價你嘅 MatchMax 體驗",
+    "parent_subtext": "我哋一直努力改善配對服務。請話我哋知我哋嘅行政團隊點樣處理你最近嘅補習請求。",
+    "tutor_subtext": "你嘅意見幫我哋為教育工作者打造更好嘅平台。請話我哋知我哋嘅行政團隊點樣處理你嘅申請同入職流程。",
+    "parent_speed_prompt": "我哋團隊搵到合適導師並喺 WhatsApp 聯絡你嘅速度有幾快？",
+    "parent_smoothness_prompt": "平台同我哋 WhatsApp 客服之間嘅協調有幾順暢？",
+    "parent_service_prompt": "我哋嘅配對客服有幾有禮、專業同樂於助人？",
+    "tutor_speed_prompt": "我哋團隊處理你嘅檔案、核實你嘅學歷或回覆你嘅個案申請有幾快？",
+    "tutor_smoothness_prompt": "瀏覽 MatchMax 平台同我哋團隊協調個案有幾容易？",
+    "tutor_service_prompt": "我哋團隊同你溝通時有幾有禮同樂於助人？",
+    "parent_concern_label": "如果你可以改變或者改善 MatchMax 運作嘅其中一樣嘢，會係咩？",
+    "parent_concern_placeholder": "你最關注嘅地方……",
+    "tutor_concern_label": "作為導師，你使用 MatchMax 時遇到嘅最大障礙或者挫折係咩？",
+    "tutor_concern_placeholder": "你遇到嘅最大障礙……",
+    "parent_additional_label": "關於你同我哋團隊嘅體驗，仲有咩想分享？",
+    "tutor_additional_label": "你對新功能、更好嘅佣金結構或整體改善有咩建議？",
+    "submit": "提交意見",
+    "submitting": "提交中……",
+    "switch_role": "選錯咗帳戶類型？返回",
+    "thanks_title": "多謝你嘅意見！",
+    "thanks_desc": "你嘅意見會直接傳到我哋嘅營運團隊，幫我哋改善對你嘅支援。",
+    "back_home": "返回主頁",
+    "star_label_other": "{{count}} 星"
   }
 }

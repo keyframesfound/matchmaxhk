@@ -513,6 +513,45 @@ export type Database = {
           },
         ];
       };
+      service_feedback: {
+        Row: {
+          id: string;
+          role: string;
+          speed_rating: number;
+          smoothness_rating: number;
+          service_rating: number;
+          top_concern: string;
+          additional_comments: string | null;
+          user_id: string | null;
+          locale: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          role: string;
+          speed_rating: number;
+          smoothness_rating: number;
+          service_rating: number;
+          top_concern: string;
+          additional_comments?: string | null;
+          user_id?: string | null;
+          locale?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          role?: string;
+          speed_rating?: number;
+          smoothness_rating?: number;
+          service_rating?: number;
+          top_concern?: string;
+          additional_comments?: string | null;
+          user_id?: string | null;
+          locale?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       saved_tutors: {
         Row: {
           created_at: string;
@@ -853,6 +892,9 @@ export type Database = {
           field_flags: Json;
           updated_at: string;
           user_id: string | null;
+          remaining_student_slots: number;
+          is_accepting_students: boolean;
+          preferred_time_windows: string[];
         };
         Insert: {
           achievements?: Json;
@@ -941,6 +983,9 @@ export type Database = {
           field_flags?: Json;
           updated_at?: string;
           user_id?: string | null;
+          remaining_student_slots?: number;
+          is_accepting_students?: boolean;
+          preferred_time_windows?: string[];
         };
         Relationships: [
           {
@@ -991,6 +1036,14 @@ export type Database = {
       get_my_referral_dashboard: { Args: never; Returns: Json };
       update_my_availability: {
         Args: { _start_immediately: boolean; _earliest_start_date?: string | null };
+        Returns: undefined;
+      };
+      update_my_capacity: {
+        Args: {
+          _remaining_student_slots: number;
+          _is_accepting_students: boolean;
+          _preferred_time_windows: string[];
+        };
         Returns: undefined;
       };
       get_org_role: {

@@ -7,12 +7,14 @@ import {
   ArrowLeft,
   Award,
   CalendarDays,
+  Clock,
   Coins,
   Globe,
   GraduationCap,
   Languages,
   Layers,
   LineChart,
+  Lock,
   School,
   Share2,
   Sparkles,
@@ -417,6 +419,8 @@ function TutorDetail() {
   const inquiry = getTutorInquiryAction(t, whatsappNumber, i18n.language);
   const waUrl = waDigits ? inquiry.href : "";
   const availabilityReadiness = getTutorAvailabilityReadiness(t);
+  // Issue #103: macro availability windows for the public profile tags.
+  const preferredTimeWindows = t.preferred_time_windows ?? [];
   const genderLabel = getTutorGenderLabel(t.gender);
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
   const subjectGroups = getTutorSubjectGroups(t).map((group) => {
@@ -613,6 +617,29 @@ function TutorDetail() {
                       date: formatAvailabilityDate(t.earliest_start_date, i18n.language),
                     })}
                   </p>
+                ) : null}
+                {inquiry.kind === "waitlist" ? (
+                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
+                    <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                    {translate("profile.fully_booked")}
+                  </p>
+                ) : null}
+                {inquiry.kind !== "waitlist" && preferredTimeWindows.length > 0 ? (
+                  <div className="mt-3 space-y-1.5">
+                    <p className="inline-flex flex-wrap items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
+                      <Clock
+                        className="h-3.5 w-3.5 text-[color:var(--brand-link)]"
+                        aria-hidden="true"
+                      />
+                      {translate("profile.prefers_prefix")}
+                      {preferredTimeWindows
+                        .map((window) => translate(`profile.time_window_${window}`))
+                        .join(" · ")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {translate("profile.time_window_disclaimer")}
+                    </p>
+                  </div>
                 ) : null}
                 {waUrl ? (
                   <Button
