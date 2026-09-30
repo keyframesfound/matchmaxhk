@@ -1932,19 +1932,7 @@ export function ApplicationForm() {
       >
         <p className="flex items-center gap-2 text-xs font-medium text-[color:var(--ink)]">
           <Scale className="h-4 w-4" aria-hidden="true" />
-          Display Rules &amp; Legal Warning
-        </p>
-        <p className="flex gap-2.5 text-sm leading-relaxed text-foreground">
-          <CheckCircle2
-            className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
-            aria-hidden="true"
-          />
-          <span>
-            <span className="font-semibold">Achievements and Experiences</span> will only be
-            displayed on your profile after supporting evidence has been uploaded. Exceptions apply
-            to claims that cannot be documented, such as private tutoring experience or student
-            feedback.
-          </span>
+          Legal Warning
         </p>
         <p className="flex gap-2.5 rounded-md border-l-2 border-destructive bg-destructive/5 px-3 py-2 text-sm leading-relaxed text-foreground">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden="true" />
