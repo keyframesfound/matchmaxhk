@@ -23,7 +23,11 @@
     "account_menu_label": "Account menu",
     "account_language": "Language",
     "back": "Back",
-    "help": "Help"
+    "help": "Help",
+    "tab_tutors": "Tutors",
+    "tab_saved": "Saved",
+    "tab_cases": "Cases",
+    "site_menu": "Main menu"
   },
   "settings": {
     "eyebrow": "Your account",

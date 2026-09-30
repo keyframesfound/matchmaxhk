@@ -144,7 +144,7 @@ function CoursesDirectory() {
             </div>
           </section>
           <StickySearchBar>
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
+            <div className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
               <CoursesSearchBar
                 draft={draft}
                 onDraftChange={setDraftParam}

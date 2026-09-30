@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Bookmark,
-  BookOpen,
   Building2,
-  ChevronsUpDown,
   CircleHelp,
+  Globe,
   LogOut,
+  Menu,
   Moon,
   Settings,
   ShieldCheck,
@@ -17,7 +17,6 @@ import { useTranslation } from "react-i18next";
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { Logo } from "@/components/brand/Logo";
 import { CompactPillSlot, useSearchGroup } from "@/components/search/sticky-search-group";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
@@ -46,20 +46,25 @@ type NavDestination =
   | "/tutor-requests"
   | "/help";
 
-/** Compact top-bar link for desktop — retained for the lg+ navigation row. */
-function DesktopNavLink({
+/** Shared item styling for the Airbnb-style header popovers. */
+const menuLinkClassName =
+  "cursor-pointer rounded-lg px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]";
+
+/** Round icon trigger for the header popovers (avatar / burger). */
+const headerCircleClassName =
+  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40";
+
+/** Centered category tab for the lg+ nav row — Airbnb-style icon + label with an active underline. */
+function DesktopTab({
   to,
   active,
   icon,
-  iconNode,
   children,
 }: {
   to: NavDestination;
   active: boolean;
-  /** Optional icon asset (public/ path) rendered before the label. */
-  icon?: string;
-  /** Optional lucide icon for links without a dedicated PNG asset. */
-  iconNode?: React.ReactNode;
+  /** Icon asset (public/ path) rendered before the label. */
+  icon: string;
   children: React.ReactNode;
 }) {
   return (
@@ -67,27 +72,24 @@ function DesktopNavLink({
       to={to}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex items-center gap-1.5 whitespace-nowrap text-[15px] font-semibold transition-colors duration-200 focus-visible:text-[color:var(--brand-link)]",
+        "relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-sm font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-4",
         active
-          ? "text-[color:var(--brand-link)]"
-          : "text-[color:var(--ink)]/85 hover:text-[color:var(--brand-link)]",
+          ? "text-[color:var(--ink)]"
+          : "text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]",
       )}
     >
-      {icon ? (
-        <img
-          src={icon}
-          alt=""
-          aria-hidden="true"
-          draggable={false}
-          className="h-4 w-4 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
-        />
-      ) : null}
-      {iconNode}
+      <img
+        src={icon}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className="h-6 w-6 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
+      />
       {children}
       <span
         className={cn(
-          "absolute -bottom-2 left-0 h-[2px] rounded-full bg-[color:var(--foreground)] transition-all duration-200",
-          active ? "w-full" : "w-0 group-hover:w-full",
+          "absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-[color:var(--foreground)] transition-opacity duration-200 xl:inset-x-4",
+          active ? "opacity-100" : "opacity-0",
         )}
       />
     </Link>
@@ -104,14 +106,14 @@ export function SiteHeader({
   tone?: "light" | "dark";
   /**
    * Grouped search-header mode (directory pages): no divider under the nav,
-   * shared #FEFEFE band with the search area below, and the nav links fade
+   * shared #FEFEFE band with the search area below, and the category tabs fade
    * out while the compact search pill is showing.
    */
   merged?: boolean;
   /** Compact search pill rendered centered in the nav row (merged mode). */
   centerSlot?: React.ReactNode;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, signOut, hasAnyRole } = useAuth();
   const { membership } = useMyOrganization();
   const hasOrg = !!membership;
@@ -126,6 +128,8 @@ export function SiteHeader({
     user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
   const accountInitial = accountName.charAt(0).toUpperCase();
   const useDarkTheme = theme !== "dark";
+  const currentLang = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
+  const nextLang = currentLang === "en" ? "zh-HK" : "en";
   const brandLabelClassName = "text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
 
   // Mobile keeps a slim top bar (logo + staggered menu); the fixed bottom
@@ -175,193 +179,210 @@ export function SiteHeader({
             </div>
           </Link>
 
-          <nav
-            className={cn(
-              "ml-8 flex items-center gap-4 transition-opacity duration-200 motion-reduce:transition-none xl:ml-12 xl:gap-9",
-              linksVisible ? "opacity-100" : "pointer-events-none opacity-0",
-            )}
-          >
-            <DesktopNavLink
-              to="/how-it-works"
-              active={isActive("/how-it-works")}
-              icon="/nav-how-it-works.png"
+          <div className="pointer-events-none absolute inset-0 flex justify-center">
+            <nav
+              aria-label={t("nav.site_menu")}
+              className={cn(
+                "pointer-events-auto flex h-full items-stretch transition-opacity duration-200 motion-reduce:transition-none",
+                linksVisible ? "opacity-100" : "pointer-events-none opacity-0",
+              )}
             >
-              {t("nav.how")}
-            </DesktopNavLink>
-            <DesktopNavLink to="/tutors" active={isActive("/tutors")} icon="/nav-find.png">
-              {t("nav.find")}
-            </DesktopNavLink>
-            {CENTRE_MARKET_ENABLED && (
-              <DesktopNavLink to="/courses" active={isActive("/courses")}>
-                {t("nav.courses")}
-              </DesktopNavLink>
-            )}
-            <DesktopNavLink
-              to="/saved-posts"
-              active={isActive("/saved-posts")}
-              icon="/nav-saved.png"
-            >
-              {t("nav.saved_posts")}
-            </DesktopNavLink>
-            <DesktopNavLink to="/join" active={isActive("/join")} icon="/nav-become-tutor.png">
-              {t("nav.become_tutor")}
-            </DesktopNavLink>
-            {CENTRE_MARKET_ENABLED && (
-              <DesktopNavLink to="/pricing" active={isActive("/pricing")}>
-                {t("nav.for_business")}
-              </DesktopNavLink>
-            )}
-            <DesktopNavLink
-              to="/tutor-requests"
-              active={isActive("/tutor-requests")}
-              icon="/nav-case-board.png"
-            >
-              {t("nav.request_tutor")}
-            </DesktopNavLink>
-            <DesktopNavLink
-              to="/help"
-              active={isActive("/help")}
-              iconNode={<CircleHelp className="h-4 w-4 shrink-0" aria-hidden="true" />}
-            >
-              {t("nav.help")}
-            </DesktopNavLink>
-          </nav>
+              <DesktopTab to="/tutors" active={isActive("/tutors")} icon="/nav-find.png">
+                {t("nav.tab_tutors")}
+              </DesktopTab>
+              <DesktopTab
+                to="/how-it-works"
+                active={isActive("/how-it-works")}
+                icon="/nav-how-it-works.png"
+              >
+                {t("nav.how")}
+              </DesktopTab>
+              <DesktopTab to="/saved-posts" active={isActive("/saved-posts")} icon="/nav-saved.png">
+                {t("nav.tab_saved")}
+              </DesktopTab>
+              <DesktopTab
+                to="/tutor-requests"
+                active={isActive("/tutor-requests")}
+                icon="/nav-case-board.png"
+              >
+                {t("nav.tab_cases")}
+              </DesktopTab>
+            </nav>
+          </div>
 
-          <div className="ml-auto flex items-center gap-2 sm:gap-4">
-            <div className="flex items-center">
-              <LanguageToggle />
-            </div>
-            {user ? (
-              <div>
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="relative h-auto w-60 justify-start gap-3 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-2 text-left text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface)] hover:text-[color:var(--ink)]"
-                    >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--foreground)] text-[color:var(--background)] text-sm font-bold">
-                        {accountInitial}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold leading-5">
-                          {accountName}
-                        </span>
-                        <span className="block truncate text-xs font-normal leading-4 text-[color:var(--ink)]/55">
-                          {user.email}
-                        </span>
-                      </span>
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[color:var(--ink)]/45">
-                        <ChevronsUpDown className="h-4 w-4" aria-hidden="true" />
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-60 overflow-hidden rounded-lg border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0"
-                  >
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+            <Link
+              to="/join"
+              aria-current={isActive("/join") ? "page" : undefined}
+              className={cn(
+                "whitespace-nowrap rounded-full px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-[color:var(--foreground)]/[0.05] sm:px-4",
+                isActive("/join")
+                  ? "text-[color:var(--brand-link)]"
+                  : "text-[color:var(--ink)] hover:text-[color:var(--ink)]",
+              )}
+            >
+              {t("nav.become_tutor")}
+            </Link>
+
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={t("nav.account_menu_label")}
+                  className={headerCircleClassName}
+                >
+                  {user ? (
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--foreground)] text-sm font-bold text-[color:var(--background)]">
+                      {accountInitial}
+                    </span>
+                  ) : (
+                    <UserRound className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-64 overflow-hidden rounded-xl border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0"
+              >
+                {user ? (
+                  <>
                     <DropdownMenuLabel className="border-b border-[color:var(--ink)]/10 px-4 py-3">
                       <div className="text-sm font-semibold text-[color:var(--ink)]">
                         {t("nav.account_title")}
                       </div>
-                      <div className="mt-0.5 text-xs font-normal text-[color:var(--ink)]/60">
-                        {t("nav.account_subtitle")}
+                      <div className="mt-0.5 truncate text-xs font-normal text-[color:var(--ink)]/60">
+                        {user.email}
                       </div>
                     </DropdownMenuLabel>
                     <div className="p-1.5">
-                      <DropdownMenuItem
-                        asChild
-                        className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
-                      >
+                      <DropdownMenuItem asChild className={menuLinkClassName}>
                         <Link to="/dashboard" hash="profile">
                           <UserRound aria-hidden="true" />
                           {t("nav.profile")}
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        asChild
-                        className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
-                      >
+                      <DropdownMenuItem asChild className={menuLinkClassName}>
                         <Link to="/dashboard">
                           <Settings aria-hidden="true" />
                           {t("nav.settings")}
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        asChild
-                        className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
-                      >
+                      <DropdownMenuItem asChild className={menuLinkClassName}>
                         <Link to="/saved-posts">
                           <Bookmark aria-hidden="true" />
                           {t("nav.saved_posts")}
                         </Link>
                       </DropdownMenuItem>
-                      {(CENTRE_MARKET_ENABLED || hasOrg) && (
-                        <DropdownMenuItem
-                          asChild
-                          className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
-                        >
-                          <Link to={hasOrg ? "/business" : "/business/join"}>
-                            <Building2 aria-hidden="true" />
-                            {hasOrg ? t("nav.my_business") : t("nav.for_business")}
+                      {isAdmin && (
+                        <DropdownMenuItem asChild className={menuLinkClassName}>
+                          <Link to="/admin">
+                            <ShieldCheck aria-hidden="true" />
+                            {t("nav.admin")}
                           </Link>
                         </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem
-                        onSelect={() => setTheme(useDarkTheme ? "dark" : "light")}
-                        className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
-                      >
-                        {useDarkTheme ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
-                        {useDarkTheme ? t("nav.dark_mode") : t("nav.light_mode")}
-                      </DropdownMenuItem>
-                      {isAdmin && (
-                        <>
-                          <DropdownMenuSeparator className="my-1.5" />
-                          <DropdownMenuItem
-                            asChild
-                            className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--foreground)]/[0.06] focus:text-[color:var(--ink)]"
-                          >
-                            <Link to="/admin">
-                              <ShieldCheck aria-hidden="true" />
-                              {t("nav.admin")}
-                            </Link>
-                          </DropdownMenuItem>
-                        </>
                       )}
                       <DropdownMenuSeparator className="my-1.5" />
                       <DropdownMenuItem
                         onSelect={() => void signOut()}
-                        className="cursor-pointer rounded-md px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--destructive)]/10 focus:text-[color:var(--destructive)]"
+                        className="cursor-pointer rounded-lg px-3 py-2.5 font-medium text-[color:var(--ink)] focus:bg-[color:var(--destructive)]/10 focus:text-[color:var(--destructive)]"
                       >
                         <LogOut aria-hidden="true" />
                         {t("nav.sign_out")}
                       </DropdownMenuItem>
                     </div>
-                    <div className="flex items-center justify-between border-t border-[color:var(--ink)]/10 px-4 py-2.5 text-xs text-[color:var(--ink)]/50">
-                      <span>MatchMax</span>
-                      <span>{t("nav.account_menu_label")}</span>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ) : (
-              <>
-                <Link
-                  to="/auth"
-                  className="whitespace-nowrap text-[15px] font-semibold text-[color:var(--ink)] transition-colors hover:text-[color:var(--brand-link)]"
+                  </>
+                ) : (
+                  <div className="p-1.5">
+                    <DropdownMenuItem asChild className={menuLinkClassName}>
+                      <Link to="/auth">{t("nav.sign_in")}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className={menuLinkClassName}>
+                      <Link to="/auth" search={{ mode: "sign_up" }}>
+                        {t("nav.sign_up")}
+                      </Link>
+                    </DropdownMenuItem>
+                  </div>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={t("nav.site_menu")}
+                  className={headerCircleClassName}
                 >
-                  {t("nav.sign_in")}
-                </Link>
-                <Link to="/auth" search={{ mode: "sign_up" }}>
-                  <Button
-                    variant="solid"
-                    color="blue"
-                    className="h-11 rounded-full px-6 text-[15px] font-semibold transition-all duration-200"
+                  <Menu
+                    className="h-5 w-5 text-[color:var(--ink)]"
+                    strokeWidth={2.5}
+                    aria-hidden="true"
+                  />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-64 overflow-hidden rounded-xl border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0"
+              >
+                <div className="p-1.5">
+                  <DropdownMenuItem asChild className={menuLinkClassName}>
+                    <Link to="/help">
+                      <CircleHelp aria-hidden="true" />
+                      {t("nav.help")}
+                    </Link>
+                  </DropdownMenuItem>
+                  {hasOrg && (
+                    <DropdownMenuItem asChild className={menuLinkClassName}>
+                      <Link to="/business" search={{ tab: undefined }}>
+                        <Building2 aria-hidden="true" />
+                        {t("nav.my_business")}
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {CENTRE_MARKET_ENABLED && (
+                    <DropdownMenuItem asChild className={menuLinkClassName}>
+                      <Link to="/courses">{t("nav.courses")}</Link>
+                    </DropdownMenuItem>
+                  )}
+                  {CENTRE_MARKET_ENABLED && (
+                    <DropdownMenuItem asChild className={menuLinkClassName}>
+                      <Link to="/pricing">{t("nav.for_business")}</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator className="my-1.5" />
+                  <DropdownMenuItem
+                    onSelect={() => void i18n.changeLanguage(nextLang)}
+                    className={menuLinkClassName}
                   >
-                    {t("nav.sign_up")}
-                  </Button>
-                </Link>
-              </>
-            )}
+                    <Globe aria-hidden="true" />
+                    {t("nav.account_language")}
+                    <span className="ml-auto text-xs font-bold text-[color:var(--ink)]/55">
+                      {currentLang === "en" ? "EN" : "繁"}
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => setTheme(useDarkTheme ? "dark" : "light")}
+                    className={menuLinkClassName}
+                  >
+                    {useDarkTheme ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
+                    {useDarkTheme ? t("nav.dark_mode") : t("nav.light_mode")}
+                  </DropdownMenuItem>
+                  {!user && (
+                    <>
+                      <DropdownMenuSeparator className="my-1.5" />
+                      <DropdownMenuItem asChild className={menuLinkClassName}>
+                        <Link to="/auth">{t("nav.sign_in")}</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild className={menuLinkClassName}>
+                        <Link to="/auth" search={{ mode: "sign_up" }}>
+                          {t("nav.sign_up")}
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
         <AnnouncementBanner />
