@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { SearchX } from "lucide-react";
+import { GraduationCap, SearchX } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
@@ -35,6 +35,11 @@ import {
   type Tutor,
 } from "@/features/tutors/queries";
 import { matchesCategoryFilter, matchesSubjectQuery } from "@/features/tutors/subjects";
+import {
+  matchesAnyHighSchoolFilter,
+  matchesAnyUniversityFilter,
+  isElitePedigree,
+} from "@/features/tutors/education-filters";
 import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({
@@ -44,6 +49,8 @@ const searchSchema = z.object({
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
   status: z.string().optional(), // uni_student | full_part_time_tutor | examiner
+  university: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
+  high_school: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
   min_price: z.coerce.number().int().min(0).optional(),
   max_price: z.coerce.number().int().min(0).optional(),
   sort: z.string().optional(), // "" | price_asc | price_desc
@@ -127,6 +134,8 @@ function TutorsDirectory() {
   const modeFilter = draft.mode ?? "";
   const genderFilter = draft.gender ?? "";
   const statusFilter = draft.status ?? "";
+  const universityFilter = draft.university ?? "";
+  const highSchoolFilter = draft.high_school ?? "";
   const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
 
   const filtered = useMemo(() => {
@@ -153,6 +162,21 @@ function TutorsDirectory() {
         if (g !== genderFilter) return false;
       }
       if (statusFilter && (tut.tutor_status ?? "") !== statusFilter) return false;
+      // Issue #130: institutional-pedigree filters over free-text education fields.
+      if (
+        !matchesAnyUniversityFilter(universityFilter, {
+          undergradUniversity: tut.undergrad_university,
+          postgradUniversity: tut.postgrad_university,
+          secondarySchool: tut.secondary_school,
+        })
+      )
+        return false;
+      if (
+        !matchesAnyHighSchoolFilter(highSchoolFilter, {
+          secondarySchool: tut.secondary_school,
+        })
+      )
+        return false;
       if (
         query &&
         !(
@@ -188,11 +212,30 @@ function TutorsDirectory() {
     modeFilter,
     genderFilter,
     statusFilter,
+    universityFilter,
+    highSchoolFilter,
     draft.q,
     draft.min_price,
     draft.max_price,
     draft.sort,
   ]);
+
+  // Issue #130: when the pedigree filters alone zero out the results, show a
+  // friendly empty state plus a fallback list of elite-pedigree tutors instead
+  // of the generic "no matches" block.
+  const educationFiltered = universityFilter !== "" || highSchoolFilter !== "";
+  const fallbackTutors = useMemo(() => {
+    if (!educationFiltered || filtered.length > 0) return [];
+    return tutors
+      .filter((tut) =>
+        isElitePedigree({
+          undergradUniversity: tut.undergrad_university,
+          postgradUniversity: tut.postgrad_university,
+          secondarySchool: tut.secondary_school,
+        }),
+      )
+      .slice(0, 6);
+  }, [educationFiltered, filtered.length, tutors]);
 
   const { compareIds, compareTutors, toggleCompare, compareOpen, setCompareOpen, clearCompare } =
     useTutorCompare(tutors);
@@ -279,7 +322,64 @@ function TutorsDirectory() {
                 </div>
               )}
 
-              {!isLoading && filtered.length === 0 && (
+              {!isLoading && filtered.length === 0 && educationFiltered && (
+                <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
+                    <GraduationCap
+                      className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                    {t("directory.empty_edu_title")}
+                  </h2>
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                    {t("directory.empty_edu_desc")}
+                  </p>
+                  <div className="mt-6 flex flex-wrap justify-center gap-3">
+                    <Button variant="outline" onClick={clearAll}>
+                      {t("directory.empty_edu_clear")}
+                    </Button>
+                  </div>
+                  {fallbackTutors.length > 0 && (
+                    <div className="mt-8 text-left">
+                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {fallbackTutors.map((tut: Tutor) => {
+                          const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
+                          return (
+                            <PublicTutorCard
+                              key={tut.id}
+                              tutor={tut}
+                              priceSuffix={t("featured.per_hour")}
+                              onOpen={openTutorDetail}
+                              footerAction={
+                                <>
+                                  <TutorSaveButton tutorId={tut.id} compact />
+                                  <Button
+                                    asChild
+                                    className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                                  >
+                                    <a
+                                      href={inquiry.href}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      onClick={(event) => event.stopPropagation()}
+                                    >
+                                      {inquiry.label}
+                                    </a>
+                                  </Button>
+                                </>
+                              }
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!isLoading && filtered.length === 0 && !educationFiltered && (
                 <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
                     <SearchX

@@ -48,6 +48,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import {
+  highSchoolEditorOptions,
+  universityEditorOptions,
+} from "@/features/tutors/education-filters";
 import { Switch } from "@/components/ui/switch";
 import { MtrStationMultiSelect, MtrStationSelect } from "@/components/ui/mtr-station-select";
 import { getNearestMtrStation, getReachableMtrStations } from "@/features/tutor-application/mtr";
@@ -1485,24 +1489,32 @@ export function TutorEditor({
                 <FormField
                   label="Undergraduate University"
                   error={errors.undergrad_university}
-                  hint="Undergrad tertiary institution"
+                  hint="Search or add — e.g. The University of Hong Kong"
                 >
-                  <Input
-                    value={form.undergrad_university}
-                    onChange={(e) => setForm({ ...form, undergrad_university: e.target.value })}
+                  <SearchableSelect
+                    value={form.undergrad_university ?? ""}
+                    onChange={(v) => setForm({ ...form, undergrad_university: v })}
+                    options={universityEditorOptions(form.undergrad_university)}
                     placeholder="e.g. The University of Hong Kong"
+                    searchPlaceholder="Search universities…"
+                    emptyText="No university found — keep typing to add it"
+                    allowCustom
                   />
                 </FormField>
 
                 <FormField
                   label="Secondary School"
                   error={errors.secondary_school}
-                  hint="Graduated institution"
+                  hint="Search or add — e.g. Diocesan Boys' School"
                 >
-                  <Input
-                    value={form.secondary_school}
-                    onChange={(e) => setForm({ ...form, secondary_school: e.target.value })}
+                  <SearchableSelect
+                    value={form.secondary_school ?? ""}
+                    onChange={(v) => setForm({ ...form, secondary_school: v })}
+                    options={highSchoolEditorOptions(form.secondary_school)}
                     placeholder="e.g. Diocesan Boys' School"
+                    searchPlaceholder="Search schools…"
+                    emptyText="No school found — keep typing to add it"
+                    allowCustom
                   />
                 </FormField>
 
@@ -1544,12 +1556,16 @@ export function TutorEditor({
                     <FormField
                       label="Postgraduate University"
                       error={errors.postgrad_university}
-                      hint="Shown abbreviated on cards"
+                      hint="Search or add — shown abbreviated on cards"
                     >
-                      <Input
-                        value={form.postgrad_university}
-                        onChange={(e) => setForm({ ...form, postgrad_university: e.target.value })}
+                      <SearchableSelect
+                        value={form.postgrad_university ?? ""}
+                        onChange={(v) => setForm({ ...form, postgrad_university: v })}
+                        options={universityEditorOptions(form.postgrad_university)}
                         placeholder="e.g. University of Edinburgh"
+                        searchPlaceholder="Search universities…"
+                        emptyText="No university found — keep typing to add it"
+                        allowCustom
                       />
                     </FormField>
                     <FormField

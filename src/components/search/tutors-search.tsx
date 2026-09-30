@@ -36,6 +36,10 @@ import {
   ADMISSIONS_STANDARDIZED_TEST_CATEGORY,
   getSubjectOptionsForCategory,
 } from "@/features/tutors/subjects";
+import {
+  HIGH_SCHOOL_FILTER_OPTIONS,
+  UNIVERSITY_FILTER_OPTIONS,
+} from "@/features/tutors/education-filters";
 import { cn } from "@/lib/utils";
 
 export type TutorsSearchState = {
@@ -45,6 +49,8 @@ export type TutorsSearchState = {
   mode?: string;
   gender?: string;
   status?: string;
+  university?: string;
+  high_school?: string;
   min_price?: number;
   max_price?: number;
   sort?: string;
@@ -274,6 +280,8 @@ export function TutorsSearchBar({
   const filterCount = [
     draft.gender,
     draft.status,
+    draft.university,
+    draft.high_school,
     draft.min_price !== undefined ? "price" : "",
     draft.max_price !== undefined ? "price" : "",
     draft.sort,
@@ -298,6 +306,22 @@ export function TutorsSearchBar({
     { value: "", label: t("search_ui.gender_any") },
     { value: "female", label: t("search_panel.gender_female") },
     { value: "male", label: t("search_panel.gender_male") },
+  ];
+
+  const universityOptions = [
+    { value: "", label: t("search_ui.university_any") },
+    ...UNIVERSITY_FILTER_OPTIONS.map((value) => ({
+      value,
+      label: t(`search_ui.university_${value}`),
+    })),
+  ];
+
+  const highSchoolOptions = [
+    { value: "", label: t("search_ui.high_school_any") },
+    ...HIGH_SCHOOL_FILTER_OPTIONS.map((value) => ({
+      value,
+      label: t(`search_ui.high_school_${value}`),
+    })),
   ];
 
   const modeDisplay = tutorsModeDisplay(draft, t);
@@ -438,6 +462,24 @@ export function TutorsSearchBar({
             className="h-11 rounded-xl"
           />
         </FiltersSection>
+        <FiltersSection id="university" title={t("search_ui.university_title")}>
+          <SearchableSelect
+            value={draft.university ?? ""}
+            onChange={(value) => onDraftChange({ university: value || undefined })}
+            options={universityOptions}
+            placeholder={t("search_ui.university_any")}
+            className="h-11 rounded-xl"
+          />
+        </FiltersSection>
+        <FiltersSection id="high_school" title={t("search_ui.high_school_title")}>
+          <SearchableSelect
+            value={draft.high_school ?? ""}
+            onChange={(value) => onDraftChange({ high_school: value || undefined })}
+            options={highSchoolOptions}
+            placeholder={t("search_ui.high_school_any")}
+            className="h-11 rounded-xl"
+          />
+        </FiltersSection>
         <FiltersSection id="sort" title={t("search_ui.sort_title")}>
           <SearchableSelect
             value={draft.sort ?? ""}
@@ -520,6 +562,22 @@ export function TutorsSearchMobile({
     { value: "", label: t("search_ui.gender_any") },
     { value: "female", label: t("search_panel.gender_female") },
     { value: "male", label: t("search_panel.gender_male") },
+  ];
+
+  const universityOptions = [
+    { value: "", label: t("search_ui.university_any") },
+    ...UNIVERSITY_FILTER_OPTIONS.map((value) => ({
+      value,
+      label: t(`search_ui.university_${value}`),
+    })),
+  ];
+
+  const highSchoolOptions = [
+    { value: "", label: t("search_ui.high_school_any") },
+    ...HIGH_SCHOOL_FILTER_OPTIONS.map((value) => ({
+      value,
+      label: t(`search_ui.high_school_${value}`),
+    })),
   ];
 
   const applyLabel =
@@ -655,6 +713,28 @@ export function TutorsSearchMobile({
               onChange={(value) => onDraftChange({ status: value || undefined })}
               options={statusOptions}
               placeholder={t("search_panel.any_status")}
+              className="h-12 rounded-2xl"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <PanelLabel>{t("search_ui.university_title")}</PanelLabel>
+            <SearchableSelect
+              value={draft.university ?? ""}
+              onChange={(value) => onDraftChange({ university: value || undefined })}
+              options={universityOptions}
+              placeholder={t("search_ui.university_any")}
+              className="h-12 rounded-2xl"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <PanelLabel>{t("search_ui.high_school_title")}</PanelLabel>
+            <SearchableSelect
+              value={draft.high_school ?? ""}
+              onChange={(value) => onDraftChange({ high_school: value || undefined })}
+              options={highSchoolOptions}
+              placeholder={t("search_ui.high_school_any")}
               className="h-12 rounded-2xl"
             />
           </div>
