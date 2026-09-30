@@ -128,6 +128,14 @@ export default tseslint.config(
     },
   },
   {
+    // Airbnb-style raised buttons in the site header are the one sanctioned
+    // exception to the flat design (issue #140, Ryan's call 2026-09-30).
+    files: ["src/components/layout/SiteHeader.tsx"],
+    rules: {
+      "no-restricted-syntax": "off",
+    },
+  },
+  {
     files: ["**/*.{ts,tsx}"],
     plugins: { "i18n-guards": i18nGuards },
     rules: {

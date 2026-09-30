@@ -67,10 +67,14 @@ function DesktopNavLink({
       to={to}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex items-center gap-1.5 whitespace-nowrap text-[15px] font-semibold transition-colors duration-200 focus-visible:text-[color:var(--brand-link)]",
+        // Airbnb-style raised pill: soft shadow that lifts on hover and
+        // "presses" on click (issue #140). Shadows are sanctioned for the
+        // site header only — see the eslint.config.js exception.
+        "group relative flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-[15px] font-semibold transition-all duration-200 focus-visible:text-[color:var(--brand-link)]",
+        "shadow-[0_1px_2px_rgba(0,0,0,0.08)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.14)] active:translate-y-px active:shadow-none",
         active
-          ? "text-[color:var(--brand-link)]"
-          : "text-[color:var(--ink)]/85 hover:text-[color:var(--brand-link)]",
+          ? "bg-[color:var(--foreground)]/[0.06] text-[color:var(--brand-link)]"
+          : "text-[color:var(--ink)]/85 hover:bg-[color:var(--foreground)]/[0.04] hover:text-[color:var(--brand-link)]",
       )}
     >
       {icon ? (
@@ -84,12 +88,6 @@ function DesktopNavLink({
       ) : null}
       {iconNode}
       {children}
-      <span
-        className={cn(
-          "absolute -bottom-2 left-0 h-[2px] rounded-full bg-[color:var(--foreground)] transition-all duration-200",
-          active ? "w-full" : "w-0 group-hover:w-full",
-        )}
-      />
     </Link>
   );
 }
