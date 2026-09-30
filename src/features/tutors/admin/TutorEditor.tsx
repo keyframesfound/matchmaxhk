@@ -99,7 +99,7 @@ import {
   type TutorFieldFlags,
 } from "../field-flags";
 
-const TARGET_STUDENT_OPTIONS = [
+export const TARGET_STUDENT_OPTIONS = [
   "Primary",
   "Junior Secondary",
   "IBDP",
@@ -908,9 +908,35 @@ export function TutorEditor({
   };
 
   // Referral program (issue #127): identity link + shareable code are managed
-  // outside the form payload — they mutate the tutors row directly.
+  // outside the form payload — they mutate the tutors row directly. Issue #160
+  // renames the UI section to "Assigned account" since linking now also
+  // unlocks the tutor's own profile editor in dashboard settings.
   const queryClient = useQueryClient();
   const [linkEmail, setLinkEmail] = React.useState("");
+  // Issue #160: searchable assignee dropdown. Admin-only RPC resolves
+  // emails + display names out of auth.users as the admin types.
+  const [accountSearch, setAccountSearch] = React.useState("");
+  const [debouncedSearch, setDebouncedSearch] = React.useState("");
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(accountSearch.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [accountSearch]);
+  const accountOptionsQuery = useQuery({
+    queryKey: ["admin", "account-search", debouncedSearch],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("list_accounts_for_assignment", {
+        _search: debouncedSearch,
+      });
+      if (error) throw error;
+      return data as { id: string; email: string | null; display_name: string | null }[];
+    },
+    enabled: debouncedSearch.length >= 2,
+  });
+  const accountOptions = (accountOptionsQuery.data ?? []).map((account) => ({
+    value: account.id,
+    label: account.email ?? account.id,
+    description: account.display_name ?? undefined,
+  }));
   const tutorReferralQuery = useQuery({
     queryKey: ["admin", "tutor-referral", initialData?.id],
     queryFn: async () => {
@@ -987,23 +1013,33 @@ export function TutorEditor({
   };
 
   const linkAccount = useMutation({
-    mutationFn: async (email: string) => {
-      const { data: userId, error: rpcError } = await supabase.rpc("find_user_id_by_email", {
-        _email: email.trim(),
-      });
-      if (rpcError) throw rpcError;
-      if (!userId) {
-        throw new Error("No MatchMax account found with that email.");
+    // Issue #160: the dropdown resolves the user id via
+    // list_accounts_for_assignment; the email path stays as a fallback.
+    mutationFn: async ({ email, userId }: { email?: string; userId?: string }) => {
+      let resolvedUserId = userId ?? null;
+      if (!resolvedUserId) {
+        if (!email) throw new Error("Pick an account or enter an email.");
+        const { data: rpcUserId, error: rpcError } = await supabase.rpc("find_user_id_by_email", {
+          _email: email.trim(),
+        });
+        if (rpcError) throw rpcError;
+        if (!rpcUserId) {
+          throw new Error("No MatchMax account found with that email.");
+        }
+        resolvedUserId = rpcUserId;
       }
       const { error } = await supabase
         .from("tutors")
-        .update({ user_id: userId } as never)
+        .update({ user_id: resolvedUserId } as never)
         .eq("id", initialData!.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Account linked — the tutor now sees the Referrals & Rewards tab");
+      toast.success(
+        "Account assigned — the tutor can now edit their profile from dashboard settings",
+      );
       setLinkEmail("");
+      setAccountSearch("");
       void queryClient.invalidateQueries({
         queryKey: ["admin", "tutor-referral", initialData?.id],
       });
@@ -1621,13 +1657,13 @@ export function TutorEditor({
             <EditorSection
               icon={Gift}
               title="Referral Program"
-              description="Every tutor gets a unique shareable link automatically. Link their MatchMax account so the Referrals & Rewards tab appears in their dashboard."
+              description="Every tutor gets a unique shareable link automatically. Manage the code and referrer attribution here."
               id="referral"
             >
               {!initialData ? (
                 <p className="text-sm text-muted-foreground">
                   The referral code is generated when the profile is created. Save the tutor first,
-                  then link their account here.
+                  then manage referrals here.
                 </p>
               ) : (
                 <div className="space-y-5">
@@ -1654,52 +1690,79 @@ export function TutorEditor({
                       </p>
                     </div>
                   </div>
+                </div>
+              )}
+            </EditorSection>
 
-                  <div>
-                    <Label className="text-sm font-bold text-[color:var(--ink)]">
-                      Linked account
-                    </Label>
-                    {tutorReferralQuery.data?.user_id ? (
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <span className="flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink)]">
-                          <UserCheck className="h-4 w-4" aria-hidden="true" />
-                          Linked — this tutor can see the Referrals &amp; Rewards tab.
-                        </span>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={unlinkAccount.isPending}
-                          onClick={() => unlinkAccount.mutate()}
-                        >
-                          Unlink
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+            {/* Assigned account (issue #160): GitHub-style assignee. Links a
+                MatchMax account to this card — unlocks the Referrals & Rewards
+                tab AND the tutor's own profile editor in dashboard settings. */}
+            <EditorSection
+              icon={UserCheck}
+              title="Assigned Account"
+              description="Link the tutor's MatchMax account to this profile. Once assigned, they can view and edit their profile from dashboard settings."
+              id="assigned-account"
+            >
+              {!initialData ? (
+                <p className="text-sm text-muted-foreground">
+                  Save the tutor first, then assign their account here.
+                </p>
+              ) : (
+                <div>
+                  <Label className="text-sm font-bold text-[color:var(--ink)]">
+                    Assigned account
+                  </Label>
+                  {tutorReferralQuery.data?.user_id ? (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink)]">
+                        <UserCheck className="h-4 w-4" aria-hidden="true" />
+                        Assigned — this tutor can edit their profile in dashboard settings.
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={unlinkAccount.isPending}
+                        onClick={() => unlinkAccount.mutate()}
+                      >
+                        Unassign
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mt-2 space-y-2">
+                      <SearchableSelect
+                        value=""
+                        onChange={(userId) => linkAccount.mutate({ userId })}
+                        options={accountOptions}
+                        placeholder="Search accounts by email or name…"
+                        searchPlaceholder="Type at least 2 characters…"
+                        emptyText="No matching accounts"
+                      />
+                      <div className="flex flex-col gap-2 sm:flex-row">
                         <Input
                           type="email"
                           value={linkEmail}
                           onChange={(e) => setLinkEmail(e.target.value)}
-                          placeholder="Tutor's MatchMax account email"
+                          placeholder="…or type the tutor's account email"
                           className="sm:max-w-sm"
                         />
                         <Button
                           type="button"
                           disabled={!linkEmail.trim() || linkAccount.isPending}
-                          onClick={() => linkAccount.mutate(linkEmail)}
+                          onClick={() => linkAccount.mutate({ email: linkEmail })}
                         >
                           {linkAccount.isPending ? (
                             <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                           ) : null}
-                          Link account
+                          Assign account
                         </Button>
                       </div>
-                    )}
-                    <p className="mt-1.5 text-xs text-muted-foreground">
-                      Use the email the tutor signed up with — usually the one on their application.
-                    </p>
-                  </div>
+                    </div>
+                  )}
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Search with the dropdown, or fall back to the exact email the tutor signed up
+                    with. Assignment takes effect immediately.
+                  </p>
                 </div>
               )}
             </EditorSection>

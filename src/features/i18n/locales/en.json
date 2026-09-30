@@ -41,7 +41,8 @@
       "danger": "Danger zone",
       "saved_posts": "Saved Posts",
       "sign_out": "Sign out",
-      "availability": "Availability"
+      "availability": "Availability",
+      "my_tutor": "My tutor profile"
     },
     "referrals": {
       "title": "Refer & Earn 15%",
@@ -223,6 +224,37 @@
       "window_weekend_morning": "Weekend mornings (9 AM–1 PM)",
       "window_weekend_afternoon": "Weekend afternoons (1–6 PM)",
       "save_capacity": "Save changes"
+    },
+    "my_tutor": {
+      "title": "My tutor profile",
+      "description": "Edit the tutor profile assigned to your account by the MatchMax team. Changes go live immediately.",
+      "not_linked": "No tutor profile is linked to your account yet. The MatchMax team assigns profiles — check back after they confirm your assignment.",
+      "view_public": "View public profile",
+      "publish_label": "Public directory visibility",
+      "publish_hint": "When on, students can find your profile in search and the directory.",
+      "academic_headline": "Academic headline",
+      "secondary_school": "Secondary school",
+      "undergrad_university": "Undergraduate university",
+      "undergrad_degree": "Undergraduate degree",
+      "qualifications": "Qualifications summary",
+      "self_introduction": "Self introduction",
+      "self_introduction_hint": "Shown on your public profile. Formatting is preserved.",
+      "hourly_rate": "Hourly rate (HK$)",
+      "lesson_mode": "Lesson format",
+      "mode_either": "Online or in person",
+      "mode_online": "Online only",
+      "mode_in_person": "In person only",
+      "stations": "MTR stations",
+      "subjects": "Subjects",
+      "add_subject": "Add a subject…",
+      "remove_subject": "Remove",
+      "target_students": "Target students",
+      "add_level": "Add a level…",
+      "remove_level": "Remove",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "saved": "Profile saved — changes are live",
+      "form_errors": "Please resolve the highlighted errors."
     }
   },
   "hero": {

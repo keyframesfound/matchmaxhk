@@ -41,7 +41,8 @@
       "danger": "危險區域",
       "saved_posts": "已儲存個案",
       "sign_out": "登出",
-      "availability": "可開始日期"
+      "availability": "可開始日期",
+      "my_tutor": "我的導師檔案"
     },
     "referrals": {
       "title": "推薦朋友，賺 15% 獎賞",
@@ -223,6 +224,37 @@
       "window_weekend_morning": "週末上午（9 AM–1 PM）",
       "window_weekend_afternoon": "週末下午（1–6 PM）",
       "save_capacity": "儲存更改"
+    },
+    "my_tutor": {
+      "title": "我的導師檔案",
+      "description": "編輯 MatchMax 團隊指派到你帳戶的導師檔案。變更會即時生效。",
+      "not_linked": "你的帳戶尚未連結導師檔案。檔案由 MatchMax 團隊指派——待他們確認後再回來查看。",
+      "view_public": "查看公開檔案",
+      "publish_label": "公開目錄可見度",
+      "publish_hint": "開啟後，學生可以在搜尋及目錄中找到你的檔案。",
+      "academic_headline": "學術標題",
+      "secondary_school": "中學",
+      "undergrad_university": "大學",
+      "undergrad_degree": "學士學位",
+      "qualifications": "學歷摘要",
+      "self_introduction": "自我介紹",
+      "self_introduction_hint": "顯示於你的公開檔案。格式會被保留。",
+      "hourly_rate": "每小時收費（HK$）",
+      "lesson_mode": "上課形式",
+      "mode_either": "網上或面授",
+      "mode_online": "只限網上",
+      "mode_in_person": "只限面授",
+      "stations": "港鐵站",
+      "subjects": "科目",
+      "add_subject": "新增科目…",
+      "remove_subject": "移除",
+      "target_students": "目標學生",
+      "add_level": "新增級別…",
+      "remove_level": "移除",
+      "save": "儲存變更",
+      "saving": "儲存中…",
+      "saved": "檔案已儲存——變更已生效",
+      "form_errors": "請先處理標示的錯誤。"
     }
   },
   "hero": {
