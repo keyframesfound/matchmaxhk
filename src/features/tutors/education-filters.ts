@@ -27,6 +27,7 @@ export type UniversityFilterValue = (typeof UNIVERSITY_FILTER_OPTIONS)[number];
 export const HIGH_SCHOOL_FILTER_OPTIONS = [
   "st-stephens",
   "dgs",
+  "dbs",
   "cis",
   "kgv",
   "la-salle",
@@ -70,6 +71,7 @@ const HIGH_SCHOOL_MATCHERS: Record<HighSchoolFilterValue, string[]> = {
     "聖士提反書院",
   ],
   dgs: ["diocesan girls' school", "diocesan girls school", "dgs", "拔萃女書院"],
+  dbs: ["diocesan boys' school", "diocesan boys school", "dbs", "拔萃男書院"],
   cis: ["chinese international school", "cis", "漢基國際學校"],
   kgv: ["king george v school", "kgv", "英皇佐治五世學校"],
   "la-salle": ["la salle college", "la salle", "喇沙書院"],
@@ -180,4 +182,60 @@ export function isElitePedigree(texts: EducationTexts): boolean {
     matchesUniversityFilter("cuhk", texts) ||
     matchesUniversityFilter("hkust", texts)
   );
+}
+
+/**
+ * Issue #130 (tutor editor): canonical suggestion lists for the education
+ * fields. These are suggestions, not restrictions — the editor renders them
+ * in a searchable dropdown with `allowCustom`, so admins can pick from the
+ * list or type any other institution. Free text stored in the DB keeps
+ * working with the tolerant filter matchers above.
+ */
+
+/** Full institutional names matching each university filter bucket. */
+export const UNIVERSITY_SUGGESTIONS = [
+  "The University of Hong Kong",
+  "The Chinese University of Hong Kong",
+  "The Hong Kong University of Science and Technology",
+  "The Hong Kong Polytechnic University",
+  "City University of Hong Kong",
+  "Hong Kong Metropolitan University",
+  "The Education University of Hong Kong",
+] as const;
+
+/** Full school names matching each secondary-school filter bucket. */
+export const HIGH_SCHOOL_SUGGESTIONS = [
+  "St. Stephen's College",
+  "Diocesan Girls' School",
+  "Diocesan Boys' School",
+  "Chinese International School",
+  "King George V School",
+  "La Salle College",
+  "St. Paul's Co-educational College",
+  "St. Mary's Canossian College",
+  "Wah Yan College, Hong Kong",
+  "Wah Yan College, Kowloon",
+  "Sha Tin College",
+  "South Island School",
+  "West Island School",
+  "Island School",
+  "Queen Elizabeth School",
+] as const;
+
+/** Options for the editor's university dropdown: canonical names + the current free-text value (deduped, case-insensitive). */
+export function universityEditorOptions(currentValue: string | null | undefined): string[] {
+  const value = currentValue?.trim() ?? "";
+  const options = UNIVERSITY_SUGGESTIONS.filter(
+    (name) => name.toLowerCase() !== value.toLowerCase(),
+  );
+  return value ? [value, ...options] : [...options];
+}
+
+/** Options for the editor's secondary-school dropdown: canonical names + the current free-text value (deduped, case-insensitive). */
+export function highSchoolEditorOptions(currentValue: string | null | undefined): string[] {
+  const value = currentValue?.trim() ?? "";
+  const options = HIGH_SCHOOL_SUGGESTIONS.filter(
+    (name) => name.toLowerCase() !== value.toLowerCase(),
+  );
+  return value ? [value, ...options] : [...options];
 }
