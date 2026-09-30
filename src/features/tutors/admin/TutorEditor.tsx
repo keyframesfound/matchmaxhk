@@ -1126,8 +1126,21 @@ export function TutorEditor({
       ia_ee_tok_support: form.ia_ee_tok_support,
       ia_ee_tok_notes: form.ia_ee_tok_notes?.trim() || null,
       field_flags: fieldFlags,
+      // Issue #103: admin editor doesn't manage capacity; defaults reflect a
+      // live tutor until the tutor sets their own via the dashboard.
+      remaining_student_slots: initialData?.remaining_student_slots ?? 2,
+      is_accepting_students: initialData?.is_accepting_students ?? true,
+      preferred_time_windows: initialData?.preferred_time_windows ?? [],
     }),
-    [form, initialData?.id, initialData?.created_at, fieldFlags],
+    [
+      form,
+      initialData?.id,
+      initialData?.created_at,
+      initialData?.remaining_student_slots,
+      initialData?.is_accepting_students,
+      initialData?.preferred_time_windows,
+      fieldFlags,
+    ],
   );
 
   // "Matches student view": the preview card renders exactly what the public
