@@ -202,6 +202,27 @@
       "saving": "儲存中…",
       "not_linked": "你嘅帳戶仲未連結導師檔案。",
       "save": "儲存"
+    },
+    "capacity": {
+      "title": "容量與時間",
+      "description": "控制你可以接幾多位學生同你偏好嘅教學時間。更改會即時生效——無需管理員審核。",
+      "accepting_label": "接受新學生",
+      "state_active": "開放中——家長可以查詢",
+      "state_paused": "已暫停——你嘅檔案會顯示為已滿額",
+      "slots_label": "剩餘學生名額",
+      "slots_increase": "增加名額",
+      "slots_decrease": "減少名額",
+      "slots_hint": "你仲可以接嘅學生數目",
+      "slots_full": "你將會顯示為「已滿額」",
+      "windows_label": "偏好時段",
+      "windows_hint": "確實時間會喺查詢後同家長協調。",
+      "saving": "儲存中……",
+      "saved": "容量已更新",
+      "window_weekday_afternoon": "平日下午（4–7 PM）",
+      "window_weekday_evening": "平日晚上（7–10 PM）",
+      "window_weekend_morning": "週末上午（9 AM–1 PM）",
+      "window_weekend_afternoon": "週末下午（1–6 PM）",
+      "save_capacity": "儲存更改"
     }
   },
   "hero": {
@@ -558,7 +579,14 @@
     "error_title": "呢個導師檔案載入失敗",
     "error_body": "我哋嗰邊出咗啲問題。請再試一次，或者瀏覽導師目錄搵其他導師。",
     "not_found_title": "搵唔到呢位導師",
-    "not_found_body": "呢個導師編號未有對應嘅已上架導師。"
+    "not_found_body": "呢個導師編號未有對應嘅已上架導師。",
+    "fully_booked": "🔒 已滿額",
+    "prefers_prefix": "🕒 偏好：",
+    "time_window_disclaimer": "確實時間喺查詢後協調。通常可以配合自訂時間。",
+    "time_window_weekday_afternoon": "平日下午",
+    "time_window_weekday_evening": "平日晚上",
+    "time_window_weekend_morning": "週末上午",
+    "time_window_weekend_afternoon": "週末下午"
   },
   "tutor_card": {
     "verified_fallback": "學術資料已核實",

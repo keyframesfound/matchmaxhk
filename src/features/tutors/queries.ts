@@ -78,6 +78,40 @@ export function getTutorCardHighlights(
 
 export type IaEeTokSupport = (typeof IA_EE_TOK_SUPPORT_OPTIONS)[number];
 
+/** Issue #103: macro availability windows (tutor self-serve). */
+export const PREFERRED_TIME_WINDOWS = [
+  "weekday_afternoon",
+  "weekday_evening",
+  "weekend_morning",
+  "weekend_afternoon",
+] as const;
+
+export type PreferredTimeWindow = (typeof PREFERRED_TIME_WINDOWS)[number];
+
+export function normalizePreferredTimeWindows(raw: unknown): PreferredTimeWindow[] {
+  if (!Array.isArray(raw)) return [];
+  const supported = new Set<string>(PREFERRED_TIME_WINDOWS);
+  return Array.from(
+    new Set(
+      raw.filter((value): value is string => typeof value === "string" && supported.has(value)),
+    ),
+  ) as PreferredTimeWindow[];
+}
+
+/**
+ * Issue #103: a tutor is fully booked when they flipped accepting-students
+ * off, or burned through their open slots. Treated as not booked when the
+ * columns are missing entirely (pre-migration rows).
+ */
+export function isTutorFullyBooked(
+  tutor: Pick<Tutor, "is_accepting_students" | "remaining_student_slots">,
+): boolean {
+  if (tutor.is_accepting_students === false) return true;
+  if (tutor.remaining_student_slots === null || tutor.remaining_student_slots === undefined)
+    return false;
+  return tutor.remaining_student_slots <= 0;
+}
+
 export type Tutor = {
   id: string;
   display_name: string;
@@ -116,6 +150,10 @@ export type Tutor = {
   ia_ee_tok_notes: string | null;
   /** Issue #125: flagged profile fields hidden from public surfaces. */
   field_flags: TutorFieldFlags;
+  /** Issue #103: self-serve capacity & macro availability windows. */
+  remaining_student_slots: number | null;
+  is_accepting_students: boolean | null;
+  preferred_time_windows: PreferredTimeWindow[];
 };
 
 export type TutorPhotoDefaults = {
@@ -129,7 +167,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, field_flags";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, field_flags, remaining_student_slots, is_accepting_students, preferred_time_windows";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -311,6 +349,13 @@ function normalize(
     target_students: targetStudents,
     stations,
     field_flags: normalizeFieldFlags(row.field_flags),
+    remaining_student_slots:
+      typeof row.remaining_student_slots === "number"
+        ? Math.max(0, Math.round(row.remaining_student_slots))
+        : null,
+    is_accepting_students:
+      typeof row.is_accepting_students === "boolean" ? row.is_accepting_students : null,
+    preferred_time_windows: normalizePreferredTimeWindows(row.preferred_time_windows),
   };
 }
 

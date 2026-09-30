@@ -202,6 +202,27 @@
       "saving": "Saving…",
       "not_linked": "Your account isn't linked to a tutor card yet.",
       "save": "Save"
+    },
+    "capacity": {
+      "title": "Capacity & Availability",
+      "description": "Control how many students you can take and when you prefer to teach. Changes go live immediately — no admin review needed.",
+      "accepting_label": "Accepting new students",
+      "state_active": "Active — parents can inquire",
+      "state_paused": "Paused — your profile shows as fully booked",
+      "slots_label": "Open slots remaining",
+      "slots_increase": "Add a slot",
+      "slots_decrease": "Remove a slot",
+      "slots_hint": "Students you can still take on",
+      "slots_full": "You will show as Fully Booked",
+      "windows_label": "Preferred time windows",
+      "windows_hint": "Exact schedules are coordinated with parents upon inquiry.",
+      "saving": "Saving…",
+      "saved": "Capacity updated",
+      "window_weekday_afternoon": "Weekday afternoons (4–7 PM)",
+      "window_weekday_evening": "Weekday evenings (7–10 PM)",
+      "window_weekend_morning": "Weekend mornings (9 AM–1 PM)",
+      "window_weekend_afternoon": "Weekend afternoons (1–6 PM)",
+      "save_capacity": "Save changes"
     }
   },
   "hero": {
@@ -536,7 +557,14 @@
     "error_title": "This tutor profile didn't load",
     "error_body": "Something went wrong on our end. Try again, or browse the directory to find another tutor.",
     "not_found_title": "Tutor not found",
-    "not_found_body": "This tutor code doesn't match any published tutor."
+    "not_found_body": "This tutor code doesn't match any published tutor.",
+    "fully_booked": "🔒 Fully Booked",
+    "prefers_prefix": "🕒 Prefers:",
+    "time_window_disclaimer": "Exact schedules coordinated upon inquiry. Custom times can often be accommodated.",
+    "time_window_weekday_afternoon": "Weekday Afternoons",
+    "time_window_weekday_evening": "Weekday Evenings",
+    "time_window_weekend_morning": "Weekend Mornings",
+    "time_window_weekend_afternoon": "Weekend Afternoons"
   },
   "tutor_card": {
     "verified_fallback": "Academic profile verified",

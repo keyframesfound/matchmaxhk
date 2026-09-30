@@ -1,4 +1,5 @@
 import type { Tutor } from "@/features/tutors/queries";
+import { isTutorFullyBooked } from "@/features/tutors/queries";
 import { EXAM_SYSTEMS } from "@/features/tutors/examSystems";
 import {
   ADMISSIONS_TEST_SUBJECTS,
@@ -131,21 +132,50 @@ export function buildTutorPreBookingWhatsAppUrl(
 }
 
 export type TutorInquiryAction = {
-  kind: "request" | "pre_book";
+  kind: "request" | "pre_book" | "waitlist";
   href: string;
   label: string;
 };
 
 /**
- * Card CTA for reaching a tutor: the default inquiry, or the pre-book flavor
- * (label + date-stamped WhatsApp message) while the tutor is 8–30 days out.
+ * Issue #103: waitlist CTA for fully booked tutors — same WhatsApp deep link,
+ * different label/message so parents know lessons are full.
+ */
+export function buildTutorWaitlistWhatsAppUrl(
+  whatsappNumber: string | undefined,
+  tutorCode: string,
+) {
+  const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
+  if (!digits) return "";
+  const message = `Hi MatchMax! Tutor ${formatTutorCode(tutorCode)} is fully booked — I'd like to join the waitlist for their next available slot.`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
+
+/**
+ * Card CTA for reaching a tutor: the default inquiry, the pre-book flavor
+ * (label + date-stamped WhatsApp message) while the tutor is 8–30 days out,
+ * or the waitlist flavor when the tutor is fully booked (issue #103).
  * Surfaces with i18n'd CTAs can key off `kind` for their own default label.
  */
 export function getTutorInquiryAction(
-  tutor: Pick<Tutor, "tutor_code" | "start_immediately" | "earliest_start_date">,
+  tutor: Pick<
+    Tutor,
+    | "tutor_code"
+    | "start_immediately"
+    | "earliest_start_date"
+    | "is_accepting_students"
+    | "remaining_student_slots"
+  >,
   whatsappNumber: string | undefined,
   language: string,
 ): TutorInquiryAction {
+  if (isTutorFullyBooked(tutor)) {
+    return {
+      kind: "waitlist",
+      href: buildTutorWaitlistWhatsAppUrl(whatsappNumber, tutor.tutor_code),
+      label: "Join Waitlist via WhatsApp",
+    };
+  }
   if (getTutorAvailabilityReadiness(tutor) === "pre_booking" && tutor.earliest_start_date) {
     return {
       kind: "pre_book",

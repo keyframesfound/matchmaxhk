@@ -853,6 +853,9 @@ export type Database = {
           field_flags: Json;
           updated_at: string;
           user_id: string | null;
+          remaining_student_slots: number;
+          is_accepting_students: boolean;
+          preferred_time_windows: string[];
         };
         Insert: {
           achievements?: Json;
@@ -941,6 +944,9 @@ export type Database = {
           field_flags?: Json;
           updated_at?: string;
           user_id?: string | null;
+          remaining_student_slots?: number;
+          is_accepting_students?: boolean;
+          preferred_time_windows?: string[];
         };
         Relationships: [
           {
@@ -991,6 +997,14 @@ export type Database = {
       get_my_referral_dashboard: { Args: never; Returns: Json };
       update_my_availability: {
         Args: { _start_immediately: boolean; _earliest_start_date?: string | null };
+        Returns: undefined;
+      };
+      update_my_capacity: {
+        Args: {
+          _remaining_student_slots: number;
+          _is_accepting_students: boolean;
+          _preferred_time_windows: string[];
+        };
         Returns: undefined;
       };
       get_org_role: {
