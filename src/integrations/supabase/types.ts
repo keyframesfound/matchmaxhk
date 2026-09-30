@@ -513,6 +513,45 @@ export type Database = {
           },
         ];
       };
+      service_feedback: {
+        Row: {
+          id: string;
+          role: string;
+          speed_rating: number;
+          smoothness_rating: number;
+          service_rating: number;
+          top_concern: string;
+          additional_comments: string | null;
+          user_id: string | null;
+          locale: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          role: string;
+          speed_rating: number;
+          smoothness_rating: number;
+          service_rating: number;
+          top_concern: string;
+          additional_comments?: string | null;
+          user_id?: string | null;
+          locale?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          role?: string;
+          speed_rating?: number;
+          smoothness_rating?: number;
+          service_rating?: number;
+          top_concern?: string;
+          additional_comments?: string | null;
+          user_id?: string | null;
+          locale?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       saved_tutors: {
         Row: {
           created_at: string;
