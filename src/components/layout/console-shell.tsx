@@ -237,6 +237,10 @@ export function ConsoleShell({
           className={cn(
             "min-h-0 flex-1 overflow-y-auto",
             comfortable ? "p-6 sm:p-8" : "p-5 sm:p-7",
+            // Reserve space for the fixed mobile bottom nav (~60px tall) so the
+            // last content can always be scrolled clear of it (issue #145).
+            // Must come after p-* so twMerge keeps it as the bottom override.
+            "pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0",
           )}
         >
           {children}
