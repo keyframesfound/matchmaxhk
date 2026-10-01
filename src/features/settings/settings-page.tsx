@@ -200,7 +200,9 @@ export function SettingsPage() {
           </div>
 
           <div className="grid gap-6 pt-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-14 lg:pt-10">
-            <aside className="lg:sticky lg:top-24 lg:self-start">
+            {/* min-w-0: without it the grid track stretches to the pills row's
+                max-content width, widening the whole page on mobile (#146). */}
+            <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
               {/* Mobile: horizontally scrollable category pills */}
               <nav
                 aria-label={t("settings.title")}
