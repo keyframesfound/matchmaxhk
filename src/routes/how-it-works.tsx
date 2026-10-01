@@ -1,6 +1,16 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useLocation } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Clock3, CreditCard, Search, UserRoundCheck } from "lucide-react";
+import {
+  ArrowRight,
+  Clock3,
+  CreditCard,
+  Gift,
+  ListChecks,
+  MessageCircle,
+  Search,
+  UserRoundCheck,
+} from "lucide-react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -345,8 +355,75 @@ function FaqAccordion({ items, className }: { items: FaqItem[]; className?: stri
   );
 }
 
+/** Tutor Referral Bounty — anchored at #referral-bounty; the announcement
+ * banner's referral slide links here. Flat cards, borders only. */
+function ReferralBountySection() {
+  const { t } = useTranslation();
+  return (
+    <section
+      id="referral-bounty"
+      className="mx-auto max-w-[1440px] scroll-mt-20 px-5 py-20 sm:px-8 sm:py-28 lg:px-12"
+    >
+      <div className="mx-auto max-w-4xl">
+        <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+          {t("hiw.referral_bounty.eyebrow")}
+        </p>
+        <h2 className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
+          {t("hiw.referral_bounty.title")}
+        </h2>
+        <p className="mt-5 max-w-2xl text-base leading-7 text-[color:var(--ink)]/65">
+          {t("hiw.referral_bounty.intro")}
+        </p>
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-[color:var(--hiw-compare-card-border)] bg-[color:var(--hiw-compare-card)] p-6">
+            <Gift className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
+            <h3 className="mt-4 text-lg font-bold tracking-tight">
+              {t("hiw.referral_bounty.reward_title")}
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-[color:var(--ink)]/65">
+              {t("hiw.referral_bounty.reward_body")}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-[color:var(--hiw-compare-card-border)] bg-[color:var(--hiw-compare-card)] p-6">
+            <ListChecks className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
+            <h3 className="mt-4 text-lg font-bold tracking-tight">
+              {t("hiw.referral_bounty.conditions_title")}
+            </h3>
+            <ol className="mt-3 list-decimal space-y-2 pl-4 text-sm leading-6 text-[color:var(--ink)]/65 marker:font-semibold marker:text-[color:var(--ink)]">
+              <li>{t("hiw.referral_bounty.conditions_1")}</li>
+              <li>{t("hiw.referral_bounty.conditions_2")}</li>
+            </ol>
+          </div>
+          <div className="rounded-2xl border border-[color:var(--hiw-compare-card-border)] bg-[color:var(--hiw-compare-card)] p-6">
+            <MessageCircle className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
+            <h3 className="mt-4 text-lg font-bold tracking-tight">
+              {t("hiw.referral_bounty.claim_title")}
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-[color:var(--ink)]/65">
+              {t("hiw.referral_bounty.claim_body")}
+            </p>
+          </div>
+        </div>
+        <p className="mt-6 flex items-start gap-2 text-sm leading-6 text-[color:var(--ink)]/55">
+          <Gift className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          {t("hiw.referral_bounty.dashboard_cta")}
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function HowItWorksPage() {
   const { t } = useTranslation();
+  const { hash } = useLocation();
+
+  // SPA loads render after the browser's native hash scroll, so anchor
+  // targets like #referral-bounty need an explicit scroll once mounted.
+  useEffect(() => {
+    if (!hash) return;
+    document.getElementById(hash.replace(/^#/, ""))?.scrollIntoView();
+  }, [hash]);
+
   const {
     educatorComparison,
     parentComparison,
@@ -457,6 +534,8 @@ function HowItWorksPage() {
           accentClassName="text-[color:var(--muted-foreground)]"
           bodyTextClassName="text-white"
         />
+
+        <ReferralBountySection />
 
         <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
           <div className="mx-auto max-w-4xl">
