@@ -30,15 +30,12 @@ import type { Tutor } from "@/features/tutors/queries";
  * account is linked to a tutor card (tutors.user_id, set by admins in the
  * editor's Assigned Account section, issue #160). Saves go live immediately:
  * the tutors_owner_update RLS policy (also issue #160) allows the assigned
- * account to UPDATE its own row, with user_id pinned by WITH CHECK.
- *
- * Admins keep full control via the tutor editor; crucial field flags still
- * force a profile out of the public directory regardless of what the tutor
- * saves here.
+ * account to UPDATE its own row, with user_id pinned by WITH CHECK. Admins
+ * keep full control via the tutor editor.
  */
 
 /** Columns the tutor-facing editor reads/writes. Mirrors SELECT_COLS minus
- * admin-managed identity (tutor_code, created_at, field_flags, referral). */
+ * admin-managed identity (tutor_code, created_at, referral). */
 const MY_TUTOR_COLUMNS =
   "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status";
 

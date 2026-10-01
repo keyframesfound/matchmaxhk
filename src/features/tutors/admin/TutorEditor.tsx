@@ -10,9 +10,7 @@ import {
   Briefcase,
   Check,
   ChevronRight,
-  Copy,
   ExternalLink,
-  Flag,
   Gift,
   GraduationCap,
   Info,
@@ -52,7 +50,6 @@ import {
   highSchoolEditorOptions,
   universityEditorOptions,
 } from "@/features/tutors/education-filters";
-import { Switch } from "@/components/ui/switch";
 import { MtrStationMultiSelect, MtrStationSelect } from "@/components/ui/mtr-station-select";
 import { getNearestMtrStation, getReachableMtrStations } from "@/features/tutor-application/mtr";
 import { TagInput } from "@/components/ui/tag-input";
@@ -94,14 +91,6 @@ import {
 } from "@/features/tutors/examSystems";
 import { AutofillDialog } from "./AutofillDialog";
 import type { TutorAutofillResult } from "./autofill.functions";
-import {
-  TUTOR_FIELD_FLAG_FIELDS,
-  buildFlagSummaryText,
-  hasCrucialFieldFlag,
-  normalizeFieldFlags,
-  stripFlaggedTutorRow,
-  type TutorFieldFlags,
-} from "../field-flags";
 
 export const TARGET_STUDENT_OPTIONS = [
   "Primary",
@@ -767,75 +756,6 @@ function FormField({
   );
 }
 
-/**
- * Short preview of a field's current value for the Field Review rows, so the
- * admin can judge each field without scrolling the whole form. Returns null
- * when the field is empty (nothing to review, nothing to flag).
- */
-function fieldFlagValuePreview(key: string, form: TutorFormData): string | null {
-  switch (key) {
-    case "name":
-      return form.tutor_code || null;
-    case "photo":
-      return form.photo_url ? "Photo set" : null;
-    case "gender":
-      return form.gender === "male" ? "Male" : form.gender === "female" ? "Female" : "Other";
-    case "card_highlights": {
-      const values = form.card_highlights.map((value) => value.trim()).filter(Boolean);
-      return values.length > 0 ? values.join(" | ") : null;
-    }
-    case "academic_headline":
-      return form.academic_headline || null;
-    case "undergrad_university":
-      return form.undergrad_university || null;
-    case "undergrad_degree":
-      return form.undergrad_degree || null;
-    case "postgrad": {
-      if (!form.has_postgrad) return null;
-      return [form.postgrad_university, form.postgrad_degree].filter(Boolean).join(" - ") || "Set";
-    }
-    case "secondary_school":
-      return form.secondary_school || null;
-    case "bio":
-      return form.qualifications_summary || null;
-    case "self_introduction":
-      return form.self_introduction || null;
-    case "achievements": {
-      const count = form.achievements.filter((a) => a.short_text.trim()).length;
-      return count > 0 ? `${count} achievement${count === 1 ? "" : "s"}` : null;
-    }
-    case "exam_results": {
-      const count = form.exam_results.reduce(
-        (sum, result) => sum + result.subjects.filter((s) => s.subject.trim()).length,
-        0,
-      );
-      return count > 0 ? `${count} subject grade${count === 1 ? "" : "s"}` : null;
-    }
-    case "subjects":
-      return form.subjects.length > 0 ? form.subjects.join(", ") : null;
-    case "ia_ee_tok":
-      return form.ia_ee_tok_support.length > 0 ? form.ia_ee_tok_support.join(", ") : null;
-    case "pricing": {
-      const tiers = cleanFormPricingTiers(form.pricing_tiers);
-      if (tiers.length > 0) {
-        return tiers.map((tier) => `${tier.curriculum} HK$${tier.rate}`).join(" · ");
-      }
-      return form.hourly_rate > 0 ? `HK$${form.hourly_rate}/hr` : null;
-    }
-    case "languages":
-      return form.languages.length > 0 ? form.languages.join(", ") : null;
-    case "location":
-      if (form.lesson_mode === "online") return "Online only";
-      return form.stations.length > 0
-        ? `${form.stations.length} MTR station${form.stations.length === 1 ? "" : "s"}`
-        : null;
-    case "experience_years":
-      return form.experience_years === "" ? null : `${form.experience_years} yrs`;
-    default:
-      return null;
-  }
-}
-
 interface TutorEditorProps {
   initialData?: Tutor | null;
   onSave: (data: Record<string, unknown> & { id?: string }) => void;
@@ -871,17 +791,6 @@ export function TutorEditor({
   // subjects still live in the flat `subjects` array.
   const [subjectCurriculum, setSubjectCurriculum] = React.useState("");
   const [admissionsSubcategory, setAdmissionsSubcategory] = React.useState("");
-  // Issue #125: per-field approval flags. A key present in fieldFlags means
-  // the field is flagged (hidden from public surfaces); the internal note per
-  // flag lives in flagNotes and is synced to the admin-only
-  // tutor_field_flags table by the save mutation.
-  const [fieldFlags, setFieldFlags] = React.useState<TutorFieldFlags>(() =>
-    initialData ? normalizeFieldFlags(initialData.field_flags) : {},
-  );
-  const [flagNotes, setFlagNotes] = React.useState<Record<string, string>>({});
-  const flaggedFieldCount = Object.keys(fieldFlags).length;
-  const hasCrucialFlag = hasCrucialFieldFlag(fieldFlags);
-
   const isAdmissionsSubjectCurriculum = subjectCurriculum === "Admissions";
   const subjectCurriculumLabel = TEACHING_CURRICULA.find(
     (curriculum) => curriculum.value === subjectCurriculum,
@@ -962,59 +871,6 @@ export function TutorEditor({
     },
     enabled: Boolean(initialData?.id),
   });
-
-  // Internal flag notes (issue #125) live in the admin-only
-  // tutor_field_flags table, separate from the public tutors row.
-  const tutorFlagNotesQuery = useQuery({
-    queryKey: ["admin", "tutor-field-flags", initialData?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tutor_field_flags")
-        .select("field, note")
-        .eq("tutor_id", initialData!.id);
-      if (error) throw error;
-      return data as { field: string; note: string }[];
-    },
-    enabled: Boolean(initialData?.id),
-  });
-
-  React.useEffect(() => {
-    if (!tutorFlagNotesQuery.data) return;
-    setFlagNotes(
-      Object.fromEntries(tutorFlagNotesQuery.data.map((row) => [row.field, row.note] as const)),
-    );
-  }, [tutorFlagNotesQuery.data]);
-
-  const toggleFieldFlag = (key: string, flagged: boolean) => {
-    const next = { ...fieldFlags };
-    if (flagged) {
-      next[key] = { at: new Date().toISOString() };
-    } else {
-      delete next[key];
-    }
-    setFieldFlags(next);
-    // Crucial rejection logic (issue #125): a flagged crucial field forces
-    // the whole profile out of the public directory immediately.
-    if (flagged && hasCrucialFieldFlag(next) && form.is_published) {
-      setForm({ ...form, is_published: false });
-      toast.warning("Crucial field flagged — this profile is now Hidden / Action Required.");
-    }
-  };
-
-  const copyFlagSummary = async () => {
-    const text = buildFlagSummaryText(
-      initialData?.tutor_code || form.tutor_code,
-      fieldFlags,
-      flagNotes,
-    );
-    if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Flagged-field summary copied — ready to paste into WhatsApp");
-    } catch {
-      toast.error("Could not access the clipboard");
-    }
-  };
 
   const linkAccount = useMutation({
     // Issue #160: the dropdown resolves the user id via
@@ -1165,7 +1021,6 @@ export function TutorEditor({
         .filter((a) => a.short_text),
       ia_ee_tok_support: form.ia_ee_tok_support,
       ia_ee_tok_notes: form.ia_ee_tok_notes?.trim() || null,
-      field_flags: fieldFlags,
       // Issue #103: admin editor doesn't manage capacity; defaults reflect a
       // live tutor until the tutor sets their own via the dashboard.
       remaining_student_slots: initialData?.remaining_student_slots ?? 2,
@@ -1179,15 +1034,7 @@ export function TutorEditor({
       initialData?.remaining_student_slots,
       initialData?.is_accepting_students,
       initialData?.preferred_time_windows,
-      fieldFlags,
     ],
-  );
-
-  // "Matches student view": the preview card renders exactly what the public
-  // fetchers would return, with flagged fields stripped.
-  const previewTutorPublic = React.useMemo(
-    () => stripFlaggedTutorRow(previewTutor),
-    [previewTutor],
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1238,20 +1085,11 @@ export function TutorEditor({
       return;
     }
 
-    // Crucial rejection logic (issue #125): publishing is blocked while any
-    // crucial field is flagged, whatever the visibility select says.
-    if (hasCrucialFlag && parsed.data.is_published) {
-      parsed.data.is_published = false;
-      toast.warning("A crucial field is flagged — the profile stays Hidden / Action Required.");
-    }
-
     setErrors({});
     const payload = formDataToPayload(parsed.data);
     onSave({
       ...payload,
       ...(initialData ? { id: initialData.id } : {}),
-      field_flags: fieldFlags,
-      field_flag_notes: flagNotes,
     });
   };
 
@@ -1384,18 +1222,12 @@ export function TutorEditor({
               <span
                 className={cn(
                   "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold",
-                  hasCrucialFlag
-                    ? "bg-destructive/10 text-destructive"
-                    : form.is_published
-                      ? "bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
-                      : "bg-muted text-muted-foreground",
+                  form.is_published
+                    ? "bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
+                    : "bg-muted text-muted-foreground",
                 )}
               >
-                {hasCrucialFlag
-                  ? "Hidden · Action Required"
-                  : form.is_published
-                    ? "Published"
-                    : "Draft / Hidden"}
+                {form.is_published ? "Published" : "Draft / Hidden"}
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -1749,10 +1581,17 @@ export function TutorEditor({
                       <SearchableSelect
                         value=""
                         onChange={(userId) => linkAccount.mutate({ userId })}
+                        onQueryChange={setAccountSearch}
                         options={accountOptions}
                         placeholder="Search accounts by email or name…"
                         searchPlaceholder="Type at least 2 characters…"
-                        emptyText="No matching accounts"
+                        emptyText={
+                          accountSearch.trim().length < 2
+                            ? "Type at least 2 characters…"
+                            : "No matching accounts"
+                        }
+                        loading={accountOptionsQuery.isFetching}
+                        loadingText="Searching…"
                       />
                       <div className="flex flex-col gap-2 sm:flex-row">
                         <Input
@@ -2522,129 +2361,6 @@ export function TutorEditor({
               </div>
             </EditorSection>
 
-            {/* Field Review & Flags (issue #125): every public field gets an
-                Approve / Flagged (hidden) toggle. Non-crucial flags hide only
-                that field while the profile stays live; crucial flags force
-                the whole profile to Hidden / Action Required. */}
-            <EditorSection
-              icon={Flag}
-              title="Field Review & Flags"
-              description="Flag a field to hide just that field from the public profile. Notes are internal — relay them to the tutor via WhatsApp."
-              badge={
-                flaggedFieldCount > 0 ? (
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-400">
-                      {flaggedFieldCount} flagged
-                    </span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={() => void copyFlagSummary()}
-                    >
-                      <Copy className="mr-1.5 h-3.5 w-3.5" />
-                      Copy notes
-                    </Button>
-                  </div>
-                ) : (
-                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                    All approved
-                  </span>
-                )
-              }
-            >
-              {hasCrucialFlag ? (
-                <div className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/[0.06] px-4 py-3">
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-                  <p className="text-xs leading-relaxed text-destructive">
-                    <span className="font-bold">Action required:</span> a crucial field is flagged.
-                    The whole profile is forced to Hidden and cannot go live until the flag is
-                    cleared.
-                  </p>
-                </div>
-              ) : null}
-              <div className="space-y-2.5">
-                {TUTOR_FIELD_FLAG_FIELDS.map((field) => {
-                  const isFlagged = Object.prototype.hasOwnProperty.call(fieldFlags, field.key);
-                  const preview = fieldFlagValuePreview(field.key, form);
-                  return (
-                    <div
-                      key={field.key}
-                      className={cn(
-                        "rounded-xl border px-4 py-3 transition-colors",
-                        isFlagged
-                          ? "border-amber-500/40 bg-amber-500/[0.06]"
-                          : "border-[color:var(--ink)]/10",
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-bold text-[color:var(--ink)]">
-                              {field.label}
-                            </span>
-                            {field.crucial ? (
-                              <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-destructive">
-                                Crucial
-                              </span>
-                            ) : null}
-                            <span
-                              className={cn(
-                                "text-[11px] font-semibold",
-                                isFlagged
-                                  ? "text-amber-700 dark:text-amber-400"
-                                  : "text-emerald-700 dark:text-emerald-400",
-                              )}
-                            >
-                              {isFlagged ? "Flagged (hidden)" : "Approved"}
-                            </span>
-                          </div>
-                          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                            {preview ?? "Empty"}
-                          </p>
-                        </div>
-                        <Switch
-                          checked={isFlagged}
-                          onCheckedChange={(checked) => toggleFieldFlag(field.key, checked)}
-                          aria-label={`${isFlagged ? "Unflag" : "Flag"} ${field.label}`}
-                        />
-                      </div>
-                      {isFlagged ? (
-                        <div className="mt-2.5 space-y-1.5">
-                          <Input
-                            value={flagNotes[field.key] ?? ""}
-                            onChange={(e) =>
-                              setFlagNotes((prev) => ({ ...prev, [field.key]: e.target.value }))
-                            }
-                            placeholder="Internal note — reason for the flag (you relay this to the tutor)"
-                            maxLength={500}
-                            className="h-8 text-xs"
-                          />
-                          {field.crucial ? (
-                            <p className="flex items-center gap-1 text-xs font-medium text-destructive">
-                              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                              Crucial — the whole profile stays hidden until this flag is cleared.
-                            </p>
-                          ) : (
-                            <p className="text-[11px] text-muted-foreground">
-                              Hidden from the public profile only — the rest of the profile stays
-                              live.
-                            </p>
-                          )}
-                        </div>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Students never see flagged fields on tutor cards, the profile page, search, or case
-                matches. Non-crucial flags keep the tutor Published; the live card preview on the
-                right shows the student view.
-              </p>
-            </EditorSection>
-
             {/* 6. Publication Settings */}
             <ConsolePanel padding="lg">
               <div className="flex items-center justify-between gap-3">
@@ -2656,12 +2372,6 @@ export function TutorEditor({
                     When public, this tutor is discoverable in the MatchMax directory and search
                     filters.
                   </p>
-                  {hasCrucialFlag ? (
-                    <p className="text-xs font-semibold text-destructive">
-                      A crucial field is flagged — this profile cannot go live until it is resolved
-                      in Field Review &amp; Flags.
-                    </p>
-                  ) : null}
                 </div>
                 <Select
                   value={form.is_published ? "public" : "private"}
@@ -2671,9 +2381,7 @@ export function TutorEditor({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="public" disabled={hasCrucialFlag}>
-                      Public
-                    </SelectItem>
+                    <SelectItem value="public">Public</SelectItem>
                     <SelectItem value="private">Private</SelectItem>
                   </SelectContent>
                 </Select>
@@ -2695,7 +2403,7 @@ export function TutorEditor({
               </div>
 
               <PublicTutorCard
-                tutor={previewTutorPublic}
+                tutor={previewTutor}
                 priceSuffix="/hr"
                 shareable={false}
                 footerAction={
