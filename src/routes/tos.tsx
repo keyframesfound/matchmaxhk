@@ -24,7 +24,7 @@ type Block =
   | { kind: "table"; columns: [string, string]; rows: { scenario: string; resolution: string }[] };
 
 const INTRO_TEXT = `MatchMax Platform Terms of Service
-Effective date: September 25, 2026
+Effective date: October 1, 2026
 Operator: Hau Yui Chan, trading as MatchMax
 Business Registration number: 41690777
 Registered address: Shop T163, 3/F, The Capital, 61-65 Chatham Road South, Tsim Sha Tsui, Kowloon, Hong Kong
@@ -64,15 +64,19 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
     ],
   },
   {
-    title: "3. Non-Circumvention (Bypassing)",
+    title: "3. Non-Circumvention (Bypassing) & Unauthorized Referrals",
     blocks: [
       {
         kind: "p",
-        text: "By utilizing MatchMax to connect with a tutor or client, both parties agree not to bypass the platform to avoid the initial Administrative Matching Fee. If MatchMax determines that a parent and tutor have colluded to schedule private lessons prior to the payment of the MatchMax fee, both parties will be **permanently banned** from the network, and the Client agrees to a liquidated damages penalty of **HK$2,000** for breach of contract.",
+        text: "By utilizing MatchMax to connect with a tutor or client, both parties agree not to bypass the platform to avoid the initial Administrative Matching Fee.",
       },
       {
         kind: "p",
-        text: "**Anti-Collusion & Non-Circumvention:** Any attempt by a Client and Tutor to falsely declare an “Early Termination” to evade standard platform fees, while continuing to conduct lessons privately, constitutes a material breach of this agreement. Such actions will result in an immediate platform ban for the Tutor and the activation of the HK$2,000 Liquidated Damages penalty against the Client.",
+        text: "Furthermore, Tutors are strictly prohibited from acting as unauthorized agents. Tutors may not solicit MatchMax Clients for private, non-platform tutoring arrangements, nor may they refer non-platform tutors directly to Clients to circumvent MatchMax's matching services.",
+      },
+      {
+        kind: "p",
+        text: "If MatchMax determines that a parent and tutor have colluded to schedule private lessons prior to the payment of the MatchMax fee, or if a Tutor executes an unauthorized secondary referral, both parties will be **permanently banned** from the network, and the Client and/or Tutor agrees to a liquidated damages penalty of **HK$2,000** for breach of contract. Authorized referrals must be processed exclusively through the official MatchMax Referral Program.",
       },
     ],
   },
@@ -184,7 +188,7 @@ function TermsOfUsePage() {
       <PageIntro
         description="The ground rules for using MatchMax — what you can expect from us and what we expect from you."
         eyebrow="Legal"
-        meta="Effective 25 September 2026"
+        meta="Effective 1 October 2026"
         title="Terms and Conditions"
       />
 

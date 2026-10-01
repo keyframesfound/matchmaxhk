@@ -1,5 +1,10 @@
 {
   "brand": "MatchMax",
+  "banner": {
+    "value_prop": "家長免費，導師公平。低至 1.5 課佣金，保留更多收入。",
+    "referral_promo": "🚀 導師：推薦朋友接個案，即賺 15% 現金獎賞！",
+    "referral_cta": "撳呢度睇詳情"
+  },
   "nav": {
     "how": "點樣運作",
     "find": "搵導師",
@@ -63,7 +68,8 @@
       "pending_cleared": "當中 {{amount}} 已通過審核，等待 FPS 轉帳。",
       "paid": "已發放獎賞總額",
       "note": "當你推薦嘅朋友成功完成首位客戶嘅兩堂試教期後，待發放獎賞就會正式通過審核，以 FPS 轉帳俾你。",
-      "not_linked": "你嘅導師檔案尚未連結到此帳戶。申請獲批後，團隊會為你連結檔案，到時你嘅專屬推薦連結就會喺呢度顯示。"
+      "not_linked": "你嘅導師檔案尚未連結到此帳戶。申請獲批後，團隊會為你連結檔案，到時你嘅專屬推薦連結就會喺呢度顯示。",
+      "rules_link": "睇埋推薦獎賞完整規則"
     },
     "general": {
       "appearance_title": "外觀",
@@ -846,6 +852,19 @@
     "tutors_link_apply": "申請做導師",
     "tutors_link_playbook": "閱讀導師攻略手冊",
     "tutors_callout": "想快啲填滿你嘅時間表？隨時瀏覽公開個案板，認領啱你專長嘅學生申請。",
+    "referral_bounty": {
+      "eyebrow": "導師獎賞",
+      "title": "MatchMax 導師推薦獎賞",
+      "intro": "學生有冇叫你幫手介紹其他科目嘅導師？唔好免費送出個案！將你嘅朋友推薦入 MatchMax，我哋會為呢次介紹支付你酬勞。",
+      "reward_title": "獎賞金額",
+      "reward_body": "該個案嘅 MatchMax 行政配對費總額，你可以獲得 15%。",
+      "conditions_title": "申領條件",
+      "conditions_1": "獎賞只適用於獲推薦導師嘅第一個成功配對個案。",
+      "conditions_2": "當獲推薦導師完成頭兩 (2) 堂課、而 MatchMax 亦已成功向家長收取配對費之後，15% 現金獎賞會以 FPS 轉帳俾你。",
+      "claim_title": "申領方法",
+      "claim_body": "只要喺你嘅專屬 MatchMax WhatsApp 群組向團隊講聲「我有導師想推薦俾呢位學生嘅英文個案」，官方配對同推薦獎賞紀錄就會由我哋一手處理！",
+      "dashboard_cta": "導師可以喺儀表板嘅「推薦朋友，賺 15% 獎賞」頁面追蹤你嘅獎賞。"
+    },
     "quality_eyebrow": "03 / 信任與品質",
     "quality_title": "我哋嘅導師品質標準",
     "quality_sub_title": "MatchMax 學術標準",

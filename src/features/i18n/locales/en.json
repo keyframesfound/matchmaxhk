@@ -1,5 +1,10 @@
 {
   "brand": "MatchMax",
+  "banner": {
+    "value_prop": "Free for parents. Fair for tutors. Keep more with a low 1.5-lesson commission.",
+    "referral_promo": "🚀 Tutors: Refer a friend for a case and earn a 15% cash bonus!",
+    "referral_cta": "Click here for details"
+  },
   "nav": {
     "how": "How it works",
     "find": "Find",
@@ -63,7 +68,8 @@
       "pending_cleared": "Includes {{amount}} already cleared for FPS payout.",
       "paid": "Total bounties paid",
       "note": "Pending bounties are officially cleared for payout via FPS once your referred friend successfully completes the 2-lesson concierge window with their first client.",
-      "not_linked": "Your tutor profile isn't linked to this account yet. After your application is accepted, our team will connect your profile and your referral link will appear here."
+      "not_linked": "Your tutor profile isn't linked to this account yet. After your application is accepted, our team will connect your profile and your referral link will appear here.",
+      "rules_link": "Read the full Referral Bounty rules"
     },
     "general": {
       "appearance_title": "Appearance",
@@ -824,6 +830,19 @@
     "tutors_link_apply": "Apply as a tutor",
     "tutors_link_playbook": "Read the Tutor Playbook",
     "tutors_callout": "Want to fill your schedule faster? Browse our Open Cases Board anytime to claim student requests that match your expertise.",
+    "referral_bounty": {
+      "eyebrow": "Tutor Rewards",
+      "title": "The MatchMax Tutor Referral Bounty",
+      "intro": "Did your student ask you to recommend a tutor for another subject? Don't give the case away for free! Refer your friends to MatchMax, and we will pay you for the introduction.",
+      "reward_title": "The Reward",
+      "reward_body": "You earn 15% of the total MatchMax Administrative Matching Fee for that specific case.",
+      "conditions_title": "The Conditions",
+      "conditions_1": "The payout is valid for the first successful case match of the newly referred tutor only.",
+      "conditions_2": "The 15% cash bounty will be transferred to you via FPS strictly after the referred tutor completes their first two (2) lessons and MatchMax has successfully collected the matching fee from the parent.",
+      "claim_title": "How to Claim",
+      "claim_body": "Simply message our team in your dedicated MatchMax WhatsApp group and say, “I have a tutor to refer for this student's English case.” We will handle the official matching and log your referral bonus!",
+      "dashboard_cta": "Tutors: track your bounties on the Refer & Earn page in your dashboard."
+    },
     "quality_eyebrow": "03 / Trust & Quality",
     "quality_title": "Our Tutor Quality Standards",
     "quality_sub_title": "The MatchMax Academic Standard",
