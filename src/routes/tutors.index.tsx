@@ -49,6 +49,10 @@ const searchSchema = z.object({
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
   status: z.string().optional(), // uni_student | full_part_time_tutor | examiner
+  verified: z.preprocess(
+    (value) => (value === "1" || value === "true" || value === true ? true : undefined),
+    z.boolean().optional(),
+  ), // issue #142: Verified Tutors Only (tier_2_verified), default off
   university: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
   high_school: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
   min_price: z.coerce.number().int().min(0).optional(),
@@ -134,6 +138,7 @@ function TutorsDirectory() {
   const modeFilter = draft.mode ?? "";
   const genderFilter = draft.gender ?? "";
   const statusFilter = draft.status ?? "";
+  const verifiedOnly = search.verified === true;
   const universityFilter = draft.university ?? "";
   const highSchoolFilter = draft.high_school ?? "";
   const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
@@ -162,6 +167,8 @@ function TutorsDirectory() {
         if (g !== genderFilter) return false;
       }
       if (statusFilter && (tut.tutor_status ?? "") !== statusFilter) return false;
+      // Issue #142: Verified Tutors Only — hide everything below tier_2_verified.
+      if (verifiedOnly && tut.verification_tier !== "tier_2_verified") return false;
       // Issue #130: institutional-pedigree filters over free-text education fields.
       if (
         !matchesAnyUniversityFilter(universityFilter, {
@@ -212,6 +219,7 @@ function TutorsDirectory() {
     modeFilter,
     genderFilter,
     statusFilter,
+    verifiedOnly,
     universityFilter,
     highSchoolFilter,
     draft.q,

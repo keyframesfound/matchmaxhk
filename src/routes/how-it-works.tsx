@@ -5,10 +5,12 @@ import {
   ArrowRight,
   Clock3,
   CreditCard,
+  FileText,
   Gift,
   ListChecks,
   MessageCircle,
   Search,
+  ShieldCheck,
   UserRoundCheck,
 } from "lucide-react";
 
@@ -536,6 +538,43 @@ function HowItWorksPage() {
         />
 
         <ReferralBountySection />
+
+        <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
+          <div className="mx-auto max-w-4xl">
+            <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+              {t("hiw.verification_eyebrow")}
+            </p>
+            <h2 className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
+              {t("hiw.verification_title")}
+            </h2>
+            <div className="mt-8 grid gap-5 md:grid-cols-2">
+              <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--hiw-compare-card)] p-6 md:p-8">
+                <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
+                  <ShieldCheck
+                    className="h-5 w-5 text-[color:var(--brand-link)]"
+                    aria-hidden="true"
+                  />
+                  {t("hiw.verification_tier2_title")}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">
+                  {t("hiw.verification_tier2_body")}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--hiw-compare-card)] p-6 md:p-8">
+                <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
+                  <FileText
+                    className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                    aria-hidden="true"
+                  />
+                  {t("hiw.verification_tier1_title")}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">
+                  {t("hiw.verification_tier1_body")}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
           <div className="mx-auto max-w-4xl">

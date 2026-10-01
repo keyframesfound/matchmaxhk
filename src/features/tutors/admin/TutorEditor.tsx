@@ -151,6 +151,16 @@ export const TUTOR_STATUS_OPTIONS: {
   { value: "examiner", label: "Examiner / professional teacher" },
 ];
 
+// Issue #142: two-tier verification. tier_2_verified = transcripts + HKID
+// manually reviewed by admins (gold Verified Scholar Badge on public surfaces).
+export const TUTOR_VERIFICATION_TIER_OPTIONS: {
+  value: "tier_1_standard" | "tier_2_verified";
+  label: string;
+}[] = [
+  { value: "tier_1_standard", label: "Tier 1 — Standard (self-reported)" },
+  { value: "tier_2_verified", label: "Tier 2 — Verified (transcripts + HKID checked)" },
+];
+
 export const tutorFormSchema = z.object({
   headline: z.string().trim().max(200).optional().or(z.literal("")),
   card_highlights: z
@@ -198,6 +208,8 @@ export const tutorFormSchema = z.object({
   languages: z.array(z.string().trim().min(1).max(60)),
   gender: z.enum(["male", "female", "other"]),
   tutor_status: z.enum(["uni_student", "full_part_time_tutor", "examiner"]).or(z.literal("")),
+  // Issue #142: tier_2_verified = transcripts + HKID passed manual admin review.
+  verification_tier: z.enum(["tier_1_standard", "tier_2_verified"]).or(z.literal("")),
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
   exam_results: z.array(examSchema).max(3, "Add no more than three exam systems"),
   achievements: z
@@ -251,6 +263,7 @@ export const emptyTutorForm: TutorFormData = {
   languages: ["English", "Cantonese"],
   gender: "female",
   tutor_status: "",
+  verification_tier: "",
   experience_years: "",
   exam_results: [],
   achievements: [],
@@ -294,6 +307,10 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     tutor_status: ["uni_student", "full_part_time_tutor", "examiner"].includes(t.tutor_status ?? "")
       ? (t.tutor_status as "uni_student" | "full_part_time_tutor" | "examiner")
       : "",
+    verification_tier:
+      t.verification_tier === "tier_2_verified" || t.verification_tier === "tier_1_standard"
+        ? t.verification_tier
+        : "",
     experience_years: t.experience_years ?? "",
     exam_results: (t.exam_results ?? []).slice(0, 3).map((r) => ({
       system: r.system ?? "",
@@ -383,6 +400,7 @@ export function formDataToPayload(v: TutorFormData) {
     languages: v.languages,
     gender: v.gender,
     tutor_status: v.tutor_status || null,
+    verification_tier: v.verification_tier || null,
     experience_years: v.experience_years === "" ? null : Number(v.experience_years),
     exam_results: cleanExams,
     achievements: cleanAchievements,
@@ -1036,6 +1054,7 @@ export function TutorEditor({
       stations: form.lesson_mode === "online" ? [] : form.stations,
       gender: form.gender,
       tutor_status: form.tutor_status || null,
+      verification_tier: form.verification_tier || null,
       lesson_mode: form.lesson_mode,
       hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
       pricing_tiers: cleanFormPricingTiers(form.pricing_tiers),
@@ -1378,6 +1397,26 @@ export function TutorEditor({
                     }
                     options={TUTOR_STATUS_OPTIONS}
                     placeholder="Not set"
+                  />
+                </FormField>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <FormField
+                  label="Verification Tier"
+                  error={errors.verification_tier}
+                  hint="Tier 2 shows the Verified Scholar Badge and matches the Verified-only directory filter"
+                >
+                  <SearchableSelect
+                    value={form.verification_tier}
+                    onChange={(v) =>
+                      setForm({
+                        ...form,
+                        verification_tier: v as TutorFormData["verification_tier"],
+                      })
+                    }
+                    options={TUTOR_VERIFICATION_TIER_OPTIONS}
+                    placeholder="Not set (treated as Tier 1)"
                   />
                 </FormField>
               </div>
