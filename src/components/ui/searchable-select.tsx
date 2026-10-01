@@ -34,6 +34,11 @@ type Props = {
   invalid?: boolean;
   className?: string;
   popoverClassName?: string;
+  /** Report the raw typed query upward (for server-side option fetching). */
+  onQueryChange?: (query: string) => void;
+  /** True while the parent fetches options for the current query. */
+  loading?: boolean;
+  loadingText?: string;
 };
 
 export function SearchableSelect({
@@ -48,6 +53,9 @@ export function SearchableSelect({
   invalid = false,
   className,
   popoverClassName,
+  onQueryChange,
+  loading = false,
+  loadingText,
 }: Props) {
   const { t } = useTranslation();
   const modal = React.useContext(DropdownModalContext);
@@ -75,6 +83,15 @@ export function SearchableSelect({
 
   const selected = normalized.find((option) => option.value === value);
   const displayLabel = selected?.label ?? (value || placeholder);
+
+  // Ref keeps the open-reset effect deps limited to `open` even when the
+  // parent passes an inline callback.
+  const onQueryChangeRef = React.useRef(onQueryChange);
+  onQueryChangeRef.current = onQueryChange;
+  const updateQuery = (next: string) => {
+    setQuery(next);
+    onQueryChange?.(next);
+  };
 
   const trimmedQuery = query.trim().toLowerCase();
   const filteredOptions = React.useMemo(() => {
@@ -105,6 +122,7 @@ export function SearchableSelect({
   React.useEffect(() => {
     if (open) {
       setQuery("");
+      onQueryChangeRef.current?.("");
       setHighlightedIndex(0);
       const timer = setTimeout(() => {
         inputRef.current?.focus();
@@ -116,7 +134,7 @@ export function SearchableSelect({
   const handleSelect = (val: string) => {
     onChange(val);
     setOpen(false);
-    setQuery("");
+    updateQuery("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -186,14 +204,14 @@ export function SearchableSelect({
               placeholder={searchPlaceholder}
               aria-label={searchPlaceholder}
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => updateQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-base font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40 sm:text-sm"
             />
             {query && (
               <button
                 type="button"
-                onClick={() => setQuery("")}
+                onClick={() => updateQuery("")}
                 aria-label={t("search_panel.clear_search")}
                 className="absolute right-2 p-0.5 rounded text-[color:var(--ink)]/40 hover:text-[color:var(--ink)]"
               >
@@ -204,7 +222,13 @@ export function SearchableSelect({
         </div>
 
         <div ref={listRef} className="max-h-60 overflow-y-auto p-1 text-sm">
-          {filteredOptions.length === 0 && !canUseCustom && (
+          {filteredOptions.length === 0 && loading && (
+            <div className="py-4 text-center text-xs text-muted-foreground">
+              {loadingText ?? t("search_panel.searching")}
+            </div>
+          )}
+
+          {filteredOptions.length === 0 && !loading && !canUseCustom && (
             <div className="py-4 text-center text-xs text-muted-foreground">{emptyLabel}</div>
           )}
 

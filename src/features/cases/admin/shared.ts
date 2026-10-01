@@ -24,6 +24,10 @@ export type CaseRow = {
   contact_name: string;
   contact_phone: string;
   status: CaseStatus;
+  matched_tutor_id: string | null;
+  matched_at: string | null;
+  fee_collected_at: string | null;
+  fee_amount_cents: number | null;
   tags: string[];
   source: string;
   last_contacted_at: string | null;

@@ -11,6 +11,8 @@ type PageIntroProps = {
   meta?: ReactNode;
   align?: "left" | "center";
   width?: "narrow" | "default" | "wide";
+  /** Tighter vertical padding for form-first pages like /join. */
+  dense?: boolean;
 };
 
 export function PageIntro({
@@ -20,11 +22,12 @@ export function PageIntro({
   meta,
   align = "left",
   width = "narrow",
+  dense = false,
 }: PageIntroProps) {
   const centered = align === "center";
 
   return (
-    <section className="border-b border-border py-14 sm:py-20">
+    <section className={cn("border-b border-border", dense ? "py-6 sm:py-8" : "py-14 sm:py-20")}>
       <PageContainer width={width} className={cn(centered && "text-center")}>
         {eyebrow ? (
           <p className="text-sm font-semibold text-[color:var(--brand-link)]">{eyebrow}</p>

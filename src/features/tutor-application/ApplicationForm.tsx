@@ -45,6 +45,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { REFERRAL_CODE_PATTERN, readStoredReferralCode } from "@/lib/referral";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
@@ -779,12 +780,13 @@ type ApplicationDraft = {
 export function ApplicationForm() {
   const { t } = useTranslation();
   const submit = useServerFn(submitTutorApplication);
-  // Referral attribution: captured from ?ref= once so the code survives the
-  // multi-step wizard and is validated again as part of the submit payload.
+  // Referral attribution: an explicit ?ref= wins (last click); otherwise fall
+  // back to a code captured earlier on the site (30-day window). The code
+  // survives the multi-step wizard and is validated again in the submit payload.
   const [referralCode] = useState(() => {
     const raw = new URLSearchParams(window.location.search).get("ref") ?? "";
-    const match = /^[A-Za-z0-9_-]{1,64}$/.exec(raw.trim());
-    return match ? match[0] : "";
+    const match = REFERRAL_CODE_PATTERN.exec(raw.trim());
+    return match ? match[0] : readStoredReferralCode();
   });
   const extractTranscript = useServerFn(extractTranscriptQualification);
   const [step, setStep] = useState(1);

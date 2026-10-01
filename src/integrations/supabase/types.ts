@@ -413,6 +413,7 @@ export type Database = {
           ready_at: string | null;
           referring_tutor_id: string;
           referred_tutor_id: string;
+          source_case_id: string | null;
           status: Database["public"]["Enums"]["referral_bounty_status"];
           updated_at: string;
         };
@@ -424,6 +425,7 @@ export type Database = {
           ready_at?: string | null;
           referring_tutor_id: string;
           referred_tutor_id: string;
+          source_case_id?: string | null;
           status?: Database["public"]["Enums"]["referral_bounty_status"];
           updated_at?: string;
         };
@@ -435,6 +437,7 @@ export type Database = {
           ready_at?: string | null;
           referring_tutor_id?: string;
           referred_tutor_id?: string;
+          source_case_id?: string | null;
           status?: Database["public"]["Enums"]["referral_bounty_status"];
           updated_at?: string;
         };
@@ -451,6 +454,13 @@ export type Database = {
             columns: ["referring_tutor_id"];
             isOneToOne: false;
             referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "referral_bounties_source_case_id_fkey";
+            columns: ["source_case_id"];
+            isOneToOne: false;
+            referencedRelation: "tutoring_cases";
             referencedColumns: ["id"];
           },
         ];
@@ -581,38 +591,6 @@ export type Database = {
           },
         ];
       };
-      tutor_field_flags: {
-        Row: {
-          created_at: string;
-          field: string;
-          note: string;
-          tutor_id: string;
-          updated_at: string;
-        };
-        Insert: {
-          created_at?: string;
-          field: string;
-          note?: string;
-          tutor_id: string;
-          updated_at?: string;
-        };
-        Update: {
-          created_at?: string;
-          field?: string;
-          note?: string;
-          tutor_id?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "tutor_field_flags_tutor_id_fkey";
-            columns: ["tutor_id"];
-            isOneToOne: false;
-            referencedRelation: "tutors";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       tutor_reviews: {
         Row: {
           author_alias: string;
@@ -718,10 +696,14 @@ export type Database = {
           description: string | null;
           district: string | null;
           exam_system: string | null;
+          fee_amount_cents: number | null;
+          fee_collected_at: string | null;
           id: string;
           interview_test: string | null;
           language_of_instruction: string;
           last_contacted_at: string | null;
+          matched_at: string | null;
+          matched_tutor_id: string | null;
           mode: Database["public"]["Enums"]["case_mode"];
           parent_id: string | null;
           preferred_gender: Database["public"]["Enums"]["case_gender_pref"];
@@ -760,10 +742,14 @@ export type Database = {
           description?: string | null;
           district?: string | null;
           exam_system?: string | null;
+          fee_amount_cents?: number | null;
+          fee_collected_at?: string | null;
           id?: string;
           interview_test?: string | null;
           language_of_instruction?: string;
           last_contacted_at?: string | null;
+          matched_at?: string | null;
+          matched_tutor_id?: string | null;
           mode?: Database["public"]["Enums"]["case_mode"];
           parent_id?: string | null;
           preferred_gender?: Database["public"]["Enums"]["case_gender_pref"];
@@ -802,10 +788,14 @@ export type Database = {
           description?: string | null;
           district?: string | null;
           exam_system?: string | null;
+          fee_amount_cents?: number | null;
+          fee_collected_at?: string | null;
           id?: string;
           interview_test?: string | null;
           language_of_instruction?: string;
           last_contacted_at?: string | null;
+          matched_at?: string | null;
+          matched_tutor_id?: string | null;
           mode?: Database["public"]["Enums"]["case_mode"];
           parent_id?: string | null;
           preferred_gender?: Database["public"]["Enums"]["case_gender_pref"];
@@ -844,6 +834,13 @@ export type Database = {
             columns: ["parent_id"];
             isOneToOne: false;
             referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tutoring_cases_matched_tutor_id_fkey";
+            columns: ["matched_tutor_id"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
             referencedColumns: ["id"];
           },
         ];
@@ -889,7 +886,6 @@ export type Database = {
           undergrad_graduation_year: string | null;
           postgrad_university: string | null;
           postgrad_degree: string | null;
-          field_flags: Json;
           updated_at: string;
           user_id: string | null;
           remaining_student_slots: number;
@@ -936,7 +932,6 @@ export type Database = {
           undergrad_graduation_year?: string | null;
           postgrad_university?: string | null;
           postgrad_degree?: string | null;
-          field_flags?: Json;
           updated_at?: string;
           user_id?: string | null;
         };
@@ -980,7 +975,6 @@ export type Database = {
           undergrad_graduation_year?: string | null;
           postgrad_university?: string | null;
           postgrad_degree?: string | null;
-          field_flags?: Json;
           updated_at?: string;
           user_id?: string | null;
           remaining_student_slots?: number;
