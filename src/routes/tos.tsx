@@ -148,6 +148,10 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
         kind: "p",
         text: "**Tier 2 (Verified) Accounts** have voluntarily submitted identity and academic documents and passed manual verification by the MatchMax team. These profiles carry the Verified Scholar Badge. False statements in any self-reported field, forged documents, or misrepresentation of verification tier constitute a material breach of these Terms and will result in immediate profile removal and a permanent platform ban.",
       },
+      {
+        kind: "p",
+        text: "The ‘Verified’ badge indicates solely that MatchMax has conducted a preliminary visual review of the tutor's provided academic transcripts and HKID. MatchMax does not cryptographically guarantee the absolute authenticity of third-party documents and assumes no liability for sophisticated forgery. Parents are encouraged to exercise independent judgment and request physical document verification during the introductory lesson.",
+      },
     ],
   },
   {

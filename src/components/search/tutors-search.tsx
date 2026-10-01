@@ -27,6 +27,7 @@ import { MobileSearchOverlay, type MobileSearchTab } from "./mobile-search-overl
 import { setSearchSlideDirection } from "./slide-direction";
 import { MobileSearchTrigger } from "./mobile-search-trigger";
 import { MtrStationPickerContent } from "@/components/ui/mtr-station-select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
@@ -49,6 +50,7 @@ export type TutorsSearchState = {
   mode?: string;
   gender?: string;
   status?: string;
+  verified?: boolean;
   university?: string;
   high_school?: string;
   min_price?: number;
@@ -278,6 +280,7 @@ export function TutorsSearchBar({
   const filterCount = [
     draft.gender,
     draft.status,
+    draft.verified === true ? "verified" : "",
     draft.university,
     draft.high_school,
     draft.min_price !== undefined ? "price" : "",
@@ -459,6 +462,17 @@ export function TutorsSearchBar({
             placeholder={t("search_panel.any_status")}
             className="h-11 rounded-xl"
           />
+        </FiltersSection>
+        <FiltersSection id="verified" title={t("search_ui.verified_title")}>
+          <label className="flex w-fit cursor-pointer items-center gap-3 text-sm font-medium text-[color:var(--ink)]">
+            <Checkbox
+              checked={draft.verified === true}
+              onCheckedChange={(checked) =>
+                onDraftChange({ verified: checked === true ? true : undefined })
+              }
+            />
+            {t("search_ui.verified_only")}
+          </label>
         </FiltersSection>
         <FiltersSection id="university" title={t("search_ui.university_title")}>
           <SearchableSelect
@@ -713,6 +727,19 @@ export function TutorsSearchMobile({
               placeholder={t("search_panel.any_status")}
               className="h-12 rounded-2xl"
             />
+          </div>
+
+          <div className="space-y-2">
+            <PanelLabel>{t("search_ui.verified_title")}</PanelLabel>
+            <label className="flex w-fit cursor-pointer items-center gap-3 text-sm font-medium text-[color:var(--ink)]">
+              <Checkbox
+                checked={draft.verified === true}
+                onCheckedChange={(checked) =>
+                  onDraftChange({ verified: checked === true ? true : undefined })
+                }
+              />
+              {t("search_ui.verified_only")}
+            </label>
           </div>
 
           <div className="space-y-2">
