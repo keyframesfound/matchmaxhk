@@ -90,7 +90,7 @@ function DesktopTab({
       to={to}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-sm font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-4",
+        "relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-base font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-4",
         active
           ? "text-[color:var(--ink)]"
           : "text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]",
@@ -143,13 +143,13 @@ export function SiteHeader({
   const hasCenterPill = merged && !!centerSlot;
   const [pastMid, setPastMid] = useState(false);
   useMotionValueEvent(collapseProgress, "change", (p) => setPastMid(p > COLLAPSE_MIDPOINT));
-  // Tabs share the center with the compact pill: as the collapse scrubs in,
+  // Tabs share the center with the compact pill: as the collapse snaps in,
   // the tabs slide up out of the header while the pill rises into their place.
   // Visible at the top AND in the expanded (tinted) state, where progress is
   // held open.
   const linksVisible = !hasCenterPill || !pastMid;
   const pillVisible = hasCenterPill && pastMid;
-  const navY = useTransform(collapseProgress, [0, 0.55], [0, -72]);
+  const navY = useTransform(collapseProgress, [0, 0.55], [0, -76]);
   const navOpacity = useTransform(collapseProgress, [0.3, 0.55], [1, 0]);
   const pillY = useTransform(collapseProgress, [0.45, 0.85], [28, 0]);
   const pillOpacity = useTransform(collapseProgress, [0.45, 0.7], [0, 1]);
@@ -195,7 +195,7 @@ export function SiteHeader({
           className,
         )}
       >
-        <div className="relative mx-auto flex h-[64px] max-w-[1440px] items-center gap-2 px-4 sm:px-8 lg:gap-0 xl:px-10">
+        <div className="relative mx-auto flex h-[72px] max-w-[1440px] items-center gap-2 px-4 sm:px-8 lg:gap-0 xl:px-10">
           {merged && centerSlot ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <motion.div
@@ -250,7 +250,7 @@ export function SiteHeader({
               to="/join"
               aria-current={isActive("/join") ? "page" : undefined}
               className={cn(
-                "whitespace-nowrap rounded-full px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-[color:var(--foreground)]/[0.05] sm:px-4",
+                "whitespace-nowrap rounded-full px-3 py-2.5 text-base font-semibold transition-colors hover:bg-[color:var(--foreground)]/[0.05] sm:px-4",
                 isActive("/join")
                   ? "text-[color:var(--brand-link)]"
                   : "text-[color:var(--ink)] hover:text-[color:var(--ink)]",

@@ -26,16 +26,15 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 /**
- * Airbnb-style grouped search header with a scroll-scrubbed collapse
- * (desktop lg+ only).
+ * Airbnb-style grouped search header with a snap collapse (desktop lg+ only).
  *
- * A progress value tracks window scroll from the moment the search band pins
- * under the header (0 = full bar in flow, 1 = fully collapsed behind the
- * compact pill), smoothed by a light spring: the bar shrinks and the nav tabs
- * slide up in lockstep with the user's scroll, and scrolling back up scrubs
- * it open again.
+ * Once the search band pins under the header, a 4px scroll in either
+ * direction snaps it: scrolling down springs the bar closed (it shrinks into
+ * the header while the nav tabs slide up) and scrolling up springs it open
+ * again. All consumers animate from one spring-smoothed collapseProgress
+ * value, so the choreography stays in lockstep.
  *
- * - "top"      → normal scrubbing; the full bar shows while progress is low.
+ * - "top"      → normal snapping; the full bar shows while progress is low.
  * - "expanded" → compact pill clicked: the bar is pinned open again under the
  *                nav and a scrim tints the page until dismissed (scrim click /
  *                Esc / scrolling down). Progress is held open while tinted.
@@ -44,8 +43,6 @@ import { cn } from "@/lib/utils";
  */
 export type SearchGroupPhase = "top" | "expanded";
 
-/** Scroll distance (px) over which the pinned band fully collapses. */
-const COLLAPSE_DISTANCE = 140;
 /** Progress past which the collapsed bar and the nav swap pointer events. */
 export const COLLAPSE_MIDPOINT = 0.5;
 
@@ -58,20 +55,18 @@ type SearchGroupContextValue = {
   /** Register the sticky bar element (drives pin-offset measurement). */
   registerBar: (element: HTMLDivElement | null) => void;
   expand: () => void;
-  /** Dismiss the tinted state back to the scroll-scrubbed compact pill. */
+  /** Dismiss the tinted state back to the collapsed compact pill. */
   collapse: () => void;
 };
 
 const DEFAULT_CONTEXT: SearchGroupContextValue = {
   phase: "top",
-  headerTop: 64,
+  headerTop: 72,
   collapseProgress: motionValue(0),
   registerBar: () => {},
   expand: () => {},
   collapse: () => {},
 };
-
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 const SearchGroupContext = createContext<SearchGroupContextValue | null>(null);
 
@@ -81,7 +76,7 @@ export function useSearchGroup() {
 
 export function SearchGroupProvider({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<SearchGroupPhase>("top");
-  const [headerTop, setHeaderTop] = useState(64);
+  const [headerTop, setHeaderTop] = useState(72);
   const [isDesktop, setIsDesktop] = useState(false);
   const [pinStart, setPinStart] = useState(0);
   const barRef = useRef<HTMLDivElement | null>(null);
@@ -101,7 +96,7 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
     () =>
       prefersReducedMotion
         ? { stiffness: 1000, damping: 500, restDelta: 0.001 }
-        : { stiffness: 520, damping: 46 },
+        : { stiffness: 500, damping: 40 },
     [prefersReducedMotion],
   );
   const collapseProgress = useSpring(scrubTarget, springConfig);
@@ -123,7 +118,7 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
     if (!header) return;
     const update = () => {
       const height = header.offsetHeight;
-      setHeaderTop(height > 0 ? height : 64);
+      setHeaderTop(height > 0 ? height : 72);
     };
     update();
     const observer = new ResizeObserver(update);
@@ -138,7 +133,7 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
   // Scroll offset at which the band reaches the header: its document-space
   // flow position (offsetTop is unaffected by sticky pinning) minus the live
   // header height. On the homepage the band sits flush under the header, so
-  // the collapse begins with the very first scroll pixel.
+  // the collapse can snap with the very first scroll pixels.
   useEffect(() => {
     if (!isDesktop) return;
     let cancelled = false;
@@ -162,9 +157,9 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
     };
   }, [isDesktop, headerTop]);
 
-  const scrubTo = useCallback(
-    (y: number) => {
-      scrubTarget.set(clamp01((y - pinStartRef.current) / COLLAPSE_DISTANCE));
+  const snapBar = useCallback(
+    (collapsed: boolean) => {
+      scrubTarget.set(collapsed ? 1 : 0);
     },
     [scrubTarget],
   );
@@ -176,8 +171,8 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
 
   const collapse = useCallback(() => {
     setPhase("top");
-    scrubTo(window.scrollY);
-  }, [scrubTo]);
+    snapBar(true);
+  }, [snapBar]);
 
   useMotionValueEvent(scrollY, "change", (y) => {
     const previous = lastScrollY.current;
@@ -189,11 +184,21 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
       if (previous !== null && y - previous > 4) collapse();
       return;
     }
-    scrubTo(y);
+    // Above the pin point the band never collapses; past it, scroll direction
+    // snaps it closed / open.
+    if (y < pinStartRef.current - 8) {
+      snapBar(false);
+      return;
+    }
+    if (previous !== null) {
+      if (y - previous > 4) snapBar(true);
+      else if (previous - y > 4) snapBar(false);
+    }
   });
 
   // Sync once on mount, breakpoint flips and pin-offset changes so a page
-  // loaded mid-scroll renders already collapsed.
+  // loaded mid-scroll renders already collapsed. Strictly past the pin point:
+  // on the homepage the band pins at scrollY 0, where the bar must stay open.
   useEffect(() => {
     lastScrollY.current = window.scrollY;
     if (!isDesktop) {
@@ -201,8 +206,8 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
       scrubTarget.set(0);
       return;
     }
-    scrubTo(window.scrollY);
-  }, [isDesktop, pinStart, scrubTarget, scrubTo]);
+    snapBar(window.scrollY > pinStartRef.current + 8);
+  }, [isDesktop, pinStart, snapBar, scrubTarget]);
 
   useEffect(() => {
     if (!isDesktop || phase !== "expanded") return;
