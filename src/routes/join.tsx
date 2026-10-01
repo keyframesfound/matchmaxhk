@@ -36,8 +36,9 @@ function JoinPage() {
         description="Build your teaching profile for the exam systems and subjects you know best."
         title="Apply to Tutor With MatchMax"
         width="wide"
+        dense
       />
-      <PageContainer className="py-8 sm:py-12" width="wide">
+      <PageContainer className="py-5 sm:py-6" width="wide">
         <ApplicationForm />
       </PageContainer>
     </PublicPage>
