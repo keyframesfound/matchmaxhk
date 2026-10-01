@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TagInput } from "@/components/ui/tag-input";
 import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
+import { MatchFeePanel } from "@/features/cases/admin/MatchFeePanel";
 import { formatStudentLevel } from "@/features/cases/display";
 import {
   AlertDialog,
@@ -447,6 +448,8 @@ export function CaseDetailView({
               </div>
             </div>
           </ConsolePanel>
+
+          <MatchFeePanel caseRow={caseRow} onPatched={invalidateCase} />
 
           <ConsolePanel>
             <div className="flex items-center justify-between">

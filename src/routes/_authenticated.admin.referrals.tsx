@@ -46,13 +46,20 @@ type ReferredTutorRow = {
   display_name: string;
   created_at: string;
   referred_by: string;
-  referrer: { id: string; tutor_code: string; display_name: string } | null;
+  referrer: {
+    id: string;
+    tutor_code: string;
+    display_name: string;
+    referral_code: string | null;
+  } | null;
   bounty: {
     id: string;
     amount_cents: number;
     status: BountyStatus;
     ready_at: string | null;
     paid_at: string | null;
+    source_case_id: string | null;
+    source_case: { case_code: string; fee_collected_at: string | null } | null;
   } | null;
 };
 
@@ -118,6 +125,8 @@ function AdminReferrals() {
     null,
   );
   const [amountInput, setAmountInput] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | BountyStatus>("all");
+  const [sortDir, setSortDir] = useState<"newest" | "oldest">("newest");
 
   const {
     data: referredTutors = [],
@@ -130,8 +139,9 @@ function AdminReferrals() {
         .from("tutors")
         .select(
           `id, tutor_code, display_name, created_at, referred_by,
-           referrer:tutors!tutors_referred_by_fkey(id, tutor_code, display_name),
-           bounty:referral_bounties(id, amount_cents, status, ready_at, paid_at)`,
+           referrer:tutors!tutors_referred_by_fkey(id, tutor_code, display_name, referral_code),
+           bounty:referral_bounties(id, amount_cents, status, ready_at, paid_at, source_case_id,
+             source_case:tutoring_cases(case_code, fee_collected_at))`,
         )
         .not("referred_by", "is", null)
         .order("created_at", { ascending: false });
@@ -232,6 +242,18 @@ function AdminReferrals() {
     return { pendingCents, readyCents, paidCents };
   }, [referredTutors]);
 
+  const visibleTutors = useMemo(() => {
+    const filtered =
+      statusFilter === "all"
+        ? referredTutors
+        : referredTutors.filter((row) => row.bounty?.status === statusFilter);
+    return [...filtered].sort((a, b) =>
+      sortDir === "newest"
+        ? b.created_at.localeCompare(a.created_at)
+        : a.created_at.localeCompare(b.created_at),
+    );
+  }, [referredTutors, statusFilter, sortDir]);
+
   function openAmountDialog(tutor: ReferredTutorRow) {
     setAmountInput(tutor.bounty ? (tutor.bounty.amount_cents / 100).toFixed(2) : "");
     setAmountDialog({ tutorId: tutor.id, bountyId: tutor.bounty?.id });
@@ -265,9 +287,9 @@ function AdminReferrals() {
           Referrals &amp; bounties
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Track the 15% referral program. Record a bounty when a referred tutor lands their first
-          case, clear it once the matching fee is collected, and mark it paid after the FPS
-          transfer. Payouts stay manual — nothing is automated.
+          Track the 15% referral program. When a case's fee is recorded in Cases, the referrer's
+          bounty is logged here automatically at 15%. Clear it once the referred tutor finishes
+          their first two lessons, and mark it paid after the FPS transfer — payouts stay manual.
         </p>
       </div>
 
@@ -309,35 +331,66 @@ function AdminReferrals() {
             Each tutor card created from a referred application appears here once it is saved.
           </p>
         </div>
-        <ConsoleTable tableClassName="text-left" minTableWidth="52rem">
+        <div className="flex flex-wrap items-center gap-2">
+          {(["all", "pending", "ready_for_payout", "paid"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setStatusFilter(value)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-bold transition-colors",
+                statusFilter === value
+                  ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface)]"
+                  : "border-[color:var(--ink)]/15 text-muted-foreground hover:text-[color:var(--ink)]",
+              )}
+            >
+              {value === "all" ? "All" : BOUNTY_STATUS_PILL[value].label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setSortDir((dir) => (dir === "newest" ? "oldest" : "newest"))}
+            className="ml-auto rounded-full border border-[color:var(--ink)]/15 px-3 py-1 text-xs font-bold text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
+          >
+            Card created: {sortDir === "newest" ? "newest first" : "oldest first"}
+          </button>
+        </div>
+        <ConsoleTable tableClassName="text-left" minTableWidth="62rem">
           <ConsoleTableHead>
             <tr>
               <ConsoleTh>Referred tutor</ConsoleTh>
               <ConsoleTh>Referred by</ConsoleTh>
               <ConsoleTh>Card created</ConsoleTh>
+              <ConsoleTh>Source case</ConsoleTh>
               <ConsoleTh>Bounty</ConsoleTh>
               <ConsoleTh align="right">Actions</ConsoleTh>
             </tr>
           </ConsoleTableHead>
           <ConsoleTableBody>
-            {tutorsLoading && <ConsoleTableSkeletonRows columns={5} />}
+            {tutorsLoading && <ConsoleTableSkeletonRows columns={6} />}
             {tutorsError && (
               <ConsoleTableEmpty
-                colSpan={5}
+                colSpan={6}
                 icon={X}
                 title="Could not load referrals"
                 description="Please try again."
               />
             )}
-            {!tutorsLoading && !tutorsError && referredTutors.length === 0 && (
+            {!tutorsLoading && !tutorsError && visibleTutors.length === 0 && (
               <ConsoleTableEmpty
-                colSpan={5}
+                colSpan={6}
                 icon={Gift}
-                title="No referred tutors yet"
-                description="Tutor cards created from referred applications will show up here."
+                title={
+                  statusFilter === "all" ? "No referred tutors yet" : "No bounties in this status"
+                }
+                description={
+                  statusFilter === "all"
+                    ? "Tutor cards created from referred applications will show up here."
+                    : "Try another payout-status filter."
+                }
               />
             )}
-            {referredTutors.map((row) => (
+            {visibleTutors.map((row) => (
               <tr
                 key={row.id}
                 className="transition-colors hover:bg-[color:var(--surface-subtle)]/40"
@@ -353,11 +406,29 @@ function AdminReferrals() {
                     {row.referrer?.display_name ?? "—"}
                   </div>
                   <div className="mt-0.5 font-mono text-xs text-muted-foreground">
-                    {row.referrer?.tutor_code ?? ""}
+                    {row.referrer?.referral_code
+                      ? `/join?ref=${row.referrer.referral_code}`
+                      : (row.referrer?.tutor_code ?? "")}
                   </div>
                 </ConsoleTd>
                 <ConsoleTd className="text-xs text-muted-foreground">
                   {formatDate(row.created_at)}
+                </ConsoleTd>
+                <ConsoleTd className="text-xs text-muted-foreground">
+                  {row.bounty?.source_case ? (
+                    <div>
+                      <div className="font-mono text-xs font-semibold text-[color:var(--ink)]">
+                        {row.bounty.source_case.case_code}
+                      </div>
+                      <div className="mt-0.5">
+                        {row.bounty.source_case.fee_collected_at
+                          ? `Fee collected ${formatDate(row.bounty.source_case.fee_collected_at)}`
+                          : "First lessons in progress"}
+                      </div>
+                    </div>
+                  ) : (
+                    <span>—</span>
+                  )}
                 </ConsoleTd>
                 <ConsoleTd>
                   {row.bounty ? (
@@ -524,7 +595,10 @@ function AdminReferrals() {
         <span>
           The bounty is the referrer's 15% cut of the collected matching fee (1.5 &times; the agreed
           hourly rate; 20% of the package for short-term cases). Example: HK$500/hr tutor → HK$750
-          fee → HK$112.50 bounty. Mark a bounty paid only after the FPS transfer is sent.
+          fee → HK$112.50 bounty. Bounties auto-log when the fee is recorded on the case in{" "}
+          <span className="font-semibold text-[color:var(--ink)]">Cases</span>; the manual
+          &ldquo;Record 1st case&rdquo; fallback covers cases that never get logged there. Mark a
+          bounty paid only after the FPS transfer is sent.
         </span>
       </p>
 

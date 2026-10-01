@@ -872,6 +872,47 @@ export function TutorEditor({
     enabled: Boolean(initialData?.id),
   });
 
+  // Referrer picker: lets admins credit WhatsApp-referred friends who joined
+  // without using the referral link. Mutates tutors.referred_by directly,
+  // outside the form payload (same pattern as account linking).
+  const [referrerSearch, setReferrerSearch] = React.useState("");
+  const [debouncedReferrerSearch, setDebouncedReferrerSearch] = React.useState("");
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedReferrerSearch(referrerSearch.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [referrerSearch]);
+  const referrerOptionsQuery = useQuery({
+    queryKey: ["admin", "referrer-search", initialData?.id, debouncedReferrerSearch],
+    queryFn: async () => {
+      const q = debouncedReferrerSearch.replace(/[,()%]/g, "");
+      const { data, error } = await supabase
+        .from("tutors")
+        .select("id, tutor_code, display_name")
+        .or(`display_name.ilike.%${q}%,tutor_code.ilike.%${q}%`)
+        .neq("id", initialData!.id)
+        .limit(6);
+      if (error) throw error;
+      return data as { id: string; tutor_code: string; display_name: string }[];
+    },
+    enabled: Boolean(initialData?.id) && debouncedReferrerSearch.length >= 2,
+  });
+
+  const setReferrer = useMutation({
+    mutationFn: async (referrerId: string | null) => {
+      const { error } = await supabase
+        .from("tutors")
+        .update({ referred_by: referrerId } as never)
+        .eq("id", initialData!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Referrer updated");
+      setReferrerSearch("");
+      void queryClient.invalidateQueries({ queryKey: ["admin", "tutor-referral"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const linkAccount = useMutation({
     // Issue #160: the dropdown resolves the user id via
     // list_accounts_for_assignment; the email path stays as a fallback.
@@ -1531,10 +1572,50 @@ export function TutorEditor({
                     </div>
                     <div className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4">
                       <p className="text-xs font-medium text-[color:var(--ink)]/60">Referred by</p>
-                      <p className="mt-1 text-sm font-bold text-[color:var(--ink)]">
-                        {tutorReferralQuery.data?.referrer
-                          ? `${tutorReferralQuery.data.referrer.display_name} (${tutorReferralQuery.data.referrer.tutor_code})`
-                          : "—"}
+                      {tutorReferralQuery.data?.referrer ? (
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-bold text-[color:var(--ink)]">
+                            {tutorReferralQuery.data.referrer.display_name} (
+                            {tutorReferralQuery.data.referrer.tutor_code})
+                          </p>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-xs font-bold text-muted-foreground hover:text-[color:var(--ink)]"
+                            disabled={setReferrer.isPending}
+                            onClick={() => setReferrer.mutate(null)}
+                          >
+                            Clear
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="mt-1 text-sm font-bold text-[color:var(--ink)]">—</p>
+                      )}
+                      <Input
+                        value={referrerSearch}
+                        onChange={(e) => setReferrerSearch(e.target.value)}
+                        placeholder="Set referrer by name or code…"
+                        className="mt-2 h-8 rounded-lg text-xs"
+                        aria-label="Search tutors to set as referrer"
+                      />
+                      {debouncedReferrerSearch.length >= 2 &&
+                      (referrerOptionsQuery.data?.length ?? 0) > 0 ? (
+                        <div className="mt-2 space-y-1">
+                          {referrerOptionsQuery.data!.map((option) => (
+                            <button
+                              key={option.id}
+                              type="button"
+                              disabled={setReferrer.isPending}
+                              onClick={() => setReferrer.mutate(option.id)}
+                              className="w-full rounded-lg border border-[color:var(--ink)]/10 px-2.5 py-1.5 text-left text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface)] disabled:opacity-50"
+                            >
+                              {option.display_name} · {option.tutor_code}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                      <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                        For friends who joined without the referral link (e.g. WhatsApp intros).
                       </p>
                     </div>
                   </div>
