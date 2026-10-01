@@ -7,7 +7,16 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TutorsSearch } from "@/components/search/tutors-search";
+import {
+  CompactSearchPill,
+  SearchGroupProvider,
+  StickySearchBar,
+} from "@/components/search/sticky-search-group";
+import {
+  TutorsSearchBar,
+  TutorsSearchMobile,
+  useTutorsCompactSegments,
+} from "@/components/search/tutors-search";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
@@ -406,66 +415,84 @@ function Landing() {
         }
       : null;
 
+  const compactSegments = useTutorsCompactSegments(homeSearch);
+
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
-      {tutorListStructuredData && (
+    <SearchGroupProvider>
+      <div className="flex min-h-screen flex-col bg-background">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(tutorListStructuredData) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
-      )}
+        {tutorListStructuredData && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(tutorListStructuredData) }}
+          />
+        )}
 
-      <SiteHeader />
+        <SiteHeader
+          merged
+          centerSlot={<CompactSearchPill segments={compactSegments} icon="/nav-find.png" />}
+        />
 
-      <section className="relative pt-2 pb-10 md:pt-10 md:pb-16">
-        <div className="mx-auto max-w-[1440px] px-4 md:px-6">
-          <div className="relative z-20 py-2.5 sm:p-5">
-            <TutorsSearch
+        <StickySearchBar>
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
+            <TutorsSearchBar
               draft={homeSearch}
               onDraftChange={setHomeSearchParam}
               onApply={applyHomeSearch}
               onClear={() => setHomeSearch({})}
             />
           </div>
+        </StickySearchBar>
 
-          <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
-            {CURRICULUM_CATEGORIES.map(({ label, value }) => (
-              <CurriculumTutorSection
-                key={value}
-                label={label}
-                category={value}
-                tutors={tutorsForCategory(value)}
-                loading={publishedTutorsLoading}
-                priceSuffix={t("featured.per_hour")}
-                whatsappNumber={whatsappNumber}
-                onOpen={openTutorDetail}
-                compareSelectedIds={compareIds}
-                onCompareToggle={toggleCompare}
+        <section className="relative pt-2 pb-10 md:pt-6 md:pb-16">
+          <div className="mx-auto max-w-[1440px] px-4 md:px-6">
+            <div className="relative z-20 py-2.5 sm:p-5 lg:hidden">
+              <TutorsSearchMobile
+                draft={homeSearch}
+                onDraftChange={setHomeSearchParam}
+                onApply={applyHomeSearch}
+                onClear={() => setHomeSearch({})}
               />
-            ))}
+            </div>
+
+            <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
+              {CURRICULUM_CATEGORIES.map(({ label, value }) => (
+                <CurriculumTutorSection
+                  key={value}
+                  label={label}
+                  category={value}
+                  tutors={tutorsForCategory(value)}
+                  loading={publishedTutorsLoading}
+                  priceSuffix={t("featured.per_hour")}
+                  whatsappNumber={whatsappNumber}
+                  onOpen={openTutorDetail}
+                  compareSelectedIds={compareIds}
+                  onCompareToggle={toggleCompare}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <SiteFooter />
+        <SiteFooter />
 
-      {compareTutors.length > 0 && !compareOpen ? (
-        <CompareBar
-          selectedTutors={compareTutors}
-          onOpenCompare={() => setCompareOpen(true)}
-          onClear={clearCompare}
+        {compareTutors.length > 0 && !compareOpen ? (
+          <CompareBar
+            selectedTutors={compareTutors}
+            onOpenCompare={() => setCompareOpen(true)}
+            onClear={clearCompare}
+          />
+        ) : null}
+        <CompareDialog
+          open={compareOpen}
+          onOpenChange={setCompareOpen}
+          tutors={compareTutors}
+          whatsappNumber={whatsappNumber}
         />
-      ) : null}
-      <CompareDialog
-        open={compareOpen}
-        onOpenChange={setCompareOpen}
-        tutors={compareTutors}
-        whatsappNumber={whatsappNumber}
-      />
-    </div>
+      </div>
+    </SearchGroupProvider>
   );
 }

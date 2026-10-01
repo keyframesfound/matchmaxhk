@@ -11,11 +11,13 @@ import {
   Sun,
   UserRound,
 } from "lucide-react";
+import { motion, useMotionValueEvent, useTransform } from "motion/react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { Logo } from "@/components/brand/Logo";
-import { CompactPillSlot, useSearchGroup } from "@/components/search/sticky-search-group";
+import { COLLAPSE_MIDPOINT, useSearchGroup } from "@/components/search/sticky-search-group";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -137,11 +139,20 @@ export function SiteHeader({
   const isAdmin = hasAnyRole(["admin", "super_admin"]);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
-  const searchGroup = useSearchGroup();
-  // Tabs share the center with the compact pill: hidden while the compact
-  // pill is showing, visible at the top AND in the expanded (tinted) state.
-  const linksVisible = !merged || searchGroup.phase !== "compact";
-  const compactVisible = merged && searchGroup.phase === "compact";
+  const { collapseProgress } = useSearchGroup();
+  const hasCenterPill = merged && !!centerSlot;
+  const [pastMid, setPastMid] = useState(false);
+  useMotionValueEvent(collapseProgress, "change", (p) => setPastMid(p > COLLAPSE_MIDPOINT));
+  // Tabs share the center with the compact pill: as the collapse scrubs in,
+  // the tabs slide up out of the header while the pill rises into their place.
+  // Visible at the top AND in the expanded (tinted) state, where progress is
+  // held open.
+  const linksVisible = !hasCenterPill || !pastMid;
+  const pillVisible = hasCenterPill && pastMid;
+  const navY = useTransform(collapseProgress, [0, 0.55], [0, -72]);
+  const navOpacity = useTransform(collapseProgress, [0.3, 0.55], [1, 0]);
+  const pillY = useTransform(collapseProgress, [0.45, 0.85], [28, 0]);
+  const pillOpacity = useTransform(collapseProgress, [0.45, 0.7], [0, 1]);
   const accountName =
     user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
   const accountInitial = accountName.charAt(0).toUpperCase();
@@ -187,7 +198,12 @@ export function SiteHeader({
         <div className="relative mx-auto flex h-[64px] max-w-[1440px] items-center gap-2 px-4 sm:px-8 lg:gap-0 xl:px-10">
           {merged && centerSlot ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <CompactPillSlot visible={compactVisible}>{centerSlot}</CompactPillSlot>
+              <motion.div
+                style={hasCenterPill ? { y: pillY, opacity: pillOpacity } : undefined}
+                className={pillVisible ? "pointer-events-auto" : "pointer-events-none"}
+              >
+                {centerSlot}
+              </motion.div>
             </div>
           ) : null}
           <Link to="/" className="flex shrink-0 items-center" aria-label="MatchMax home">
@@ -197,12 +213,13 @@ export function SiteHeader({
             </div>
           </Link>
 
-          <div className="pointer-events-none absolute inset-0 flex justify-center">
-            <nav
+          <div className="pointer-events-none absolute inset-0 flex justify-center overflow-hidden">
+            <motion.nav
               aria-label={t("nav.site_menu")}
+              style={hasCenterPill ? { y: navY, opacity: navOpacity } : undefined}
               className={cn(
-                "pointer-events-auto flex h-full items-stretch transition-opacity duration-200 motion-reduce:transition-none",
-                linksVisible ? "opacity-100" : "pointer-events-none opacity-0",
+                "flex h-full items-stretch",
+                linksVisible ? "pointer-events-auto" : "pointer-events-none",
               )}
             >
               <DesktopTab to="/tutors" active={isActive("/tutors")} icon="/nav-find.png">
@@ -225,7 +242,7 @@ export function SiteHeader({
               >
                 {t("nav.tab_cases")}
               </DesktopTab>
-            </nav>
+            </motion.nav>
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">

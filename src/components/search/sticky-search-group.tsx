@@ -1,11 +1,22 @@
 import { Search } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  motion,
+  motionValue,
+  useMotionValue,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
 import {
   createContext,
   Fragment,
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -15,37 +26,52 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 /**
- * Airbnb-style grouped search header state machine (desktop lg+ only).
+ * Airbnb-style grouped search header with a scroll-scrubbed collapse
+ * (desktop lg+ only).
  *
- * - "top"      → nav links visible, full search bar in the page flow, no scrim.
- * - "compact"  → full bar retracted behind the nav, compact pill centered in
- *                the nav row, links hidden.
- * - "expanded" → compact pill clicked: full bar pinned under the nav again and
- *                a scrim tints the page until dismissed (scrim click / Esc /
- *                scrolling down).
+ * A progress value tracks window scroll from the moment the search band pins
+ * under the header (0 = full bar in flow, 1 = fully collapsed behind the
+ * compact pill), smoothed by a light spring: the bar shrinks and the nav tabs
+ * slide up in lockstep with the user's scroll, and scrolling back up scrubs
+ * it open again.
+ *
+ * - "top"      → normal scrubbing; the full bar shows while progress is low.
+ * - "expanded" → compact pill clicked: the bar is pinned open again under the
+ *                nav and a scrim tints the page until dismissed (scrim click /
+ *                Esc / scrolling down). Progress is held open while tinted.
  *
  * On <lg the provider is inert: everything renders exactly as before.
  */
-export type SearchGroupPhase = "top" | "compact" | "expanded";
+export type SearchGroupPhase = "top" | "expanded";
+
+/** Scroll distance (px) over which the pinned band fully collapses. */
+const COLLAPSE_DISTANCE = 140;
+/** Progress past which the collapsed bar and the nav swap pointer events. */
+export const COLLAPSE_MIDPOINT = 0.5;
 
 type SearchGroupContextValue = {
   phase: SearchGroupPhase;
   /** Sticky offset for the pinned bar: the live height of the site header. */
   headerTop: number;
-  /** Register the sticky bar element (drives pin detection). */
+  /** 0 = full search bar showing, 1 = collapsed behind the compact pill. */
+  collapseProgress: MotionValue<number>;
+  /** Register the sticky bar element (drives pin-offset measurement). */
   registerBar: (element: HTMLDivElement | null) => void;
   expand: () => void;
-  /** Dismiss the tinted state back to the compact pill. */
+  /** Dismiss the tinted state back to the scroll-scrubbed compact pill. */
   collapse: () => void;
 };
 
 const DEFAULT_CONTEXT: SearchGroupContextValue = {
   phase: "top",
   headerTop: 64,
+  collapseProgress: motionValue(0),
   registerBar: () => {},
   expand: () => {},
   collapse: () => {},
 };
+
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 const SearchGroupContext = createContext<SearchGroupContextValue | null>(null);
 
@@ -57,10 +83,28 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<SearchGroupPhase>("top");
   const [headerTop, setHeaderTop] = useState(64);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [pinStart, setPinStart] = useState(0);
   const barRef = useRef<HTMLDivElement | null>(null);
-  const lastScrollY = useRef<number | null>(null);
+  const pinStartRef = useRef(pinStart);
+  pinStartRef.current = pinStart;
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
+  const lastScrollY = useRef<number | null>(null);
+  const { scrollY } = useScroll();
+  const prefersReducedMotion = useReducedMotion();
+
+  // Owned scrub target, written imperatively so the expanded (tinted) state
+  // can hold the band open regardless of scroll; the spring smooths raw
+  // scroll steps instead of snapping between the two.
+  const scrubTarget = useMotionValue(0);
+  const springConfig = useMemo(
+    () =>
+      prefersReducedMotion
+        ? { stiffness: 1000, damping: 500, restDelta: 0.001 }
+        : { stiffness: 520, damping: 46 },
+    [prefersReducedMotion],
+  );
+  const collapseProgress = useSpring(scrubTarget, springConfig);
 
   // Only drive the state machine at Tailwind's lg breakpoint; below lg every
   // consumer renders its static (top) appearance.
@@ -91,67 +135,88 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
     barRef.current = element;
   }, []);
 
-  const expand = useCallback(() => setPhase("expanded"), []);
-  const collapse = useCallback(() => setPhase("compact"), []);
-
+  // Scroll offset at which the band reaches the header: its document-space
+  // flow position (offsetTop is unaffected by sticky pinning) minus the live
+  // header height. On the homepage the band sits flush under the header, so
+  // the collapse begins with the very first scroll pixel.
   useEffect(() => {
-    if (!isDesktop) {
-      lastScrollY.current = null;
-      setPhase("top");
+    if (!isDesktop) return;
+    let cancelled = false;
+    const measure = () => {
+      const bar = barRef.current;
+      if (!bar) return;
+      let top = 0;
+      let el: HTMLElement | null = bar;
+      while (el) {
+        top += el.offsetTop;
+        el = el.offsetParent as HTMLElement | null;
+      }
+      if (!cancelled) setPinStart(Math.max(0, top - headerTop));
+    };
+    measure();
+    document.fonts?.ready.then(measure);
+    window.addEventListener("resize", measure);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("resize", measure);
+    };
+  }, [isDesktop, headerTop]);
+
+  const scrubTo = useCallback(
+    (y: number) => {
+      scrubTarget.set(clamp01((y - pinStartRef.current) / COLLAPSE_DISTANCE));
+    },
+    [scrubTarget],
+  );
+
+  const expand = useCallback(() => {
+    setPhase("expanded");
+    scrubTarget.set(0);
+  }, [scrubTarget]);
+
+  const collapse = useCallback(() => {
+    setPhase("top");
+    scrubTo(window.scrollY);
+  }, [scrubTo]);
+
+  useMotionValueEvent(scrollY, "change", (y) => {
+    const previous = lastScrollY.current;
+    lastScrollY.current = y;
+    if (!isDesktop) return;
+    if (phaseRef.current === "expanded") {
+      // Scrolling down while tinted returns to the compact pill; scrolling up
+      // keeps the expanded search open.
+      if (previous !== null && y - previous > 4) collapse();
       return;
     }
+    scrubTo(y);
+  });
+
+  // Sync once on mount, breakpoint flips and pin-offset changes so a page
+  // loaded mid-scroll renders already collapsed.
+  useEffect(() => {
     lastScrollY.current = window.scrollY;
-
-    const evaluate = () => {
-      const y = window.scrollY;
-      const previous = lastScrollY.current;
-      lastScrollY.current = y;
-      const current = phaseRef.current;
-
-      if (current === "expanded") {
-        // Scrolling down while tinted returns to the compact pill; scrolling
-        // up keeps the expanded search open.
-        if (previous !== null && y - previous > 4) setPhase("compact");
-        return;
-      }
-
-      const bar = barRef.current;
-      const pinned = !!bar && bar.getBoundingClientRect().top <= headerTop + 8;
-      if (!pinned) {
-        setPhase("top");
-        return;
-      }
-      if (previous !== null) {
-        if (y - previous > 4) setPhase("compact");
-        else if (previous - y > 4) setPhase("top");
-      }
-    };
-
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        ticking = false;
-        evaluate();
-      });
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [isDesktop, headerTop]);
+    if (!isDesktop) {
+      setPhase("top");
+      scrubTarget.set(0);
+      return;
+    }
+    scrubTo(window.scrollY);
+  }, [isDesktop, pinStart, scrubTarget, scrubTo]);
 
   useEffect(() => {
     if (!isDesktop || phase !== "expanded") return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setPhase("compact");
+      if (event.key === "Escape") collapse();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isDesktop, phase]);
+  }, [isDesktop, phase, collapse]);
 
   return (
-    <SearchGroupContext.Provider value={{ phase, headerTop, registerBar, expand, collapse }}>
+    <SearchGroupContext.Provider
+      value={{ phase, headerTop, collapseProgress, registerBar, expand, collapse }}
+    >
       {children}
     </SearchGroupContext.Provider>
   );
@@ -159,8 +224,9 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
 
 /**
  * Sticky band that carries the desktop search row. It pins directly under the
- * site header; the band itself (background + divider) collapses out of view
- * while the compact pill is showing so the layout never jumps.
+ * site header; as the collapse progress grows, a clipping wrapper shrinks the
+ * band away (height → 0) while the content drifts up and fades, so the bar
+ * reads as shrinking into the header instead of sliding off it.
  */
 export function StickySearchBar({
   children,
@@ -169,9 +235,32 @@ export function StickySearchBar({
   children: ReactNode;
   className?: string;
 }) {
-  const { phase, headerTop, registerBar, collapse } = useSearchGroup();
-  const prefersReducedMotion = useReducedMotion();
-  const collapsed = phase === "compact";
+  const { phase, headerTop, registerBar, collapse, collapseProgress } = useSearchGroup();
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [contentHeight, setContentHeight] = useState<number | null>(null);
+
+  // Track the bar's natural height so the wrapper can shrink from it; when
+  // unmeasured (first paint) fall back to auto so nothing collapses early.
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const update = () => setContentHeight(el.offsetHeight);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const height = useTransform(collapseProgress, (p) =>
+    p <= 0 || contentHeight === null ? "auto" : Math.max(0, contentHeight * (1 - p)),
+  );
+  const y = useTransform(collapseProgress, (p) =>
+    contentHeight === null ? 0 : -p * contentHeight * 0.25,
+  );
+  const opacity = useTransform(collapseProgress, [0.55, 0.9], [1, 0]);
+  const [pastMid, setPastMid] = useState(false);
+  useMotionValueEvent(collapseProgress, "change", (p) => setPastMid(p > COLLAPSE_MIDPOINT));
+
   const scrimVisible = phase === "expanded";
 
   return (
@@ -184,18 +273,21 @@ export function StickySearchBar({
           scrimVisible ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       />
-      <div
-        className={cn(
-          "border-b border-border bg-[color:var(--surface-header)] transition-[transform,opacity,background-color] duration-300 ease-out motion-reduce:transition-none",
-          scrimVisible && "bg-[color:var(--surface-subtle)]",
-          collapsed
-            ? cn("pointer-events-none opacity-0", !prefersReducedMotion && "-translate-y-[120%]")
-            : "pointer-events-auto opacity-100",
-          className,
-        )}
-      >
-        {children}
-      </div>
+      <motion.div style={{ height }} className="overflow-hidden">
+        <motion.div
+          ref={contentRef}
+          style={{ opacity, y }}
+          aria-hidden={pastMid || undefined}
+          className={cn(
+            "border-b border-border bg-[color:var(--surface-header)] transition-colors duration-300 motion-reduce:transition-none",
+            scrimVisible && "bg-[color:var(--surface-subtle)]",
+            pastMid ? "pointer-events-none" : "pointer-events-auto",
+            className,
+          )}
+        >
+          {children}
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
@@ -217,7 +309,6 @@ export function CompactSearchPill({
 }) {
   const { t } = useTranslation();
   const { expand } = useSearchGroup();
-  const prefersReducedMotion = useReducedMotion();
 
   return (
     <button
@@ -259,34 +350,5 @@ export function CompactSearchPill({
         <Search className="h-4 w-4" />
       </span>
     </button>
-  );
-}
-
-/** Springs the compact pill in/out inside the nav row — Airbnb-style pop. */
-export function CompactPillSlot({ visible, children }: { visible: boolean; children: ReactNode }) {
-  const prefersReducedMotion = useReducedMotion();
-  return (
-    <AnimatePresence initial={false}>
-      {visible ? (
-        <motion.div
-          key="compact-pill"
-          initial={{ opacity: 0, scale: 0.7, y: -14 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={
-            prefersReducedMotion
-              ? { opacity: 0, transition: { duration: 0 } }
-              : { opacity: 0, scale: 0.85, y: -10, transition: { duration: 0.15, ease: "easeIn" } }
-          }
-          transition={
-            prefersReducedMotion
-              ? { duration: 0 }
-              : { type: "spring", stiffness: 480, damping: 34, mass: 0.9 }
-          }
-          className="pointer-events-auto"
-        >
-          {children}
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
   );
 }
