@@ -719,7 +719,11 @@
     "back_to_help": "返回幫助中心",
     "audience_tutor": "導師適用",
     "audience_parent": "家長及學生適用",
-    "audience_all": "所有人適用"
+    "audience_all": "所有人適用",
+    "copy_box_label": "可複製訊息範本",
+    "copy_button": "複製",
+    "copied": "已複製！",
+    "diagram_label": "圖表即將推出"
   },
   "hiw": {
     "hero_eyebrow": "MatchMax 點樣運作",
