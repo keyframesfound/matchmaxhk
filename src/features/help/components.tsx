@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { Check, ClipboardCopy, ImageIcon } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import type { ReactNode } from "react";
+import remarkGfm from "remark-gfm";
+import { useTranslation } from "react-i18next";
+import { useState, type ReactNode } from "react";
 
 import type { HelpArticle } from "@/features/help/content";
 import { supabase } from "@/integrations/supabase/client";
@@ -94,11 +97,160 @@ export function extractHelpToc(markdown: string): HelpTocEntry[] {
   return entries;
 }
 
+/** Label shown above a copy box (parsed from the first line of the fenced block). */
+function HelpCopyBox({ label, text }: { label?: string; text: string }) {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Clipboard API can be unavailable (permissions/insecure context); still
+      // fall back to the legacy path so the button keeps working.
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+      } finally {
+        textarea.remove();
+      }
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  };
+
+  return (
+    <div className="rounded-xl border border-[color:var(--brand-link)]/30 bg-[color:var(--brand-link)]/[0.04]">
+      <div className="flex items-center justify-between gap-3 border-b border-[color:var(--brand-link)]/20 px-4 py-2">
+        <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-widest text-[color:var(--brand-link)]">
+          {label || t("help.copy_box_label")}
+        </span>
+        <button
+          type="button"
+          onClick={copy}
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-[color:var(--brand-link)]/40 bg-card px-3 text-xs font-semibold text-foreground transition-colors hover:bg-[color:var(--brand-link)]/10"
+          aria-label={t("help.copy_button")}
+        >
+          {copied ? (
+            <>
+              <Check className="h-3.5 w-3.5 text-[color:var(--brand-link)]" aria-hidden="true" />
+              {t("help.copied")}
+            </>
+          ) : (
+            <>
+              <ClipboardCopy className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("help.copy_button")}
+            </>
+          )}
+        </button>
+      </div>
+      <div className="cursor-pointer px-4 py-3" onClick={copy}>
+        <HighlightPlaceholders text={text} />
+      </div>
+    </div>
+  );
+}
+
+/** Renders message text with [Placeholder] tokens highlighted in cyan. */
+function HighlightPlaceholders({ text }: { text: string }) {
+  const parts = text.split(/(\[[^\]\n]+\])/g);
+  return (
+    <p className="whitespace-pre-wrap text-sm leading-7 text-foreground sm:text-[15px]">
+      {parts.map((part, index) =>
+        /^\[[^\]\n]+\]$/.test(part) ? (
+          <span key={index} className="font-semibold text-[color:var(--brand-link)]">
+            {part}
+          </span>
+        ) : (
+          <span key={index}>{part}</span>
+        ),
+      )}
+    </p>
+  );
+}
+
+/**
+ * Styled stand-in for a design-team diagram (issue #150). Authors write a
+ * fenced block with info string `diagram`; the first line is the title and
+ * the rest describes the requested artwork.
+ */
+function HelpDiagramPlaceholder({ title, body }: { title: string; body: string }) {
+  const { t } = useTranslation();
+  return (
+    <div className="rounded-xl border border-dashed border-border bg-muted/50">
+      <div className="flex items-center gap-2 border-b border-dashed border-border px-4 py-2.5">
+        <ImageIcon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          {title || t("help.diagram_label")}
+        </span>
+      </div>
+      <div className="px-4 py-3">
+        <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{body}</p>
+      </div>
+    </div>
+  );
+}
+
 /** Article-body markdown renderer with help-centre typography and heading anchors. */
 export function HelpMarkdown({ children }: { children: string }) {
   return (
     <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
       components={{
+        table: ({ children: tableChildren }) => (
+          <div className="-mx-1 overflow-x-auto px-1">
+            <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
+              {tableChildren}
+            </table>
+          </div>
+        ),
+        thead: ({ children: headChildren }) => (
+          <thead className="border-b border-border">{headChildren}</thead>
+        ),
+        th: ({ children: thChildren }) => (
+          <th className="whitespace-nowrap px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            {thChildren}
+          </th>
+        ),
+        td: ({ children: tdChildren }) => (
+          <td className="border-t border-border px-3 py-2.5 align-top leading-6 text-muted-foreground">
+            {tdChildren}
+          </td>
+        ),
+        pre: ({ children: preChildren }) => {
+          // Fenced blocks with a `copy` / `diagram` info string render as
+          // interactive help-centre widgets; anything else stays a code block.
+          const child = Array.isArray(preChildren) ? preChildren[0] : preChildren;
+          const raw =
+            typeof child === "object" && child && "props" in child
+              ? String((child.props as { children?: unknown }).children ?? "")
+              : "";
+          const className =
+            typeof child === "object" && child && "props" in child
+              ? String((child.props as { className?: unknown }).className ?? "")
+              : "";
+          const language = /language-([\w-]+)/.exec(className)?.[1] ?? "";
+          const lines = raw.replace(/\n$/, "").split("\n");
+          if (language === "copy") {
+            const label = lines[0].startsWith("# ") ? lines[0].slice(2).trim() : undefined;
+            const text = (label ? lines.slice(1) : lines).join("\n").trim();
+            return <HelpCopyBox label={label} text={text} />;
+          }
+          if (language === "diagram") {
+            const title = lines[0].replace(/^#\s*/, "").trim() || "Diagram";
+            return <HelpDiagramPlaceholder title={title} body={lines.slice(1).join("\n").trim()} />;
+          }
+          return (
+            <pre className="overflow-x-auto rounded-xl border border-border bg-muted/60 p-4 text-sm leading-6 text-foreground">
+              {preChildren}
+            </pre>
+          );
+        },
         h2: ({ children: headingChildren }) => (
           <h2
             id={slugifyHelpHeading(extractTextNode(headingChildren))}

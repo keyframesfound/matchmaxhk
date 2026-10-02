@@ -697,7 +697,11 @@
     "back_to_help": "Back to Help Centre",
     "audience_tutor": "For tutors",
     "audience_parent": "For parents & students",
-    "audience_all": "For everyone"
+    "audience_all": "For everyone",
+    "copy_box_label": "Copy-paste script",
+    "copy_button": "Copy",
+    "copied": "Copied!",
+    "diagram_label": "Diagram coming soon"
   },
   "hiw": {
     "hero_eyebrow": "How MatchMax works",
