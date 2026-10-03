@@ -891,6 +891,7 @@ export type Database = {
           remaining_student_slots: number;
           is_accepting_students: boolean;
           preferred_time_windows: string[];
+          availability_grid: Json;
         };
         Insert: {
           achievements?: Json;
@@ -934,6 +935,7 @@ export type Database = {
           postgrad_degree?: string | null;
           updated_at?: string;
           user_id?: string | null;
+          availability_grid?: Json;
         };
         Update: {
           achievements?: Json;
@@ -980,6 +982,7 @@ export type Database = {
           remaining_student_slots?: number;
           is_accepting_students?: boolean;
           preferred_time_windows?: string[];
+          availability_grid?: Json;
         };
         Relationships: [
           {
@@ -1042,6 +1045,10 @@ export type Database = {
           _is_accepting_students: boolean;
           _preferred_time_windows: string[];
         };
+        Returns: undefined;
+      };
+      update_my_availability_grid: {
+        Args: { _grid: Json };
         Returns: undefined;
       };
       get_org_role: {

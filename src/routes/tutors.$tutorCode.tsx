@@ -46,6 +46,11 @@ import {
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
+import { AvailabilityGrid } from "@/features/tutors/availability-grid";
+import {
+  countAvailableCells,
+  parseAvailabilityGrid,
+} from "@/features/tutors/availability-grid-model";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MarkdownText } from "@/components/ui/markdown-text";
@@ -421,6 +426,8 @@ function TutorDetail() {
   const availabilityReadiness = getTutorAvailabilityReadiness(t);
   // Issue #103: macro availability windows for the public profile tags.
   const preferredTimeWindows = t.preferred_time_windows ?? [];
+  // Issue #116: self-serve weekly grid has at least one non-unavailable cell.
+  const hasAvailabilityGrid = countAvailableCells(parseAvailabilityGrid(t.availability_grid)) > 0;
   const genderLabel = getTutorGenderLabel(t.gender);
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
   const subjectGroups = getTutorSubjectGroups(t).map((group) => {
@@ -775,6 +782,13 @@ function TutorDetail() {
                   <p className="mt-3 text-xs leading-relaxed text-muted-foreground sm:text-sm">
                     {translate("profile.pricing_disclaimer")}
                   </p>
+                </ProfileSection>
+              ) : null}
+
+              {inquiry.kind !== "waitlist" &&
+              (hasAvailabilityGrid || preferredTimeWindows.length > 0) ? (
+                <ProfileSection icon={Clock} title={translate("profile.section_availability")}>
+                  <AvailabilityGrid grid={t.availability_grid} />
                 </ProfileSection>
               ) : null}
 

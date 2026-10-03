@@ -25,6 +25,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { SuggestedActionsSection } from "@/features/dashboard/action-cards";
 import { AccountSection } from "@/features/settings/sections/account-section";
 import { AvailabilitySection } from "@/features/settings/sections/availability-section";
+import { AvailabilityGridEditor } from "@/features/settings/sections/availability-grid-editor";
 import { DangerZoneSection } from "@/features/settings/sections/danger-zone-section";
 import { GeneralSection } from "@/features/settings/sections/general-section";
 import { MyTutorProfileSection } from "@/features/settings/sections/my-tutor-profile-section";
@@ -56,11 +57,25 @@ const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof S
   "danger-zone": { labelKey: "settings.nav.danger", icon: Trash2 },
 };
 
+/**
+ * Issue #116: the Availability tab holds the existing start-date/capacity card
+ * plus the new self-serve weekly availability grid beneath it.
+ */
+function AvailabilityTab(_props: SettingsSectionProps) {
+  return (
+    <div className="space-y-6">
+      {/* AvailabilitySection takes no props (it reads auth + queries itself). */}
+      <AvailabilitySection />
+      <AvailabilityGridEditor />
+    </div>
+  );
+}
+
 const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSectionProps>> = {
   general: GeneralSection,
   profile: ProfileSection,
   "my-tutor": MyTutorProfileSection,
-  availability: AvailabilitySection,
+  availability: AvailabilityTab,
   account: AccountSection,
   security: SecuritySection,
   notifications: NotificationsSection,
