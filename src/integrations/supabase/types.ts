@@ -591,53 +591,6 @@ export type Database = {
           },
         ];
       };
-      tutor_reviews: {
-        Row: {
-          author_alias: string;
-          author_user_id: string | null;
-          comment: string | null;
-          created_at: string;
-          created_by: string | null;
-          id: string;
-          is_published: boolean;
-          rating: number;
-          tutor_id: string;
-          updated_at: string;
-        };
-        Insert: {
-          author_alias: string;
-          author_user_id?: string | null;
-          comment?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          id?: string;
-          is_published?: boolean;
-          rating: number;
-          tutor_id: string;
-          updated_at?: string;
-        };
-        Update: {
-          author_alias?: string;
-          author_user_id?: string | null;
-          comment?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          id?: string;
-          is_published?: boolean;
-          rating?: number;
-          tutor_id?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "tutor_reviews_tutor_id_fkey";
-            columns: ["tutor_id"];
-            isOneToOne: false;
-            referencedRelation: "tutors";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       tutor_applications: {
         Row: {
           attachment_files: Json;
@@ -676,6 +629,50 @@ export type Database = {
           {
             foreignKeyName: "tutor_applications_referred_by_fkey";
             columns: ["referred_by"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      tutor_reviews: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_published: boolean;
+          is_verified: boolean;
+          public_review: string | null;
+          rating: number;
+          reviewer_display_name: string;
+          student_grade_school: string | null;
+          tutor_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_published?: boolean;
+          is_verified?: boolean;
+          public_review?: string | null;
+          rating: number;
+          reviewer_display_name: string;
+          student_grade_school?: string | null;
+          tutor_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_published?: boolean;
+          is_verified?: boolean;
+          public_review?: string | null;
+          rating?: number;
+          reviewer_display_name?: string;
+          student_grade_school?: string | null;
+          tutor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tutor_reviews_tutor_id_fkey";
+            columns: ["tutor_id"];
             isOneToOne: false;
             referencedRelation: "tutors";
             referencedColumns: ["id"];

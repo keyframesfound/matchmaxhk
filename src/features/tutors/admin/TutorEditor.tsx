@@ -17,6 +17,7 @@ import {
   Loader2,
   LocateFixed,
   MapPin,
+  MessageSquareQuote,
   Plus,
   Sparkles,
   Trash2,
@@ -90,6 +91,7 @@ import {
   type ExamResultEntry,
 } from "@/features/tutors/examSystems";
 import { AutofillDialog } from "./AutofillDialog";
+import { TutorReviewsAdmin } from "./tutor-reviews-admin";
 import type { TutorAutofillResult } from "./autofill.functions";
 
 export const TARGET_STUDENT_OPTIONS = [
@@ -1660,6 +1662,23 @@ export function TutorEditor({
                     </div>
                   </div>
                 </div>
+              )}
+            </EditorSection>
+
+            {/* Reviews (issues #83 + #105 + reviews half of #116): admin-
+                curated verified parent/student testimonials. */}
+            <EditorSection
+              icon={MessageSquareQuote}
+              title="Reviews"
+              description="Verified parent/student feedback, collected off-platform and published here. Published reviews show on the public profile; tutors cannot edit them."
+              id="reviews"
+            >
+              {initialData ? (
+                <TutorReviewsAdmin tutorId={initialData.id} />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Save the tutor first, then add reviews here.
+                </p>
               )}
             </EditorSection>
 

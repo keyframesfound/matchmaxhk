@@ -693,6 +693,9 @@
     "grid_day_sun": "日",
     "grid_cell_available": "一般有空",
     "grid_cell_unavailable": "唔提供",
+    "section_reviews": "學生評價",
+    "reviews_rating_aria": "{{rating}} 星（滿分 {{max}} 星）",
+    "reviews_disclaimer": "評價嚟自試堂後嘅已驗證家長同學生，經 MatchMax 審核後先會刊登。",
     "grid_slot_am": "上午",
     "grid_slot_pm": "下午",
     "grid_cell_partial": "部分時段可補"
