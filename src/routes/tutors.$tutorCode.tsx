@@ -30,6 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   fetchPublishedTutors,
   fetchTutorByCode,
+  fetchTutorReviews,
   getTutorGenderLabel,
   getTutorLessonModeLabel,
   getTutorStationsText,
@@ -47,6 +48,7 @@ import {
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { AvailabilityGrid } from "@/features/tutors/availability-grid";
+import { TutorReviews } from "@/features/tutors/tutor-reviews";
 import {
   countAvailableCells,
   parseAvailabilityGrid,
@@ -391,6 +393,13 @@ function TutorDetail() {
     initialData: tutor,
   });
   const t: Tutor = liveTutor ?? tutor;
+
+  // Issues #83 + #105 (+ reviews half of #116): verified parent/student
+  // reviews, admin-curated. Read-only; hidden entirely when there are none.
+  const { data: reviews = [] } = useQuery({
+    queryKey: ["tutor", "reviews", t.id],
+    queryFn: () => fetchTutorReviews(t.id),
+  });
 
   const { data: allPublished = [] } = useQuery({
     queryKey: ["tutors", "published"],
@@ -789,6 +798,14 @@ function TutorDetail() {
               (hasAvailabilityGrid || preferredTimeWindows.length > 0) ? (
                 <ProfileSection icon={Clock} title={translate("profile.section_availability")}>
                   <AvailabilityGrid grid={t.availability_grid} />
+                </ProfileSection>
+              ) : null}
+
+              {/* Issues #83 + #105 (+ reviews half of #116): verified
+                  parent/student reviews, admin-curated; hidden when empty. */}
+              {reviews.length > 0 ? (
+                <ProfileSection icon={MessageCircle} title={translate("profile.section_reviews")}>
+                  <TutorReviews reviews={reviews} />
                 </ProfileSection>
               ) : null}
 

@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { isTutorPubliclyListed } from "./tutor-display";
 import { normalizeExamResults, type ExamResult } from "./examSystems";
+import type { TutorReview } from "./tutor-reviews";
 
 export const MAX_TUTOR_ACHIEVEMENTS = 3;
 export const TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT = 60;
@@ -416,6 +417,42 @@ export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
       .maybeSingle(),
   );
   return data ? normalize(data as Record<string, unknown>, defaults) : null;
+}
+
+/**
+ * Issues #83 + #105 (+ reviews half of #116): published reviews for a tutor's
+ * public profile. RLS scopes anon reads to published reviews on published
+ * tutors; admin sees all. Degrades to an empty list if the migration hasn't
+ * been applied yet (same tolerant pattern as the availability columns).
+ */
+export async function fetchTutorReviews(tutorId: string): Promise<TutorReview[]> {
+  const { data, error } = await supabase
+    .from("tutor_reviews")
+    .select("id, rating, public_review, reviewer_display_name, student_grade_school, created_at")
+    .eq("tutor_id", tutorId)
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
+  if (error) {
+    if (extractMissingColumn(error) || (error as { code?: string }).code === "42P01") {
+      return [];
+    }
+    throw error;
+  }
+  const rows = Array.isArray(data) ? data : [];
+  return rows
+    .map((row) => ({
+      id: typeof row.id === "string" ? row.id : "",
+      rating: typeof row.rating === "number" ? Math.min(5, Math.max(1, Math.round(row.rating))) : 0,
+      public_review: typeof row.public_review === "string" ? row.public_review : null,
+      reviewer_display_name:
+        typeof row.reviewer_display_name === "string" ? row.reviewer_display_name : "",
+      student_grade_school:
+        typeof row.student_grade_school === "string" ? row.student_grade_school : null,
+      created_at: typeof row.created_at === "string" ? row.created_at : "",
+    }))
+    .filter(
+      (review) => review.id !== "" && review.rating >= 1 && review.reviewer_display_name !== "",
+    );
 }
 
 export function getTutorLessonModeLabel(mode: Tutor["lesson_mode"]): string {

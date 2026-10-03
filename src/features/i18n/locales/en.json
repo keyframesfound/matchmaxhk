@@ -671,6 +671,9 @@
     "grid_day_sun": "Sun",
     "grid_cell_available": "Generally available",
     "grid_cell_unavailable": "Not offered",
+    "section_reviews": "Reviews",
+    "reviews_rating_aria": "{{rating}} out of {{max}} stars",
+    "reviews_disclaimer": "Reviews are collected from verified parents and students after their trial lessons, and published by MatchMax after review.",
     "grid_slot_am": "AM",
     "grid_slot_pm": "PM",
     "grid_cell_partial": "Partially available"
