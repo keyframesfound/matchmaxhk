@@ -670,7 +670,20 @@
     "time_window_weekday_afternoon": "平日下午",
     "time_window_weekday_evening": "平日晚上",
     "time_window_weekend_morning": "週末上午",
-    "time_window_weekend_afternoon": "週末下午"
+    "time_window_weekend_afternoon": "週末下午",
+    "section_availability": "可補習時間",
+    "grid_aria": "每週補習時間表：以星期幾對應時段，顯示導師一般有空嘅時間。",
+    "grid_day_mon": "一",
+    "grid_day_tue": "二",
+    "grid_day_wed": "三",
+    "grid_day_thu": "四",
+    "grid_day_fri": "五",
+    "grid_day_sat": "六",
+    "grid_day_sun": "日",
+    "grid_band_early": "前半",
+    "grid_band_late": "後半",
+    "grid_cell_available": "一般有空",
+    "grid_cell_unavailable": "唔提供"
   },
   "tutor_card": {
     "verified_fallback": "學術資料已核實",

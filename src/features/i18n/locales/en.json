@@ -648,7 +648,20 @@
     "time_window_weekday_afternoon": "Weekday Afternoons",
     "time_window_weekday_evening": "Weekday Evenings",
     "time_window_weekend_morning": "Weekend Mornings",
-    "time_window_weekend_afternoon": "Weekend Afternoons"
+    "time_window_weekend_afternoon": "Weekend Afternoons",
+    "section_availability": "Availability",
+    "grid_aria": "Weekly availability grid: days of the week against time bands, showing when this tutor is generally free.",
+    "grid_day_mon": "Mon",
+    "grid_day_tue": "Tue",
+    "grid_day_wed": "Wed",
+    "grid_day_thu": "Thu",
+    "grid_day_fri": "Fri",
+    "grid_day_sat": "Sat",
+    "grid_day_sun": "Sun",
+    "grid_band_early": "First half",
+    "grid_band_late": "Second half",
+    "grid_cell_available": "Generally available",
+    "grid_cell_unavailable": "Not offered"
   },
   "tutor_card": {
     "verified_fallback": "Academic profile verified",
