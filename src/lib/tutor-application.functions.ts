@@ -174,6 +174,68 @@ export const generateSelfIntroduction = createServerFn({ method: "POST" })
     return content.replace(/^```[a-z]*\s*|\s*```$/g, "").trim();
   });
 
+// Issue #122: pricing-recommender output contract.
+const suggestedRateSchema = z.object({
+  suggested_range: z.string().trim().min(1).max(60),
+  justification: z.string().trim().min(1).max(400),
+});
+
+export const suggestHourlyRate = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        university: z.string().trim().max(200).default(""),
+        major: z.string().trim().max(200).default(""),
+        curricula: z.array(z.string().trim().max(60)).max(12).default([]),
+        overallScore: z.string().trim().max(200).default(""),
+        experience: z.string().trim().max(800).default(""),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const apiKey = getRuntimeEnv("OPENROUTER_API_KEY");
+    if (!apiKey) throw new Error("Rate suggestions are not configured.");
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://matchmax.hk",
+        "X-Title": "MatchMax Tutor Application",
+      },
+      signal: AbortSignal.timeout(30_000),
+      body: JSON.stringify({
+        model: "qwen/qwen3-vl-32b-instruct",
+        temperature: 0,
+        max_tokens: 400,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a pricing analyst for MatchMax, a premium tutoring agency in Hong Kong. \nI will provide you with a tutor applicant's academic background and experience. \nCalculate a suggested hourly rate (in HKD) based on these foundational baseline rules:\n1. Standard DSE / Lower Secondary (HKTA baseline): $150 - $250 HKD/hr.\n2. Premium Curriculums (IB / A-Level / IGCSE): Add a $100 - $150 premium.\n3. Elite Pedigree (Medical/Law students, scores of IB 43+/A-Level 3A*+): Base rate starts at $400 - $600+ HKD/hr.\n4. Experience: Add $50/hr for every 2+ years of experience.\n\nReturn ONLY a valid JSON object with two keys:\n- `suggested_range`: A string formatted like '$300 - $400'\n- `justification`: One short, encouraging sentence explaining the price (e.g., 'With your IB score of 44 and HKU Medical background, parents are willing to pay a premium for your expertise.')",
+          },
+          {
+            role: "user",
+            content: `University: ${data.university || "Not provided"}\nMajor: ${data.major || "Not provided"}\nCurriculum to Teach: ${data.curricula.join(", ") || "Not provided"}\nGrades: ${data.overallScore || "Not provided"}\nExperience: ${data.experience || "Not provided"}`,
+          },
+        ],
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(
+        `Rate suggestion failed (OpenRouter ${response.status}). Please enter your rate manually.`,
+      );
+    }
+    const payload = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const content = payload.choices?.[0]?.message?.content;
+    if (!content) throw new Error("Rate suggestion returned nothing. Please try again.");
+    return suggestedRateSchema.parse(JSON.parse(content));
+  });
+
 export const submitTutorApplication = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => tutorApplicationSchema.parse(input))
   .handler(async ({ data }) => {

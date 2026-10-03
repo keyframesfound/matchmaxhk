@@ -53,6 +53,7 @@ import {
   extractTranscriptQualification,
   generateSelfIntroduction,
   submitTutorApplication,
+  suggestHourlyRate,
 } from "@/lib/tutor-application.functions";
 import {
   ACCEPT_ATTRIBUTE,
@@ -794,6 +795,13 @@ export function ApplicationForm() {
   // applicant to review and edit — never auto-submitted.
   const generateIntro = useServerFn(generateSelfIntroduction);
   const [introStatus, setIntroStatus] = useState<"idle" | "writing">("idle");
+  // Issue #122: AI-suggested hourly rate, shown next to the rate input.
+  const suggestRate = useServerFn(suggestHourlyRate);
+  const [rateSuggestion, setRateSuggestion] = useState<{
+    suggested_range: string;
+    justification: string;
+  } | null>(null);
+  const [rateStatus, setRateStatus] = useState<"idle" | "calculating">("idle");
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   // Remembered at submit time so the WhatsApp activation deep link can greet
@@ -1320,6 +1328,29 @@ export function ApplicationForm() {
       setError(reason instanceof Error ? reason.message : "AI writing failed.");
     } finally {
       setIntroStatus("idle");
+    }
+  }
+  // Issue #122: data-backed rate suggestion from the academic fields.
+  async function calculateSuggestedRate() {
+    setRateStatus("calculating");
+    try {
+      const suggestion = await suggestRate({
+        data: {
+          university: base.university,
+          major: base.programme,
+          curricula: qualifications.map((qualification) => qualification.curriculum),
+          overallScore: professional ? "" : primary.overall,
+          experience: base.achievements
+            .map((achievement) => `${achievement.title}: ${achievement.description}`)
+            .join("; ")
+            .slice(0, 800),
+        },
+      });
+      setRateSuggestion(suggestion);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Rate suggestion failed.");
+    } finally {
+      setRateStatus("idle");
     }
   }
   async function autoFillQualification(qualificationIndex: number, file: File) {
@@ -3084,6 +3115,42 @@ export function ApplicationForm() {
                         : undefined
                   }
                 >
+                  {/* Issue #122: data-backed AI rate suggestion, shown above
+                      the input — the applicant still sets their own price. */}
+                  <div className="space-y-2">
+                    {rateSuggestion ? (
+                      <div className="rounded-sm border border-[color:var(--brand-link)]/30 bg-[color:var(--brand-link)]/[0.06] px-3 py-2 text-sm">
+                        <p className="font-bold text-[color:var(--ink)]">
+                          💡 MatchMax Suggested Rate: {rateSuggestion.suggested_range} HKD/hr
+                        </p>
+                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                          {rateSuggestion.justification}
+                        </p>
+                        <button
+                          type="button"
+                          className="mt-1 text-xs font-bold text-[color:var(--brand-link)] underline underline-offset-2"
+                          onClick={() => {
+                            const firstNumber =
+                              /(\d{3,4})/.exec(rateSuggestion.suggested_range)?.[1] ?? "";
+                            if (firstNumber) setBaseField("hourlyRate", firstNumber);
+                          }}
+                        >
+                          Use the lower end of this range
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="text-left text-sm font-bold text-[color:var(--brand-link)] underline underline-offset-2 disabled:opacity-60"
+                        disabled={rateStatus === "calculating"}
+                        onClick={() => void calculateSuggestedRate()}
+                      >
+                        {rateStatus === "calculating"
+                          ? "💡 Calculating your suggested rate..."
+                          : "💡 MatchMax Suggested Rate: [Click to Calculate]"}
+                      </button>
+                    )}
+                  </div>
                   <Input
                     type="number"
                     value={base.hourlyRate}
