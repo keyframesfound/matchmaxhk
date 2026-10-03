@@ -51,6 +51,7 @@ import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
 import {
   extractTranscriptQualification,
+  generateSelfIntroduction,
   submitTutorApplication,
 } from "@/lib/tutor-application.functions";
 import {
@@ -789,6 +790,10 @@ export function ApplicationForm() {
     return match ? match[0] : readStoredReferralCode();
   });
   const extractTranscript = useServerFn(extractTranscriptQualification);
+  // Issue #120: AI-drafted self-introduction, shown in the textarea for the
+  // applicant to review and edit — never auto-submitted.
+  const generateIntro = useServerFn(generateSelfIntroduction);
+  const [introStatus, setIntroStatus] = useState<"idle" | "writing">("idle");
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   // Remembered at submit time so the WhatsApp activation deep link can greet
@@ -1282,6 +1287,40 @@ export function ApplicationForm() {
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  }
+  // Issue #120: draft a self-introduction from the fields already filled in.
+  // Overwrites any existing draft (with a confirm), keeps line breaks.
+  async function autoWriteIntroduction() {
+    if (
+      base.selfIntroduction.trim() &&
+      !window.confirm(
+        "Overwrite your current self-introduction with an AI draft? Your existing text will be replaced.",
+      )
+    ) {
+      return;
+    }
+    setIntroStatus("writing");
+    setError(null);
+    try {
+      const introduction = await generateIntro({
+        data: {
+          university: base.university,
+          programme: base.programme,
+          curricula: qualifications.map((qualification) => qualification.curriculum),
+          overallScore: professional ? "" : primary.overall,
+          subjects: selectedTeachingSubjects,
+          experience: base.achievements
+            .map((achievement) => `${achievement.title}: ${achievement.description}`)
+            .join("; ")
+            .slice(0, 800),
+        },
+      });
+      setBaseField("selfIntroduction", introduction.slice(0, 2000));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "AI writing failed.");
+    } finally {
+      setIntroStatus("idle");
+    }
   }
   async function autoFillQualification(qualificationIndex: number, file: File) {
     if (!isTranscriptImage(file) || file.size > MAX_FILE_BYTES) {
@@ -2981,6 +3020,36 @@ export function ApplicationForm() {
                   optional
                   hint="Write a detailed introduction for parents! Mention your teaching style, past tutoring experience, academic awards, and how you approach your lessons. You may write in English, Chinese, or both. Paragraph breaks are kept."
                 >
+                  {/* Issue #120: one-click AI draft from the academic data
+                      already entered; the result lands in the textarea for
+                      review and editing before submission. */}
+                  <div className="mb-2 flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="rounded-sm"
+                      disabled={introStatus === "writing"}
+                      onClick={() => void autoWriteIntroduction()}
+                    >
+                      {introStatus === "writing" ? (
+                        <>
+                          <span
+                            aria-hidden
+                            className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent"
+                          />
+                          Writing with AI...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" aria-hidden />
+                          Auto-Write with AI
+                        </>
+                      )}
+                    </Button>
+                    <span className="text-xs text-muted-foreground">
+                      Drafts from your academic details above — review and edit before submitting.
+                    </span>
+                  </div>
                   <Textarea
                     rows={6}
                     maxLength={2000}

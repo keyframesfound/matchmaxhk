@@ -114,6 +114,66 @@ export const extractTranscriptQualification = createServerFn({ method: "POST" })
     );
   });
 
+export const generateSelfIntroduction = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        university: z.string().trim().max(200).default(""),
+        programme: z.string().trim().max(200).default(""),
+        curricula: z.array(z.string().trim().max(60)).max(12).default([]),
+        overallScore: z.string().trim().max(200).default(""),
+        subjects: z.array(z.string().trim().max(120)).max(40).default([]),
+        experience: z.string().trim().max(2000).default(""),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const apiKey = getRuntimeEnv("OPENROUTER_API_KEY");
+    if (!apiKey) throw new Error("AI writing is not configured.");
+
+    // Issue #120: one premium first-person bio from the academic data the
+    // applicant already entered. The form shows the draft for review — the
+    // model writes, it never submits.
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://matchmax.hk",
+        "X-Title": "MatchMax Tutor Application",
+      },
+      signal: AbortSignal.timeout(30_000),
+      body: JSON.stringify({
+        model: "qwen/qwen3-vl-32b-instruct",
+        temperature: 0.7,
+        max_tokens: 600,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a top-tier private tutor in Hong Kong. Write a professional, confident, and friendly self-introduction in the first person ('I'). Use the provided academic data to write exactly 2 short paragraphs. Focus on a passion for teaching and helping students achieve their target grades. Keep the tone premium and natural. Do not use overly robotic words like 'Furthermore' or 'In conclusion.' Maximum 150 words. Return only the introduction text, with no preamble or quotes.",
+          },
+          {
+            role: "user",
+            content: `University: ${data.university || "Not provided"}\nMajor: ${data.programme || "Not provided"}\nHigh School Curriculum: ${data.curricula.join(", ") || "Not provided"}\nTop Grades: ${data.overallScore || "Not provided"}\nSubjects I want to teach: ${data.subjects.join(", ") || "Not provided"}\nTeaching experience: ${data.experience || "Not provided"}`,
+          },
+        ],
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(
+        `AI writing failed (OpenRouter ${response.status}). Please try again or write your introduction manually.`,
+      );
+    }
+    const payload = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const content = payload.choices?.[0]?.message?.content?.trim();
+    if (!content) throw new Error("AI writing returned nothing. Please try again.");
+    // Defense against chatty models wrapping the bio in markdown fences.
+    return content.replace(/^```[a-z]*\s*|\s*```$/g, "").trim();
+  });
+
 export const submitTutorApplication = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => tutorApplicationSchema.parse(input))
   .handler(async ({ data }) => {
