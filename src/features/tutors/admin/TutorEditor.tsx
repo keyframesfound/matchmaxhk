@@ -1086,6 +1086,7 @@ export function TutorEditor({
       remaining_student_slots: initialData?.remaining_student_slots ?? 2,
       is_accepting_students: initialData?.is_accepting_students ?? true,
       preferred_time_windows: initialData?.preferred_time_windows ?? [],
+      availability_grid: initialData?.availability_grid ?? null,
     }),
     [
       form,

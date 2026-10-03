@@ -1,105 +1,87 @@
 import { useTranslation } from "react-i18next";
+
+import {
+  GRID_DAYS,
+  GRID_SLOTS,
+  countAvailableCells,
+  gridSlotLabel,
+  isGridEmpty,
+  parseAvailabilityGrid,
+  type GridCellState,
+} from "@/features/tutors/availability-grid-model";
 import { cn } from "@/lib/utils";
-import type { PreferredTimeWindow } from "@/features/tutors/queries";
 
 /**
  * Issue #116: weekly availability grid on the public tutor profile, in the
- * style of the TutorCircle reference. Two time bands per day-part (early /
- * late) across the five weekdays and the weekend; each cell is derived from
- * the tutor's self-serve preferred time windows (issue #103 data) — no new
- * database fields. Cells for windows the tutor did not select render as
- * "not available"; there is no partial state because the source data is
- * whole-window only.
+ * style of the TutorCircle reference. 7 day columns × 6 fixed 3-hour slots;
+ * each cell is available (可補), partial (部分時段可) or unavailable (不可補),
+ * from the tutor's self-serve grid (tutors.availability_grid). Read-only here
+ * — tutors edit it in Dashboard → Availability.
  */
 
-const GRID_DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
-
-type GridDay = (typeof GRID_DAYS)[number];
-
-/** Cell state for one day × band intersection. */
-type CellState = "available" | "unavailable";
-
-/** Early band (first half) and late band (second half) per time window. */
-const WINDOW_BANDS: Record<PreferredTimeWindow, { early: boolean; late: boolean }> = {
-  weekday_afternoon: { early: true, late: true },
-  weekday_evening: { early: true, late: true },
-  weekend_morning: { early: true, late: true },
-  weekend_afternoon: { early: true, late: true },
+const STATE_CELL_CLASS: Record<GridCellState, string> = {
+  a: "border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/85",
+  p: "border-[color:var(--brand-link)]/25 bg-[color:var(--brand-link)]/30",
+  u: "border-border bg-muted/50",
 };
 
-const WEEKDAY_WINDOWS: PreferredTimeWindow[] = ["weekday_afternoon", "weekday_evening"];
-
-const WEEKEND_WINDOWS: PreferredTimeWindow[] = ["weekend_morning", "weekend_afternoon"];
+const STATE_LABEL_KEYS: Record<GridCellState, string> = {
+  a: "profile.grid_cell_available",
+  p: "profile.grid_cell_partial",
+  u: "profile.grid_cell_unavailable",
+};
 
 export function AvailabilityGrid({
-  windows,
+  grid: rawGrid,
   className,
 }: {
-  windows: PreferredTimeWindow[];
+  /** Raw JSONB off the tutor row — parsed defensively. */
+  grid: unknown;
   className?: string;
 }) {
   const { t } = useTranslation();
+  const grid = parseAvailabilityGrid(rawGrid);
 
-  if (windows.length === 0) return null;
-
-  const weekdayActive = windows.filter((window) => WEEKDAY_WINDOWS.includes(window));
-  const weekendActive = windows.filter((window) => WEEKEND_WINDOWS.includes(window));
-
-  const cellState = (day: GridDay): CellState => {
-    const isWeekend = day === "sat" || day === "sun";
-    const active = isWeekend ? weekendActive : weekdayActive;
-    return active.length > 0 ? "available" : "unavailable";
-  };
-
-  const dayLabel = (day: GridDay) => t(`profile.grid_day_${day}`);
+  if (isGridEmpty(grid) || countAvailableCells(grid) === 0) return null;
 
   return (
     <div className={className}>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto pb-1">
         <table
-          className="w-full min-w-[420px] border-separate border-spacing-1 text-center"
+          className="w-full min-w-[560px] border-separate border-spacing-1 text-center"
           role="img"
           aria-label={t("profile.grid_aria")}
         >
           <thead>
             <tr>
-              <th scope="col" className="w-[26%]" />
+              <th scope="col" className="w-[24%]" />
               {GRID_DAYS.map((day) => (
                 <th
                   key={day}
                   scope="col"
                   className="pb-1 text-xs font-bold text-[color:var(--ink)] sm:text-sm"
                 >
-                  {dayLabel(day)}
+                  {t(`profile.grid_day_${day}`)}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {(["early", "late"] as const).map((band) => (
-              <tr key={band}>
+            {GRID_SLOTS.map((slot) => (
+              <tr key={slot}>
                 <th
                   scope="row"
-                  className="pr-2 text-left text-xs font-medium text-muted-foreground sm:text-sm"
+                  className="pr-2 text-left text-[11px] leading-tight font-medium whitespace-nowrap text-muted-foreground sm:text-xs"
                 >
-                  {t(band === "early" ? "profile.grid_band_early" : "profile.grid_band_late")}
+                  {gridSlotLabel(slot, t)}
                 </th>
                 {GRID_DAYS.map((day) => {
-                  const state = cellState(day);
+                  const state = grid[day][GRID_SLOTS.indexOf(slot)];
                   return (
-                    <td key={day} className="h-9">
+                    <td key={day} className="h-8">
                       <div
-                        className={cn(
-                          "h-9 w-full rounded-[4px] border",
-                          state === "available"
-                            ? "border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/85"
-                            : "border-border bg-muted/50",
-                        )}
-                        title={t(
-                          state === "available"
-                            ? "profile.grid_cell_available"
-                            : "profile.grid_cell_unavailable",
-                        )}
+                        className={cn("h-8 w-full rounded-[4px] border", STATE_CELL_CLASS[state])}
+                        title={t(STATE_LABEL_KEYS[state])}
                       />
                     </td>
                   );
@@ -110,20 +92,15 @@ export function AvailabilityGrid({
         </table>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1.5">
-          <span
-            aria-hidden
-            className="inline-block h-3 w-3 rounded-[3px] border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/85"
-          />
-          {t("profile.grid_cell_available")}
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span
-            aria-hidden
-            className="inline-block h-3 w-3 rounded-[3px] border border-border bg-muted/50"
-          />
-          {t("profile.grid_cell_unavailable")}
-        </span>
+        {(["a", "p", "u"] as const).map((state) => (
+          <span key={state} className="inline-flex items-center gap-1.5">
+            <span
+              aria-hidden
+              className={cn("inline-block h-3 w-3 rounded-[3px] border", STATE_CELL_CLASS[state])}
+            />
+            {t(STATE_LABEL_KEYS[state])}
+          </span>
+        ))}
       </div>
       <p className="mt-2 text-xs text-muted-foreground">{t("profile.time_window_disclaimer")}</p>
     </div>

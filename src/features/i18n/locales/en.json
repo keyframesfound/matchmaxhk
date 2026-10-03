@@ -267,6 +267,17 @@
       "saving": "Saving…",
       "saved": "Profile saved — changes are live",
       "form_errors": "Please resolve the highlighted errors."
+    },
+    "grid": {
+      "title": "Weekly availability grid",
+      "description": "Tap a cell to cycle: available → partially available → unavailable. This grid shows on your public profile.",
+      "loading": "Loading your availability…",
+      "editor_aria": "Weekly availability grid editor: tap cells to switch between available, partially available and unavailable.",
+      "tap_hint": "Tap a cell to change it",
+      "empty_hint": "Your grid is fully unavailable — it will stay hidden on your public profile until you mark at least one slot.",
+      "saving": "Saving…",
+      "saved": "Availability grid updated",
+      "save": "Save changes"
     }
   },
   "hero": {
@@ -658,10 +669,11 @@
     "grid_day_fri": "Fri",
     "grid_day_sat": "Sat",
     "grid_day_sun": "Sun",
-    "grid_band_early": "First half",
-    "grid_band_late": "Second half",
     "grid_cell_available": "Generally available",
-    "grid_cell_unavailable": "Not offered"
+    "grid_cell_unavailable": "Not offered",
+    "grid_slot_am": "AM",
+    "grid_slot_pm": "PM",
+    "grid_cell_partial": "Partially available"
   },
   "tutor_card": {
     "verified_fallback": "Academic profile verified",

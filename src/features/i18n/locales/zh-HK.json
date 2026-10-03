@@ -267,6 +267,17 @@
       "saving": "儲存中…",
       "saved": "檔案已儲存——變更已生效",
       "form_errors": "請先處理標示的錯誤。"
+    },
+    "grid": {
+      "title": "每週補習時間表",
+      "description": "㩒一下格仔切換：可補 → 部分時段可補 → 不可補。時間表會顯示喺你嘅公開檔案。",
+      "loading": "載入你嘅時間表…",
+      "editor_aria": "每週補習時間表編輯器：㩒格仔切換可補、部分時段可補同不可補。",
+      "tap_hint": "㩒一下格仔嚟更改",
+      "empty_hint": "你嘅時間表全部係不可補——標記至少一個時段之前，公開檔案唔會顯示時間表。",
+      "saving": "儲存中…",
+      "saved": "時間表已更新",
+      "save": "儲存變更"
     }
   },
   "hero": {
@@ -680,10 +691,11 @@
     "grid_day_fri": "五",
     "grid_day_sat": "六",
     "grid_day_sun": "日",
-    "grid_band_early": "前半",
-    "grid_band_late": "後半",
     "grid_cell_available": "一般有空",
-    "grid_cell_unavailable": "唔提供"
+    "grid_cell_unavailable": "唔提供",
+    "grid_slot_am": "上午",
+    "grid_slot_pm": "下午",
+    "grid_cell_partial": "部分時段可補"
   },
   "tutor_card": {
     "verified_fallback": "學術資料已核實",
