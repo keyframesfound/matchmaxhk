@@ -154,6 +154,20 @@ export const tutorApplicationSchema = z
     // preserved).
     selfIntroduction: z.string().trim().max(2000).optional().default(""),
     hourlyRate: z.string().trim().min(1, "Required").max(20),
+    // Issue #108: per-curriculum pricing tiers. standardize=true means one flat
+    // rate across all curricula; false = explicit {curriculum, rate} rows (the
+    // schema only enforces shape — blank rates are backfilled to the lowest
+    // entered price in normalizeApplicationPricingTiers before insert).
+    pricingStandardized: z.boolean().default(true),
+    pricingTiers: z
+      .array(
+        z.object({
+          curriculum: z.enum(CURRICULUM_OPTIONS),
+          rate: z.number().int().min(0).max(100000),
+        }),
+      )
+      .max(12)
+      .default([]),
     materials: z.enum(MATERIALS_OPTIONS),
     format: z.enum(FORMAT_OPTIONS),
     maxStudents: z.string().trim().max(20).optional().default(""),
@@ -348,6 +362,39 @@ export const tutorApplicationSchema = z
 export type TutorApplicationInput = z.input<typeof tutorApplicationSchema>;
 export type TutorApplication = z.output<typeof tutorApplicationSchema>;
 
+/**
+ * Issue #108 — normalize the application's per-curriculum pricing into the
+ * tutors.pricing_tiers shape ({curriculum, rate}[]). Unchecking "Standardize"
+ * but leaving a tier blank falls back to the lowest entered price (the
+ * acceptance-criteria rule); standardized applications produce an empty array
+ * so the live card keeps using the flat hourly_rate.
+ */
+export function normalizeApplicationPricingTiers(
+  data: Pick<TutorApplication, "pricingStandardized" | "pricingTiers">,
+): { curriculum: string; rate: number }[] {
+  if (data.pricingStandardized) return [];
+  const entered = data.pricingTiers
+    .map((tier) => ({ curriculum: tier.curriculum, rate: Math.round(tier.rate) }))
+    .filter((tier) => tier.rate > 0);
+  if (entered.length === 0) return [];
+  const floor = Math.min(...entered.map((tier) => tier.rate));
+  const enteredCurricula = new Set(entered.map((tier) => tier.curriculum));
+  const backfilled = data.pricingTiers
+    .filter((tier) => tier.rate <= 0 && !enteredCurricula.has(tier.curriculum))
+    .map((tier) => ({ curriculum: tier.curriculum, rate: floor }));
+  return [...entered, ...backfilled];
+}
+
+/** Human-readable pricing line for the admin answer summary. */
+export function formatApplicationPricing(
+  data: Pick<TutorApplication, "hourlyRate" | "pricingStandardized" | "pricingTiers">,
+): string {
+  if (data.pricingStandardized) return `${data.hourlyRate} (standardized across all curricula)`;
+  const tiers = normalizeApplicationPricingTiers(data);
+  if (tiers.length === 0) return `${data.hourlyRate} (no per-curriculum rates entered)`;
+  return tiers.map((tier) => `${tier.curriculum}: HK$${tier.rate}`).join("; ");
+}
+
 export const COMMISSION_TEXT =
   "I understand that MatchMax will take the 1st and 11th lesson of each new case as commission, and that fees for those lessons are payable to MatchMax.";
 
@@ -428,6 +475,10 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     { label: "Self-introduction", value: data.selfIntroduction || "—" },
     { label: "Profile photo", value: data.profilePhoto?.filename ?? "—" },
     { label: "Normal hourly rate (HKD)", value: data.hourlyRate },
+    {
+      label: "Pricing (issue #108)",
+      value: formatApplicationPricing(data),
+    },
     { label: "Teaching materials available", value: data.materials },
     { label: "Preferred tutoring format", value: data.format },
     { label: "Max number of students", value: data.maxStudents || "—" },
