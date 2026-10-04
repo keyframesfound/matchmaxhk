@@ -53,7 +53,8 @@
       "saved_posts": "已儲存個案",
       "sign_out": "登出",
       "availability": "可開始日期",
-      "my_tutor": "我的導師檔案"
+      "my_tutor": "我的導師檔案",
+      "materials": "學習材料"
     },
     "referrals": {
       "title": "推薦朋友，賺 15% 獎賞",
@@ -703,7 +704,9 @@
     "listing_pending": "待管理員審核",
     "listing_published": "已上架",
     "how_bullet_title": "📚 獨家溫習教材",
-    "how_bullet_body": "瀏覽並選購由我哋頂尖學霸導師製作嘅名校過去試卷題解、模擬試卷及自製筆記，或者預約一對一課堂免費獲得。"
+    "how_bullet_body": "瀏覽並選購由我哋頂尖學霸導師製作嘅名校過去試卷題解、模擬試卷及自製筆記，或者預約一對一課堂免費獲得。",
+    "how_tutor_bullet_title": "💰 數碼筆記被動收入",
+    "how_tutor_bullet_body": "上載你最優質嘅溫習材料賣俾家長。MatchMax 會將佢哋展示喺你嘅檔案同市集 — 家長直接透過 WhatsApp 付款俾你，MatchMax 會另外收取低至 20% 嘅平台費。"
   },
   "directory": {
     "subtitle": "每位導師均經成績表核實同團隊審批後先會上架。",

@@ -29,7 +29,12 @@ const PUBLIC_BUCKET = "materials-previews";
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20MB
 
 const UploadMaterialInput = z.object({
-  fileName: z.string().trim().min(1).max(200).regex(/\.pdf$/i, "Only PDF files are supported"),
+  fileName: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .regex(/\.pdf$/i, "Only PDF files are supported"),
   // Base64 of the PDF bytes (client reads the File with FileReader).
   base64Data: z.string().trim().min(100).max(60_000_000),
   title: z.string().trim().min(3).max(160),
@@ -53,6 +58,8 @@ const UploadMaterialInput = z.object({
   // The mandatory legal checkbox (issues #131/#133, reworded per Ryan's
   // P2P decision): must arrive true or the upload is rejected server-side.
   legalAgreed: z.literal(true),
+  // Admins only: upload on behalf of this tutor id and publish immediately.
+  tutorId: z.string().uuid().optional(),
 });
 
 export type UploadMaterialPayload = z.infer<typeof UploadMaterialInput>;
@@ -69,7 +76,10 @@ async function assertVerifiedTutor(supabase: unknown, userId: string) {
   const client = supabase as {
     from: (table: string) => {
       select: (cols: string) => {
-        eq: (col: string, value: string) => {
+        eq: (
+          col: string,
+          value: string,
+        ) => {
           maybeSingle: () => Promise<{
             data: { id: string; display_name: string } | null;
             error?: { message?: string };
@@ -86,6 +96,57 @@ async function assertVerifiedTutor(supabase: unknown, userId: string) {
   if (error) throw new Error(error.message || "Failed to look up tutor account");
   if (!data) throw new Error("Your account is not linked to a tutor profile yet.");
   return data;
+}
+
+/**
+ * Admins may add listings on behalf of any tutor ("like we add tutors").
+ * Returns the tutor row to attach the listing to when the caller is an
+ * admin, otherwise null (caller is a plain tutor and must use their own
+ * linked account).
+ */
+async function assertAdminTargetTutor(
+  supabase: unknown,
+  userId: string,
+  tutorId: string,
+): Promise<{ id: string; display_name: string } | null> {
+  const client = supabase as {
+    rpc: (
+      fn: string,
+      args: Record<string, unknown>,
+    ) => Promise<{ data: unknown; error?: { message?: string } }>;
+  };
+  for (const role of ["admin", "super_admin"] as const) {
+    const { data: ok, error } = await client.rpc("has_role", {
+      _user_id: userId,
+      _role: role,
+    });
+    if (!error && ok === true) {
+      const adminClient = supabase as {
+        from: (table: string) => {
+          select: (cols: string) => {
+            eq: (
+              col: string,
+              value: string,
+            ) => {
+              maybeSingle: () => Promise<{
+                data: { id: string; display_name: string } | null;
+                error?: { message?: string };
+              }>;
+            };
+          };
+        };
+      };
+      const { data, error: tutorError } = await adminClient
+        .from("tutors")
+        .select("id, display_name")
+        .eq("id", tutorId)
+        .maybeSingle();
+      if (tutorError) throw new Error(tutorError.message);
+      if (!data) throw new Error("Selected tutor not found.");
+      return data;
+    }
+  }
+  return null;
 }
 
 function base64ToBytes(base64: string): Uint8Array {
@@ -120,7 +181,22 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => UploadMaterialInput.parse(data))
   .handler(async ({ data, context }): Promise<UploadMaterialResult> => {
-    const tutor = await assertVerifiedTutor(context.supabase, context.userId);
+    // Admins add listings on behalf of any tutor ("like we add tutors");
+    // plain tutors upload only against their own linked account.
+    let tutor: { id: string; display_name: string };
+    let publishNow = false;
+    if (data.tutorId) {
+      const adminTutor = await assertAdminTargetTutor(
+        context.supabase,
+        context.userId,
+        data.tutorId,
+      );
+      if (!adminTutor) throw new Error("Only admins can upload for another tutor.");
+      tutor = adminTutor;
+      publishNow = true;
+    } else {
+      tutor = await assertVerifiedTutor(context.supabase, context.userId);
+    }
 
     const bytes = base64ToBytes(data.base64Data);
     if (bytes.byteLength > MAX_UPLOAD_BYTES) {
@@ -160,30 +236,30 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
         .getPublicUrl(previewPath);
 
       const payload = {
-          tutor_id: tutor.id,
-          title: data.title,
-          description: data.description ?? null,
-          price_hkd: data.priceHkd,
-          school_tag: data.schoolTag ?? null,
-          curriculum_tag: data.curriculumTag,
-          subject_tag: data.subjectTag ?? null,
-          document_type: data.documentType,
-          year_tag: data.yearTag ?? null,
-          page_count: data.pageCount ?? null,
-          exact_score_achieved: data.exactScoreAchieved ?? null,
-          includes_examiner_comments: data.includesExaminerComments ?? false,
-          original_file_path: originalPath,
-          watermarked_preview_url: publicUrl?.publicUrl ?? "",
-          is_published: false,
-        } as never;
-      const { data: inserted, error: insertError } = await supabaseAdmin
+        tutor_id: tutor.id,
+        title: data.title,
+        description: data.description ?? null,
+        price_hkd: data.priceHkd,
+        school_tag: data.schoolTag ?? null,
+        curriculum_tag: data.curriculumTag,
+        subject_tag: data.subjectTag ?? null,
+        document_type: data.documentType,
+        year_tag: data.yearTag ?? null,
+        page_count: data.pageCount ?? null,
+        exact_score_achieved: data.exactScoreAchieved ?? null,
+        includes_examiner_comments: data.includesExaminerComments ?? false,
+        original_file_path: originalPath,
+        watermarked_preview_url: publicUrl?.publicUrl ?? "",
+        is_published: publishNow,
+      } as never;
+      const { data: inserted, error: insertError } = (await supabaseAdmin
         .from("digital_materials" as never)
         .insert(payload)
         .select("id, title")
-        .single() as unknown as {
-          data: { id: string; title: string };
-          error: { message: string } | null;
-        };
+        .single()) as unknown as {
+        data: { id: string; title: string };
+        error: { message: string } | null;
+      };
       if (insertError) throw new Error(insertError.message);
 
       return {
@@ -230,18 +306,23 @@ export const getMaterialOriginalUrl = createServerFn({ method: "POST" })
     if (!isAdmin) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: material, error } = await (supabaseAdmin as unknown as {
-      from: (t: string) => {
-        select: (c: string) => {
-          eq: (c: string, v: string) => {
-            maybeSingle: () => Promise<{
-              data: { original_file_path: string } | null;
-              error?: { message?: string };
-            }>;
+    const { data: material, error } = await (
+      supabaseAdmin as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            eq: (
+              c: string,
+              v: string,
+            ) => {
+              maybeSingle: () => Promise<{
+                data: { original_file_path: string } | null;
+                error?: { message?: string };
+              }>;
+            };
           };
         };
-      };
-    })
+      }
+    )
       .from("digital_materials")
       .select("original_file_path")
       .eq("id", data.materialId)
@@ -293,18 +374,23 @@ export const listAllMaterialsAdmin = createServerFn({ method: "POST" })
     if (!isAdmin) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await (supabaseAdmin as unknown as {
-      from: (t: string) => {
-        select: (c: string) => {
-          order: (c: string, opts: { ascending: boolean }) => {
-            limit: (n: number) => Promise<{
-              data: AdminMaterialRow[] | null;
-              error?: { message?: string };
-            }>;
+    const { data, error } = await (
+      supabaseAdmin as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            order: (
+              c: string,
+              opts: { ascending: boolean },
+            ) => {
+              limit: (n: number) => Promise<{
+                data: AdminMaterialRow[] | null;
+                error?: { message?: string };
+              }>;
+            };
           };
         };
-      };
-    })
+      }
+    )
       .from("digital_materials")
       .select(
         "id, title, price_hkd, document_type, admin_star_rating, admin_marketing_summary, commission_rate, commission_status, is_published, created_at, tutors(display_name, tutor_code)",
@@ -357,13 +443,15 @@ export const updateMaterialAdmin = createServerFn({ method: "POST" })
       patch.admin_marketing_summary = data.adminMarketingSummary;
     if (data.commissionStatus !== undefined) patch.commission_status = data.commissionStatus;
 
-    const { error } = await (supabaseAdmin as unknown as {
-      from: (t: string) => {
-        update: (p: Record<string, unknown>) => {
-          eq: (c: string, v: string) => Promise<{ error?: { message?: string } }>;
+    const { error } = await (
+      supabaseAdmin as unknown as {
+        from: (t: string) => {
+          update: (p: Record<string, unknown>) => {
+            eq: (c: string, v: string) => Promise<{ error?: { message?: string } }>;
+          };
         };
-      };
-    })
+      }
+    )
       .from("digital_materials")
       .update(patch)
       .eq("id", data.materialId);

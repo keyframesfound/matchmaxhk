@@ -127,7 +127,9 @@ export function StudyMaterialCard({
   const { t } = useTranslation();
   const [previewOpen, setPreviewOpen] = useState(false);
   const courseworkMeta =
-    material.document_type === "ia" || material.document_type === "ee" || material.document_type === "tok_essay"
+    material.document_type === "ia" ||
+    material.document_type === "ee" ||
+    material.document_type === "tok_essay"
       ? [
           material.exact_score_achieved
             ? t("materials.score_label", { score: material.exact_score_achieved })
@@ -220,11 +222,7 @@ export function StudyMaterialCard({
         ) : null}
       </div>
 
-      <MaterialPreviewDialog
-        material={material}
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-      />
+      <MaterialPreviewDialog material={material} open={previewOpen} onOpenChange={setPreviewOpen} />
     </article>
   );
 }

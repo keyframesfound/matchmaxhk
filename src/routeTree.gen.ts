@@ -37,6 +37,7 @@ import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedAdminCasesRouteImport } from './routes/_authenticated.admin.cases'
 import { Route as AuthenticatedAdminJoinRequestsRouteImport } from './routes/_authenticated.admin.join-requests'
+import { Route as AuthenticatedAdminMaterialsRouteImport } from './routes/_authenticated.admin.materials'
 import { Route as AuthenticatedAdminOrganizationsRouteImport } from './routes/_authenticated.admin.organizations'
 import { Route as AuthenticatedAdminR2RouteImport } from './routes/_authenticated.admin.r2'
 import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated.admin.referrals'
@@ -193,6 +194,12 @@ const AuthenticatedAdminJoinRequestsRoute =
     path: '/join-requests',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminMaterialsRoute =
+  AuthenticatedAdminMaterialsRouteImport.update({
+    id: '/materials',
+    path: '/materials',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminOrganizationsRoute =
   AuthenticatedAdminOrganizationsRouteImport.update({
     id: '/organizations',
@@ -306,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/tutors/': typeof TutorsIndexRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
   '/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
+  '/admin/materials': typeof AuthenticatedAdminMaterialsRoute
   '/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/admin/r2': typeof AuthenticatedAdminR2Route
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
@@ -349,6 +357,7 @@ export interface FileRoutesByTo {
   '/tutors': typeof TutorsIndexRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
   '/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
+  '/admin/materials': typeof AuthenticatedAdminMaterialsRoute
   '/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/admin/r2': typeof AuthenticatedAdminR2Route
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
@@ -395,6 +404,7 @@ export interface FileRoutesById {
   '/tutors/': typeof TutorsIndexRoute
   '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
   '/_authenticated/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
+  '/_authenticated/admin/materials': typeof AuthenticatedAdminMaterialsRoute
   '/_authenticated/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/_authenticated/admin/r2': typeof AuthenticatedAdminR2Route
   '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
@@ -441,6 +451,7 @@ export interface FileRouteTypes {
     | '/tutors/'
     | '/admin/cases'
     | '/admin/join-requests'
+    | '/admin/materials'
     | '/admin/organizations'
     | '/admin/r2'
     | '/admin/referrals'
@@ -484,6 +495,7 @@ export interface FileRouteTypes {
     | '/tutors'
     | '/admin/cases'
     | '/admin/join-requests'
+    | '/admin/materials'
     | '/admin/organizations'
     | '/admin/r2'
     | '/admin/referrals'
@@ -529,6 +541,7 @@ export interface FileRouteTypes {
     | '/tutors/'
     | '/_authenticated/admin/cases'
     | '/_authenticated/admin/join-requests'
+    | '/_authenticated/admin/materials'
     | '/_authenticated/admin/organizations'
     | '/_authenticated/admin/r2'
     | '/_authenticated/admin/referrals'
@@ -774,6 +787,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminJoinRequestsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/materials': {
+      id: '/_authenticated/admin/materials'
+      path: '/materials'
+      fullPath: '/admin/materials'
+      preLoaderRoute: typeof AuthenticatedAdminMaterialsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/organizations': {
       id: '/_authenticated/admin/organizations'
       path: '/organizations'
@@ -885,6 +905,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCasesRoute: typeof AuthenticatedAdminCasesRoute
   AuthenticatedAdminJoinRequestsRoute: typeof AuthenticatedAdminJoinRequestsRoute
+  AuthenticatedAdminMaterialsRoute: typeof AuthenticatedAdminMaterialsRoute
   AuthenticatedAdminOrganizationsRoute: typeof AuthenticatedAdminOrganizationsRoute
   AuthenticatedAdminR2Route: typeof AuthenticatedAdminR2Route
   AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
@@ -897,6 +918,7 @@ interface AuthenticatedAdminRouteChildren {
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCasesRoute: AuthenticatedAdminCasesRoute,
   AuthenticatedAdminJoinRequestsRoute: AuthenticatedAdminJoinRequestsRoute,
+  AuthenticatedAdminMaterialsRoute: AuthenticatedAdminMaterialsRoute,
   AuthenticatedAdminOrganizationsRoute: AuthenticatedAdminOrganizationsRoute,
   AuthenticatedAdminR2Route: AuthenticatedAdminR2Route,
   AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,

@@ -56,8 +56,7 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
     includes_examiner_comments: row.includes_examiner_comments === true,
     watermarked_preview_url:
       typeof row.watermarked_preview_url === "string" ? row.watermarked_preview_url : "",
-    admin_star_rating:
-      typeof row.admin_star_rating === "number" ? row.admin_star_rating : null,
+    admin_star_rating: typeof row.admin_star_rating === "number" ? row.admin_star_rating : null,
     promotional_note: typeof row.promotional_note === "string" ? row.promotional_note : null,
     admin_marketing_summary:
       typeof row.admin_marketing_summary === "string" ? row.admin_marketing_summary : null,
@@ -69,8 +68,14 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
 type MaterialsQuery = {
   from: (table: string) => {
     select: (cols: string) => {
-      eq: (col: string, value: string | boolean) => {
-        eq: (col: string, value: string | boolean) => {
+      eq: (
+        col: string,
+        value: string | boolean,
+      ) => {
+        eq: (
+          col: string,
+          value: string | boolean,
+        ) => {
           order: (
             col: string,
             opts: { ascending: boolean },
@@ -93,7 +98,9 @@ type MaterialsQuery = {
 
 // `digital_materials` is added by this PR's migration; cast through unknown so
 // generated types don't need regenerating for the table to typecheck.
-function materialsTable(): MaterialsQuery["from"] extends never ? never : ReturnType<MaterialsQuery["from"]> {
+function materialsTable(): MaterialsQuery["from"] extends never
+  ? never
+  : ReturnType<MaterialsQuery["from"]> {
   return (supabase as unknown as MaterialsQuery).from("digital_materials");
 }
 
@@ -148,17 +155,8 @@ export function collectSchoolTags(materials: MarketplaceMaterial[]): string[] {
   ).sort((a, b) => a.localeCompare(b));
 }
 
-/** #131's WhatsApp buy message — verbatim template. */
-export function buildBuyWhatsAppUrl(
-  whatsappNumber: string | undefined,
-  material: { title: string; price_hkd: number },
-  tutorName: string,
-): string {
-  const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
-  if (!digits) return "";
-  const message = `Hi MatchMax, I want to buy ${material.title} from Tutor ${tutorName} for $${material.price_hkd}.`;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
-}
+/** The issue's verbatim WhatsApp buy message (#131) — kept for back-compat. */
+export { buildBuyWhatsAppUrl } from "@/features/materials/whatsapp";
 
 export function formatDocumentTypeLabel(type: string, t: (key: string) => string): string {
   return t(`materials.doc_type_${type}`);

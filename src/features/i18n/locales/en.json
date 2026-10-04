@@ -53,7 +53,8 @@
       "saved_posts": "Saved Posts",
       "sign_out": "Sign out",
       "availability": "Availability",
-      "my_tutor": "My tutor profile"
+      "my_tutor": "My tutor profile",
+      "materials": "Study Materials"
     },
     "referrals": {
       "title": "Refer & Earn 15%",
@@ -681,7 +682,9 @@
     "listing_pending": "Pending admin review",
     "listing_published": "Published",
     "how_bullet_title": "📚 Exclusive Study Materials",
-    "how_bullet_body": "Browse and purchase school-specific past paper solutions, mock exams, and custom notes created by our top-tier scholars, or unlock them for free when you book 1-on-1 lessons."
+    "how_bullet_body": "Browse and purchase school-specific past paper solutions, mock exams, and custom notes created by our top-tier scholars, or unlock them for free when you book 1-on-1 lessons.",
+    "how_tutor_bullet_title": "💰 Passive Income with Digital Notes",
+    "how_tutor_bullet_body": "Upload your best study materials and sell them to parents. MatchMax lists them on your profile and marketplace — parents pay you directly over WhatsApp, and MatchMax invoices its low 20% platform fee separately."
   },
   "directory": {
     "subtitle": "Every tutor is transcript-verified and team-approved before going live.",

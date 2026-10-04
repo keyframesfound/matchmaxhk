@@ -3,6 +3,7 @@ import { useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  BookOpen,
   Building2,
   ClipboardList,
   ExternalLink,
@@ -31,6 +32,7 @@ const ADMIN_TITLES: { prefix: string; title: string }[] = [
   { prefix: "/admin/join-requests", title: "Tutor join requests" },
   { prefix: "/admin/cases", title: "Cases" },
   { prefix: "/admin/referrals", title: "Referrals & bounties" },
+  { prefix: "/admin/materials", title: "Study materials" },
   { prefix: "/admin/users", title: "Users" },
   { prefix: "/admin/organizations", title: "Organizations" },
   { prefix: "/admin/r2", title: "R2 images" },
@@ -55,6 +57,7 @@ function useAdminNavGroups(pendingJoinRequests: number | undefined): ConsoleNavG
         },
         { label: "Cases", to: "/admin/cases", icon: ClipboardList },
         { label: "Referrals", to: "/admin/referrals", icon: Gift },
+        { label: "Study Materials", to: "/admin/materials", icon: BookOpen },
       ],
     },
     {

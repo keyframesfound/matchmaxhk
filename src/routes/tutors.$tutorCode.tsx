@@ -6,6 +6,7 @@ import {
   MessageCircle,
   ArrowLeft,
   Award,
+  BookOpen,
   CalendarDays,
   Clock,
   Coins,
@@ -49,6 +50,8 @@ import {
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { AvailabilityGrid } from "@/features/tutors/availability-grid";
 import { TutorReviews } from "@/features/tutors/tutor-reviews";
+import { fetchMaterialsForTutor } from "@/features/materials/queries";
+import { TutorMaterialsSection } from "@/features/materials/tutor-materials-section";
 import {
   countAvailableCells,
   parseAvailabilityGrid,
@@ -400,6 +403,12 @@ function TutorDetail() {
   const { data: reviews = [] } = useQuery({
     queryKey: ["tutor", "reviews", t.id],
     queryFn: () => fetchTutorReviews(t.id),
+  });
+
+  // Issues #131/#134: published study-materials listings for this tutor.
+  const { data: materials = [] } = useQuery({
+    queryKey: ["tutor", "materials", t.id],
+    queryFn: () => fetchMaterialsForTutor(t.id),
   });
 
   const { data: allPublished = [] } = useQuery({
@@ -807,6 +816,19 @@ function TutorDetail() {
               {reviews.length > 0 ? (
                 <ProfileSection icon={MessageCircle} title={translate("profile.section_reviews")}>
                   <TutorReviews reviews={reviews} />
+                </ProfileSection>
+              ) : null}
+
+              {/* Issues #131/#134: study materials marketplace listings;
+                  hidden entirely when the tutor has none. */}
+              {materials.length > 0 ? (
+                <ProfileSection icon={BookOpen} title={translate("materials.section_title")}>
+                  <TutorMaterialsSection
+                    tutorId={t.id}
+                    tutorName={t.display_name}
+                    tutorCode={t.tutor_code}
+                    whatsappNumber={whatsappNumber}
+                  />
                 </ProfileSection>
               ) : null}
 
