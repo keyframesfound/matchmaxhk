@@ -691,6 +691,9 @@
   "tutor_card": {
     "verified_fallback": "Academic profile verified",
     "academic_achievements": "Academic achievements",
+    "status_uni_student": "University student",
+    "status_full_part_time": "Full or part-time tutor",
+    "status_examiner": "Examiner / professional teacher",
     "achievements_and_experiences": "Achievements and Experiences",
     "more": "more",
     "highlights_label": "Tutor card highlights",

@@ -61,6 +61,20 @@ export function formatTutorCode(code?: string | null) {
   return normalized;
 }
 
+/** i18n key for a tutor_status value ("" when unset/unknown). */
+export function getTutorStatusLabelKey(tutorStatus: string | null | undefined): string | null {
+  switch ((tutorStatus ?? "").trim()) {
+    case "uni_student":
+      return "tutor_card.status_uni_student";
+    case "full_part_time_tutor":
+      return "tutor_card.status_full_part_time";
+    case "examiner":
+      return "tutor_card.status_examiner";
+    default:
+      return null;
+  }
+}
+
 export function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorCode: string) {
   const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
   if (!digits) return "";

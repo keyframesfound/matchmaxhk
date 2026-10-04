@@ -19,6 +19,7 @@ import {
   Share2,
   Sparkles,
   User,
+  UserRound,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -44,6 +45,7 @@ import {
   getTutorAvailabilityReadiness,
   getTutorInquiryAction,
   getTutorPriceDisplay,
+  getTutorStatusLabelKey,
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
@@ -439,6 +441,8 @@ function TutorDetail() {
   // Issue #116: self-serve weekly grid has at least one non-unavailable cell.
   const hasAvailabilityGrid = countAvailableCells(parseAvailabilityGrid(t.availability_grid)) > 0;
   const genderLabel = getTutorGenderLabel(t.gender);
+  // Issues #77/#52: tutor status badge key (null when unset/unknown).
+  const statusKey = getTutorStatusLabelKey(t.tutor_status);
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
   const subjectGroups = getTutorSubjectGroups(t).map((group) => {
     const systemLabel = formatExamSystemLabel(group.systemId);
@@ -553,6 +557,16 @@ function TutorDetail() {
                       </>
                     ) : null}
                   </h1>
+                  {/* Issues #77/#52: tutor status badge on the profile header. */}
+                  {statusKey ? (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)]">
+                      <UserRound
+                        className="h-3 w-3 text-[color:var(--brand-link)]"
+                        aria-hidden="true"
+                      />
+                      {translate(statusKey)}
+                    </span>
+                  ) : null}
                 </div>
                 {t.academic_headline || t.undergrad_university || t.secondary_school ? (
                   <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
