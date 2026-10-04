@@ -277,9 +277,11 @@ export function PublicTutorCard({
               {formatTutorCode(tutor.tutor_code)}
             </p>
             {/* Issues #77/#52: tutor status badge (uni student / full-part-time
-                / examiner) — same pill chrome as the gender badge. */}
+                / examiner) — same pill chrome as the gender badge. Long labels
+                (examiner/professional teacher) stay on one line with ellipsis
+                so the narrow photo column can't grow the whole card. */}
             {statusLabel ? (
-              <span className="max-w-full rounded-md bg-muted px-1.5 py-0.5 text-center text-[11px] font-semibold leading-tight text-[color:var(--ink)]">
+              <span className="max-w-full truncate rounded-md bg-muted px-1.5 py-0.5 text-center text-[11px] font-semibold leading-tight text-[color:var(--ink)]">
                 {statusLabel}
               </span>
             ) : null}
