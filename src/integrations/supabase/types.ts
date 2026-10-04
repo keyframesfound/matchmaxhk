@@ -890,6 +890,7 @@ export type Database = {
           preferred_time_windows: string[];
           availability_grid: Json;
           deletion_requested_at: string | null;
+          portfolio_images: string[];
         };
         Insert: {
           achievements?: Json;
@@ -935,6 +936,7 @@ export type Database = {
           user_id?: string | null;
           availability_grid?: Json;
           deletion_requested_at?: string | null;
+          portfolio_images?: string[];
         };
         Update: {
           achievements?: Json;
@@ -983,6 +985,7 @@ export type Database = {
           preferred_time_windows?: string[];
           availability_grid?: Json;
           deletion_requested_at?: string | null;
+          portfolio_images?: string[];
         };
         Relationships: [
           {
