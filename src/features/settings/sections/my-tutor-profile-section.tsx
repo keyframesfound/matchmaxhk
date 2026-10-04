@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ExternalLink, Loader2 } from "lucide-react";
@@ -16,6 +17,7 @@ import { SettingsCard } from "@/features/settings/option-card";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { requestAccountDeletion } from "@/lib/account.functions";
+import { notifyTutorPriceChange } from "@/lib/tutor-pricing.functions";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import {
   TARGET_STUDENT_OPTIONS,
@@ -45,6 +47,13 @@ type MyTutorRow = Tutor & {
   deletion_requested_at?: string | null;
 };
 
+/** Normalized tier list for change detection (issue #110). */
+function sortTiersForCompare(tiers: { curriculum: string; rate: number }[]) {
+  return [...tiers]
+    .map((tier) => ({ curriculum: tier.curriculum.trim().toLowerCase(), rate: tier.rate }))
+    .sort((a, b) => a.curriculum.localeCompare(b.curriculum) || a.rate - b.rate);
+}
+
 export function MyTutorProfileSection() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -70,16 +79,44 @@ export function MyTutorProfileSection() {
     if (tutorQuery.data) setForm(tutorToFormData(tutorQuery.data));
   }, [tutorQuery.data]);
 
+  const notifyPriceChange = useServerFn(notifyTutorPriceChange);
+
   const save = useMutation({
     mutationFn: async (data: TutorFormData) => {
       // Reuse the admin editor's normalization, minus fields the tutor must
       // never change: tutor_code (their public slug) and field state.
       const { tutor_code: _keepCode, ...rest } = formDataToPayload(data);
+      const previous = tutorQuery.data;
       const { error } = await supabase
         .from("tutors")
         .update(rest as never)
         .eq("user_id", user!.id);
       if (error) throw error;
+
+      // Issue #110: after a successful save, ping the admin safety-guardrail
+      // when pricing actually changed. Best-effort — a notification failure
+      // must never block the tutor's save (the server fn also swallows).
+      const pricingChanged =
+        previous &&
+        (previous.hourly_rate !== rest.hourly_rate ||
+          JSON.stringify(sortTiersForCompare(previous.pricing_tiers ?? [])) !==
+            JSON.stringify(sortTiersForCompare(rest.pricing_tiers ?? [])));
+      if (pricingChanged && current?.tutor_code) {
+        try {
+          await notifyPriceChange({
+            data: {
+              tutorCode: current.tutor_code,
+              displayName: current.display_name ?? "",
+              hourlyRate: rest.hourly_rate,
+              pricingTiers: rest.pricing_tiers,
+              previousHourlyRate: previous.hourly_rate ?? 0,
+              previousPricingTiers: previous.pricing_tiers ?? [],
+            },
+          });
+        } catch (notifyError) {
+          console.error("[my-tutor] price-change notification failed:", notifyError);
+        }
+      }
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
