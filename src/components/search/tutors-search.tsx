@@ -40,6 +40,7 @@ import {
 import {
   HIGH_SCHOOL_FILTER_OPTIONS,
   UNIVERSITY_FILTER_OPTIONS,
+  majorEditorOptions,
 } from "@/features/tutors/education-filters";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +54,7 @@ export type TutorsSearchState = {
   verified?: boolean;
   university?: string;
   high_school?: string;
+  major?: string;
   min_price?: number;
   max_price?: number;
   sort?: string;
@@ -283,6 +285,7 @@ export function TutorsSearchBar({
     draft.verified === true ? "verified" : "",
     draft.university,
     draft.high_school,
+    draft.major,
     draft.min_price !== undefined ? "price" : "",
     draft.max_price !== undefined ? "price" : "",
     draft.sort,
@@ -489,6 +492,22 @@ export function TutorsSearchBar({
             onChange={(value) => onDraftChange({ high_school: value || undefined })}
             options={highSchoolOptions}
             placeholder={t("search_ui.high_school_any")}
+            className="h-11 rounded-xl"
+          />
+        </FiltersSection>
+        <FiltersSection id="major" title={t("search_ui.major_title")}>
+          {/* Issue #23: open list — search or add any major (exact match). */}
+          <SearchableSelect
+            value={draft.major ?? ""}
+            onChange={(value) => onDraftChange({ major: value || undefined })}
+            options={[
+              { value: "", label: t("search_ui.major_any") },
+              ...majorEditorOptions(draft.major).map((major) => ({ value: major, label: major })),
+            ]}
+            placeholder={t("search_ui.major_any")}
+            searchPlaceholder={t("search_ui.major_search_placeholder")}
+            emptyText={t("search_ui.major_empty")}
+            allowCustom
             className="h-11 rounded-xl"
           />
         </FiltersSection>
@@ -760,6 +779,24 @@ export function TutorsSearchMobile({
               onChange={(value) => onDraftChange({ high_school: value || undefined })}
               options={highSchoolOptions}
               placeholder={t("search_ui.high_school_any")}
+              className="h-12 rounded-2xl"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <PanelLabel>{t("search_ui.major_title")}</PanelLabel>
+            {/* Issue #23: open list — search or add any major (exact match). */}
+            <SearchableSelect
+              value={draft.major ?? ""}
+              onChange={(value) => onDraftChange({ major: value || undefined })}
+              options={[
+                { value: "", label: t("search_ui.major_any") },
+                ...majorEditorOptions(draft.major).map((major) => ({ value: major, label: major })),
+              ]}
+              placeholder={t("search_ui.major_any")}
+              searchPlaceholder={t("search_ui.major_search_placeholder")}
+              emptyText={t("search_ui.major_empty")}
+              allowCustom
               className="h-12 rounded-2xl"
             />
           </div>
