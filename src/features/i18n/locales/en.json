@@ -696,6 +696,9 @@
   "tutor_card": {
     "verified_fallback": "Academic profile verified",
     "academic_achievements": "Academic achievements",
+    "status_uni_student": "Uni Student",
+    "status_full_part_time": "Full or part-time tutor",
+    "status_examiner": "Examiner / Pro Teacher",
     "achievements_and_experiences": "Achievements and Experiences",
     "more": "more",
     "highlights_label": "Tutor card highlights",
@@ -708,9 +711,6 @@
     "gender_male": "Male",
     "gender_female": "Female",
     "gender_other": "Other",
-    "status_uni_student": "Uni Student",
-    "status_full_part_time_tutor": "Full/Part-Time Tutor",
-    "status_examiner": "Examiner / Pro Teacher",
     "available_from": "Available from {{date}}",
     "prebook_cta": "Pre-book for {{date}}"
   },

@@ -61,6 +61,20 @@ export function formatTutorCode(code?: string | null) {
   return normalized;
 }
 
+/** i18n key for a tutor_status value ("" when unset/unknown). */
+export function getTutorStatusLabelKey(tutorStatus: string | null | undefined): string | null {
+  switch ((tutorStatus ?? "").trim()) {
+    case "uni_student":
+      return "tutor_card.status_uni_student";
+    case "full_part_time_tutor":
+      return "tutor_card.status_full_part_time";
+    case "examiner":
+      return "tutor_card.status_examiner";
+    default:
+      return null;
+  }
+}
+
 export function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorCode: string) {
   const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
   if (!digits) return "";
@@ -715,33 +729,4 @@ export function getTutorEducationLines(
   if (secondarySchool) lines.push({ icon: "school", text: secondarySchool });
 
   return lines;
-}
-
-/**
- * Issue #77: public tutor status badge. The tutors.tutor_status column stores
- * one of three codes (admin-editable in TutorEditor, captured at intake);
- * unmapped/legacy values render no badge at all.
- */
-export const TUTOR_PUBLIC_STATUS_CODES = [
-  "uni_student",
-  "full_part_time_tutor",
-  "examiner",
-] as const;
-
-export type TutorPublicStatus = (typeof TUTOR_PUBLIC_STATUS_CODES)[number];
-
-export function getTutorPublicStatus(
-  tutorStatus: string | null | undefined,
-): TutorPublicStatus | null {
-  return (TUTOR_PUBLIC_STATUS_CODES as readonly string[]).includes(tutorStatus ?? "")
-    ? (tutorStatus as TutorPublicStatus)
-    : null;
-}
-
-/** i18n key (tutor_card.*) for a tutor status code, or null when unmapped. */
-export function getTutorPublicStatusKey(
-  tutorStatus: string | null | undefined,
-): `tutor_card.status_${TutorPublicStatus}` | null {
-  const status = getTutorPublicStatus(tutorStatus);
-  return status ? `tutor_card.status_${status}` : null;
 }

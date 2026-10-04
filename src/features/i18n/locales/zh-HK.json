@@ -718,6 +718,9 @@
   "tutor_card": {
     "verified_fallback": "學術資料已核實",
     "academic_achievements": "學術成績",
+    "status_uni_student": "大學生",
+    "status_full_part_time": "全職/兼職導師",
+    "status_examiner": "考官/專業教師",
     "achievements_and_experiences": "成就同經驗",
     "more": "更多",
     "highlights_label": "導師卡重點",
@@ -730,9 +733,6 @@
     "gender_male": "男",
     "gender_female": "女",
     "gender_other": "其他",
-    "status_uni_student": "大學生",
-    "status_full_part_time_tutor": "全職/兼職導師",
-    "status_examiner": "考官/專業教師",
     "available_from": "{{date}}起可上課",
     "prebook_cta": "預約 {{date}} 起"
   },

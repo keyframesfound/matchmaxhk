@@ -21,6 +21,7 @@ import {
   Sparkles,
   Trophy,
   User,
+  UserRound,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -46,7 +47,7 @@ import {
   getTutorAvailabilityReadiness,
   getTutorInquiryAction,
   getTutorPriceDisplay,
-  getTutorPublicStatusKey,
+  getTutorStatusLabelKey,
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
@@ -443,8 +444,8 @@ function TutorDetail() {
   // Issue #116: self-serve weekly grid has at least one non-unavailable cell.
   const hasAvailabilityGrid = countAvailableCells(parseAvailabilityGrid(t.availability_grid)) > 0;
   const genderLabel = getTutorGenderLabel(t.gender);
-  // Issue #77: tutor status pill next to the profile name.
-  const statusKey = getTutorPublicStatusKey(t.tutor_status);
+  // Issues #77/#52: tutor status badge key (null when unset/unknown).
+  const statusKey = getTutorStatusLabelKey(t.tutor_status);
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
   const subjectGroups = getTutorSubjectGroups(t).map((group) => {
     const systemLabel = formatExamSystemLabel(group.systemId);
@@ -559,10 +560,13 @@ function TutorDetail() {
                       </>
                     ) : null}
                   </h1>
-                  {/* Issue #77: tutor status pill next to the name (mockup:
-                      "( Uni Student )"), hidden entirely when unset. */}
+                  {/* Issues #77/#52: tutor status badge on the profile header. */}
                   {statusKey ? (
-                    <span className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/20 px-2.5 py-0.5 text-xs font-semibold text-[color:var(--ink)] sm:text-sm">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)]">
+                      <UserRound
+                        className="h-3 w-3 text-[color:var(--brand-link)]"
+                        aria-hidden="true"
+                      />
                       {translate(statusKey)}
                     </span>
                   ) : null}
