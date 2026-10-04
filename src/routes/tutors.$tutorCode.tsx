@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useEffect, useState } from "react";
 import {
+  AlertTriangle,
   MapPin,
   MessageCircle,
   ArrowLeft,
@@ -707,6 +708,18 @@ function TutorDetail() {
                     {examResults.map((result, index) => (
                       <AcademicQualification key={`${result.system}-${index}`} result={result} />
                     ))}
+                    <p className="flex gap-2.5 rounded-md border-l-2 border-destructive bg-destructive/5 px-3 py-2 text-sm leading-relaxed text-foreground">
+                      <AlertTriangle
+                        className="mt-0.5 h-4 w-4 shrink-0 text-destructive"
+                        aria-hidden="true"
+                      />
+                      <span>
+                        <span className="font-bold text-destructive">
+                          {translate("profile.legal_warning_label")}
+                        </span>{" "}
+                        {translate("profile.legal_warning_body")}
+                      </span>
+                    </p>
                   </div>
                 </ProfileSection>
               ) : null}

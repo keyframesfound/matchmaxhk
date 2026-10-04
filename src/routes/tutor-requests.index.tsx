@@ -276,7 +276,15 @@ function TutorRequestsPage() {
   const openForm = () => {
     setFormOpen(true);
     window.requestAnimationFrame(() => {
-      formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const el = formSectionRef.current;
+      if (!el) return;
+      // The form opens directly under the header CTA; only scroll when it
+      // isn't already comfortably in view (notice sheet, empty-board CTA).
+      const headerHeight =
+        document.querySelector<HTMLElement>("[data-site-header]")?.offsetHeight ?? 72;
+      const top = el.getBoundingClientRect().top;
+      if (top >= headerHeight && top <= window.innerHeight - 240) return;
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   };
 
@@ -362,6 +370,25 @@ function TutorRequestsPage() {
               />
             </PageContainer>
           </section>
+
+          {/* Collapsible request form */}
+          {formOpen ? (
+            <div ref={formSectionRef} className="scroll-mt-24">
+              <PageContainer width="default" className="py-10 sm:py-12">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                    Post your request
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                    Tell us what you need and our team will review it — approved requests appear on
+                    this board so qualified tutors can apply directly.
+                  </p>
+                </div>
+                <CaseRequestForm idPrefix="tr" />
+              </PageContainer>
+            </div>
+          ) : null}
+
           <StickySearchBar>
             <PageContainer width="default" className="py-3">
               <CasesSearchBar
@@ -413,24 +440,6 @@ function TutorRequestsPage() {
               </div>
             </DialogContent>
           </Dialog>
-
-          {/* Collapsible request form */}
-          {formOpen ? (
-            <div ref={formSectionRef} className="scroll-mt-24">
-              <PageContainer width="default" className="py-10 sm:py-12">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                    Post your request
-                  </h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                    Tell us what you need and our team will review it — approved requests appear on
-                    this board so qualified tutors can apply directly.
-                  </p>
-                </div>
-                <CaseRequestForm idPrefix="tr" />
-              </PageContainer>
-            </div>
-          ) : null}
 
           {/* Board */}
           <section className="py-10 sm:py-12">

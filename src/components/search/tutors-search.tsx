@@ -26,6 +26,7 @@ import { KeywordPanelContent, SearchPillBar, type PillSegment } from "./search-p
 import { MobileSearchOverlay, type MobileSearchTab } from "./mobile-search-overlay";
 import { setSearchSlideDirection } from "./slide-direction";
 import { MobileSearchTrigger } from "./mobile-search-trigger";
+import type { CompactSegment } from "./sticky-search-group";
 import { MtrStationPickerContent } from "@/components/ui/mtr-station-select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -223,12 +224,25 @@ export type TutorsSearchProps = {
 };
 
 /** Segments for the compact nav pill — Airbnb "Anywhere | Anytime" style. */
-export function useTutorsCompactSegments(draft: TutorsSearchState): string[] {
+export function useTutorsCompactSegments(draft: TutorsSearchState): CompactSegment[] {
   const { t } = useTranslation();
   return [
-    draft.q?.trim() || draft.subject || t("search_ui.compact_any_subject"),
-    draft.category ? tutorsCategoryLabel(draft.category, t) : t("search_ui.compact_any_curriculum"),
-    draft.mode ? tutorsModeDisplay(draft, t) : t("search_ui.compact_any_mode"),
+    {
+      // The first segment shows the keyword when set, otherwise the subject —
+      // so it opens the panel matching whatever it displays.
+      id: draft.q?.trim() ? "keyword" : "subject",
+      text: draft.q?.trim() || draft.subject || t("search_ui.compact_any_subject"),
+    },
+    {
+      id: "category",
+      text: draft.category
+        ? tutorsCategoryLabel(draft.category, t)
+        : t("search_ui.compact_any_curriculum"),
+    },
+    {
+      id: "mode",
+      text: draft.mode ? tutorsModeDisplay(draft, t) : t("search_ui.compact_any_mode"),
+    },
   ];
 }
 

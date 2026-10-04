@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { SearchBigInput, SearchableOptionsPanel, type OptionRow } from "./search-controls";
+import { useSearchGroup } from "./sticky-search-group";
 
 /** Airbnb-style spring used when the white pill and panel slide between segments. */
 const HIGHLIGHT_SPRING = { type: "spring", bounce: 0.15, duration: 0.5 } as const;
@@ -100,6 +101,17 @@ export function SearchPillBar({
     },
     [onOpenSegmentIdChange],
   );
+  const { pendingSegment, consumePendingSegment } = useSearchGroup();
+
+  // A compact-pill segment click queues its band segment: open that panel so
+  // it is already showing while the band springs open, then clear the queue.
+  useEffect(() => {
+    if (!pendingSegment) return;
+    consumePendingSegment();
+    if (segments.some((segment) => segment.id === pendingSegment)) {
+      setOpenId(pendingSegment);
+    }
+  }, [pendingSegment, consumePendingSegment, segments, setOpenId]);
   const prefersReducedMotion = useReducedMotion();
 
   const wrapperRef = useRef<HTMLDivElement>(null);

@@ -91,6 +91,17 @@
   }
 }
 
+/*
+ * Disable the browser's scroll anchoring: when the sticky search band
+ * collapses or expands, Chrome compensates by nudging scrollY to keep the
+ * content below stable, and those phantom scroll deltas race the search
+ * band's scroll-direction snapper (band reopens → nudge down → re-collapses
+ * → nudge up → …  — a stuck jump loop when scrolling back up).
+ */
+html {
+  overflow-anchor: none;
+}
+
 :root {
   --radius: 1.3rem;
   --radius-control: 0.5rem;

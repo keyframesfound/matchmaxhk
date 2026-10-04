@@ -7,7 +7,6 @@ import {
   Check,
   CheckCircle2,
   Gift,
-  GraduationCap,
   LocateFixed,
   Paperclip,
   Plus,
@@ -1214,15 +1213,7 @@ export function ApplicationForm() {
   );
   const notice = professional
     ? "Please note: MatchMax's Professional tier is reserved for highly qualified tutors. Teaching credentials or official examiner letters are required for verification, and your identity, CV, and current employment are kept strictly confidential. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-    : primary.curriculum === "IBDP"
-      ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-      : primary.curriculum === "A-Level"
-        ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-        : primary.curriculum === "IGCSE / GCSE"
-          ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-          : primary.curriculum === "HKDSE"
-            ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-            : "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5.";
+    : null;
 
   useEffect(() => {
     const siteKey = import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAEiLema3uiveM5pp";
@@ -2048,80 +2039,6 @@ export function ApplicationForm() {
   return (
     <form onSubmit={handleSubmit}>
       <aside
-        aria-label="Minimum academic requirements"
-        className="mb-4 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
-      >
-        <p className="flex items-center gap-2 text-xs font-medium text-[color:var(--ink)]">
-          <GraduationCap className="h-4 w-4" aria-hidden="true" />
-          Before You Apply
-        </p>
-        <p className="mt-3 text-sm leading-relaxed text-foreground">
-          MatchMax requires verifiable academic excellence. Please review our minimum entry
-          requirements before submitting your documents. Applications that do not meet these
-          minimums for the specific subject or test they wish to teach will be automatically
-          rejected.
-        </p>
-        <ul className="mt-3 grid gap-x-8 gap-y-2 text-sm leading-relaxed text-foreground md:grid-cols-2">
-          <li>
-            <span className="font-semibold">IB tutors:</span> a 40+ overall score AND a Level 7 in
-            your chosen subject.
-          </li>
-          <li>
-            <span className="font-semibold">A-Level tutors:</span> an A* in your chosen subject
-            (overall report card must be A*AA or equivalent).
-          </li>
-          <li>
-            <span className="font-semibold">IGCSE tutors:</span> a Grade 9 or A* in your chosen
-            subject.
-          </li>
-          <li>
-            <span className="font-semibold">DSE (senior cases):</span> a Level 5* or 5** in the
-            subject.
-          </li>
-          <li>
-            <span className="font-semibold">DSE (primary/junior cases):</span> at least a Level 4 or
-            5 in the subject and enrolment in a UGC-funded university.
-          </li>
-          <li>
-            <span className="font-semibold">Test prep (SAT/IELTS/etc.):</span> proof of a
-            top-percentile score (e.g. SAT 1500+, IELTS 8.0+).
-          </li>
-          <li>
-            <span className="font-semibold">Admissions consulting:</span> proof of admission to a
-            top-tier global university or a highly competitive local flagship programme.
-          </li>
-          <li>
-            <span className="font-semibold">Full-time tutors:</span> your university degree and a CV
-            highlighting your teaching experience.
-          </li>
-        </ul>
-        <p className="mt-3 flex gap-2.5 border-t border-[color:var(--ink)]/10 pt-3 text-xs leading-relaxed text-muted-foreground">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>
-            Please ensure the name on your transcript matches your HKID/Passport. MatchMax securely
-            processes all documents strictly for internal verification.
-          </span>
-        </p>
-      </aside>
-      <aside
-        aria-label="Your privacy and anonymity"
-        className="mb-4 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
-      >
-        <p className="flex items-center gap-2 text-xs font-medium text-[color:var(--ink)]">
-          <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-          Your Privacy &amp; Anonymity
-        </p>
-        <p className="mt-3 text-sm leading-relaxed text-foreground">
-          MatchMax guarantees strict identity protection. We will{" "}
-          <strong className="font-semibold">never</strong> publish your name, contact details, or
-          identifying documents on our public directory. Your public profile will be entirely
-          anonymous (e.g., displayed as “MM-T104”). When a parent requests your profile, our
-          concierge team will only introduce you by your professional title and last name (e.g.,
-          “Tutor Chan” or “Miss Lee”) in the private chat. You retain full control over when to
-          share your full name directly with the parent.
-        </p>
-      </aside>
-      <aside
         aria-label="Display rules and legal warning"
         className="mb-4 grid gap-3 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
       >
@@ -2138,9 +2055,11 @@ export function ApplicationForm() {
           </span>
         </p>
       </aside>
-      <aside className="mb-8 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] px-4 py-3 text-sm leading-relaxed text-foreground">
-        {notice}
-      </aside>
+      {notice ? (
+        <aside className="mb-8 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] px-4 py-3 text-sm leading-relaxed text-foreground">
+          {notice}
+        </aside>
+      ) : null}
       <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-5 sm:p-8">
         <ol className="mb-8 flex items-center gap-2 sm:gap-3" aria-label="Form progress">
           {stepTitles.map((label, index) => {
