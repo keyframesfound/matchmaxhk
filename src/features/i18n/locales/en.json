@@ -693,6 +693,9 @@
     "gender_male": "Male",
     "gender_female": "Female",
     "gender_other": "Other",
+    "status_uni_student": "Uni Student",
+    "status_full_part_time_tutor": "Full/Part-Time Tutor",
+    "status_examiner": "Examiner / Pro Teacher",
     "available_from": "Available from {{date}}",
     "prebook_cta": "Pre-book for {{date}}"
   },

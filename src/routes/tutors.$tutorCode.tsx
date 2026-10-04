@@ -44,6 +44,7 @@ import {
   getTutorAvailabilityReadiness,
   getTutorInquiryAction,
   getTutorPriceDisplay,
+  getTutorPublicStatusKey,
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
@@ -75,7 +76,9 @@ function buildTutorSeoMeta(tutor: Tutor, url: string) {
   return { title, description, url };
 }
 
-/** "HKUST - BSc Mathematics" / just the institution when no degree is stored. */
+/**
+ * "HKUST - BSc Mathematics" / just the institution when no degree is stored.
+ */
 function formatInstitutionDegree(institution: string | null, degree: string | null) {
   const school = institution?.trim() ?? "";
   const programme = degree?.trim() ?? "";
@@ -438,6 +441,8 @@ function TutorDetail() {
   // Issue #116: self-serve weekly grid has at least one non-unavailable cell.
   const hasAvailabilityGrid = countAvailableCells(parseAvailabilityGrid(t.availability_grid)) > 0;
   const genderLabel = getTutorGenderLabel(t.gender);
+  // Issue #77: tutor status pill next to the profile name.
+  const statusKey = getTutorPublicStatusKey(t.tutor_status);
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
   const subjectGroups = getTutorSubjectGroups(t).map((group) => {
     const systemLabel = formatExamSystemLabel(group.systemId);
@@ -552,6 +557,13 @@ function TutorDetail() {
                       </>
                     ) : null}
                   </h1>
+                  {/* Issue #77: tutor status pill next to the name (mockup:
+                      "( Uni Student )"), hidden entirely when unset. */}
+                  {statusKey ? (
+                    <span className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/20 px-2.5 py-0.5 text-xs font-semibold text-[color:var(--ink)] sm:text-sm">
+                      {translate(statusKey)}
+                    </span>
+                  ) : null}
                 </div>
                 {t.academic_headline || t.undergrad_university || t.secondary_school ? (
                   <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">

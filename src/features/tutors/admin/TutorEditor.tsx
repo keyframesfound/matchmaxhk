@@ -465,6 +465,9 @@ function mergeAutofillResult(prev: TutorFormData, result: TutorAutofillResult): 
     ia_ee_tok_support:
       result.ia_ee_tok_support.length > 0 ? result.ia_ee_tok_support : prev.ia_ee_tok_support,
     ia_ee_tok_notes: result.ia_ee_tok_notes || prev.ia_ee_tok_notes,
+    // Issue #77: only prefill the status when the AI mapped one; the admin
+    // dropdown (TUTOR_STATUS_OPTIONS) stays the override.
+    tutor_status: result.tutor_status ?? prev.tutor_status,
   };
 }
 

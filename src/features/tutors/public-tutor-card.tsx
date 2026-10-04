@@ -19,6 +19,7 @@ import {
   getTutorAvailabilityReadiness,
   getTutorEducationLines,
   getTutorPriceDisplay,
+  getTutorPublicStatusKey,
   getTutorSubjectChips,
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
@@ -136,6 +137,8 @@ export function PublicTutorCard({
   const genderLabel = t(`tutor_card.gender_${(tutor.gender ?? "").toLowerCase()}`, {
     defaultValue: "",
   }) as string;
+  // Issue #77: tutor status pill under the card's tutor code.
+  const statusKey = getTutorPublicStatusKey(tutor.tutor_status);
   const primaryCredential = removeEmoji(
     tutor.academic_headline ??
       tutor.undergrad_university ??
@@ -272,6 +275,14 @@ export function PublicTutorCard({
             <p className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
               {formatTutorCode(tutor.tutor_code)}
             </p>
+            {/* Issue #77: tutor status pill under the tutor code on the card
+                (header top-right is taken by the gender badge), hidden
+                entirely when unset. */}
+            {statusKey ? (
+              <span className="max-w-full truncate rounded-full border border-[color:var(--foreground)]/20 px-1.5 py-0.5 text-[10px] font-semibold leading-tight text-[color:var(--ink)]">
+                {t(statusKey)}
+              </span>
+            ) : null}
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">
