@@ -36,8 +36,9 @@ import {
 } from "@/features/tutors/queries";
 import { matchesCategoryFilter, matchesSubjectQuery } from "@/features/tutors/subjects";
 import {
-  matchesAnyHighSchoolFilter,
-  matchesAnyUniversityFilter,
+  collectEducationValueSets,
+  matchesHighSchoolFilter,
+  matchesUniversityFilter,
   matchesMajorFilter,
   isElitePedigree,
 } from "@/features/tutors/education-filters";
@@ -119,6 +120,10 @@ function TutorsDirectory() {
     queryFn: fetchPublishedTutors,
   });
 
+  // Education dropdown options = the distinct values that actually appear on
+  // tutor profiles (issue #130), refreshed whenever the tutor list does.
+  const educationValues = useMemo(() => collectEducationValueSets(tutors), [tutors]);
+
   const { data: whatsappNumber = "" } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
     queryFn: async () => {
@@ -174,18 +179,13 @@ function TutorsDirectory() {
       if (verifiedOnly && tut.verification_tier !== "tier_2_verified") return false;
       // Issue #130: institutional-pedigree filters over free-text education fields.
       if (
-        !matchesAnyUniversityFilter(universityFilter, {
+        !matchesUniversityFilter(universityFilter, {
           undergradUniversity: tut.undergrad_university,
           postgradUniversity: tut.postgrad_university,
-          secondarySchool: tut.secondary_school,
         })
       )
         return false;
-      if (
-        !matchesAnyHighSchoolFilter(highSchoolFilter, {
-          secondarySchool: tut.secondary_school,
-        })
-      )
+      if (!matchesHighSchoolFilter(highSchoolFilter, { secondarySchool: tut.secondary_school }))
         return false;
       // Issue #23: exact major over the free-text degree fields.
       if (
@@ -307,6 +307,7 @@ function TutorsDirectory() {
                 onApply={applySearch}
                 onClear={clearAll}
                 allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
+                educationValues={educationValues}
                 defaultOverlayOpen={search.open === true}
                 whatsappUrl={hotlineUrl || undefined}
               />
@@ -321,6 +322,7 @@ function TutorsDirectory() {
                 onClear={clearAll}
                 resultCount={filtered.length}
                 allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
+                educationValues={educationValues}
                 whatsappUrl={hotlineUrl || undefined}
               />
             </div>

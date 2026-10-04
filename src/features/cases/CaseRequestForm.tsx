@@ -36,7 +36,6 @@ import { useFormDraft } from "@/lib/use-form-draft";
 import { cn } from "@/lib/utils";
 
 const PHONE_REGEX = /^[+(\d][\d\s()./+-]{4,19}\d$/;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const labelClassName =
   "mb-1.5 block text-sm font-bold text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--muted-foreground)]";
@@ -72,7 +71,6 @@ type FormState = {
   requesterType: string;
   parentName: string;
   contactPhone: string;
-  contactEmail: string;
   supportType: string;
   // Page 2 — Path A: Subject tutoring
   curriculum: string;
@@ -102,7 +100,6 @@ const INITIAL_FORM: FormState = {
   requesterType: "",
   parentName: "",
   contactPhone: "",
-  contactEmail: "",
   supportType: "",
   curriculum: "",
   subject1: "",
@@ -138,7 +135,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const [result, setResult] = useState<{ caseCode: string } | null>(null);
   const honeypot = useRef<HTMLInputElement>(null);
   const startedAt = useRef(Date.now());
-  const { restored, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v5");
+  const { restored, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v6");
 
   useEffect(() => {
     if (!restored) return;
@@ -238,11 +235,6 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       } else if (!PHONE_REGEX.test(form.contactPhone.trim())) {
         nextErrors.contactPhone = "Please enter a valid WhatsApp number (e.g. +852 9123 4567).";
       }
-      if (!form.contactEmail.trim()) {
-        nextErrors.contactEmail = "Required";
-      } else if (!EMAIL_REGEX.test(form.contactEmail.trim())) {
-        nextErrors.contactEmail = "Please enter a valid email address.";
-      }
       if (!form.supportType) nextErrors.supportType = "Required";
     }
     if (target === 2) {
@@ -290,7 +282,6 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           requesterType: form.requesterType as "parent" | "student",
           parentName: form.parentName,
           contactPhone: form.contactPhone,
-          contactEmail: form.contactEmail,
           supportType: form.supportType as "subject_tutoring" | "admissions",
           curriculum: admissions ? form.curriculum || ADMISSIONS_CURRICULUM : form.curriculum,
           subjects,
@@ -523,25 +514,6 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               />
               {errors.contactPhone && errors.contactPhone !== "Required" ? (
                 <p className="mt-1 text-xs font-semibold text-destructive">{errors.contactPhone}</p>
-              ) : null}
-            </div>
-            <div className="sm:col-span-2">
-              <label className={labelClassName} htmlFor={`${idPrefix}-email`}>
-                Email
-                {errors.contactEmail === "Required" ? <RequiredFlag /> : null}
-              </label>
-              <Input
-                id={`${idPrefix}-email`}
-                type="email"
-                className={cn(controlClassName, errors.contactEmail && invalidInputClassName)}
-                aria-invalid={errors.contactEmail ? true : undefined}
-                placeholder="e.g. mrs.chan@example.com"
-                inputMode="email"
-                value={form.contactEmail}
-                onChange={(e) => update({ contactEmail: e.target.value })}
-              />
-              {errors.contactEmail && errors.contactEmail !== "Required" ? (
-                <p className="mt-1 text-xs font-semibold text-destructive">{errors.contactEmail}</p>
               ) : null}
             </div>
           </>
@@ -1049,7 +1021,6 @@ function fieldStepOf(field: keyof FormState): number {
     field === "requesterType" ||
     field === "parentName" ||
     field === "contactPhone" ||
-    field === "contactEmail" ||
     field === "supportType"
   ) {
     return 1;

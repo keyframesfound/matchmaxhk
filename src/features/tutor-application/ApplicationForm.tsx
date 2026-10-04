@@ -2723,6 +2723,17 @@ export function ApplicationForm() {
                   </div>
                 ) : null}
               </div>
+              <p className="mt-6 flex gap-2.5 rounded-sm border-l-2 border-destructive bg-destructive/5 px-3 py-2.5 text-sm leading-relaxed text-foreground">
+                <AlertTriangle
+                  className="mt-0.5 h-4 w-4 shrink-0 text-destructive"
+                  aria-hidden="true"
+                />
+                <span>
+                  <span className="font-bold text-destructive">Legal warning:</span> Providing fake
+                  credentials is a violation of Hong Kong law. MatchMax bears no responsibility for
+                  falsified evidence provided by the user, and offenders may face legal action.
+                </span>
+              </p>
             </>
           ) : null}
 

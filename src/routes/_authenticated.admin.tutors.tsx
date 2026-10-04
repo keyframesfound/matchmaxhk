@@ -56,6 +56,7 @@ import {
   getTutorGenderLabel,
   type Tutor,
 } from "@/features/tutors/queries";
+import { collectEducationValueSets } from "@/features/tutors/education-filters";
 import { TutorEditor } from "@/features/tutors/admin/TutorEditor";
 import { resolveAccountDeletion } from "@/lib/account.functions";
 
@@ -132,6 +133,11 @@ function AdminTutors() {
     queryKey: ["admin", "tutors"],
     queryFn: fetchAllTutors,
   });
+
+  // Education dropdown options for the editor = distinct values already in use
+  // across all tutors (published or not), so repeat institutions are picked
+  // instead of retyped with new spellings.
+  const educationValues = useMemo(() => collectEducationValueSets(tutors), [tutors]);
 
   // Issue #101: tutors whose assigned accounts requested deletion (status
   // deletion_pending). Approving wipes the auth user (cascades); denying
@@ -492,6 +498,7 @@ function AdminTutors() {
               }}
               isSaving={saveMutation.isPending}
               applicationId={routeSearch.applicationId ?? null}
+              educationValues={educationValues}
             />
           ) : (
             <div className="space-y-8">

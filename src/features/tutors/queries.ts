@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isTutorPubliclyListed } from "./tutor-display";
 import { normalizeExamResults, type ExamResult } from "./examSystems";
 import type { TutorReview } from "./tutor-reviews";
+import type { EducationValueRow } from "./education-filters";
 
 export const MAX_TUTOR_ACHIEVEMENTS = 3;
 export const TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT = 60;
@@ -410,6 +411,21 @@ export async function fetchAllTutors(): Promise<Tutor[]> {
     supabase.from("tutors").select(selectCols).order("created_at", { ascending: false }),
   );
   return (data ?? []).map((row) => normalize(row, defaults));
+}
+
+/**
+ * Free-text education values (published tutors' rows) used to populate the
+ * editor dropdowns on the self-serve profile page — so tutors pick an
+ * existing university/school/major spelling instead of typing a new variant.
+ */
+export async function fetchEducationValues(): Promise<EducationValueRow[]> {
+  const { data, error } = await supabase
+    .from("tutors")
+    .select(
+      "undergrad_university, postgrad_university, secondary_school, undergrad_degree, postgrad_degree",
+    );
+  if (error) throw error;
+  return (data ?? []) as EducationValueRow[];
 }
 
 export async function fetchTutorByCode(code: string): Promise<Tutor | null> {

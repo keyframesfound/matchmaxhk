@@ -38,11 +38,7 @@ import {
   ADMISSIONS_STANDARDIZED_TEST_CATEGORY,
   getSubjectOptionsForCategory,
 } from "@/features/tutors/subjects";
-import {
-  HIGH_SCHOOL_FILTER_OPTIONS,
-  UNIVERSITY_FILTER_OPTIONS,
-  majorEditorOptions,
-} from "@/features/tutors/education-filters";
+import type { EducationValueSets } from "@/features/tutors/education-filters";
 import { cn } from "@/lib/utils";
 
 export type TutorsSearchState = {
@@ -217,6 +213,8 @@ export type TutorsSearchProps = {
   resultCount?: number;
   /** All published tutors' hourly rates — powers the price histogram. */
   allPrices?: number[];
+  /** Distinct education values actually on tutor profiles — powers the university/school/major dropdowns. */
+  educationValues?: EducationValueSets;
   /** Open the mobile overlay on mount (used when hopping between search tabs). */
   defaultOverlayOpen?: boolean;
   whatsappUrl?: string;
@@ -260,6 +258,7 @@ export function TutorsSearchBar({
   onClear,
   resultCount,
   allPrices,
+  educationValues,
   whatsappUrl,
   className,
 }: TutorsSearchProps) {
@@ -330,18 +329,12 @@ export function TutorsSearchBar({
 
   const universityOptions = [
     { value: "", label: t("search_ui.university_any") },
-    ...UNIVERSITY_FILTER_OPTIONS.map((value) => ({
-      value,
-      label: t(`search_ui.university_${value}`),
-    })),
+    ...(educationValues?.universities ?? []).map((value) => ({ value, label: value })),
   ];
 
   const highSchoolOptions = [
     { value: "", label: t("search_ui.high_school_any") },
-    ...HIGH_SCHOOL_FILTER_OPTIONS.map((value) => ({
-      value,
-      label: t(`search_ui.high_school_${value}`),
-    })),
+    ...(educationValues?.highSchools ?? []).map((value) => ({ value, label: value })),
   ];
 
   const modeDisplay = tutorsModeDisplay(draft, t);
@@ -518,7 +511,7 @@ export function TutorsSearchBar({
             onChange={(value) => onDraftChange({ major: value || undefined })}
             options={[
               { value: "", label: t("search_ui.major_any") },
-              ...majorEditorOptions(draft.major).map((major) => ({ value: major, label: major })),
+              ...(educationValues?.majors ?? []).map((major) => ({ value: major, label: major })),
             ]}
             placeholder={t("search_ui.major_any")}
             searchPlaceholder={t("search_ui.major_search_placeholder")}
@@ -554,6 +547,7 @@ export function TutorsSearchMobile({
   onClear,
   resultCount,
   allPrices,
+  educationValues,
   defaultOverlayOpen,
   className,
 }: TutorsSearchProps) {
@@ -613,18 +607,12 @@ export function TutorsSearchMobile({
 
   const universityOptions = [
     { value: "", label: t("search_ui.university_any") },
-    ...UNIVERSITY_FILTER_OPTIONS.map((value) => ({
-      value,
-      label: t(`search_ui.university_${value}`),
-    })),
+    ...(educationValues?.universities ?? []).map((value) => ({ value, label: value })),
   ];
 
   const highSchoolOptions = [
     { value: "", label: t("search_ui.high_school_any") },
-    ...HIGH_SCHOOL_FILTER_OPTIONS.map((value) => ({
-      value,
-      label: t(`search_ui.high_school_${value}`),
-    })),
+    ...(educationValues?.highSchools ?? []).map((value) => ({ value, label: value })),
   ];
 
   const applyLabel =
@@ -807,7 +795,7 @@ export function TutorsSearchMobile({
               onChange={(value) => onDraftChange({ major: value || undefined })}
               options={[
                 { value: "", label: t("search_ui.major_any") },
-                ...majorEditorOptions(draft.major).map((major) => ({ value: major, label: major })),
+                ...(educationValues?.majors ?? []).map((major) => ({ value: major, label: major })),
               ]}
               placeholder={t("search_ui.major_any")}
               searchPlaceholder={t("search_ui.major_search_placeholder")}

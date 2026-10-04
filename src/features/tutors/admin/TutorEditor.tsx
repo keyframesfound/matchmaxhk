@@ -8,6 +8,7 @@ import {
   Award,
   BookOpen,
   Briefcase,
+  CalendarClock,
   Check,
   ChevronRight,
   ExternalLink,
@@ -51,6 +52,7 @@ import {
   highSchoolEditorOptions,
   majorEditorOptions,
   universityEditorOptions,
+  type EducationValueSets,
 } from "@/features/tutors/education-filters";
 import { MtrStationMultiSelect, MtrStationSelect } from "@/components/ui/mtr-station-select";
 import { getNearestMtrStation, getReachableMtrStations } from "@/features/tutor-application/mtr";
@@ -75,14 +77,28 @@ import {
   MAX_PRICING_TIERS,
   MAX_TUTOR_ACHIEVEMENTS,
   MAX_TUTOR_CARD_HIGHLIGHTS,
+  PREFERRED_TIME_WINDOWS,
   TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT,
   TUTOR_CARD_HIGHLIGHT_ROW_LIMIT,
+  normalizePreferredTimeWindows,
   normalizeTutorCardHighlights,
   type Tutor,
   type IaEeTokSupport,
   type PricingTier,
   type TutorAchievement,
 } from "@/features/tutors/queries";
+import {
+  GRID_DAYS,
+  GRID_SLOTS,
+  emptyAvailabilityGrid,
+  parseAvailabilityGrid,
+  type GridCellState,
+  type GridDay,
+} from "@/features/tutors/availability-grid-model";
+import {
+  CapacityEditorFields,
+  EditableAvailabilityGrid,
+} from "@/features/tutors/availability-editor-fields";
 import {
   EXAM_PAPER_LABELS,
   EXAM_SYSTEMS,
@@ -210,6 +226,26 @@ export const tutorFormSchema = z.object({
   // public listing; tutors self-serve these fields from their dashboard.
   start_immediately: z.boolean(),
   earliest_start_date: z.string().trim(),
+  // Issue #103/#116: capacity + weekly grid. Tutors self-serve these from
+  // their dashboard (RPCs); admins edit the same fields here directly.
+  is_accepting_students: z.boolean(),
+  remaining_student_slots: z.coerce.number().int().min(0).max(99),
+  preferred_time_windows: z.array(z.enum(PREFERRED_TIME_WINDOWS)),
+  // Always built by parseAvailabilityGrid/emptyAvailabilityGrid (full 7×6
+  // matrix), so a structural check is enough — zod records over enum keys
+  // infer Partial and fight the grid model's types.
+  availability_grid: z.custom<Record<GridDay, GridCellState[]>>((value) => {
+    if (!value || typeof value !== "object") return false;
+    const source = value as Record<string, unknown>;
+    return GRID_DAYS.every((day) => {
+      const row = source[day];
+      return (
+        Array.isArray(row) &&
+        row.length === GRID_SLOTS.length &&
+        row.every((cell) => cell === "a" || cell === "p" || cell === "u")
+      );
+    });
+  }),
   languages: z.array(z.string().trim().min(1).max(60)),
   gender: z.enum(["male", "female", "other"]),
   tutor_status: z.enum(["uni_student", "full_part_time_tutor", "examiner"]).or(z.literal("")),
@@ -266,6 +302,10 @@ export const emptyTutorForm: TutorFormData = {
   is_published: true,
   start_immediately: true,
   earliest_start_date: "",
+  is_accepting_students: true,
+  remaining_student_slots: 2,
+  preferred_time_windows: [],
+  availability_grid: emptyAvailabilityGrid(),
   languages: ["English", "Cantonese"],
   gender: "female",
   tutor_status: "",
@@ -305,6 +345,10 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     is_published: t.is_published ?? true,
     start_immediately: t.start_immediately ?? true,
     earliest_start_date: t.earliest_start_date ?? "",
+    is_accepting_students: t.is_accepting_students ?? true,
+    remaining_student_slots: t.remaining_student_slots ?? 2,
+    preferred_time_windows: normalizePreferredTimeWindows(t.preferred_time_windows),
+    availability_grid: parseAvailabilityGrid(t.availability_grid),
     languages: t.languages ?? ["English"],
     gender: ["male", "female", "other"].includes(
       (t as unknown as { gender?: string | null }).gender ?? "",
@@ -405,6 +449,10 @@ export function formDataToPayload(v: TutorFormData) {
     is_published: v.is_published,
     start_immediately: v.start_immediately,
     earliest_start_date: v.start_immediately ? null : v.earliest_start_date.trim() || null,
+    is_accepting_students: v.is_accepting_students,
+    remaining_student_slots: v.remaining_student_slots,
+    preferred_time_windows: v.preferred_time_windows,
+    availability_grid: v.availability_grid,
     languages: v.languages,
     gender: v.gender,
     tutor_status: v.tutor_status || null,
@@ -961,6 +1009,8 @@ interface TutorEditorProps {
   isSaving?: boolean;
   /** Join application to offer as AI autofill source (never prefills the form). */
   applicationId?: string | null;
+  /** Distinct education values already in use on tutor profiles — feeds the education dropdowns. */
+  educationValues?: EducationValueSets;
 }
 
 export function TutorEditor({
@@ -969,6 +1019,7 @@ export function TutorEditor({
   onCancel,
   isSaving = false,
   applicationId = null,
+  educationValues,
 }: TutorEditorProps) {
   const [form, setForm] = React.useState<TutorFormData>(() =>
     initialData ? tutorToFormData(initialData) : emptyTutorForm,
@@ -1262,21 +1313,12 @@ export function TutorEditor({
         .filter((a) => a.short_text),
       ia_ee_tok_support: form.ia_ee_tok_support,
       ia_ee_tok_notes: form.ia_ee_tok_notes?.trim() || null,
-      // Issue #103: admin editor doesn't manage capacity; defaults reflect a
-      // live tutor until the tutor sets their own via the dashboard.
-      remaining_student_slots: initialData?.remaining_student_slots ?? 2,
-      is_accepting_students: initialData?.is_accepting_students ?? true,
-      preferred_time_windows: initialData?.preferred_time_windows ?? [],
-      availability_grid: initialData?.availability_grid ?? null,
+      remaining_student_slots: form.remaining_student_slots,
+      is_accepting_students: form.is_accepting_students,
+      preferred_time_windows: form.preferred_time_windows,
+      availability_grid: form.availability_grid,
     }),
-    [
-      form,
-      initialData?.id,
-      initialData?.created_at,
-      initialData?.remaining_student_slots,
-      initialData?.is_accepting_students,
-      initialData?.preferred_time_windows,
-    ],
+    [form, initialData?.id, initialData?.created_at],
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1624,7 +1666,10 @@ export function TutorEditor({
                   <SearchableSelect
                     value={form.undergrad_university ?? ""}
                     onChange={(v) => setForm({ ...form, undergrad_university: v })}
-                    options={universityEditorOptions(form.undergrad_university)}
+                    options={universityEditorOptions(
+                      form.undergrad_university,
+                      educationValues?.universities,
+                    )}
                     placeholder="e.g. The University of Hong Kong"
                     searchPlaceholder="Search universities…"
                     emptyText="No university found — keep typing to add it"
@@ -1640,7 +1685,10 @@ export function TutorEditor({
                   <SearchableSelect
                     value={form.secondary_school ?? ""}
                     onChange={(v) => setForm({ ...form, secondary_school: v })}
-                    options={highSchoolEditorOptions(form.secondary_school)}
+                    options={highSchoolEditorOptions(
+                      form.secondary_school,
+                      educationValues?.highSchools,
+                    )}
                     placeholder="e.g. Diocesan Boys' School"
                     searchPlaceholder="Search schools…"
                     emptyText="No school found — keep typing to add it"
@@ -1656,7 +1704,7 @@ export function TutorEditor({
                   <SearchableSelect
                     value={form.undergrad_degree ?? ""}
                     onChange={(v) => setForm({ ...form, undergrad_degree: v })}
-                    options={majorEditorOptions(form.undergrad_degree)}
+                    options={majorEditorOptions(form.undergrad_degree, educationValues?.majors)}
                     placeholder="e.g. BSc Theoretical Physics"
                     searchPlaceholder="Search majors…"
                     emptyText="No major found — keep typing to add it"
@@ -1695,7 +1743,10 @@ export function TutorEditor({
                       <SearchableSelect
                         value={form.postgrad_university ?? ""}
                         onChange={(v) => setForm({ ...form, postgrad_university: v })}
-                        options={universityEditorOptions(form.postgrad_university)}
+                        options={universityEditorOptions(
+                          form.postgrad_university,
+                          educationValues?.universities,
+                        )}
                         placeholder="e.g. University of Edinburgh"
                         searchPlaceholder="Search universities…"
                         emptyText="No university found — keep typing to add it"
@@ -1710,7 +1761,7 @@ export function TutorEditor({
                       <SearchableSelect
                         value={form.postgrad_degree ?? ""}
                         onChange={(v) => setForm({ ...form, postgrad_degree: v })}
-                        options={majorEditorOptions(form.postgrad_degree)}
+                        options={majorEditorOptions(form.postgrad_degree, educationValues?.majors)}
                         placeholder="e.g. MSc Theoretical Physics"
                         searchPlaceholder="Search majors…"
                         emptyText="No major found — keep typing to add it"
@@ -1781,6 +1832,46 @@ export function TutorEditor({
                   />
                 </FormField>
               ) : null}
+            </EditorSection>
+
+            {/* Capacity + weekly grid — the same controls tutors get in their
+                dashboard Availability section; admins edit them directly and
+                changes go live with the usual Save. */}
+            <EditorSection
+              icon={CalendarClock}
+              title="Capacity & Availability"
+              description="Accepting status, open slots, preferred time windows and the weekly availability grid from the tutor's dashboard."
+              id="availability"
+            >
+              <CapacityEditorFields
+                value={{
+                  acceptingStudents: form.is_accepting_students,
+                  openSlots: form.remaining_student_slots,
+                  timeWindows: form.preferred_time_windows,
+                }}
+                onChange={(next) =>
+                  setForm({
+                    ...form,
+                    is_accepting_students: next.acceptingStudents,
+                    remaining_student_slots: next.openSlots,
+                    preferred_time_windows: next.timeWindows,
+                  })
+                }
+              />
+
+              <div className="space-y-2 border-t border-[color:var(--ink)]/10 pt-6">
+                <p className="text-sm font-bold text-[color:var(--ink)]">
+                  Weekly availability grid
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Tap a cell to cycle: available → partially available → unavailable. An empty grid
+                  stays hidden on the public profile.
+                </p>
+                <EditableAvailabilityGrid
+                  grid={form.availability_grid}
+                  onChange={(grid) => setForm({ ...form, availability_grid: grid })}
+                />
+              </div>
             </EditorSection>
 
             {/* Referral program */}

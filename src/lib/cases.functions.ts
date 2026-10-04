@@ -10,7 +10,6 @@ const CaseRequestInput = z
     requesterType: z.enum(["parent", "student"]),
     parentName: z.string().trim().min(1, "Name is required.").max(80),
     contactPhone: z.string().trim().regex(phoneRegex, "Please enter a valid phone number."),
-    contactEmail: z.string().trim().email("Please enter a valid email address.").max(120),
     supportType: z.enum(["subject_tutoring", "admissions"]),
     // "Admissions" for the admissions path; the chosen curriculum otherwise.
     curriculum: z.string().trim().max(40).optional().nullable(),
@@ -299,7 +298,6 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       subjects: data.subjects,
       exam_system: data.curriculum || null,
       student_level: data.year?.trim() || "Unspecified",
-      contact_email: data.contactEmail,
       requester_type: data.requesterType,
       support_type: data.supportType,
       specific_component:

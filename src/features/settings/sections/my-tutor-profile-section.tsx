@@ -26,7 +26,13 @@ import {
   tutorToFormData,
   type TutorFormData,
 } from "@/features/tutors/admin/TutorEditor";
-import type { Tutor } from "@/features/tutors/queries";
+import { fetchEducationValues, type Tutor } from "@/features/tutors/queries";
+import {
+  collectEducationValueSets,
+  highSchoolEditorOptions,
+  majorEditorOptions,
+  universityEditorOptions,
+} from "@/features/tutors/education-filters";
 
 /**
  * "My tutor profile" — full self-serve editing for tutors whose MatchMax
@@ -79,13 +85,35 @@ export function MyTutorProfileSection() {
     if (tutorQuery.data) setForm(tutorToFormData(tutorQuery.data));
   }, [tutorQuery.data]);
 
+  // Institution spellings already in use on tutor profiles, so tutors pick an
+  // existing university/school/major instead of typing a new variant.
+  const educationValuesQuery = useQuery({
+    queryKey: ["tutors", "education-values"],
+    queryFn: fetchEducationValues,
+  });
+  const educationValues = React.useMemo(
+    () => collectEducationValueSets(educationValuesQuery.data ?? []),
+    [educationValuesQuery.data],
+  );
+
   const notifyPriceChange = useServerFn(notifyTutorPriceChange);
 
   const save = useMutation({
     mutationFn: async (data: TutorFormData) => {
       // Reuse the admin editor's normalization, minus fields the tutor must
-      // never change: tutor_code (their public slug) and field state.
-      const { tutor_code: _keepCode, ...rest } = formDataToPayload(data);
+      // never change: tutor_code (their public slug) and field state. Capacity
+      // and the availability grid are omitted too — they have their own
+      // self-serve editors in the Availability section (update_my_capacity /
+      // update_my_availability_grid RPCs) and this form doesn't read them, so
+      // carrying them through would overwrite real values with defaults.
+      const {
+        tutor_code: _keepCode,
+        remaining_student_slots: _slots,
+        is_accepting_students: _accepting,
+        preferred_time_windows: _windows,
+        availability_grid: _grid,
+        ...rest
+      } = formDataToPayload(data);
       const previous = tutorQuery.data;
       const { error } = await supabase
         .from("tutors")
@@ -293,10 +321,15 @@ export function MyTutorProfileSection() {
               <Label htmlFor="myt-secondary" className="text-[color:var(--ink)]">
                 {t("settings.my_tutor.secondary_school")}
               </Label>
-              <Input
-                id="myt-secondary"
-                value={form.secondary_school}
-                onChange={(e) => setForm({ ...form, secondary_school: e.target.value })}
+              <SearchableSelect
+                value={form.secondary_school ?? ""}
+                onChange={(v) => setForm({ ...form, secondary_school: v })}
+                options={highSchoolEditorOptions(
+                  form.secondary_school,
+                  educationValues.highSchools,
+                )}
+                emptyText={t("settings.my_tutor.education_empty_hint")}
+                allowCustom
                 className="bg-[color:var(--surface)]"
               />
             </div>
@@ -304,10 +337,15 @@ export function MyTutorProfileSection() {
               <Label htmlFor="myt-undergrad-uni" className="text-[color:var(--ink)]">
                 {t("settings.my_tutor.undergrad_university")}
               </Label>
-              <Input
-                id="myt-undergrad-uni"
-                value={form.undergrad_university}
-                onChange={(e) => setForm({ ...form, undergrad_university: e.target.value })}
+              <SearchableSelect
+                value={form.undergrad_university ?? ""}
+                onChange={(v) => setForm({ ...form, undergrad_university: v })}
+                options={universityEditorOptions(
+                  form.undergrad_university,
+                  educationValues.universities,
+                )}
+                emptyText={t("settings.my_tutor.education_empty_hint")}
+                allowCustom
                 className="bg-[color:var(--surface)]"
               />
             </div>
@@ -315,10 +353,12 @@ export function MyTutorProfileSection() {
               <Label htmlFor="myt-undergrad-degree" className="text-[color:var(--ink)]">
                 {t("settings.my_tutor.undergrad_degree")}
               </Label>
-              <Input
-                id="myt-undergrad-degree"
-                value={form.undergrad_degree}
-                onChange={(e) => setForm({ ...form, undergrad_degree: e.target.value })}
+              <SearchableSelect
+                value={form.undergrad_degree ?? ""}
+                onChange={(v) => setForm({ ...form, undergrad_degree: v })}
+                options={majorEditorOptions(form.undergrad_degree, educationValues.majors)}
+                emptyText={t("settings.my_tutor.education_empty_hint")}
+                allowCustom
                 className="bg-[color:var(--surface)]"
               />
             </div>
