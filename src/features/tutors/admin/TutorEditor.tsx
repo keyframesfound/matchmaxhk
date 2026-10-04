@@ -49,6 +49,7 @@ import {
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   highSchoolEditorOptions,
+  majorEditorOptions,
   universityEditorOptions,
 } from "@/features/tutors/education-filters";
 import { MtrStationMultiSelect, MtrStationSelect } from "@/components/ui/mtr-station-select";
@@ -1475,12 +1476,16 @@ export function TutorEditor({
                 <FormField
                   label="Undergraduate Degree"
                   error={errors.undergrad_degree}
-                  hint="Degree / programme major"
+                  hint="Search or add — e.g. Bachelor of Engineering in Computer Engineering"
                 >
-                  <Input
-                    value={form.undergrad_degree}
-                    onChange={(e) => setForm({ ...form, undergrad_degree: e.target.value })}
+                  <SearchableSelect
+                    value={form.undergrad_degree ?? ""}
+                    onChange={(v) => setForm({ ...form, undergrad_degree: v })}
+                    options={majorEditorOptions(form.undergrad_degree)}
                     placeholder="e.g. BSc Theoretical Physics"
+                    searchPlaceholder="Search majors…"
+                    emptyText="No major found — keep typing to add it"
+                    allowCustom
                   />
                 </FormField>
 
@@ -1525,12 +1530,16 @@ export function TutorEditor({
                     <FormField
                       label="Postgraduate Degree"
                       error={errors.postgrad_degree}
-                      hint="Cards abbreviate to MSc / MA / PhD etc."
+                      hint="Search or add — cards abbreviate to MSc / MA / PhD etc."
                     >
-                      <Input
-                        value={form.postgrad_degree}
-                        onChange={(e) => setForm({ ...form, postgrad_degree: e.target.value })}
+                      <SearchableSelect
+                        value={form.postgrad_degree ?? ""}
+                        onChange={(v) => setForm({ ...form, postgrad_degree: v })}
+                        options={majorEditorOptions(form.postgrad_degree)}
                         placeholder="e.g. MSc Theoretical Physics"
+                        searchPlaceholder="Search majors…"
+                        emptyText="No major found — keep typing to add it"
+                        allowCustom
                       />
                     </FormField>
                   </div>

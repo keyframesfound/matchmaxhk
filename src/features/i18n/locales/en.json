@@ -266,7 +266,17 @@
       "save": "Save changes",
       "saving": "Saving…",
       "saved": "Profile saved — changes are live",
-      "form_errors": "Please resolve the highlighted errors."
+      "form_errors": "Please resolve the highlighted errors.",
+      "hide_profile_label": "Hide Public Profile",
+      "hide_profile_hint": "Turn this on to temporarily hide your profile from the MatchMax directory. (Useful if you are fully booked or taking a break for exams).",
+      "hidden_toast": "Your profile is now hidden from the directory",
+      "shown_toast": "Your profile is visible in the directory again",
+      "deletion_label": "Account Management",
+      "deletion_button": "Request Account Deletion",
+      "deletion_help": "To protect active client bookings, account deletions are processed by our team within 3-5 business days to ensure all current matching fees and active trial cases are settled. Once processed, your data will be permanently removed.",
+      "deletion_submitting": "Submitting…",
+      "deletion_pending_badge": "Deletion request received — our team will process it within 3-5 business days",
+      "deletion_requested_toast": "Deletion request received — our team will be in touch"
     },
     "grid": {
       "title": "Weekly availability grid",
@@ -1112,7 +1122,11 @@
     "high_school_west-island": "West Island School (ESF)",
     "high_school_island-school": "Island School (ESF)",
     "high_school_hku-space-ccc-heung-yee-chung": "HKU SPACE CC / Heung Yee Chung",
-    "high_school_queen-elizabeth": "Queen Elizabeth School (QES)"
+    "high_school_queen-elizabeth": "Queen Elizabeth School (QES)",
+    "major_title": "Major",
+    "major_any": "Any major",
+    "major_search_placeholder": "Search majors…",
+    "major_empty": "No major found — keep typing to add it"
   },
   "subjects": {
     "title": "Popular subjects",

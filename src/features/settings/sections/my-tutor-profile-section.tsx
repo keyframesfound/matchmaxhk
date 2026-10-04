@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ExternalLink, Loader2 } from "lucide-react";
@@ -15,6 +16,8 @@ import { MtrStationMultiSelect } from "@/components/ui/mtr-station-select";
 import { SettingsCard } from "@/features/settings/option-card";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { requestAccountDeletion } from "@/lib/account.functions";
+import { notifyTutorPriceChange } from "@/lib/tutor-pricing.functions";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import {
   TARGET_STUDENT_OPTIONS,
@@ -37,9 +40,19 @@ import type { Tutor } from "@/features/tutors/queries";
 /** Columns the tutor-facing editor reads/writes. Mirrors SELECT_COLS minus
  * admin-managed identity (tutor_code, created_at, referral). */
 const MY_TUTOR_COLUMNS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, deletion_requested_at";
 
-type MyTutorRow = Tutor & { user_id?: string | null };
+type MyTutorRow = Tutor & {
+  user_id?: string | null;
+  deletion_requested_at?: string | null;
+};
+
+/** Normalized tier list for change detection (issue #110). */
+function sortTiersForCompare(tiers: { curriculum: string; rate: number }[]) {
+  return [...tiers]
+    .map((tier) => ({ curriculum: tier.curriculum.trim().toLowerCase(), rate: tier.rate }))
+    .sort((a, b) => a.curriculum.localeCompare(b.curriculum) || a.rate - b.rate);
+}
 
 export function MyTutorProfileSection() {
   const { t } = useTranslation();
@@ -66,16 +79,44 @@ export function MyTutorProfileSection() {
     if (tutorQuery.data) setForm(tutorToFormData(tutorQuery.data));
   }, [tutorQuery.data]);
 
+  const notifyPriceChange = useServerFn(notifyTutorPriceChange);
+
   const save = useMutation({
     mutationFn: async (data: TutorFormData) => {
       // Reuse the admin editor's normalization, minus fields the tutor must
       // never change: tutor_code (their public slug) and field state.
       const { tutor_code: _keepCode, ...rest } = formDataToPayload(data);
+      const previous = tutorQuery.data;
       const { error } = await supabase
         .from("tutors")
         .update(rest as never)
         .eq("user_id", user!.id);
       if (error) throw error;
+
+      // Issue #110: after a successful save, ping the admin safety-guardrail
+      // when pricing actually changed. Best-effort — a notification failure
+      // must never block the tutor's save (the server fn also swallows).
+      const pricingChanged =
+        previous &&
+        (previous.hourly_rate !== rest.hourly_rate ||
+          JSON.stringify(sortTiersForCompare(previous.pricing_tiers ?? [])) !==
+            JSON.stringify(sortTiersForCompare(rest.pricing_tiers ?? [])));
+      if (pricingChanged && current?.tutor_code) {
+        try {
+          await notifyPriceChange({
+            data: {
+              tutorCode: current.tutor_code,
+              displayName: current.display_name ?? "",
+              hourlyRate: rest.hourly_rate,
+              pricingTiers: rest.pricing_tiers,
+              previousHourlyRate: previous.hourly_rate ?? 0,
+              previousPricingTiers: previous.pricing_tiers ?? [],
+            },
+          });
+        } catch (notifyError) {
+          console.error("[my-tutor] price-change notification failed:", notifyError);
+        }
+      }
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -105,6 +146,50 @@ export function MyTutorProfileSection() {
 
   const current = tutorQuery.data;
   const loading = tutorQuery.isLoading;
+
+  // Issue #101: instant hide (reuses is_published) + admin-reviewed deletion.
+  const [hidePending, setHidePending] = React.useState(false);
+  const deletionPending = Boolean(current?.deletion_requested_at);
+
+  const hideMutation = useMutation({
+    mutationFn: async (checked: boolean) => {
+      const { error } = await supabase
+        .from("tutors")
+        .update({ is_published: checked })
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return checked;
+    },
+    onSuccess: async (checked) => {
+      // Keep the form in sync when the toggle result differs from an
+      // unsaved draft the tutor may have been editing.
+      if (form) setForm({ ...form, is_published: checked });
+      await queryClient.invalidateQueries({
+        queryKey: ["settings", "my-tutor-profile", user?.id],
+      });
+      queryClient.invalidateQueries({ queryKey: ["tutors", "published"] });
+      queryClient.invalidateQueries({ queryKey: ["landing", "featured_tutors"] });
+      toast.success(
+        t(checked ? "settings.my_tutor.hidden_toast" : "settings.my_tutor.shown_toast"),
+      );
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => setHidePending(false),
+  });
+
+  const deletionMutation = useMutation({
+    mutationFn: async () => {
+      const result = await requestAccountDeletion({ data: {} });
+      return result;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["settings", "my-tutor-profile", user?.id],
+      });
+      toast.success(t("settings.my_tutor.deletion_requested_toast"));
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <SettingsCard
@@ -139,21 +224,53 @@ export function MyTutorProfileSection() {
             </div>
           ) : null}
 
-          {/* Publish toggle — tutors control their own visibility (issue #160). */}
+          {/* Issue #101: instant visibility toggle — reuses is_published. */}
           <div className="flex items-center justify-between gap-4 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3">
             <div>
               <Label className="text-sm font-bold text-[color:var(--ink)]">
-                {t("settings.my_tutor.publish_label")}
+                {t("settings.my_tutor.hide_profile_label")}
               </Label>
               <p className="mt-0.5 text-xs text-[color:var(--ink)]/60">
-                {t("settings.my_tutor.publish_hint")}
+                {t("settings.my_tutor.hide_profile_hint")}
               </p>
             </div>
             <Switch
-              checked={form.is_published}
-              onCheckedChange={(checked) => setForm({ ...form, is_published: checked })}
-              aria-label={t("settings.my_tutor.publish_label")}
+              checked={!form.is_published}
+              disabled={hidePending}
+              onCheckedChange={(hide) => {
+                setHidePending(true);
+                hideMutation.mutate(!hide);
+              }}
+              aria-label={t("settings.my_tutor.hide_profile_label")}
             />
+          </div>
+
+          {/* Issue #101: deletion requests are queued for admin review — no
+              self-serve wipe, so active cases and matching fees stay settled. */}
+          <div className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3">
+            <Label className="text-sm font-bold text-[color:var(--ink)]">
+              {t("settings.my_tutor.deletion_label")}
+            </Label>
+            <p className="mt-1 text-xs leading-5 text-[color:var(--ink)]/60">
+              {t("settings.my_tutor.deletion_help")}
+            </p>
+            {deletionPending ? (
+              <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
+                {t("settings.my_tutor.deletion_pending_badge")}
+              </p>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={deletionMutation.isPending}
+                onClick={() => deletionMutation.mutate()}
+                className="mt-3 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                {deletionMutation.isPending
+                  ? t("settings.my_tutor.deletion_submitting")
+                  : t("settings.my_tutor.deletion_button")}
+              </Button>
+            )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
