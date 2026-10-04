@@ -761,6 +761,8 @@ type ApplicationBaseState = {
   achievements: Achievement[];
   selfIntroduction: string;
   hourlyRate: string;
+  pricingStandardized: boolean;
+  pricingTiers: { curriculum: string; rate: string }[];
   materials: string;
   certificatesLater: boolean;
   commission: boolean;
@@ -839,6 +841,8 @@ export function ApplicationForm() {
     achievements: [] as Achievement[],
     selfIntroduction: "",
     hourlyRate: "",
+    pricingStandardized: true,
+    pricingTiers: [],
     materials: "",
     certificatesLater: false,
     commission: false,
@@ -1260,6 +1264,18 @@ export function ApplicationForm() {
     const logisticsStep = professional ? 6 : 6;
     if (step === logisticsStep) {
       required("hourlyRate", base.hourlyRate.trim());
+      // Issue #108: with Standardize off, at least one curriculum rate must be
+      // filled in and every rate entered must be a positive number.
+      if (!base.pricingStandardized) {
+        if (base.pricingTiers.length === 0) {
+          next.pricingTiers = "Add a rate for at least one curriculum, or turn Standardize on.";
+        } else {
+          const badTier = base.pricingTiers.some(
+            (tier) => !Number.isFinite(Number(tier.rate)) || Number(tier.rate) <= 0,
+          );
+          if (badTier) next.pricingTiers = "Every curriculum rate must be a positive number.";
+        }
+      }
       required("materials", base.materials);
     }
     if (step === stepTitles.length) {
@@ -1456,6 +1472,25 @@ export function ApplicationForm() {
           .join("\n"),
         selfIntroduction: base.selfIntroduction,
         hourlyRate: base.hourlyRate,
+        // Issue #108: per-curriculum pricing. Standardized (default) sends no
+        // tiers; otherwise each row must name a distinct curriculum with a
+        // positive integer rate (deduped here so the zod enum + DB stay clean).
+        pricingStandardized: base.pricingStandardized,
+        pricingTiers: base.pricingStandardized
+          ? []
+          : [
+              ...new Map(
+                base.pricingTiers
+                  .filter((tier) => tier.curriculum && Number(tier.rate) > 0)
+                  .map((tier) => [
+                    tier.curriculum,
+                    {
+                      curriculum: tier.curriculum,
+                      rate: Math.round(Number(tier.rate)),
+                    },
+                  ]),
+              ).values(),
+            ],
         materials: base.materials,
         format: base.format,
         maxStudents: "",
@@ -3035,6 +3070,84 @@ export function ApplicationForm() {
                     invalid={Boolean(fieldErrors.materials)}
                   />
                 </Field>
+              </div>
+
+              {/* Issue #108: per-curriculum pricing with a Standardize toggle.
+                  The proposed hourly rate above stays the base/flat rate shown
+                  on search cards; tiers override it per curriculum. */}
+              <div className="rounded-md border border-border p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Per-curriculum pricing</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Charge different rates for different curriculum levels, or keep one flat rate
+                      across everything you teach.
+                    </p>
+                  </div>
+                  <label className="flex min-h-11 cursor-pointer items-center gap-2 py-1 text-sm text-foreground">
+                    <Checkbox
+                      checked={base.pricingStandardized}
+                      onCheckedChange={(checked) =>
+                        setBaseField("pricingStandardized", checked === true)
+                      }
+                      aria-label="Standardize my hourly rate across all levels"
+                    />
+                    <span>Standardize my hourly rate across all levels</span>
+                  </label>
+                </div>
+                {!base.pricingStandardized ? (
+                  <div className="mt-4 border-t border-border pt-4">
+                    <p className="text-xs text-muted-foreground">
+                      Enter your rate for each curriculum you completed above. Leave a level blank
+                      and we&apos;ll apply your lowest entered rate to it.
+                    </p>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      {qualifications.map((qualification, index) => (
+                        <div key={`${qualification.curriculum}-${index}`} className="space-y-1.5">
+                          <Label
+                            htmlFor={`tier-rate-${index}`}
+                            className="text-xs font-semibold text-foreground"
+                          >
+                            {qualification.curriculum}
+                          </Label>
+                          <div className="relative">
+                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                              HK$
+                            </span>
+                            <Input
+                              id={`tier-rate-${index}`}
+                              type="number"
+                              min={0}
+                              inputMode="numeric"
+                              value={base.pricingTiers[index]?.rate ?? ""}
+                              onChange={(event) => {
+                                const rate = event.target.value;
+                                setBase((previous) => {
+                                  const tiers = [...previous.pricingTiers];
+                                  while (tiers.length <= index)
+                                    tiers.push({ curriculum: "", rate: "" });
+                                  tiers[index] = {
+                                    curriculum: qualification.curriculum,
+                                    rate,
+                                  };
+                                  return { ...previous, pricingTiers: tiers };
+                                });
+                                clearFieldError("pricingTiers");
+                              }}
+                              placeholder={base.hourlyRate || "450"}
+                              className="pl-11 text-sm font-semibold"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {fieldErrors.pricingTiers ? (
+                      <p className="mt-2 text-xs font-medium text-destructive">
+                        {fieldErrors.pricingTiers}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             </>
           ) : null}
