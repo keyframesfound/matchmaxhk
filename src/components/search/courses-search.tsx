@@ -14,6 +14,7 @@ import { KeywordPanelContent, SearchPillBar, type PillSegment } from "./search-p
 import { MobileSearchOverlay, type MobileSearchTab } from "./mobile-search-overlay";
 import { setSearchSlideDirection } from "./slide-direction";
 import { MobileSearchTrigger } from "./mobile-search-trigger";
+import type { CompactSegment } from "./sticky-search-group";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { COURSE_LEVEL_OPTIONS, COURSE_MODE_OPTIONS } from "@/features/courses/queries";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
@@ -46,12 +47,25 @@ const coursesModeLabel = (value: string, t: (key: string) => string) => {
 };
 
 /** Segments for the compact nav pill — Airbnb "Anywhere | Anytime" style. */
-export function useCoursesCompactSegments(draft: CoursesSearchState): string[] {
+export function useCoursesCompactSegments(draft: CoursesSearchState): CompactSegment[] {
   const { t } = useTranslation();
   return [
-    draft.q?.trim() || draft.subject || t("search_ui.compact_any_subject"),
-    draft.level || t("search_ui.compact_any_level"),
-    draft.mode ? coursesModeLabel(draft.mode, t) : t("search_ui.compact_any_mode"),
+    {
+      id: "keyword",
+      text: draft.q?.trim() || t("search_ui.compact_any_keyword"),
+    },
+    {
+      id: "level",
+      text: draft.level || t("search_ui.compact_any_level"),
+    },
+    {
+      id: "subject",
+      text: draft.subject || t("search_ui.compact_any_subject"),
+    },
+    {
+      id: "mode",
+      text: draft.mode ? coursesModeLabel(draft.mode, t) : t("search_ui.compact_any_mode"),
+    },
   ];
 }
 

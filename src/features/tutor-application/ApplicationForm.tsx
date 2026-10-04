@@ -7,7 +7,6 @@ import {
   Check,
   CheckCircle2,
   Gift,
-  GraduationCap,
   LocateFixed,
   Paperclip,
   Plus,
@@ -56,7 +55,7 @@ import {
 import {
   ACCEPT_ATTRIBUTE,
   ACCEPTED_FILE_TYPES,
-  ACCEPTED_PROFILE_PHOTO_TYPES,
+  ACCEPTED_PORTFOLIO_IMAGE_TYPES,
   COMMISSION_TEXT,
   CURRICULUM_OPTIONS,
   EMAIL_REGEX,
@@ -65,7 +64,9 @@ import {
   MATERIALS_OPTIONS,
   MAX_FILES,
   MAX_FILE_BYTES,
+  MAX_PORTFOLIO_FILES,
   PHONE_REGEX,
+  PORTFOLIO_ACCEPT_ATTRIBUTE,
   PROFILE_PHOTO_ACCEPT_ATTRIBUTE,
   PROFESSIONAL_ROLE_OPTIONS,
   PROFESSIONAL_STATUS,
@@ -291,6 +292,8 @@ const FIELD_LABELS: Record<string, string> = {
   countryOther: "Country / Region — specify",
   status: "Current Status",
   statusOther: "Current Status — specify",
+  portfolioConsent: "Trophy cabinet photo consent",
+  portfolioImages: "Trophy cabinet photos",
   university: "University / Institution",
   programme: "Degree / Programme Major",
   postgradUniversity: "Postgraduate University / Institution",
@@ -340,7 +343,144 @@ function isTranscriptImage(file: File) {
 }
 
 function isProfilePhoto(file: File) {
-  return ACCEPTED_PROFILE_PHOTO_TYPES.includes(file.type) || /\.(jpe?g|png)$/i.test(file.name);
+  return ["image/jpeg", "image/png"].includes(file.type) || /\.(jpe?g|png)$/i.test(file.name);
+}
+
+// Issue #97: Trophy Cabinet images — JPG/PNG/WebP. `File.type` can be empty on
+// some mobile pickers, so fall back to the extension.
+function isPortfolioImage(file: File) {
+  return (
+    ACCEPTED_PORTFOLIO_IMAGE_TYPES.includes(file.type) || /\.(jpe?g|png|webp)$/i.test(file.name)
+  );
+}
+
+/**
+ * Issue #97: Trophy Cabinet multi-file picker (max 6 photos, 5MB each,
+ * JPG/PNG/WebP). Strictly optional — the whole section renders no files and
+ * no consent checkbox until the tutor adds one.
+ */
+function TrophyCabinetUpload({
+  files,
+  onChange,
+}: {
+  files: File[];
+  onChange: (files: File[]) => void;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const full = files.length >= MAX_PORTFOLIO_FILES;
+
+  const addFiles = (candidates: FileList | null | undefined) => {
+    if (!candidates || candidates.length === 0) return;
+    const accepted: File[] = [];
+    let rejectedType = false;
+    let rejectedSize = false;
+    for (const candidate of Array.from(candidates)) {
+      if (files.length + accepted.length >= MAX_PORTFOLIO_FILES) break;
+      if (!isPortfolioImage(candidate)) {
+        rejectedType = true;
+        continue;
+      }
+      if (candidate.size > MAX_FILE_BYTES) {
+        rejectedSize = true;
+        continue;
+      }
+      accepted.push(candidate);
+    }
+    if (rejectedType) {
+      setError("Photos must be JPG, PNG, or WebP images.");
+    } else if (rejectedSize) {
+      setError(`Each photo must be no larger than ${readableFileSize(MAX_FILE_BYTES)}.`);
+    } else if (files.length + accepted.length >= MAX_PORTFOLIO_FILES) {
+      setError(null);
+    } else {
+      setError(null);
+    }
+    if (accepted.length > 0) onChange([...files, ...accepted]);
+  };
+
+  const removeFile = (index: number) => {
+    setError(null);
+    onChange(files.filter((_, fileIndex) => fileIndex !== index));
+  };
+
+  return (
+    <div className="grid gap-3">
+      {!full ? (
+        <label
+          className={cn(
+            "flex min-h-20 w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-border bg-[color:var(--surface-subtle)] px-3 py-4 text-center text-sm text-muted-foreground transition-colors",
+            dragging && "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.05]",
+          )}
+          onDragEnter={(event) => {
+            event.preventDefault();
+            setDragging(true);
+          }}
+          onDragOver={(event) => event.preventDefault()}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(event) => {
+            event.preventDefault();
+            setDragging(false);
+            addFiles(event.dataTransfer.files);
+          }}
+        >
+          <Upload className="h-4 w-4 text-[color:var(--muted-foreground)]" />
+          <span>
+            {files.length === 0
+              ? "Drop photos here or choose files"
+              : `Add more (${files.length}/${MAX_PORTFOLIO_FILES})`}
+          </span>
+          <input
+            type="file"
+            className="sr-only"
+            multiple
+            accept={PORTFOLIO_ACCEPT_ATTRIBUTE}
+            onChange={(event) => {
+              addFiles(event.target.files);
+              event.currentTarget.value = "";
+            }}
+          />
+        </label>
+      ) : (
+        <p className="text-xs font-semibold text-muted-foreground">
+          Maximum of {MAX_PORTFOLIO_FILES} photos reached. Remove one to add another.
+        </p>
+      )}
+      {files.length > 0 ? (
+        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {files.map((file, index) => (
+            <li
+              key={`${file.name}-${index}`}
+              className="group relative overflow-hidden rounded-sm border border-border bg-[color:var(--surface-subtle)]"
+            >
+              <img
+                src={URL.createObjectURL(file)}
+                alt={file.name}
+                className="h-24 w-full object-cover"
+                onLoad={(event) => {
+                  // Revoke after the first paint so previews don't leak memory.
+                  const target = event.currentTarget;
+                  window.setTimeout(() => URL.revokeObjectURL(target.src), 0);
+                }}
+              />
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                aria-label={`Remove ${file.name}`}
+                className="absolute right-1 top-1 h-7 w-7 bg-[color:var(--surface)]/85 text-[color:var(--ink)] hover:bg-[color:var(--surface)]"
+                onClick={() => removeFile(index)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+              <p className="truncate px-2 py-1.5 text-[11px] text-muted-foreground">{file.name}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
+    </div>
+  );
 }
 
 function DocumentUpload({
@@ -759,6 +899,10 @@ type ApplicationBaseState = {
   format: string;
   stations: string[];
   achievements: Achievement[];
+  // Issue #97: Trophy Cabinet — local File objects until submit; the consent
+  // flag is enforced server-side only when the array is non-empty.
+  portfolioImages: File[];
+  portfolioConsent: boolean;
   selfIntroduction: string;
   hourlyRate: string;
   pricingStandardized: boolean;
@@ -839,6 +983,8 @@ export function ApplicationForm() {
     format: "",
     stations: [] as string[],
     achievements: [] as Achievement[],
+    portfolioImages: [] as File[],
+    portfolioConsent: false,
     selfIntroduction: "",
     hourlyRate: "",
     pricingStandardized: true,
@@ -1067,15 +1213,7 @@ export function ApplicationForm() {
   );
   const notice = professional
     ? "Please note: MatchMax's Professional tier is reserved for highly qualified tutors. Teaching credentials or official examiner letters are required for verification, and your identity, CV, and current employment are kept strictly confidential. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-    : primary.curriculum === "IBDP"
-      ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-      : primary.curriculum === "A-Level"
-        ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-        : primary.curriculum === "IGCSE / GCSE"
-          ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-          : primary.curriculum === "HKDSE"
-            ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-            : "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5.";
+    : null;
 
   useEffect(() => {
     const siteKey = import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAEiLema3uiveM5pp";
@@ -1467,6 +1605,17 @@ export function ApplicationForm() {
               : undefined,
           })),
         ),
+        // Issue #97: Trophy Cabinet — files + publication consent (zod enforces
+        // consent only when at least one photo is attached).
+        portfolioImages: await Promise.all(
+          base.portfolioImages.map(async (image) => ({
+            filename: image.name,
+            contentType: image.type,
+            size: image.size,
+            content: await fileData(image),
+          })),
+        ),
+        portfolioConsent: base.portfolioConsent,
         experience: base.achievements
           .map((achievement) => `${achievement.title}: ${achievement.description}`)
           .join("\n"),
@@ -1890,80 +2039,6 @@ export function ApplicationForm() {
   return (
     <form onSubmit={handleSubmit}>
       <aside
-        aria-label="Minimum academic requirements"
-        className="mb-4 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
-      >
-        <p className="flex items-center gap-2 text-xs font-medium text-[color:var(--ink)]">
-          <GraduationCap className="h-4 w-4" aria-hidden="true" />
-          Before You Apply
-        </p>
-        <p className="mt-3 text-sm leading-relaxed text-foreground">
-          MatchMax requires verifiable academic excellence. Please review our minimum entry
-          requirements before submitting your documents. Applications that do not meet these
-          minimums for the specific subject or test they wish to teach will be automatically
-          rejected.
-        </p>
-        <ul className="mt-3 grid gap-x-8 gap-y-2 text-sm leading-relaxed text-foreground md:grid-cols-2">
-          <li>
-            <span className="font-semibold">IB tutors:</span> a 40+ overall score AND a Level 7 in
-            your chosen subject.
-          </li>
-          <li>
-            <span className="font-semibold">A-Level tutors:</span> an A* in your chosen subject
-            (overall report card must be A*AA or equivalent).
-          </li>
-          <li>
-            <span className="font-semibold">IGCSE tutors:</span> a Grade 9 or A* in your chosen
-            subject.
-          </li>
-          <li>
-            <span className="font-semibold">DSE (senior cases):</span> a Level 5* or 5** in the
-            subject.
-          </li>
-          <li>
-            <span className="font-semibold">DSE (primary/junior cases):</span> at least a Level 4 or
-            5 in the subject and enrolment in a UGC-funded university.
-          </li>
-          <li>
-            <span className="font-semibold">Test prep (SAT/IELTS/etc.):</span> proof of a
-            top-percentile score (e.g. SAT 1500+, IELTS 8.0+).
-          </li>
-          <li>
-            <span className="font-semibold">Admissions consulting:</span> proof of admission to a
-            top-tier global university or a highly competitive local flagship programme.
-          </li>
-          <li>
-            <span className="font-semibold">Full-time tutors:</span> your university degree and a CV
-            highlighting your teaching experience.
-          </li>
-        </ul>
-        <p className="mt-3 flex gap-2.5 border-t border-[color:var(--ink)]/10 pt-3 text-xs leading-relaxed text-muted-foreground">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>
-            Please ensure the name on your transcript matches your HKID/Passport. MatchMax securely
-            processes all documents strictly for internal verification.
-          </span>
-        </p>
-      </aside>
-      <aside
-        aria-label="Your privacy and anonymity"
-        className="mb-4 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
-      >
-        <p className="flex items-center gap-2 text-xs font-medium text-[color:var(--ink)]">
-          <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-          Your Privacy &amp; Anonymity
-        </p>
-        <p className="mt-3 text-sm leading-relaxed text-foreground">
-          MatchMax guarantees strict identity protection. We will{" "}
-          <strong className="font-semibold">never</strong> publish your name, contact details, or
-          identifying documents on our public directory. Your public profile will be entirely
-          anonymous (e.g., displayed as “MM-T104”). When a parent requests your profile, our
-          concierge team will only introduce you by your professional title and last name (e.g.,
-          “Tutor Chan” or “Miss Lee”) in the private chat. You retain full control over when to
-          share your full name directly with the parent.
-        </p>
-      </aside>
-      <aside
         aria-label="Display rules and legal warning"
         className="mb-4 grid gap-3 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
       >
@@ -1980,9 +2055,11 @@ export function ApplicationForm() {
           </span>
         </p>
       </aside>
-      <aside className="mb-8 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] px-4 py-3 text-sm leading-relaxed text-foreground">
-        {notice}
-      </aside>
+      {notice ? (
+        <aside className="mb-8 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] px-4 py-3 text-sm leading-relaxed text-foreground">
+          {notice}
+        </aside>
+      ) : null}
       <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-5 sm:p-8">
         <ol className="mb-8 flex items-center gap-2 sm:gap-3" aria-label="Form progress">
           {stepTitles.map((label, index) => {
@@ -3009,6 +3086,52 @@ export function ApplicationForm() {
                     <Plus /> Add achievement or experience
                   </Button>
                 ) : null}
+              </div>
+              <div className="mt-6 border-t border-border pt-5">
+                {/* Issue #97: optional Trophy Cabinet. Consent appears only
+                    after a photo is added; blank section = fully anonymous. */}
+                <Field
+                  label="Public Portfolio / Award Photos"
+                  optional
+                  error={fieldErrors.portfolioConsent}
+                  className="sm:col-span-2"
+                >
+                  <TrophyCabinetUpload
+                    files={base.portfolioImages}
+                    onChange={(images) => setBaseField("portfolioImages", images)}
+                  />
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    Want to stand out to parents? Upload photos of your competition medals,
+                    trophies, or teaching certificates.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    JPG, PNG, or WebP, up to {readableFileSize(MAX_FILE_BYTES)} each, up to{" "}
+                    {MAX_PORTFOLIO_FILES} photos. If you prefer to keep your profile 100% anonymous,
+                    simply leave this section blank.
+                  </p>
+                  {base.portfolioImages.length > 0 ? (
+                    <label className="mt-2 flex gap-3 text-sm text-muted-foreground">
+                      <Checkbox
+                        checked={base.portfolioConsent}
+                        onCheckedChange={(checked) => {
+                          setBaseField("portfolioConsent", checked === true);
+                          if (checked) clearFieldError("portfolioConsent");
+                        }}
+                        aria-invalid={fieldErrors.portfolioConsent ? true : undefined}
+                        className={fieldErrors.portfolioConsent ? "border-destructive" : undefined}
+                      />
+                      <span>
+                        I understand that uploading photos here makes them publicly visible on my
+                        MatchMax profile, and I consent to their display.
+                        {fieldErrors.portfolioConsent ? (
+                          <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                            Required
+                          </span>
+                        ) : null}
+                      </span>
+                    </label>
+                  ) : null}
+                </Field>
               </div>
               <div className="mt-6 border-t border-border pt-5">
                 <Field

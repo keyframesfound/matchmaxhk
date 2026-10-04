@@ -156,6 +156,8 @@ export type Tutor = {
   preferred_time_windows: PreferredTimeWindow[];
   /** Issue #116: self-serve weekly availability grid (raw JSONB, parsed downstream). */
   availability_grid: unknown;
+  /** Issue #97: Trophy Cabinet public portfolio photo URLs; empty = hidden. */
+  portfolio_images: string[];
 };
 
 export type TutorPhotoDefaults = {
@@ -169,7 +171,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, portfolio_images";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -359,6 +361,10 @@ function normalize(
       typeof row.is_accepting_students === "boolean" ? row.is_accepting_students : null,
     preferred_time_windows: normalizePreferredTimeWindows(row.preferred_time_windows),
     availability_grid: row.availability_grid ?? null,
+    // Issue #97: Trophy Cabinet URLs; tolerate missing column pre-migration.
+    portfolio_images: Array.isArray(row.portfolio_images)
+      ? row.portfolio_images.filter((url): url is string => typeof url === "string" && url !== "")
+      : [],
   };
 }
 

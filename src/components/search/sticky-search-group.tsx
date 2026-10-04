@@ -46,15 +46,29 @@ export type SearchGroupPhase = "top" | "expanded";
 /** Progress past which the collapsed bar and the nav swap pointer events. */
 export const COLLAPSE_MIDPOINT = 0.5;
 
+/** Progress below which the band is at rest and must not clip its panels. */
+export const REST_EPSILON = 0.002;
+
+/** Compact pill segment: display text plus the band segment id it opens. */
+export type CompactSegment = {
+  /** Band segment (SearchPillBar) id to open when clicked; omit for no panel. */
+  id?: string;
+  text: string;
+};
+
 type SearchGroupContextValue = {
   phase: SearchGroupPhase;
   /** Sticky offset for the pinned bar: the live height of the site header. */
   headerTop: number;
   /** 0 = full search bar showing, 1 = collapsed behind the compact pill. */
   collapseProgress: MotionValue<number>;
-  /** Register the sticky bar element (drives pin-offset measurement). */
+  /** Register the band's flow sentinel (drives pin-offset measurement). */
   registerBar: (element: HTMLDivElement | null) => void;
-  expand: () => void;
+  /** Open the band; a segment id also opens that segment's panel. */
+  expand: (segmentId?: string) => void;
+  /** Segment id queued by expand() for the pill bar to open and clear. */
+  pendingSegment: string | null;
+  consumePendingSegment: () => void;
   /** Dismiss the tinted state back to the collapsed compact pill. */
   collapse: () => void;
 };
@@ -65,6 +79,8 @@ const DEFAULT_CONTEXT: SearchGroupContextValue = {
   collapseProgress: motionValue(0),
   registerBar: () => {},
   expand: () => {},
+  pendingSegment: null,
+  consumePendingSegment: () => {},
   collapse: () => {},
 };
 
@@ -79,12 +95,17 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
   const [headerTop, setHeaderTop] = useState(72);
   const [isDesktop, setIsDesktop] = useState(false);
   const [pinStart, setPinStart] = useState(0);
+  const [pendingSegment, setPendingSegment] = useState<string | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
   const pinStartRef = useRef(pinStart);
   pinStartRef.current = pinStart;
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
   const lastScrollY = useRef<number | null>(null);
+  const snapTargetRef = useRef(0);
+  const expandGuardUntil = useRef(0);
+  const frameTicksRef = useRef(0);
+  const stallTimerRef = useRef<number | null>(null);
   const { scrollY } = useScroll();
   const prefersReducedMotion = useReducedMotion();
 
@@ -151,50 +172,120 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
     measure();
     document.fonts?.ready.then(measure);
     window.addEventListener("resize", measure);
+    // Content above the band can change height after mount (e.g. the cases
+    // board's collapsible request form), shifting the band's flow position —
+    // watch the band's parent so the pin offset tracks those changes too.
+    const parent = barRef.current?.parentElement;
+    const parentObserver = parent ? new ResizeObserver(measure) : null;
+    if (parent && parentObserver) parentObserver.observe(parent);
     return () => {
       cancelled = true;
       window.removeEventListener("resize", measure);
+      parentObserver?.disconnect();
     };
   }, [isDesktop, headerTop]);
 
+  // True while the page sits at its maximum scroll — the zone where the
+  // browser fires clamp-correction scrolls after the band shrinks the page.
+  function pinnedAtMaxScroll() {
+    const doc = document.documentElement;
+    return window.scrollY >= doc.scrollHeight - window.innerHeight - 1;
+  }
+
   const snapBar = useCallback(
     (collapsed: boolean) => {
-      scrubTarget.set(collapsed ? 1 : 0);
+      const target = collapsed ? 1 : 0;
+      snapTargetRef.current = target;
+      scrubTarget.set(target);
+      // A repeated same-target snap must not jump the spring — mid-animation
+      // values are normal while a scroll burst re-fires the snapper. Jump
+      // only when no frame has rendered since the snap (rAF dead: occluded
+      // pane, hot reload), because then the spring can never progress.
+      if (stallTimerRef.current !== null) window.clearTimeout(stallTimerRef.current);
+      frameTicksRef.current = 0;
+      stallTimerRef.current = window.setTimeout(() => {
+        stallTimerRef.current = null;
+        if (frameTicksRef.current === 0 && Math.abs(collapseProgress.get() - target) > 0.01) {
+          collapseProgress.jump(target);
+        }
+      }, 250);
+    },
+    [scrubTarget, collapseProgress],
+  );
+
+  const expand = useCallback(
+    (segmentId?: string) => {
+      setPhase("expanded");
+      scrubTarget.set(0);
+      snapTargetRef.current = 0;
+      setPendingSegment(segmentId ?? null);
+      // The band's height growth makes Chrome's scroll anchoring compensate
+      // with a scroll adjustment; without this guard the direction-snapper
+      // reads that phantom down-scroll and instantly re-collapses the band.
+      expandGuardUntil.current = Date.now() + 700;
     },
     [scrubTarget],
   );
 
-  const expand = useCallback(() => {
-    setPhase("expanded");
-    scrubTarget.set(0);
-  }, [scrubTarget]);
+  const consumePendingSegment = useCallback(() => setPendingSegment(null), []);
 
   const collapse = useCallback(() => {
     setPhase("top");
     snapBar(true);
+    setPendingSegment(null);
   }, [snapBar]);
 
-  useMotionValueEvent(scrollY, "change", (y) => {
-    const previous = lastScrollY.current;
-    lastScrollY.current = y;
-    if (!isDesktop) return;
-    if (phaseRef.current === "expanded") {
-      // Scrolling down while tinted returns to the compact pill; scrolling up
-      // keeps the expanded search open.
-      if (previous !== null && y - previous > 4) collapse();
-      return;
-    }
-    // Above the pin point the band never collapses; past it, scroll direction
-    // snaps it closed / open.
-    if (y < pinStartRef.current - 8) {
-      snapBar(false);
-      return;
-    }
-    if (previous !== null) {
-      if (y - previous > 4) snapBar(true);
-      else if (previous - y > 4) snapBar(false);
-    }
-  });
+  const handleScrollY = useCallback(
+    (y: number) => {
+      const previous = lastScrollY.current;
+      lastScrollY.current = y;
+      if (!isDesktop) return;
+      if (phaseRef.current === "expanded") {
+        // Scrolling down while tinted returns to the compact pill; scrolling
+        // up keeps the expanded search open. Down-deltas are ignored briefly
+        // after expand() — see the guard set there.
+        if (previous !== null && y - previous > 4 && Date.now() > expandGuardUntil.current) {
+          collapse();
+        }
+        return;
+      }
+      // Above the pin point the band never collapses; past it, scroll
+      // direction snaps it closed / open.
+      if (y < pinStartRef.current - 8) {
+        snapBar(false);
+        return;
+      }
+      if (previous !== null) {
+        if (y - previous > 4) {
+          snapBar(true);
+        } else if (previous - y > 4 && !pinnedAtMaxScroll()) {
+          snapBar(false);
+        }
+      }
+    },
+    [isDesktop, collapse, snapBar],
+  );
+
+  useMotionValueEvent(scrollY, "change", handleScrollY);
+
+  // The in-app browser pane can silently stop delivering scroll events; a
+  // rAF poll reconciles the same handler whenever scrollY has moved. It
+  // pauses naturally while no frames render and catches up on the first one.
+  // The tick count doubles as the frame heartbeat for snapBar's stall guard.
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      frameTicksRef.current += 1;
+      if (window.scrollY !== lastScrollY.current) handleScrollY(window.scrollY);
+      raf = window.requestAnimationFrame(tick);
+    };
+    raf = window.requestAnimationFrame(tick);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      if (stallTimerRef.current !== null) window.clearTimeout(stallTimerRef.current);
+      stallTimerRef.current = null;
+    };
+  }, [handleScrollY]);
 
   // Sync once on mount, breakpoint flips and pin-offset changes so a page
   // loaded mid-scroll renders already collapsed. Strictly past the pin point:
@@ -204,6 +295,7 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
     if (!isDesktop) {
       setPhase("top");
       scrubTarget.set(0);
+      snapTargetRef.current = 0;
       return;
     }
     snapBar(window.scrollY > pinStartRef.current + 8);
@@ -220,7 +312,16 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
 
   return (
     <SearchGroupContext.Provider
-      value={{ phase, headerTop, collapseProgress, registerBar, expand, collapse }}
+      value={{
+        phase,
+        headerTop,
+        collapseProgress,
+        registerBar,
+        expand,
+        pendingSegment,
+        consumePendingSegment,
+        collapse,
+      }}
     >
       {children}
     </SearchGroupContext.Provider>
@@ -264,36 +365,53 @@ export function StickySearchBar({
   );
   const opacity = useTransform(collapseProgress, [0.55, 0.9], [1, 0]);
   const [pastMid, setPastMid] = useState(false);
-  useMotionValueEvent(collapseProgress, "change", (p) => setPastMid(p > COLLAPSE_MIDPOINT));
+  // Only clip while the height is animating; at rest the pill bar's dropdown
+  // panels hang below the band and must not be cut off.
+  const [clipping, setClipping] = useState(false);
+  useMotionValueEvent(collapseProgress, "change", (p) => {
+    setPastMid(p > COLLAPSE_MIDPOINT);
+    setClipping(p > REST_EPSILON);
+  });
 
   const scrimVisible = phase === "expanded";
 
   return (
-    <div ref={registerBar} className="sticky z-40 hidden lg:block" style={{ top: headerTop }}>
-      <div
-        aria-hidden="true"
-        onClick={collapse}
-        className={cn(
-          "fixed inset-0 z-30 cursor-default bg-black/45 transition-opacity duration-300 motion-reduce:transition-none",
-          scrimVisible ? "opacity-100" : "pointer-events-none opacity-0",
-        )}
-      />
-      <motion.div style={{ height }} className="overflow-hidden">
-        <motion.div
-          ref={contentRef}
-          style={{ opacity, y }}
-          aria-hidden={pastMid || undefined}
+    <>
+      {/* Flow-position sentinel: a pinned sticky bar's offsetTop shifts with
+          the scroll position, so the pin offset is measured from this
+          zero-height marker instead — it stays at the band's flow spot. */}
+      <div ref={registerBar} aria-hidden="true" className="h-0" />
+      <div className="sticky z-40 hidden lg:block" style={{ top: headerTop }}>
+        <div
+          aria-hidden="true"
+          onClick={collapse}
           className={cn(
-            "border-b border-border bg-[color:var(--surface-header)] transition-colors duration-300 motion-reduce:transition-none",
-            scrimVisible && "bg-[color:var(--surface-subtle)]",
-            pastMid ? "pointer-events-none" : "pointer-events-auto",
-            className,
+            "fixed inset-0 z-30 cursor-default bg-black/45 transition-opacity duration-300 motion-reduce:transition-none",
+            scrimVisible ? "opacity-100" : "pointer-events-none opacity-0",
           )}
+        />
+        {/* Above the scrim so the band and its dropdown panels stay
+            interactive while the tinted (expanded) state is showing. */}
+        <motion.div
+          style={{ height }}
+          className={cn("relative z-40", clipping ? "overflow-hidden" : "overflow-visible")}
         >
-          {children}
+          <motion.div
+            ref={contentRef}
+            style={{ opacity, y }}
+            aria-hidden={pastMid || undefined}
+            className={cn(
+              "border-b border-border bg-[color:var(--surface-header)] transition-colors duration-300 motion-reduce:transition-none",
+              scrimVisible && "bg-[color:var(--surface-subtle)]",
+              pastMid ? "pointer-events-none" : "pointer-events-auto",
+              className,
+            )}
+          >
+            {children}
+          </motion.div>
         </motion.div>
-      </motion.div>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -301,14 +419,15 @@ export function StickySearchBar({
  * Compact Airbnb-style pill for the center of the nav row: segmented
  * "Anywhere | Anytime | Add guests"-style summary with hairline dividers, an
  * optional vertical icon, and the circular azure submit mark. Clicking it
- * expands the full search bar again (tinted state).
+ * expands the full search bar again (tinted state); clicking an individual
+ * segment also opens that segment's panel in the expanded band.
  */
 export function CompactSearchPill({
   segments,
   icon,
 }: {
   /** Pre-translated display values, one per segment (placeholders included). */
-  segments: string[];
+  segments: CompactSegment[];
   /** Optional icon asset (public/ path) for the vertical, Airbnb-style. */
   icon?: string;
 }) {
@@ -318,10 +437,10 @@ export function CompactSearchPill({
   return (
     <button
       type="button"
-      onClick={expand}
+      onClick={() => expand()}
       aria-label={t("search_ui.compact_expand")}
       className={cn(
-        "group flex h-12 w-[min(30rem,calc(100vw-44rem))] min-w-56 items-center gap-2.5 rounded-full border border-border bg-card py-1 pr-1.5 pl-4 text-left transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+        "group flex h-12 w-[min(36rem,calc(100vw-44rem))] min-w-56 items-center gap-2.5 rounded-full border border-border bg-card py-1 pr-1.5 pl-4 text-left transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
       )}
     >
       {icon ? (
@@ -335,15 +454,25 @@ export function CompactSearchPill({
       ) : null}
       <span className="flex min-w-0 flex-1 items-center">
         {segments.map((segment, index) => (
-          <Fragment key={segment + index}>
+          <Fragment key={segment.text + index}>
             {index > 0 && (
               <span
                 aria-hidden="true"
                 className="mx-2.5 h-6 w-px shrink-0 bg-[color:var(--border)]"
               />
             )}
-            <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[color:var(--ink)]">
-              {segment}
+            <span
+              onClick={(event) => {
+                if (!segment.id) return;
+                event.stopPropagation();
+                expand(segment.id);
+              }}
+              className={cn(
+                "min-w-0 flex-1 truncate text-[13px] font-semibold text-[color:var(--ink)]",
+                segment.id && "cursor-pointer",
+              )}
+            >
+              {segment.text}
             </span>
           </Fragment>
         ))}

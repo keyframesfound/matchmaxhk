@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useEffect, useState } from "react";
 import {
+  AlertTriangle,
   MapPin,
   MessageCircle,
   ArrowLeft,
@@ -18,6 +19,7 @@ import {
   School,
   Share2,
   Sparkles,
+  Trophy,
   User,
   UserRound,
   type LucideIcon,
@@ -49,6 +51,7 @@ import {
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
+import { TrophyCabinet } from "@/features/tutors/trophy-cabinet";
 import { AvailabilityGrid } from "@/features/tutors/availability-grid";
 import { TutorReviews } from "@/features/tutors/tutor-reviews";
 import {
@@ -709,6 +712,18 @@ function TutorDetail() {
                     {examResults.map((result, index) => (
                       <AcademicQualification key={`${result.system}-${index}`} result={result} />
                     ))}
+                    <p className="flex gap-2.5 rounded-md border-l-2 border-destructive bg-destructive/5 px-3 py-2 text-sm leading-relaxed text-foreground">
+                      <AlertTriangle
+                        className="mt-0.5 h-4 w-4 shrink-0 text-destructive"
+                        aria-hidden="true"
+                      />
+                      <span>
+                        <span className="font-bold text-destructive">
+                          {translate("profile.legal_warning_label")}
+                        </span>{" "}
+                        {translate("profile.legal_warning_body")}
+                      </span>
+                    </p>
                   </div>
                 </ProfileSection>
               ) : null}
@@ -742,6 +757,14 @@ function TutorDetail() {
                       </ul>
                     ) : null}
                   </div>
+                </ProfileSection>
+              ) : null}
+
+              {/* Issue #97: Trophy Cabinet — optional award photos; hidden
+                  entirely when the tutor uploaded none. */}
+              {t.portfolio_images.length > 0 ? (
+                <ProfileSection icon={Trophy} title={translate("profile.section_trophy")}>
+                  <TrophyCabinet images={t.portfolio_images} />
                 </ProfileSection>
               ) : null}
 

@@ -4,6 +4,12 @@ export const MAX_FILES = 5;
 export const MAX_ACHIEVEMENT_FILE_BYTES = 5 * 1024 * 1024;
 export const MAX_FILE_BYTES = MAX_ACHIEVEMENT_FILE_BYTES;
 export const MAX_TOTAL_BYTES = MAX_FILES * MAX_ACHIEVEMENT_FILE_BYTES;
+// Issue #97: Trophy Cabinet — up to 6 public portfolio photos (JPG/PNG/WebP,
+// 5MB each), uploaded at intake and shown on the public profile.
+export const MAX_PORTFOLIO_FILES = 6;
+export const MAX_PORTFOLIO_TOTAL_BYTES = MAX_PORTFOLIO_FILES * MAX_ACHIEVEMENT_FILE_BYTES;
+export const ACCEPTED_PORTFOLIO_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export const PORTFOLIO_ACCEPT_ATTRIBUTE = ".jpg,.jpeg,.png,.webp";
 export const ACCEPTED_FILE_TYPES = [
   "application/pdf",
   "image/jpeg",
@@ -79,6 +85,17 @@ export const profilePhotoSchema = attachmentSchema.superRefine((photo, context) 
   }
 });
 
+// Issue #97: Trophy Cabinet photos are images only (JPG/PNG/WebP).
+export const portfolioImageSchema = attachmentSchema.superRefine((image, context) => {
+  if (!ACCEPTED_PORTFOLIO_IMAGE_TYPES.includes(image.contentType)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["contentType"],
+      message: "Trophy cabinet photos must be JPG, PNG, or WebP images",
+    });
+  }
+});
+
 export const achievementSchema = z
   .object({
     title: z.string().trim().min(1, "Required").max(200),
@@ -147,6 +164,10 @@ export const tutorApplicationSchema = z
     awards: z.string().trim().max(2000).optional().default(""),
     achievements: z.array(achievementSchema).max(MAX_FILES).default([]),
     academicDocuments: z.array(academicDocumentSchema).max(MAX_FILES).default([]),
+    // Issue #97: optional Trophy Cabinet photos (public on the profile).
+    portfolioImages: z.array(portfolioImageSchema).max(MAX_PORTFOLIO_FILES).default([]),
+    // Consent required only when photos are actually uploaded (see superRefine).
+    portfolioConsent: z.boolean().default(false),
     profilePhoto: profilePhotoSchema.optional(),
     experience: z.string().trim().max(2000).optional().default(""),
     // Issue #119: optional tutor-written pitch shown on the public profile
@@ -357,6 +378,16 @@ export const tutorApplicationSchema = z
         });
       }
     }
+
+    // Issue #97: publication consent is mandatory only when photos are
+    // uploaded; leaving the section blank keeps the profile fully anonymous.
+    if (data.portfolioImages.length > 0 && !data.portfolioConsent) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["portfolioConsent"],
+        message: "Tick the consent box to publish your photos",
+      });
+    }
   });
 
 export type TutorApplicationInput = z.input<typeof tutorApplicationSchema>;
@@ -396,7 +427,7 @@ export function formatApplicationPricing(
 }
 
 export const COMMISSION_TEXT =
-  "I understand that MatchMax will take the 1st and 11th lesson of each new case as commission, and that fees for those lessons are payable to MatchMax.";
+  "I understand that MatchMax will take 100% of the 1st paid lesson and 50% of the 2nd paid lesson as matching fee for each new student";
 
 export const PRIVACY_TEXT =
   "I consent to MatchMax collecting and using the personal data in this form for tutor recruitment and matching purposes, in accordance with the Personal Data (Privacy) Ordinance (Cap. 486).";
@@ -470,6 +501,12 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
               `${document.curriculum}: ${document.file?.filename ?? (document.status === "provide_later" ? "Provide later" : "N/A")}`,
           )
           .join("\n") || "—",
+    },
+    {
+      label: "Trophy cabinet photos",
+      value:
+        data.portfolioImages.map((image) => image.filename).join("\n") ||
+        (data.portfolioConsent ? "— (consent ticked, no photos)" : "—"),
     },
     { label: "Teaching / tutoring experience", value: data.experience },
     { label: "Self-introduction", value: data.selfIntroduction || "—" },
