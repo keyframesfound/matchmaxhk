@@ -266,7 +266,17 @@
       "save": "儲存變更",
       "saving": "儲存中…",
       "saved": "檔案已儲存——變更已生效",
-      "form_errors": "請先處理標示的錯誤。"
+      "form_errors": "請先處理標示的錯誤。",
+      "hide_profile_label": "隱藏公開檔案",
+      "hide_profile_hint": "開啟此選項即可暫時喺 MatchMax 目錄中隱藏你嘅檔案。（適合排滿堂或者考試期間休息）。'隱藏' 之後你嘅檔案會即時喺公開目錄中移除。",
+      "hidden_toast": "你嘅檔案已經喺目錄中隱藏",
+      "shown_toast": "你嘅檔案已經重新喺目錄中顯示",
+      "deletion_label": "帳戶管理",
+      "deletion_button": "申請刪除帳戶",
+      "deletion_help": "為保障現有客戶嘅課堂安排，帳戶刪除會由我哋團隊喺 3-5 個工作天內處理，以確保所有現行配對費用同進行中嘅試堂個案已經結算。處理完成之後，你嘅資料將會被永久移除。",
+      "deletion_submitting": "提交中…",
+      "deletion_pending_badge": "已收到你嘅刪除申請——我哋團隊會喺 3-5 個工作天內處理",
+      "deletion_requested_toast": "已收到你嘅刪除申請——我哋團隊會聯絡你"
     },
     "grid": {
       "title": "每週補習時間表",

@@ -16,6 +16,7 @@ import { MtrStationMultiSelect } from "@/components/ui/mtr-station-select";
 import { SettingsCard } from "@/features/settings/option-card";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { requestAccountDeletion } from "@/lib/account.functions";
 import { notifyTutorPriceChange } from "@/lib/tutor-pricing.functions";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import {
@@ -39,9 +40,12 @@ import type { Tutor } from "@/features/tutors/queries";
 /** Columns the tutor-facing editor reads/writes. Mirrors SELECT_COLS minus
  * admin-managed identity (tutor_code, created_at, referral). */
 const MY_TUTOR_COLUMNS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, deletion_requested_at";
 
-type MyTutorRow = Tutor & { user_id?: string | null };
+type MyTutorRow = Tutor & {
+  user_id?: string | null;
+  deletion_requested_at?: string | null;
+};
 
 /** Normalized tier list for change detection (issue #110). */
 function sortTiersForCompare(tiers: { curriculum: string; rate: number }[]) {
@@ -143,6 +147,50 @@ export function MyTutorProfileSection() {
   const current = tutorQuery.data;
   const loading = tutorQuery.isLoading;
 
+  // Issue #101: instant hide (reuses is_published) + admin-reviewed deletion.
+  const [hidePending, setHidePending] = React.useState(false);
+  const deletionPending = Boolean(current?.deletion_requested_at);
+
+  const hideMutation = useMutation({
+    mutationFn: async (checked: boolean) => {
+      const { error } = await supabase
+        .from("tutors")
+        .update({ is_published: checked })
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return checked;
+    },
+    onSuccess: async (checked) => {
+      // Keep the form in sync when the toggle result differs from an
+      // unsaved draft the tutor may have been editing.
+      if (form) setForm({ ...form, is_published: checked });
+      await queryClient.invalidateQueries({
+        queryKey: ["settings", "my-tutor-profile", user?.id],
+      });
+      queryClient.invalidateQueries({ queryKey: ["tutors", "published"] });
+      queryClient.invalidateQueries({ queryKey: ["landing", "featured_tutors"] });
+      toast.success(
+        t(checked ? "settings.my_tutor.hidden_toast" : "settings.my_tutor.shown_toast"),
+      );
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => setHidePending(false),
+  });
+
+  const deletionMutation = useMutation({
+    mutationFn: async () => {
+      const result = await requestAccountDeletion({ data: {} });
+      return result;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["settings", "my-tutor-profile", user?.id],
+      });
+      toast.success(t("settings.my_tutor.deletion_requested_toast"));
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <SettingsCard
       title={t("settings.my_tutor.title")}
@@ -176,21 +224,53 @@ export function MyTutorProfileSection() {
             </div>
           ) : null}
 
-          {/* Publish toggle — tutors control their own visibility (issue #160). */}
+          {/* Issue #101: instant visibility toggle — reuses is_published. */}
           <div className="flex items-center justify-between gap-4 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3">
             <div>
               <Label className="text-sm font-bold text-[color:var(--ink)]">
-                {t("settings.my_tutor.publish_label")}
+                {t("settings.my_tutor.hide_profile_label")}
               </Label>
               <p className="mt-0.5 text-xs text-[color:var(--ink)]/60">
-                {t("settings.my_tutor.publish_hint")}
+                {t("settings.my_tutor.hide_profile_hint")}
               </p>
             </div>
             <Switch
-              checked={form.is_published}
-              onCheckedChange={(checked) => setForm({ ...form, is_published: checked })}
-              aria-label={t("settings.my_tutor.publish_label")}
+              checked={!form.is_published}
+              disabled={hidePending}
+              onCheckedChange={(hide) => {
+                setHidePending(true);
+                hideMutation.mutate(!hide);
+              }}
+              aria-label={t("settings.my_tutor.hide_profile_label")}
             />
+          </div>
+
+          {/* Issue #101: deletion requests are queued for admin review — no
+              self-serve wipe, so active cases and matching fees stay settled. */}
+          <div className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3">
+            <Label className="text-sm font-bold text-[color:var(--ink)]">
+              {t("settings.my_tutor.deletion_label")}
+            </Label>
+            <p className="mt-1 text-xs leading-5 text-[color:var(--ink)]/60">
+              {t("settings.my_tutor.deletion_help")}
+            </p>
+            {deletionPending ? (
+              <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
+                {t("settings.my_tutor.deletion_pending_badge")}
+              </p>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={deletionMutation.isPending}
+                onClick={() => deletionMutation.mutate()}
+                className="mt-3 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                {deletionMutation.isPending
+                  ? t("settings.my_tutor.deletion_submitting")
+                  : t("settings.my_tutor.deletion_button")}
+              </Button>
+            )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">

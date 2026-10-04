@@ -889,6 +889,7 @@ export type Database = {
           is_accepting_students: boolean;
           preferred_time_windows: string[];
           availability_grid: Json;
+          deletion_requested_at: string | null;
         };
         Insert: {
           achievements?: Json;
@@ -933,6 +934,7 @@ export type Database = {
           updated_at?: string;
           user_id?: string | null;
           availability_grid?: Json;
+          deletion_requested_at?: string | null;
         };
         Update: {
           achievements?: Json;
@@ -980,6 +982,7 @@ export type Database = {
           is_accepting_students?: boolean;
           preferred_time_windows?: string[];
           availability_grid?: Json;
+          deletion_requested_at?: string | null;
         };
         Relationships: [
           {
