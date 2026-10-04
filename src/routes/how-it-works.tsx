@@ -161,6 +161,8 @@ function AudienceSection({
   numberClassName,
   accentClassName,
   bodyTextClassName = "text-current/70",
+  materialsBullet = false,
+  materialsTutorVariant = false,
 }: {
   eyebrow: string;
   audience: string;
@@ -177,7 +179,10 @@ function AudienceSection({
   numberClassName: string;
   accentClassName: string;
   bodyTextClassName?: string;
+  materialsBullet?: boolean;
+  materialsTutorVariant?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <section className={className}>
       <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
@@ -226,6 +231,34 @@ function AudienceSection({
                 </div>
               </li>
             ))}
+            {/* Issue #131: the study-materials bullet rides the audience
+                section as an extra highlighted row; parents get the buy copy,
+                tutors the passive-income copy. */}
+            {materialsBullet ? (
+              <li className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-5 py-7 sm:gap-8 sm:py-9">
+                <span
+                  className={`flex h-11 w-11 items-center justify-center text-lg font-bold ${numberClassName}`}
+                >
+                  📚
+                </span>
+                <div>
+                  <h4 className="text-xl font-bold tracking-tight text-inherit sm:text-2xl">
+                    {t(
+                      materialsTutorVariant
+                        ? "materials.how_tutor_bullet_title"
+                        : "materials.how_bullet_title",
+                    )}
+                  </h4>
+                  <p className={`mt-3 max-w-2xl text-sm leading-7 ${bodyTextClassName}`}>
+                    {t(
+                      materialsTutorVariant
+                        ? "materials.how_tutor_bullet_body"
+                        : "materials.how_bullet_body",
+                    )}
+                  </p>
+                </div>
+              </li>
+            ) : null}
           </ol>
         </article>
       </div>
@@ -517,6 +550,7 @@ function HowItWorksPage() {
           className="bg-[#E3ECF6] text-[#0f1419] dark:bg-[color:var(--accent)] dark:text-white"
           numberClassName="bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
           accentClassName="text-[color:var(--muted-foreground)]"
+          materialsBullet
         />
 
         <AudienceSection
@@ -535,6 +569,8 @@ function HowItWorksPage() {
           numberClassName="bg-white/10 text-white"
           accentClassName="text-[color:var(--muted-foreground)]"
           bodyTextClassName="text-white"
+          materialsBullet
+          materialsTutorVariant
         />
 
         <ReferralBountySection />

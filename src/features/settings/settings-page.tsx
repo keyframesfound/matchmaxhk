@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Bell,
+  BookOpen,
   Bookmark,
   CalendarClock,
   CircleUserRound,
@@ -34,6 +35,7 @@ import { PrivacySection } from "@/features/settings/sections/privacy-section";
 import { ProfileSection } from "@/features/settings/sections/profile-section";
 import { ReferralsSection } from "@/features/settings/sections/referrals-section";
 import { SecuritySection } from "@/features/settings/sections/security-section";
+import { StudyMaterialsSection } from "@/features/settings/sections/study-materials-section";
 import {
   categoryFromHash,
   type SettingsCategory,
@@ -49,6 +51,7 @@ const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof S
   profile: { labelKey: "settings.nav.profile", icon: CircleUserRound },
   "my-tutor": { labelKey: "settings.nav.my_tutor", icon: GraduationCap },
   availability: { labelKey: "settings.nav.availability", icon: CalendarClock },
+  materials: { labelKey: "settings.nav.materials", icon: BookOpen },
   account: { labelKey: "settings.nav.account", icon: UserCog },
   security: { labelKey: "settings.nav.security", icon: KeyRound },
   notifications: { labelKey: "settings.nav.notifications", icon: Bell },
@@ -76,6 +79,7 @@ const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSection
   profile: ProfileSection,
   "my-tutor": MyTutorProfileSection,
   availability: AvailabilityTab,
+  materials: StudyMaterialsSection,
   account: AccountSection,
   security: SecuritySection,
   notifications: NotificationsSection,
@@ -114,6 +118,24 @@ export function SettingsPage() {
   });
   const hasLinkedTutor = Boolean(tutorLinkQuery.data);
 
+  // Issue #131: the Study Materials upload tab is Verified-only
+  // (verification_tier = 'tier_2_verified' on the linked tutor card).
+  const tutorVerifiedQuery = useQuery({
+    queryKey: ["settings", "tutor-verified", userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("Not signed in");
+      const { data, error } = await supabase
+        .from("tutors")
+        .select("id, verification_tier")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { id: string; verification_tier: string | null } | null;
+    },
+    enabled: Boolean(userId),
+  });
+  const isVerifiedTutor = tutorVerifiedQuery.data?.verification_tier === "tier_2_verified";
+
   const categories = useMemo(() => {
     const all = Object.keys(CATEGORY_META) as SettingsCategory[];
     return all.filter((category) => {
@@ -124,9 +146,11 @@ export function SettingsPage() {
       if (category === "availability" || category === "referrals" || category === "my-tutor") {
         return hasLinkedTutor;
       }
+      // Materials upload is Verified-only (issue #131's access moat).
+      if (category === "materials") return isVerifiedTutor;
       return true;
     });
-  }, [isInternal, hasLinkedTutor]);
+  }, [isInternal, hasLinkedTutor, isVerifiedTutor]);
 
   const profileQuery = useQuery({
     queryKey: ["settings", "profile", userId],
