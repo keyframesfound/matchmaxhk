@@ -45,6 +45,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +57,15 @@ import {
   type Tutor,
 } from "@/features/tutors/queries";
 import { TutorEditor } from "@/features/tutors/admin/TutorEditor";
+import { resolveAccountDeletion } from "@/lib/account.functions";
+
+type DeletionRequestRow = {
+  id: string;
+  tutor_code: string | null;
+  display_name: string | null;
+  user_id: string | null;
+  deletion_requested_at: string | null;
+};
 
 export const Route = createFileRoute("/_authenticated/admin/tutors")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -122,6 +132,23 @@ function AdminTutors() {
     queryKey: ["admin", "tutors"],
     queryFn: fetchAllTutors,
   });
+
+  // Issue #101: tutors whose assigned accounts requested deletion (status
+  // deletion_pending). Approving wipes the auth user (cascades); denying
+  // clears the pending flag.
+  const deletionRequestsQuery = useQuery({
+    queryKey: ["admin", "deletion-requests"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tutors")
+        .select("id, tutor_code, display_name, user_id, deletion_requested_at")
+        .not("deletion_requested_at", "is", null)
+        .order("deletion_requested_at", { ascending: true });
+      if (error) throw error;
+      return data as DeletionRequestRow[];
+    },
+  });
+  const deletionRequests = deletionRequestsQuery.data ?? [];
 
   const subjectOptions = useMemo(() => {
     const set = new Set<string>();
@@ -334,9 +361,27 @@ function AdminTutors() {
 
   const invalidateTutorQueries = () => {
     queryClient.invalidateQueries({ queryKey: ["admin", "tutors"] });
+    queryClient.invalidateQueries({ queryKey: ["admin", "deletion-requests"] });
     queryClient.invalidateQueries({ queryKey: ["landing", "featured_tutors"] });
     queryClient.invalidateQueries({ queryKey: ["tutors", "published"] });
   };
+
+  // Issue #101: admin verdict on a deletion request. Approve = permanent wipe
+  // (auth.users delete cascades to profiles, roles and the tutor card);
+  // Deny/Hold = clear the pending flag, keep all data.
+  const deletionRequestMutation = useMutation({
+    mutationFn: async ({ userId, action }: { userId: string; action: "approve" | "deny" }) =>
+      resolveAccountDeletion({ data: { userId, action } }),
+    onSuccess: (_data, variables) => {
+      toast.success(
+        variables.action === "approve"
+          ? "Account deleted — data wipe complete"
+          : "Deletion request denied — account on hold",
+      );
+      invalidateTutorQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const publishMutation = useMutation({
     mutationFn: async ({ ids, isPublished }: { ids: string[]; isPublished: boolean }) => {
@@ -469,6 +514,115 @@ function AdminTutors() {
                   <Plus className="mr-2 h-4 w-4" /> Add New Tutor
                 </Button>
               </div>
+
+              {/* Issue #101: pending account-deletion requests (deletion_pending).
+                  Approve = real data wipe; Deny/Hold = keep the account. */}
+              {deletionRequests.length > 0 ? (
+                <div className="rounded-xl border border-amber-500/40 bg-amber-500/[0.06] px-4 py-4 sm:px-5">
+                  <div className="flex items-center gap-2">
+                    <Trash2
+                      className="h-4 w-4 text-amber-700 dark:text-amber-400"
+                      aria-hidden="true"
+                    />
+                    <h2 className="text-sm font-bold text-[color:var(--ink)]">
+                      Account Deletion Requests
+                    </h2>
+                    <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+                      {deletionRequests.length}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-[color:var(--ink)]/70">
+                    Tutors asking to remove their accounts. Approve only after confirming no pending
+                    matching fees or active introductory cases — approval permanently wipes the
+                    account and cannot be undone.
+                  </p>
+                  <ul className="mt-3 space-y-2">
+                    {deletionRequests.map((request) => (
+                      <li
+                        key={request.id}
+                        className="flex flex-col gap-2 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-[color:var(--ink)]">
+                            <span className="font-mono">{request.tutor_code || "Unnamed"}</span>
+                            {request.display_name ? ` · ${request.display_name}` : ""}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Requested{" "}
+                            {request.deletion_requested_at
+                              ? new Date(request.deletion_requested_at).toLocaleDateString()
+                              : "—"}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {request.user_id ? (
+                            <>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    disabled={deletionRequestMutation.isPending}
+                                    className="bg-destructive font-bold text-[color:var(--destructive-foreground)] hover:bg-destructive/90"
+                                  >
+                                    Approve Deletion
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Permanently delete this account?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This wipes {request.tutor_code || "this tutor"}&apos;s auth
+                                      account, profile and tutor card. It cannot be undone. Only
+                                      proceed if all matching fees and active cases are settled.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={(event) => {
+                                        event.preventDefault();
+                                        deletionRequestMutation.mutate({
+                                          userId: request.user_id!,
+                                          action: "approve",
+                                        });
+                                      }}
+                                      disabled={deletionRequestMutation.isPending}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      {deletionRequestMutation.isPending
+                                        ? "Deleting…"
+                                        : "Approve Deletion"}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={deletionRequestMutation.isPending}
+                                onClick={() =>
+                                  deletionRequestMutation.mutate({
+                                    userId: request.user_id!,
+                                    action: "deny",
+                                  })
+                                }
+                              >
+                                Deny / Hold
+                              </Button>
+                            </>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              No linked account — resolve manually
+                            </span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
 
               {/* Filters & Search */}
               <div className="flex flex-wrap items-center gap-2">
