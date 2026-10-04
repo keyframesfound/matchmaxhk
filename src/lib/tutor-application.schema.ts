@@ -7,13 +7,8 @@ export const MAX_TOTAL_BYTES = MAX_FILES * MAX_ACHIEVEMENT_FILE_BYTES;
 // Issue #97: Trophy Cabinet — up to 6 public portfolio photos (JPG/PNG/WebP,
 // 5MB each), uploaded at intake and shown on the public profile.
 export const MAX_PORTFOLIO_FILES = 6;
-export const MAX_PORTFOLIO_TOTAL_BYTES =
-  MAX_PORTFOLIO_FILES * MAX_ACHIEVEMENT_FILE_BYTES;
-export const ACCEPTED_PORTFOLIO_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-];
+export const MAX_PORTFOLIO_TOTAL_BYTES = MAX_PORTFOLIO_FILES * MAX_ACHIEVEMENT_FILE_BYTES;
+export const ACCEPTED_PORTFOLIO_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 export const PORTFOLIO_ACCEPT_ATTRIBUTE = ".jpg,.jpeg,.png,.webp";
 export const ACCEPTED_FILE_TYPES = [
   "application/pdf",

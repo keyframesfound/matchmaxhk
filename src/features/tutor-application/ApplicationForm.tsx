@@ -3199,9 +3199,7 @@ export function ApplicationForm() {
                           if (checked) clearFieldError("portfolioConsent");
                         }}
                         aria-invalid={fieldErrors.portfolioConsent ? true : undefined}
-                        className={
-                          fieldErrors.portfolioConsent ? "border-destructive" : undefined
-                        }
+                        className={fieldErrors.portfolioConsent ? "border-destructive" : undefined}
                       />
                       <span>
                         I understand that uploading photos here makes them publicly visible on my

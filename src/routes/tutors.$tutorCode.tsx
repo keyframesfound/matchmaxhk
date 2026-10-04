@@ -18,6 +18,7 @@ import {
   School,
   Share2,
   Sparkles,
+  Trophy,
   User,
   type LucideIcon,
 } from "lucide-react";
@@ -48,6 +49,7 @@ import {
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
+import { TrophyCabinet } from "@/features/tutors/trophy-cabinet";
 import { AvailabilityGrid } from "@/features/tutors/availability-grid";
 import { TutorReviews } from "@/features/tutors/tutor-reviews";
 import {
@@ -738,6 +740,14 @@ function TutorDetail() {
                       </ul>
                     ) : null}
                   </div>
+                </ProfileSection>
+              ) : null}
+
+              {/* Issue #97: Trophy Cabinet — optional award photos; hidden
+                  entirely when the tutor uploaded none. */}
+              {t.portfolio_images.length > 0 ? (
+                <ProfileSection icon={Trophy} title={translate("profile.section_trophy")}>
+                  <TrophyCabinet images={t.portfolio_images} />
                 </ProfileSection>
               ) : null}
 

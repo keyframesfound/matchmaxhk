@@ -361,6 +361,10 @@ function normalize(
       typeof row.is_accepting_students === "boolean" ? row.is_accepting_students : null,
     preferred_time_windows: normalizePreferredTimeWindows(row.preferred_time_windows),
     availability_grid: row.availability_grid ?? null,
+    // Issue #97: Trophy Cabinet URLs; tolerate missing column pre-migration.
+    portfolio_images: Array.isArray(row.portfolio_images)
+      ? row.portfolio_images.filter((url): url is string => typeof url === "string" && url !== "")
+      : [],
   };
 }
 
