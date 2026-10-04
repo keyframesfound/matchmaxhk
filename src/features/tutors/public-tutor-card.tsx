@@ -276,18 +276,19 @@ export function PublicTutorCard({
             <p className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
               {formatTutorCode(tutor.tutor_code)}
             </p>
-            {/* Issues #77/#52: tutor status badge (uni student / full-part-time
-                / examiner) — same pill chrome as the gender badge. Long labels
-                (examiner/professional teacher) stay on one line with ellipsis
-                so the narrow photo column can't grow the whole card. */}
-            {statusLabel ? (
-              <span className="max-w-full truncate rounded-md bg-muted px-1.5 py-0.5 text-center text-[11px] font-semibold leading-tight text-[color:var(--ink)]">
-                {statusLabel}
-              </span>
-            ) : null}
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">
+            {/* Issues #77/#52: tutor status badge (uni student / full-part-time
+                / examiner). Lives in the wide credential column — the photo
+                column is too narrow for labels like "University student", and
+                widening that column would squeeze every headline. The pill
+                wraps to its natural label width instead of ellipsizing. */}
+            {statusLabel ? (
+              <span className="mb-1 inline-block max-w-full whitespace-normal rounded-md bg-muted px-1.5 py-0.5 text-left text-[11px] font-semibold leading-tight text-[color:var(--ink)]">
+                {statusLabel}
+              </span>
+            ) : null}
             <FitText
               as="p"
               maxLines={2}
