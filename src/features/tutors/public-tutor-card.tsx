@@ -256,7 +256,10 @@ export function PublicTutorCard({
     >
       <header className="relative border-b border-border px-3 py-2.5 md:px-4 md:py-3">
         <div className="flex items-start gap-2.5 md:gap-3.5">
-          <div className="flex w-12 shrink-0 flex-col items-center gap-1.5 md:w-14">
+          {/* Photo column sizes to its widest child (the status pill, capped
+              at max-w-24) so the badge fits under the tutor code instead of
+              ellipsizing in a fixed 3/3.5rem rail. */}
+          <div className="flex w-max min-w-12 max-w-24 shrink-0 flex-col items-center gap-1.5 md:min-w-14">
             <div className="relative">
               {showPhoto ? (
                 <img
@@ -276,19 +279,17 @@ export function PublicTutorCard({
             <p className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
               {formatTutorCode(tutor.tutor_code)}
             </p>
-          </div>
-
-          <div className="min-w-0 flex-1 pt-0.5">
             {/* Issues #77/#52: tutor status badge (uni student / full-part-time
-                / examiner). Lives in the wide credential column — the photo
-                column is too narrow for labels like "University student", and
-                widening that column would squeeze every headline. The pill
-                wraps to its natural label width instead of ellipsizing. */}
+                / examiner) under the tutor code. Wraps to two lines for long
+                labels instead of ellipsizing. */}
             {statusLabel ? (
-              <span className="mb-1 inline-block max-w-full whitespace-normal rounded-md bg-muted px-1.5 py-0.5 text-left text-[11px] font-semibold leading-tight text-[color:var(--ink)]">
+              <span className="max-w-full whitespace-normal rounded-md bg-muted px-1.5 py-0.5 text-center text-[11px] font-semibold leading-tight text-[color:var(--ink)]">
                 {statusLabel}
               </span>
             ) : null}
+          </div>
+
+          <div className="min-w-0 flex-1 pt-0.5">
             <FitText
               as="p"
               maxLines={2}
