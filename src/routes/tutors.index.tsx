@@ -38,6 +38,7 @@ import { matchesCategoryFilter, matchesSubjectQuery } from "@/features/tutors/su
 import {
   matchesAnyHighSchoolFilter,
   matchesAnyUniversityFilter,
+  matchesMajorFilter,
   isElitePedigree,
 } from "@/features/tutors/education-filters";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +56,7 @@ const searchSchema = z.object({
   ), // issue #142: Verified Tutors Only (tier_2_verified), default off
   university: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
   high_school: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
+  major: z.string().optional(), // issue #23 exact major over the free-text degree fields
   min_price: z.coerce.number().int().min(0).optional(),
   max_price: z.coerce.number().int().min(0).optional(),
   sort: z.string().optional(), // "" | price_asc | price_desc
@@ -141,6 +143,7 @@ function TutorsDirectory() {
   const verifiedOnly = search.verified === true;
   const universityFilter = draft.university ?? "";
   const highSchoolFilter = draft.high_school ?? "";
+  const majorFilter = draft.major ?? "";
   const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
 
   const filtered = useMemo(() => {
@@ -184,6 +187,14 @@ function TutorsDirectory() {
         })
       )
         return false;
+      // Issue #23: exact major over the free-text degree fields.
+      if (
+        !matchesMajorFilter(majorFilter, {
+          undergradDegree: tut.undergrad_degree,
+          postgradDegree: tut.postgrad_degree,
+        })
+      )
+        return false;
       if (
         query &&
         !(
@@ -222,6 +233,7 @@ function TutorsDirectory() {
     verifiedOnly,
     universityFilter,
     highSchoolFilter,
+    majorFilter,
     draft.q,
     draft.min_price,
     draft.max_price,
@@ -231,7 +243,8 @@ function TutorsDirectory() {
   // Issue #130: when the pedigree filters alone zero out the results, show a
   // friendly empty state plus a fallback list of elite-pedigree tutors instead
   // of the generic "no matches" block.
-  const educationFiltered = universityFilter !== "" || highSchoolFilter !== "";
+  const educationFiltered =
+    universityFilter !== "" || highSchoolFilter !== "" || majorFilter !== "";
   const fallbackTutors = useMemo(() => {
     if (!educationFiltered || filtered.length > 0) return [];
     return tutors

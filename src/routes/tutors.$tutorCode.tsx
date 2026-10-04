@@ -75,11 +75,12 @@ function buildTutorSeoMeta(tutor: Tutor, url: string) {
   return { title, description, url };
 }
 
-/** "HKUST - BSc Mathematics" / just the institution when no degree is stored. */
+/** Issue #23 header format: "HKU (Bachelor of Engineering in Computer
+ * Engineering)" / just the institution when no degree is stored. */
 function formatInstitutionDegree(institution: string | null, degree: string | null) {
   const school = institution?.trim() ?? "";
   const programme = degree?.trim() ?? "";
-  if (school && programme) return `${school} - ${programme}`;
+  if (school && programme) return `${school} (${programme})`;
   return school || programme;
 }
 

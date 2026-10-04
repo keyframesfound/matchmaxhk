@@ -173,6 +173,27 @@ export function matchesAnyHighSchoolFilter(
   return value.split(",").some((part) => matchesHighSchoolFilter(part, texts));
 }
 
+/**
+ * Issue #23: EXACT major search over the free-text degree fields. Majors are
+ * an open list (tutors add their own), so unlike the university/school
+ * buckets there are no canonical matchers — the filter matches when a
+ * degree text equals the filter, ignoring case and whitespace runs.
+ */
+export function matchesMajorFilter(
+  filter: string | null | undefined,
+  texts: { undergradDegree?: string | null; postgradDegree?: string | null },
+): boolean {
+  const value = collapse(filter ?? "");
+  if (!value) return true;
+
+  const degreeTexts = [texts.undergradDegree, texts.postgradDegree]
+    .filter((t): t is string => typeof t === "string" && t.trim().length > 0)
+    .map(collapse);
+  if (degreeTexts.length === 0) return false;
+
+  return degreeTexts.some((text) => text === value);
+}
+
 /** Fallback list ordering for the "no exact match" empty state (issue #130):
  * elite-pedigree-first, i.e. overseas/ONG institutions before the rest. */
 export function isElitePedigree(texts: EducationTexts): boolean {
@@ -237,5 +258,31 @@ export function highSchoolEditorOptions(currentValue: string | null | undefined)
   const options = HIGH_SCHOOL_SUGGESTIONS.filter(
     (name) => name.toLowerCase() !== value.toLowerCase(),
   );
+  return value ? [value, ...options] : [...options];
+}
+
+/**
+ * Issue #23: majors are an OPEN list — tutors (and admins) can add their own,
+ * there is no closed canonical set. Common HK programme names are surfaced as
+ * suggestions in the SearchableSelect, with allowCustom keeping any typed
+ * major. The current value always leads so edits never fight the list.
+ */
+export const MAJOR_SUGGESTIONS = [
+  "Bachelor of Engineering in Computer Engineering",
+  "Bachelor of Engineering in Mechanical Engineering",
+  "Bachelor of Science in Computer Science",
+  "Bachelor of Science in Mathematics",
+  "Bachelor of Science in Physics",
+  "Bachelor of Science in Biochemistry",
+  "Bachelor of Business Administration",
+  "Bachelor of Arts in English",
+  "LLB Bachelor of Laws",
+  "MBBS Medicine",
+] as const;
+
+/** Options for the editor's major dropdown: suggestions + the current free-text value (deduped, case-insensitive). */
+export function majorEditorOptions(currentValue: string | null | undefined): string[] {
+  const value = currentValue?.trim() ?? "";
+  const options = MAJOR_SUGGESTIONS.filter((name) => name.toLowerCase() !== value.toLowerCase());
   return value ? [value, ...options] : [...options];
 }

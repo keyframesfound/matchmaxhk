@@ -1131,7 +1131,11 @@
     "high_school_island-school": "港島中學（ESF）",
     "high_school_hku-space-ccc-heung-yee-chung": "港大附屬學院／香島專科學校",
     "high_school_queen-elizabeth": "伊利沙伯中學（QES）",
-    "show_tutors_one": "顯示 {{count}} 位導師"
+    "show_tutors_one": "顯示 {{count}} 位導師",
+    "major_title": "大學主修",
+    "major_any": "任何主修",
+    "major_search_placeholder": "搜尋主修…",
+    "major_empty": "搵唔到相關主修——繼續輸入即可新增"
   },
   "feedback": {
     "routing_title": "評價你嘅 MatchMax 體驗",

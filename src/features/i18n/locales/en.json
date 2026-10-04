@@ -1109,7 +1109,11 @@
     "high_school_west-island": "West Island School (ESF)",
     "high_school_island-school": "Island School (ESF)",
     "high_school_hku-space-ccc-heung-yee-chung": "HKU SPACE CC / Heung Yee Chung",
-    "high_school_queen-elizabeth": "Queen Elizabeth School (QES)"
+    "high_school_queen-elizabeth": "Queen Elizabeth School (QES)",
+    "major_title": "Major",
+    "major_any": "Any major",
+    "major_search_placeholder": "Search majors…",
+    "major_empty": "No major found — keep typing to add it"
   },
   "subjects": {
     "title": "Popular subjects",
