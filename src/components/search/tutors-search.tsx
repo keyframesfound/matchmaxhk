@@ -228,16 +228,18 @@ export function useTutorsCompactSegments(draft: TutorsSearchState): CompactSegme
   const { t } = useTranslation();
   return [
     {
-      // The first segment shows the keyword when set, otherwise the subject —
-      // so it opens the panel matching whatever it displays.
-      id: draft.q?.trim() ? "keyword" : "subject",
-      text: draft.q?.trim() || draft.subject || t("search_ui.compact_any_subject"),
+      id: "keyword",
+      text: draft.q?.trim() || t("search_ui.compact_any_keyword"),
     },
     {
       id: "category",
       text: draft.category
         ? tutorsCategoryLabel(draft.category, t)
         : t("search_ui.compact_any_curriculum"),
+    },
+    {
+      id: "subject",
+      text: draft.subject || t("search_ui.compact_any_subject"),
     },
     {
       id: "mode",

@@ -51,14 +51,16 @@ export function useCoursesCompactSegments(draft: CoursesSearchState): CompactSeg
   const { t } = useTranslation();
   return [
     {
-      // Shows the keyword when set, otherwise the subject — open whichever
-      // panel the displayed value belongs to.
-      id: draft.q?.trim() ? "keyword" : "subject",
-      text: draft.q?.trim() || draft.subject || t("search_ui.compact_any_subject"),
+      id: "keyword",
+      text: draft.q?.trim() || t("search_ui.compact_any_keyword"),
     },
     {
       id: "level",
       text: draft.level || t("search_ui.compact_any_level"),
+    },
+    {
+      id: "subject",
+      text: draft.subject || t("search_ui.compact_any_subject"),
     },
     {
       id: "mode",
