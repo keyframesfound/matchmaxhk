@@ -28,6 +28,7 @@ import {
   TARGET_PATHWAY_OPTIONS,
   TARGET_SCHOOL_OPTIONS,
   TUTOR_BACKGROUND_OPTIONS,
+  COMPONENT_SENTINEL,
   getComponentOptionsForCurriculum,
   getSubjectOptionsForCurriculum,
 } from "@/features/cases/case-options";
@@ -139,7 +140,14 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
 
   useEffect(() => {
     if (!restored) return;
-    setForm((prev) => ({ ...prev, ...restored }));
+    // Drop stale option values (e.g. the removed "bilingual" token) from
+    // older drafts so submit-time validation can't reject them.
+    const languages = Array.isArray(restored.instructionLanguage)
+      ? restored.instructionLanguage.filter((v) =>
+          INSTRUCTION_LANGUAGE_OPTIONS.some((o) => o.value === v),
+        )
+      : [];
+    setForm((prev) => ({ ...prev, ...restored, instructionLanguage: languages }));
   }, [restored]);
 
   const isBlankDraft = (value: FormState) =>
@@ -286,7 +294,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           curriculum: admissions ? form.curriculum || ADMISSIONS_CURRICULUM : form.curriculum,
           subjects,
           specificComponent:
-            !admissions && form.specificComponent !== "None"
+            !admissions && form.specificComponent !== COMPONENT_SENTINEL
               ? form.specificComponent || null
               : null,
           instructionLanguage: admissions ? [] : form.instructionLanguage,
@@ -296,7 +304,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           targetPathway: admissions ? form.targetPathway : null,
           targetSchool: admissions ? form.targetSchool.trim() || null : null,
           interviewTest: admissions ? form.interviewTest : null,
-          mode: form.deliveryMode as "online" | "offline" | "both" | "no_pref",
+          mode: (form.deliveryMode === "both" ? "no_pref" : form.deliveryMode) as
+            "online" | "offline" | "both" | "no_pref",
           district: form.deliveryMode !== "online" ? form.district || null : null,
           budgetMin: form.budgetMin ? Number(form.budgetMin) : null,
           budgetMax: form.budgetMax ? Number(form.budgetMax) : null,
@@ -616,6 +625,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                   </ToggleGroupItem>
                 ))}
               </ToggleGroup>
+              <p className="mt-1.5 text-xs text-muted-foreground">You can select more than one.</p>
               {errors.instructionLanguage && errors.instructionLanguage !== "Required" ? (
                 <p className="mt-1 text-xs font-semibold text-destructive">
                   {errors.instructionLanguage}
