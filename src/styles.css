@@ -693,8 +693,9 @@ html {
  * Airbnb-style elevation — the ONLY sanctioned shadow usage in this flat,
  * border-delineated design system (explicit user exception). Scope: the
  * mobile "Start your search" trigger and quick-nav pills rendered by
- * src/components/search/mobile-search-trigger.tsx. Do not reuse these
- * classes anywhere else, and do not add new shadow rules.
+ * src/components/search/mobile-search-trigger.tsx, plus the desktop search
+ * bar family (SearchPillBar band + panel, CompactSearchPill) which shares
+ * the same elevation language per user request. Do not add new shadow rules.
  */
 .pill-elevate,
 .pill-elevate-lg,
