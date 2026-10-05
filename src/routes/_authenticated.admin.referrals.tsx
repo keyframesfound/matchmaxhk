@@ -26,6 +26,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { cn } from "@/lib/utils";
+import { formatMoneyFromCents } from "@/lib/money";
 
 export const Route = createFileRoute("/_authenticated/admin/referrals")({
   head: () => ({
@@ -94,13 +95,7 @@ const APPLICATION_STATUS_PILL: Record<ReferredApplicationRow["status"], string> 
 };
 
 function formatHkd(cents: number): string {
-  const dollars = cents / 100;
-  return new Intl.NumberFormat("en-HK", {
-    style: "currency",
-    currency: "HKD",
-    minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2,
-    maximumFractionDigits: 2,
-  }).format(dollars);
+  return formatMoneyFromCents(cents);
 }
 
 function formatDate(value: string): string {

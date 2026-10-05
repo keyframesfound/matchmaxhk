@@ -16,12 +16,25 @@ export type TutorPriceDisplay = {
 };
 
 /**
- * Card price model derived from the per-curriculum pricing tiers; tutors
- * without tiers fall back to the flat hourly_rate.
+ * Card price model (issue #112): prefers the HKD-normalized snapshots the DB
+ * trigger maintains from pricing_tiers / hourly_rate, so tutors quoting in
+ * any supported currency sort, filter and display consistently in HKD. Falls
+ * back to the legacy native derivation when the snapshots are missing
+ * (pre-migration rows, stale tabs).
  */
 export function getTutorPriceDisplay(
-  tutor: Pick<Tutor, "hourly_rate" | "pricing_tiers">,
+  tutor: Pick<
+    Tutor,
+    "hourly_rate" | "pricing_tiers" | "currency" | "min_hourly_rate_hkd" | "max_hourly_rate_hkd"
+  >,
 ): TutorPriceDisplay {
+  if (tutor.min_hourly_rate_hkd !== null && tutor.min_hourly_rate_hkd !== undefined) {
+    const maxHkd = tutor.max_hourly_rate_hkd;
+    return {
+      baseRate: tutor.min_hourly_rate_hkd,
+      isRange: maxHkd !== null && maxHkd !== undefined && maxHkd > tutor.min_hourly_rate_hkd,
+    };
+  }
   const rates = (tutor.pricing_tiers ?? [])
     .map((tier) => tier.rate)
     .filter((rate) => Number.isFinite(rate));
@@ -31,7 +44,12 @@ export function getTutorPriceDisplay(
 }
 
 /** Lowest base hourly rate — shared by price filters, sorting and the histogram. */
-export function getTutorBaseRate(tutor: Pick<Tutor, "hourly_rate" | "pricing_tiers">): number {
+export function getTutorBaseRate(
+  tutor: Pick<
+    Tutor,
+    "hourly_rate" | "pricing_tiers" | "currency" | "min_hourly_rate_hkd" | "max_hourly_rate_hkd"
+  >,
+): number {
   return getTutorPriceDisplay(tutor).baseRate;
 }
 

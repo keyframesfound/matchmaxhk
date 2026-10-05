@@ -177,6 +177,27 @@ export type Database = {
           },
         ];
       };
+      exchange_rates: {
+        Row: {
+          rate: number;
+          source_currency: Database["public"]["Enums"]["supported_currency"];
+          target_currency: Database["public"]["Enums"]["supported_currency"];
+          updated_at: string;
+        };
+        Insert: {
+          rate: number;
+          source_currency: Database["public"]["Enums"]["supported_currency"];
+          target_currency: Database["public"]["Enums"]["supported_currency"];
+          updated_at?: string;
+        };
+        Update: {
+          rate?: number;
+          source_currency?: Database["public"]["Enums"]["supported_currency"];
+          target_currency?: Database["public"]["Enums"]["supported_currency"];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       organization_members: {
         Row: {
           claimed_at: string | null;
@@ -683,8 +704,11 @@ export type Database = {
         Row: {
           assigned_to: string | null;
           board_published_at: string | null;
+          budget_currency: Database["public"]["Enums"]["supported_currency"];
           budget_max: number | null;
+          budget_max_hkd: number | null;
           budget_min: number | null;
+          budget_min_hkd: number | null;
           case_code: string;
           contact_name: string;
           contact_phone: string;
@@ -728,8 +752,11 @@ export type Database = {
         Insert: {
           assigned_to?: string | null;
           board_published_at?: string | null;
+          budget_currency?: Database["public"]["Enums"]["supported_currency"];
           budget_max?: number | null;
+          budget_max_hkd?: number | null;
           budget_min?: number | null;
+          budget_min_hkd?: number | null;
           case_code?: string;
           contact_name: string;
           contact_phone: string;
@@ -773,8 +800,11 @@ export type Database = {
         Update: {
           assigned_to?: string | null;
           board_published_at?: string | null;
+          budget_currency?: Database["public"]["Enums"]["supported_currency"];
           budget_max?: number | null;
+          budget_max_hkd?: number | null;
           budget_min?: number | null;
+          budget_min_hkd?: number | null;
           case_code?: string;
           contact_name?: string;
           contact_phone?: string;
@@ -846,6 +876,7 @@ export type Database = {
           badge: string | null;
           created_at: string;
           created_by: string | null;
+          currency: Database["public"]["Enums"]["supported_currency"];
           display_name: string;
           district: string | null;
           experience_years: number | null;
@@ -860,6 +891,8 @@ export type Database = {
           is_published: boolean;
           languages: string[];
           lesson_mode: Database["public"]["Enums"]["case_mode"];
+          max_hourly_rate_hkd: number | null;
+          min_hourly_rate_hkd: number | null;
           photo_url: string | null;
           pricing_tiers: Json;
           qualifications_summary: string | null;
@@ -895,6 +928,7 @@ export type Database = {
           badge?: string | null;
           created_at?: string;
           created_by?: string | null;
+          currency?: Database["public"]["Enums"]["supported_currency"];
           display_name: string;
           district?: string | null;
           experience_years?: number | null;
@@ -909,6 +943,8 @@ export type Database = {
           is_published?: boolean;
           languages?: string[];
           lesson_mode?: Database["public"]["Enums"]["case_mode"];
+          max_hourly_rate_hkd?: number | null;
+          min_hourly_rate_hkd?: number | null;
           photo_url?: string | null;
           pricing_tiers?: Json;
           qualifications_summary?: string | null;
@@ -941,6 +977,7 @@ export type Database = {
           badge?: string | null;
           created_at?: string;
           created_by?: string | null;
+          currency?: Database["public"]["Enums"]["supported_currency"];
           display_name?: string;
           district?: string | null;
           experience_years?: number | null;
@@ -955,6 +992,8 @@ export type Database = {
           is_published?: boolean;
           languages?: string[];
           lesson_mode?: Database["public"]["Enums"]["case_mode"];
+          max_hourly_rate_hkd?: number | null;
+          min_hourly_rate_hkd?: number | null;
           photo_url?: string | null;
           pricing_tiers?: Json;
           qualifications_summary?: string | null;
@@ -1104,6 +1143,7 @@ export type Database = {
       org_plan: "business" | "enterprise";
       org_status: "pending" | "active" | "suspended";
       referral_bounty_status: "pending" | "ready_for_payout" | "paid";
+      supported_currency: "AUD" | "CAD" | "CNY" | "EUR" | "GBP" | "HKD" | "SGD" | "USD";
       tutor_application_status: "pending" | "accepted" | "rejected";
     };
     CompositeTypes: {
@@ -1236,6 +1276,7 @@ export const Constants = {
       org_plan: ["business", "enterprise"],
       org_status: ["pending", "active", "suspended"],
       referral_bounty_status: ["pending", "ready_for_payout", "paid"],
+      supported_currency: ["AUD", "CAD", "CNY", "EUR", "GBP", "HKD", "SGD", "USD"],
       tutor_application_status: ["pending", "accepted", "rejected"],
     },
   },

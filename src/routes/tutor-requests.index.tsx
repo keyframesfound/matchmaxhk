@@ -39,7 +39,7 @@ import {
   CaseCompareToggle,
   useCaseCompare,
 } from "@/features/cases/compare-cases";
-import { CASE_MODE_LABEL, formatCaseBudget, formatCaseSchedule } from "@/features/cases/display";
+import { CASE_MODE_LABEL, formatCaseBudgetHkd, formatCaseSchedule } from "@/features/cases/display";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
 export const Route = createFileRoute("/tutor-requests/")({
@@ -143,7 +143,7 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
             </span>
             <span className="flex items-center gap-1">
               <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
-              {formatCaseBudget(item.budgetMin, item.budgetMax)}
+              {formatCaseBudgetHkd(item)}
             </span>
           </div>
           {pills.length > 0 ? (

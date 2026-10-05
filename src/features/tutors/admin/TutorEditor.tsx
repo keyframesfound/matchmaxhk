@@ -1289,6 +1289,11 @@ export function TutorEditor({
       lesson_mode: form.lesson_mode,
       hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
       pricing_tiers: cleanFormPricingTiers(form.pricing_tiers),
+      // Issue #112: the preview derives from native HKD inputs; normalized
+      // snapshots only exist on saved rows.
+      currency: "HKD",
+      min_hourly_rate_hkd: null,
+      max_hourly_rate_hkd: null,
       photo_url: form.photo_url?.trim() || null,
       portfolio_images: form.portfolio_images,
       tutor_code: form.tutor_code.trim() || "MM-PREVIEW",

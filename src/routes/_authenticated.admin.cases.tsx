@@ -43,6 +43,7 @@ import {
   START_LABEL,
   STATUS_LABEL,
   STATUS_PILL_CLASS,
+  caseBudgetHkdBounds,
   whatsappUrl,
   type CaseRow,
   type CaseStatus,
@@ -209,8 +210,14 @@ function AdminCases() {
       { label: "Student level", value: (row) => row.student_level },
       { label: "District", value: (row) => row.district ?? "" },
       { label: "Lesson mode", value: (row) => MODE_LABEL[row.mode] ?? row.mode },
-      { label: "Budget min (HKD)", value: (row) => String(row.budget_min ?? "") },
-      { label: "Budget max (HKD)", value: (row) => String(row.budget_max ?? "") },
+      {
+        label: "Budget min (HKD)",
+        value: (row) => String(caseBudgetHkdBounds(row).min ?? ""),
+      },
+      {
+        label: "Budget max (HKD)",
+        value: (row) => String(caseBudgetHkdBounds(row).max ?? ""),
+      },
       { label: "Start timing", value: (row) => START_LABEL[row.start_timing ?? ""] ?? "" },
       { label: "Tags", value: (row) => (row.tags ?? []).join("; ") },
       { label: "Received", value: (row) => new Date(row.created_at).toISOString() },
@@ -398,158 +405,161 @@ function AdminCases() {
                     />
                   )}
 
-                  {filtered.map((row) => (
-                    <tr
-                      key={row.id}
-                      className={cn(
-                        "transition-colors hover:bg-[color:var(--surface-subtle)]/40",
-                        selectedIds.has(row.id) && "bg-[color:var(--foreground)]/[0.04]",
-                      )}
-                    >
-                      <ConsoleTd>
-                        <Checkbox
-                          className="rounded-[4px]"
-                          checked={selectedIds.has(row.id)}
-                          onCheckedChange={() => toggleOne(row.id)}
-                          aria-label={`Select case ${row.case_code}`}
-                        />
-                      </ConsoleTd>
-                      <ConsoleTd>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-sm font-bold text-[color:var(--ink)]">
-                            {row.case_code}
-                          </span>
-                          {row.start_timing === "asap" && (
-                            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
-                              <Flame className="mr-0.5 h-3 w-3" aria-hidden="true" />
-                              ASAP
-                            </span>
-                          )}
-                          {row.board_published_at && (
-                            <span
-                              className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400"
-                              title="Live on the public tutor request board"
-                            >
-                              On board
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-0.5 max-w-xs truncate text-xs text-muted-foreground">
-                          {row.title}
-                        </p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground/80">
-                          {formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}
-                        </p>
-                      </ConsoleTd>
-                      <ConsoleTd>
-                        <div className="text-sm font-bold text-[color:var(--ink)]">
-                          {row.contact_name}
-                        </div>
-                        <a
-                          href={whatsappUrl(row.contact_phone)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-[color:var(--ink)]"
-                        >
-                          <MessageCircle className="h-3 w-3" aria-hidden="true" />
-                          {row.contact_phone}
-                        </a>
-                      </ConsoleTd>
-                      <ConsoleTd>
-                        <div className="flex flex-wrap gap-1 max-w-[12rem]">
-                          {(row.subjects ?? []).slice(0, 2).map((s) => (
-                            <span
-                              key={s}
-                              className="inline-flex items-center rounded-md bg-[color:var(--ink)]/[0.06] px-2 py-0.5 text-[11px] font-medium text-[color:var(--ink)]"
-                            >
-                              {s}
-                            </span>
-                          ))}
-                          {(row.subjects ?? []).length > 2 && (
-                            <span className="self-center text-[11px] text-muted-foreground">
-                              +{(row.subjects ?? []).length - 2} more
-                            </span>
-                          )}
-                        </div>
-                        <div className="mt-0.5 text-[11px] text-muted-foreground">
-                          {row.student_level}
-                        </div>
-                      </ConsoleTd>
-                      <ConsoleTd className="text-xs">
-                        <div className="font-medium capitalize text-[color:var(--ink)]">
-                          {MODE_LABEL[row.mode] ?? row.mode}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground">
-                          {row.district ?? "Any area"}
-                        </div>
-                      </ConsoleTd>
-                      <ConsoleTd className="text-xs font-semibold text-[color:var(--ink)]">
-                        {row.budget_min === null && row.budget_max === null ? (
-                          <span className="font-normal text-muted-foreground">Not set</span>
-                        ) : (
-                          <>
-                            HK${row.budget_min ?? "?"}-{row.budget_max ?? "?"}
-                            <span className="text-[11px] font-normal text-muted-foreground">
-                              /hr
-                            </span>
-                          </>
+                  {filtered.map((row) => {
+                    const budgetBounds = caseBudgetHkdBounds(row);
+                    return (
+                      <tr
+                        key={row.id}
+                        className={cn(
+                          "transition-colors hover:bg-[color:var(--surface-subtle)]/40",
+                          selectedIds.has(row.id) && "bg-[color:var(--foreground)]/[0.04]",
                         )}
-                      </ConsoleTd>
-                      <ConsoleTd>
-                        <span
-                          className={cn(
-                            "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold",
-                            STATUS_PILL_CLASS[row.status],
-                          )}
-                        >
-                          {STATUS_LABEL[row.status]}
-                        </span>
-                      </ConsoleTd>
-                      <ConsoleTd>
-                        <div className="flex flex-wrap gap-1 max-w-[10rem]">
-                          {(row.tags ?? []).length === 0 ? (
-                            <span className="text-[11px] text-muted-foreground/70">None</span>
+                      >
+                        <ConsoleTd>
+                          <Checkbox
+                            className="rounded-[4px]"
+                            checked={selectedIds.has(row.id)}
+                            onCheckedChange={() => toggleOne(row.id)}
+                            aria-label={`Select case ${row.case_code}`}
+                          />
+                        </ConsoleTd>
+                        <ConsoleTd>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono text-sm font-bold text-[color:var(--ink)]">
+                              {row.case_code}
+                            </span>
+                            {row.start_timing === "asap" && (
+                              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                                <Flame className="mr-0.5 h-3 w-3" aria-hidden="true" />
+                                ASAP
+                              </span>
+                            )}
+                            {row.board_published_at && (
+                              <span
+                                className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400"
+                                title="Live on the public tutor request board"
+                              >
+                                On board
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-0.5 max-w-xs truncate text-xs text-muted-foreground">
+                            {row.title}
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground/80">
+                            {formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}
+                          </p>
+                        </ConsoleTd>
+                        <ConsoleTd>
+                          <div className="text-sm font-bold text-[color:var(--ink)]">
+                            {row.contact_name}
+                          </div>
+                          <a
+                            href={whatsappUrl(row.contact_phone)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-[color:var(--ink)]"
+                          >
+                            <MessageCircle className="h-3 w-3" aria-hidden="true" />
+                            {row.contact_phone}
+                          </a>
+                        </ConsoleTd>
+                        <ConsoleTd>
+                          <div className="flex flex-wrap gap-1 max-w-[12rem]">
+                            {(row.subjects ?? []).slice(0, 2).map((s) => (
+                              <span
+                                key={s}
+                                className="inline-flex items-center rounded-md bg-[color:var(--ink)]/[0.06] px-2 py-0.5 text-[11px] font-medium text-[color:var(--ink)]"
+                              >
+                                {s}
+                              </span>
+                            ))}
+                            {(row.subjects ?? []).length > 2 && (
+                              <span className="self-center text-[11px] text-muted-foreground">
+                                +{(row.subjects ?? []).length - 2} more
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-0.5 text-[11px] text-muted-foreground">
+                            {row.student_level}
+                          </div>
+                        </ConsoleTd>
+                        <ConsoleTd className="text-xs">
+                          <div className="font-medium capitalize text-[color:var(--ink)]">
+                            {MODE_LABEL[row.mode] ?? row.mode}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {row.district ?? "Any area"}
+                          </div>
+                        </ConsoleTd>
+                        <ConsoleTd className="text-xs font-semibold text-[color:var(--ink)]">
+                          {budgetBounds.min === null && budgetBounds.max === null ? (
+                            <span className="font-normal text-muted-foreground">Not set</span>
                           ) : (
                             <>
-                              {(row.tags ?? []).slice(0, 2).map((t) => (
-                                <span
-                                  key={t}
-                                  className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-0.5 text-[10px] font-bold text-[color:var(--foreground)]"
-                                >
-                                  {t}
-                                </span>
-                              ))}
-                              {(row.tags ?? []).length > 2 && (
-                                <span className="self-center text-[10px] text-muted-foreground">
-                                  +{(row.tags ?? []).length - 2}
-                                </span>
-                              )}
+                              HK${budgetBounds.min ?? "?"}-{budgetBounds.max ?? "?"}
+                              <span className="text-[11px] font-normal text-muted-foreground">
+                                /hr
+                              </span>
                             </>
                           )}
-                        </div>
-                      </ConsoleTd>
-                      <ConsoleTd align="right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setOpenId(row.id)}
-                            className="h-8 text-xs"
+                        </ConsoleTd>
+                        <ConsoleTd>
+                          <span
+                            className={cn(
+                              "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold",
+                              STATUS_PILL_CLASS[row.status],
+                            )}
                           >
-                            Open
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => setDeletingId(row.id)}
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </ConsoleTd>
-                    </tr>
-                  ))}
+                            {STATUS_LABEL[row.status]}
+                          </span>
+                        </ConsoleTd>
+                        <ConsoleTd>
+                          <div className="flex flex-wrap gap-1 max-w-[10rem]">
+                            {(row.tags ?? []).length === 0 ? (
+                              <span className="text-[11px] text-muted-foreground/70">None</span>
+                            ) : (
+                              <>
+                                {(row.tags ?? []).slice(0, 2).map((t) => (
+                                  <span
+                                    key={t}
+                                    className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-0.5 text-[10px] font-bold text-[color:var(--foreground)]"
+                                  >
+                                    {t}
+                                  </span>
+                                ))}
+                                {(row.tags ?? []).length > 2 && (
+                                  <span className="self-center text-[10px] text-muted-foreground">
+                                    +{(row.tags ?? []).length - 2}
+                                  </span>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </ConsoleTd>
+                        <ConsoleTd align="right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setOpenId(row.id)}
+                              className="h-8 text-xs"
+                            >
+                              Open
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => setDeletingId(row.id)}
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </ConsoleTd>
+                      </tr>
+                    );
+                  })}
                 </ConsoleTableBody>
               </ConsoleTable>
             </div>

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { TARGET_PATHWAY_LABELS, TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
+import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
 
 const phoneRegex = /^[+(\d][\d\s()./+-]{4,19}\d$/;
 
@@ -35,6 +36,9 @@ const CaseRequestInput = z
     district: z.string().trim().max(80).optional().nullable(),
     budgetMin: z.number().int().min(0).max(100000).optional().nullable(),
     budgetMax: z.number().int().min(0).max(100000).optional().nullable(),
+    // Issue #112: native budget currency. The public form stays HKD-only
+    // until #114 ships the selector; the API already accepts the field.
+    budgetCurrency: z.enum(SUPPORTED_CURRENCIES).optional(),
     tutorBackground: z.enum(["uni_student", "official_examiner", "any"]),
     notes: z.string().trim().max(2000).optional().nullable(),
     termsAck: z.literal(true),
@@ -111,14 +115,17 @@ export type PublicCaseBoardItem = {
   tags: string[];
   preferredGender: "any" | "male" | "female";
   startTiming: string | null;
+  budgetCurrency: string;
   budgetMin: number | null;
   budgetMax: number | null;
+  budgetMinHkd: number | null;
+  budgetMaxHkd: number | null;
   boardPublishedAt: string | null;
   createdAt: string;
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, preferred_gender, start_timing, budget_min, budget_max, board_published_at, created_at";
+  "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, preferred_gender, start_timing, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
@@ -141,8 +148,11 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
     tags: (row.tags as string[] | null) ?? [],
     preferredGender: (row.preferred_gender as "any" | "male" | "female") ?? "any",
     startTiming: (row.start_timing as string | null) ?? null,
+    budgetCurrency: (row.budget_currency as string) ?? "HKD",
     budgetMin: (row.budget_min as number | null) ?? null,
     budgetMax: (row.budget_max as number | null) ?? null,
+    budgetMinHkd: (row.budget_min_hkd as number | null) ?? null,
+    budgetMaxHkd: (row.budget_max_hkd as number | null) ?? null,
     boardPublishedAt: (row.board_published_at as string | null) ?? null,
     createdAt: row.created_at as string,
   };
@@ -316,6 +326,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       preferred_gender: "any" as const,
       budget_min: data.budgetMin ?? null,
       budget_max: data.budgetMax ?? null,
+      budget_currency: data.budgetCurrency ?? DEFAULT_CURRENCY,
       contact_name: data.parentName,
       contact_phone: data.contactPhone,
       source: "website",
