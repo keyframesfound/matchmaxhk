@@ -75,8 +75,11 @@ export const ADMISSIONS_CATEGORY_OPTIONS = [
   },
 ];
 
-// Curriculum-specific components. Curricula without components still show
-// the dropdown with a single "None" option (decided: show with 'None').
+// Curriculum-specific components. The sentinel option is worded
+// "Subject Tutoring" (issue #182) — plain tutoring rather than a named
+// component like IA/EE/TOK; it is stripped before persisting.
+export const COMPONENT_SENTINEL = "Subject Tutoring";
+
 export const CURRICULUM_COMPONENTS: Record<string, string[]> = {
   IB: ["IA", "EE", "TOK"],
   "Primary School": ["Phonics"],
@@ -85,19 +88,21 @@ export const CURRICULUM_COMPONENTS: Record<string, string[]> = {
   "Int'l Primary": ["Phonics"],
 };
 
+// "Bilingual" removed (issue #184): parents combine English + Cantonese +
+// Mandarin via multi-select instead.
 export const INSTRUCTION_LANGUAGE_OPTIONS = [
   { value: "english_only", label: "English" },
   { value: "cantonese", label: "Cantonese" },
   { value: "mandarin", label: "Mandarin" },
-  { value: "bilingual", label: "Bilingual" },
   { value: "any", label: "No preference" },
 ];
 
 // "offline" maps to DB 'in_person'; "both"/"no_pref" map to DB 'either'.
+// Legacy rows stored with mode "both" still render via DELIVERY_MODE_LABELS
+// (no_pref and both share the "No preference" label now that "Both" is gone).
 export const DELIVERY_MODE_OPTIONS = [
   { value: "online", label: "Online" },
   { value: "offline", label: "In Person" },
-  { value: "both", label: "Both" },
   { value: "no_pref", label: "No preference" },
 ];
 
@@ -165,7 +170,7 @@ export const SCHOOL_TYPE_OPTIONS = [
 ];
 
 export function getComponentOptionsForCurriculum(curriculum: string): string[] {
-  return ["None", ...(CURRICULUM_COMPONENTS[curriculum] ?? [])];
+  return [COMPONENT_SENTINEL, ...(CURRICULUM_COMPONENTS[curriculum] ?? [])];
 }
 
 // Subjects locked to the selected curriculum; empty until one is chosen.
