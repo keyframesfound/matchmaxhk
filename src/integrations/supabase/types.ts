@@ -686,7 +686,6 @@ export type Database = {
           budget_max: number | null;
           budget_min: number | null;
           case_code: string;
-          contact_email: string | null;
           contact_name: string;
           contact_phone: string;
           created_at: string;
@@ -732,7 +731,6 @@ export type Database = {
           budget_max?: number | null;
           budget_min?: number | null;
           case_code?: string;
-          contact_email?: string | null;
           contact_name: string;
           contact_phone: string;
           created_at?: string;
@@ -778,7 +776,6 @@ export type Database = {
           budget_max?: number | null;
           budget_min?: number | null;
           case_code?: string;
-          contact_email?: string | null;
           contact_name?: string;
           contact_phone?: string;
           created_at?: string;

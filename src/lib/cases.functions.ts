@@ -120,7 +120,7 @@ export type PublicCaseBoardItem = {
 const PUBLIC_CASE_COLUMNS =
   "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, preferred_gender, start_timing, budget_min, budget_max, board_published_at, created_at";
 
-// Never contact_name / contact_phone / contact_email / student_school / student_grade_current.
+// Never contact_name / contact_phone / student_school / student_grade_current.
 function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
   return {
     id: row.id as string,
