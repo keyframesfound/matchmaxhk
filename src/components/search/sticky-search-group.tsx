@@ -440,7 +440,7 @@ export function CompactSearchPill({
       onClick={() => expand()}
       aria-label={t("search_ui.compact_expand")}
       className={cn(
-        "group flex h-12 w-[min(36rem,calc(100vw-44rem))] min-w-56 items-center gap-2.5 rounded-full border border-border bg-card py-1 pr-1.5 pl-4 text-left transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+        "pill-elevate-lg group flex h-12 w-[min(36rem,calc(100vw-44rem))] min-w-56 items-center gap-2.5 rounded-full border border-border bg-card py-1 pr-1.5 pl-4 text-left transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
       )}
     >
       {icon ? (
