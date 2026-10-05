@@ -18,7 +18,7 @@ import {
   CaseCompareToggle,
   useCaseCompare,
 } from "@/features/cases/compare-cases";
-import { CASE_MODE_LABEL, formatCaseBudget, formatCaseSchedule } from "@/features/cases/display";
+import { CASE_MODE_LABEL, formatCaseBudgetHkd, formatCaseSchedule } from "@/features/cases/display";
 import { getPublicCaseBoard } from "@/lib/cases.functions";
 import { courseModeLabel, formatCoursePrice } from "@/features/courses/queries";
 import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
@@ -211,7 +211,7 @@ function SavedPostsPage() {
                             </span>
                             <span className="flex items-center gap-1">
                               <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
-                              {formatCaseBudget(item.budgetMin, item.budgetMax)}
+                              {formatCaseBudgetHkd(item)}
                             </span>
                           </div>
                         </div>

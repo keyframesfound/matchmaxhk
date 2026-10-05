@@ -18,7 +18,7 @@ import {
   CASE_GENDER_LABEL,
   CASE_MODE_LABEL,
   CASE_START_LABEL,
-  formatCaseBudget,
+  formatCaseBudgetHkd,
   formatCaseSchedule,
   formatStudentLevel,
 } from "@/features/cases/display";
@@ -229,7 +229,7 @@ function CaseCompareDialog({
       label: "Budget",
       render: (item) => (
         <p className="text-[13px] font-semibold text-[color:var(--ink)]">
-          {formatCaseBudget(item.budgetMin, item.budgetMax)}
+          {formatCaseBudgetHkd(item)}
         </p>
       ),
     },

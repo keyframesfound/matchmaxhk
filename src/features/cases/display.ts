@@ -62,6 +62,35 @@ export function formatCaseBudget(min: number | null, max: number | null): string
   return `HK$${min ?? "?"}–${max ?? "?"}/hr`;
 }
 
+/**
+ * Issue #112: budgets are stored in the requester's native currency
+ * (budget_min/max) alongside HKD-normalized snapshots maintained by the DB
+ * trigger. Public surfaces compare and display the normalized values; the
+ * native fallback covers pre-migration rows whose snapshots are still null.
+ */
+export function caseBudgetHkdBounds(item: {
+  budgetMin: number | null;
+  budgetMax: number | null;
+  budgetMinHkd: number | null;
+  budgetMaxHkd: number | null;
+}): { min: number | null; max: number | null } {
+  return {
+    min: item.budgetMinHkd ?? item.budgetMin,
+    max: item.budgetMaxHkd ?? item.budgetMax,
+  };
+}
+
+/** formatCaseBudget over the HKD-normalized bounds. */
+export function formatCaseBudgetHkd(item: {
+  budgetMin: number | null;
+  budgetMax: number | null;
+  budgetMinHkd: number | null;
+  budgetMaxHkd: number | null;
+}): string {
+  const { min, max } = caseBudgetHkdBounds(item);
+  return formatCaseBudget(min, max);
+}
+
 export function formatCaseSchedule(sessionsPerWeek: number, sessionLengthMinutes: number): string {
   return `${sessionsPerWeek}x/week · ${sessionLengthMinutes} min`;
 }

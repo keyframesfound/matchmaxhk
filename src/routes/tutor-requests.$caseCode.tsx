@@ -22,7 +22,7 @@ import {
   CASE_MODE_LABEL,
   CASE_START_LABEL,
   buildCaseApplyWhatsAppUrl,
-  formatCaseBudget,
+  formatCaseBudgetHkd,
   formatCaseSchedule,
   formatCaseTitle,
   formatStudentLevel,
@@ -90,10 +90,7 @@ function CaseDetailPage() {
     setIsSharing(true);
     void shareOrCopy({
       title: `${title} — Case ${item.caseCode} | MatchMax`,
-      text: `Check out this tutoring request (Case ${item.caseCode}) on MatchMax — ${formatCaseBudget(
-        item.budgetMin,
-        item.budgetMax,
-      )}.`,
+      text: `Check out this tutoring request (Case ${item.caseCode}) on MatchMax — ${formatCaseBudgetHkd(item)}.`,
       url: window.location.href,
     }).finally(() => setIsSharing(false));
   };
@@ -113,7 +110,7 @@ function CaseDetailPage() {
     },
     {
       icon: Wallet,
-      label: formatCaseBudget(item.budgetMin, item.budgetMax),
+      label: formatCaseBudgetHkd(item),
     },
   ];
 
