@@ -10,7 +10,6 @@ import {
   LocateFixed,
   Paperclip,
   Plus,
-  Scale,
   Send,
   ShieldCheck,
   Sparkles,
@@ -2038,23 +2037,6 @@ export function ApplicationForm() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <aside
-        aria-label="Display rules and legal warning"
-        className="mb-4 grid gap-3 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
-      >
-        <p className="flex items-center gap-2 text-xs font-medium text-[color:var(--ink)]">
-          <Scale className="h-4 w-4" aria-hidden="true" />
-          Legal Warning
-        </p>
-        <p className="flex gap-2.5 rounded-md border-l-2 border-destructive bg-destructive/5 px-3 py-2 text-sm leading-relaxed text-foreground">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden="true" />
-          <span>
-            <span className="font-bold text-destructive">Legal warning:</span> Providing fake
-            credentials is a violation of Hong Kong law. MatchMax bears no responsibility for
-            falsified evidence provided by the user, and offenders may face legal action.
-          </span>
-        </p>
-      </aside>
       {notice ? (
         <aside className="mb-8 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] px-4 py-3 text-sm leading-relaxed text-foreground">
           {notice}
