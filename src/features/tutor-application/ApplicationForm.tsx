@@ -904,6 +904,9 @@ type ApplicationBaseState = {
   portfolioConsent: boolean;
   selfIntroduction: string;
   hourlyRate: string;
+  // Issue #191: how many students the tutor can take on, surfaced on the
+  // Logistics step and passed through to the admin application email.
+  maxStudents: string;
   pricingStandardized: boolean;
   pricingTiers: { curriculum: string; rate: string }[];
   materials: string;
@@ -986,6 +989,7 @@ export function ApplicationForm() {
     portfolioConsent: false,
     selfIntroduction: "",
     hourlyRate: "",
+    maxStudents: "",
     pricingStandardized: true,
     pricingTiers: [],
     materials: "",
@@ -1641,7 +1645,7 @@ export function ApplicationForm() {
             ],
         materials: base.materials,
         format: base.format,
-        maxStudents: "",
+        maxStudents: base.maxStudents,
         locations: base.stations.join(", "),
         medium: base.medium.join(", "),
         notes: "",
@@ -3187,6 +3191,22 @@ export function ApplicationForm() {
                   />
                 </Field>
               </div>
+
+              {/* Issue #191: intake asks capacity up front so admin can compare
+                  supply against demand without a follow-up email. Optional. */}
+              <Field
+                label="How many students can you take on at once?"
+                hint="Leave blank if you're not sure yet."
+              >
+                <Input
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  value={base.maxStudents}
+                  onChange={(event) => setBaseField("maxStudents", event.target.value)}
+                  placeholder="2"
+                />
+              </Field>
 
               {/* Issue #108: per-curriculum pricing with a Standardize toggle.
                   The proposed hourly rate above stays the base/flat rate shown
