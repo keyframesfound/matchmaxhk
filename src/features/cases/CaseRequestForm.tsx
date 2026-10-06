@@ -34,6 +34,7 @@ import {
 } from "@/features/cases/case-options";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { useFormDraft } from "@/lib/use-form-draft";
+import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
 
 const PHONE_REGEX = /^[+(\d][\d\s()./+-]{4,19}\d$/;
@@ -137,6 +138,28 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const honeypot = useRef<HTMLInputElement>(null);
   const startedAt = useRef(Date.now());
   const { restored, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v6");
+  // Issue #186: deep link to the MatchMax hotline with a summary of the
+  // request once the case code exists (enabled only after a successful
+  // submit so the message can include it).
+  const whatsappDigits = useWhatsAppNumber(Boolean(result));
+  const whatsappSummary = result
+    ? [
+        `Hi MatchMax! I have just submitted a case request (${result.caseCode}).`,
+        form.parentName ? `Name: ${form.parentName}` : null,
+        form.curriculum ? `Curriculum: ${form.curriculum}` : null,
+        form.subject1 ? `Subjects: ${[form.subject1, form.subject2].filter(Boolean).join(", ")}` : null,
+        form.budgetMin || form.budgetMax
+          ? `Budget: ${form.budgetMin ? `$${form.budgetMin}` : ""}${form.budgetMax ? `-$${form.budgetMax}` : ""}`
+          : null,
+        form.district ? `District: ${form.district}` : null,
+      ]
+        .filter(Boolean)
+        .join("\n")
+    : "";
+  const whatsappHref =
+    result && whatsappDigits
+      ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(whatsappSummary)}`
+      : "";
 
   useEffect(() => {
     if (!restored) return;
@@ -388,11 +411,32 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           Our team reviews every request — once approved, your case appears on this board so
           qualified tutors can apply.
         </p>
-        <div className="mt-8 flex justify-center">
-          <Button variant="outline" className="h-11 rounded-sm px-6 font-bold" onClick={resetForm}>
-            Submit another request
-          </Button>
-        </div>
+        {whatsappHref ? (
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button asChild className="h-11 rounded-sm bg-[#25D366] px-6 font-bold text-white hover:bg-[#1ebe5b]">
+              <a href={whatsappHref} target="_blank" rel="noreferrer">
+                Continue on WhatsApp
+              </a>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-11 rounded-sm px-6 font-bold"
+              onClick={resetForm}
+            >
+              Submit another request
+            </Button>
+          </div>
+        ) : (
+          <div className="mt-8 flex justify-center">
+            <Button
+              variant="outline"
+              className="h-11 rounded-sm px-6 font-bold"
+              onClick={resetForm}
+            >
+              Submit another request
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
