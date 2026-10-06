@@ -147,7 +147,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         `Hi MatchMax! I have just submitted a case request (${result.caseCode}).`,
         form.parentName ? `Name: ${form.parentName}` : null,
         form.curriculum ? `Curriculum: ${form.curriculum}` : null,
-        form.subject1 ? `Subjects: ${[form.subject1, form.subject2].filter(Boolean).join(", ")}` : null,
+        form.subject1
+          ? `Subjects: ${[form.subject1, form.subject2].filter(Boolean).join(", ")}`
+          : null,
         form.budgetMin || form.budgetMax
           ? `Budget: ${form.budgetMin ? `$${form.budgetMin}` : ""}${form.budgetMax ? `-$${form.budgetMax}` : ""}`
           : null,
@@ -413,7 +415,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         </p>
         {whatsappHref ? (
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button asChild className="h-11 rounded-sm bg-[#25D366] px-6 font-bold text-white hover:bg-[#1ebe5b]">
+            <Button
+              asChild
+              className="h-11 rounded-sm bg-[#25D366] px-6 font-bold text-white hover:bg-[#1ebe5b]"
+            >
               <a href={whatsappHref} target="_blank" rel="noreferrer">
                 Continue on WhatsApp
               </a>
