@@ -190,7 +190,14 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   // Curriculum locking: subjects/components only populate for the active
   // curriculum; changing it instantly resets them to blank.
   const handleCurriculumChange = (value: string) => {
-    update({ curriculum: value, subject1: "", subject2: "", subject3: "", subject4: "", specificComponent: "" });
+    update({
+      curriculum: value,
+      subject1: "",
+      subject2: "",
+      subject3: "",
+      subject4: "",
+      specificComponent: "",
+    });
   };
 
   // Admissions auto-locks the curriculum to "University Admissions & Test
