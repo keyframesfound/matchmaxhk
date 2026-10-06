@@ -166,7 +166,7 @@ export const TUTOR_STATUS_OPTIONS: {
   label: string;
 }[] = [
   { value: "uni_student", label: "University student" },
-  { value: "full_part_time_tutor", label: "Full or part-time tutor" },
+  { value: "full_part_time_tutor", label: "Full/Part-Time Tutor" },
   { value: "examiner", label: "Examiner / professional teacher" },
 ];
 
