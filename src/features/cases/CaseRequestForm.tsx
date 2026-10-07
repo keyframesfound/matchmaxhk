@@ -77,6 +77,8 @@ type FormState = {
   curriculum: string;
   subject1: string;
   subject2: string;
+  subject3: string;
+  subject4: string;
   specificComponent: string;
   instructionLanguage: string[];
   year: string;
@@ -105,6 +107,8 @@ const INITIAL_FORM: FormState = {
   curriculum: "",
   subject1: "",
   subject2: "",
+  subject3: "",
+  subject4: "",
   specificComponent: "",
   instructionLanguage: [],
   year: "",
@@ -186,7 +190,14 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   // Curriculum locking: subjects/components only populate for the active
   // curriculum; changing it instantly resets them to blank.
   const handleCurriculumChange = (value: string) => {
-    update({ curriculum: value, subject1: "", subject2: "", specificComponent: "" });
+    update({
+      curriculum: value,
+      subject1: "",
+      subject2: "",
+      subject3: "",
+      subject4: "",
+      specificComponent: "",
+    });
   };
 
   // Admissions auto-locks the curriculum to "University Admissions & Test
@@ -202,6 +213,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             admissionsCategory: "",
             subject1: "",
             subject2: "",
+            subject3: "",
+            subject4: "",
             specificComponent: "",
           }
         : {
@@ -210,6 +223,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             admissionsCategory: "",
             subject1: "",
             subject2: "",
+            subject3: "",
+            subject4: "",
             specificComponent: "",
           },
     );
@@ -218,7 +233,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   // Switching the admissions sub-category narrows the subject pool and
   // clears any subject that may no longer belong.
   const handleAdmissionsCategoryChange = (value: string) => {
-    update({ admissionsCategory: value, subject1: "", subject2: "" });
+    update({ admissionsCategory: value, subject1: "", subject2: "", subject3: "", subject4: "" });
   };
 
   // MTR is hidden for online-only requests — clear any stale selection.
@@ -281,7 +296,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const submitMutation = useMutation({
     mutationFn: async () => {
       const admissions = isAdmissionsPath(form.supportType);
-      const subjects = [form.subject1, form.subject2]
+      const subjects = [form.subject1, form.subject2, form.subject3, form.subject4]
         .map((s) => s.trim())
         .filter(Boolean)
         .slice(0, 4);
@@ -599,6 +614,44 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 className={controlClassName}
               />
             </div>
+            {/* Issue #183: 3rd/4th subjects, revealed progressively like the
+                achievements/subjects pickers on the tutor application. */}
+            {form.subject2 ? (
+              <div>
+                <label className={labelClassName} htmlFor={`${idPrefix}-subject3`}>
+                  Third subject (Optional)
+                </label>
+                <SearchableSelect
+                  value={form.subject3}
+                  onChange={(v) => update({ subject3: v })}
+                  options={subjectOptions}
+                  allowCustom
+                  disabled={!form.curriculum}
+                  placeholder={form.curriculum ? "e.g. Physics" : "Select a curriculum first"}
+                  searchPlaceholder="Search subject..."
+                  emptyText="No matches — type to enter a custom subject."
+                  className={controlClassName}
+                />
+              </div>
+            ) : null}
+            {form.subject3 ? (
+              <div>
+                <label className={labelClassName} htmlFor={`${idPrefix}-subject4`}>
+                  Fourth subject (Optional)
+                </label>
+                <SearchableSelect
+                  value={form.subject4}
+                  onChange={(v) => update({ subject4: v })}
+                  options={subjectOptions}
+                  allowCustom
+                  disabled={!form.curriculum}
+                  placeholder={form.curriculum ? "e.g. Economics" : "Select a curriculum first"}
+                  searchPlaceholder="Search subject..."
+                  emptyText="No matches — type to enter a custom subject."
+                  className={controlClassName}
+                />
+              </div>
+            ) : null}
             <div className="sm:col-span-2">
               <label className={labelClassName} htmlFor={`${idPrefix}-language`}>
                 Instruction language
@@ -752,6 +805,41 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 className={controlClassName}
               />
             </div>
+            {/* Issue #183: 3rd/4th subjects for the admissions path too. */}
+            {form.subject2 ? (
+              <div>
+                <label className={labelClassName} htmlFor={`${idPrefix}-admissions-subject3`}>
+                  Third subject (Optional)
+                </label>
+                <SearchableSelect
+                  value={form.subject3}
+                  onChange={(v) => update({ subject3: v })}
+                  options={admissionsSubjectOptions}
+                  allowCustom
+                  placeholder="e.g. SAT"
+                  searchPlaceholder="Search subject..."
+                  emptyText="No matches — type to enter a custom subject."
+                  className={controlClassName}
+                />
+              </div>
+            ) : null}
+            {form.subject3 ? (
+              <div>
+                <label className={labelClassName} htmlFor={`${idPrefix}-admissions-subject4`}>
+                  Fourth subject (Optional)
+                </label>
+                <SearchableSelect
+                  value={form.subject4}
+                  onChange={(v) => update({ subject4: v })}
+                  options={admissionsSubjectOptions}
+                  allowCustom
+                  placeholder="e.g. IELTS"
+                  searchPlaceholder="Search subject..."
+                  emptyText="No matches — type to enter a custom subject."
+                  className={controlClassName}
+                />
+              </div>
+            ) : null}
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-pathway`}>
                 Target pathway
