@@ -163,10 +163,13 @@ export function SettingsPage() {
     [queryClient, userId],
   );
 
-  // Switching category swaps the whole content pane — always start at the top.
+  // Issue #198: jump to the top on mount only (covers deep links like
+  // /dashboard#security). Switching tabs must keep the scroll position —
+  // the sidebar sits mid-page, so resetting it on every click yanked the
+  // user's viewport back to the header on each switch.
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [activeCategory]);
+  }, []);
 
   if (!user) return null;
 
