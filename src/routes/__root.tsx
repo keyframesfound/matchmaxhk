@@ -17,7 +17,6 @@ import { ThemeProvider } from "@/features/theme/ThemeProvider";
 
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { ReferralCapture } from "@/components/layout/ReferralCapture";
-import { WhatsAppFloatButton } from "@/components/layout/WhatsAppFloatButton";
 import { CompareSelectionReset } from "@/features/cases/compare-cases";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -191,7 +190,6 @@ function RootComponent() {
                 <Outlet />
               </main>
               <BackToTopButton />
-              <WhatsAppFloatButton />
               <CompareSelectionReset />
             </OnboardingGate>
             <Toaster />
