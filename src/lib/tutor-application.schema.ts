@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { contactFilterError } from "@/lib/contact-filter";
+
 export const MAX_FILES = 5;
 export const MAX_ACHIEVEMENT_FILE_BYTES = 5 * 1024 * 1024;
 export const MAX_FILE_BYTES = MAX_ACHIEVEMENT_FILE_BYTES;
@@ -172,8 +174,17 @@ export const tutorApplicationSchema = z
     experience: z.string().trim().max(2000).optional().default(""),
     // Issue #119: optional tutor-written pitch shown on the public profile
     // once the concierge team has proofread it (2,000-char cap, line breaks
-    // preserved).
-    selfIntroduction: z.string().trim().max(2000).optional().default(""),
+    // preserved). Issue #215: contact details are rejected server-side.
+    selfIntroduction: z
+      .string()
+      .trim()
+      .max(2000)
+      .optional()
+      .default("")
+      .superRefine((text, ctx) => {
+        const error = contactFilterError(text);
+        if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+      }),
     hourlyRate: z.string().trim().min(1, "Required").max(20),
     // Issue #108: per-curriculum pricing tiers. standardize=true means one flat
     // rate across all curricula; false = explicit {curriculum, rate} rows (the

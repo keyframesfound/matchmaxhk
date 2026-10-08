@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MtrStationMultiSelect } from "@/components/ui/mtr-station-select";
@@ -17,6 +18,7 @@ import { SettingsCard } from "@/features/settings/option-card";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { requestAccountDeletion } from "@/lib/account.functions";
+import { contactFilterError } from "@/lib/contact-filter";
 import { notifyTutorPriceChange } from "@/lib/tutor-pricing.functions";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import {
@@ -160,6 +162,15 @@ export function MyTutorProfileSection() {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!form) return;
+    // Issue #215: block the save when the public introduction carries a
+    // phone number, email, link, or chat-app handle. Client-side twin of
+    // the same rule the concierge flow enforces at intake.
+    const introContactError = contactFilterError(form.self_introduction ?? "");
+    if (introContactError) {
+      setErrors((current) => ({ ...current, self_introduction: introContactError }));
+      toast.error(introContactError);
+      return;
+    }
     const parsed = tutorFormSchema.safeParse(form);
     if (!parsed.success) {
       const errs: Record<string, string> = {};
@@ -386,8 +397,15 @@ export function MyTutorProfileSection() {
               value={form.self_introduction}
               onChange={(e) => setForm({ ...form, self_introduction: e.target.value })}
               rows={6}
-              className="bg-[color:var(--surface)]"
+              aria-invalid={errors.self_introduction ? true : undefined}
+              className={cn(
+                "bg-[color:var(--surface)]",
+                errors.self_introduction && "border-destructive",
+              )}
             />
+            {errors.self_introduction ? (
+              <p className="text-xs font-medium text-destructive">{errors.self_introduction}</p>
+            ) : null}
             <p className="text-xs text-[color:var(--ink)]/55">
               {t("settings.my_tutor.self_introduction_hint")}
             </p>

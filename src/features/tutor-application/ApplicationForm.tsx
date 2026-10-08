@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { REFERRAL_CODE_PATTERN, readStoredReferralCode } from "@/lib/referral";
+import { contactFilterError } from "@/lib/contact-filter";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
@@ -1400,6 +1401,9 @@ export function ApplicationForm() {
         if (achievement.proofStatus === "upload")
           required(`achievement-proof-${index}`, achievement.proof);
       });
+      // Issue #215: no contact details in the public self-introduction.
+      const introError = contactFilterError(base.selfIntroduction);
+      if (introError) next.selfIntroduction = introError;
     }
     const logisticsStep = professional ? 6 : 6;
     if (step === logisticsStep) {
@@ -2125,6 +2129,12 @@ export function ApplicationForm() {
                   onSelect={(photo) => setBaseField("photo", photo)}
                   onRemove={() => setBaseField("photo", null)}
                 />
+                {/* Issue #215: warning only — a photo never blocks the form
+                    in v1; contact-in-photo reports go through staff review. */}
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  Face or teaching photo only. No contact details in the photo — no phone number,
+                  handle, or QR code. Reports are reviewed.
+                </p>
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid content-start gap-4">
@@ -3123,17 +3133,22 @@ export function ApplicationForm() {
                 <Field
                   label="Self-Introduction / 簡介"
                   optional
-                  hint="Write a detailed introduction for parents! Mention your teaching style, past tutoring experience, academic awards, and how you approach your lessons. You may write in English, Chinese, or both. Paragraph breaks are kept."
+                  error={fieldErrors.selfIntroduction}
+                  hint="Write what the form does not ask: how you teach, who you work well with, results not on the transcript, and any specific service (e.g. IA review). No phone number, email, or social handle — parents reach you through MatchMax. You may write in English, Chinese, or both. Paragraph breaks are kept."
                 >
                   <Textarea
                     rows={6}
                     maxLength={2000}
                     value={base.selfIntroduction}
                     onChange={(event) => setBaseField("selfIntroduction", event.target.value)}
+                    aria-invalid={fieldErrors.selfIntroduction ? true : undefined}
+                    className={cn(
+                      "w-full rounded-sm",
+                      fieldErrors.selfIntroduction && "border-destructive",
+                    )}
                     placeholder={
-                      "Hello! I am a current HKU BBA student with 3 years of experience teaching IB and DSE Mathematics.\n\nMy teaching philosophy focuses on breaking down complex concepts into simple, digestible steps. I provide custom notes, past-paper drills, and 24/7 WhatsApp support for my students.\n\nI successfully helped my last student jump from a Level 4 to a Level 5* in just one semester..."
+                      "Hello! I am a current HKU BBA student with 3 years of experience teaching IB and DSE Mathematics.\n\nMy teaching philosophy focuses on breaking down complex concepts into simple, digestible steps. I provide custom notes and past-paper drills, and I am available for questions between lessons.\n\nI successfully helped my last student jump from a Level 4 to a Level 5* in just one semester..."
                     }
-                    className="w-full rounded-sm"
                   />
                   <p className="mt-1 text-right text-xs text-muted-foreground" aria-live="polite">
                     {base.selfIntroduction.length}/2000
