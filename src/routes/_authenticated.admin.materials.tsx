@@ -32,6 +32,7 @@ import {
   updateMaterialAdmin,
   type AdminMaterialRow,
 } from "@/features/materials/materials.functions";
+import { exportTutorPayoutCsv } from "@/features/materials/orders.functions";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -134,6 +135,27 @@ function AdminMaterials() {
     onError: (error) => toast.error(error instanceof Error ? error.message : "Download failed."),
   });
 
+  // Issue #250: monthly payout export. Grant rows (HK$0 staff grants) are
+  // excluded server-side, so what downloads here is exactly the payable set.
+  const payoutExportMutation = useMutation({
+    mutationFn: () => exportTutorPayoutCsv(),
+    onSuccess: (result) => {
+      const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = result.fileName;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      toast.success(
+        result.rowCount === 1
+          ? "1 payout row exported."
+          : `${result.rowCount} payout rows exported.`,
+      );
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Export failed."),
+  });
+
   const setField = (patch: Partial<typeof form>) => setForm((prev) => ({ ...prev, ...patch }));
 
   const resetForm = () => {
@@ -233,10 +255,24 @@ function AdminMaterials() {
             ? `${materialsQuery.data.length} listing${materialsQuery.data.length === 1 ? "" : "s"}`
             : ""}
         </p>
-        <Button onClick={() => setAddOpen(true)} className="font-bold">
-          <FileUp className="mr-2 h-4 w-4" aria-hidden />
-          Add listing
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => payoutExportMutation.mutate()}
+            disabled={payoutExportMutation.isPending}
+          >
+            {payoutExportMutation.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Download className="mr-2 h-4 w-4" aria-hidden />
+            )}
+            Export payouts
+          </Button>
+          <Button onClick={() => setAddOpen(true)} className="font-bold">
+            <FileUp className="mr-2 h-4 w-4" aria-hidden />
+            Add listing
+          </Button>
+        </div>
       </div>
 
       <ConsoleTable>
