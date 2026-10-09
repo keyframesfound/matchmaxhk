@@ -654,7 +654,8 @@
     "empty_whatsapp": "WhatsApp 查詢",
     "empty_edu_title": "暫時沒有來自這個背景的導師",
     "empty_edu_desc": "我們暫時沒有符合這間學校或大學的導師——不過以下來自相近院校的高分導師同樣值得參考。",
-    "empty_edu_clear": "顯示所有導師"
+    "empty_edu_clear": "顯示所有導師",
+    "popular_tags": "熱門標籤："
   },
   "profile": {
     "verified": "已核實",
@@ -727,6 +728,7 @@
     "price_up": "起",
     "tutor_alt": "導師 {{code}}",
     "compare_add": "將導師 {{code}} 加入比較",
+    "tag_search": "搜尋有 {{tag}} 標籤嘅導師",
     "compare_remove": "將導師 {{code}} 移出比較",
     "share": "分享導師 {{code}}",
     "gender_male": "男",

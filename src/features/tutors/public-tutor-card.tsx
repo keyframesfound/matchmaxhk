@@ -7,6 +7,7 @@ import {
   Check,
   Columns2,
   GraduationCap,
+  Hash,
   School,
   Share2,
   UserRound,
@@ -108,6 +109,8 @@ type PublicTutorCardProps = {
   compareSelected?: boolean;
   onCompareToggle?: () => void;
   shareable?: boolean;
+  /** Issue #217: clicking a profile-tag chip searches /tutors?tag=<tag>. */
+  tagQuery?: (tag: string) => void;
 };
 
 export function PublicTutorCard({
@@ -120,6 +123,7 @@ export function PublicTutorCard({
   compareSelected,
   onCompareToggle,
   shareable = true,
+  tagQuery,
 }: PublicTutorCardProps) {
   const { t, i18n } = useTranslation();
   const interactive = typeof onOpen === "function";
@@ -428,6 +432,34 @@ export function PublicTutorCard({
               </FitText>
             ))}
           </ul>
+
+          {/* Issue #217: profile tags — click one to search it. Kept out of
+              the compare flow via stopPropagation, like the other buttons. */}
+          {tutor.profile_tags.length > 0 ? (
+            <div className="mt-2.5 flex flex-wrap gap-1.5 border-t border-border pt-2.5 md:mt-3">
+              {tutor.profile_tags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    tagQuery?.(tag);
+                  }}
+                  onKeyDown={(event) => event.stopPropagation()}
+                  aria-label={t("tutor_card.tag_search", { tag })}
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-muted-foreground transition-colors",
+                    tagQuery
+                      ? "hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                      : "cursor-default",
+                  )}
+                >
+                  <Hash className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  {tag}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </section>
       </div>
 
