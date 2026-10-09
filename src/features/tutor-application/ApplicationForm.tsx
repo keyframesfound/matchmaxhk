@@ -49,7 +49,9 @@ import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
 import {
   extractTranscriptQualification,
+  generateSelfIntroduction,
   submitTutorApplication,
+  suggestHourlyRate,
 } from "@/lib/tutor-application.functions";
 import {
   ACCEPT_ATTRIBUTE,
@@ -937,6 +939,17 @@ export function ApplicationForm() {
     return match ? match[0] : readStoredReferralCode();
   });
   const extractTranscript = useServerFn(extractTranscriptQualification);
+  // Issue #120: AI-drafted self-introduction, shown in the textarea for the
+  // applicant to review and edit — never auto-submitted.
+  const generateIntro = useServerFn(generateSelfIntroduction);
+  const [introStatus, setIntroStatus] = useState<"idle" | "writing">("idle");
+  // Issue #122: AI-suggested hourly rate, shown next to the rate input.
+  const suggestRate = useServerFn(suggestHourlyRate);
+  const [rateSuggestion, setRateSuggestion] = useState<{
+    suggested_range: string;
+    justification: string;
+  } | null>(null);
+  const [rateStatus, setRateStatus] = useState<"idle" | "calculating">("idle");
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   // Remembered at submit time so the WhatsApp activation deep link can greet
@@ -1442,6 +1455,63 @@ export function ApplicationForm() {
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  }
+  // Issue #120: draft a self-introduction from the fields already filled in.
+  // Overwrites any existing draft (with a confirm), keeps line breaks.
+  async function autoWriteIntroduction() {
+    if (
+      base.selfIntroduction.trim() &&
+      !window.confirm(
+        "Overwrite your current self-introduction with an AI draft? Your existing text will be replaced.",
+      )
+    ) {
+      return;
+    }
+    setIntroStatus("writing");
+    setError(null);
+    try {
+      const introduction = await generateIntro({
+        data: {
+          university: base.university,
+          programme: base.programme,
+          curricula: qualifications.map((qualification) => qualification.curriculum),
+          overallScore: professional ? "" : primary.overall,
+          subjects: selectedTeachingSubjects,
+          experience: base.achievements
+            .map((achievement) => `${achievement.title}: ${achievement.description}`)
+            .join("; ")
+            .slice(0, 800),
+        },
+      });
+      setBaseField("selfIntroduction", introduction.slice(0, 2000));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "AI writing failed.");
+    } finally {
+      setIntroStatus("idle");
+    }
+  }
+  // Issue #122: data-backed rate suggestion from the academic fields.
+  async function calculateSuggestedRate() {
+    setRateStatus("calculating");
+    try {
+      const suggestion = await suggestRate({
+        data: {
+          university: base.university,
+          major: base.programme,
+          curricula: qualifications.map((qualification) => qualification.curriculum),
+          overallScore: professional ? "" : primary.overall,
+          experience: base.achievements
+            .map((achievement) => `${achievement.title}: ${achievement.description}`)
+            .join("; ")
+            .slice(0, 800),
+        },
+      });
+      setRateSuggestion(suggestion);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Rate suggestion failed.");
+    } finally {
+      setRateStatus("idle");
+    }
   }
   async function autoFillQualification(qualificationIndex: number, file: File) {
     if (!isTranscriptImage(file) || file.size > MAX_FILE_BYTES) {
@@ -3136,6 +3206,36 @@ export function ApplicationForm() {
                   error={fieldErrors.selfIntroduction}
                   hint="Write what the form does not ask: how you teach, who you work well with, results not on the transcript, and any specific service (e.g. IA review). No phone number, email, or social handle — parents reach you through MatchMax. You may write in English, Chinese, or both. Paragraph breaks are kept."
                 >
+                  {/* Issue #120: one-click AI draft from the academic data
+                      already entered; the result lands in the textarea for
+                      review and editing before submission. */}
+                  <div className="mb-2 flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="rounded-sm"
+                      disabled={introStatus === "writing"}
+                      onClick={() => void autoWriteIntroduction()}
+                    >
+                      {introStatus === "writing" ? (
+                        <>
+                          <span
+                            aria-hidden
+                            className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent"
+                          />
+                          Writing with AI...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" aria-hidden />
+                          Auto-Write with AI
+                        </>
+                      )}
+                    </Button>
+                    <span className="text-xs text-muted-foreground">
+                      Drafts from your academic details above — review and edit before submitting.
+                    </span>
+                  </div>
                   <Textarea
                     rows={6}
                     maxLength={2000}
@@ -3174,6 +3274,42 @@ export function ApplicationForm() {
                         : undefined
                   }
                 >
+                  {/* Issue #122: data-backed AI rate suggestion, shown above
+                      the input — the applicant still sets their own price. */}
+                  <div className="space-y-2">
+                    {rateSuggestion ? (
+                      <div className="rounded-sm border border-[color:var(--brand-link)]/30 bg-[color:var(--brand-link)]/[0.06] px-3 py-2 text-sm">
+                        <p className="font-bold text-[color:var(--ink)]">
+                          💡 MatchMax Suggested Rate: {rateSuggestion.suggested_range} HKD/hr
+                        </p>
+                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                          {rateSuggestion.justification}
+                        </p>
+                        <button
+                          type="button"
+                          className="mt-1 text-xs font-bold text-[color:var(--brand-link)] underline underline-offset-2"
+                          onClick={() => {
+                            const firstNumber =
+                              /(\d{3,4})/.exec(rateSuggestion.suggested_range)?.[1] ?? "";
+                            if (firstNumber) setBaseField("hourlyRate", firstNumber);
+                          }}
+                        >
+                          Use the lower end of this range
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="text-left text-sm font-bold text-[color:var(--brand-link)] underline underline-offset-2 disabled:opacity-60"
+                        disabled={rateStatus === "calculating"}
+                        onClick={() => void calculateSuggestedRate()}
+                      >
+                        {rateStatus === "calculating"
+                          ? "💡 Calculating your suggested rate..."
+                          : "💡 MatchMax Suggested Rate: [Click to Calculate]"}
+                      </button>
+                    )}
+                  </div>
                   <Input
                     type="number"
                     value={base.hourlyRate}
