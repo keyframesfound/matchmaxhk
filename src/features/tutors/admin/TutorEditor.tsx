@@ -71,6 +71,8 @@ import {
   getSubjectOptionsForCategory,
 } from "@/features/tutors/subjects";
 import { getCurriculumGroupLabel, getTutorSubjectGroups } from "@/features/tutors/tutor-display";
+import { parseProfileTags } from "@/features/tutors/profile-tags";
+import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import { supabase } from "@/integrations/supabase/client";
 import {
   IA_EE_TOK_SUPPORT_OPTIONS,
@@ -215,6 +217,10 @@ export const tutorFormSchema = z.object({
   photo_url: z.string().trim().max(1000).optional().or(z.literal("")),
   // Issue #97: Trophy Cabinet public photo URLs (admin-curated).
   portfolio_images: z.array(z.string().trim().url().max(1000)).max(6),
+  // Issue #217: up to 5 free-text profile tags (shape here; the cap, dedupe
+  // and contact-detail rejection live in parseProfileTags, applied by both
+  // editors before this schema runs).
+  profile_tags: z.array(z.string().trim().max(30)).max(5),
   tutor_code: z
     .string()
     .trim()
@@ -298,6 +304,7 @@ export const emptyTutorForm: TutorFormData = {
   pricing_tiers: [],
   photo_url: "",
   portfolio_images: [],
+  profile_tags: [],
   tutor_code: "",
   is_published: true,
   start_immediately: true,
@@ -341,6 +348,7 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     pricing_tiers: (t.pricing_tiers ?? []).slice(0, MAX_PRICING_TIERS),
     photo_url: t.photo_url ?? "",
     portfolio_images: t.portfolio_images ?? [],
+    profile_tags: t.profile_tags ?? [],
     tutor_code: t.tutor_code ?? "",
     is_published: t.is_published ?? true,
     start_immediately: t.start_immediately ?? true,
@@ -445,6 +453,10 @@ export function formDataToPayload(v: TutorFormData) {
     pricing_tiers: cleanPricingTiersResult,
     photo_url: v.photo_url?.trim() || null,
     portfolio_images: v.portfolio_images.map((url) => url.trim()).filter(Boolean),
+    profile_tags: (() => {
+      const parsed = parseProfileTags(v.profile_tags);
+      return parsed.ok ? parsed.tags : [];
+    })(),
     tutor_code: v.tutor_code.trim(),
     is_published: v.is_published,
     start_immediately: v.start_immediately,
@@ -1296,6 +1308,7 @@ export function TutorEditor({
       max_hourly_rate_hkd: null,
       photo_url: form.photo_url?.trim() || null,
       portfolio_images: form.portfolio_images,
+      profile_tags: form.profile_tags,
       tutor_code: form.tutor_code.trim() || "MM-PREVIEW",
       is_published: form.is_published,
       start_immediately: form.start_immediately,
@@ -2147,6 +2160,18 @@ export function TutorEditor({
                   onChange={(target_students) => setForm({ ...form, target_students })}
                   suggestions={TARGET_STUDENT_OPTIONS}
                   placeholder="Add target levels (e.g. IBDP, HKDSE)..."
+                />
+              </FormField>
+
+              {/* Issue #217: up to five free-text tags shown on the public
+                  card; the cap + contact-detail rule are in ProfileTagsField. */}
+              <FormField
+                label="Profile Tags"
+                hint="Free-text search tags on the card (max 5, stored lowercase, no hash). Tags that look like phone numbers, emails, or handles are rejected."
+              >
+                <ProfileTagsField
+                  tags={form.profile_tags}
+                  onChange={(profile_tags) => setForm({ ...form, profile_tags })}
                 />
               </FormField>
             </EditorSection>

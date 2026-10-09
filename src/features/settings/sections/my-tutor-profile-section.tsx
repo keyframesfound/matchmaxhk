@@ -21,6 +21,7 @@ import { requestAccountDeletion } from "@/lib/account.functions";
 import { contactFilterError } from "@/lib/contact-filter";
 import { notifyTutorPriceChange } from "@/lib/tutor-pricing.functions";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
+import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import {
   TARGET_STUDENT_OPTIONS,
   formDataToPayload,
@@ -48,7 +49,7 @@ import {
 /** Columns the tutor-facing editor reads/writes. Mirrors SELECT_COLS minus
  * admin-managed identity (tutor_code, created_at, referral). */
 const MY_TUTOR_COLUMNS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, deletion_requested_at";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, deletion_requested_at";
 
 type MyTutorRow = Tutor & {
   user_id?: string | null;
@@ -410,6 +411,12 @@ export function MyTutorProfileSection() {
               {t("settings.my_tutor.self_introduction_hint")}
             </p>
           </div>
+
+          {/* Issue #217: up to five free-text tags, shown on the public card. */}
+          <ProfileTagsField
+            tags={form.profile_tags}
+            onChange={(profile_tags) => setForm({ ...form, profile_tags })}
+          />
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">

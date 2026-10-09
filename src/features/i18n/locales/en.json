@@ -632,7 +632,8 @@
     "empty_whatsapp": "Ask on WhatsApp",
     "empty_edu_title": "No tutor from this exact background yet",
     "empty_edu_desc": "We don't have a tutor matching this school or university right now — but these top-rated scholars from similar institutions are a great place to start.",
-    "empty_edu_clear": "Show all tutors"
+    "empty_edu_clear": "Show all tutors",
+    "popular_tags": "Popular tags:"
   },
   "profile": {
     "verified": "Verified",
@@ -705,6 +706,7 @@
     "price_up": "up",
     "tutor_alt": "Tutor {{code}}",
     "compare_add": "Add tutor {{code}} to comparison",
+    "tag_search": "Search tutors tagged {{tag}}",
     "compare_remove": "Remove tutor {{code}} from comparison",
     "share": "Share tutor {{code}}",
     "gender_male": "Male",

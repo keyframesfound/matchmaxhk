@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { GraduationCap, SearchX } from "lucide-react";
+import { GraduationCap, Hash, SearchX } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
@@ -34,6 +34,7 @@ import {
   matchesStationFilter,
   type Tutor,
 } from "@/features/tutors/queries";
+import { normalizeProfileTag, popularProfileTags } from "@/features/tutors/profile-tags";
 import { matchesCategoryFilter, matchesSubjectQuery } from "@/features/tutors/subjects";
 import {
   collectEducationValueSets,
@@ -51,6 +52,7 @@ const searchSchema = z.object({
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
   status: z.string().optional(), // uni_student | full_part_time_tutor | examiner
+  tag: z.string().optional(), // issue #217: profile-tag search (?tag=ia review)
   verified: z.preprocess(
     (value) => (value === "1" || value === "true" || value === true ? true : undefined),
     z.boolean().optional(),
@@ -150,6 +152,8 @@ function TutorsDirectory() {
   const highSchoolFilter = draft.high_school ?? "";
   const majorFilter = draft.major ?? "";
   const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
+  // Issue #217: profile-tag filter (the tag chips on the cards link here).
+  const tagFilter = normalizeProfileTag(draft.tag ?? "");
 
   const filtered = useMemo(() => {
     const query = (draft.q ?? "").trim().toLowerCase();
@@ -175,6 +179,8 @@ function TutorsDirectory() {
         if (g !== genderFilter) return false;
       }
       if (statusFilter && (tut.tutor_status ?? "") !== statusFilter) return false;
+      // Issue #217: exact match on one of the tutor's profile tags.
+      if (tagFilter && !(tut.profile_tags ?? []).includes(tagFilter)) return false;
       // Issue #142: Verified Tutors Only — hide everything below tier_2_verified.
       if (verifiedOnly && tut.verification_tier !== "tier_2_verified") return false;
       // Issue #130: institutional-pedigree filters over free-text education fields.
@@ -200,7 +206,12 @@ function TutorsDirectory() {
         !(
           tut.tutor_code.toLowerCase().includes(query) ||
           tut.subjects.some((s) => matchesSubjectQuery(s, query)) ||
-          getTutorCardHighlights(tut).some((highlight) => highlight.toLowerCase().includes(query))
+          getTutorCardHighlights(tut).some((highlight) =>
+            highlight.toLowerCase().includes(query),
+          ) ||
+          // Issue #217: free-text search also matches a profile tag, so
+          // searching "IA review" returns tutors who saved that tag.
+          (tut.profile_tags ?? []).some((tag) => tag.includes(query))
         )
       )
         return false;
@@ -234,6 +245,7 @@ function TutorsDirectory() {
     universityFilter,
     highSchoolFilter,
     majorFilter,
+    tagFilter,
     draft.q,
     draft.min_price,
     draft.max_price,
@@ -271,6 +283,10 @@ function TutorsDirectory() {
   };
 
   const hotlineUrl = buildTutorWhatsAppUrl(whatsappNumber, "");
+
+  // Issue #217: tags used by 3+ tutors become search suggestions under the
+  // result count; clicking a card tag filters by that tag.
+  const popularTags = useMemo(() => popularProfileTags(tutors), [tutors]);
 
   const applySearch = (override?: Partial<SearchState>) => {
     const next = { ...draft, ...override };
@@ -329,7 +345,7 @@ function TutorsDirectory() {
           </StickySearchBar>
           <section className="pt-6 pb-12 sm:pt-8">
             <div className="mx-auto max-w-7xl px-4 sm:px-6">
-              <div className="mb-6 flex items-baseline justify-between">
+              <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
                 {isLoading ? (
                   <Skeleton className="h-4 w-28" />
                 ) : (
@@ -338,6 +354,42 @@ function TutorsDirectory() {
                     {filtered.length === 1 ? "tutor" : "tutors"} found
                   </p>
                 )}
+                {/* Issue #217: popular-tag suggestions (3+ tutors) and the
+                    active-tag chip with a one-click clear. */}
+                {tagFilter ? (
+                  <button
+                    type="button"
+                    onClick={() => setDraftParam({ tag: "" })}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                  >
+                    <Hash className="h-3 w-3" aria-hidden="true" />
+                    {tagFilter}
+                    <span aria-hidden="true" className="text-[color:var(--ink)]/50">
+                      ×
+                    </span>
+                  </button>
+                ) : null}
+                {popularTags.length > 0 ? (
+                  <div className="ml-auto flex flex-wrap items-center gap-1.5">
+                    <span className="text-xs text-muted-foreground">
+                      {t("directory.popular_tags")}
+                    </span>
+                    {popularTags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => {
+                          setDraftParam({ tag });
+                          applySearch({ tag });
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                      >
+                        <Hash className="h-3 w-3" aria-hidden="true" />
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </div>
 
               {isLoading && (
@@ -455,6 +507,10 @@ function TutorsDirectory() {
                         onOpen={openTutorDetail}
                         onCompareToggle={() => toggleCompare(tut)}
                         compareSelected={compareIds.includes(tut.id)}
+                        tagQuery={(tag) => {
+                          setDraftParam({ tag });
+                          applySearch({ tag });
+                        }}
                         footerAction={
                           <>
                             <TutorSaveButton tutorId={tut.id} compact />
