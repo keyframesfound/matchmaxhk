@@ -196,7 +196,11 @@ function AcademicQualification({ result }: { result: ExamResult }) {
                 <span className="text-sm font-bold text-[color:var(--ink)]">{entry.subject}</span>
                 {entry.grade.trim() ? (
                   <span className="text-sm font-bold text-[color:var(--brand-link)]">
-                    – {gradeNoun} {entry.grade.replace(/^(grade|band)\s+/i, "")}
+                    – {gradeNoun}{" "}
+                    {entry.grade
+                      // Issue #206: hide the intake-era "(legacy)" suffix.
+                      .replace(/\s*\(legacy\)\s*$/i, "")
+                      .replace(/^(grade|band)\s+/i, "")}
                   </span>
                 ) : null}
               </div>
