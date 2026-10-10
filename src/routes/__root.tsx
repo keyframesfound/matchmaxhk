@@ -13,6 +13,7 @@ import { I18nProvider } from "@/features/i18n/I18nProvider";
 import { ProfileLocaleSync } from "@/features/i18n/ProfileLocaleSync";
 import { AuthProvider } from "@/features/auth/useAuth";
 import { OnboardingGate } from "@/features/auth/OnboardingGate";
+import { CommunityCommitmentGate } from "@/features/auth/CommunityCommitmentGate";
 import { ThemeProvider } from "@/features/theme/ThemeProvider";
 
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
@@ -186,11 +187,13 @@ function RootComponent() {
           <ReferralCapture />
           <ThemeProvider>
             <OnboardingGate>
-              <main id="main-content">
-                <Outlet />
-              </main>
-              <BackToTopButton />
-              <CompareSelectionReset />
+              <CommunityCommitmentGate>
+                <main id="main-content">
+                  <Outlet />
+                </main>
+                <BackToTopButton />
+                <CompareSelectionReset />
+              </CommunityCommitmentGate>
             </OnboardingGate>
             <Toaster />
           </ThemeProvider>
