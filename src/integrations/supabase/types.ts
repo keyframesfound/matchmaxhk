@@ -618,6 +618,7 @@ export type Database = {
           created_at: string;
           data: Json;
           id: string;
+          linked_tutor_id: string | null;
           purge_after: string | null;
           referred_by: string | null;
           rejected_at: string | null;
@@ -629,6 +630,7 @@ export type Database = {
           created_at?: string;
           data: Json;
           id?: string;
+          linked_tutor_id?: string | null;
           purge_after?: string | null;
           referred_by?: string | null;
           rejected_at?: string | null;
@@ -640,6 +642,7 @@ export type Database = {
           created_at?: string;
           data?: Json;
           id?: string;
+          linked_tutor_id?: string | null;
           purge_after?: string | null;
           referred_by?: string | null;
           rejected_at?: string | null;
@@ -1072,6 +1075,29 @@ export type Database = {
       list_accounts_for_assignment: {
         Args: { _search: string };
         Returns: { id: string; email: string | null; display_name: string | null }[];
+      };
+      get_tutor_contact_details: {
+        Args: { _tutor_id: string };
+        Returns: {
+          account_email: string | null;
+          account_phone: string | null;
+          account_display_name: string | null;
+          application_name: string | null;
+          application_phone: string | null;
+          application_email: string | null;
+          application_id: string | null;
+          application_status: string | null;
+          application_created_at: string | null;
+        }[];
+      };
+      list_tutor_applications_for_linking: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          label: string;
+          status: string | null;
+          created_at: string;
+        }[];
       };
       get_my_referral_dashboard: { Args: never; Returns: Json };
       update_my_availability: {
