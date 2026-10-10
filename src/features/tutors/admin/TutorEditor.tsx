@@ -19,6 +19,7 @@ import {
   LocateFixed,
   MapPin,
   MessageSquareQuote,
+  Phone,
   Plus,
   Sparkles,
   Trash2,
@@ -111,6 +112,7 @@ import {
 } from "@/features/tutors/examSystems";
 import { AutofillDialog } from "./AutofillDialog";
 import { TutorReviewsAdmin } from "./tutor-reviews-admin";
+import { TutorContactDetails } from "./tutor-contact-details";
 import type { TutorAutofillResult } from "./autofill.functions";
 
 export const TARGET_STUDENT_OPTIONS = [
@@ -2069,6 +2071,22 @@ export function TutorEditor({
                 </div>
               )}
             </EditorSection>
+
+            {/* Contact details (issue #295): admin-only read-only reveal of
+                everything the tutor gave us — assigned-account email/phone
+                plus the join application's intake contact fields. Data is
+                resolved by the admin-gated get_tutor_contact_details RPC;
+                nothing here is editable or public. */}
+            {initialData ? (
+              <EditorSection
+                icon={Phone}
+                title="Contact Details"
+                description="Read-only contact info from the tutor's assigned account and join application. Never shown publicly."
+                id="contact-details"
+              >
+                <TutorContactDetails tutorId={initialData.id} tutorCode={initialData.tutor_code} />
+              </EditorSection>
+            ) : null}
 
             {/* 2. Subjects & Target Levels */}
             <EditorSection
