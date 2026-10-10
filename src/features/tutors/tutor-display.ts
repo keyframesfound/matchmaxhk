@@ -232,7 +232,14 @@ function normalizeSubjectKey(value: string) {
 }
 
 export function formatTutorGradeLabel(grade?: string | null): string | null {
-  const trimmed = grade?.trim() ?? "";
+  // Issue #206: older rows stored IGCSE letter grades as "A* (legacy)" — the
+  // "(legacy)" suffix was an intake artifact, never something to show. Strip it
+  // wherever a grade renders (also covers compare + profile pages).
+  const trimmed =
+    grade
+      ?.trim()
+      .replace(/\s*\(legacy\)\s*$/i, "")
+      .trim() ?? "";
   if (!trimmed) return null;
   if (/^band\s+/i.test(trimmed)) return trimmed;
   return /^grade\s+/i.test(trimmed) ? trimmed : `Grade ${trimmed}`;
