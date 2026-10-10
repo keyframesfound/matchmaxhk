@@ -154,6 +154,8 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
     }
 
     const { storeTutorApplication } = await import("./tutor-application.server");
-    await storeTutorApplication(application);
-    return { ok: true as const };
+    const { id } = await storeTutorApplication(application);
+    // Issue #189: the WhatsApp activation message names this reference so the
+    // team can match the chat thread to the stored application row.
+    return { ok: true as const, applicationId: id };
   });

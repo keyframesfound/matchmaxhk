@@ -135,6 +135,9 @@ export const tutorApplicationSchema = z
   .object({
     turnstileToken: z.string().trim().min(1, "Complete the security check").max(2048),
     name: z.string().trim().min(1, "Required").max(120),
+    // Issue #189: optional preferred name so the WhatsApp activation message
+    // and later concierge chats can use what the tutor actually goes by.
+    preferredName: z.string().trim().max(80).optional().default(""),
     phone: z.string().trim().min(5, "Required").max(60),
     email: z.string().trim().email("Enter a valid email"),
     country: z.string().trim().min(1, "Required").max(100),
@@ -381,6 +384,7 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
   return [
     { label: "Application path", value: getApplicationPath(data) },
     { label: "Name", value: data.name },
+    { label: "Preferred name", value: data.preferredName || "—" },
     { label: "Contact number / WhatsApp", value: data.phone },
     { label: "Email", value: data.email },
     { label: "Country / region", value: data.country },
