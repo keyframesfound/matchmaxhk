@@ -426,6 +426,8 @@ export function TutorsSearchBar({
           onToggle={toggleSubject}
           onClear={() => onDraftChange({ subject: undefined, subjects_extra: undefined })}
           clearLabel={t("search_ui.clear_subjects")}
+          searchPlaceholder={t("search_panel.search_subject")}
+          emptyText={t("search_panel.no_matches")}
         />
       ),
     },
@@ -768,6 +770,8 @@ export function TutorsSearchMobile({
               onToggle={toggleSubject}
               onClear={() => onDraftChange({ subject: undefined, subjects_extra: undefined })}
               clearLabel={t("search_ui.clear_subjects")}
+              searchPlaceholder={t("search_panel.search_subject")}
+              emptyText={t("search_panel.no_matches")}
             />
           </div>
 
