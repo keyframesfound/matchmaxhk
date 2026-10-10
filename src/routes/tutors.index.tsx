@@ -48,6 +48,9 @@ import { supabase } from "@/integrations/supabase/client";
 const searchSchema = z.object({
   category: z.string().optional(),
   subject: z.string().optional(),
+  // Issue #187: extra subjects beyond the primary (comma-free, "||"-joined).
+  // AND-ed with `subject` — a tutor must teach every selected subject.
+  subjects_extra: z.string().optional(),
   station: z.string().optional(), // nearest MTR station to the student
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
@@ -143,6 +146,11 @@ function TutorsDirectory() {
   const categoryFilter = (draft.category ?? "").toLowerCase();
 
   const subjectFilter = (draft.subject ?? "").toLowerCase();
+  // Issue #187: every selected subject beyond the first must also match (AND).
+  const extraSubjectFilters = (draft.subjects_extra ?? "")
+    .split("||")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
   const stationFilter = draft.station ?? "";
   const modeFilter = draft.mode ?? "";
   const genderFilter = draft.gender ?? "";
@@ -169,6 +177,14 @@ function TutorsDirectory() {
       )
         return false;
       if (subjectFilter && !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter)))
+        return false;
+      // Issue #187: AND semantics — a tutor must teach every extra subject too.
+      if (
+        extraSubjectFilters.length > 0 &&
+        !extraSubjectFilters.every((extra) =>
+          tut.subjects.some((s) => matchesSubjectQuery(s, extra)),
+        )
+      )
         return false;
       if (draft.min_price !== undefined && getTutorBaseRate(tut) < draft.min_price) return false;
       if (draft.max_price !== undefined && getTutorBaseRate(tut) > draft.max_price) return false;
@@ -237,6 +253,7 @@ function TutorsDirectory() {
     tutors,
     categoryFilter,
     subjectFilter,
+    extraSubjectFilters,
     effectiveStationFilter,
     modeFilter,
     genderFilter,
