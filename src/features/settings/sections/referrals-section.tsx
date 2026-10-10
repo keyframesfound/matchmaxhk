@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Check, Copy, Gift, Info } from "lucide-react";
+import { Check, Copy, Gift, Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -154,15 +153,6 @@ export function ReferralsSection() {
             <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{t("settings.referrals.note")}</span>
           </p>
-
-          <Link
-            to="/how-it-works"
-            hash="referral-bounty"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--brand-link)] underline underline-offset-2 hover:opacity-80"
-          >
-            {t("settings.referrals.rules_link")}
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </Link>
         </div>
       )}
     </SettingsCard>

@@ -68,8 +68,7 @@
       "pending_cleared": "Includes {{amount}} already cleared for FPS payout.",
       "paid": "Total bounties paid",
       "note": "Pending bounties are officially cleared for payout via FPS once your referred friend successfully completes the 2-lesson concierge window with their first client.",
-      "not_linked": "Your tutor profile isn't linked to this account yet. After your application is accepted, our team will connect your profile and your referral link will appear here.",
-      "rules_link": "Read the full Referral Bounty rules"
+      "not_linked": "Your tutor profile isn't linked to this account yet. After your application is accepted, our team will connect your profile and your referral link will appear here."
     },
     "general": {
       "appearance_title": "Appearance",
@@ -764,8 +763,7 @@
     "hero_cta_apply": "Apply to Teach",
     "card_view_profile": "View profile",
     "compare_eyebrow": "01 / Why MatchMax works better",
-    "compare_edu_title": "For Tutors: Fair Rules, Built by Students Who Understand You",
-    "compare_parent_title": "For Parents: Real Scores, Verified Credentials",
+    "compare_table_title": "Why MatchMax",
     "table_aspect": "What Matters",
     "table_old": "Old-School Agencies",
     "table_max": "MatchMax",
@@ -773,72 +771,35 @@
     "table_vs": "vs",
     "edu": {
       "commission": {
-        "aspect": "Agency Commission",
-        "old": "Take 2 full weeks of your pay (up to 4–8 lessons).",
-        "adv": "Fair 1.5-Lesson Fee",
-        "detail": "You only pay for 1.5 lessons per successful match. You keep 100% of everything you earn after that."
-      },
-      "travel": {
-        "aspect": "Travel & Commute",
-        "old": "Assign cases by broad districts, making you travel an hour for a single lesson.",
-        "adv": "MTR Station Selection",
-        "detail": "You pick the exact MTR stations you can reach. We only send you students along your line."
-      },
-      "credibility": {
-        "aspect": "Academic Credibility Showcase",
-        "old": "Squash your achievements into generic bullet points that make top scorers blend in with average applicants.",
-        "adv": "Granular Component Highlights",
-        "detail": "Showcase your exact strengths—including 7s in specific HL subjects, IA scores, and 5** paper breakdowns—so parents see your real value."
-      },
-      "voice": {
-        "aspect": "Your Voice & Needs",
-        "old": "Run by corporate agents who never took your syllabus and do not care about your study schedule.",
-        "adv": "Run by IB & DSE Grads",
-        "detail": "We understand university workloads, exam stress, and what your prep time is worth."
-      },
-      "privacy": {
-        "aspect": "Complete Privacy Protection",
-        "old": "Blast full names, phone numbers, or school affiliations across public groups.",
-        "adv": "Zero Public Name Leaks",
-        "detail": "Full names and sensitive personal details remain private. Tutors and school teachers alike can instruct safely without public exposure."
-      }
-    },
-    "parent_cmp": {
-      "browsing": {
-        "aspect": "Browsing Experience",
-        "old": "Cluttered, messy profiles that are painful to navigate. Crucial details are hidden away or missing, making direct comparison impossible.",
-        "adv": "Clean, E-Commerce Style Cards",
-        "detail": "Key credentials—verified scores, secondary schools, and target subjects—are visible right on the preview card. Browse, compare, and shortlist tutors effortlessly like online shopping, with no lost profiles."
+        "aspect": "Fee",
+        "old": "Agencies take the first 2 to 8 lessons.",
+        "adv": "1.5 lessons per match",
+        "detail": "MatchMax takes 1.5 lessons per successful match. The tutor keeps the rest."
       },
       "screening": {
-        "aspect": "Tutor Screening (Authenticity)",
-        "old": "Anyone can sign up. They rarely verify if reported grades or degrees are genuine.",
-        "adv": "100% Verified Credentials",
-        "detail": "We manually check official transcripts, diplomas, and exam certificates before an tutor profile goes live."
+        "aspect": "Verify",
+        "old": "Anyone can sign up.",
+        "adv": "Transcripts checked first",
+        "detail": "Transcripts are checked before a card goes live."
       },
-      "quality": {
-        "aspect": "Tutor Quality (The Bar)",
-        "old": "Accept average scorers just to fill slots and collect a booking cut.",
-        "adv": "Strict Top-Scorer Standards",
-        "detail": "Every tutor must clear our minimum academic bar (such as IB 40+, DSE 30+, or A*AA)."
+      "fit": {
+        "aspect": "Fit",
+        "old": "A vague district match.",
+        "adv": "Curriculum, subject score, school, MTR",
+        "detail": "Matches consider curriculum, subject score, school, and MTR line — not just a district."
       },
-      "scores": {
-        "aspect": "Score Details",
-        "old": "Give you a vague one-line summary about the tutor's background.",
-        "adv": "Detailed Paper Breakdowns",
-        "detail": "See exact component marks for IAs, essays, and individual exam papers before you choose."
-      },
-      "alumni": {
-        "aspect": "Alumni & School Fit",
-        "old": "Pair your child with random tutors who do not know their school's curriculum style.",
-        "adv": "School & Major Matches",
-        "detail": "Find tutors who graduated from your child's exact secondary school or study their target degree."
+      "privacy": {
+        "aspect": "Privacy",
+        "old": "Full names on public profiles.",
+        "adv": "No full name in public",
+        "detail": "The public card shows no full name."
       }
     },
     "flow_eyebrow": "02 / The matching flow",
     "flow_speed": "Instant direct connection",
     "flow_title": "The New Standard for Tutor Matching.",
     "flow_body": "We manually verify every top scorer and school examiner so you don't have to. Experience Hong Kong's most transparent, easy-to-use platform for finding and comparing premium tutors. Once you are matched, our concierge team actively manages the communication for your first 2 lessons—then parents and tutors take over the ongoing schedule directly.",
+    "flow_oneliner": "MatchMax manages the introduction and the first two lessons. The ongoing schedule is between parent and tutor.",
     "parents_eyebrow": "For parents & students",
     "parents_audience": "For Parents",
     "parents_title": "Manually verified top scorers, transparent paper scores, zero guesswork.",
@@ -888,21 +849,9 @@
     "tutors_link_apply": "Apply as a tutor",
     "tutors_link_playbook": "Read the Tutor Playbook",
     "tutors_callout": "Want to fill your schedule faster? Browse our Open Cases Board anytime to claim student requests that match your expertise.",
-    "referral_bounty": {
-      "eyebrow": "Tutor Rewards",
-      "title": "The MatchMax Tutor Referral Bounty",
-      "intro": "Did your student ask you to recommend a tutor for another subject? Don't give the case away for free! Refer your friends to MatchMax, and we will pay you for the introduction.",
-      "reward_title": "The Reward",
-      "reward_body": "You earn 15% of the total MatchMax Administrative Matching Fee for that specific case.",
-      "conditions_title": "The Conditions",
-      "conditions_1": "The payout is valid for the first successful case match of the newly referred tutor only.",
-      "conditions_2": "The 15% cash bounty will be transferred to you via FPS strictly after the referred tutor completes their first two (2) lessons and MatchMax has successfully collected the matching fee from the parent.",
-      "claim_title": "How to Claim",
-      "claim_body": "Simply message our team in your dedicated MatchMax WhatsApp group and say, “I have a tutor to refer for this student's English case.” We will handle the official matching and log your referral bonus!",
-      "dashboard_cta": "Tutors: track your bounties on the Refer & Earn page in your dashboard."
-    },
     "verification_eyebrow": "Transparency",
     "verification_title": "Understanding Tutor Verification",
+    "verification_disclaimer": "MatchMax is not endorsed by the IB, HKEAA, or any school. We check documents the tutor uploads. We do not guarantee a grade, an offer, or a teacher's marking style.",
     "verification_tier2_title": "Gold Verified badge",
     "verification_tier2_body": "MatchMax operates a dual-tier ecosystem. Tutors with the gold 'Verified' badge have submitted their official Academic Transcripts and Hong Kong Identity Card (HKID) to our administrative team for cross-referencing.",
     "verification_tier1_title": "Self-reported profiles",

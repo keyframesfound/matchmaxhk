@@ -35,12 +35,12 @@ export function AnnouncementBanner() {
 
   const slides = [
     {
-      hash: undefined,
+      to: "/how-it-works",
       text: t("banner.value_prop"),
       cta: null as string | null,
     },
     {
-      hash: "referral-bounty",
+      to: "/join",
       text: t("banner.referral_promo"),
       cta: t("banner.referral_cta"),
     },
@@ -62,8 +62,7 @@ export function AnnouncementBanner() {
           return (
             <Link
               key={item.text}
-              to="/how-it-works"
-              hash={item.hash}
+              to={item.to}
               tabIndex={isActive ? 0 : -1}
               aria-hidden={!isActive}
               className={`col-start-1 row-start-1 flex items-center justify-center gap-2 pr-8 text-center text-[12px] font-medium leading-snug text-white underline underline-offset-2 transition-opacity duration-700 sm:pr-10 sm:text-sm motion-reduce:transition-none ${
