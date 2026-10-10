@@ -875,6 +875,7 @@ function SubjectPicker({
 
 type ApplicationBaseState = {
   name: string;
+  preferredName: string;
   phone: string;
   email: string;
   photo: File | null;
@@ -942,6 +943,9 @@ export function ApplicationForm() {
   // Remembered at submit time so the WhatsApp activation deep link can greet
   // the MatchMax team with the applicant's name.
   const [applicantName, setApplicantName] = useState("");
+  // Issue #189: server-assigned application id, surfaced in the WhatsApp
+  // activation message so the team can match the chat to the stored row.
+  const [applicationRef, setApplicationRef] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -962,6 +966,7 @@ export function ApplicationForm() {
   const [suggestionStatus, setSuggestionStatus] = useState<"idle" | "adding" | "done">("idle");
   const [base, setBase] = useState<ApplicationBaseState>({
     name: "",
+    preferredName: "",
     phone: "+852 ",
     email: "",
     photo: null,
@@ -1012,10 +1017,19 @@ export function ApplicationForm() {
   // Hotline digits for the Step 2 activation link; fetched once the
   // application is submitted.
   const whatsappDigits = useWhatsAppNumber(done);
+  // Issue #189: "Legal Full Name - Preferred Name" when a preferred name is
+  // given, plus the application reference so the team can pull up the row.
+  const whatsappGreeting = (() => {
+    const preferred = base.preferredName.trim();
+    const who =
+      preferred && preferred.toLowerCase() !== applicantName.toLowerCase()
+        ? `${applicantName} - ${preferred}`
+        : applicantName;
+    const ref = applicationRef ? ` My application reference is ${applicationRef}.` : "";
+    return `Hi MatchMax! I have just completed my tutor application. My name is ${who}.${ref}`;
+  })();
   const whatsappActivateHref = whatsappDigits
-    ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
-        `Hi MatchMax! I have just completed my tutor application. My name is ${applicantName}.`,
-      )}`
+    ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(whatsappGreeting)}`
     : "";
 
   const {
@@ -1540,6 +1554,7 @@ export function ApplicationForm() {
       const parsed = tutorApplicationSchema.safeParse({
         turnstileToken: captcha,
         name: base.name,
+        preferredName: base.preferredName.trim(),
         phone: base.phone,
         email: base.email,
         profilePhoto: base.photo
@@ -1663,7 +1678,10 @@ export function ApplicationForm() {
         scrollToStepperTop();
         return;
       }
-      await submit({ data: parsed.data });
+      await submit({ data: parsed.data }).then((result) => {
+        setApplicationRef(result?.applicationId ?? "");
+        return result;
+      });
       clearDraft();
       setApplicantName(base.name.trim());
       setDone(true);
@@ -1732,8 +1750,7 @@ export function ApplicationForm() {
           )}
           {applicantName ? (
             <p className="mx-auto mt-5 max-w-md rounded-sm border border-border bg-[color:var(--surface-subtle)] px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-              Your message will say: “Hi MatchMax! I have just completed my tutor application. My
-              name is {applicantName}.”
+              Your message will say: “{whatsappGreeting}”
             </p>
           ) : null}
         </div>
@@ -2143,6 +2160,18 @@ export function ApplicationForm() {
                       value={base.name}
                       onChange={(event) => setBaseField("name", event.target.value)}
                       placeholder="Chan Hau Yui Hauzton"
+                    />
+                  </Field>
+                  <Field
+                    label="Preferred Name"
+                    optional
+                    hint="What should we call you on WhatsApp?"
+                  >
+                    <Input
+                      value={base.preferredName}
+                      onChange={(event) => setBaseField("preferredName", event.target.value)}
+                      placeholder="Hauzton"
+                      maxLength={80}
                     />
                   </Field>
                   <Field
