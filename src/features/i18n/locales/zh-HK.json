@@ -1220,6 +1220,7 @@
     "reason_impersonation": "冒充他人",
     "reason_other": "其他",
     "note_label": "請講多啲（必填）",
+    "note_label_optional": "補充詳情（可選）",
     "note_placeholder": "描述吓個問題……",
     "privacy_note": "你嘅名字唔會話俾被舉報嘅人知。職員會睇到舉報內容然後處理。",
     "login_title": "立即開始",
@@ -1229,6 +1230,8 @@
     "cancel": "取消",
     "submitted": "舉報已提交，職員會盡快處理。",
     "duplicate": "你已經舉報過呢項，仍然喺處理緊。",
+    "rate_limited": "你近期已提交咗幾個舉報，請稍候再試。",
+    "self_report": "唔可以舉報自己嘅項目。如有問題需要修改，請聯絡我哋。",
     "failed": "舉報未能提交，請再試一次。"
   },
   "guide": {

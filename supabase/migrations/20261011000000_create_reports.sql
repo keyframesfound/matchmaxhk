@@ -9,7 +9,9 @@
 --     blocked while one is open; different reporters are fine and wanted).
 --   * reporter_id is auth-scoped by RLS (authenticated insert, own rows only)
 --     and NEVER readable by the reported party: the tutor-facing read path
---     doesn't exist at all. Admin queue reads via has_role RLS policies.
+--     doesn't exist at all. The staff queue reads via the admin-gated server
+--     fns with the service-role client (reports has no admin SELECT policy —
+--     staff access is enforced in listReportsAdmin/resolveReport).
 --   * Targets are soft references (uuid + target_type), because a report may
 --     name a photo/introduction (part of the tutors row) OR a whole card OR a
 --     digital_materials listing. No FK to keep reports alive after deletion —

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Flag } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -24,15 +24,85 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * Issue #216: Report button — one report form for a tutor card, a photo, an
- * introduction, and a note. The reporter picks a reason ("other" requires a
- * note); login is required (AuthGateDialog, same pattern as saving a case);
- * one OPEN report per (reporter, item) — a repeat submit shows a friendly
- * duplicate toast backed by the partial unique index on reports.
- *
- * The reported tutor is never shown who reported (reporter identity has no
- * tutor-facing read path — see 20261011000000_create_reports.sql).
+ * Report intent that survives the login round-trip (issue #216 review
+ * finding): when a logged-out user clicks Report and the auth gate opens, we
+ * stash the target in sessionStorage; once `user` appears, the dialog reopens
+ * automatically so they don't have to find the report button again. Google
+ * OAuth landing in a fresh tab loses sessionStorage — the intent degrades to
+ * "click Report again", same as before; the email path (same tab) resumes.
  */
+const PENDING_REPORT_KEY = "mm_pending_report";
+
+type PendingReport = {
+  targetType: ReportTargetType;
+  targetId: string;
+};
+
+function stashPendingReport(intent: PendingReport) {
+  try {
+    sessionStorage.setItem(PENDING_REPORT_KEY, JSON.stringify(intent));
+  } catch {
+    // sessionStorage unavailable — the user just clicks Report again
+  }
+}
+
+function takePendingReport(target: PendingReport): boolean {
+  try {
+    const raw = sessionStorage.getItem(PENDING_REPORT_KEY);
+    if (!raw) return false;
+    sessionStorage.removeItem(PENDING_REPORT_KEY);
+    const parsed = JSON.parse(raw) as PendingReport;
+    return parsed?.targetType === target.targetType && parsed?.targetId === target.targetId;
+  } catch {
+    return false;
+  }
+}
+
+/** Shared submit wiring for both trigger variants (button + inline link). */
+function useReportMutation(
+  targetType: ReportTargetType,
+  targetId: string,
+  reason: ReportReason | null,
+  note: string,
+  onDone: () => void,
+) {
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: () =>
+      submitReport({
+        data: {
+          targetType,
+          targetId,
+          reason: reason as ReportReason,
+          // Optional context is collected for EVERY reason (staff investigating
+          // a copyright or harassment report needs it too); the server still
+          // requires it only for "other".
+          note: note.trim() ? note.trim() : undefined,
+        },
+      }),
+    onSuccess: () => {
+      toast.success(t("report.submitted"));
+      onDone();
+    },
+    onError: (error) => {
+      if (error instanceof Error && error.message === "DUPLICATE_REPORT") {
+        toast.info(t("report.duplicate"));
+        onDone();
+        return;
+      }
+      if (error instanceof Error && error.message === "RATE_LIMITED") {
+        toast.error(t("report.rate_limited"));
+        return;
+      }
+      if (error instanceof Error && error.message === "SELF_REPORT") {
+        toast.error(t("report.self_report"));
+        return;
+      }
+      toast.error(t("report.failed"));
+    },
+  });
+}
+
 export function ReportButton({
   targetType,
   targetId,
@@ -52,31 +122,20 @@ export function ReportButton({
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [note, setNote] = useState("");
 
-  const mutation = useMutation({
-    mutationFn: () =>
-      submitReport({
-        data: {
-          targetType,
-          targetId,
-          reason: reason as ReportReason,
-          note: reason === "other" ? note : undefined,
-        },
-      }),
-    onSuccess: () => {
-      toast.success(t("report.submitted"));
-      setDialogOpen(false);
-      setReason(null);
-      setNote("");
-    },
-    onError: (error) => {
-      if (error instanceof Error && error.message === "DUPLICATE_REPORT") {
-        toast.info(t("report.duplicate"));
-        setDialogOpen(false);
-        return;
-      }
-      toast.error(t("report.failed"));
-    },
-  });
+  // Resume a stashed report intent once the user is signed in (see
+  // PENDING_REPORT_KEY above).
+  useEffect(() => {
+    if (user && takePendingReport({ targetType, targetId })) {
+      setDialogOpen(true);
+    }
+  }, [user, targetType, targetId]);
+
+  const reset = () => {
+    setDialogOpen(false);
+    setReason(null);
+    setNote("");
+  };
+  const mutation = useReportMutation(targetType, targetId, reason, note, reset);
 
   return (
     <>
@@ -88,6 +147,7 @@ export function ReportButton({
           if (user) {
             setDialogOpen(true);
           } else {
+            stashPendingReport({ targetType, targetId });
             setGateOpen(true);
           }
         }}
@@ -100,7 +160,13 @@ export function ReportButton({
       />
       <ReportDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setReason(null);
+            setNote("");
+          }
+        }}
         label={label}
         reason={reason}
         setReason={setReason}
@@ -134,33 +200,19 @@ export function InlineReportLink({
   const [note, setNote] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  const mutation = useMutation({
-    mutationFn: () =>
-      submitReport({
-        data: {
-          targetType,
-          targetId,
-          reason: reason as ReportReason,
-          note: reason === "other" ? note : undefined,
-        },
-      }),
-    onSuccess: () => {
-      toast.success(t("report.submitted"));
-      setDialogOpen(false);
-      setReason(null);
-      setNote("");
-      setHasSubmitted(true);
-    },
-    onError: (error) => {
-      if (error instanceof Error && error.message === "DUPLICATE_REPORT") {
-        toast.info(t("report.duplicate"));
-        setDialogOpen(false);
-        setHasSubmitted(true);
-        return;
-      }
-      toast.error(t("report.failed"));
-    },
-  });
+  useEffect(() => {
+    if (user && takePendingReport({ targetType, targetId })) {
+      setDialogOpen(true);
+    }
+  }, [user, targetType, targetId]);
+
+  const reset = () => {
+    setDialogOpen(false);
+    setReason(null);
+    setNote("");
+    setHasSubmitted(true);
+  };
+  const mutation = useReportMutation(targetType, targetId, reason, note, reset);
 
   if (hasSubmitted) return null;
 
@@ -173,6 +225,7 @@ export function InlineReportLink({
           if (user) {
             setDialogOpen(true);
           } else {
+            stashPendingReport({ targetType, targetId });
             setGateOpen(true);
           }
         }}
@@ -189,7 +242,13 @@ export function InlineReportLink({
       />
       <ReportDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setReason(null);
+            setNote("");
+          }
+        }}
         label={label}
         reason={reason}
         setReason={setReason}
@@ -276,10 +335,10 @@ function ReportDialog({
               );
             })}
           </ul>
-          {reason === "other" ? (
+          {reason ? (
             <div className="mt-3">
               <label htmlFor="report-note" className="text-xs font-bold text-[color:var(--ink)]">
-                {t("report.note_label")}
+                {reason === "other" ? t("report.note_label") : t("report.note_label_optional")}
               </label>
               <Textarea
                 id="report-note"

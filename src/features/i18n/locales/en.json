@@ -1220,6 +1220,7 @@
     "reason_impersonation": "Impersonation",
     "reason_other": "Other",
     "note_label": "Please tell us more (required)",
+    "note_label_optional": "Add details (optional)",
     "note_placeholder": "Describe the problem…",
     "privacy_note": "Your name is never shared with the reported person. Staff see the report and decide.",
     "login_title": "Get Started",
@@ -1229,6 +1230,8 @@
     "cancel": "Cancel",
     "submitted": "Report submitted. Our staff will take a look.",
     "duplicate": "You have already reported this, and it is still being reviewed.",
+    "rate_limited": "You've submitted several reports recently. Please wait a little before reporting again.",
+    "self_report": "You can't report your own listing. Contact us if something needs fixing.",
     "failed": "Could not submit the report. Please try again."
   },
   "guide": {

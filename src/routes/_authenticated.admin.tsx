@@ -7,6 +7,7 @@ import {
   Building2,
   ClipboardList,
   ExternalLink,
+  Flag,
   Gift,
   GraduationCap,
   Image as ImageIcon,
@@ -33,6 +34,7 @@ const ADMIN_TITLES: { prefix: string; title: string }[] = [
   { prefix: "/admin/cases", title: "Cases" },
   { prefix: "/admin/referrals", title: "Referrals & bounties" },
   { prefix: "/admin/materials", title: "Study materials" },
+  { prefix: "/admin/reports", title: "Reports" },
   { prefix: "/admin/users", title: "Users" },
   { prefix: "/admin/organizations", title: "Organizations" },
   { prefix: "/admin/r2", title: "R2 images" },
@@ -58,6 +60,7 @@ function useAdminNavGroups(pendingJoinRequests: number | undefined): ConsoleNavG
         { label: "Cases", to: "/admin/cases", icon: ClipboardList },
         { label: "Referrals", to: "/admin/referrals", icon: Gift },
         { label: "Study Materials", to: "/admin/materials", icon: BookOpen },
+        { label: "Reports", to: "/admin/reports", icon: Flag },
       ],
     },
     {
