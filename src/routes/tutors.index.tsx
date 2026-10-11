@@ -27,6 +27,7 @@ import {
   getTutorBaseRate,
   getTutorInquiryAction,
 } from "@/features/tutors/tutor-display";
+import { DirectoryToggle, MaterialsDirectory } from "@/features/materials/materials-directory";
 import {
   fetchPublishedTutors,
   getTutorCardHighlights,
@@ -71,6 +72,7 @@ const searchSchema = z.object({
     (value) => (value === "1" || value === "true" || value === true ? true : undefined),
     z.boolean().optional(),
   ), // transient: opens the mobile search overlay when hopping tabs
+  view: z.enum(["tutors", "materials"]).optional(), // #131 directory tab
 });
 type SearchState = z.infer<typeof searchSchema>;
 
@@ -317,6 +319,12 @@ function TutorsDirectory() {
 
   const compactSegments = useTutorsCompactSegments(draft);
 
+  // #131: Tutors | Study Materials directory tab.
+  const directoryView = search.view === "materials" ? "materials" : "tutors";
+  const setDirectoryView = (next: "tutors" | "materials") => {
+    navigate({ search: next === "materials" ? { view: "materials" } : {} });
+  };
+
   return (
     <SearchGroupProvider>
       <div className="flex min-h-screen flex-col bg-background">
@@ -327,232 +335,255 @@ function TutorsDirectory() {
         <main className="flex-1">
           <section className="border-b border-border bg-[color:var(--surface-header)] pt-10 pb-6 sm:pt-12 sm:pb-8 lg:border-b-0">
             <div className="mx-auto max-w-7xl px-4 sm:px-6">
-              <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
-                Find verified tutors
-              </h1>
-              <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                Start with a subject or tutor code, then narrow the list to the right fit.
-              </p>
-              <TutorsSearchMobile
-                className="mt-7"
-                draft={draft}
-                onDraftChange={setDraftParam}
-                onApply={applySearch}
-                onClear={clearAll}
-                allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
-                educationValues={educationValues}
-                defaultOverlayOpen={search.open === true}
-                whatsappUrl={hotlineUrl || undefined}
-              />
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
+                    {directoryView === "materials"
+                      ? t("materials.directory_title")
+                      : "Find verified tutors"}
+                  </h1>
+                  <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                    {directoryView === "materials"
+                      ? t("materials.directory_subtitle")
+                      : "Start with a subject or tutor code, then narrow the list to the right fit."}
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <DirectoryToggle active={directoryView} onChange={setDirectoryView} />
+                </div>
+              </div>
+              {directoryView === "tutors" ? (
+                <TutorsSearchMobile
+                  className="mt-7"
+                  draft={draft}
+                  onDraftChange={setDraftParam}
+                  onApply={applySearch}
+                  onClear={clearAll}
+                  allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
+                  educationValues={educationValues}
+                  defaultOverlayOpen={search.open === true}
+                  whatsappUrl={hotlineUrl || undefined}
+                />
+              ) : null}
             </div>
           </section>
-          <StickySearchBar>
-            <div className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
-              <TutorsSearchBar
-                draft={draft}
-                onDraftChange={setDraftParam}
-                onApply={applySearch}
-                onClear={clearAll}
-                resultCount={filtered.length}
-                allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
-                educationValues={educationValues}
-                whatsappUrl={hotlineUrl || undefined}
-              />
-            </div>
-          </StickySearchBar>
-          <section className="pt-6 pb-12 sm:pt-8">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6">
-              <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
-                {isLoading ? (
-                  <Skeleton className="h-4 w-28" />
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-bold text-foreground">{filtered.length}</span>{" "}
-                    {filtered.length === 1 ? "tutor" : "tutors"} found
-                  </p>
-                )}
-                {/* Issue #217: popular-tag suggestions (3+ tutors) and the
+          {directoryView === "tutors" ? (
+            <StickySearchBar>
+              <div className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
+                <TutorsSearchBar
+                  draft={draft}
+                  onDraftChange={setDraftParam}
+                  onApply={applySearch}
+                  onClear={clearAll}
+                  resultCount={filtered.length}
+                  allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
+                  educationValues={educationValues}
+                  whatsappUrl={hotlineUrl || undefined}
+                />
+              </div>
+            </StickySearchBar>
+          ) : null}
+          {directoryView === "materials" ? (
+            <MaterialsDirectory whatsappNumber={whatsappNumber || undefined} />
+          ) : (
+            <section className="pt-6 pb-12 sm:pt-8">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6">
+                <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-28" />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-bold text-foreground">{filtered.length}</span>{" "}
+                      {filtered.length === 1 ? "tutor" : "tutors"} found
+                    </p>
+                  )}
+                  {/* Issue #217: popular-tag suggestions (3+ tutors) and the
                     active-tag chip with a one-click clear. */}
-                {tagFilter ? (
-                  <button
-                    type="button"
-                    onClick={() => setDraftParam({ tag: "" })}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
-                  >
-                    <Hash className="h-3 w-3" aria-hidden="true" />
-                    {tagFilter}
-                    <span aria-hidden="true" className="text-[color:var(--ink)]/50">
-                      ×
-                    </span>
-                  </button>
-                ) : null}
-                {popularTags.length > 0 ? (
-                  <div className="ml-auto flex flex-wrap items-center gap-1.5">
-                    <span className="text-xs text-muted-foreground">
-                      {t("directory.popular_tags")}
-                    </span>
-                    {popularTags.map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => {
-                          setDraftParam({ tag });
-                          applySearch({ tag });
-                        }}
-                        className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
-                      >
-                        <Hash className="h-3 w-3" aria-hidden="true" />
-                        {tag}
-                      </button>
+                  {tagFilter ? (
+                    <button
+                      type="button"
+                      onClick={() => setDraftParam({ tag: "" })}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                    >
+                      <Hash className="h-3 w-3" aria-hidden="true" />
+                      {tagFilter}
+                      <span aria-hidden="true" className="text-[color:var(--ink)]/50">
+                        ×
+                      </span>
+                    </button>
+                  ) : null}
+                  {popularTags.length > 0 ? (
+                    <div className="ml-auto flex flex-wrap items-center gap-1.5">
+                      <span className="text-xs text-muted-foreground">
+                        {t("directory.popular_tags")}
+                      </span>
+                      {popularTags.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => {
+                            setDraftParam({ tag });
+                            applySearch({ tag });
+                          }}
+                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                        >
+                          <Hash className="h-3 w-3" aria-hidden="true" />
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+
+                {isLoading && (
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <Skeleton key={i} className="h-[23rem] rounded-[10px] border border-border" />
                     ))}
                   </div>
-                ) : null}
-              </div>
+                )}
 
-              {isLoading && (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <Skeleton key={i} className="h-[23rem] rounded-[10px] border border-border" />
-                  ))}
-                </div>
-              )}
-
-              {!isLoading && filtered.length === 0 && educationFiltered && (
-                <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
-                    <GraduationCap
-                      className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
-                    {t("directory.empty_edu_title")}
-                  </h2>
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                    {t("directory.empty_edu_desc")}
-                  </p>
-                  <div className="mt-6 flex flex-wrap justify-center gap-3">
-                    <Button variant="outline" onClick={clearAll}>
-                      {t("directory.empty_edu_clear")}
-                    </Button>
-                  </div>
-                  {fallbackTutors.length > 0 && (
-                    <div className="mt-8 text-left">
-                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {fallbackTutors.map((tut: Tutor) => {
-                          const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
-                          return (
-                            <PublicTutorCard
-                              key={tut.id}
-                              tutor={tut}
-                              priceSuffix={t("featured.per_hour")}
-                              onOpen={openTutorDetail}
-                              footerAction={
-                                <>
-                                  <TutorSaveButton tutorId={tut.id} compact />
-                                  <Button
-                                    asChild
-                                    className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                                  >
-                                    <a
-                                      href={inquiry.href}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      onClick={(event) => event.stopPropagation()}
-                                    >
-                                      {inquiry.label}
-                                    </a>
-                                  </Button>
-                                </>
-                              }
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!isLoading && filtered.length === 0 && !educationFiltered && (
-                <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
-                    <SearchX
-                      className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
-                    {t("directory.empty_title")}
-                  </h2>
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                    {t("directory.empty_desc")}
-                  </p>
-                  <div className="mt-6 flex flex-wrap justify-center gap-3">
-                    <Button variant="outline" onClick={clearAll}>
-                      {t("directory.empty_clear")}
-                    </Button>
-                    {hotlineUrl ? (
-                      <Button asChild variant="ghost">
-                        <a href={hotlineUrl} target="_blank" rel="noreferrer">
-                          <WhatsAppIcon
-                            className="mr-2 h-4 w-4 text-[color:var(--muted-foreground)]"
-                            aria-hidden="true"
-                          />
-                          {t("directory.empty_whatsapp")}
-                        </a>
-                      </Button>
-                    ) : null}
-                    <Button asChild variant="solid" color="blue" className="font-bold">
-                      <Link to="/tutor-requests" search={{ post: true }}>
-                        {t("directory.empty_case")}
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {!isLoading && filtered.length > 0 && (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filtered.map((tut: Tutor) => {
-                    const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
-                    return (
-                      <PublicTutorCard
-                        key={tut.id}
-                        tutor={tut}
-                        priceSuffix={t("featured.per_hour")}
-                        onOpen={openTutorDetail}
-                        onCompareToggle={() => toggleCompare(tut)}
-                        compareSelected={compareIds.includes(tut.id)}
-                        tagQuery={(tag) => {
-                          setDraftParam({ tag });
-                          applySearch({ tag });
-                        }}
-                        footerAction={
-                          <>
-                            <TutorSaveButton tutorId={tut.id} compact />
-                            <Button
-                              asChild
-                              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                            >
-                              <a
-                                href={inquiry.href}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={(event) => event.stopPropagation()}
-                              >
-                                {inquiry.label}
-                              </a>
-                            </Button>
-                          </>
-                        }
+                {!isLoading && filtered.length === 0 && educationFiltered && (
+                  <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
+                      <GraduationCap
+                        className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                        aria-hidden="true"
                       />
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </section>
+                    </div>
+                    <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                      {t("directory.empty_edu_title")}
+                    </h2>
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                      {t("directory.empty_edu_desc")}
+                    </p>
+                    <div className="mt-6 flex flex-wrap justify-center gap-3">
+                      <Button variant="outline" onClick={clearAll}>
+                        {t("directory.empty_edu_clear")}
+                      </Button>
+                    </div>
+                    {fallbackTutors.length > 0 && (
+                      <div className="mt-8 text-left">
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                          {fallbackTutors.map((tut: Tutor) => {
+                            const inquiry = getTutorInquiryAction(
+                              tut,
+                              whatsappNumber,
+                              i18n.language,
+                            );
+                            return (
+                              <PublicTutorCard
+                                key={tut.id}
+                                tutor={tut}
+                                priceSuffix={t("featured.per_hour")}
+                                onOpen={openTutorDetail}
+                                footerAction={
+                                  <>
+                                    <TutorSaveButton tutorId={tut.id} compact />
+                                    <Button
+                                      asChild
+                                      className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                                    >
+                                      <a
+                                        href={inquiry.href}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        onClick={(event) => event.stopPropagation()}
+                                      >
+                                        {inquiry.label}
+                                      </a>
+                                    </Button>
+                                  </>
+                                }
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!isLoading && filtered.length === 0 && !educationFiltered && (
+                  <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
+                      <SearchX
+                        className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                      {t("directory.empty_title")}
+                    </h2>
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                      {t("directory.empty_desc")}
+                    </p>
+                    <div className="mt-6 flex flex-wrap justify-center gap-3">
+                      <Button variant="outline" onClick={clearAll}>
+                        {t("directory.empty_clear")}
+                      </Button>
+                      {hotlineUrl ? (
+                        <Button asChild variant="ghost">
+                          <a href={hotlineUrl} target="_blank" rel="noreferrer">
+                            <WhatsAppIcon
+                              className="mr-2 h-4 w-4 text-[color:var(--muted-foreground)]"
+                              aria-hidden="true"
+                            />
+                            {t("directory.empty_whatsapp")}
+                          </a>
+                        </Button>
+                      ) : null}
+                      <Button asChild variant="solid" color="blue" className="font-bold">
+                        <Link to="/tutor-requests" search={{ post: true }}>
+                          {t("directory.empty_case")}
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {!isLoading && filtered.length > 0 && (
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {filtered.map((tut: Tutor) => {
+                      const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
+                      return (
+                        <PublicTutorCard
+                          key={tut.id}
+                          tutor={tut}
+                          priceSuffix={t("featured.per_hour")}
+                          onOpen={openTutorDetail}
+                          onCompareToggle={() => toggleCompare(tut)}
+                          compareSelected={compareIds.includes(tut.id)}
+                          tagQuery={(tag) => {
+                            setDraftParam({ tag });
+                            applySearch({ tag });
+                          }}
+                          footerAction={
+                            <>
+                              <TutorSaveButton tutorId={tut.id} compact />
+                              <Button
+                                asChild
+                                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                              >
+                                <a
+                                  href={inquiry.href}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  {inquiry.label}
+                                </a>
+                              </Button>
+                            </>
+                          }
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
         </main>
         <SiteFooter />
         {compareTutors.length > 0 && !compareOpen ? (
