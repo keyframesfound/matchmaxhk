@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileUp, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -28,14 +29,7 @@ type MyListing = {
   price_hkd: number;
 };
 
-const DOCUMENT_TYPES = [
-  "custom_notes",
-  "past_paper_solutions",
-  "ia",
-  "ee",
-  "tok_essay",
-  "mock_exam",
-] as const;
+const DOCUMENT_TYPES = ["custom_notes", "ia", "ee", "tok_essay", "mock_exam"] as const;
 
 export function StudyMaterialsSection() {
   const { t } = useTranslation();
@@ -277,12 +271,26 @@ export function StudyMaterialsSection() {
               onCheckedChange={(checked) => setLegalAgreed(checked === true)}
               required
             />
-            <Label
-              htmlFor="material-legal"
-              className="text-xs font-medium leading-relaxed text-muted-foreground"
-            >
-              {t("materials.legal_checkbox")}
-            </Label>
+            <div className="space-y-1">
+              <Label
+                htmlFor="material-legal"
+                className="text-xs font-medium leading-relaxed text-muted-foreground"
+              >
+                {t("materials.legal_checkbox")}
+              </Label>
+              {/* Issue #212: the checkbox links the Notes Terms; the upload
+                  cannot be submitted without accepting them. */}
+              <p>
+                <Link
+                  to="/legal/notes-terms"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-bold text-[color:var(--brand-link)] underline underline-offset-2"
+                >
+                  {t("guide.notes.terms_link")}
+                </Link>
+              </p>
+            </div>
           </div>
 
           <Button type="submit" disabled={submitting || !legalAgreed} className="w-full font-bold">

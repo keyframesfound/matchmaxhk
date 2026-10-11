@@ -36,7 +36,7 @@ export function MobileSearchTrigger({
     {
       key: "how",
       label: t("nav.how"),
-      to: "/how-it-works" as const,
+      to: "/guide" as const,
       icon: "/nav-how-it-works.png",
     },
     {

@@ -271,6 +271,28 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
       },
     ],
   },
+  {
+    title: "12. Study materials (notes) orders",
+    blocks: [
+      {
+        kind: "p",
+        text: "When a buyer purchases a tutor’s study materials through MatchMax, we process a narrow order record: the buyer account, the pack identifier, the payment reference, and the download time. We do not use order data for unrelated purposes.",
+      },
+      {
+        kind: "ul",
+        items: [
+          "Each delivered file is stamped with the order identifier and the buyer account identifier so leaks can be traced.",
+          "The selling tutor sees units sold and net amounts owed. The tutor does not see the buyer’s name, phone number, or email.",
+          "Staff may view a file to review it before release or to handle a complaint.",
+          "Order records are kept for seven years. On request, we delete a delivered file where there is no outstanding payout or dispute relating to it.",
+        ],
+      },
+      {
+        kind: "p",
+        text: "The commercial terms for notes — licences, refunds, and takedowns — are set out in the Notes Terms (/legal/notes-terms).",
+      },
+    ],
+  },
 ];
 
 function renderInline(text: string) {

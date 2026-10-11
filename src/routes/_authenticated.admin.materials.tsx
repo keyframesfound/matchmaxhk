@@ -46,14 +46,7 @@ export const Route = createFileRoute("/_authenticated/admin/materials")({
   component: AdminMaterials,
 });
 
-const DOCUMENT_TYPES = [
-  "custom_notes",
-  "past_paper_solutions",
-  "ia",
-  "ee",
-  "tok_essay",
-  "mock_exam",
-] as const;
+const DOCUMENT_TYPES = ["custom_notes", "ia", "ee", "tok_essay", "mock_exam"] as const;
 
 type AdminTutorOption = { id: string; display_name: string; tutor_code: string };
 

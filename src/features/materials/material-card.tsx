@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import type { StudyMaterial } from "@/features/materials/queries";
+import { formatDocumentTypeLabel, type StudyMaterial } from "@/features/materials/queries";
 
 /**
  * Issues #131/#134: shared display pieces for the study-materials marketplace
@@ -146,7 +146,7 @@ export function StudyMaterialCard({
             {material.title}
           </h3>
           <p className="mt-1 text-xs font-semibold text-muted-foreground">
-            {t(`materials.doc_type_${material.document_type}`)}
+            {formatDocumentTypeLabel(material.document_type, t)}
             {material.curriculum_tag ? ` · ${material.curriculum_tag}` : ""}
             {material.subject_tag ? ` · ${material.subject_tag}` : ""}
             {material.year_tag ? ` · ${material.year_tag}` : ""}

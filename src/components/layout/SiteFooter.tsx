@@ -6,14 +6,14 @@ import { LanguageToggle } from "@/components/brand/LanguageToggle";
 
 const productLinks = [
   { key: "footer.find_tutors", to: "/tutors" },
-  { key: "footer.how", to: "/how-it-works" },
+  { key: "footer.how", to: "/guide" },
   { key: "footer.request_tutor", to: "/tutor-requests" },
   { key: "footer.saved_posts", to: "/saved-posts" },
   { key: "footer.join_as_tutor", to: "/join" },
 ] as const;
 
 const companyLinks = [
-  { key: "footer.faq", to: "/how-it-works", hash: "faq" },
+  { key: "footer.faq", to: "/guide", hash: "faq" },
   { key: "footer.playbook", to: "/tutor-playbook" },
   { key: "footer.terms", to: "/tos" },
   { key: "footer.privacy", to: "/privacy-policy" },

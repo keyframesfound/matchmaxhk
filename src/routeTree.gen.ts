@@ -29,7 +29,14 @@ import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authentic
 import { Route as BusinessSlugRouteImport } from './routes/business.$slug'
 import { Route as CoursesIndexRouteImport } from './routes/courses.index'
 import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
+import { Route as GuideIndexRouteImport } from './routes/guide.index'
+import { Route as GuideNotesRouteImport } from './routes/guide.notes'
+import { Route as GuideParentsRouteImport } from './routes/guide.parents'
+import { Route as GuideReferRouteImport } from './routes/guide.refer'
+import { Route as GuideTutorsRouteImport } from './routes/guide.tutors'
+import { Route as GuideVerificationRouteImport } from './routes/guide.verification'
 import { Route as HelpIndexRouteImport } from './routes/help.index'
+import { Route as LegalNotesTermsRouteImport } from './routes/legal.notes-terms'
 import { Route as TutorRequestsIndexRouteImport } from './routes/tutor-requests.index'
 import { Route as TutorRequestsCaseCodeRouteImport } from './routes/tutor-requests.$caseCode'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
@@ -153,9 +160,44 @@ const CoursesCourseIdRoute = CoursesCourseIdRouteImport.update({
   path: '/courses/$courseId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuideIndexRoute = GuideIndexRouteImport.update({
+  id: '/guide/',
+  path: '/guide/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideNotesRoute = GuideNotesRouteImport.update({
+  id: '/guide/notes',
+  path: '/guide/notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideParentsRoute = GuideParentsRouteImport.update({
+  id: '/guide/parents',
+  path: '/guide/parents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideReferRoute = GuideReferRouteImport.update({
+  id: '/guide/refer',
+  path: '/guide/refer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideTutorsRoute = GuideTutorsRouteImport.update({
+  id: '/guide/tutors',
+  path: '/guide/tutors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideVerificationRoute = GuideVerificationRouteImport.update({
+  id: '/guide/verification',
+  path: '/guide/verification',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HelpIndexRoute = HelpIndexRouteImport.update({
   id: '/help/',
   path: '/help/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalNotesTermsRoute = LegalNotesTermsRouteImport.update({
+  id: '/legal/notes-terms',
+  path: '/legal/notes-terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TutorRequestsIndexRoute = TutorRequestsIndexRouteImport.update({
@@ -305,9 +347,16 @@ export interface FileRoutesByFullPath {
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/guide/notes': typeof GuideNotesRoute
+  '/guide/parents': typeof GuideParentsRoute
+  '/guide/refer': typeof GuideReferRoute
+  '/guide/tutors': typeof GuideTutorsRoute
+  '/guide/verification': typeof GuideVerificationRoute
+  '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/tutor-requests/$caseCode': typeof TutorRequestsCaseCodeRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses/': typeof CoursesIndexRoute
+  '/guide/': typeof GuideIndexRoute
   '/help/': typeof HelpIndexRoute
   '/tutor-requests/': typeof TutorRequestsIndexRoute
   '/tutors/': typeof TutorsIndexRoute
@@ -349,9 +398,16 @@ export interface FileRoutesByTo {
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/guide/notes': typeof GuideNotesRoute
+  '/guide/parents': typeof GuideParentsRoute
+  '/guide/refer': typeof GuideReferRoute
+  '/guide/tutors': typeof GuideTutorsRoute
+  '/guide/verification': typeof GuideVerificationRoute
+  '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/tutor-requests/$caseCode': typeof TutorRequestsCaseCodeRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses': typeof CoursesIndexRoute
+  '/guide': typeof GuideIndexRoute
   '/help': typeof HelpIndexRoute
   '/tutor-requests': typeof TutorRequestsIndexRoute
   '/tutors': typeof TutorsIndexRoute
@@ -396,9 +452,16 @@ export interface FileRoutesById {
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/guide/notes': typeof GuideNotesRoute
+  '/guide/parents': typeof GuideParentsRoute
+  '/guide/refer': typeof GuideReferRoute
+  '/guide/tutors': typeof GuideTutorsRoute
+  '/guide/verification': typeof GuideVerificationRoute
+  '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/tutor-requests/$caseCode': typeof TutorRequestsCaseCodeRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses/': typeof CoursesIndexRoute
+  '/guide/': typeof GuideIndexRoute
   '/help/': typeof HelpIndexRoute
   '/tutor-requests/': typeof TutorRequestsIndexRoute
   '/tutors/': typeof TutorsIndexRoute
@@ -443,9 +506,16 @@ export interface FileRouteTypes {
     | '/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
+    | '/guide/notes'
+    | '/guide/parents'
+    | '/guide/refer'
+    | '/guide/tutors'
+    | '/guide/verification'
+    | '/legal/notes-terms'
     | '/tutor-requests/$caseCode'
     | '/tutors/$tutorCode'
     | '/courses/'
+    | '/guide/'
     | '/help/'
     | '/tutor-requests/'
     | '/tutors/'
@@ -487,9 +557,16 @@ export interface FileRouteTypes {
     | '/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
+    | '/guide/notes'
+    | '/guide/parents'
+    | '/guide/refer'
+    | '/guide/tutors'
+    | '/guide/verification'
+    | '/legal/notes-terms'
     | '/tutor-requests/$caseCode'
     | '/tutors/$tutorCode'
     | '/courses'
+    | '/guide'
     | '/help'
     | '/tutor-requests'
     | '/tutors'
@@ -533,9 +610,16 @@ export interface FileRouteTypes {
     | '/_authenticated/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
+    | '/guide/notes'
+    | '/guide/parents'
+    | '/guide/refer'
+    | '/guide/tutors'
+    | '/guide/verification'
+    | '/legal/notes-terms'
     | '/tutor-requests/$caseCode'
     | '/tutors/$tutorCode'
     | '/courses/'
+    | '/guide/'
     | '/help/'
     | '/tutor-requests/'
     | '/tutors/'
@@ -577,9 +661,16 @@ export interface RootRouteChildren {
   TutorPlaybookRoute: typeof TutorPlaybookRoute
   BusinessSlugRoute: typeof BusinessSlugRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
+  GuideNotesRoute: typeof GuideNotesRoute
+  GuideParentsRoute: typeof GuideParentsRoute
+  GuideReferRoute: typeof GuideReferRoute
+  GuideTutorsRoute: typeof GuideTutorsRoute
+  GuideVerificationRoute: typeof GuideVerificationRoute
+  LegalNotesTermsRoute: typeof LegalNotesTermsRoute
   TutorRequestsCaseCodeRoute: typeof TutorRequestsCaseCodeRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
   CoursesIndexRoute: typeof CoursesIndexRoute
+  GuideIndexRoute: typeof GuideIndexRoute
   HelpIndexRoute: typeof HelpIndexRoute
   TutorRequestsIndexRoute: typeof TutorRequestsIndexRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
@@ -731,11 +822,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoursesCourseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guide/': {
+      id: '/guide/'
+      path: '/guide'
+      fullPath: '/guide/'
+      preLoaderRoute: typeof GuideIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/notes': {
+      id: '/guide/notes'
+      path: '/guide/notes'
+      fullPath: '/guide/notes'
+      preLoaderRoute: typeof GuideNotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/parents': {
+      id: '/guide/parents'
+      path: '/guide/parents'
+      fullPath: '/guide/parents'
+      preLoaderRoute: typeof GuideParentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/refer': {
+      id: '/guide/refer'
+      path: '/guide/refer'
+      fullPath: '/guide/refer'
+      preLoaderRoute: typeof GuideReferRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/tutors': {
+      id: '/guide/tutors'
+      path: '/guide/tutors'
+      fullPath: '/guide/tutors'
+      preLoaderRoute: typeof GuideTutorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/verification': {
+      id: '/guide/verification'
+      path: '/guide/verification'
+      fullPath: '/guide/verification'
+      preLoaderRoute: typeof GuideVerificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/help/': {
       id: '/help/'
       path: '/help'
       fullPath: '/help/'
       preLoaderRoute: typeof HelpIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/notes-terms': {
+      id: '/legal/notes-terms'
+      path: '/legal/notes-terms'
+      fullPath: '/legal/notes-terms'
+      preLoaderRoute: typeof LegalNotesTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tutor-requests/': {
@@ -974,9 +1114,16 @@ const rootRouteChildren: RootRouteChildren = {
   TutorPlaybookRoute: TutorPlaybookRoute,
   BusinessSlugRoute: BusinessSlugRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
+  GuideNotesRoute: GuideNotesRoute,
+  GuideParentsRoute: GuideParentsRoute,
+  GuideReferRoute: GuideReferRoute,
+  GuideTutorsRoute: GuideTutorsRoute,
+  GuideVerificationRoute: GuideVerificationRoute,
+  LegalNotesTermsRoute: LegalNotesTermsRoute,
   TutorRequestsCaseCodeRoute: TutorRequestsCaseCodeRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
   CoursesIndexRoute: CoursesIndexRoute,
+  GuideIndexRoute: GuideIndexRoute,
   HelpIndexRoute: HelpIndexRoute,
   TutorRequestsIndexRoute: TutorRequestsIndexRoute,
   TutorsIndexRoute: TutorsIndexRoute,

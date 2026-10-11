@@ -37,7 +37,7 @@ import { MobileBottomNav } from "./mobile-bottom-nav";
 import { StaggeredMobileMenu } from "./StaggeredMobileMenu";
 
 type NavDestination =
-  | "/how-it-works"
+  | "/guide"
   | "/tutors"
   | "/courses"
   | "/saved-posts"
@@ -164,7 +164,7 @@ export function SiteHeader({
   // Mobile keeps a slim top bar (logo + staggered menu); the fixed bottom
   // tab bar handles account navigation and must render outside the header.
   const mobileItems = [
-    { label: t("nav.how"), ariaLabel: t("nav.how"), to: "/how-it-works" },
+    { label: t("nav.how"), ariaLabel: t("nav.how"), to: "/guide" },
     { label: t("nav.find"), ariaLabel: t("nav.find"), to: "/tutors" },
     ...(CENTRE_MARKET_ENABLED
       ? [{ label: t("nav.courses"), ariaLabel: t("nav.courses"), to: "/courses" }]
@@ -225,11 +225,7 @@ export function SiteHeader({
               <DesktopTab to="/tutors" active={isActive("/tutors")} icon="/nav-find.png">
                 {t("nav.tab_tutors")}
               </DesktopTab>
-              <DesktopTab
-                to="/how-it-works"
-                active={isActive("/how-it-works")}
-                icon="/nav-how-it-works.png"
-              >
+              <DesktopTab to="/guide" active={isActive("/guide")} icon="/nav-how-it-works.png">
                 {t("nav.how")}
               </DesktopTab>
               <DesktopTab to="/saved-posts" active={isActive("/saved-posts")} icon="/nav-saved.png">

@@ -40,7 +40,7 @@ const TUTOR_ACTION_CARDS: CardSpec[] = [
     descriptionKey: "dashboard.actions.tutor_verify_desc",
     primaryTo: "/tutors",
     primaryLabelKey: "dashboard.actions.tutor_verify_primary",
-    secondaryTo: "/how-it-works",
+    secondaryTo: "/guide",
     secondaryLabelKey: "dashboard.actions.tutor_verify_secondary",
   },
   {
@@ -107,7 +107,7 @@ const PARENT_ACTION_CARDS: CardSpec[] = [
     tagColor: "gray",
     headlineKey: "dashboard.actions.parent_guide_headline",
     descriptionKey: "dashboard.actions.parent_guide_desc",
-    primaryTo: "/how-it-works",
+    primaryTo: "/guide",
     primaryLabelKey: "dashboard.actions.parent_guide_primary",
     secondaryTo: "/help",
     secondaryLabelKey: "dashboard.actions.secondary_help_center",

@@ -159,5 +159,10 @@ export function collectSchoolTags(materials: MarketplaceMaterial[]): string[] {
 export { buildBuyWhatsAppUrl } from "@/features/materials/whatsapp";
 
 export function formatDocumentTypeLabel(type: string, t: (key: string) => string): string {
-  return t(`materials.doc_type_${type}`);
+  const key = `materials.doc_type_${type}`;
+  // Legacy rows may carry types the CHECK no longer allows (e.g. removed
+  // past_paper_solutions) — fall back to a humanized value instead of
+  // rendering the raw i18n key.
+  const label = t(key);
+  return label === key ? type.replace(/_/g, " ") : label;
 }

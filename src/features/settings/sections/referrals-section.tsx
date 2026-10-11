@@ -155,9 +155,9 @@ export function ReferralsSection() {
             <span>{t("settings.referrals.note")}</span>
           </p>
 
+          {/* Issue #208: the dashboard deep-links the written refer rules. */}
           <Link
-            to="/how-it-works"
-            hash="referral-bounty"
+            to="/guide/refer"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--brand-link)] underline underline-offset-2 hover:opacity-80"
           >
             {t("settings.referrals.rules_link")}
