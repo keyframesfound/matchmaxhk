@@ -36,6 +36,8 @@ import {
   exportTutorPayoutCsv,
   parsePayoutMonthWindow,
 } from "@/features/materials/orders.functions";
+
+import { MaterialsOrdersDesk } from "@/features/materials/materials-orders-desk";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -364,15 +366,28 @@ function AdminMaterials() {
                   <button
                     type="button"
                     onClick={() =>
-                      updateMutation.mutate({ materialId: row.id, isPublished: !row.is_published })
+                      updateMutation.mutate({
+                        materialId: row.id,
+                        isPublished: row.status !== "published",
+                      })
                     }
                     className={
-                      row.is_published
+                      row.status === "published"
                         ? "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-700"
-                        : "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700"
+                        : row.status === "pending_review"
+                          ? "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700"
+                          : "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-bold text-slate-600"
                     }
                   >
-                    {row.is_published ? "Published" : "Pending review"}
+                    {row.status === "published"
+                      ? "Published"
+                      : row.status === "pending_review"
+                        ? "Pending review"
+                        : row.status === "rejected"
+                          ? "Rejected"
+                          : row.status === "hidden"
+                            ? "Hidden"
+                            : "Draft"}
                   </button>
                 </ConsoleTd>
                 <ConsoleTd className="text-right">
@@ -400,6 +415,13 @@ function AdminMaterials() {
           )}
         </ConsoleTableBody>
       </ConsoleTable>
+
+      {/* -----------------------------------------------------------------
+          Orders desk (#203): the manual cashier queue. Staff match the FPS
+          transfer, mark paid, then release — release stamps the per-order
+          copy (order id + buyer id) and flips the buyer's Download on.
+      ------------------------------------------------------------------ */}
+      <MaterialsOrdersDesk />
 
       {/* Add listing dialog — same watermarking pipeline as the tutor flow. */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>

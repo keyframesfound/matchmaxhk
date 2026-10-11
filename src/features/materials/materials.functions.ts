@@ -243,7 +243,9 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
         includes_examiner_comments: data.includesExaminerComments ?? false,
         original_file_path: originalPath,
         watermarked_preview_url: publicUrl?.publicUrl ?? "",
-        is_published: publishNow,
+        // The legacy boolean is gone from the schema (#203); admins publish
+        // instantly, tutor uploads land as drafts awaiting review.
+        status: publishNow ? "published" : "draft",
       } as never;
       const { data: inserted, error: insertError } = (await supabaseAdmin
         .from("digital_materials" as never)
@@ -339,6 +341,9 @@ export type AdminMaterialRow = {
   commission_rate: number;
   commission_status: string;
   is_published: boolean;
+  status: string;
+  edit_status: string | null;
+  submitted_at: string | null;
   created_at: string;
   tutors: { display_name: string; tutor_code: string } | null;
 };
@@ -386,7 +391,7 @@ export const listAllMaterialsAdmin = createServerFn({ method: "POST" })
     )
       .from("digital_materials")
       .select(
-        "id, title, price_hkd, document_type, admin_star_rating, admin_marketing_summary, commission_rate, commission_status, is_published, created_at, tutors(display_name, tutor_code)",
+        "id, title, price_hkd, document_type, admin_star_rating, admin_marketing_summary, commission_rate, commission_status, is_published, status, edit_status, submitted_at, created_at, tutors(display_name, tutor_code)",
       )
       .order("created_at", { ascending: false })
       .limit(200);
@@ -430,7 +435,17 @@ export const updateMaterialAdmin = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
-    if (data.isPublished !== undefined) patch.is_published = data.isPublished;
+    // is_published moved to the status machine (#203): admin publish/unpublish
+    // and reject-with-reason both land here. Rejections store the reason the
+    // tutor sees in Account.
+    if (data.isPublished !== undefined) {
+      patch.status = data.isPublished ? "published" : "hidden";
+      if (data.isPublished) {
+        patch.reviewed_at = new Date().toISOString();
+        patch.reviewed_by = context.userId;
+        patch.edit_status = null;
+      }
+    }
     if (data.adminStarRating !== undefined) patch.admin_star_rating = data.adminStarRating;
     if (data.adminMarketingSummary !== undefined)
       patch.admin_marketing_summary = data.adminMarketingSummary;
