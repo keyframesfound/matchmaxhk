@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Flag } from "lucide-react";
+import { Check, Flag } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -87,7 +87,6 @@ function useReportMutation(
         },
       }),
     onSuccess: () => {
-      toast.success(t("report.submitted"));
       onDone();
     },
     onError: (error) => {
@@ -127,6 +126,7 @@ export function ReportButton({
   const [gateOpen, setGateOpen] = useState(false);
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [note, setNote] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   // Resume a stashed report intent once the user is signed in (see
   // PENDING_REPORT_KEY above).
@@ -136,12 +136,14 @@ export function ReportButton({
     }
   }, [user, targetType, targetId]);
 
+  // Success keeps the dialog open — the dialog shows the "sent" screen while
+  // `submitted` is true; closing clears it.
   const reset = () => {
-    setDialogOpen(false);
     setReason(null);
     setNote("");
+    setSubmitted(false);
   };
-  const mutation = useReportMutation(targetType, targetId, reason, note, reset);
+  const mutation = useReportMutation(targetType, targetId, reason, note, () => setSubmitted(true));
 
   return (
     <>
@@ -168,10 +170,7 @@ export function ReportButton({
         open={dialogOpen}
         onOpenChange={(open) => {
           setDialogOpen(open);
-          if (!open) {
-            setReason(null);
-            setNote("");
-          }
+          if (!open) reset();
         }}
         label={label}
         reason={reason}
@@ -179,6 +178,7 @@ export function ReportButton({
         note={note}
         setNote={setNote}
         pending={mutation.isPending}
+        submitted={submitted}
         onSubmit={() => mutation.mutate()}
       />
     </>
@@ -204,7 +204,7 @@ export function InlineReportLink({
   const [gateOpen, setGateOpen] = useState(false);
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [note, setNote] = useState("");
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     if (user && takePendingReport({ targetType, targetId })) {
@@ -212,14 +212,16 @@ export function InlineReportLink({
     }
   }, [user, targetType, targetId]);
 
+  // Success shows the "sent" screen in the dialog; a final close clears the
+  // link (one report per item is all we need from this surface).
   const reset = () => {
-    setDialogOpen(false);
     setReason(null);
     setNote("");
-    setHasSubmitted(true);
+    setSubmitted(false);
   };
-  const mutation = useReportMutation(targetType, targetId, reason, note, reset);
+  const mutation = useReportMutation(targetType, targetId, reason, note, () => setSubmitted(true));
 
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   if (hasSubmitted) return null;
 
   return (
@@ -251,8 +253,9 @@ export function InlineReportLink({
         onOpenChange={(open) => {
           setDialogOpen(open);
           if (!open) {
-            setReason(null);
-            setNote("");
+            reset();
+            // After a completed report, retire the inline link.
+            if (submitted) setHasSubmitted(true);
           }
         }}
         label={label}
@@ -261,6 +264,7 @@ export function InlineReportLink({
         note={note}
         setNote={setNote}
         pending={mutation.isPending}
+        submitted={submitted}
         onSubmit={() => mutation.mutate()}
       />
     </>
@@ -294,6 +298,7 @@ export function ReportMenuButton({
   const [gateOpen, setGateOpen] = useState(false);
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [note, setNote] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   // Resume a stashed report intent once the user is signed in.
   useEffect(() => {
@@ -302,18 +307,19 @@ export function ReportMenuButton({
     }
   }, [user, pendingTarget]);
 
+  // Success keeps the dialog open (sent screen); closing resets everything.
   const reset = () => {
-    setDialogOpen(false);
     setPendingTarget(null);
     setReason(null);
     setNote("");
+    setSubmitted(false);
   };
   const mutation = useReportMutation(
     pendingTarget?.targetType ?? "tutor_card",
     pendingTarget?.targetId ?? "",
     reason,
     note,
-    reset,
+    () => setSubmitted(true),
   );
 
   const openFor = (target: (typeof targets)[number]) => {
@@ -372,11 +378,14 @@ export function ReportMenuButton({
         note={note}
         setNote={setNote}
         pending={mutation.isPending}
+        submitted={submitted}
         onSubmit={() => mutation.mutate()}
       />
     </>
   );
 }
+
+type ReportStep = "reason" | "details" | "sent";
 
 function ReportDialog({
   open,
@@ -387,6 +396,7 @@ function ReportDialog({
   note,
   setNote,
   pending,
+  submitted,
   onSubmit,
 }: {
   open: boolean;
@@ -397,9 +407,16 @@ function ReportDialog({
   note: string;
   setNote: (note: string) => void;
   pending: boolean;
+  /** A report was just submitted successfully — show the confirmation screen. */
+  submitted: boolean;
   onSubmit: () => void;
 }) {
   const { t } = useTranslation();
+  // Discord-style flow: pick a reason, then optional details, then a
+  // confirmation screen — one step per view instead of one long form.
+  const [step, setStep] = useState<ReportStep>("reason");
+  const showSent = submitted;
+
   const reasonOptions = REPORT_REASONS.map((value) => ({
     value,
     label: t(`report.reason_${value}`),
@@ -409,89 +426,143 @@ function ReportDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[85vh] w-full max-w-md flex-col gap-0 p-0 sm:max-w-md">
-        <DialogHeader className="border-b border-border px-5 py-4">
-          <DialogTitle className="text-base font-bold text-[color:var(--ink)]">
-            {t("report.title", { item: label })}
-          </DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
-            {t("report.description")}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          <ul className="space-y-1.5" role="radiogroup" aria-label={t("report.reasons_aria")}>
-            {reasonOptions.map((option) => {
-              const selected = reason === option.value;
-              return (
-                <li key={option.value}>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => setReason(option.value)}
-                    className={cn(
-                      "flex w-full items-center gap-2.5 rounded-sm border px-3 py-2.5 text-left text-sm transition-colors",
-                      selected
-                        ? "border-[color:var(--foreground)] bg-muted font-semibold text-[color:var(--ink)]"
-                        : "border-border bg-[color:var(--surface)] text-muted-foreground hover:bg-muted/50",
-                    )}
+        {showSent ? (
+          <div className="flex flex-col items-center px-6 py-10 text-center">
+            <span
+              aria-hidden
+              className="flex h-14 w-14 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-muted"
+            >
+              <Check className="h-7 w-7 text-[color:var(--brand-link)]" strokeWidth={2.6} />
+            </span>
+            <DialogTitle className="mt-4 text-lg font-bold text-[color:var(--ink)]">
+              {t("report.sent_title")}
+            </DialogTitle>
+            <DialogDescription className="mt-2 max-w-[280px] text-sm leading-relaxed text-muted-foreground">
+              {t("report.sent_description")}
+            </DialogDescription>
+            <Button
+              type="button"
+              variant="solid"
+              color="blue"
+              className="mt-6 h-9 px-6 text-sm font-bold"
+              onClick={() => onOpenChange(false)}
+            >
+              {t("report.sent_done")}
+            </Button>
+          </div>
+        ) : (
+          <>
+            <DialogHeader className="border-b border-border px-5 py-4">
+              <DialogTitle className="text-base font-bold text-[color:var(--ink)]">
+                {step === "reason"
+                  ? t("report.step_reason_title", { item: label })
+                  : t("report.step_details_title")}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                {step === "reason" ? t("report.description") : t("report.step_details_hint")}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+              {step === "reason" ? (
+                <ul className="space-y-1.5" role="radiogroup" aria-label={t("report.reasons_aria")}>
+                  {reasonOptions.map((option) => {
+                    const selected = reason === option.value;
+                    return (
+                      <li key={option.value}>
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          onClick={() => setReason(option.value)}
+                          className={cn(
+                            "flex w-full items-center gap-2.5 rounded-sm border px-3 py-2.5 text-left text-sm transition-colors",
+                            selected
+                              ? "border-[color:var(--foreground)] bg-muted font-semibold text-[color:var(--ink)]"
+                              : "border-border bg-[color:var(--surface)] text-muted-foreground hover:bg-muted/50",
+                          )}
+                        >
+                          <span
+                            aria-hidden
+                            className={cn(
+                              "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
+                              selected ? "border-[color:var(--foreground)]" : "border-border",
+                            )}
+                          >
+                            {selected ? (
+                              <span className="h-2 w-2 rounded-full bg-[color:var(--foreground)]" />
+                            ) : null}
+                          </span>
+                          {option.label}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <div>
+                  <p className="rounded-sm border border-border bg-muted/50 px-3 py-2 text-xs font-semibold text-[color:var(--ink)]">
+                    {reason ? t(`report.reason_${reason}`) : null}
+                  </p>
+                  <label
+                    htmlFor="report-note"
+                    className="mt-3 block text-xs font-bold text-[color:var(--ink)]"
                   >
-                    <span
-                      aria-hidden
-                      className={cn(
-                        "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
-                        selected ? "border-[color:var(--foreground)]" : "border-border",
-                      )}
-                    >
-                      {selected ? (
-                        <span className="h-2 w-2 rounded-full bg-[color:var(--foreground)]" />
-                      ) : null}
-                    </span>
-                    {option.label}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-          {reason ? (
-            <div className="mt-3">
-              <label htmlFor="report-note" className="text-xs font-bold text-[color:var(--ink)]">
-                {reason === "other" ? t("report.note_label") : t("report.note_label_optional")}
-              </label>
-              <Textarea
-                id="report-note"
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                maxLength={1000}
-                rows={3}
-                className="mt-1.5"
-                placeholder={t("report.note_placeholder")}
-              />
+                    {reason === "other" ? t("report.note_label") : t("report.note_label_optional")}
+                  </label>
+                  <Textarea
+                    id="report-note"
+                    value={note}
+                    onChange={(event) => setNote(event.target.value)}
+                    maxLength={1000}
+                    rows={4}
+                    className="mt-1.5"
+                    placeholder={t("report.note_placeholder")}
+                  />
+                  <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                    {t("report.privacy_note")}
+                  </p>
+                </div>
+              )}
             </div>
-          ) : null}
-          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            {t("report.privacy_note")}
-          </p>
-        </div>
-        <div className="flex justify-end gap-2 border-t border-border px-5 py-3">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-9 text-sm font-bold"
-            onClick={() => onOpenChange(false)}
-          >
-            {t("report.cancel")}
-          </Button>
-          <Button
-            type="button"
-            variant="solid"
-            color="blue"
-            className="h-9 text-sm font-bold"
-            disabled={!canSubmit || pending}
-            onClick={onSubmit}
-          >
-            {pending ? t("report.submitting") : t("report.submit")}
-          </Button>
-        </div>
+            <div className="flex items-center justify-between gap-2 border-t border-border px-5 py-3">
+              {step === "details" ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-9 text-sm font-bold"
+                  onClick={() => setStep("reason")}
+                >
+                  {t("report.back")}
+                </Button>
+              ) : (
+                <span />
+              )}
+              {step === "reason" ? (
+                <Button
+                  type="button"
+                  variant="solid"
+                  color="blue"
+                  className="h-9 px-5 text-sm font-bold"
+                  disabled={reason === null}
+                  onClick={() => setStep("details")}
+                >
+                  {t("report.next")}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="solid"
+                  color="blue"
+                  className="h-9 px-5 text-sm font-bold"
+                  disabled={!canSubmit || pending}
+                  onClick={onSubmit}
+                >
+                  {pending ? t("report.submitting") : t("report.submit")}
+                </Button>
+              )}
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
