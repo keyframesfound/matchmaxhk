@@ -32,7 +32,10 @@ import {
   updateMaterialAdmin,
   type AdminMaterialRow,
 } from "@/features/materials/materials.functions";
-import { exportTutorPayoutCsv } from "@/features/materials/orders.functions";
+import {
+  exportTutorPayoutCsv,
+  parsePayoutMonthWindow,
+} from "@/features/materials/orders.functions";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -146,12 +149,7 @@ function AdminMaterials() {
   const [payoutMonth, setPayoutMonth] = useState(currentMonth);
   const payoutExportMutation = useMutation({
     mutationFn: (month: string) => {
-      const [y, m] = month.split("-").map(Number);
-      if (!y || !m || m < 1 || m > 12) throw new Error("Pick a valid month (YYYY-MM).");
-      const from = month + "-01";
-      const nextY = m === 12 ? y + 1 : y;
-      const nextM = m === 12 ? 1 : m + 1;
-      const to = `${nextY}-${String(nextM).padStart(2, "0")}-01`;
+      const { from, to } = parsePayoutMonthWindow(month);
       return exportTutorPayoutCsv({ data: { from, to } });
     },
     onSuccess: (result) => {
