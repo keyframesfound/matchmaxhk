@@ -137,11 +137,130 @@ function money(n: number): number {
 }
 
 /**
+ * The unlock gate, extracted pure for tests (review blocker 8). A buyer may
+ * sign the private original only with a DELIVERED order of their own. The
+ * error is deliberately identical for "no order" and "not delivered" so the
+ * failure does not leak which packs another account holds.
+ */
+export function assertOwnedDeliveredOrder(
+  order: Pick<OrderRow, "buyer_account_id" | "status"> | null,
+  buyerAccountId: string,
+): void {
+  if (!order || order.buyer_account_id !== buyerAccountId || order.status !== "delivered") {
+    throw new Error("This pack is not unlocked for your account.");
+  }
+}
+
+/** Postgres unique_violation — the structured way to detect re-grants. */
+export function isUniqueViolation(err: { code?: string; message?: string } | null): boolean {
+  if (!err) return false;
+  return err.code === "23505" || err.message?.includes("duplicate key") === true;
+}
+
+/**
+ * A staff grant row must be HK$0 across the board and delivered — mirrors
+ * the material_orders_grant_zero_money CHECK in the migration so app code
+ * and the DB enforce the same invariant.
+ */
+export function assertValidGrantRow(
+  row: Pick<OrderRow, "is_grant" | "gross_hkd" | "platform_fee_hkd" | "tutor_net_hkd" | "status">,
+): void {
+  if (!row.is_grant) return;
+  if (
+    Number(row.gross_hkd) !== 0 ||
+    Number(row.platform_fee_hkd) !== 0 ||
+    Number(row.tutor_net_hkd) !== 0
+  ) {
+    throw new Error("A grant order must be HK$0 across gross, fee and net.");
+  }
+  if (row.status !== "delivered") {
+    throw new Error("A grant order must be delivered at creation.");
+  }
+}
+
+/**
+ * Parses the export month window: [first day 00:00 HKT, first day of next
+ * month 00:00 HKT). Extracted pure for tests (review blocker 8 — the
+ * double-pay guard is the money-critical path).
+ */
+export function parsePayoutMonthWindow(month: string): {
+  from: string;
+  to: string;
+  fromIso: string;
+  toIso: string;
+} {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+    throw new Error("month must be in YYYY-MM format.");
+  }
+  const [y, m] = month.split("-").map(Number);
+  const from = `${month}-01`;
+  const nextY = m === 12 ? y + 1 : y;
+  const nextM = m === 12 ? 1 : m + 1;
+  const to = `${nextY}-${String(nextM).padStart(2, "0")}-01`;
+  return {
+    from,
+    to,
+    fromIso: `${from}T00:00:00+08:00`,
+    toIso: `${to}T00:00:00+08:00`,
+  };
+}
+
+/** CSV column names for the payout export. */
+export const PAYOUT_CSV_HEADER = [
+  "order_id",
+  "delivered_at",
+  "tutor_id",
+  "tutor",
+  "material",
+  "gross_hkd",
+  "platform_fee_hkd",
+  "tutor_net_hkd",
+].join(",");
+
+/** One delivered, non-grant payout row as the server fn receives it from Supabase. */
+export type PayoutCsvRow = {
+  id: string;
+  delivered_at: string | null;
+  tutor_id: string | null;
+  gross_hkd: string | number;
+  platform_fee_hkd: string | number;
+  tutor_net_hkd: string | number;
+  digital_materials?: { title: string | null } | null;
+  tutors?: { display_name: string | null } | null;
+};
+
+function csvEscape(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+/**
+ * Assembles the payout CSV from already-filtered rows — extracted pure for
+ * tests (review blocker 8: grant rows / out-of-window rows must never appear;
+ * the caller owns that filtering, this only renders).
+ */
+export function buildPayoutCsv(rows: PayoutCsvRow[]): string {
+  const lines = rows.map((r) =>
+    [
+      r.id,
+      r.delivered_at ?? "",
+      r.tutor_id ?? "",
+      csvEscape(r.tutors?.display_name ?? ""),
+      csvEscape(r.digital_materials?.title ?? ""),
+      money(Number(r.gross_hkd)).toFixed(2),
+      money(Number(r.platform_fee_hkd)).toFixed(2),
+      money(Number(r.tutor_net_hkd)).toFixed(2),
+    ].join(","),
+  );
+  return [PAYOUT_CSV_HEADER, ...lines].join("\n");
+}
+
+/**
  * #250 acceptance: "A buyer cannot unlock a file without a delivered order."
  * Signs the PRIVATE original for the buying account only after checking a
- * delivered order exists. Signed URL expires in 10 minutes; buyers may
- * re-download for 180 days (#203) — enforced by the order staying delivered
- * (refunds revoke access by flipping status away from delivered).
+ * delivered order exists. Signed URL expires in 10 minutes (#203). Access
+ * lasts while the order stays delivered — there is NO 180-day cutoff in
+ * code: refunds revoke access by flipping status away from delivered, and
+ * any #203 time-limited access window must be added explicitly later.
  */
 export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -157,11 +276,7 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (error) throw new Error(error.message);
-    if (!order || order.status !== "delivered") {
-      // Deliberately identical for "no order" and "not delivered" so the
-      // error does not leak which packs another account holds.
-      throw new Error("This pack is not unlocked for your account.");
-    }
+    assertOwnedDeliveredOrder(order, context.userId);
 
     const { data: material, error: materialError } = await (
       supabaseAdmin as unknown as OrdersClient
@@ -225,20 +340,26 @@ export const staffGrantMaterials = createServerFn({ method: "POST" })
     // Current packs only: a pack that stops being published after the grant
     // keeps its delivered order (#203: unpublishing does not remove access),
     // but a pack that is not published right now is not granted.
-    const rows = (materials ?? []).map((m) => ({
-      material_id: m.id,
-      buyer_account_id: data.buyerAccountId,
-      tutor_id: m.tutor_id,
-      gross_hkd: 0,
-      platform_fee_hkd: 0,
-      tutor_net_hkd: 0,
-      status: "delivered",
-      is_grant: true,
-      granted_by: context.userId,
-      grant_reason: data.reason,
-      delivered_at: new Date().toISOString(),
-      delivered_by: context.userId,
-    }));
+    const rows = (materials ?? []).map((m) => {
+      const row = {
+        material_id: m.id,
+        buyer_account_id: data.buyerAccountId,
+        tutor_id: m.tutor_id,
+        gross_hkd: 0,
+        platform_fee_hkd: 0,
+        tutor_net_hkd: 0,
+        status: "delivered",
+        is_grant: true,
+        granted_by: context.userId,
+        grant_reason: data.reason,
+        delivered_at: new Date().toISOString(),
+        delivered_by: context.userId,
+      };
+      // Same invariant the migration's CHECK enforces — fail loud if the
+      // two ever drift apart.
+      assertValidGrantRow(row);
+      return row;
+    });
 
     const { data: inserted, error: insertError } = await (
       supabaseAdmin as unknown as {
@@ -246,7 +367,7 @@ export const staffGrantMaterials = createServerFn({ method: "POST" })
           insert: (rows: unknown) => {
             select: (c: string) => Promise<{
               data: OrderRow[] | null;
-              error?: { message: string } | null;
+              error?: { message: string; code?: string } | null;
             }>;
           };
         };
@@ -256,7 +377,9 @@ export const staffGrantMaterials = createServerFn({ method: "POST" })
       .insert(rows)
       .select("id, material_id");
     if (insertError) {
-      if (insertError.message.includes("duplicate key")) {
+      // Postgres unique_violation (material_orders_material_buyer_unique):
+      // match on the structured code, not message wording.
+      if (isUniqueViolation(insertError)) {
         throw new Error("One or more packs are already unlocked for this account.");
       }
       throw new Error(insertError.message);
@@ -281,14 +404,29 @@ export type PayoutExportRow = {
  * monthly payout (#203 Flow step 7 — admin pays by hand). Grant rows are
  * excluded by is_grant, and HK$0 rows by amount, so a grant can never
  * surface via either path.
+ *
+ * Review blocker fix: `from`/`to` (ISO dates, HKT) bound the export by
+ * delivered_at — [from 00:00, to 00:00 next-ish) style half-open window,
+ * so re-exporting a prior month cannot silently re-pay rows outside it.
+ * A paid_out_at / statement-batch marker so one row can never be paid
+ * twice at all is tracked as a #203 follow-up.
  */
 export const exportTutorPayoutCsv = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "from must be YYYY-MM-DD"),
+        to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "to must be YYYY-MM-DD"),
+      })
+      .refine((v) => v.from <= v.to, { message: "`to` must be on or after `from`" })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await (
+    const { data: orders, error } = await (
       supabaseAdmin as unknown as {
         from: (t: string) => {
           select: (c: string) => {
@@ -300,29 +438,39 @@ export const exportTutorPayoutCsv = createServerFn({ method: "POST" })
                 c: string,
                 v: boolean,
               ) => {
-                neq: (
+                gt: (
                   c: string,
-                  v: string,
+                  v: number,
                 ) => {
-                  order: (
+                  gte: (
                     c: string,
-                    opts: { ascending: boolean },
-                  ) => Promise<{
-                    data: Array<{
-                      id: string;
-                      delivered_at: string;
-                      tutor_id: string;
-                      gross_hkd: number;
-                      platform_fee_hkd: number;
-                      tutor_net_hkd: number;
-                      is_grant: boolean;
-                      digital_materials: {
-                        title: string;
-                      } | null;
-                      tutors: { display_name: string } | null;
-                    }> | null;
-                    error?: { message: string } | null;
-                  }>;
+                    v: string,
+                  ) => {
+                    lt: (
+                      c: string,
+                      v: string,
+                    ) => {
+                      order: (
+                        c: string,
+                        opts: { ascending: boolean },
+                      ) => Promise<{
+                        data: Array<{
+                          id: string;
+                          delivered_at: string;
+                          tutor_id: string;
+                          gross_hkd: number;
+                          platform_fee_hkd: number;
+                          tutor_net_hkd: number;
+                          is_grant: boolean;
+                          digital_materials: {
+                            title: string;
+                          } | null;
+                          tutors: { display_name: string } | null;
+                        }> | null;
+                        error?: { message: string } | null;
+                      }>;
+                    };
+                  };
                 };
               };
             };
@@ -336,38 +484,21 @@ export const exportTutorPayoutCsv = createServerFn({ method: "POST" })
       )
       .eq("status", "delivered")
       .eq("is_grant", false)
-      .neq("gross_hkd", "0")
+      // What we actually pay out: filter on net with a real number (the
+      // old string "0" against NUMERIC relied on PostgREST coercion), so
+      // an HK$0 row can never reach the CSV.
+      .gt("tutor_net_hkd", 0)
+      // Half-open [from 00:00 HKT, to 00:00 HKT) window on delivered_at.
+      .gte("delivered_at", `${data.from}T00:00:00+08:00`)
+      .lt("delivered_at", `${data.to}T00:00:00+08:00`)
       .order("delivered_at", { ascending: true });
     if (error) throw new Error(error.message);
 
-    const rows = data ?? [];
-    const csvEscape = (value: string): string => `"${value.replace(/"/g, '""')}"`;
-    const header = [
-      "order_id",
-      "delivered_at",
-      "tutor_id",
-      "tutor",
-      "material",
-      "gross_hkd",
-      "platform_fee_hkd",
-      "tutor_net_hkd",
-    ].join(",");
-    const lines = rows.map((r) =>
-      [
-        r.id,
-        r.delivered_at,
-        r.tutor_id,
-        csvEscape(r.tutors?.display_name ?? ""),
-        csvEscape(r.digital_materials?.title ?? ""),
-        money(Number(r.gross_hkd)).toFixed(2),
-        money(Number(r.platform_fee_hkd)).toFixed(2),
-        money(Number(r.tutor_net_hkd)).toFixed(2),
-      ].join(","),
-    );
-    const csv = [header, ...lines].join("\n");
+    const rows = orders ?? [];
+    const csv = buildPayoutCsv(rows);
     return {
       csv,
-      rowCount: lines.length,
+      rowCount: rows.length,
       fileName: `tutor-payouts-${new Date().toISOString().slice(0, 10)}.csv`,
     };
   });

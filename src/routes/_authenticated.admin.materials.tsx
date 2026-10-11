@@ -136,9 +136,24 @@ function AdminMaterials() {
   });
 
   // Issue #250: monthly payout export. Grant rows (HK$0 staff grants) are
-  // excluded server-side, so what downloads here is exactly the payable set.
+  // excluded server-side; the window is a month of delivered_at (HKT) so
+  // re-exporting a prior month cannot silently re-pay newer rows.
+  const currentMonth = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Hong_Kong",
+    year: "numeric",
+    month: "2-digit",
+  }); // YYYY-MM (en-CA gives ISO-style output)
+  const [payoutMonth, setPayoutMonth] = useState(currentMonth);
   const payoutExportMutation = useMutation({
-    mutationFn: () => exportTutorPayoutCsv(),
+    mutationFn: (month: string) => {
+      const [y, m] = month.split("-").map(Number);
+      if (!y || !m || m < 1 || m > 12) throw new Error("Pick a valid month (YYYY-MM).");
+      const from = month + "-01";
+      const nextY = m === 12 ? y + 1 : y;
+      const nextM = m === 12 ? 1 : m + 1;
+      const to = `${nextY}-${String(nextM).padStart(2, "0")}-01`;
+      return exportTutorPayoutCsv({ data: { from, to } });
+    },
     onSuccess: (result) => {
       const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
@@ -256,10 +271,22 @@ function AdminMaterials() {
             : ""}
         </p>
         <div className="flex items-center gap-2">
+          {/* Review blocker fix: payout export is scoped to one month of
+              delivered_at (HKT); defaults to the current month. */}
+          <Label htmlFor="payout-month" className="sr-only">
+            Payout month
+          </Label>
+          <Input
+            id="payout-month"
+            type="month"
+            value={payoutMonth}
+            onChange={(e) => setPayoutMonth(e.target.value)}
+            className="h-9 w-[10.5rem]"
+          />
           <Button
             variant="outline"
-            onClick={() => payoutExportMutation.mutate()}
-            disabled={payoutExportMutation.isPending}
+            onClick={() => payoutExportMutation.mutate(payoutMonth)}
+            disabled={payoutExportMutation.isPending || !payoutMonth}
           >
             {payoutExportMutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />

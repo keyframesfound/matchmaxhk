@@ -24,6 +24,20 @@ CREATE TABLE IF NOT EXISTS public.material_orders (
   platform_fee_hkd NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (platform_fee_hkd >= 0),
   tutor_net_hkd NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (tutor_net_hkd >= 0),
 
+  -- #250 defense-in-depth (review blocker): a staff grant can never carry
+  -- money. App code zeroes the columns, but service-role writes are trusted,
+  -- so the invariant must be physical, not convention: a grant row is HK$0
+  -- across gross/fee/net AND delivered.
+  CONSTRAINT material_orders_grant_zero_money CHECK (
+    NOT is_grant
+    OR (
+      gross_hkd = 0
+      AND platform_fee_hkd = 0
+      AND tutor_net_hkd = 0
+      AND status = 'delivered'
+    )
+  ),
+
   -- Full #203 status set so extending to real checkout needs no constraint
   -- migration. This groundwork only ever writes awaiting_payment/delivered.
   status TEXT NOT NULL DEFAULT 'awaiting_payment'
