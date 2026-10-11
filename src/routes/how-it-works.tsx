@@ -63,7 +63,7 @@ function useHowItWorksContent() {
     detail: t(`hiw.${group}.${key}.detail`),
   });
 
-  const educatorComparison = (["commission", "screening", "fit", "privacy"] as const).map((key) =>
+  const comparisonRows = (["commission", "screening", "fit", "privacy"] as const).map((key) =>
     comparisonRow("edu", key),
   );
 
@@ -121,7 +121,7 @@ function useHowItWorksContent() {
 
   return {
     t,
-    educatorComparison,
+    comparisonRows,
     parentSteps,
     tutorSteps,
     tutorFaqItems,
@@ -303,7 +303,7 @@ function HowItWorksPage() {
   }, [hash]);
 
   const {
-    educatorComparison,
+    comparisonRows,
     parentSteps,
     tutorSteps,
     tutorFaqItems,
@@ -345,7 +345,7 @@ function HowItWorksPage() {
             {t("hiw.compare_eyebrow")}
           </p>
           <div className="mt-10">
-            <ComparisonTable title={t("hiw.compare_table_title")} rows={educatorComparison} />
+            <ComparisonTable title={t("hiw.compare_table_title")} rows={comparisonRows} />
           </div>
         </section>
 
