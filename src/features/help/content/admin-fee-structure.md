@@ -10,4 +10,4 @@ order: 1
 status: published
 external: /guide
 ---
-The fee structure is summarised in the billing FAQ on the How It Works page, alongside the concierge window for the first two lessons.
+The fee structure is summarised in the billing FAQ on the Guide page, alongside the concierge window for the first two lessons.

@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
@@ -23,12 +23,13 @@ export const GUIDE_TABS = [
 
 export type GuideTab = (typeof GUIDE_TABS)[number]["to"];
 
-export function GuideBar({ current }: { current: GuideTab }) {
+export function GuideBar({ current, topOffset }: { current: GuideTab; topOffset: number }) {
   const { t } = useTranslation();
   return (
     <nav
-      aria-label="Guide"
-      className="sticky top-0 z-40 border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm lg:top-[72px]"
+      aria-label={t("guide.aria_label")}
+      className="sticky z-40 border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm"
+      style={{ top: topOffset }}
     >
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <ul className="flex items-center gap-1 overflow-x-auto whitespace-nowrap py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -131,6 +132,25 @@ export function GuidePage({ current, children }: { current: GuideTab; children: 
   const { hash } = useLocation();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  // Blocker 1 of the AI review: the bar must offset below the full sticky
+  // chrome, not a hardcoded header height — the desktop header is 72px PLUS
+  // the announcement banner while it is undismissed, and the mobile header
+  // is 56px. Measure the header's live height so the bar never hides under
+  // it (or under a banner that appears later in the session).
+  const [topOffset, setTopOffset] = useState(0);
+  useEffect(() => {
+    function measure() {
+      const header = document.querySelector<HTMLElement>("[data-site-header]");
+      // Mobile header renders as a sticky div (SiteHeader renders one header
+      // per breakpoint — desktop <header> with data-site-header, mobile <div>).
+      const mobileHeader = header ?? document.querySelector<HTMLElement>("div.sticky.top-0.z-50");
+      setTopOffset((mobileHeader ?? header)?.offsetHeight ?? 0);
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
   // SPA loads render after the browser's native hash scroll, so contents-row
   // anchors need an explicit scroll once mounted.
   useEffect(() => {
@@ -141,7 +161,7 @@ export function GuidePage({ current, children }: { current: GuideTab; children: 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--surface)] text-[color:var(--ink)]">
       <SiteHeader />
-      <GuideBar current={current} />
+      <GuideBar current={current} topOffset={topOffset} />
       <main className="flex-1">{children}</main>
       <SiteFooter />
     </div>

@@ -69,6 +69,7 @@
       "pending_cleared": "當中 {{amount}} 已通過審核，等待 FPS 轉帳。",
       "paid": "已發放獎賞總額",
       "note": "當你推薦嘅朋友成功完成首位客戶嘅兩堂試教期後，待發放獎賞就會正式通過審核，以 FPS 轉帳俾你。",
+      "rules_link": "睇埋轉介獎賞完整規則",
       "not_linked": "你嘅導師檔案仍未連結到此帳戶。你嘅申請獲接納後，我哋嘅團隊會替你連結，屆時你嘅推薦連結就會喺呢度出現。"
     },
     "general": {
@@ -1207,6 +1208,7 @@
     "tab_notes": "筆記",
     "tab_refer": "轉介",
     "tab_verification": "核實",
+    "aria_label": "指南",
     "on_this_page": "本頁內容",
     "nav_why_us": "為何選擇我們",
     "nav_matching": "配對流程",
@@ -1351,6 +1353,8 @@
       "exclusion_second": "同一人擁有的第二個帳戶。",
       "exclusion_whatsapp": "事後在 WhatsApp 提及——只計連結。",
       "cta_apply": "申請成為導師",
+      "cta_dashboard": "開啟轉介獎賞",
+      "fee_link": "行政費點計（15% 計呢個，唔係計時薪）",
       "dashboard_note": "儀表板會顯示你的連結、已轉介導師及賞金狀態：待處理、可支付、已支付、失效。"
     },
     "verification": {

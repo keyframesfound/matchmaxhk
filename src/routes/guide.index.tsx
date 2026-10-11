@@ -20,13 +20,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  ContentsRow,
-  GuideBar,
-  GuideHeading,
-  GuidePage,
-  type GuideTab,
-} from "@/features/guide/guide-shell";
+import { ContentsRow, GuideHeading, GuidePage, type GuideTab } from "@/features/guide/guide-shell";
 
 export const Route = createFileRoute("/guide/")({
   head: () => ({
@@ -77,7 +71,7 @@ function useGuideContent() {
     detail: t(`hiw.edu.${key}.detail`),
   });
 
-  const educatorComparison = (["commission", "screening", "fit", "privacy"] as const).map(
+  const guideComparison = (["commission", "screening", "fit", "privacy"] as const).map(
     comparisonRow,
   );
 
@@ -119,7 +113,7 @@ function useGuideContent() {
 
   return {
     t,
-    educatorComparison,
+    guideComparison,
     tutorFaqItems,
     parentFaqItems,
     billingFaqItems,
@@ -199,7 +193,7 @@ function FaqAccordion({ items }: { items: FaqItem[] }) {
 
 function GuideIndexPage() {
   const { t } = useTranslation();
-  const { educatorComparison, tutorFaqItems, parentFaqItems, billingFaqItems } = useGuideContent();
+  const { guideComparison, tutorFaqItems, parentFaqItems, billingFaqItems } = useGuideContent();
 
   const guideCards: GuideCard[] = [
     {
@@ -269,7 +263,7 @@ function GuideIndexPage() {
           </Button>
         </div>
         <div className="mt-14 text-left">
-          <ComparisonTable title={t("hiw.compare_table_title")} rows={educatorComparison} />
+          <ComparisonTable title={t("hiw.compare_table_title")} rows={guideComparison} />
         </div>
       </section>
 

@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { ArrowRight, Copy, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { HelpArticleLink } from "@/features/help/components";
+import { getHelpArticle } from "@/features/help/content";
 import {
   ContentsRow,
   GuideHeading,
@@ -37,6 +39,9 @@ export const Route = createFileRoute("/guide/refer")({
 /** Issue #213: the refer page — five steps, the rule, the exclusions. */
 function GuideReferPage() {
   const { t } = useTranslation();
+
+  // Blocker 5 of the AI review: "15% of what" must link the fee explainer.
+  const feeArticle = getHelpArticle("parent-payments", "administrative-fee-explained");
 
   const steps: [string, string, string][] = (["s1", "s2", "s3", "s4", "s5"] as const).map(
     (key, index) => [
@@ -94,6 +99,16 @@ function GuideReferPage() {
                 </li>
               ))}
             </ul>
+            {feeArticle ? (
+              <p className="mt-5 border-t border-[color:var(--ink)]/10 pt-4 text-sm">
+                <HelpArticleLink
+                  article={feeArticle}
+                  className="font-bold text-[color:var(--brand-link)] underline underline-offset-4 hover:opacity-80"
+                >
+                  {t("guide.refer.fee_link")}
+                </HelpArticleLink>
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -109,6 +124,9 @@ function GuideReferPage() {
             <Link to="/join">
               {t("guide.refer.cta_apply")} <ArrowRight />
             </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link to="/dashboard">{t("guide.refer.cta_dashboard")}</Link>
           </Button>
           <p className="text-sm text-[color:var(--ink)]/60">{t("guide.refer.dashboard_note")}</p>
         </div>

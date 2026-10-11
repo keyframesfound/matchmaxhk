@@ -11,4 +11,4 @@ order: 1
 status: published
 external: /guide
 ---
-The complete walkthrough lives on the How It Works page, including pricing, the concierge window, and FAQs for parents.
+The complete walkthrough lives on the Guide page, including pricing, the concierge window, and FAQs for parents.

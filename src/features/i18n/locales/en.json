@@ -69,6 +69,7 @@
       "pending_cleared": "Includes {{amount}} already cleared for FPS payout.",
       "paid": "Total bounties paid",
       "note": "Pending bounties are officially cleared for payout via FPS once your referred friend successfully completes the 2-lesson concierge window with their first client.",
+      "rules_link": "Read the full Refer & Earn rules",
       "not_linked": "Your tutor profile isn't linked to this account yet. After your application is accepted, our team will connect your profile and your referral link will appear here."
     },
     "general": {
@@ -1207,6 +1208,7 @@
     "tab_notes": "Notes",
     "tab_refer": "Refer",
     "tab_verification": "Verification",
+    "aria_label": "Guide",
     "on_this_page": "On this page",
     "nav_why_us": "Why us",
     "nav_matching": "Matching",
@@ -1351,6 +1353,8 @@
       "exclusion_second": "A second account belonging to the same person.",
       "exclusion_whatsapp": "A WhatsApp mention after the fact — only the link counts.",
       "cta_apply": "Apply as a tutor",
+      "cta_dashboard": "Open Refer & Earn",
+      "fee_link": "How the admin fee is calculated (15% is of this, not the hourly rate)",
       "dashboard_note": "Your dashboard shows your link, referred tutors, and bounty status: pending, payable, paid, void."
     },
     "verification": {

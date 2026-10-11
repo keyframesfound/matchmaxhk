@@ -22,8 +22,10 @@ export const Route = createFileRoute("/legal/notes-terms")({
 });
 
 /**
- * Issue #212: a short terms page for notes. Both the tutor upload and the
- * buyer checkout link here; accepting them is required before submitting.
+ * Issue #212: a short terms page for notes. The tutor upload links here and
+ * accepting them is required before submitting. Buyer checkout is still the
+ * concierge WhatsApp flow — no in-app purchase UI links here yet; that
+ * surface arrives with the manual cashier (issue #250 family).
  */
 
 function Clause({ title, children }: { title: string; children: React.ReactNode }) {

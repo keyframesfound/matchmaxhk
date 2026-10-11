@@ -40,7 +40,7 @@ export function AnnouncementBanner() {
       cta: null as string | null,
     },
     {
-      to: "/join",
+      to: "/guide/refer",
       text: t("banner.referral_promo"),
       cta: t("banner.referral_cta"),
     },
