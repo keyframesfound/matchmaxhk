@@ -32,6 +32,10 @@ import {
   updateMaterialAdmin,
   type AdminMaterialRow,
 } from "@/features/materials/materials.functions";
+import {
+  exportTutorPayoutCsv,
+  parsePayoutMonthWindow,
+} from "@/features/materials/orders.functions";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -125,6 +129,37 @@ function AdminMaterials() {
       window.open(result.signedUrl, "_blank", "noopener");
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Download failed."),
+  });
+
+  // Issue #250: monthly payout export. Grant rows (HK$0 staff grants) are
+  // excluded server-side; the window is a month of delivered_at (HKT) so
+  // re-exporting a prior month cannot silently re-pay newer rows.
+  const currentMonth = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Hong_Kong",
+    year: "numeric",
+    month: "2-digit",
+  }); // YYYY-MM (en-CA gives ISO-style output)
+  const [payoutMonth, setPayoutMonth] = useState(currentMonth);
+  const payoutExportMutation = useMutation({
+    mutationFn: (month: string) => {
+      const { from, to } = parsePayoutMonthWindow(month);
+      return exportTutorPayoutCsv({ data: { from, to } });
+    },
+    onSuccess: (result) => {
+      const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = result.fileName;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      toast.success(
+        result.rowCount === 1
+          ? "1 payout row exported."
+          : `${result.rowCount} payout rows exported.`,
+      );
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Export failed."),
   });
 
   const setField = (patch: Partial<typeof form>) => setForm((prev) => ({ ...prev, ...patch }));
@@ -226,10 +261,36 @@ function AdminMaterials() {
             ? `${materialsQuery.data.length} listing${materialsQuery.data.length === 1 ? "" : "s"}`
             : ""}
         </p>
-        <Button onClick={() => setAddOpen(true)} className="font-bold">
-          <FileUp className="mr-2 h-4 w-4" aria-hidden />
-          Add listing
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Review blocker fix: payout export is scoped to one month of
+              delivered_at (HKT); defaults to the current month. */}
+          <Label htmlFor="payout-month" className="sr-only">
+            Payout month
+          </Label>
+          <Input
+            id="payout-month"
+            type="month"
+            value={payoutMonth}
+            onChange={(e) => setPayoutMonth(e.target.value)}
+            className="h-9 w-[10.5rem]"
+          />
+          <Button
+            variant="outline"
+            onClick={() => payoutExportMutation.mutate(payoutMonth)}
+            disabled={payoutExportMutation.isPending || !payoutMonth}
+          >
+            {payoutExportMutation.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Download className="mr-2 h-4 w-4" aria-hidden />
+            )}
+            Export payouts
+          </Button>
+          <Button onClick={() => setAddOpen(true)} className="font-bold">
+            <FileUp className="mr-2 h-4 w-4" aria-hidden />
+            Add listing
+          </Button>
+        </div>
       </div>
 
       <ConsoleTable>
