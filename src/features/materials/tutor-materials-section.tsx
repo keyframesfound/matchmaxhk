@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { fetchMaterialsForTutor, type StudyMaterial } from "@/features/materials/queries";
 import { StudyMaterialCard } from "@/features/materials/material-card";
 import { buildBookLessonsWhatsAppUrl, buildBuyWhatsAppUrl } from "@/features/materials/whatsapp";
+import { InlineReportLink } from "@/features/reports/report-button";
 
 /**
  * Issues #131/#134: "📚 Study Materials & Past Papers" section on the public
@@ -46,6 +47,14 @@ export function TutorMaterialsSection({
             actions={{
               buyHref: buildBuyWhatsAppUrl(whatsappNumber, material, tutorName),
               bookHref,
+              // Issue #216: report the note (copyright, fraud, …).
+              reportAction: (
+                <InlineReportLink
+                  targetType="material"
+                  targetId={material.id}
+                  label={material.title}
+                />
+              ),
             }}
           />
         ))}

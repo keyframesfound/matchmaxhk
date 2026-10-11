@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Gift, MessageCircle, Star } from "lucide-react";
 
@@ -109,6 +109,8 @@ export function MaterialPreviewDialog({
 export type MaterialCardAction = {
   buyHref: string;
   bookHref: string;
+  /** Issue #216: report button element for the note (optional). */
+  reportAction?: ReactNode;
 };
 
 export function StudyMaterialCard({
@@ -193,6 +195,9 @@ export function StudyMaterialCard({
           </a>
         </p>
       ) : null}
+
+      {/* Issue #216: report the note (copyright / not-as-described / fraud). */}
+      {actions.reportAction ? <div>{actions.reportAction}</div> : null}
 
       <div className="mt-auto space-y-2 pt-1">
         <NoRefundNotice />

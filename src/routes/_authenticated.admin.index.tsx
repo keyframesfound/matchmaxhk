@@ -127,6 +127,16 @@ function AdminOverview() {
               description: "WhatsApp hotline and global configuration",
               to: "/admin/settings",
             },
+            {
+              label: "Study materials",
+              description: "Manage marketplace listings and payouts",
+              to: "/admin/materials",
+            },
+            {
+              label: "Review reports",
+              description: "Uphold or reject user reports on cards and notes",
+              to: "/admin/reports",
+            },
           ].map((action) => (
             <button
               key={action.to + action.label}
