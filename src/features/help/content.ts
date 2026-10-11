@@ -36,7 +36,7 @@ export type HelpArticleStatus = "published" | "draft";
 /** Existing pages an article listing can point at instead of the article route. */
 const HELP_EXTERNAL_ROUTES = [
   "/tutor-playbook",
-  "/how-it-works",
+  "/guide",
   "/tutor-requests",
   "/tutors",
   "/pricing",

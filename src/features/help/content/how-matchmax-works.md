@@ -9,6 +9,6 @@ tags: [matching, trial, booking, getting started]
 featured: true
 order: 1
 status: published
-external: /how-it-works
+external: /guide
 ---
 The complete walkthrough lives on the How It Works page, including pricing, the concierge window, and FAQs for parents.

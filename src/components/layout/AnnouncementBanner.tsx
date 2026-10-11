@@ -35,7 +35,7 @@ export function AnnouncementBanner() {
 
   const slides = [
     {
-      to: "/how-it-works",
+      to: "/guide",
       text: t("banner.value_prop"),
       cta: null as string | null,
     },

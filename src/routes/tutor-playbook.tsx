@@ -528,7 +528,7 @@ function SectionBlocks({ blocks }: { blocks: Block[] }) {
 
 const EXPLORE_CARDS = [
   {
-    to: "/how-it-works",
+    to: "/guide",
     icon: BookOpen,
     title: "Guide",
     subtitle: "Matching, fees, and the concierge window.",
@@ -593,7 +593,7 @@ function TutorPlaybookPage() {
   return (
     <PublicPage>
       <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-6 lg:hidden">
-        <PageBackButton fallbackTo="/how-it-works" />
+        <PageBackButton fallbackTo="/guide" />
       </div>
 
       <PageIntro
