@@ -21,7 +21,6 @@ import {
 } from "@/components/search/tutors-search";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
-import { ReportButton } from "@/features/reports/report-button";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
 import {
   buildTutorWhatsAppUrl,
@@ -481,13 +480,6 @@ function TutorsDirectory() {
                                 footerAction={
                                   <>
                                     <TutorSaveButton tutorId={tut.id} compact />
-                                    {/* Issue #216: report the tutor card. */}
-                                    <ReportButton
-                                      targetType="tutor_card"
-                                      targetId={tut.id}
-                                      label={t("report.item_card")}
-                                      className="@max-sm:h-8 @max-sm:w-8"
-                                    />
                                     <Button
                                       asChild
                                       className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
@@ -569,13 +561,6 @@ function TutorsDirectory() {
                           footerAction={
                             <>
                               <TutorSaveButton tutorId={tut.id} compact />
-                              {/* Issue #216: report the tutor card. */}
-                              <ReportButton
-                                targetType="tutor_card"
-                                targetId={tut.id}
-                                label={t("report.item_card")}
-                                className="@max-sm:h-8 @max-sm:w-8"
-                              />
                               <Button
                                 asChild
                                 className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"

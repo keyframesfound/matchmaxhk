@@ -104,8 +104,6 @@ type PublicTutorCardProps = {
   priceSuffix: string;
   footerAction: ReactNode;
   saveAction?: ReactNode;
-  /** Issue #216: report button on the card (a ReportButton element). */
-  reportAction?: ReactNode;
   onOpen?: (tutorCode: string) => void;
   className?: string;
   compareSelected?: boolean;
@@ -120,7 +118,6 @@ export function PublicTutorCard({
   priceSuffix,
   footerAction,
   saveAction,
-  reportAction,
   onOpen,
   className,
   compareSelected,
@@ -528,8 +525,6 @@ export function PublicTutorCard({
             </TooltipProvider>
           ) : null}
           {saveAction}
-          {/* Issue #216: report button on the tutor card. */}
-          {reportAction}
           {shareable ? (
             <TooltipProvider delayDuration={300}>
               <Tooltip>
