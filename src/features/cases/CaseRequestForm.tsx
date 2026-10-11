@@ -28,15 +28,16 @@ import {
   TARGET_PATHWAY_OPTIONS,
   TARGET_SCHOOL_OPTIONS,
   TUTOR_BACKGROUND_OPTIONS,
+  COMPONENT_SENTINEL,
   getComponentOptionsForCurriculum,
   getSubjectOptionsForCurriculum,
 } from "@/features/cases/case-options";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { useFormDraft } from "@/lib/use-form-draft";
+import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
 
 const PHONE_REGEX = /^[+(\d][\d\s()./+-]{4,19}\d$/;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const labelClassName =
   "mb-1.5 block text-sm font-bold text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--muted-foreground)]";
@@ -72,12 +73,13 @@ type FormState = {
   requesterType: string;
   parentName: string;
   contactPhone: string;
-  contactEmail: string;
   supportType: string;
   // Page 2 — Path A: Subject tutoring
   curriculum: string;
   subject1: string;
   subject2: string;
+  subject3: string;
+  subject4: string;
   specificComponent: string;
   instructionLanguage: string[];
   year: string;
@@ -102,11 +104,12 @@ const INITIAL_FORM: FormState = {
   requesterType: "",
   parentName: "",
   contactPhone: "",
-  contactEmail: "",
   supportType: "",
   curriculum: "",
   subject1: "",
   subject2: "",
+  subject3: "",
+  subject4: "",
   specificComponent: "",
   instructionLanguage: [],
   year: "",
@@ -138,11 +141,42 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const [result, setResult] = useState<{ caseCode: string } | null>(null);
   const honeypot = useRef<HTMLInputElement>(null);
   const startedAt = useRef(Date.now());
-  const { restored, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v5");
+  const { restored, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v6");
+  // Issue #186: deep link to the MatchMax hotline with a summary of the
+  // request once the case code exists (enabled only after a successful
+  // submit so the message can include it).
+  const whatsappDigits = useWhatsAppNumber(Boolean(result));
+  const whatsappSummary = result
+    ? [
+        `Hi MatchMax! I have just submitted a case request (${result.caseCode}).`,
+        form.parentName ? `Name: ${form.parentName}` : null,
+        form.curriculum ? `Curriculum: ${form.curriculum}` : null,
+        form.subject1
+          ? `Subjects: ${[form.subject1, form.subject2].filter(Boolean).join(", ")}`
+          : null,
+        form.budgetMin || form.budgetMax
+          ? `Budget: ${form.budgetMin ? `$${form.budgetMin}` : ""}${form.budgetMax ? `-$${form.budgetMax}` : ""}`
+          : null,
+        form.district ? `District: ${form.district}` : null,
+      ]
+        .filter(Boolean)
+        .join("\n")
+    : "";
+  const whatsappHref =
+    result && whatsappDigits
+      ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(whatsappSummary)}`
+      : "";
 
   useEffect(() => {
     if (!restored) return;
-    setForm((prev) => ({ ...prev, ...restored }));
+    // Drop stale option values (e.g. the removed "bilingual" token) from
+    // older drafts so submit-time validation can't reject them.
+    const languages = Array.isArray(restored.instructionLanguage)
+      ? restored.instructionLanguage.filter((v) =>
+          INSTRUCTION_LANGUAGE_OPTIONS.some((o) => o.value === v),
+        )
+      : [];
+    setForm((prev) => ({ ...prev, ...restored, instructionLanguage: languages }));
   }, [restored]);
 
   const isBlankDraft = (value: FormState) =>
@@ -181,7 +215,14 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   // Curriculum locking: subjects/components only populate for the active
   // curriculum; changing it instantly resets them to blank.
   const handleCurriculumChange = (value: string) => {
-    update({ curriculum: value, subject1: "", subject2: "", specificComponent: "" });
+    update({
+      curriculum: value,
+      subject1: "",
+      subject2: "",
+      subject3: "",
+      subject4: "",
+      specificComponent: "",
+    });
   };
 
   // Admissions auto-locks the curriculum to "University Admissions & Test
@@ -197,6 +238,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             admissionsCategory: "",
             subject1: "",
             subject2: "",
+            subject3: "",
+            subject4: "",
             specificComponent: "",
           }
         : {
@@ -205,6 +248,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             admissionsCategory: "",
             subject1: "",
             subject2: "",
+            subject3: "",
+            subject4: "",
             specificComponent: "",
           },
     );
@@ -213,7 +258,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   // Switching the admissions sub-category narrows the subject pool and
   // clears any subject that may no longer belong.
   const handleAdmissionsCategoryChange = (value: string) => {
-    update({ admissionsCategory: value, subject1: "", subject2: "" });
+    update({ admissionsCategory: value, subject1: "", subject2: "", subject3: "", subject4: "" });
   };
 
   // MTR is hidden for online-only requests — clear any stale selection.
@@ -237,11 +282,6 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         nextErrors.contactPhone = "Required";
       } else if (!PHONE_REGEX.test(form.contactPhone.trim())) {
         nextErrors.contactPhone = "Please enter a valid WhatsApp number (e.g. +852 9123 4567).";
-      }
-      if (!form.contactEmail.trim()) {
-        nextErrors.contactEmail = "Required";
-      } else if (!EMAIL_REGEX.test(form.contactEmail.trim())) {
-        nextErrors.contactEmail = "Please enter a valid email address.";
       }
       if (!form.supportType) nextErrors.supportType = "Required";
     }
@@ -281,7 +321,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const submitMutation = useMutation({
     mutationFn: async () => {
       const admissions = isAdmissionsPath(form.supportType);
-      const subjects = [form.subject1, form.subject2]
+      const subjects = [form.subject1, form.subject2, form.subject3, form.subject4]
         .map((s) => s.trim())
         .filter(Boolean)
         .slice(0, 4);
@@ -290,12 +330,11 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           requesterType: form.requesterType as "parent" | "student",
           parentName: form.parentName,
           contactPhone: form.contactPhone,
-          contactEmail: form.contactEmail,
           supportType: form.supportType as "subject_tutoring" | "admissions",
           curriculum: admissions ? form.curriculum || ADMISSIONS_CURRICULUM : form.curriculum,
           subjects,
           specificComponent:
-            !admissions && form.specificComponent !== "None"
+            !admissions && form.specificComponent !== COMPONENT_SENTINEL
               ? form.specificComponent || null
               : null,
           instructionLanguage: admissions ? [] : form.instructionLanguage,
@@ -305,7 +344,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           targetPathway: admissions ? form.targetPathway : null,
           targetSchool: admissions ? form.targetSchool.trim() || null : null,
           interviewTest: admissions ? form.interviewTest : null,
-          mode: form.deliveryMode as "online" | "offline" | "both" | "no_pref",
+          mode: (form.deliveryMode === "both" ? "no_pref" : form.deliveryMode) as
+            "online" | "offline" | "both" | "no_pref",
           district: form.deliveryMode !== "online" ? form.district || null : null,
           budgetMin: form.budgetMin ? Number(form.budgetMin) : null,
           budgetMax: form.budgetMax ? Number(form.budgetMax) : null,
@@ -388,11 +428,35 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           Our team reviews every request — once approved, your case appears on this board so
           qualified tutors can apply.
         </p>
-        <div className="mt-8 flex justify-center">
-          <Button variant="outline" className="h-11 rounded-sm px-6 font-bold" onClick={resetForm}>
-            Submit another request
-          </Button>
-        </div>
+        {whatsappHref ? (
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button
+              asChild
+              className="h-11 rounded-sm bg-[#25D366] px-6 font-bold text-white hover:bg-[#1ebe5b]"
+            >
+              <a href={whatsappHref} target="_blank" rel="noreferrer">
+                Continue on WhatsApp
+              </a>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-11 rounded-sm px-6 font-bold"
+              onClick={resetForm}
+            >
+              Submit another request
+            </Button>
+          </div>
+        ) : (
+          <div className="mt-8 flex justify-center">
+            <Button
+              variant="outline"
+              className="h-11 rounded-sm px-6 font-bold"
+              onClick={resetForm}
+            >
+              Submit another request
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -525,25 +589,6 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 <p className="mt-1 text-xs font-semibold text-destructive">{errors.contactPhone}</p>
               ) : null}
             </div>
-            <div className="sm:col-span-2">
-              <label className={labelClassName} htmlFor={`${idPrefix}-email`}>
-                Email
-                {errors.contactEmail === "Required" ? <RequiredFlag /> : null}
-              </label>
-              <Input
-                id={`${idPrefix}-email`}
-                type="email"
-                className={cn(controlClassName, errors.contactEmail && invalidInputClassName)}
-                aria-invalid={errors.contactEmail ? true : undefined}
-                placeholder="e.g. mrs.chan@example.com"
-                inputMode="email"
-                value={form.contactEmail}
-                onChange={(e) => update({ contactEmail: e.target.value })}
-              />
-              {errors.contactEmail && errors.contactEmail !== "Required" ? (
-                <p className="mt-1 text-xs font-semibold text-destructive">{errors.contactEmail}</p>
-              ) : null}
-            </div>
           </>
         ) : null}
 
@@ -618,6 +663,44 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 className={controlClassName}
               />
             </div>
+            {/* Issue #183: 3rd/4th subjects, revealed progressively like the
+                achievements/subjects pickers on the tutor application. */}
+            {form.subject2 ? (
+              <div>
+                <label className={labelClassName} htmlFor={`${idPrefix}-subject3`}>
+                  Third subject (Optional)
+                </label>
+                <SearchableSelect
+                  value={form.subject3}
+                  onChange={(v) => update({ subject3: v })}
+                  options={subjectOptions}
+                  allowCustom
+                  disabled={!form.curriculum}
+                  placeholder={form.curriculum ? "e.g. Physics" : "Select a curriculum first"}
+                  searchPlaceholder="Search subject..."
+                  emptyText="No matches — type to enter a custom subject."
+                  className={controlClassName}
+                />
+              </div>
+            ) : null}
+            {form.subject3 ? (
+              <div>
+                <label className={labelClassName} htmlFor={`${idPrefix}-subject4`}>
+                  Fourth subject (Optional)
+                </label>
+                <SearchableSelect
+                  value={form.subject4}
+                  onChange={(v) => update({ subject4: v })}
+                  options={subjectOptions}
+                  allowCustom
+                  disabled={!form.curriculum}
+                  placeholder={form.curriculum ? "e.g. Economics" : "Select a curriculum first"}
+                  searchPlaceholder="Search subject..."
+                  emptyText="No matches — type to enter a custom subject."
+                  className={controlClassName}
+                />
+              </div>
+            ) : null}
             <div className="sm:col-span-2">
               <label className={labelClassName} htmlFor={`${idPrefix}-language`}>
                 Instruction language
@@ -644,6 +727,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                   </ToggleGroupItem>
                 ))}
               </ToggleGroup>
+              <p className="mt-1.5 text-xs text-muted-foreground">You can select more than one.</p>
               {errors.instructionLanguage && errors.instructionLanguage !== "Required" ? (
                 <p className="mt-1 text-xs font-semibold text-destructive">
                   {errors.instructionLanguage}
@@ -770,6 +854,41 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 className={controlClassName}
               />
             </div>
+            {/* Issue #183: 3rd/4th subjects for the admissions path too. */}
+            {form.subject2 ? (
+              <div>
+                <label className={labelClassName} htmlFor={`${idPrefix}-admissions-subject3`}>
+                  Third subject (Optional)
+                </label>
+                <SearchableSelect
+                  value={form.subject3}
+                  onChange={(v) => update({ subject3: v })}
+                  options={admissionsSubjectOptions}
+                  allowCustom
+                  placeholder="e.g. SAT"
+                  searchPlaceholder="Search subject..."
+                  emptyText="No matches — type to enter a custom subject."
+                  className={controlClassName}
+                />
+              </div>
+            ) : null}
+            {form.subject3 ? (
+              <div>
+                <label className={labelClassName} htmlFor={`${idPrefix}-admissions-subject4`}>
+                  Fourth subject (Optional)
+                </label>
+                <SearchableSelect
+                  value={form.subject4}
+                  onChange={(v) => update({ subject4: v })}
+                  options={admissionsSubjectOptions}
+                  allowCustom
+                  placeholder="e.g. IELTS"
+                  searchPlaceholder="Search subject..."
+                  emptyText="No matches — type to enter a custom subject."
+                  className={controlClassName}
+                />
+              </div>
+            ) : null}
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-pathway`}>
                 Target pathway
@@ -1049,7 +1168,6 @@ function fieldStepOf(field: keyof FormState): number {
     field === "requesterType" ||
     field === "parentName" ||
     field === "contactPhone" ||
-    field === "contactEmail" ||
     field === "supportType"
   ) {
     return 1;

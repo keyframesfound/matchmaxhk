@@ -177,6 +177,27 @@ export type Database = {
           },
         ];
       };
+      exchange_rates: {
+        Row: {
+          rate: number;
+          source_currency: Database["public"]["Enums"]["supported_currency"];
+          target_currency: Database["public"]["Enums"]["supported_currency"];
+          updated_at: string;
+        };
+        Insert: {
+          rate: number;
+          source_currency: Database["public"]["Enums"]["supported_currency"];
+          target_currency: Database["public"]["Enums"]["supported_currency"];
+          updated_at?: string;
+        };
+        Update: {
+          rate?: number;
+          source_currency?: Database["public"]["Enums"]["supported_currency"];
+          target_currency?: Database["public"]["Enums"]["supported_currency"];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       organization_members: {
         Row: {
           claimed_at: string | null;
@@ -359,6 +380,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null;
+          community_commitment_at: string | null;
           created_at: string;
           display_name: string | null;
           email: string | null;
@@ -374,6 +396,7 @@ export type Database = {
         };
         Insert: {
           avatar_url?: string | null;
+          community_commitment_at?: string | null;
           created_at?: string;
           display_name?: string | null;
           email?: string | null;
@@ -389,6 +412,7 @@ export type Database = {
         };
         Update: {
           avatar_url?: string | null;
+          community_commitment_at?: string | null;
           created_at?: string;
           display_name?: string | null;
           email?: string | null;
@@ -597,6 +621,7 @@ export type Database = {
           created_at: string;
           data: Json;
           id: string;
+          linked_tutor_id: string | null;
           purge_after: string | null;
           referred_by: string | null;
           rejected_at: string | null;
@@ -608,6 +633,7 @@ export type Database = {
           created_at?: string;
           data: Json;
           id?: string;
+          linked_tutor_id?: string | null;
           purge_after?: string | null;
           referred_by?: string | null;
           rejected_at?: string | null;
@@ -619,6 +645,7 @@ export type Database = {
           created_at?: string;
           data?: Json;
           id?: string;
+          linked_tutor_id?: string | null;
           purge_after?: string | null;
           referred_by?: string | null;
           rejected_at?: string | null;
@@ -683,10 +710,12 @@ export type Database = {
         Row: {
           assigned_to: string | null;
           board_published_at: string | null;
+          budget_currency: Database["public"]["Enums"]["supported_currency"];
           budget_max: number | null;
+          budget_max_hkd: number | null;
           budget_min: number | null;
+          budget_min_hkd: number | null;
           case_code: string;
-          contact_email: string | null;
           contact_name: string;
           contact_phone: string;
           created_at: string;
@@ -729,10 +758,12 @@ export type Database = {
         Insert: {
           assigned_to?: string | null;
           board_published_at?: string | null;
+          budget_currency?: Database["public"]["Enums"]["supported_currency"];
           budget_max?: number | null;
+          budget_max_hkd?: number | null;
           budget_min?: number | null;
+          budget_min_hkd?: number | null;
           case_code?: string;
-          contact_email?: string | null;
           contact_name: string;
           contact_phone: string;
           created_at?: string;
@@ -775,10 +806,12 @@ export type Database = {
         Update: {
           assigned_to?: string | null;
           board_published_at?: string | null;
+          budget_currency?: Database["public"]["Enums"]["supported_currency"];
           budget_max?: number | null;
+          budget_max_hkd?: number | null;
           budget_min?: number | null;
+          budget_min_hkd?: number | null;
           case_code?: string;
-          contact_email?: string | null;
           contact_name?: string;
           contact_phone?: string;
           created_at?: string;
@@ -849,6 +882,7 @@ export type Database = {
           badge: string | null;
           created_at: string;
           created_by: string | null;
+          currency: Database["public"]["Enums"]["supported_currency"];
           display_name: string;
           district: string | null;
           experience_years: number | null;
@@ -863,6 +897,8 @@ export type Database = {
           is_published: boolean;
           languages: string[];
           lesson_mode: Database["public"]["Enums"]["case_mode"];
+          max_hourly_rate_hkd: number | null;
+          min_hourly_rate_hkd: number | null;
           photo_url: string | null;
           pricing_tiers: Json;
           qualifications_summary: string | null;
@@ -890,6 +926,7 @@ export type Database = {
           preferred_time_windows: string[];
           availability_grid: Json;
           deletion_requested_at: string | null;
+          portfolio_images: string[];
         };
         Insert: {
           achievements?: Json;
@@ -897,6 +934,7 @@ export type Database = {
           badge?: string | null;
           created_at?: string;
           created_by?: string | null;
+          currency?: Database["public"]["Enums"]["supported_currency"];
           display_name: string;
           district?: string | null;
           experience_years?: number | null;
@@ -911,6 +949,8 @@ export type Database = {
           is_published?: boolean;
           languages?: string[];
           lesson_mode?: Database["public"]["Enums"]["case_mode"];
+          max_hourly_rate_hkd?: number | null;
+          min_hourly_rate_hkd?: number | null;
           photo_url?: string | null;
           pricing_tiers?: Json;
           qualifications_summary?: string | null;
@@ -935,6 +975,7 @@ export type Database = {
           user_id?: string | null;
           availability_grid?: Json;
           deletion_requested_at?: string | null;
+          portfolio_images?: string[];
         };
         Update: {
           achievements?: Json;
@@ -942,6 +983,7 @@ export type Database = {
           badge?: string | null;
           created_at?: string;
           created_by?: string | null;
+          currency?: Database["public"]["Enums"]["supported_currency"];
           display_name?: string;
           district?: string | null;
           experience_years?: number | null;
@@ -956,6 +998,8 @@ export type Database = {
           is_published?: boolean;
           languages?: string[];
           lesson_mode?: Database["public"]["Enums"]["case_mode"];
+          max_hourly_rate_hkd?: number | null;
+          min_hourly_rate_hkd?: number | null;
           photo_url?: string | null;
           pricing_tiers?: Json;
           qualifications_summary?: string | null;
@@ -983,6 +1027,7 @@ export type Database = {
           preferred_time_windows?: string[];
           availability_grid?: Json;
           deletion_requested_at?: string | null;
+          portfolio_images?: string[];
         };
         Relationships: [
           {
@@ -1033,6 +1078,29 @@ export type Database = {
       list_accounts_for_assignment: {
         Args: { _search: string };
         Returns: { id: string; email: string | null; display_name: string | null }[];
+      };
+      get_tutor_contact_details: {
+        Args: { _tutor_id: string };
+        Returns: {
+          account_email: string | null;
+          account_phone: string | null;
+          account_display_name: string | null;
+          application_name: string | null;
+          application_phone: string | null;
+          application_email: string | null;
+          application_id: string | null;
+          application_status: string | null;
+          application_created_at: string | null;
+        }[];
+      };
+      list_tutor_applications_for_linking: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          label: string;
+          status: string | null;
+          created_at: string;
+        }[];
       };
       get_my_referral_dashboard: { Args: never; Returns: Json };
       update_my_availability: {
@@ -1104,6 +1172,7 @@ export type Database = {
       org_plan: "business" | "enterprise";
       org_status: "pending" | "active" | "suspended";
       referral_bounty_status: "pending" | "ready_for_payout" | "paid";
+      supported_currency: "AUD" | "CAD" | "CNY" | "EUR" | "GBP" | "HKD" | "SGD" | "USD";
       tutor_application_status: "pending" | "accepted" | "rejected";
     };
     CompositeTypes: {
@@ -1236,6 +1305,7 @@ export const Constants = {
       org_plan: ["business", "enterprise"],
       org_status: ["pending", "active", "suspended"],
       referral_bounty_status: ["pending", "ready_for_payout", "paid"],
+      supported_currency: ["AUD", "CAD", "CNY", "EUR", "GBP", "HKD", "SGD", "USD"],
       tutor_application_status: ["pending", "accepted", "rejected"],
     },
   },

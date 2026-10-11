@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { SettingsCard } from "@/features/settings/option-card";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { formatMoneyFromCents } from "@/lib/money";
 
 type ReferralDashboard = {
   referral_code: string;
@@ -19,13 +20,7 @@ type ReferralDashboard = {
 };
 
 function formatHkd(cents: number): string {
-  const dollars = cents / 100;
-  return new Intl.NumberFormat("en-HK", {
-    style: "currency",
-    currency: "HKD",
-    minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2,
-    maximumFractionDigits: 2,
-  }).format(dollars);
+  return formatMoneyFromCents(cents);
 }
 
 /**

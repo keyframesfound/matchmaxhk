@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { GraduationCap, SearchX } from "lucide-react";
+import { GraduationCap, Hash, SearchX } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
@@ -27,6 +27,7 @@ import {
   getTutorBaseRate,
   getTutorInquiryAction,
 } from "@/features/tutors/tutor-display";
+import { DirectoryToggle, MaterialsDirectory } from "@/features/materials/materials-directory";
 import {
   fetchPublishedTutors,
   getTutorCardHighlights,
@@ -34,24 +35,28 @@ import {
   matchesStationFilter,
   type Tutor,
 } from "@/features/tutors/queries";
+import { normalizeProfileTag, popularProfileTags } from "@/features/tutors/profile-tags";
 import { matchesCategoryFilter, matchesSubjectQuery } from "@/features/tutors/subjects";
 import {
-  matchesAnyHighSchoolFilter,
-  matchesAnyUniversityFilter,
+  collectEducationValueSets,
+  matchesHighSchoolFilter,
+  matchesUniversityFilter,
   matchesMajorFilter,
   isElitePedigree,
 } from "@/features/tutors/education-filters";
-import { DirectoryToggle, MaterialsDirectory } from "@/features/materials/materials-directory";
 import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({
-  view: z.enum(["tutors", "materials"]).optional(), // #131 directory tab
   category: z.string().optional(),
   subject: z.string().optional(),
+  // Issue #187: extra subjects beyond the primary (comma-free, "||"-joined).
+  // AND-ed with `subject` — a tutor must teach every selected subject.
+  subjects_extra: z.string().optional(),
   station: z.string().optional(), // nearest MTR station to the student
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
   status: z.string().optional(), // uni_student | full_part_time_tutor | examiner
+  tag: z.string().optional(), // issue #217: profile-tag search (?tag=ia review)
   verified: z.preprocess(
     (value) => (value === "1" || value === "true" || value === true ? true : undefined),
     z.boolean().optional(),
@@ -67,6 +72,7 @@ const searchSchema = z.object({
     (value) => (value === "1" || value === "true" || value === true ? true : undefined),
     z.boolean().optional(),
   ), // transient: opens the mobile search overlay when hopping tabs
+  view: z.enum(["tutors", "materials"]).optional(), // #131 directory tab
 });
 type SearchState = z.infer<typeof searchSchema>;
 
@@ -99,11 +105,6 @@ function TutorsDirectory() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/tutors/" });
   const [draft, setDraft] = useState<SearchState>(search);
-  const directoryView = search.view === "materials" ? "materials" : "tutors";
-
-  const setDirectoryView = (next: "tutors" | "materials") => {
-    navigate({ search: next === "materials" ? { view: "materials" } : {} });
-  };
 
   useEffect(() => {
     setDraft(search);
@@ -126,6 +127,10 @@ function TutorsDirectory() {
     queryFn: fetchPublishedTutors,
   });
 
+  // Education dropdown options = the distinct values that actually appear on
+  // tutor profiles (issue #130), refreshed whenever the tutor list does.
+  const educationValues = useMemo(() => collectEducationValueSets(tutors), [tutors]);
+
   const { data: whatsappNumber = "" } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
     queryFn: async () => {
@@ -143,6 +148,11 @@ function TutorsDirectory() {
   const categoryFilter = (draft.category ?? "").toLowerCase();
 
   const subjectFilter = (draft.subject ?? "").toLowerCase();
+  // Issue #187: every selected subject beyond the first must also match (AND).
+  const extraSubjectFilters = (draft.subjects_extra ?? "")
+    .split("||")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
   const stationFilter = draft.station ?? "";
   const modeFilter = draft.mode ?? "";
   const genderFilter = draft.gender ?? "";
@@ -152,6 +162,8 @@ function TutorsDirectory() {
   const highSchoolFilter = draft.high_school ?? "";
   const majorFilter = draft.major ?? "";
   const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
+  // Issue #217: profile-tag filter (the tag chips on the cards link here).
+  const tagFilter = normalizeProfileTag(draft.tag ?? "");
 
   const filtered = useMemo(() => {
     const query = (draft.q ?? "").trim().toLowerCase();
@@ -168,6 +180,14 @@ function TutorsDirectory() {
         return false;
       if (subjectFilter && !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter)))
         return false;
+      // Issue #187: AND semantics — a tutor must teach every extra subject too.
+      if (
+        extraSubjectFilters.length > 0 &&
+        !extraSubjectFilters.every((extra) =>
+          tut.subjects.some((s) => matchesSubjectQuery(s, extra)),
+        )
+      )
+        return false;
       if (draft.min_price !== undefined && getTutorBaseRate(tut) < draft.min_price) return false;
       if (draft.max_price !== undefined && getTutorBaseRate(tut) > draft.max_price) return false;
       if (!matchesLessonModeFilter(modeFilter, tut.lesson_mode)) return false;
@@ -177,22 +197,19 @@ function TutorsDirectory() {
         if (g !== genderFilter) return false;
       }
       if (statusFilter && (tut.tutor_status ?? "") !== statusFilter) return false;
+      // Issue #217: exact match on one of the tutor's profile tags.
+      if (tagFilter && !(tut.profile_tags ?? []).includes(tagFilter)) return false;
       // Issue #142: Verified Tutors Only — hide everything below tier_2_verified.
       if (verifiedOnly && tut.verification_tier !== "tier_2_verified") return false;
       // Issue #130: institutional-pedigree filters over free-text education fields.
       if (
-        !matchesAnyUniversityFilter(universityFilter, {
+        !matchesUniversityFilter(universityFilter, {
           undergradUniversity: tut.undergrad_university,
           postgradUniversity: tut.postgrad_university,
-          secondarySchool: tut.secondary_school,
         })
       )
         return false;
-      if (
-        !matchesAnyHighSchoolFilter(highSchoolFilter, {
-          secondarySchool: tut.secondary_school,
-        })
-      )
+      if (!matchesHighSchoolFilter(highSchoolFilter, { secondarySchool: tut.secondary_school }))
         return false;
       // Issue #23: exact major over the free-text degree fields.
       if (
@@ -207,7 +224,12 @@ function TutorsDirectory() {
         !(
           tut.tutor_code.toLowerCase().includes(query) ||
           tut.subjects.some((s) => matchesSubjectQuery(s, query)) ||
-          getTutorCardHighlights(tut).some((highlight) => highlight.toLowerCase().includes(query))
+          getTutorCardHighlights(tut).some((highlight) =>
+            highlight.toLowerCase().includes(query),
+          ) ||
+          // Issue #217: free-text search also matches a profile tag, so
+          // searching "IA review" returns tutors who saved that tag.
+          (tut.profile_tags ?? []).some((tag) => tag.includes(query))
         )
       )
         return false;
@@ -233,6 +255,7 @@ function TutorsDirectory() {
     tutors,
     categoryFilter,
     subjectFilter,
+    extraSubjectFilters,
     effectiveStationFilter,
     modeFilter,
     genderFilter,
@@ -241,6 +264,7 @@ function TutorsDirectory() {
     universityFilter,
     highSchoolFilter,
     majorFilter,
+    tagFilter,
     draft.q,
     draft.min_price,
     draft.max_price,
@@ -279,6 +303,10 @@ function TutorsDirectory() {
 
   const hotlineUrl = buildTutorWhatsAppUrl(whatsappNumber, "");
 
+  // Issue #217: tags used by 3+ tutors become search suggestions under the
+  // result count; clicking a card tag filters by that tag.
+  const popularTags = useMemo(() => popularProfileTags(tutors), [tutors]);
+
   const applySearch = (override?: Partial<SearchState>) => {
     const next = { ...draft, ...override };
     navigate({
@@ -290,6 +318,12 @@ function TutorsDirectory() {
   };
 
   const compactSegments = useTutorsCompactSegments(draft);
+
+  // #131: Tutors | Study Materials directory tab.
+  const directoryView = search.view === "materials" ? "materials" : "tutors";
+  const setDirectoryView = (next: "tutors" | "materials") => {
+    navigate({ search: next === "materials" ? { view: "materials" } : {} });
+  };
 
   return (
     <SearchGroupProvider>
@@ -314,7 +348,6 @@ function TutorsDirectory() {
                       : "Start with a subject or tutor code, then narrow the list to the right fit."}
                   </p>
                 </div>
-                {/* Issue #131: Tutors | Study Materials switch. */}
                 <div className="pt-2">
                   <DirectoryToggle active={directoryView} onChange={setDirectoryView} />
                 </div>
@@ -327,6 +360,7 @@ function TutorsDirectory() {
                   onApply={applySearch}
                   onClear={clearAll}
                   allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
+                  educationValues={educationValues}
                   defaultOverlayOpen={search.open === true}
                   whatsappUrl={hotlineUrl || undefined}
                 />
@@ -343,6 +377,7 @@ function TutorsDirectory() {
                   onClear={clearAll}
                   resultCount={filtered.length}
                   allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
+                  educationValues={educationValues}
                   whatsappUrl={hotlineUrl || undefined}
                 />
               </div>
@@ -353,7 +388,7 @@ function TutorsDirectory() {
           ) : (
             <section className="pt-6 pb-12 sm:pt-8">
               <div className="mx-auto max-w-7xl px-4 sm:px-6">
-                <div className="mb-6 flex items-baseline justify-between">
+                <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
                   {isLoading ? (
                     <Skeleton className="h-4 w-28" />
                   ) : (
@@ -362,6 +397,42 @@ function TutorsDirectory() {
                       {filtered.length === 1 ? "tutor" : "tutors"} found
                     </p>
                   )}
+                  {/* Issue #217: popular-tag suggestions (3+ tutors) and the
+                    active-tag chip with a one-click clear. */}
+                  {tagFilter ? (
+                    <button
+                      type="button"
+                      onClick={() => setDraftParam({ tag: "" })}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                    >
+                      <Hash className="h-3 w-3" aria-hidden="true" />
+                      {tagFilter}
+                      <span aria-hidden="true" className="text-[color:var(--ink)]/50">
+                        ×
+                      </span>
+                    </button>
+                  ) : null}
+                  {popularTags.length > 0 ? (
+                    <div className="ml-auto flex flex-wrap items-center gap-1.5">
+                      <span className="text-xs text-muted-foreground">
+                        {t("directory.popular_tags")}
+                      </span>
+                      {popularTags.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => {
+                            setDraftParam({ tag });
+                            applySearch({ tag });
+                          }}
+                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                        >
+                          <Hash className="h-3 w-3" aria-hidden="true" />
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
 
                 {isLoading && (
@@ -483,6 +554,10 @@ function TutorsDirectory() {
                           onOpen={openTutorDetail}
                           onCompareToggle={() => toggleCompare(tut)}
                           compareSelected={compareIds.includes(tut.id)}
+                          tagQuery={(tag) => {
+                            setDraftParam({ tag });
+                            applySearch({ tag });
+                          }}
                           footerAction={
                             <>
                               <TutorSaveButton tutorId={tut.id} compact />

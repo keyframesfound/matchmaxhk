@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConsolePanel } from "@/components/ui/console-panel";
+import { formatMoneyFromCents } from "@/lib/money";
 import type { CaseRow } from "./shared";
 
 type TutorHit = {
@@ -15,22 +16,22 @@ type TutorHit = {
   display_name: string;
   tutor_code: string;
   hourly_rate: number;
+  min_hourly_rate_hkd: number | null;
   photo_url: string | null;
   referrer: { display_name: string } | null;
 };
 
 const TUTOR_SELECT =
-  "id, display_name, tutor_code, hourly_rate, photo_url, referrer:tutors!tutors_referred_by_fkey(display_name)";
+  "id, display_name, tutor_code, hourly_rate, min_hourly_rate_hkd, photo_url, referrer:tutors!tutors_referred_by_fkey(display_name)";
+
+// Fee policy comparisons happen in HKD (issue #112), so a tutor quoting in
+// another currency is judged on the HKD-normalized snapshot.
+function tutorHkdRate(hit: Pick<TutorHit, "hourly_rate" | "min_hourly_rate_hkd">): number {
+  return hit.min_hourly_rate_hkd ?? hit.hourly_rate;
+}
 
 function formatHkd(cents: number | null): string {
-  if (cents === null) return "—";
-  const dollars = cents / 100;
-  return new Intl.NumberFormat("en-HK", {
-    style: "currency",
-    currency: "HKD",
-    minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2,
-    maximumFractionDigits: 2,
-  }).format(dollars);
+  return cents === null ? "—" : formatMoneyFromCents(cents);
 }
 
 function TutorAvatar({ hit }: { hit: TutorHit }) {
@@ -174,7 +175,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
                   {matchedTutor.display_name}
                 </p>
                 <p className="truncate text-[11px] text-muted-foreground">
-                  HK${matchedTutor.hourly_rate}/hr
+                  HK${tutorHkdRate(matchedTutor)}/hr
                   {caseRow.matched_at
                     ? ` · matched ${format(new Date(caseRow.matched_at), "d MMM yyyy")}`
                     : ""}
@@ -233,7 +234,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
                         {hit.display_name}
                       </span>
                       <span className="block truncate text-[11px] text-muted-foreground">
-                        {hit.tutor_code} · HK${hit.hourly_rate}/hr
+                        {hit.tutor_code} · HK${tutorHkdRate(hit)}/hr
                         {hit.referrer ? ` · referred by ${hit.referrer.display_name}` : ""}
                       </span>
                     </span>

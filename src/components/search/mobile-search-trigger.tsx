@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Mobile Airbnb-style search entry: a shadow-elevated "Start your search"
- * bar above the quick-nav pills row (Case / How it works / Become tutor)
+ * bar above the quick-nav pills row (Case / Guide / Become tutor)
  * that doubles as the mobile top navigation. The block bleeds to the true
  * screen edges (canceling the parent px-4/px-6 container) and the pills row
  * scrolls with cut-off pills touching the screen edge, like Airbnb. The

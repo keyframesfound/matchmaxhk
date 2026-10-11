@@ -23,9 +23,11 @@ import {
   FiltersSection,
 } from "./filters-dialog";
 import { KeywordPanelContent, SearchPillBar, type PillSegment } from "./search-pill-bar";
+import { SubjectMultiSelect } from "./subject-multi-select";
 import { MobileSearchOverlay, type MobileSearchTab } from "./mobile-search-overlay";
 import { setSearchSlideDirection } from "./slide-direction";
 import { MobileSearchTrigger } from "./mobile-search-trigger";
+import type { CompactSegment } from "./sticky-search-group";
 import { MtrStationPickerContent } from "@/components/ui/mtr-station-select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -37,16 +39,14 @@ import {
   ADMISSIONS_STANDARDIZED_TEST_CATEGORY,
   getSubjectOptionsForCategory,
 } from "@/features/tutors/subjects";
-import {
-  HIGH_SCHOOL_FILTER_OPTIONS,
-  UNIVERSITY_FILTER_OPTIONS,
-  majorEditorOptions,
-} from "@/features/tutors/education-filters";
+import type { EducationValueSets } from "@/features/tutors/education-filters";
 import { cn } from "@/lib/utils";
 
 export type TutorsSearchState = {
   category?: string;
   subject?: string;
+  /** Issue #187: extra subjects (comma-free, plain values) — AND-ed with `subject`. */
+  subjects_extra?: string;
   station?: string;
   mode?: string;
   gender?: string;
@@ -67,6 +67,29 @@ const PRICE_STEP = 10;
 const HISTOGRAM_BUCKETS = 28;
 
 const CATEGORY_VALUES = ["IB", "DSE", "IGCSE", "AP", "A-Level"];
+
+/** Issue #187: the draft's full multi-subject pick — primary + extras. */
+export function getSelectedSubjects(draft: TutorsSearchState): string[] {
+  const primary = draft.subject?.trim() ? [draft.subject.trim()] : [];
+  const extras = (draft.subjects_extra ?? "")
+    .split("||")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return [...new Set([...primary, ...extras])];
+}
+
+const setSelectedSubjects = (
+  draft: TutorsSearchState,
+  subjects: string[],
+): Partial<TutorsSearchState> => {
+  // Keep the primary subject param in sync with the first pick so legacy
+  // ?subject= links and the compact pill keep working; extras carry the rest.
+  const [first, ...rest] = subjects;
+  return {
+    subject: first,
+    subjects_extra: rest.length > 0 ? rest.join("||") : undefined,
+  };
+};
 
 const formatPrice = (price: number) =>
   price === PRICE_MAX ? `HK$${price.toLocaleString()}+` : `HK$${price.toLocaleString()}`;
@@ -216,6 +239,8 @@ export type TutorsSearchProps = {
   resultCount?: number;
   /** All published tutors' hourly rates — powers the price histogram. */
   allPrices?: number[];
+  /** Distinct education values actually on tutor profiles — powers the university/school/major dropdowns. */
+  educationValues?: EducationValueSets;
   /** Open the mobile overlay on mount (used when hopping between search tabs). */
   defaultOverlayOpen?: boolean;
   whatsappUrl?: string;
@@ -223,12 +248,29 @@ export type TutorsSearchProps = {
 };
 
 /** Segments for the compact nav pill — Airbnb "Anywhere | Anytime" style. */
-export function useTutorsCompactSegments(draft: TutorsSearchState): string[] {
+export function useTutorsCompactSegments(draft: TutorsSearchState): CompactSegment[] {
   const { t } = useTranslation();
+  const selectedSubjects = getSelectedSubjects(draft);
   return [
-    draft.q?.trim() || draft.subject || t("search_ui.compact_any_subject"),
-    draft.category ? tutorsCategoryLabel(draft.category, t) : t("search_ui.compact_any_curriculum"),
-    draft.mode ? tutorsModeDisplay(draft, t) : t("search_ui.compact_any_mode"),
+    {
+      id: "keyword",
+      text: draft.q?.trim() || t("search_ui.compact_any_keyword"),
+    },
+    {
+      id: "category",
+      text: draft.category
+        ? tutorsCategoryLabel(draft.category, t)
+        : t("search_ui.compact_any_curriculum"),
+    },
+    {
+      id: "subject",
+      // Issue #187: show every selected subject, not just the primary.
+      text: selectedSubjects.join(" + ") || t("search_ui.compact_any_subject"),
+    },
+    {
+      id: "mode",
+      text: draft.mode ? tutorsModeDisplay(draft, t) : t("search_ui.compact_any_mode"),
+    },
   ];
 }
 
@@ -244,6 +286,7 @@ export function TutorsSearchBar({
   onClear,
   resultCount,
   allPrices,
+  educationValues,
   whatsappUrl,
   className,
 }: TutorsSearchProps) {
@@ -252,13 +295,22 @@ export function TutorsSearchBar({
   const [pillOpenId, setPillOpenId] = useState<string | null>(null);
 
   const subjectOptions = getSubjectOptionsForCategory(draft.category);
+  const selectedSubjects = getSelectedSubjects(draft);
 
   const handleCategorySelect = (category: string) => {
     const nextSubjects = getSubjectOptionsForCategory(category);
+    const nextSelected = selectedSubjects.filter((subject) => nextSubjects.includes(subject));
     onDraftChange({
       category: category || undefined,
-      ...(draft.subject && !nextSubjects.includes(draft.subject) ? { subject: undefined } : {}),
+      ...(selectedSubjects.length > 0 ? setSelectedSubjects(draft, nextSelected) : {}),
     });
+  };
+
+  const toggleSubject = (subject: string) => {
+    const next = selectedSubjects.includes(subject)
+      ? selectedSubjects.filter((value) => value !== subject)
+      : [...selectedSubjects, subject];
+    onDraftChange(setSelectedSubjects(draft, next));
   };
 
   const handleModeChange = (next: { mode: string; station?: string }) => {
@@ -289,6 +341,8 @@ export function TutorsSearchBar({
     draft.min_price !== undefined ? "price" : "",
     draft.max_price !== undefined ? "price" : "",
     draft.sort,
+    // Issue #187: every selected subject beyond the first counts as a filter.
+    ...selectedSubjects.slice(1).map(() => "subject"),
   ].filter(Boolean).length;
 
   const categoryOptions: OptionRow[] = tutorsCategoryOptions(t);
@@ -314,18 +368,12 @@ export function TutorsSearchBar({
 
   const universityOptions = [
     { value: "", label: t("search_ui.university_any") },
-    ...UNIVERSITY_FILTER_OPTIONS.map((value) => ({
-      value,
-      label: t(`search_ui.university_${value}`),
-    })),
+    ...(educationValues?.universities ?? []).map((value) => ({ value, label: value })),
   ];
 
   const highSchoolOptions = [
     { value: "", label: t("search_ui.high_school_any") },
-    ...HIGH_SCHOOL_FILTER_OPTIONS.map((value) => ({
-      value,
-      label: t(`search_ui.high_school_${value}`),
-    })),
+    ...(educationValues?.highSchools ?? []).map((value) => ({ value, label: value })),
   ];
 
   const modeDisplay = tutorsModeDisplay(draft, t);
@@ -368,13 +416,20 @@ export function TutorsSearchBar({
     {
       id: "subject",
       label: t("search_ui.segment_subject"),
-      display: draft.subject ?? t("search_ui.any_value"),
-      filled: Boolean(draft.subject),
-      options: subjectOptions.map((subject) => ({ value: subject, label: subject })),
-      currentValue: draft.subject,
-      searchPlaceholder: t("search_panel.search_subject"),
-      emptyText: t("search_panel.no_matches"),
-      onSelect: (value) => onDraftChange({ subject: value || undefined }),
+      display:
+        selectedSubjects.length > 0 ? selectedSubjects.join(" + ") : t("search_ui.any_value"),
+      filled: selectedSubjects.length > 0,
+      content: (
+        <SubjectMultiSelect
+          options={subjectOptions}
+          selected={selectedSubjects}
+          onToggle={toggleSubject}
+          onClear={() => onDraftChange({ subject: undefined, subjects_extra: undefined })}
+          clearLabel={t("search_ui.clear_subjects")}
+          searchPlaceholder={t("search_panel.search_subject")}
+          emptyText={t("search_panel.no_matches")}
+        />
+      ),
     },
     {
       id: "mode",
@@ -502,7 +557,7 @@ export function TutorsSearchBar({
             onChange={(value) => onDraftChange({ major: value || undefined })}
             options={[
               { value: "", label: t("search_ui.major_any") },
-              ...majorEditorOptions(draft.major).map((major) => ({ value: major, label: major })),
+              ...(educationValues?.majors ?? []).map((major) => ({ value: major, label: major })),
             ]}
             placeholder={t("search_ui.major_any")}
             searchPlaceholder={t("search_ui.major_search_placeholder")}
@@ -538,6 +593,7 @@ export function TutorsSearchMobile({
   onClear,
   resultCount,
   allPrices,
+  educationValues,
   defaultOverlayOpen,
   className,
 }: TutorsSearchProps) {
@@ -546,13 +602,22 @@ export function TutorsSearchMobile({
   const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
 
   const subjectOptions = getSubjectOptionsForCategory(draft.category);
+  const selectedSubjects = getSelectedSubjects(draft);
 
   const handleCategorySelect = (category: string) => {
     const nextSubjects = getSubjectOptionsForCategory(category);
+    const nextSelected = selectedSubjects.filter((subject) => nextSubjects.includes(subject));
     onDraftChange({
       category: category || undefined,
-      ...(draft.subject && !nextSubjects.includes(draft.subject) ? { subject: undefined } : {}),
+      ...(selectedSubjects.length > 0 ? setSelectedSubjects(draft, nextSelected) : {}),
     });
+  };
+
+  const toggleSubject = (subject: string) => {
+    const next = selectedSubjects.includes(subject)
+      ? selectedSubjects.filter((value) => value !== subject)
+      : [...selectedSubjects, subject];
+    onDraftChange(setSelectedSubjects(draft, next));
   };
 
   const handleModeChange = (next: { mode: string; station?: string }) => {
@@ -597,18 +662,12 @@ export function TutorsSearchMobile({
 
   const universityOptions = [
     { value: "", label: t("search_ui.university_any") },
-    ...UNIVERSITY_FILTER_OPTIONS.map((value) => ({
-      value,
-      label: t(`search_ui.university_${value}`),
-    })),
+    ...(educationValues?.universities ?? []).map((value) => ({ value, label: value })),
   ];
 
   const highSchoolOptions = [
     { value: "", label: t("search_ui.high_school_any") },
-    ...HIGH_SCHOOL_FILTER_OPTIONS.map((value) => ({
-      value,
-      label: t(`search_ui.high_school_${value}`),
-    })),
+    ...(educationValues?.highSchools ?? []).map((value) => ({ value, label: value })),
   ];
 
   const applyLabel =
@@ -705,16 +764,14 @@ export function TutorsSearchMobile({
 
           <div className="space-y-1.5">
             <PanelLabel>{t("search_ui.segment_subject")}</PanelLabel>
-            <SearchableSelect
-              value={draft.subject ?? ""}
-              onChange={(value) => onDraftChange({ subject: value || undefined })}
-              options={[
-                { value: "", label: t("search_ui.any_value") },
-                ...subjectOptions.map((subject) => ({ value: subject, label: subject })),
-              ]}
-              placeholder={t("search_ui.any_value")}
+            <SubjectMultiSelect
+              options={subjectOptions}
+              selected={selectedSubjects}
+              onToggle={toggleSubject}
+              onClear={() => onDraftChange({ subject: undefined, subjects_extra: undefined })}
+              clearLabel={t("search_ui.clear_subjects")}
               searchPlaceholder={t("search_panel.search_subject")}
-              className="h-12 rounded-2xl"
+              emptyText={t("search_panel.no_matches")}
             />
           </div>
 
@@ -791,7 +848,7 @@ export function TutorsSearchMobile({
               onChange={(value) => onDraftChange({ major: value || undefined })}
               options={[
                 { value: "", label: t("search_ui.major_any") },
-                ...majorEditorOptions(draft.major).map((major) => ({ value: major, label: major })),
+                ...(educationValues?.majors ?? []).map((major) => ({ value: major, label: major })),
               ]}
               placeholder={t("search_ui.major_any")}
               searchPlaceholder={t("search_ui.major_search_placeholder")}

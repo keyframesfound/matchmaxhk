@@ -530,7 +530,7 @@ const EXPLORE_CARDS = [
   {
     to: "/how-it-works",
     icon: BookOpen,
-    title: "How it works",
+    title: "Guide",
     subtitle: "Matching, fees, and the concierge window.",
   },
   {

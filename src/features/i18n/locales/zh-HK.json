@@ -6,7 +6,7 @@
     "referral_cta": "撳呢度睇詳情"
   },
   "nav": {
-    "how": "點樣運作",
+    "how": "指南",
     "find": "搵導師",
     "courses": "課程",
     "for_business": "商業服務",
@@ -249,6 +249,7 @@
       "secondary_school": "中學",
       "undergrad_university": "大學",
       "undergrad_degree": "學士學位",
+      "education_empty_hint": "沒有相符項目——繼續輸入即可新增",
       "qualifications": "學歷摘要",
       "self_introduction": "自我介紹",
       "self_introduction_hint": "顯示於你的公開檔案。格式會被保留。",
@@ -410,7 +411,7 @@
     "company": "公司",
     "support": "支援",
     "find_tutors": "搵導師",
-    "how": "點樣運作",
+    "how": "指南",
     "request_tutor": "提出配對",
     "saved_posts": "已儲存個案",
     "join_as_tutor": "成為導師",
@@ -500,6 +501,12 @@
     "tos_accept": "接受",
     "tos_decline": "拒絕",
     "tos_accept_error": "無法記錄你嘅接受，請再試一次。",
+    "commitment_title": "人人都屬於呢度",
+    "commitment_intro": "MatchMax 連結香港嘅家庭同導師。加入嘅時候，我哋請你同意以下社群承諾：",
+    "commitment_pledge": "我會尊重 MatchMax 社群入面每一個人——不論種族、宗教、國籍、族裔、膚色、殘疾、性別、性別認同、性取向或年齡——不加批判，毫無偏見。",
+    "commitment_agree": "同意並繼續",
+    "commitment_decline": "拒絕",
+    "commitment_error": "無法記錄你嘅同意，請再試一次。",
     "onboarding_title": "歡迎嚟到 MatchMax！",
     "onboarding_title_named": "{{name}}，歡迎嚟到 MatchMax！",
     "onboarding_subtitle": "你嚟到想做咩？我哋會為你度身訂造體驗。",
@@ -717,7 +724,8 @@
     "empty_whatsapp": "WhatsApp 查詢",
     "empty_edu_title": "暫時沒有來自這個背景的導師",
     "empty_edu_desc": "我們暫時沒有符合這間學校或大學的導師——不過以下來自相近院校的高分導師同樣值得參考。",
-    "empty_edu_clear": "顯示所有導師"
+    "empty_edu_clear": "顯示所有導師",
+    "popular_tags": "熱門標籤："
   },
   "profile": {
     "verified": "已核實",
@@ -727,6 +735,9 @@
     "education_secondary": "中學",
     "section_academic": "核心學術成績",
     "section_achievements": "成就同經驗",
+    "section_trophy": "獎項珍藏",
+    "trophy_alt": "獎項相片 {{index}}",
+    "trophy_open_aria": "放大檢視獎項相片 {{index}}",
     "section_about": "簡介",
     "section_subjects": "教授科目",
     "section_pricing": "課堂收費",
@@ -777,6 +788,9 @@
   "tutor_card": {
     "verified_fallback": "學術資料已核實",
     "academic_achievements": "學術成績",
+    "status_uni_student": "大學生",
+    "status_full_part_time": "全職/兼職導師",
+    "status_examiner": "考官/專業教師",
     "achievements_and_experiences": "成就同經驗",
     "more": "更多",
     "highlights_label": "導師卡重點",
@@ -784,6 +798,7 @@
     "price_up": "起",
     "tutor_alt": "導師 {{code}}",
     "compare_add": "將導師 {{code}} 加入比較",
+    "tag_search": "搜尋有 {{tag}} 標籤嘅導師",
     "compare_remove": "將導師 {{code}} 移出比較",
     "share": "分享導師 {{code}}",
     "gender_male": "男",
@@ -928,7 +943,7 @@
       },
       "s4": {
         "title": "獨家學習筆記",
-        "detail": "瀏覽同購買由頂尖學霸整理嘅學校 past paper 解答、模擬試卷同自訂筆記。款項由 MatchMax 安全托管（escrow），確保檔案成功交付，平台收取 20% 以支持創作者。想免費攞？同作者補習 3 課之後就可以解鎖！"
+        "detail": "瀏覽同購買由頂尖學霸整理嘅原創筆記、模擬試卷同自訂學習材料。你經 FPS 付款到 MatchMax，職員核實後會喺你嘅帳戶內交付檔案，平台收取 20% 以支持創作者。完成三課付費課堂之後，可以向 MatchMax 查詢，職員有機會授予該導師現有嘅學習材料。"
       }
     },
     "parents_link_find": "搵導師",
@@ -1107,7 +1122,7 @@
       },
       "notes": {
         "q": "購買數碼學習材料係點運作？",
-        "a": "學習材料透過 MatchMax 託管系統（escrow）出售。你經 FPS 將全數支付到 MatchMax 官方商業戶口，我哋會托管款項以保證檔案成功交付，導師先會喺下個月 1 號收到佢 80% 嘅分成（MatchMax 保留 20% 平台費）。由於數碼檔案無法退回，所有交易一經完成恕不退款——請先細閱免費浮水印預覽版先至購買。"
+        "a": "學習材料透過 MatchMax 出售。你經 FPS 將全數支付到 MatchMax 官方商業戶口，職員核實後會喺你嘅帳戶內交付檔案，導師先會喺下個月 1 號收到佢 80% 嘅分成（MatchMax 保留 20% 平台費）。由於數碼檔案無法退回，所有交易一經完成恕不退款——請先細閱免費浮水印預覽版先至購買。"
       }
     }
   },
@@ -1163,6 +1178,7 @@
     "case_other": "其他",
     "cases_placeholder": "搜尋科目、地區、關鍵字…",
     "compact_any_subject": "任何科目",
+    "clear_subjects": "清除科目",
     "compact_any_curriculum": "任何課程",
     "compact_any_mode": "任何模式",
     "compact_any_keyword": "任何關鍵字",

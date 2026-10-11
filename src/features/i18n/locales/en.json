@@ -6,7 +6,7 @@
     "referral_cta": "Click here for details"
   },
   "nav": {
-    "how": "How it works",
+    "how": "Guide",
     "find": "Find",
     "courses": "Courses",
     "for_business": "For Business",
@@ -249,6 +249,7 @@
       "secondary_school": "Secondary school",
       "undergrad_university": "Undergraduate university",
       "undergrad_degree": "Undergraduate degree",
+      "education_empty_hint": "No match found — keep typing to add yours",
       "qualifications": "Qualifications summary",
       "self_introduction": "Self introduction",
       "self_introduction_hint": "Shown on your public profile. Formatting is preserved.",
@@ -373,7 +374,7 @@
     "category_admissions_support_desc": "Interview Coaching, Personal Statement Review, Portfolio Building",
     "any_status": "Any tutor status",
     "status_uni_student": "University student",
-    "status_full_part_time": "Full or part-time tutor",
+    "status_full_part_time": "Full/Part-Time Tutor",
     "status_examiner": "Examiner / professional teacher",
     "gender_female": "Female",
     "gender_male": "Male",
@@ -388,7 +389,7 @@
     "company": "Company",
     "support": "Support",
     "find_tutors": "Find tutors",
-    "how": "How it works",
+    "how": "Guide",
     "request_tutor": "Request a Tutor",
     "saved_posts": "Saved Posts",
     "join_as_tutor": "Join as tutor",
@@ -478,6 +479,12 @@
     "tos_accept": "Accept",
     "tos_decline": "Decline",
     "tos_accept_error": "Could not record your acceptance. Please try again.",
+    "commitment_title": "Everyone belongs here",
+    "commitment_intro": "MatchMax connects families and tutors across Hong Kong. When you join, we ask you to agree to our community commitment:",
+    "commitment_pledge": "I will treat everyone in the MatchMax community — regardless of race, religion, national origin, ethnicity, skin colour, disability, sex, gender identity, sexual orientation, or age — with respect, and without judgment or bias.",
+    "commitment_agree": "Agree and continue",
+    "commitment_decline": "Decline",
+    "commitment_error": "Could not record your agreement. Please try again.",
     "onboarding_title": "Welcome to MatchMax!",
     "onboarding_title_named": "{{name}}, welcome to MatchMax!",
     "onboarding_subtitle": "What brings you here? We'll tailor your experience to fit you.",
@@ -695,7 +702,8 @@
     "empty_whatsapp": "Ask on WhatsApp",
     "empty_edu_title": "No tutor from this exact background yet",
     "empty_edu_desc": "We don't have a tutor matching this school or university right now — but these top-rated scholars from similar institutions are a great place to start.",
-    "empty_edu_clear": "Show all tutors"
+    "empty_edu_clear": "Show all tutors",
+    "popular_tags": "Popular tags:"
   },
   "profile": {
     "verified": "Verified",
@@ -705,6 +713,9 @@
     "education_secondary": "Secondary School",
     "section_academic": "Core Academic Breakdown",
     "section_achievements": "Achievement & Experience",
+    "section_trophy": "Trophy Cabinet",
+    "trophy_alt": "Award photo {{index}}",
+    "trophy_open_aria": "View award photo {{index}} full size",
     "section_about": "About Me",
     "section_subjects": "Subjects Taught",
     "section_pricing": "Lesson Pricing",
@@ -755,6 +766,9 @@
   "tutor_card": {
     "verified_fallback": "Academic profile verified",
     "academic_achievements": "Academic achievements",
+    "status_uni_student": "Uni Student",
+    "status_full_part_time": "Full/Part-Time Tutor",
+    "status_examiner": "Examiner / Pro Teacher",
     "achievements_and_experiences": "Achievements and Experiences",
     "more": "more",
     "highlights_label": "Tutor card highlights",
@@ -762,6 +776,7 @@
     "price_up": "up",
     "tutor_alt": "Tutor {{code}}",
     "compare_add": "Add tutor {{code}} to comparison",
+    "tag_search": "Search tutors tagged {{tag}}",
     "compare_remove": "Remove tutor {{code}} from comparison",
     "share": "Share tutor {{code}}",
     "gender_male": "Male",
@@ -906,7 +921,7 @@
       },
       "s4": {
         "title": "Exclusive Study Materials",
-        "detail": "Browse and purchase school-specific past-paper solutions, mock exams, and custom notes created by our top scholars. Payments are securely held in escrow by MatchMax to guarantee file delivery, with a 20% platform fee supporting our creators. Want them for free? Unlock them after 3 paid lessons with the author!"
+        "detail": "Browse and purchase original notes, mock exams, and custom study packs created by our top scholars. You pay MatchMax by FPS and staff release the file inside your account, with a 20% platform fee supporting the creator. After three paid lessons, ask MatchMax and staff can grant that tutor's current packs."
       }
     },
     "parents_link_find": "Find a tutor",
@@ -1085,7 +1100,7 @@
       },
       "notes": {
         "q": "How do purchases of digital study materials work?",
-        "a": "Study materials are sold through the MatchMax escrow. You pay the full amount to the MatchMax official business account via FPS, and we hold the payment until the file is delivered before the tutor receives their 80% share on the 1st of the following month (MatchMax retains a 20% platform commission). Because digital files cannot be returned, all sales are final—please review the free watermarked preview before purchasing."
+        "a": "Study materials are sold through MatchMax. You pay the full amount to the MatchMax official business account via FPS, and staff release the file inside your account before the tutor receives their 80% share on the 1st of the following month (MatchMax retains a 20% platform commission). Because digital files cannot be returned, all sales are final—please review the free watermarked preview before purchasing."
       }
     }
   },
@@ -1136,12 +1151,13 @@
     "price_max": "Maximum",
     "pick_uni": "Uni student",
     "pick_examiner": "Examiner",
-    "pick_full_part": "Full / part-time",
+    "pick_full_part": "Full/Part-Time Tutor",
     "pick_budget": "Under HK$300",
     "tab_cases": "Cases",
     "case_other": "Other",
     "cases_placeholder": "Search subject, district, keyword…",
     "compact_any_subject": "Any subject",
+    "clear_subjects": "Clear subjects",
     "compact_any_curriculum": "Any curriculum",
     "compact_any_mode": "Any mode",
     "compact_any_keyword": "Any keyword",

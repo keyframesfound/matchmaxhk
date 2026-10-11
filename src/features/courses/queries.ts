@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { formatMoney, toCurrencyCode } from "@/lib/money";
 
 export type CourseMode = "online" | "in_person" | "either";
 
@@ -222,10 +223,5 @@ export function courseModeLabel(mode: CourseMode): string {
 
 export function formatCoursePrice(price: number | null, currency: string): string | null {
   if (price === null || Number.isNaN(price)) return null;
-  const formatted = new Intl.NumberFormat("en-HK", {
-    style: "currency",
-    currency: currency || "HKD",
-    maximumFractionDigits: price % 1 === 0 ? 0 : 2,
-  }).format(price);
-  return formatted;
+  return formatMoney(price, toCurrencyCode(currency));
 }

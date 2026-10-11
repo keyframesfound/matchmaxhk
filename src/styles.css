@@ -91,6 +91,17 @@
   }
 }
 
+/*
+ * Disable the browser's scroll anchoring: when the sticky search band
+ * collapses or expands, Chrome compensates by nudging scrollY to keep the
+ * content below stable, and those phantom scroll deltas race the search
+ * band's scroll-direction snapper (band reopens → nudge down → re-collapses
+ * → nudge up → …  — a stuck jump loop when scrolling back up).
+ */
+html {
+  overflow-anchor: none;
+}
+
 :root {
   --radius: 1.3rem;
   --radius-control: 0.5rem;
@@ -682,8 +693,9 @@
  * Airbnb-style elevation — the ONLY sanctioned shadow usage in this flat,
  * border-delineated design system (explicit user exception). Scope: the
  * mobile "Start your search" trigger and quick-nav pills rendered by
- * src/components/search/mobile-search-trigger.tsx. Do not reuse these
- * classes anywhere else, and do not add new shadow rules.
+ * src/components/search/mobile-search-trigger.tsx, plus the desktop search
+ * bar family (SearchPillBar band + panel, CompactSearchPill) which shares
+ * the same elevation language per user request. Do not add new shadow rules.
  */
 .pill-elevate,
 .pill-elevate-lg,

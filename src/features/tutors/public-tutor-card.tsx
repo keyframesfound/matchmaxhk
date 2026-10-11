@@ -7,6 +7,7 @@ import {
   Check,
   Columns2,
   GraduationCap,
+  Hash,
   School,
   Share2,
   UserRound,
@@ -19,6 +20,7 @@ import {
   getTutorAvailabilityReadiness,
   getTutorEducationLines,
   getTutorPriceDisplay,
+  getTutorStatusLabelKey,
   getTutorSubjectChips,
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
@@ -107,6 +109,8 @@ type PublicTutorCardProps = {
   compareSelected?: boolean;
   onCompareToggle?: () => void;
   shareable?: boolean;
+  /** Issue #217: clicking a profile-tag chip searches /tutors?tag=<tag>. */
+  tagQuery?: (tag: string) => void;
 };
 
 export function PublicTutorCard({
@@ -119,6 +123,7 @@ export function PublicTutorCard({
   compareSelected,
   onCompareToggle,
   shareable = true,
+  tagQuery,
 }: PublicTutorCardProps) {
   const { t, i18n } = useTranslation();
   const interactive = typeof onOpen === "function";
@@ -136,6 +141,9 @@ export function PublicTutorCard({
   const genderLabel = t(`tutor_card.gender_${(tutor.gender ?? "").toLowerCase()}`, {
     defaultValue: "",
   }) as string;
+  // Issues #77/#52: tutor status pill ("University student" etc.).
+  const statusKey = getTutorStatusLabelKey(tutor.tutor_status);
+  const statusLabel = statusKey ? t(statusKey) : "";
   const primaryCredential = removeEmoji(
     tutor.academic_headline ??
       tutor.undergrad_university ??
@@ -252,7 +260,10 @@ export function PublicTutorCard({
     >
       <header className="relative border-b border-border px-3 py-2.5 md:px-4 md:py-3">
         <div className="flex items-start gap-2.5 md:gap-3.5">
-          <div className="flex w-12 shrink-0 flex-col items-center gap-1.5 md:w-14">
+          {/* Photo column sizes to its widest child (the status pill, capped
+              at max-w-24) so the badge fits under the tutor code instead of
+              ellipsizing in a fixed 3/3.5rem rail. */}
+          <div className="flex w-max min-w-12 max-w-24 shrink-0 flex-col items-center gap-1.5 md:min-w-14">
             <div className="relative">
               {showPhoto ? (
                 <img
@@ -272,6 +283,14 @@ export function PublicTutorCard({
             <p className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
               {formatTutorCode(tutor.tutor_code)}
             </p>
+            {/* Issues #77/#52: tutor status badge (uni student / full-part-time
+                / examiner) under the tutor code. Wraps to two lines for long
+                labels instead of ellipsizing. */}
+            {statusLabel ? (
+              <span className="max-w-full whitespace-normal rounded-md bg-muted px-1.5 py-0.5 text-center text-[11px] font-semibold leading-tight text-[color:var(--ink)]">
+                {statusLabel}
+              </span>
+            ) : null}
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">
@@ -413,6 +432,34 @@ export function PublicTutorCard({
               </FitText>
             ))}
           </ul>
+
+          {/* Issue #217: profile tags — click one to search it. Kept out of
+              the compare flow via stopPropagation, like the other buttons. */}
+          {tutor.profile_tags.length > 0 ? (
+            <div className="mt-2.5 flex flex-wrap gap-1.5 border-t border-border pt-2.5 md:mt-3">
+              {tutor.profile_tags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    tagQuery?.(tag);
+                  }}
+                  onKeyDown={(event) => event.stopPropagation()}
+                  aria-label={t("tutor_card.tag_search", { tag })}
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-muted-foreground transition-colors",
+                    tagQuery
+                      ? "hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                      : "cursor-default",
+                  )}
+                >
+                  <Hash className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  {tag}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </section>
       </div>
 

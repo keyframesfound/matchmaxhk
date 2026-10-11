@@ -28,6 +28,18 @@ export default defineConfig({
     viteReact(),
     tailwindcss(),
     tsConfigPaths(),
-    nitro(),
+    nitro({
+      // Issue #112: daily FX rate refresh. experimental.tasks enables the
+      // tasks/ directory; the cloudflare-module preset then exports a
+      // scheduled() handler that runs fx-refresh on the Worker's cron trigger.
+      // TanStack Start leaves Nitro's scanDirs empty, so the root is added
+      // explicitly for the tasks/ scan to find anything.
+      experimental: { tasks: true },
+      scanDirs: ["."],
+      scheduledTasks: {
+        // 06:00 HKT — after the ECB reference-rate fix.
+        "0 22 * * *": "fx-refresh",
+      },
+    }),
   ],
 });

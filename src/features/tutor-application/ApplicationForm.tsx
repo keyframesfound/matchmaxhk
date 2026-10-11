@@ -1,17 +1,14 @@
 import { cloneElement, isValidElement, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
-  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Check,
   CheckCircle2,
   Gift,
-  GraduationCap,
   LocateFixed,
   Paperclip,
   Plus,
-  Scale,
   Send,
   ShieldCheck,
   Sparkles,
@@ -46,6 +43,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { REFERRAL_CODE_PATTERN, readStoredReferralCode } from "@/lib/referral";
+import { contactFilterError } from "@/lib/contact-filter";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
@@ -56,7 +54,7 @@ import {
 import {
   ACCEPT_ATTRIBUTE,
   ACCEPTED_FILE_TYPES,
-  ACCEPTED_PROFILE_PHOTO_TYPES,
+  ACCEPTED_PORTFOLIO_IMAGE_TYPES,
   COMMISSION_TEXT,
   CURRICULUM_OPTIONS,
   EMAIL_REGEX,
@@ -65,7 +63,9 @@ import {
   MATERIALS_OPTIONS,
   MAX_FILES,
   MAX_FILE_BYTES,
+  MAX_PORTFOLIO_FILES,
   PHONE_REGEX,
+  PORTFOLIO_ACCEPT_ATTRIBUTE,
   PROFILE_PHOTO_ACCEPT_ATTRIBUTE,
   PROFESSIONAL_ROLE_OPTIONS,
   PROFESSIONAL_STATUS,
@@ -291,6 +291,8 @@ const FIELD_LABELS: Record<string, string> = {
   countryOther: "Country / Region — specify",
   status: "Current Status",
   statusOther: "Current Status — specify",
+  portfolioConsent: "Trophy cabinet photo consent",
+  portfolioImages: "Trophy cabinet photos",
   university: "University / Institution",
   programme: "Degree / Programme Major",
   postgradUniversity: "Postgraduate University / Institution",
@@ -340,7 +342,144 @@ function isTranscriptImage(file: File) {
 }
 
 function isProfilePhoto(file: File) {
-  return ACCEPTED_PROFILE_PHOTO_TYPES.includes(file.type) || /\.(jpe?g|png)$/i.test(file.name);
+  return ["image/jpeg", "image/png"].includes(file.type) || /\.(jpe?g|png)$/i.test(file.name);
+}
+
+// Issue #97: Trophy Cabinet images — JPG/PNG/WebP. `File.type` can be empty on
+// some mobile pickers, so fall back to the extension.
+function isPortfolioImage(file: File) {
+  return (
+    ACCEPTED_PORTFOLIO_IMAGE_TYPES.includes(file.type) || /\.(jpe?g|png|webp)$/i.test(file.name)
+  );
+}
+
+/**
+ * Issue #97: Trophy Cabinet multi-file picker (max 6 photos, 5MB each,
+ * JPG/PNG/WebP). Strictly optional — the whole section renders no files and
+ * no consent checkbox until the tutor adds one.
+ */
+function TrophyCabinetUpload({
+  files,
+  onChange,
+}: {
+  files: File[];
+  onChange: (files: File[]) => void;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const full = files.length >= MAX_PORTFOLIO_FILES;
+
+  const addFiles = (candidates: FileList | null | undefined) => {
+    if (!candidates || candidates.length === 0) return;
+    const accepted: File[] = [];
+    let rejectedType = false;
+    let rejectedSize = false;
+    for (const candidate of Array.from(candidates)) {
+      if (files.length + accepted.length >= MAX_PORTFOLIO_FILES) break;
+      if (!isPortfolioImage(candidate)) {
+        rejectedType = true;
+        continue;
+      }
+      if (candidate.size > MAX_FILE_BYTES) {
+        rejectedSize = true;
+        continue;
+      }
+      accepted.push(candidate);
+    }
+    if (rejectedType) {
+      setError("Photos must be JPG, PNG, or WebP images.");
+    } else if (rejectedSize) {
+      setError(`Each photo must be no larger than ${readableFileSize(MAX_FILE_BYTES)}.`);
+    } else if (files.length + accepted.length >= MAX_PORTFOLIO_FILES) {
+      setError(null);
+    } else {
+      setError(null);
+    }
+    if (accepted.length > 0) onChange([...files, ...accepted]);
+  };
+
+  const removeFile = (index: number) => {
+    setError(null);
+    onChange(files.filter((_, fileIndex) => fileIndex !== index));
+  };
+
+  return (
+    <div className="grid gap-3">
+      {!full ? (
+        <label
+          className={cn(
+            "flex min-h-20 w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-border bg-[color:var(--surface-subtle)] px-3 py-4 text-center text-sm text-muted-foreground transition-colors",
+            dragging && "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.05]",
+          )}
+          onDragEnter={(event) => {
+            event.preventDefault();
+            setDragging(true);
+          }}
+          onDragOver={(event) => event.preventDefault()}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(event) => {
+            event.preventDefault();
+            setDragging(false);
+            addFiles(event.dataTransfer.files);
+          }}
+        >
+          <Upload className="h-4 w-4 text-[color:var(--muted-foreground)]" />
+          <span>
+            {files.length === 0
+              ? "Drop photos here or choose files"
+              : `Add more (${files.length}/${MAX_PORTFOLIO_FILES})`}
+          </span>
+          <input
+            type="file"
+            className="sr-only"
+            multiple
+            accept={PORTFOLIO_ACCEPT_ATTRIBUTE}
+            onChange={(event) => {
+              addFiles(event.target.files);
+              event.currentTarget.value = "";
+            }}
+          />
+        </label>
+      ) : (
+        <p className="text-xs font-semibold text-muted-foreground">
+          Maximum of {MAX_PORTFOLIO_FILES} photos reached. Remove one to add another.
+        </p>
+      )}
+      {files.length > 0 ? (
+        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {files.map((file, index) => (
+            <li
+              key={`${file.name}-${index}`}
+              className="group relative overflow-hidden rounded-sm border border-border bg-[color:var(--surface-subtle)]"
+            >
+              <img
+                src={URL.createObjectURL(file)}
+                alt={file.name}
+                className="h-24 w-full object-cover"
+                onLoad={(event) => {
+                  // Revoke after the first paint so previews don't leak memory.
+                  const target = event.currentTarget;
+                  window.setTimeout(() => URL.revokeObjectURL(target.src), 0);
+                }}
+              />
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                aria-label={`Remove ${file.name}`}
+                className="absolute right-1 top-1 h-7 w-7 bg-[color:var(--surface)]/85 text-[color:var(--ink)] hover:bg-[color:var(--surface)]"
+                onClick={() => removeFile(index)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+              <p className="truncate px-2 py-1.5 text-[11px] text-muted-foreground">{file.name}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
+    </div>
+  );
 }
 
 function DocumentUpload({
@@ -736,6 +875,7 @@ function SubjectPicker({
 
 type ApplicationBaseState = {
   name: string;
+  preferredName: string;
   phone: string;
   email: string;
   photo: File | null;
@@ -759,8 +899,15 @@ type ApplicationBaseState = {
   format: string;
   stations: string[];
   achievements: Achievement[];
+  // Issue #97: Trophy Cabinet — local File objects until submit; the consent
+  // flag is enforced server-side only when the array is non-empty.
+  portfolioImages: File[];
+  portfolioConsent: boolean;
   selfIntroduction: string;
   hourlyRate: string;
+  // Issue #191: how many students the tutor can take on, surfaced on the
+  // Logistics step and passed through to the admin application email.
+  maxStudents: string;
   pricingStandardized: boolean;
   pricingTiers: { curriculum: string; rate: string }[];
   materials: string;
@@ -796,6 +943,9 @@ export function ApplicationForm() {
   // Remembered at submit time so the WhatsApp activation deep link can greet
   // the MatchMax team with the applicant's name.
   const [applicantName, setApplicantName] = useState("");
+  // Issue #189: server-assigned application id, surfaced in the WhatsApp
+  // activation message so the team can match the chat to the stored row.
+  const [applicationRef, setApplicationRef] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -816,6 +966,7 @@ export function ApplicationForm() {
   const [suggestionStatus, setSuggestionStatus] = useState<"idle" | "adding" | "done">("idle");
   const [base, setBase] = useState<ApplicationBaseState>({
     name: "",
+    preferredName: "",
     phone: "+852 ",
     email: "",
     photo: null,
@@ -839,8 +990,11 @@ export function ApplicationForm() {
     format: "",
     stations: [] as string[],
     achievements: [] as Achievement[],
+    portfolioImages: [] as File[],
+    portfolioConsent: false,
     selfIntroduction: "",
     hourlyRate: "",
+    maxStudents: "",
     pricingStandardized: true,
     pricingTiers: [],
     materials: "",
@@ -863,10 +1017,19 @@ export function ApplicationForm() {
   // Hotline digits for the Step 2 activation link; fetched once the
   // application is submitted.
   const whatsappDigits = useWhatsAppNumber(done);
+  // Issue #189: "Legal Full Name - Preferred Name" when a preferred name is
+  // given, plus the application reference so the team can pull up the row.
+  const whatsappGreeting = (() => {
+    const preferred = base.preferredName.trim();
+    const who =
+      preferred && preferred.toLowerCase() !== applicantName.toLowerCase()
+        ? `${applicantName} - ${preferred}`
+        : applicantName;
+    const ref = applicationRef ? ` My application reference is ${applicationRef}.` : "";
+    return `Hi MatchMax! I have just completed my tutor application. My name is ${who}.${ref}`;
+  })();
   const whatsappActivateHref = whatsappDigits
-    ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
-        `Hi MatchMax! I have just completed my tutor application. My name is ${applicantName}.`,
-      )}`
+    ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(whatsappGreeting)}`
     : "";
 
   const {
@@ -1067,15 +1230,7 @@ export function ApplicationForm() {
   );
   const notice = professional
     ? "Please note: MatchMax's Professional tier is reserved for highly qualified tutors. Teaching credentials or official examiner letters are required for verification, and your identity, CV, and current employment are kept strictly confidential. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-    : primary.curriculum === "IBDP"
-      ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-      : primary.curriculum === "A-Level"
-        ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-        : primary.curriculum === "IGCSE / GCSE"
-          ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-          : primary.curriculum === "HKDSE"
-            ? "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5."
-            : "Please note: MatchMax employs a rigorous screening process. For IBDP, we currently only accept candidates with an overall achieved score of 40 or above. For A-Level, we generally accept candidates with a minimum overall achievement of A*AA or equivalent. For HKDSE, we generally accept candidates with a minimum overall achievement of 30 in Best 5.";
+    : null;
 
   useEffect(() => {
     const siteKey = import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAEiLema3uiveM5pp";
@@ -1260,6 +1415,9 @@ export function ApplicationForm() {
         if (achievement.proofStatus === "upload")
           required(`achievement-proof-${index}`, achievement.proof);
       });
+      // Issue #215: no contact details in the public self-introduction.
+      const introError = contactFilterError(base.selfIntroduction);
+      if (introError) next.selfIntroduction = introError;
     }
     const logisticsStep = professional ? 6 : 6;
     if (step === logisticsStep) {
@@ -1396,6 +1554,7 @@ export function ApplicationForm() {
       const parsed = tutorApplicationSchema.safeParse({
         turnstileToken: captcha,
         name: base.name,
+        preferredName: base.preferredName.trim(),
         phone: base.phone,
         email: base.email,
         profilePhoto: base.photo
@@ -1467,6 +1626,17 @@ export function ApplicationForm() {
               : undefined,
           })),
         ),
+        // Issue #97: Trophy Cabinet — files + publication consent (zod enforces
+        // consent only when at least one photo is attached).
+        portfolioImages: await Promise.all(
+          base.portfolioImages.map(async (image) => ({
+            filename: image.name,
+            contentType: image.type,
+            size: image.size,
+            content: await fileData(image),
+          })),
+        ),
+        portfolioConsent: base.portfolioConsent,
         experience: base.achievements
           .map((achievement) => `${achievement.title}: ${achievement.description}`)
           .join("\n"),
@@ -1493,7 +1663,7 @@ export function ApplicationForm() {
             ],
         materials: base.materials,
         format: base.format,
-        maxStudents: "",
+        maxStudents: base.maxStudents,
         locations: base.stations.join(", "),
         medium: base.medium.join(", "),
         notes: "",
@@ -1508,7 +1678,10 @@ export function ApplicationForm() {
         scrollToStepperTop();
         return;
       }
-      await submit({ data: parsed.data });
+      await submit({ data: parsed.data }).then((result) => {
+        setApplicationRef(result?.applicationId ?? "");
+        return result;
+      });
       clearDraft();
       setApplicantName(base.name.trim());
       setDone(true);
@@ -1577,8 +1750,7 @@ export function ApplicationForm() {
           )}
           {applicantName ? (
             <p className="mx-auto mt-5 max-w-md rounded-sm border border-border bg-[color:var(--surface-subtle)] px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-              Your message will say: “Hi MatchMax! I have just completed my tutor application. My
-              name is {applicantName}.”
+              Your message will say: “{whatsappGreeting}”
             </p>
           ) : null}
         </div>
@@ -1889,100 +2061,11 @@ export function ApplicationForm() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <aside
-        aria-label="Minimum academic requirements"
-        className="mb-4 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
-      >
-        <p className="flex items-center gap-2 text-xs font-medium text-[color:var(--ink)]">
-          <GraduationCap className="h-4 w-4" aria-hidden="true" />
-          Before You Apply
-        </p>
-        <p className="mt-3 text-sm leading-relaxed text-foreground">
-          MatchMax requires verifiable academic excellence. Please review our minimum entry
-          requirements before submitting your documents. Applications that do not meet these
-          minimums for the specific subject or test they wish to teach will be automatically
-          rejected.
-        </p>
-        <ul className="mt-3 grid gap-x-8 gap-y-2 text-sm leading-relaxed text-foreground md:grid-cols-2">
-          <li>
-            <span className="font-semibold">IB tutors:</span> a 40+ overall score AND a Level 7 in
-            your chosen subject.
-          </li>
-          <li>
-            <span className="font-semibold">A-Level tutors:</span> an A* in your chosen subject
-            (overall report card must be A*AA or equivalent).
-          </li>
-          <li>
-            <span className="font-semibold">IGCSE tutors:</span> a Grade 9 or A* in your chosen
-            subject.
-          </li>
-          <li>
-            <span className="font-semibold">DSE (senior cases):</span> a Level 5* or 5** in the
-            subject.
-          </li>
-          <li>
-            <span className="font-semibold">DSE (primary/junior cases):</span> at least a Level 4 or
-            5 in the subject and enrolment in a UGC-funded university.
-          </li>
-          <li>
-            <span className="font-semibold">Test prep (SAT/IELTS/etc.):</span> proof of a
-            top-percentile score (e.g. SAT 1500+, IELTS 8.0+).
-          </li>
-          <li>
-            <span className="font-semibold">Admissions consulting:</span> proof of admission to a
-            top-tier global university or a highly competitive local flagship programme.
-          </li>
-          <li>
-            <span className="font-semibold">Full-time tutors:</span> your university degree and a CV
-            highlighting your teaching experience.
-          </li>
-        </ul>
-        <p className="mt-3 flex gap-2.5 border-t border-[color:var(--ink)]/10 pt-3 text-xs leading-relaxed text-muted-foreground">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>
-            Please ensure the name on your transcript matches your HKID/Passport. MatchMax securely
-            processes all documents strictly for internal verification.
-          </span>
-        </p>
-      </aside>
-      <aside
-        aria-label="Your privacy and anonymity"
-        className="mb-4 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
-      >
-        <p className="flex items-center gap-2 text-xs font-medium text-[color:var(--ink)]">
-          <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-          Your Privacy &amp; Anonymity
-        </p>
-        <p className="mt-3 text-sm leading-relaxed text-foreground">
-          MatchMax guarantees strict identity protection. We will{" "}
-          <strong className="font-semibold">never</strong> publish your name, contact details, or
-          identifying documents on our public directory. Your public profile will be entirely
-          anonymous (e.g., displayed as “MM-T104”). When a parent requests your profile, our
-          concierge team will only introduce you by your professional title and last name (e.g.,
-          “Tutor Chan” or “Miss Lee”) in the private chat. You retain full control over when to
-          share your full name directly with the parent.
-        </p>
-      </aside>
-      <aside
-        aria-label="Display rules and legal warning"
-        className="mb-4 grid gap-3 rounded-lg border border-[color:var(--ink)]/20 bg-[color:var(--surface-subtle)] px-4 py-4"
-      >
-        <p className="flex items-center gap-2 text-xs font-medium text-[color:var(--ink)]">
-          <Scale className="h-4 w-4" aria-hidden="true" />
-          Legal Warning
-        </p>
-        <p className="flex gap-2.5 rounded-md border-l-2 border-destructive bg-destructive/5 px-3 py-2 text-sm leading-relaxed text-foreground">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden="true" />
-          <span>
-            <span className="font-bold text-destructive">Legal warning:</span> Providing fake
-            credentials is a violation of Hong Kong law. MatchMax bears no responsibility for
-            falsified evidence provided by the user, and offenders may face legal action.
-          </span>
-        </p>
-      </aside>
-      <aside className="mb-8 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] px-4 py-3 text-sm leading-relaxed text-foreground">
-        {notice}
-      </aside>
+      {notice ? (
+        <aside className="mb-8 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] px-4 py-3 text-sm leading-relaxed text-foreground">
+          {notice}
+        </aside>
+      ) : null}
       <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-5 sm:p-8">
         <ol className="mb-8 flex items-center gap-2 sm:gap-3" aria-label="Form progress">
           {stepTitles.map((label, index) => {
@@ -2063,6 +2146,12 @@ export function ApplicationForm() {
                   onSelect={(photo) => setBaseField("photo", photo)}
                   onRemove={() => setBaseField("photo", null)}
                 />
+                {/* Issue #215: warning only — a photo never blocks the form
+                    in v1; contact-in-photo reports go through staff review. */}
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  Face or teaching photo only. No contact details in the photo — no phone number,
+                  handle, or QR code. Reports are reviewed.
+                </p>
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid content-start gap-4">
@@ -2071,6 +2160,18 @@ export function ApplicationForm() {
                       value={base.name}
                       onChange={(event) => setBaseField("name", event.target.value)}
                       placeholder="Chan Hau Yui Hauzton"
+                    />
+                  </Field>
+                  <Field
+                    label="Preferred Name"
+                    optional
+                    hint="What should we call you on WhatsApp?"
+                  >
+                    <Input
+                      value={base.preferredName}
+                      onChange={(event) => setBaseField("preferredName", event.target.value)}
+                      placeholder="Hauzton"
+                      maxLength={80}
                     />
                   </Field>
                   <Field
@@ -2646,6 +2747,7 @@ export function ApplicationForm() {
                   </div>
                 ) : null}
               </div>
+              {/* Issue #188: legal-warning card removed by product decision. */}
             </>
           ) : null}
 
@@ -3011,20 +3113,71 @@ export function ApplicationForm() {
                 ) : null}
               </div>
               <div className="mt-6 border-t border-border pt-5">
+                {/* Issue #97: optional Trophy Cabinet. Consent appears only
+                    after a photo is added; blank section = fully anonymous. */}
+                <Field
+                  label="Public Portfolio / Award Photos"
+                  optional
+                  error={fieldErrors.portfolioConsent}
+                  className="sm:col-span-2"
+                >
+                  <TrophyCabinetUpload
+                    files={base.portfolioImages}
+                    onChange={(images) => setBaseField("portfolioImages", images)}
+                  />
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    Want to stand out to parents? Upload photos of your competition medals,
+                    trophies, or teaching certificates.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    JPG, PNG, or WebP, up to {readableFileSize(MAX_FILE_BYTES)} each, up to{" "}
+                    {MAX_PORTFOLIO_FILES} photos. If you prefer to keep your profile 100% anonymous,
+                    simply leave this section blank.
+                  </p>
+                  {base.portfolioImages.length > 0 ? (
+                    <label className="mt-2 flex gap-3 text-sm text-muted-foreground">
+                      <Checkbox
+                        checked={base.portfolioConsent}
+                        onCheckedChange={(checked) => {
+                          setBaseField("portfolioConsent", checked === true);
+                          if (checked) clearFieldError("portfolioConsent");
+                        }}
+                        aria-invalid={fieldErrors.portfolioConsent ? true : undefined}
+                        className={fieldErrors.portfolioConsent ? "border-destructive" : undefined}
+                      />
+                      <span>
+                        I understand that uploading photos here makes them publicly visible on my
+                        MatchMax profile, and I consent to their display.
+                        {fieldErrors.portfolioConsent ? (
+                          <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                            Required
+                          </span>
+                        ) : null}
+                      </span>
+                    </label>
+                  ) : null}
+                </Field>
+              </div>
+              <div className="mt-6 border-t border-border pt-5">
                 <Field
                   label="Self-Introduction / 簡介"
                   optional
-                  hint="Write a detailed introduction for parents! Mention your teaching style, past tutoring experience, academic awards, and how you approach your lessons. You may write in English, Chinese, or both. Paragraph breaks are kept."
+                  error={fieldErrors.selfIntroduction}
+                  hint="Write what the form does not ask: how you teach, who you work well with, results not on the transcript, and any specific service (e.g. IA review). No phone number, email, or social handle — parents reach you through MatchMax. You may write in English, Chinese, or both. Paragraph breaks are kept."
                 >
                   <Textarea
                     rows={6}
                     maxLength={2000}
                     value={base.selfIntroduction}
                     onChange={(event) => setBaseField("selfIntroduction", event.target.value)}
+                    aria-invalid={fieldErrors.selfIntroduction ? true : undefined}
+                    className={cn(
+                      "w-full rounded-sm",
+                      fieldErrors.selfIntroduction && "border-destructive",
+                    )}
                     placeholder={
-                      "Hello! I am a current HKU BBA student with 3 years of experience teaching IB and DSE Mathematics.\n\nMy teaching philosophy focuses on breaking down complex concepts into simple, digestible steps. I provide custom notes, past-paper drills, and 24/7 WhatsApp support for my students.\n\nI successfully helped my last student jump from a Level 4 to a Level 5* in just one semester..."
+                      "Hello! I am a current HKU BBA student with 3 years of experience teaching IB and DSE Mathematics.\n\nMy teaching philosophy focuses on breaking down complex concepts into simple, digestible steps. I provide custom notes and past-paper drills, and I am available for questions between lessons.\n\nI successfully helped my last student jump from a Level 4 to a Level 5* in just one semester..."
                     }
-                    className="w-full rounded-sm"
                   />
                   <p className="mt-1 text-right text-xs text-muted-foreground" aria-live="polite">
                     {base.selfIntroduction.length}/2000
@@ -3071,6 +3224,22 @@ export function ApplicationForm() {
                   />
                 </Field>
               </div>
+
+              {/* Issue #191: intake asks capacity up front so admin can compare
+                  supply against demand without a follow-up email. Optional. */}
+              <Field
+                label="How many students can you take on at once?"
+                hint="Leave blank if you're not sure yet."
+              >
+                <Input
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  value={base.maxStudents}
+                  onChange={(event) => setBaseField("maxStudents", event.target.value)}
+                  placeholder="2"
+                />
+              </Field>
 
               {/* Issue #108: per-curriculum pricing with a Standardize toggle.
                   The proposed hourly rate above stays the base/flat rate shown

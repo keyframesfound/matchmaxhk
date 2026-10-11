@@ -8,6 +8,7 @@ import {
   Award,
   BookOpen,
   Briefcase,
+  CalendarClock,
   Check,
   ChevronRight,
   ExternalLink,
@@ -18,6 +19,7 @@ import {
   LocateFixed,
   MapPin,
   MessageSquareQuote,
+  Phone,
   Plus,
   Sparkles,
   Trash2,
@@ -51,6 +53,7 @@ import {
   highSchoolEditorOptions,
   majorEditorOptions,
   universityEditorOptions,
+  type EducationValueSets,
 } from "@/features/tutors/education-filters";
 import { MtrStationMultiSelect, MtrStationSelect } from "@/components/ui/mtr-station-select";
 import { getNearestMtrStation, getReachableMtrStations } from "@/features/tutor-application/mtr";
@@ -69,20 +72,36 @@ import {
   getSubjectOptionsForCategory,
 } from "@/features/tutors/subjects";
 import { getCurriculumGroupLabel, getTutorSubjectGroups } from "@/features/tutors/tutor-display";
+import { parseProfileTags } from "@/features/tutors/profile-tags";
+import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import { supabase } from "@/integrations/supabase/client";
 import {
   IA_EE_TOK_SUPPORT_OPTIONS,
   MAX_PRICING_TIERS,
   MAX_TUTOR_ACHIEVEMENTS,
   MAX_TUTOR_CARD_HIGHLIGHTS,
+  PREFERRED_TIME_WINDOWS,
   TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT,
   TUTOR_CARD_HIGHLIGHT_ROW_LIMIT,
+  normalizePreferredTimeWindows,
   normalizeTutorCardHighlights,
   type Tutor,
   type IaEeTokSupport,
   type PricingTier,
   type TutorAchievement,
 } from "@/features/tutors/queries";
+import {
+  GRID_DAYS,
+  GRID_SLOTS,
+  emptyAvailabilityGrid,
+  parseAvailabilityGrid,
+  type GridCellState,
+  type GridDay,
+} from "@/features/tutors/availability-grid-model";
+import {
+  CapacityEditorFields,
+  EditableAvailabilityGrid,
+} from "@/features/tutors/availability-editor-fields";
 import {
   EXAM_PAPER_LABELS,
   EXAM_SYSTEMS,
@@ -93,6 +112,7 @@ import {
 } from "@/features/tutors/examSystems";
 import { AutofillDialog } from "./AutofillDialog";
 import { TutorReviewsAdmin } from "./tutor-reviews-admin";
+import { TutorContactDetails } from "./tutor-contact-details";
 import type { TutorAutofillResult } from "./autofill.functions";
 
 export const TARGET_STUDENT_OPTIONS = [
@@ -150,7 +170,7 @@ export const TUTOR_STATUS_OPTIONS: {
   label: string;
 }[] = [
   { value: "uni_student", label: "University student" },
-  { value: "full_part_time_tutor", label: "Full or part-time tutor" },
+  { value: "full_part_time_tutor", label: "Full/Part-Time Tutor" },
   { value: "examiner", label: "Examiner / professional teacher" },
 ];
 
@@ -197,6 +217,12 @@ export const tutorFormSchema = z.object({
     )
     .max(MAX_PRICING_TIERS),
   photo_url: z.string().trim().max(1000).optional().or(z.literal("")),
+  // Issue #97: Trophy Cabinet public photo URLs (admin-curated).
+  portfolio_images: z.array(z.string().trim().url().max(1000)).max(6),
+  // Issue #217: up to 5 free-text profile tags (shape here; the cap, dedupe
+  // and contact-detail rejection live in parseProfileTags, applied by both
+  // editors before this schema runs).
+  profile_tags: z.array(z.string().trim().max(30)).max(5),
   tutor_code: z
     .string()
     .trim()
@@ -208,6 +234,26 @@ export const tutorFormSchema = z.object({
   // public listing; tutors self-serve these fields from their dashboard.
   start_immediately: z.boolean(),
   earliest_start_date: z.string().trim(),
+  // Issue #103/#116: capacity + weekly grid. Tutors self-serve these from
+  // their dashboard (RPCs); admins edit the same fields here directly.
+  is_accepting_students: z.boolean(),
+  remaining_student_slots: z.coerce.number().int().min(0).max(99),
+  preferred_time_windows: z.array(z.enum(PREFERRED_TIME_WINDOWS)),
+  // Always built by parseAvailabilityGrid/emptyAvailabilityGrid (full 7×6
+  // matrix), so a structural check is enough — zod records over enum keys
+  // infer Partial and fight the grid model's types.
+  availability_grid: z.custom<Record<GridDay, GridCellState[]>>((value) => {
+    if (!value || typeof value !== "object") return false;
+    const source = value as Record<string, unknown>;
+    return GRID_DAYS.every((day) => {
+      const row = source[day];
+      return (
+        Array.isArray(row) &&
+        row.length === GRID_SLOTS.length &&
+        row.every((cell) => cell === "a" || cell === "p" || cell === "u")
+      );
+    });
+  }),
   languages: z.array(z.string().trim().min(1).max(60)),
   gender: z.enum(["male", "female", "other"]),
   tutor_status: z.enum(["uni_student", "full_part_time_tutor", "examiner"]).or(z.literal("")),
@@ -259,10 +305,16 @@ export const emptyTutorForm: TutorFormData = {
   hourly_rate: 0,
   pricing_tiers: [],
   photo_url: "",
+  portfolio_images: [],
+  profile_tags: [],
   tutor_code: "",
   is_published: true,
   start_immediately: true,
   earliest_start_date: "",
+  is_accepting_students: true,
+  remaining_student_slots: 2,
+  preferred_time_windows: [],
+  availability_grid: emptyAvailabilityGrid(),
   languages: ["English", "Cantonese"],
   gender: "female",
   tutor_status: "",
@@ -297,10 +349,16 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     hourly_rate: t.hourly_rate ?? 0,
     pricing_tiers: (t.pricing_tiers ?? []).slice(0, MAX_PRICING_TIERS),
     photo_url: t.photo_url ?? "",
+    portfolio_images: t.portfolio_images ?? [],
+    profile_tags: t.profile_tags ?? [],
     tutor_code: t.tutor_code ?? "",
     is_published: t.is_published ?? true,
     start_immediately: t.start_immediately ?? true,
     earliest_start_date: t.earliest_start_date ?? "",
+    is_accepting_students: t.is_accepting_students ?? true,
+    remaining_student_slots: t.remaining_student_slots ?? 2,
+    preferred_time_windows: normalizePreferredTimeWindows(t.preferred_time_windows),
+    availability_grid: parseAvailabilityGrid(t.availability_grid),
     languages: t.languages ?? ["English"],
     gender: ["male", "female", "other"].includes(
       (t as unknown as { gender?: string | null }).gender ?? "",
@@ -396,10 +454,19 @@ export function formDataToPayload(v: TutorFormData) {
     hourly_rate: v.hourly_rate,
     pricing_tiers: cleanPricingTiersResult,
     photo_url: v.photo_url?.trim() || null,
+    portfolio_images: v.portfolio_images.map((url) => url.trim()).filter(Boolean),
+    profile_tags: (() => {
+      const parsed = parseProfileTags(v.profile_tags);
+      return parsed.ok ? parsed.tags : [];
+    })(),
     tutor_code: v.tutor_code.trim(),
     is_published: v.is_published,
     start_immediately: v.start_immediately,
     earliest_start_date: v.start_immediately ? null : v.earliest_start_date.trim() || null,
+    is_accepting_students: v.is_accepting_students,
+    remaining_student_slots: v.remaining_student_slots,
+    preferred_time_windows: v.preferred_time_windows,
+    availability_grid: v.availability_grid,
     languages: v.languages,
     gender: v.gender,
     tutor_status: v.tutor_status || null,
@@ -466,6 +533,9 @@ function mergeAutofillResult(prev: TutorFormData, result: TutorAutofillResult): 
     ia_ee_tok_support:
       result.ia_ee_tok_support.length > 0 ? result.ia_ee_tok_support : prev.ia_ee_tok_support,
     ia_ee_tok_notes: result.ia_ee_tok_notes || prev.ia_ee_tok_notes,
+    // Issue #77: only prefill the status when the AI mapped one; the admin
+    // dropdown (TUTOR_STATUS_OPTIONS) stays the override.
+    tutor_status: result.tutor_status ?? prev.tutor_status,
   };
 }
 
@@ -707,6 +777,175 @@ function ModernPhotoUpload({
   );
 }
 
+/**
+ * Issue #97: Trophy Cabinet editor — up to 6 public award photos. Upload goes
+ * to the same R2 tutor-images bucket as the profile photo; tutors submit
+ * candidates at intake and admins curate the final public list here.
+ */
+function PortfolioImagesEditor({
+  images,
+  onChange,
+}: {
+  images: string[];
+  onChange: (images: string[]) => void;
+}) {
+  const listImagesFn = useServerFn(listTutorProfileImages);
+  const uploadImageFn = useServerFn(uploadTutorProfileImage);
+  const [showGallery, setShowGallery] = React.useState(false);
+  const full = images.length >= 6;
+
+  const { data: library = [], isLoading: isLibraryLoading } = useQuery({
+    queryKey: ["admin", "r2", "tutor-images"],
+    queryFn: () => listImagesFn({ data: { limit: 40 } }) as Promise<R2TutorImage[]>,
+    enabled: showGallery,
+  });
+
+  const upload = useMutation({
+    mutationFn: async (file: File) => {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      let binary = "";
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.slice(i, i + chunkSize));
+      }
+      const base64Data = btoa(binary);
+      return uploadImageFn({
+        data: {
+          fileName: file.name,
+          contentType: file.type || "image/jpeg",
+          base64Data,
+        },
+      }) as Promise<{ key: string; url: string }>;
+    },
+    onSuccess: (result) => {
+      if (images.length < 6) onChange([...images, result.url]);
+      toast.success("Photo uploaded — added to the Trophy Cabinet");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const onFilePick: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    const file = event.target.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please pick an image file (PNG, JPG, WebP).");
+      return;
+    }
+    if (images.length >= 6) {
+      toast.error("Maximum of 6 photos. Remove one first.");
+      return;
+    }
+    upload.mutate(file);
+  };
+
+  return (
+    <div className="space-y-3">
+      {images.length > 0 ? (
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+          {images.map((url, index) => (
+            <div
+              key={`${index}-${url}`}
+              className="group relative overflow-hidden rounded-lg border border-border"
+            >
+              <img
+                src={url}
+                alt={`Award photo ${index + 1}`}
+                className="aspect-square w-full object-cover"
+              />
+              <button
+                type="button"
+                aria-label={`Remove award photo ${index + 1}`}
+                className="absolute top-1 right-1 rounded-full bg-background/90 p-1 text-destructive opacity-0 transition-all hover:bg-destructive hover:text-white group-hover:opacity-100"
+                onClick={() => onChange(images.filter((_, i) => i !== index))}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+          No award photos set — the public gallery stays hidden.
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <label
+          className={cn(
+            "inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[color:var(--ink)] px-3.5 text-xs font-semibold text-[color:var(--surface)] transition-colors hover:bg-[color:var(--ink)]/90",
+            full && "pointer-events-none opacity-50",
+          )}
+        >
+          {upload.isPending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Upload className="h-3.5 w-3.5" />
+          )}
+          <span>{images.length > 0 ? `Add photo (${images.length}/6)` : "Upload photo"}</span>
+          <input type="file" accept="image/*" className="hidden" onChange={onFilePick} />
+        </label>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setShowGallery((prev) => !prev)}
+          className="h-9 text-xs"
+        >
+          {showGallery ? "Hide Library" : "Choose from R2 Library"}
+        </Button>
+      </div>
+
+      {showGallery ? (
+        <div className="space-y-3 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-3">
+          {isLibraryLoading ? (
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <Skeleton key={idx} className="h-16 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : library.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border py-6 text-center text-xs text-muted-foreground">
+              No images in storage yet.
+            </div>
+          ) : (
+            <div className="grid max-h-48 grid-cols-4 gap-2 overflow-y-auto p-1 sm:grid-cols-6">
+              {library.map((item) => {
+                const alreadyPicked = images.includes(item.url);
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    disabled={alreadyPicked || full}
+                    title={
+                      alreadyPicked ? "Already in the Trophy Cabinet" : "Add to Trophy Cabinet"
+                    }
+                    onClick={() => {
+                      if (!alreadyPicked && !full) onChange([...images, item.url]);
+                    }}
+                    className={cn(
+                      "block aspect-square w-full overflow-hidden rounded-lg border-2 transition-all",
+                      alreadyPicked
+                        ? "border-[color:var(--ring)] ring-2 ring-[color:var(--ring)]/30"
+                        : "border-transparent hover:border-[color:var(--ink)]/20",
+                      (alreadyPicked || full) && !alreadyPicked && "opacity-40",
+                    )}
+                  >
+                    <img src={item.url} alt="" className="h-full w-full object-cover" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 // Section Container Component
 function EditorSection({
   icon: Icon,
@@ -784,6 +1023,8 @@ interface TutorEditorProps {
   isSaving?: boolean;
   /** Join application to offer as AI autofill source (never prefills the form). */
   applicationId?: string | null;
+  /** Distinct education values already in use on tutor profiles — feeds the education dropdowns. */
+  educationValues?: EducationValueSets;
 }
 
 export function TutorEditor({
@@ -792,6 +1033,7 @@ export function TutorEditor({
   onCancel,
   isSaving = false,
   applicationId = null,
+  educationValues,
 }: TutorEditorProps) {
   const [form, setForm] = React.useState<TutorFormData>(() =>
     initialData ? tutorToFormData(initialData) : emptyTutorForm,
@@ -1061,7 +1303,14 @@ export function TutorEditor({
       lesson_mode: form.lesson_mode,
       hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
       pricing_tiers: cleanFormPricingTiers(form.pricing_tiers),
+      // Issue #112: the preview derives from native HKD inputs; normalized
+      // snapshots only exist on saved rows.
+      currency: "HKD",
+      min_hourly_rate_hkd: null,
+      max_hourly_rate_hkd: null,
       photo_url: form.photo_url?.trim() || null,
+      portfolio_images: form.portfolio_images,
+      profile_tags: form.profile_tags,
       tutor_code: form.tutor_code.trim() || "MM-PREVIEW",
       is_published: form.is_published,
       start_immediately: form.start_immediately,
@@ -1084,21 +1333,12 @@ export function TutorEditor({
         .filter((a) => a.short_text),
       ia_ee_tok_support: form.ia_ee_tok_support,
       ia_ee_tok_notes: form.ia_ee_tok_notes?.trim() || null,
-      // Issue #103: admin editor doesn't manage capacity; defaults reflect a
-      // live tutor until the tutor sets their own via the dashboard.
-      remaining_student_slots: initialData?.remaining_student_slots ?? 2,
-      is_accepting_students: initialData?.is_accepting_students ?? true,
-      preferred_time_windows: initialData?.preferred_time_windows ?? [],
-      availability_grid: initialData?.availability_grid ?? null,
+      remaining_student_slots: form.remaining_student_slots,
+      is_accepting_students: form.is_accepting_students,
+      preferred_time_windows: form.preferred_time_windows,
+      availability_grid: form.availability_grid,
     }),
-    [
-      form,
-      initialData?.id,
-      initialData?.created_at,
-      initialData?.remaining_student_slots,
-      initialData?.is_accepting_students,
-      initialData?.preferred_time_windows,
-    ],
+    [form, initialData?.id, initialData?.created_at],
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1446,7 +1686,10 @@ export function TutorEditor({
                   <SearchableSelect
                     value={form.undergrad_university ?? ""}
                     onChange={(v) => setForm({ ...form, undergrad_university: v })}
-                    options={universityEditorOptions(form.undergrad_university)}
+                    options={universityEditorOptions(
+                      form.undergrad_university,
+                      educationValues?.universities,
+                    )}
                     placeholder="e.g. The University of Hong Kong"
                     searchPlaceholder="Search universities…"
                     emptyText="No university found — keep typing to add it"
@@ -1462,7 +1705,10 @@ export function TutorEditor({
                   <SearchableSelect
                     value={form.secondary_school ?? ""}
                     onChange={(v) => setForm({ ...form, secondary_school: v })}
-                    options={highSchoolEditorOptions(form.secondary_school)}
+                    options={highSchoolEditorOptions(
+                      form.secondary_school,
+                      educationValues?.highSchools,
+                    )}
                     placeholder="e.g. Diocesan Boys' School"
                     searchPlaceholder="Search schools…"
                     emptyText="No school found — keep typing to add it"
@@ -1478,7 +1724,7 @@ export function TutorEditor({
                   <SearchableSelect
                     value={form.undergrad_degree ?? ""}
                     onChange={(v) => setForm({ ...form, undergrad_degree: v })}
-                    options={majorEditorOptions(form.undergrad_degree)}
+                    options={majorEditorOptions(form.undergrad_degree, educationValues?.majors)}
                     placeholder="e.g. BSc Theoretical Physics"
                     searchPlaceholder="Search majors…"
                     emptyText="No major found — keep typing to add it"
@@ -1517,7 +1763,10 @@ export function TutorEditor({
                       <SearchableSelect
                         value={form.postgrad_university ?? ""}
                         onChange={(v) => setForm({ ...form, postgrad_university: v })}
-                        options={universityEditorOptions(form.postgrad_university)}
+                        options={universityEditorOptions(
+                          form.postgrad_university,
+                          educationValues?.universities,
+                        )}
                         placeholder="e.g. University of Edinburgh"
                         searchPlaceholder="Search universities…"
                         emptyText="No university found — keep typing to add it"
@@ -1532,7 +1781,7 @@ export function TutorEditor({
                       <SearchableSelect
                         value={form.postgrad_degree ?? ""}
                         onChange={(v) => setForm({ ...form, postgrad_degree: v })}
-                        options={majorEditorOptions(form.postgrad_degree)}
+                        options={majorEditorOptions(form.postgrad_degree, educationValues?.majors)}
                         placeholder="e.g. MSc Theoretical Physics"
                         searchPlaceholder="Search majors…"
                         emptyText="No major found — keep typing to add it"
@@ -1547,6 +1796,18 @@ export function TutorEditor({
                 <ModernPhotoUpload
                   value={form.photo_url ?? ""}
                   onChange={(url) => setForm({ ...form, photo_url: url })}
+                />
+              </FormField>
+
+              {/* Issue #97: Trophy Cabinet — public award photos picked from
+                  the same R2 library; empty = gallery hidden on the profile. */}
+              <FormField
+                label="Trophy Cabinet (public award photos)"
+                hint="Optional. Shown on the public profile only when at least one photo is set; up to 6."
+              >
+                <PortfolioImagesEditor
+                  images={form.portfolio_images}
+                  onChange={(images) => setForm({ ...form, portfolio_images: images })}
                 />
               </FormField>
 
@@ -1591,6 +1852,46 @@ export function TutorEditor({
                   />
                 </FormField>
               ) : null}
+            </EditorSection>
+
+            {/* Capacity + weekly grid — the same controls tutors get in their
+                dashboard Availability section; admins edit them directly and
+                changes go live with the usual Save. */}
+            <EditorSection
+              icon={CalendarClock}
+              title="Capacity & Availability"
+              description="Accepting status, open slots, preferred time windows and the weekly availability grid from the tutor's dashboard."
+              id="availability"
+            >
+              <CapacityEditorFields
+                value={{
+                  acceptingStudents: form.is_accepting_students,
+                  openSlots: form.remaining_student_slots,
+                  timeWindows: form.preferred_time_windows,
+                }}
+                onChange={(next) =>
+                  setForm({
+                    ...form,
+                    is_accepting_students: next.acceptingStudents,
+                    remaining_student_slots: next.openSlots,
+                    preferred_time_windows: next.timeWindows,
+                  })
+                }
+              />
+
+              <div className="space-y-2 border-t border-[color:var(--ink)]/10 pt-6">
+                <p className="text-sm font-bold text-[color:var(--ink)]">
+                  Weekly availability grid
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Tap a cell to cycle: available → partially available → unavailable. An empty grid
+                  stays hidden on the public profile.
+                </p>
+                <EditableAvailabilityGrid
+                  grid={form.availability_grid}
+                  onChange={(grid) => setForm({ ...form, availability_grid: grid })}
+                />
+              </div>
             </EditorSection>
 
             {/* Referral program */}
@@ -1771,6 +2072,22 @@ export function TutorEditor({
               )}
             </EditorSection>
 
+            {/* Contact details (issue #295): admin-only read-only reveal of
+                everything the tutor gave us — assigned-account email/phone
+                plus the join application's intake contact fields. Data is
+                resolved by the admin-gated get_tutor_contact_details RPC;
+                nothing here is editable or public. */}
+            {initialData ? (
+              <EditorSection
+                icon={Phone}
+                title="Contact Details"
+                description="Read-only contact info from the tutor's assigned account and join application. Never shown publicly."
+                id="contact-details"
+              >
+                <TutorContactDetails tutorId={initialData.id} tutorCode={initialData.tutor_code} />
+              </EditorSection>
+            ) : null}
+
             {/* 2. Subjects & Target Levels */}
             <EditorSection
               icon={BookOpen}
@@ -1861,6 +2178,18 @@ export function TutorEditor({
                   onChange={(target_students) => setForm({ ...form, target_students })}
                   suggestions={TARGET_STUDENT_OPTIONS}
                   placeholder="Add target levels (e.g. IBDP, HKDSE)..."
+                />
+              </FormField>
+
+              {/* Issue #217: up to five free-text tags shown on the public
+                  card; the cap + contact-detail rule are in ProfileTagsField. */}
+              <FormField
+                label="Profile Tags"
+                hint="Free-text search tags on the card (max 5, stored lowercase, no hash). Tags that look like phone numbers, emails, or handles are rejected."
+              >
+                <ProfileTagsField
+                  tags={form.profile_tags}
+                  onChange={(profile_tags) => setForm({ ...form, profile_tags })}
                 />
               </FormField>
             </EditorSection>

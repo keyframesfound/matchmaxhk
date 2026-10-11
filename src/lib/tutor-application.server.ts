@@ -6,6 +6,7 @@ import type { Json } from "@/integrations/supabase/types";
 import { TutorJoinNotificationEmail } from "./email-templates/tutor-join-notification";
 import {
   ACCEPTED_FILE_TYPES,
+  ACCEPTED_PORTFOLIO_IMAGE_TYPES,
   MAX_FILE_BYTES,
   MAX_TOTAL_BYTES,
   getApplicationPath,
@@ -32,7 +33,7 @@ export type StoredApplicationFile = {
   filename: string;
   contentType: string;
   size: number;
-  source: "achievement" | "transcript" | "profile_photo" | "student_card";
+  source: "achievement" | "transcript" | "profile_photo" | "student_card" | "portfolio_image";
   label: string;
 };
 
@@ -46,7 +47,12 @@ function validateAttachmentBytes(
 ): void {
   let total = 0;
   for (const file of files) {
-    if (!ACCEPTED_FILE_TYPES.includes(file.contentType)) {
+    // Issue #97: Trophy Cabinet photos accept WebP in addition to the standard
+    // application file types; everything else keeps the original allowlist.
+    const allowed =
+      ACCEPTED_FILE_TYPES.includes(file.contentType) ||
+      ACCEPTED_PORTFOLIO_IMAGE_TYPES.includes(file.contentType);
+    if (!allowed) {
       throw new Error(`Unsupported file type: ${file.filename}`);
     }
     const bytes = Buffer.from(file.content, "base64");
@@ -67,7 +73,7 @@ async function uploadApplicationFile(
   config: ReturnType<typeof getR2Config>,
   file: { filename: string; contentType: string; content: string; size: number },
   meta: {
-    source: "achievement" | "transcript" | "profile_photo" | "student_card";
+    source: "achievement" | "transcript" | "profile_photo" | "student_card" | "portfolio_image";
     label: string;
     applicationId: string;
     index: number;
@@ -142,6 +148,13 @@ export async function storeTutorApplication(
     ...(data.studentCard
       ? [{ file: data.studentCard, source: "student_card" as const, label: "Student ID card" }]
       : []),
+    // Issue #97: Trophy Cabinet photos go to R2 like the other evidence, tagged
+    // portfolio_image so the admin review shows them as public portfolio files.
+    ...data.portfolioImages.map((image) => ({
+      file: image,
+      source: "portfolio_image" as const,
+      label: "Trophy cabinet",
+    })),
   ];
   validateAttachmentBytes(attachments.map((entry) => entry.file));
 

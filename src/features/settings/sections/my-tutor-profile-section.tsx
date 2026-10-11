@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MtrStationMultiSelect } from "@/components/ui/mtr-station-select";
@@ -17,8 +18,10 @@ import { SettingsCard } from "@/features/settings/option-card";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { requestAccountDeletion } from "@/lib/account.functions";
+import { contactFilterError } from "@/lib/contact-filter";
 import { notifyTutorPriceChange } from "@/lib/tutor-pricing.functions";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
+import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import {
   TARGET_STUDENT_OPTIONS,
   formDataToPayload,
@@ -26,7 +29,13 @@ import {
   tutorToFormData,
   type TutorFormData,
 } from "@/features/tutors/admin/TutorEditor";
-import type { Tutor } from "@/features/tutors/queries";
+import { fetchEducationValues, type Tutor } from "@/features/tutors/queries";
+import {
+  collectEducationValueSets,
+  highSchoolEditorOptions,
+  majorEditorOptions,
+  universityEditorOptions,
+} from "@/features/tutors/education-filters";
 
 /**
  * "My tutor profile" — full self-serve editing for tutors whose MatchMax
@@ -40,7 +49,7 @@ import type { Tutor } from "@/features/tutors/queries";
 /** Columns the tutor-facing editor reads/writes. Mirrors SELECT_COLS minus
  * admin-managed identity (tutor_code, created_at, referral). */
 const MY_TUTOR_COLUMNS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, deletion_requested_at";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, deletion_requested_at";
 
 type MyTutorRow = Tutor & {
   user_id?: string | null;
@@ -79,13 +88,35 @@ export function MyTutorProfileSection() {
     if (tutorQuery.data) setForm(tutorToFormData(tutorQuery.data));
   }, [tutorQuery.data]);
 
+  // Institution spellings already in use on tutor profiles, so tutors pick an
+  // existing university/school/major instead of typing a new variant.
+  const educationValuesQuery = useQuery({
+    queryKey: ["tutors", "education-values"],
+    queryFn: fetchEducationValues,
+  });
+  const educationValues = React.useMemo(
+    () => collectEducationValueSets(educationValuesQuery.data ?? []),
+    [educationValuesQuery.data],
+  );
+
   const notifyPriceChange = useServerFn(notifyTutorPriceChange);
 
   const save = useMutation({
     mutationFn: async (data: TutorFormData) => {
       // Reuse the admin editor's normalization, minus fields the tutor must
-      // never change: tutor_code (their public slug) and field state.
-      const { tutor_code: _keepCode, ...rest } = formDataToPayload(data);
+      // never change: tutor_code (their public slug) and field state. Capacity
+      // and the availability grid are omitted too — they have their own
+      // self-serve editors in the Availability section (update_my_capacity /
+      // update_my_availability_grid RPCs) and this form doesn't read them, so
+      // carrying them through would overwrite real values with defaults.
+      const {
+        tutor_code: _keepCode,
+        remaining_student_slots: _slots,
+        is_accepting_students: _accepting,
+        preferred_time_windows: _windows,
+        availability_grid: _grid,
+        ...rest
+      } = formDataToPayload(data);
       const previous = tutorQuery.data;
       const { error } = await supabase
         .from("tutors")
@@ -132,6 +163,15 @@ export function MyTutorProfileSection() {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!form) return;
+    // Issue #215: block the save when the public introduction carries a
+    // phone number, email, link, or chat-app handle. Client-side twin of
+    // the same rule the concierge flow enforces at intake.
+    const introContactError = contactFilterError(form.self_introduction ?? "");
+    if (introContactError) {
+      setErrors((current) => ({ ...current, self_introduction: introContactError }));
+      toast.error(introContactError);
+      return;
+    }
     const parsed = tutorFormSchema.safeParse(form);
     if (!parsed.success) {
       const errs: Record<string, string> = {};
@@ -293,10 +333,15 @@ export function MyTutorProfileSection() {
               <Label htmlFor="myt-secondary" className="text-[color:var(--ink)]">
                 {t("settings.my_tutor.secondary_school")}
               </Label>
-              <Input
-                id="myt-secondary"
-                value={form.secondary_school}
-                onChange={(e) => setForm({ ...form, secondary_school: e.target.value })}
+              <SearchableSelect
+                value={form.secondary_school ?? ""}
+                onChange={(v) => setForm({ ...form, secondary_school: v })}
+                options={highSchoolEditorOptions(
+                  form.secondary_school,
+                  educationValues.highSchools,
+                )}
+                emptyText={t("settings.my_tutor.education_empty_hint")}
+                allowCustom
                 className="bg-[color:var(--surface)]"
               />
             </div>
@@ -304,10 +349,15 @@ export function MyTutorProfileSection() {
               <Label htmlFor="myt-undergrad-uni" className="text-[color:var(--ink)]">
                 {t("settings.my_tutor.undergrad_university")}
               </Label>
-              <Input
-                id="myt-undergrad-uni"
-                value={form.undergrad_university}
-                onChange={(e) => setForm({ ...form, undergrad_university: e.target.value })}
+              <SearchableSelect
+                value={form.undergrad_university ?? ""}
+                onChange={(v) => setForm({ ...form, undergrad_university: v })}
+                options={universityEditorOptions(
+                  form.undergrad_university,
+                  educationValues.universities,
+                )}
+                emptyText={t("settings.my_tutor.education_empty_hint")}
+                allowCustom
                 className="bg-[color:var(--surface)]"
               />
             </div>
@@ -315,10 +365,12 @@ export function MyTutorProfileSection() {
               <Label htmlFor="myt-undergrad-degree" className="text-[color:var(--ink)]">
                 {t("settings.my_tutor.undergrad_degree")}
               </Label>
-              <Input
-                id="myt-undergrad-degree"
-                value={form.undergrad_degree}
-                onChange={(e) => setForm({ ...form, undergrad_degree: e.target.value })}
+              <SearchableSelect
+                value={form.undergrad_degree ?? ""}
+                onChange={(v) => setForm({ ...form, undergrad_degree: v })}
+                options={majorEditorOptions(form.undergrad_degree, educationValues.majors)}
+                emptyText={t("settings.my_tutor.education_empty_hint")}
+                allowCustom
                 className="bg-[color:var(--surface)]"
               />
             </div>
@@ -346,12 +398,25 @@ export function MyTutorProfileSection() {
               value={form.self_introduction}
               onChange={(e) => setForm({ ...form, self_introduction: e.target.value })}
               rows={6}
-              className="bg-[color:var(--surface)]"
+              aria-invalid={errors.self_introduction ? true : undefined}
+              className={cn(
+                "bg-[color:var(--surface)]",
+                errors.self_introduction && "border-destructive",
+              )}
             />
+            {errors.self_introduction ? (
+              <p className="text-xs font-medium text-destructive">{errors.self_introduction}</p>
+            ) : null}
             <p className="text-xs text-[color:var(--ink)]/55">
               {t("settings.my_tutor.self_introduction_hint")}
             </p>
           </div>
+
+          {/* Issue #217: up to five free-text tags, shown on the public card. */}
+          <ProfileTagsField
+            tags={form.profile_tags}
+            onChange={(profile_tags) => setForm({ ...form, profile_tags })}
+          />
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">

@@ -52,6 +52,7 @@ import {
   START_LABEL,
   STATUS_LABEL,
   STATUS_PILL_CLASS,
+  caseBudgetHkdBounds,
   formatBudget,
   whatsappUrl,
   type CaseNoteRow,
@@ -444,7 +445,7 @@ export function CaseDetailView({
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
-                {formatBudget(caseRow.budget_min, caseRow.budget_max)}
+                {formatBudget(caseBudgetHkdBounds(caseRow).min, caseBudgetHkdBounds(caseRow).max)}
               </div>
             </div>
           </ConsolePanel>

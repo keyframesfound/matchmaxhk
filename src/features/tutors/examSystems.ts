@@ -360,7 +360,7 @@ export const EXAM_SYSTEMS: ExamSystem[] = [
     id: "igcse",
     label: "IGCSE / GCSE",
     subjects: IGCSE_SUBJECTS,
-    grades: [...IGCSE_GRADES_NUMERIC, ...IGCSE_GRADES_LEGACY.map((g) => `${g} (legacy)`)],
+    grades: [...IGCSE_GRADES_NUMERIC, ...IGCSE_GRADES_LEGACY],
   },
   { id: "ap", label: "AP", subjects: AP_SUBJECTS, grades: AP_GRADES },
   {

@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { SearchBigInput, SearchableOptionsPanel, type OptionRow } from "./search-controls";
+import { useSearchGroup } from "./sticky-search-group";
 
 /** Airbnb-style spring used when the white pill and panel slide between segments. */
 const HIGHLIGHT_SPRING = { type: "spring", bounce: 0.15, duration: 0.5 } as const;
@@ -70,8 +71,8 @@ type SearchPillBarProps = {
  * bar, slides a full-height white pill under it and opens its panel below;
  * the panel persists across segment switches (click-driven, content swaps in
  * place). Hovering a segment shows a grey pill — whether or not a panel is
- * already open — but never moves the white pill or panel. Flat by design —
- * hairline borders and washes instead of shadows.
+ * already open — but never moves the white pill or panel. Elevated with the
+ * sanctioned `.pill-elevate-lg` shadow to match the mobile search bar.
  */
 export function SearchPillBar({
   segments,
@@ -100,6 +101,17 @@ export function SearchPillBar({
     },
     [onOpenSegmentIdChange],
   );
+  const { pendingSegment, consumePendingSegment } = useSearchGroup();
+
+  // A compact-pill segment click queues its band segment: open that panel so
+  // it is already showing while the band springs open, then clear the queue.
+  useEffect(() => {
+    if (!pendingSegment) return;
+    consumePendingSegment();
+    if (segments.some((segment) => segment.id === pendingSegment)) {
+      setOpenId(pendingSegment);
+    }
+  }, [pendingSegment, consumePendingSegment, segments, setOpenId]);
   const prefersReducedMotion = useReducedMotion();
 
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -275,7 +287,7 @@ export function SearchPillBar({
       <form
         ref={formRef}
         onSubmit={handleSubmit}
-        className="relative flex w-full items-center gap-1 rounded-full border border-border bg-card p-1.5"
+        className="pill-elevate-lg relative flex w-full items-center gap-1 rounded-full border border-border bg-card p-1.5"
       >
         {/* Engagement wash: greys the whole bar while a panel is open. */}
         <div
@@ -364,7 +376,7 @@ export function SearchPillBar({
             animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
             exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98, y: -4 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="absolute top-[calc(100%+10px)] z-50 w-[min(24rem,calc(100vw-2rem))] rounded-3xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-4 transition-[left] duration-300 ease-out motion-reduce:transition-none"
+            className="pill-elevate-lg absolute top-[calc(100%+10px)] z-50 w-[min(24rem,calc(100vw-2rem))] rounded-3xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-4 transition-[left] duration-300 ease-out motion-reduce:transition-none"
             style={{ left: panelLeft }}
           >
             <div key={openId}>

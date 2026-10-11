@@ -29,6 +29,7 @@ import {
   type Tutor,
 } from "@/features/tutors/queries";
 import { matchesCategoryFilter } from "@/features/tutors/subjects";
+import { collectEducationValueSets } from "@/features/tutors/education-filters";
 import { supabase } from "@/integrations/supabase/client";
 
 const OG_IMAGE =
@@ -325,6 +326,13 @@ function Landing() {
     queryFn: fetchPublishedTutors,
   });
 
+  // Education dropdown options = the distinct values that actually appear on
+  // tutor profiles (issue #130), refreshed whenever the tutor list does.
+  const educationValues = useMemo(
+    () => collectEducationValueSets(publishedTutors),
+    [publishedTutors],
+  );
+
   const { data: whatsappNumber = "" } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
     queryFn: async () => {
@@ -443,6 +451,7 @@ function Landing() {
               onDraftChange={setHomeSearchParam}
               onApply={applyHomeSearch}
               onClear={() => setHomeSearch({})}
+              educationValues={educationValues}
             />
           </div>
         </StickySearchBar>
@@ -455,6 +464,7 @@ function Landing() {
                 onDraftChange={setHomeSearchParam}
                 onApply={applyHomeSearch}
                 onClear={() => setHomeSearch({})}
+                educationValues={educationValues}
               />
             </div>
 

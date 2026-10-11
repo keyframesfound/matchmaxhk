@@ -21,6 +21,9 @@ export type CaseRow = {
   urgency: "low" | "normal" | "high";
   budget_min: number | null;
   budget_max: number | null;
+  budget_currency: string;
+  budget_min_hkd: number | null;
+  budget_max_hkd: number | null;
   contact_name: string;
   contact_phone: string;
   status: CaseStatus;
@@ -89,4 +92,19 @@ export function whatsappUrl(phone: string): string {
 export function formatBudget(min: number | null, max: number | null): string {
   if (min === null && max === null) return "Not set";
   return `HK$${min ?? "?"}-${max ?? "?"}/hr`;
+}
+
+/**
+ * Budget bounds as stored by the requester (native currency) vs the
+ * HKD-normalized snapshots the DB trigger maintains (issue #112). Admin
+ * surfaces show normalized values so mixed-currency cases stay comparable;
+ * the fallback covers pre-migration rows where snapshots are still null.
+ */
+export function caseBudgetHkdBounds(
+  row: Pick<CaseRow, "budget_min" | "budget_max" | "budget_min_hkd" | "budget_max_hkd">,
+): { min: number | null; max: number | null } {
+  return {
+    min: row.budget_min_hkd ?? row.budget_min,
+    max: row.budget_max_hkd ?? row.budget_max,
+  };
 }

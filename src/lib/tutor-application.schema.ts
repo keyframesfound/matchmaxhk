@@ -1,9 +1,17 @@
 import { z } from "zod";
 
+import { contactFilterError } from "@/lib/contact-filter";
+
 export const MAX_FILES = 5;
 export const MAX_ACHIEVEMENT_FILE_BYTES = 5 * 1024 * 1024;
 export const MAX_FILE_BYTES = MAX_ACHIEVEMENT_FILE_BYTES;
 export const MAX_TOTAL_BYTES = MAX_FILES * MAX_ACHIEVEMENT_FILE_BYTES;
+// Issue #97: Trophy Cabinet — up to 6 public portfolio photos (JPG/PNG/WebP,
+// 5MB each), uploaded at intake and shown on the public profile.
+export const MAX_PORTFOLIO_FILES = 6;
+export const MAX_PORTFOLIO_TOTAL_BYTES = MAX_PORTFOLIO_FILES * MAX_ACHIEVEMENT_FILE_BYTES;
+export const ACCEPTED_PORTFOLIO_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export const PORTFOLIO_ACCEPT_ATTRIBUTE = ".jpg,.jpeg,.png,.webp";
 export const ACCEPTED_FILE_TYPES = [
   "application/pdf",
   "image/jpeg",
@@ -79,6 +87,17 @@ export const profilePhotoSchema = attachmentSchema.superRefine((photo, context) 
   }
 });
 
+// Issue #97: Trophy Cabinet photos are images only (JPG/PNG/WebP).
+export const portfolioImageSchema = attachmentSchema.superRefine((image, context) => {
+  if (!ACCEPTED_PORTFOLIO_IMAGE_TYPES.includes(image.contentType)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["contentType"],
+      message: "Trophy cabinet photos must be JPG, PNG, or WebP images",
+    });
+  }
+});
+
 export const achievementSchema = z
   .object({
     title: z.string().trim().min(1, "Required").max(200),
@@ -116,6 +135,9 @@ export const tutorApplicationSchema = z
   .object({
     turnstileToken: z.string().trim().min(1, "Complete the security check").max(2048),
     name: z.string().trim().min(1, "Required").max(120),
+    // Issue #189: optional preferred name so the WhatsApp activation message
+    // and later concierge chats can use what the tutor actually goes by.
+    preferredName: z.string().trim().max(80).optional().default(""),
     phone: z.string().trim().min(5, "Required").max(60),
     email: z.string().trim().email("Enter a valid email"),
     country: z.string().trim().min(1, "Required").max(100),
@@ -147,12 +169,25 @@ export const tutorApplicationSchema = z
     awards: z.string().trim().max(2000).optional().default(""),
     achievements: z.array(achievementSchema).max(MAX_FILES).default([]),
     academicDocuments: z.array(academicDocumentSchema).max(MAX_FILES).default([]),
+    // Issue #97: optional Trophy Cabinet photos (public on the profile).
+    portfolioImages: z.array(portfolioImageSchema).max(MAX_PORTFOLIO_FILES).default([]),
+    // Consent required only when photos are actually uploaded (see superRefine).
+    portfolioConsent: z.boolean().default(false),
     profilePhoto: profilePhotoSchema.optional(),
     experience: z.string().trim().max(2000).optional().default(""),
     // Issue #119: optional tutor-written pitch shown on the public profile
     // once the concierge team has proofread it (2,000-char cap, line breaks
-    // preserved).
-    selfIntroduction: z.string().trim().max(2000).optional().default(""),
+    // preserved). Issue #215: contact details are rejected server-side.
+    selfIntroduction: z
+      .string()
+      .trim()
+      .max(2000)
+      .optional()
+      .default("")
+      .superRefine((text, ctx) => {
+        const error = contactFilterError(text);
+        if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+      }),
     hourlyRate: z.string().trim().min(1, "Required").max(20),
     // Issue #108: per-curriculum pricing tiers. standardize=true means one flat
     // rate across all curricula; false = explicit {curriculum, rate} rows (the
@@ -250,81 +285,6 @@ export const tutorApplicationSchema = z
         message: "Select at least one teaching location",
       });
     }
-    if (!isProfessional && data.curriculum === "IBDP" && !/^4[0-5]$/.test(data.overallScore)) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["overallScore"],
-        message: "Enter an IBDP score from 40 to 45",
-      });
-    }
-    if (!isProfessional && data.curriculum === "HKDSE" && !/^\d+$/.test(data.overallScore)) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["overallScore"],
-        message: "Enter a numeric Best 5 score",
-      });
-    }
-    if (!isProfessional && data.curriculum === "SAT") {
-      const satScore = Number(data.overallScore);
-      if (!Number.isInteger(satScore) || satScore < 400 || satScore > 1600) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["overallScore"],
-          message: "Enter an SAT total score from 400 to 1600",
-        });
-      }
-    }
-    if (
-      !isProfessional &&
-      data.curriculum === "IELTS" &&
-      !/^(?:[4-8](?:\.0|\.5)?|9\.0)$/.test(data.overallScore)
-    ) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["overallScore"],
-        message: "Enter an IELTS band from 4.0 to 9.0 (in 0.5 steps)",
-      });
-    }
-    if (!isProfessional && data.curriculum === "ISAT") {
-      const isatScore = Number(data.overallScore);
-      if (!Number.isInteger(isatScore) || isatScore < 100 || isatScore > 200) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["overallScore"],
-          message: "Enter an ISAT scaled score from 100 to 200",
-        });
-      }
-    }
-    if (!isProfessional && data.curriculum === "UCAT(3600)") {
-      const ucatScore = Number(data.overallScore);
-      if (
-        !Number.isInteger(ucatScore) ||
-        ucatScore < 1200 ||
-        ucatScore > 3600 ||
-        ucatScore % 10 !== 0
-      ) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["overallScore"],
-          message: "Enter a UCAT total score from 1200 to 3600 (in 10-point steps)",
-        });
-      }
-    }
-    if (!isProfessional && data.curriculum === "UCAT(2700)") {
-      const ucatScore = Number(data.overallScore);
-      if (
-        !Number.isInteger(ucatScore) ||
-        ucatScore < 900 ||
-        ucatScore > 2700 ||
-        ucatScore % 10 !== 0
-      ) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["overallScore"],
-          message: "Enter a UCAT total score from 900 to 2700 (in 10-point steps)",
-        });
-      }
-    }
     if (isProfessional && data.teachingQualifications.length === 0) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -356,6 +316,16 @@ export const tutorApplicationSchema = z
           message: "Pick today or a later date",
         });
       }
+    }
+
+    // Issue #97: publication consent is mandatory only when photos are
+    // uploaded; leaving the section blank keeps the profile fully anonymous.
+    if (data.portfolioImages.length > 0 && !data.portfolioConsent) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["portfolioConsent"],
+        message: "Tick the consent box to publish your photos",
+      });
     }
   });
 
@@ -396,7 +366,7 @@ export function formatApplicationPricing(
 }
 
 export const COMMISSION_TEXT =
-  "I understand that MatchMax will take the 1st and 11th lesson of each new case as commission, and that fees for those lessons are payable to MatchMax.";
+  "I understand that MatchMax will take 100% of the 1st paid lesson and 50% of the 2nd paid lesson as matching fee for each new student";
 
 export const PRIVACY_TEXT =
   "I consent to MatchMax collecting and using the personal data in this form for tutor recruitment and matching purposes, in accordance with the Personal Data (Privacy) Ordinance (Cap. 486).";
@@ -414,6 +384,7 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
   return [
     { label: "Application path", value: getApplicationPath(data) },
     { label: "Name", value: data.name },
+    { label: "Preferred name", value: data.preferredName || "—" },
     { label: "Contact number / WhatsApp", value: data.phone },
     { label: "Email", value: data.email },
     { label: "Country / region", value: data.country },
@@ -470,6 +441,12 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
               `${document.curriculum}: ${document.file?.filename ?? (document.status === "provide_later" ? "Provide later" : "N/A")}`,
           )
           .join("\n") || "—",
+    },
+    {
+      label: "Trophy cabinet photos",
+      value:
+        data.portfolioImages.map((image) => image.filename).join("\n") ||
+        (data.portfolioConsent ? "— (consent ticked, no photos)" : "—"),
     },
     { label: "Teaching / tutoring experience", value: data.experience },
     { label: "Self-introduction", value: data.selfIntroduction || "—" },
