@@ -11,6 +11,7 @@ import {
   type MarketplaceMaterial,
 } from "@/features/materials/queries";
 import { StudyMaterialCard } from "@/features/materials/material-card";
+import { InlineReportLink } from "@/features/reports/report-button";
 import { buildBookLessonsWhatsAppUrl, buildBuyWhatsAppUrl } from "@/features/materials/whatsapp";
 import { cn } from "@/lib/utils";
 
@@ -201,6 +202,14 @@ export function MaterialsDirectory({ whatsappNumber }: { whatsappNumber: string 
                     whatsappNumber,
                     material.tutor_display_name,
                     material.tutor_code,
+                  ),
+                  // Issue #216: report the note (copyright, fraud, …).
+                  reportAction: (
+                    <InlineReportLink
+                      targetType="material"
+                      targetId={material.id}
+                      label={material.title}
+                    />
                   ),
                 }}
               />
