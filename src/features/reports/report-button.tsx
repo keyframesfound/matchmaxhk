@@ -12,6 +12,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { AuthGateDialog } from "@/features/auth/AuthGateDialog";
 import { useAuth } from "@/features/auth/useAuth";
@@ -250,6 +256,117 @@ export function InlineReportLink({
           }
         }}
         label={label}
+        reason={reason}
+        setReason={setReason}
+        note={note}
+        setNote={setNote}
+        pending={mutation.isPending}
+        onSubmit={() => mutation.mutate()}
+      />
+    </>
+  );
+}
+
+/**
+ * Icon-only report trigger for placement alongside other icon buttons (save,
+ * share). With multiple targets (tutor card + photo on the profile header) it
+ * opens a small menu to pick what is being reported; with one target it opens
+ * the report dialog directly. Same dialog and rules as ReportButton.
+ */
+export function ReportMenuButton({
+  targets,
+  menuLabel,
+  className,
+}: {
+  targets: { targetType: ReportTargetType; targetId: string; label: string }[];
+  /** Screen-reader/tooltip label for the flag button itself. */
+  menuLabel: string;
+  className?: string;
+}) {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const [pendingTarget, setPendingTarget] = useState<{
+    targetType: ReportTargetType;
+    targetId: string;
+    label: string;
+  } | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [gateOpen, setGateOpen] = useState(false);
+  const [reason, setReason] = useState<ReportReason | null>(null);
+  const [note, setNote] = useState("");
+
+  // Resume a stashed report intent once the user is signed in.
+  useEffect(() => {
+    if (user && pendingTarget && takePendingReport(pendingTarget)) {
+      setDialogOpen(true);
+    }
+  }, [user, pendingTarget]);
+
+  const reset = () => {
+    setDialogOpen(false);
+    setPendingTarget(null);
+    setReason(null);
+    setNote("");
+  };
+  const mutation = useReportMutation(
+    pendingTarget?.targetType ?? "tutor_card",
+    pendingTarget?.targetId ?? "",
+    reason,
+    note,
+    reset,
+  );
+
+  const openFor = (target: (typeof targets)[number]) => {
+    if (user) {
+      setPendingTarget(target);
+      setDialogOpen(true);
+    } else {
+      setPendingTarget(target);
+      stashPendingReport(target);
+      setGateOpen(true);
+    }
+  };
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label={menuLabel}
+            title={menuLabel}
+            className={cn(
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
+              className,
+            )}
+          >
+            <Flag className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {targets.map((target) => (
+            <DropdownMenuItem key={target.targetType} onSelect={() => openFor(target)}>
+              {t("report.menu_item", { item: target.label })}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <AuthGateDialog
+        open={gateOpen}
+        onOpenChange={(open) => {
+          setGateOpen(open);
+          if (!open) setPendingTarget(null);
+        }}
+        title={t("report.login_title")}
+        description={t("report.login_description")}
+      />
+      <ReportDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) reset();
+        }}
+        label={pendingTarget?.label ?? ""}
         reason={reason}
         setReason={setReason}
         note={note}

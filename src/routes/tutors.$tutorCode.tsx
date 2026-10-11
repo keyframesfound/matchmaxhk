@@ -56,7 +56,7 @@ import { AvailabilityGrid } from "@/features/tutors/availability-grid";
 import { TutorReviews } from "@/features/tutors/tutor-reviews";
 import { fetchMaterialsForTutor } from "@/features/materials/queries";
 import { TutorMaterialsSection } from "@/features/materials/tutor-materials-section";
-import { ReportButton, InlineReportLink } from "@/features/reports/report-button";
+import { InlineReportLink, ReportMenuButton } from "@/features/reports/report-button";
 import {
   countAvailableCells,
   parseAvailabilityGrid,
@@ -645,21 +645,28 @@ function TutorDetail() {
                     </p>
                   ) : null}
                   <TutorSaveButton tutorId={t.id} compact />
-                  {/* Issue #216: report the tutor card from the profile. */}
-                  <InlineReportLink
-                    targetType="tutor_card"
-                    targetId={t.id}
-                    label={translate("report.item_card")}
+                  {/* Issue #216 feedback: one icon-only report control in the
+                      profile header (card + photo as menu items) — the old
+                      text link duplicated the flag icon next to it. */}
+                  <ReportMenuButton
+                    menuLabel={translate("report.menu_label_profile")}
+                    targets={[
+                      {
+                        targetType: "tutor_card",
+                        targetId: t.id,
+                        label: translate("report.item_card"),
+                      },
+                      ...(t.photo_url
+                        ? [
+                            {
+                              targetType: "tutor_photo" as const,
+                              targetId: t.id,
+                              label: translate("report.item_photo"),
+                            },
+                          ]
+                        : []),
+                    ]}
                   />
-                  {/* Issue #216: report the photo from the profile header. */}
-                  {t.photo_url ? (
-                    <ReportButton
-                      targetType="tutor_photo"
-                      targetId={t.id}
-                      label={translate("report.item_photo")}
-                      className="h-9 w-9"
-                    />
-                  ) : null}
                   <Button
                     type="button"
                     variant="ghost"

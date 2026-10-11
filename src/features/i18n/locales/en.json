@@ -1204,6 +1204,8 @@
   "report": {
     "button_aria": "Report {{item}}",
     "inline_link": "Report {{item}}",
+    "menu_label_profile": "Report this tutor",
+    "menu_item": "Report {{item}}",
     "item_card": "this tutor card",
     "item_photo": "this photo",
     "item_introduction": "this introduction",

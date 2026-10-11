@@ -1204,6 +1204,8 @@
   "report": {
     "button_aria": "舉報{{item}}",
     "inline_link": "舉報{{item}}",
+    "menu_label_profile": "檢舉此導師",
+    "menu_item": "檢舉{{item}}",
     "item_card": "這個導師卡",
     "item_photo": "這張相片",
     "item_introduction": "這段自我介紹",
