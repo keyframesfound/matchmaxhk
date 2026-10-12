@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
@@ -456,6 +458,21 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
   },
 ];
 
+/**
+ * Issue #306: the community commitment as a standalone, always-public
+ * section — this is the text every account agrees to in the signup dialog
+ * (versioned; see features/auth/commitment-version.ts). Linked from the
+ * footer ("Community commitment"). Rendered THROUGH THE SAME i18n KEYS as
+ * the dialog (auth.commitment_intro / auth.commitment_pledge), so the
+ * public section and the dialog can never drift apart, and zh-HK users
+ * read the section in Cantonese.
+ */
+const COMMUNITY_COMMITMENT_I18N_KEYS = {
+  title: "auth.commitment_title",
+  intro: "auth.commitment_intro",
+  pledge: "auth.commitment_pledge",
+} as const;
+
 function renderInline(text: string) {
   return text.split(/\*\*(.+?)\*\*/g).map((part, index) =>
     index % 2 === 1 ? (
@@ -469,6 +486,7 @@ function renderInline(text: string) {
 }
 
 function TermsOfUsePage() {
+  const { t } = useTranslation();
   return (
     <PublicPage>
       <PageIntro
@@ -513,6 +531,26 @@ function TermsOfUsePage() {
                 </div>
               </article>
             ))}
+
+            <article
+              id="community-commitment"
+              className="scroll-mt-24 border-b border-border pb-12 last:border-b-0 last:pb-0"
+            >
+              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
+                {t(COMMUNITY_COMMITMENT_I18N_KEYS.title)}
+              </h2>
+              <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">
+                <p className="whitespace-pre-wrap">
+                  {renderInline(t(COMMUNITY_COMMITMENT_I18N_KEYS.intro))}
+                </p>
+                <p className="whitespace-pre-wrap">
+                  {renderInline(t(COMMUNITY_COMMITMENT_I18N_KEYS.pledge))}
+                </p>
+                <p className="whitespace-pre-wrap">
+                  {renderInline(t("tos.commitment_public_notes"))}
+                </p>
+              </div>
+            </article>
           </div>
         </PageContainer>
       </section>

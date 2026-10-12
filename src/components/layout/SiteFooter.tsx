@@ -17,6 +17,7 @@ const companyLinks = [
   { key: "footer.playbook", to: "/tutor-playbook" },
   { key: "footer.terms", to: "/tos" },
   { key: "footer.privacy", to: "/privacy-policy" },
+  { key: "footer.commitment", to: "/tos", hash: "community-commitment" },
 ] as const;
 
 const supportLinks = [
@@ -100,7 +101,7 @@ export function SiteFooter({
               <h4 className="mb-4 text-sm font-semibold text-foreground">{t("footer.company")}</h4>
               <ul className="space-y-3">
                 {companyLinks.map((link) => (
-                  <li key={link.to}>
+                  <li key={link.key}>
                     <Link
                       className="text-sm text-foreground/70 transition-colors hover:text-brand"
                       to={link.to}
