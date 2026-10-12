@@ -124,7 +124,7 @@ export function SiteHeader({
   tone?: "light" | "dark";
   /**
    * Grouped search-header mode (directory pages): no divider under the nav,
-   * shared #FEFEFE band with the search area below, and the category tabs fade
+   * shared grey band with the search area below, and the category tabs fade
    * out while the compact search pill is showing.
    */
   merged?: boolean;
@@ -190,7 +190,7 @@ export function SiteHeader({
           "sticky top-0 z-50 hidden w-full lg:block",
           merged
             ? "bg-[color:var(--surface-header)]"
-            : "border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm",
+            : "border-b border-[color:var(--ink)]/10 bg-[color:var(--surface-header)]/95 backdrop-blur-sm",
           tone === "dark" && "site-header--dark",
           className,
         )}
@@ -438,7 +438,7 @@ export function SiteHeader({
         </div>
         <AnnouncementBanner />
       </header>
-      <div className="sticky top-0 z-50 border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm lg:hidden">
+      <div className="sticky top-0 z-50 border-b border-[color:var(--ink)]/10 bg-[color:var(--surface-header)]/95 backdrop-blur-sm lg:hidden">
         <div className="flex h-14 items-center justify-between gap-2 px-4">
           <Link to="/" className="flex shrink-0 items-center" aria-label="MatchMax home">
             <div className="flex items-center gap-2">
