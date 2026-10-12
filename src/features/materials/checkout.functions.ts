@@ -97,6 +97,23 @@ export function canMarkOrderPaid(status: string): boolean {
   return status === "awaiting_payment" || status === "rejected";
 }
 
+/**
+ * After a refund + re-buy there can be TWO rows for one (material, buyer)
+ * pair: the dead refunded row and the live one. Pick the first still-active
+ * row (server fns pass rows newest-first, so the re-buy wins over the
+ * refunded original); null when every row is refunded — checkout then
+ * inserts fresh. Extracted pure for tests.
+ */
+export function pickReusableOrder(
+  rows: Pick<OrderRow, "id" | "reference" | "status">[],
+): { orderId: string; reference: string } | null {
+  for (const row of rows) {
+    const reusable = reusableExistingOrder(row);
+    if (reusable) return reusable;
+  }
+  return null;
+}
+
 /** Escapes untrusted text (note titles) for interpolation into HTML email. */
 export function escapeHtml(text: string): string {
   return text
@@ -149,14 +166,20 @@ export const startCheckout = createServerFn({ method: "POST" })
 
     // Existing order (active statuses) wins — the unique index is the source
     // of truth. A refunded row is dead: fall through and insert a fresh
-    // awaiting_payment order instead.
-    const { data: existing } = await db
+    // awaiting_payment order instead. After a refund + re-buy the pair has
+    // TWO rows (refunded + active), so this is a LIST query with a status
+    // filter — .maybeSingle() on the bare pair would PGRST116-error and the
+    // buyer could never reach their order again. Newest-first so a re-buy
+    // wins over the refunded original.
+    const { data: existingRows } = await db
       .from<OrderRow>("material_orders")
       .select("*")
       .eq("material_id", data.materialId)
       .eq("buyer_account_id", context.userId)
-      .maybeSingle();
-    const reusable = reusableExistingOrder(existing);
+      .neq("status", "refunded")
+      .order("created_at", { ascending: false })
+      .limit(2);
+    const reusable = pickReusableOrder(existingRows ?? []);
     if (reusable) return reusable;
 
     const reference = buildOrderReference();
@@ -178,13 +201,15 @@ export const startCheckout = createServerFn({ method: "POST" })
     if (insert.error || !insert.data) {
       // Lost a race to the unique index? Re-read and hand back the winner —
       // unless that winner is itself a refunded row (same trap as above).
-      const { data: winner } = await db
+      const { data: winnerRows } = await db
         .from<OrderRow>("material_orders")
         .select("*")
         .eq("material_id", data.materialId)
         .eq("buyer_account_id", context.userId)
-        .maybeSingle();
-      const reusableWinner = reusableExistingOrder(winner);
+        .neq("status", "refunded")
+        .order("created_at", { ascending: false })
+        .limit(2);
+      const reusableWinner = pickReusableOrder(winnerRows ?? []);
       if (reusableWinner) return reusableWinner;
       if (isUniqueViolation(insert.error)) {
         throw new Error("Could not create the order. Please try again.");

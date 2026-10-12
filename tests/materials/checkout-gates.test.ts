@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import {
   canMarkOrderPaid,
   escapeHtml,
+  pickReusableOrder,
   reusableExistingOrder,
 } from "../../src/features/materials/checkout.functions";
 
@@ -48,6 +49,52 @@ describe("reusableExistingOrder — refunded orders must not trap re-purchase", 
     expect(reusableExistingOrder({ id: "o", reference: null, status: "paid" })).toEqual({
       orderId: "o",
       reference: "",
+    });
+  });
+});
+
+describe("pickReusableOrder — refunded + re-bought pair has TWO rows (grok #305 hold-merge)", () => {
+  const refundedRow = {
+    id: "order-old",
+    reference: "MM-OLD",
+    status: "refunded",
+  } as const;
+
+  it("returns the active re-buy when the pair holds refunded + awaiting_payment", () => {
+    expect(
+      pickReusableOrder([
+        { ...refundedRow },
+        { id: "order-new", reference: "MM-NEW", status: "awaiting_payment" },
+      ]),
+    ).toEqual({ orderId: "order-new", reference: "MM-NEW" });
+  });
+
+  it("returns the active row regardless of position (order comes from the query, not the helper)", () => {
+    expect(
+      pickReusableOrder([
+        { id: "order-new", reference: "MM-NEW", status: "paid" },
+        { ...refundedRow },
+      ]),
+    ).toEqual({ orderId: "order-new", reference: "MM-NEW" });
+  });
+
+  it("returns null when every row is refunded — checkout inserts fresh", () => {
+    expect(pickReusableOrder([{ ...refundedRow }])).toBeNull();
+    expect(
+      pickReusableOrder([{ ...refundedRow }, { id: "o2", reference: "MM-2", status: "refunded" }]),
+    ).toBeNull();
+  });
+
+  it("returns null for an empty result", () => {
+    expect(pickReusableOrder([])).toBeNull();
+  });
+
+  it("single active row still resolves (pre-refund behaviour unchanged)", () => {
+    expect(
+      pickReusableOrder([{ id: "order-1", reference: "MM-123", status: "awaiting_payment" }]),
+    ).toEqual({
+      orderId: "order-1",
+      reference: "MM-123",
     });
   });
 });
