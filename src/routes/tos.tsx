@@ -456,6 +456,30 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
   },
 ];
 
+/**
+ * Issue #306: the community commitment as a standalone, always-public
+ * section — this is the text every account agrees to in the signup dialog
+ * (versioned; see features/auth/commitment-version.ts). Linked from the
+ * footer ("Community commitment"). Keep in sync with the dialog copy.
+ */
+const COMMUNITY_COMMITMENT_SECTION: { title: string; blocks: Block[] } = {
+  title: "Community commitment",
+  blocks: [
+    {
+      kind: "p",
+      text: "MatchMax connects families and tutors across Hong Kong. When you join, we ask you to agree to our community commitment:",
+    },
+    {
+      kind: "p",
+      text: "I will treat everyone in the MatchMax community — regardless of race, religion, national origin, ethnicity, skin colour, disability, sex, gender identity, sexual orientation, or age — with respect, and without judgment or bias.",
+    },
+    {
+      kind: "p",
+      text: "Declining the commitment during sign-up deletes the newly created account, as set out in section 1. For an existing account, declining signs you out; the account and any tutor card are kept. MatchMax may re-present the commitment when its text changes.",
+    },
+  ],
+};
+
 function renderInline(text: string) {
   return text.split(/\*\*(.+?)\*\*/g).map((part, index) =>
     index % 2 === 1 ? (
@@ -513,6 +537,35 @@ function TermsOfUsePage() {
                 </div>
               </article>
             ))}
+
+            <article
+              id="community-commitment"
+              className="scroll-mt-24 border-b border-border pb-12 last:border-b-0 last:pb-0"
+            >
+              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
+                {COMMUNITY_COMMITMENT_SECTION.title}
+              </h2>
+              <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">
+                {COMMUNITY_COMMITMENT_SECTION.blocks.map((block, index) =>
+                  block.kind === "ul" ? (
+                    <ul
+                      key={index}
+                      className="list-disc space-y-3 pl-5 marker:text-[color:var(--brand-link)]"
+                    >
+                      {block.items.map((item, itemIndex) => (
+                        <li key={itemIndex} className="pl-1">
+                          {renderInline(item)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p key={index} className="whitespace-pre-wrap">
+                      {renderInline(block.text)}
+                    </p>
+                  ),
+                )}
+              </div>
+            </article>
           </div>
         </PageContainer>
       </section>

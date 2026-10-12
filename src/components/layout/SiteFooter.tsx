@@ -17,6 +17,7 @@ const companyLinks = [
   { key: "footer.playbook", to: "/tutor-playbook" },
   { key: "footer.terms", to: "/tos" },
   { key: "footer.privacy", to: "/privacy-policy" },
+  { key: "footer.commitment", to: "/tos", hash: "community-commitment" },
 ] as const;
 
 const supportLinks = [

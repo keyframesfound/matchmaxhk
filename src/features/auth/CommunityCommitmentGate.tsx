@@ -1,16 +1,24 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/features/auth/useAuth";
+import { committedToCurrentVersion } from "@/features/auth/commitment-version";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { COMMUNITY_COMMITMENT_VERSION } from "@/features/auth/commitment-version";
 
 /**
  * Issue #141: Airbnb-style "everyone belongs here" commitment, shown once per
  * account after signup. Sits inside the ToS gate so the flow is onboarding →
  * ToS → commitment; declining signs the user out like the ToS dialog does.
  * Fails closed — a missing profile row or a read error re-prompts.
+ *
+ * Issue #306: the agreement is versioned. The dialog re-prompts once when
+ * COMMUNITY_COMMITMENT_VERSION changes (stored NULL counts as "1", so
+ * pre-versioning accounts are not asked again until the text actually
+ * changes). Never shown logged-out; existing users answer on their next
+ * login, not on a public page.
  */
 export function CommunityCommitmentGate({ children }: { children: ReactNode }) {
   const { user, loading, signOut } = useAuth();
@@ -27,12 +35,15 @@ export function CommunityCommitmentGate({ children }: { children: ReactNode }) {
     setChecking(true);
     void supabase
       .from("profiles")
-      .select("community_commitment_at")
+      .select("community_commitment_at, community_commitment_version")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (!active) return;
-        setAgreedFor(data?.community_commitment_at ? user.id : null);
+        const agreed =
+          Boolean(data?.community_commitment_at) &&
+          committedToCurrentVersion(data?.community_commitment_version);
+        setAgreedFor(agreed ? user.id : null);
         setChecking(false);
       });
     return () => {
@@ -74,6 +85,7 @@ function CommunityCommitmentDialog({
     const { error } = await supabase.from("profiles").upsert({
       id: userId,
       community_commitment_at: new Date().toISOString(),
+      community_commitment_version: COMMUNITY_COMMITMENT_VERSION,
     });
     if (error) {
       toast.error(t("auth.commitment_error"));
