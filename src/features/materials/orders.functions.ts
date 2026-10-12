@@ -289,9 +289,17 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
       ?.original_file_path;
     if (materialError || !originalPath) throw new Error("Material not found");
 
+    // #203: prefer the per-order STAMPED copy (order id + buyer footer) that
+    // releaseOrder produced (stored in materials-originals under delivered/);
+    // fall back to the raw original only if the stamped file is missing
+    // (e.g. #250-era delivered orders).
+    const deliveredPath = (order as unknown as { delivered_file_path?: string | null })
+      ?.delivered_file_path;
+    const pathToSign = deliveredPath || originalPath;
+
     const { data: signed, error: signError } = await supabaseAdmin.storage
       .from("materials-originals")
-      .createSignedUrl(originalPath, 60 * 10); // 10 minutes (#203)
+      .createSignedUrl(pathToSign, 60 * 10); // 10 minutes (#203)
     if (signError || !signed) {
       throw new Error(signError?.message || "Failed to sign URL");
     }

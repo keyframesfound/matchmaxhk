@@ -109,7 +109,7 @@ export async function fetchMaterialsForTutor(tutorId: string): Promise<StudyMate
   const { data, error } = await materialsTable()
     .select(MATERIAL_COLS)
     .eq("tutor_id", tutorId)
-    .eq("is_published", true)
+    .eq("status", "published")
     .order("created_at", { ascending: false });
   if (error) {
     if (isMissingRelation(error)) return [];
@@ -127,7 +127,7 @@ export type MarketplaceMaterial = StudyMaterial & {
 export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]> {
   const { data, error } = await materialsTable()
     .select(`${MATERIAL_COLS}, tutors!inner(display_name, tutor_code, is_published)`)
-    .eq("is_published", true)
+    .eq("status", "published")
     .order("created_at", { ascending: false });
   if (error) {
     if (isMissingRelation(error)) return [];
