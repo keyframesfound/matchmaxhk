@@ -456,9 +456,11 @@ function Landing() {
           </div>
         </StickySearchBar>
 
-        <section className="relative pt-2 pb-10 md:pt-6 md:pb-16">
+        {/* #307: grey band behind the mobile search pill, mirroring the
+            desktop StickySearchBar band -- full-bleed, hairline bottom. */}
+        <div className="relative z-20 border-b border-border bg-[color:var(--surface-header)] lg:hidden">
           <div className="mx-auto max-w-[1440px] px-4 md:px-6">
-            <div className="relative z-20 py-2.5 sm:p-5 lg:hidden">
+            <div className="py-2.5 sm:p-5">
               <TutorsSearchMobile
                 draft={homeSearch}
                 onDraftChange={setHomeSearchParam}
@@ -467,7 +469,11 @@ function Landing() {
                 educationValues={educationValues}
               />
             </div>
+          </div>
+        </div>
 
+        <section className="relative pb-10 md:pt-6 md:pb-16">
+          <div className="mx-auto max-w-[1440px] px-4 md:px-6">
             <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
               {CURRICULUM_CATEGORIES.map(({ label, value }) => (
                 <CurriculumTutorSection
