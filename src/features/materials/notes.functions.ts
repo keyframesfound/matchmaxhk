@@ -16,6 +16,14 @@ import { buildBuyWhatsAppUrl, buildBookLessonsWhatsAppUrl } from "@/features/mat
 export const PUBLIC_NOTE_COLUMNS =
   "id, slug, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, year_tag, page_count, preview_pages, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, view_count, sold_count, created_at, tutor_id";
 
+/**
+ * Public readers run under the SERVICE ROLE (RLS does not apply), so the
+ * tutor publish gate the RLS policy would enforce
+ * (material status='published' AND tutors.is_published=true) is repeated
+ * here explicitly on every public query.
+ */
+const PUBLIC_NOTE_TUTOR_JOIN = "tutors!inner(display_name, tutor_code, user_id, is_published)";
+
 export type PublicNote = {
   id: string;
   slug: string | null;
@@ -38,12 +46,15 @@ export type PublicNote = {
   soldCount: number;
   createdAt: string;
   tutorId: string;
+  /** The tutor's AUTH account id (tutors.user_id) — lets the page hide
+   * owner affordances (view counting, buy, report) correctly. */
+  tutorUserId: string;
   tutorName: string;
   tutorCode: string;
 };
 
 type NoteRow = Record<string, unknown> & {
-  tutors?: { display_name?: unknown; tutor_code?: unknown } | null;
+  tutors?: { display_name?: unknown; tutor_code?: unknown; user_id?: unknown } | null;
 };
 
 function mapPublicNote(row: NoteRow): PublicNote | null {
@@ -74,6 +85,7 @@ function mapPublicNote(row: NoteRow): PublicNote | null {
     soldCount: Number(row.sold_count ?? 0),
     createdAt: typeof row.created_at === "string" ? row.created_at : "",
     tutorId: typeof row.tutor_id === "string" ? row.tutor_id : "",
+    tutorUserId: typeof tutor?.user_id === "string" ? tutor.user_id : "",
     tutorName: typeof tutor?.display_name === "string" ? tutor.display_name : "MatchMax Tutor",
     tutorCode,
   };
@@ -91,11 +103,11 @@ export const getPublicNote = createServerFn({ method: "GET" })
     const isUuid = /^[0-9a-f-]{36}$/i.test(data.slug);
     const { data: rows, error } = await db
       .from<NoteRow>("digital_materials")
-      .select(`${PUBLIC_NOTE_COLUMNS}, tutors!inner(display_name, tutor_code, is_published)`)
+      .select(`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_TUTOR_JOIN}`)
       .eq("status", "published")
+      .eq("tutors.is_published", true)
       .eq(isUuid ? "id" : "slug", data.slug)
       .limit(1);
-    void isUuid;
     if (error) throw new Error(error.message);
     const row = rows?.[0];
     if (!row) return null;
@@ -115,8 +127,9 @@ export const getPublicNotesByTutor = createServerFn({ method: "GET" })
 
     let query = db
       .from<NoteRow>("digital_materials")
-      .select(`${PUBLIC_NOTE_COLUMNS}, tutors!inner(display_name, tutor_code, is_published)`)
+      .select(`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_TUTOR_JOIN}`)
       .eq("status", "published")
+      .eq("tutors.is_published", true)
       .eq("tutor_id", data.tutorId);
     query = data.excludeMaterialId ? query.neq("id", data.excludeMaterialId) : query;
     const { data: rows, error } = await query.order("created_at", { ascending: false }).limit(8);
@@ -150,7 +163,14 @@ export const recordMaterialView = createServerFn({ method: "POST" })
       .maybeSingle();
     if (tutor) return { counted: false }; // owner views never count
 
-    const today = new Date().toISOString().slice(0, 10);
+    // Match the column default's day boundary: Asia/Hong_Kong calendar date
+    // (the DB default is (now() AT TIME ZONE 'Asia/Hong_Kong')::date).
+    const today = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Hong_Kong",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
     const insert = await db
       .from<never>("material_views")
       .insert({

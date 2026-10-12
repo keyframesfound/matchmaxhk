@@ -53,14 +53,17 @@ function NotePage() {
   const router = useRouter();
   const navigate = router.navigate.bind(router);
   const [gateOpen, setGateOpen] = useState(false);
+  // Owner check uses the tutor's AUTH id (tutors.user_id), not the tutors
+  // row id — review fix: note.tutorId is the FK, user.id is an auth uid.
+  const isOwner = Boolean(user && note.tutorUserId && user.id === note.tutorUserId);
 
   // #203: signed-in, non-owner views count once per account per day.
   useEffect(() => {
-    if (!user || user.id === note.tutorId) return;
+    if (!user || isOwner) return;
     import("@/features/materials/notes.functions").then(({ recordMaterialView }) =>
       recordMaterialView({ data: { materialId: note.id } }).catch(() => undefined),
     );
-  }, [user, note.id, note.tutorId]);
+  }, [user, isOwner, note.id]);
 
   const whatsappQuery = useQuery({
     queryKey: ["note-whatsapp", note.title, note.priceHkd, note.tutorName],
@@ -220,20 +223,17 @@ function NotePage() {
                 variant="solid"
                 color="accent"
                 className="w-full font-bold"
-                disabled={checkoutMutation.isPending}
+                disabled={checkoutMutation.isPending || isOwner}
                 onClick={() => {
                   if (!user) {
                     setGateOpen(true);
-                    return;
-                  }
-                  if (user.id === note.tutorId) {
                     return;
                   }
                   checkoutMutation.mutate();
                 }}
               >
                 <ShoppingCart className="mr-2 h-4 w-4" aria-hidden />
-                {t("notes.add_to_cart")}
+                {isOwner ? t("notes.own_note") : t("notes.add_to_cart")}
               </Button>
               {whatsappQuery.data?.requestUrl && (
                 <a
@@ -252,7 +252,7 @@ function NotePage() {
                 <li>· {t("notes.perk_download")}</li>
               </ul>
             </div>
-            {user && user.id !== note.tutorId && (
+            {user && !isOwner && (
               <div className="mt-3 flex justify-end">
                 <ReportMenuButton
                   targets={[

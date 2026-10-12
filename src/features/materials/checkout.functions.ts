@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb, type AdminDb } from "@/features/materials/storage-helpers";
+import { isUniqueViolation } from "@/features/materials/orders.functions";
 import {
   boughtListAction,
   buildOrderReference,
@@ -74,10 +75,46 @@ async function isAdmin(db: AdminDb, userId: string): Promise<boolean> {
 }
 
 /**
+ * A refunded order is DEAD — returning it from checkout would trap the
+ * (material, buyer) pair forever, so only still-active orders are reusable.
+ * Extracted pure for tests. Backed by the partial unique index
+ * idx_material_orders_active_pair (status <> 'refunded').
+ */
+export function reusableExistingOrder(
+  existing: Pick<OrderRow, "id" | "reference" | "status"> | null,
+): { orderId: string; reference: string } | null {
+  if (!existing || existing.status === "refunded") return null;
+  return { orderId: existing.id, reference: existing.reference ?? "" };
+}
+
+/**
+ * Statuses staff may move to paid: awaiting_payment, or a rejected payment
+ * the buyer is re-paying. Delivered/refunded/stamping rows must never be
+ * re-marked (it would overwrite paid_at / fps_reference). Extracted pure
+ * for tests.
+ */
+export function canMarkOrderPaid(status: string): boolean {
+  return status === "awaiting_payment" || status === "rejected";
+}
+
+/** Escapes untrusted text (note titles) for interpolation into HTML email. */
+export function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
  * #203 flow step 3: create (or return) the awaiting_payment order for this
- * buyer + pack. Unique (material, buyer) makes double-checkout impossible —
- * the second attempt gets the existing order back instead of an error, so
- * the checkout page is idempotent across refreshes.
+ * buyer + pack. Unique (material, buyer) among NON-refunded orders makes
+ * double-checkout impossible — the second attempt gets the existing order
+ * back instead of an error, so the checkout page is idempotent across
+ * refreshes. A REFUNDED order is dead: checkout inserts a fresh
+ * awaiting_payment order so the buyer can re-purchase the same note
+ * (partial unique index idx_material_orders_active_pair enforces it).
  */
 export const startCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -100,15 +137,27 @@ export const startCheckout = createServerFn({ method: "POST" })
     if (material.price_hkd <= 0) {
       throw new Error("This note is not purchasable right now.");
     }
+    // No self-purchase: tutors.user_id is the listing owner's AUTH account.
+    const { data: ownerTutor } = await db
+      .from<{ user_id: string }>("tutors")
+      .select("user_id")
+      .eq("id", material.tutor_id)
+      .maybeSingle();
+    if (ownerTutor?.user_id && ownerTutor.user_id === context.userId) {
+      throw new Error("You can't buy your own note.");
+    }
 
-    // Existing order (any status) wins — the unique index is the source of truth.
+    // Existing order (active statuses) wins — the unique index is the source
+    // of truth. A refunded row is dead: fall through and insert a fresh
+    // awaiting_payment order instead.
     const { data: existing } = await db
       .from<OrderRow>("material_orders")
       .select("*")
       .eq("material_id", data.materialId)
       .eq("buyer_account_id", context.userId)
       .maybeSingle();
-    if (existing) return { orderId: existing.id, reference: existing.reference ?? "" };
+    const reusable = reusableExistingOrder(existing);
+    if (reusable) return reusable;
 
     const reference = buildOrderReference();
     const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(Number(material.price_hkd));
@@ -127,14 +176,19 @@ export const startCheckout = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (insert.error || !insert.data) {
-      // Lost a race to the unique index? Re-read and hand back the winner.
+      // Lost a race to the unique index? Re-read and hand back the winner —
+      // unless that winner is itself a refunded row (same trap as above).
       const { data: winner } = await db
         .from<OrderRow>("material_orders")
         .select("*")
         .eq("material_id", data.materialId)
         .eq("buyer_account_id", context.userId)
         .maybeSingle();
-      if (winner) return { orderId: winner.id, reference: winner.reference ?? "" };
+      const reusableWinner = reusableExistingOrder(winner);
+      if (reusableWinner) return reusableWinner;
+      if (isUniqueViolation(insert.error)) {
+        throw new Error("Could not create the order. Please try again.");
+      }
       throw new Error(insert.error?.message || "Could not create the order.");
     }
     return { orderId: insert.data.id, reference };
@@ -351,6 +405,20 @@ export const markOrderPaid = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     if (!(await isAdmin(db, context.userId))) throw new Error("Forbidden");
 
+    // Status precondition (review fix): only an awaiting_payment order — or
+    // a rejected payment the buyer is re-paying — may be marked paid. This
+    // stops staff from clobbering delivered/refunded/stamping rows and
+    // overwriting paid_at / fps_reference, mirroring releaseOrder's gate.
+    const { data: order } = await db
+      .from<OrderRow>("material_orders")
+      .select("id, status")
+      .eq("id", data.orderId)
+      .maybeSingle();
+    if (!order) throw new Error("Order not found.");
+    if (!canMarkOrderPaid(order.status)) {
+      throw new Error(`Order in status "${order.status}" cannot be marked paid.`);
+    }
+
     const { error } = await db
       .from<never>("material_orders")
       .update({
@@ -514,12 +582,16 @@ export async function sendOrderReceipt(orderId: string): Promise<void> {
     }
   )(apiKey);
   const title = order.digital_materials?.title ?? "Your note";
+  // Tutor-authored title → untrusted: escape before it goes into the HTML
+  // body (the plain-text part needs no escaping).
+  const titleHtml = escapeHtml(title);
+  const safeReference = escapeHtml(order.reference || order.id.slice(0, 8));
   const { error } = await resend.emails.send({
     from: "MatchMax <noreply@matchmax.hk>",
     to: profile.email,
     subject: `MatchMax order ${order.reference || order.id.slice(0, 8)} — ${title}`,
-    html: `<p>Your payment for <strong>${title}</strong> was confirmed.</p>
-<p>Order ${order.reference || order.id.slice(0, 8)} · HK$${Number(order.gross_hkd).toFixed(0)}</p>
+    html: `<p>Your payment for <strong>${titleHtml}</strong> was confirmed.</p>
+<p>Order ${safeReference} · HK$${Number(order.gross_hkd).toFixed(0)}</p>
 <p>Download it anytime from Account → Bought on matchmax.hk.</p>`,
     text: `Your payment for ${title} was confirmed. Order ${
       order.reference || order.id.slice(0, 8)
