@@ -427,6 +427,9 @@
     "commitment": "社群承諾",
     "rights": "版權所有"
   },
+  "tos": {
+    "commitment_public_notes": "註冊嗰陣拒絕呢個承諾，新建嘅帳戶會被刪除（見第 1 節）。現有帳戶拒絕嘅話會被登出；帳戶同導師卡會保留。當承諾文字更新時，MatchMax 可能會再次要求你確認。"
+  },
   "auth": {
     "sign_in_title": "歡迎返嚟",
     "sign_in_subtitle": "登入你嘅 MatchMax 帳戶",

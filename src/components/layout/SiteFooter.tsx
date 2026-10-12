@@ -101,7 +101,7 @@ export function SiteFooter({
               <h4 className="mb-4 text-sm font-semibold text-foreground">{t("footer.company")}</h4>
               <ul className="space-y-3">
                 {companyLinks.map((link) => (
-                  <li key={link.to}>
+                  <li key={link.key}>
                     <Link
                       className="text-sm text-foreground/70 transition-colors hover:text-brand"
                       to={link.to}
