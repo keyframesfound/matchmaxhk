@@ -438,7 +438,9 @@ export function SiteHeader({
         </div>
         <AnnouncementBanner />
       </header>
-      <div className="sticky top-0 z-50 border-b border-[color:var(--ink)]/10 bg-[color:var(--surface-header)]/95 backdrop-blur-sm lg:hidden">
+      {/* #307: no hairline here -- the mobile bar and the search band below
+          read as one continuous grey surface, matching the desktop header. */}
+      <div className="sticky top-0 z-50 bg-[color:var(--surface-header)]/95 backdrop-blur-sm lg:hidden">
         <div className="flex h-14 items-center justify-between gap-2 px-4">
           <Link to="/" className="flex shrink-0 items-center" aria-label="MatchMax home">
             <div className="flex items-center gap-2">
