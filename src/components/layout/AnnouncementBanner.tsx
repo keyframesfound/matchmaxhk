@@ -50,7 +50,7 @@ export function AnnouncementBanner() {
     <div
       role="region"
       aria-label="Announcement"
-      className="relative flex w-full items-center justify-center bg-[#0D1B2A] px-4 py-2 text-white sm:px-6 sm:py-2.5"
+      className="relative flex w-full items-center justify-center bg-[color:var(--surface-header)] px-4 py-2 text-[color:var(--ink)] sm:px-6 sm:py-2.5"
     >
       <div
         className="relative grid flex-1"
@@ -65,7 +65,7 @@ export function AnnouncementBanner() {
               to={item.to}
               tabIndex={isActive ? 0 : -1}
               aria-hidden={!isActive}
-              className={`col-start-1 row-start-1 flex items-center justify-center gap-2 pr-8 text-center text-[12px] font-medium leading-snug text-white underline underline-offset-2 transition-opacity duration-700 sm:pr-10 sm:text-sm motion-reduce:transition-none ${
+              className={`col-start-1 row-start-1 flex items-center justify-center gap-2 pr-8 text-center text-[12px] font-medium leading-snug text-[color:var(--ink)] underline underline-offset-2 transition-opacity duration-700 sm:pr-10 sm:text-sm motion-reduce:transition-none ${
                 isActive ? "opacity-100" : "pointer-events-none opacity-0"
               }`}
             >
@@ -83,7 +83,7 @@ export function AnnouncementBanner() {
         type="button"
         onClick={handleDismiss}
         aria-label="Dismiss banner"
-        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-white opacity-80 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[color:var(--ink)] opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ink)]/40"
       >
         <X className="h-4 w-4" aria-hidden="true" />
       </button>

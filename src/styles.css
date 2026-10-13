@@ -177,7 +177,7 @@ html {
   /* Themed app surfaces */
   --ink: #0f1419;
   --surface: #ffffff;
-  --surface-header: #fefefe; /* grouped nav + directory search band (Airbnb grey) */
+  --surface-header: #f2f3f5; /* grouped nav + directory search band (Airbnb grey) */
   --surface-subtle: #f7f9fa;
   --surface-hover: #eff3f4;
   --surface-invert: #0f1419;
