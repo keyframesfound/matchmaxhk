@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 import {
-  MAX_PROFILE_TAGS,
+  MAX_CASE_TAGS,
   MAX_PROFILE_TAG_LENGTH,
   mergeCaseTags,
   normalizeProfileTag,
@@ -100,12 +100,25 @@ describe("popularProfileTags (#311 counts + suggestion threshold)", () => {
     expect(suggested).toEqual([{ tag: "ia review", count: 3 }]);
   });
 
+  it("merges legacy spellings and dedupes per tutor (#311 review)", () => {
+    const mixed = [
+      { profile_tags: ["IA-review", "ia review"] }, // same tutor, both spellings → counts once
+      { profile_tags: ["ia_review"] },
+      { profile_tags: ["ia review"] },
+      { profile_tags: ["IA-REVIEW"] },
+    ];
+    // Normalized: four distinct tutors use "ia review" (the duplicate in
+    // tutor 1 doesn't inflate the count); legacy spellings never split it.
+    expect(popularProfileTags(mixed)).toEqual([{ tag: "ia review", count: 4 }]);
+    expect(popularProfileTags(mixed)[0].tag).not.toContain("-");
+  });
+
   it("handles missing tag arrays", () => {
     expect(popularProfileTags([{ profile_tags: undefined as unknown as string[] }])).toEqual([]);
   });
 });
 
-describe("mergeCaseTags (#311 one tag table, cap of five per case)", () => {
+describe("mergeCaseTags (#311 one tag table)", () => {
   it("puts parent picks first and dedupes against derived tags", () => {
     expect(mergeCaseTags(["sba", "IA-review"], ["ia review", "Physics"])).toEqual([
       "sba",
@@ -114,14 +127,45 @@ describe("mergeCaseTags (#311 one tag table, cap of five per case)", () => {
     ]);
   });
 
-  it("caps the merged list at five", () => {
-    const merged = mergeCaseTags(["p1", "p2", "p3"], ["d1", "d2", "d3", "d4"]);
-    expect(merged).toHaveLength(MAX_PROFILE_TAGS);
-    expect(merged).toEqual(["p1", "p2", "p3", "d1", "d2"]);
+  it("keeps every derived tag even when the parent picks five presets (review blocker)", () => {
+    const fivePresets = PRESET_PROFILE_TAGS.slice(0, 5); // examiner, ia review, tok, ee, sba
+    const derived = ["physics", "paper 2", "IBDP", "university interview"];
+    const merged = mergeCaseTags(fivePresets, derived);
+    // All four requirement tags survive; the parent tail (last preset
+    // picked) yields first — subjects are never the ones dropped.
+    expect(merged.slice(-4)).toEqual(derived.map((t) => t.toLowerCase()));
+    expect(merged).toHaveLength(MAX_CASE_TAGS);
+    expect(merged.slice(0, 4)).toEqual(fivePresets.slice(0, 4));
+  });
+
+  it("parent picks lead the list and only their tail is trimmed", () => {
+    const merged = mergeCaseTags(["examiner", "oral", "tok"], ["d1", "d2", "d3", "d4", "d5", "d6"]);
+    // room = 8 - 6 = 2 → only the first two parent picks are kept.
+    expect(merged).toEqual(["examiner", "oral", "d1", "d2", "d3", "d4", "d5", "d6"]);
+    // And with few derived tags nothing is trimmed at all.
+    expect(mergeCaseTags(["examiner", "oral"], ["physics"])).toEqual([
+      "examiner",
+      "oral",
+      "physics",
+    ]);
+  });
+
+  it("drops non-preset parent tags so crafted payloads cannot publish chips", () => {
+    expect(
+      mergeCaseTags(["91234567", "me@example.com", "@tutorhk", "custom vibe"], ["physics"]),
+    ).toEqual(["physics"]);
+  });
+
+  it("still drops contact junk that normalizes into a preset spelling", () => {
+    // A preset could only be picked from the chip row; anything else,
+    // including near-preset contact bait, is dropped.
+    expect(mergeCaseTags(["sba\n91234567"], ["chemistry"])).toEqual(["chemistry"]);
   });
 
   it("normalizes both sources", () => {
     expect(mergeCaseTags(["#TOK_Essay"], ["tok essay"])).toEqual(["tok essay"]);
+    // Non-preset input is dropped even when it dedupes against a derived tag.
+    expect(mergeCaseTags(["tok essay"], ["tok essay"])).toEqual(["tok essay"]);
   });
 
   it("tolerates null/undefined inputs", () => {

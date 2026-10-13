@@ -33,7 +33,7 @@ import {
   getSubjectOptionsForCurriculum,
 } from "@/features/cases/case-options";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
-import { PRESET_PROFILE_TAGS } from "@/features/tutors/profile-tags";
+import { MAX_PROFILE_TAGS, PRESET_PROFILE_TAGS } from "@/features/tutors/profile-tags";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
@@ -98,8 +98,9 @@ type FormState = {
   budgetMax: string;
   tutorBackground: string;
   notes: string;
-  // Issue #311: parent-picked preset tags (max 5) — merged with the derived
-  // requirement tags server-side by mergeCaseTags.
+  // Issue #311: parent-picked preset tags (max MAX_PROFILE_TAGS) — merged
+  // with the derived requirement tags server-side by mergeCaseTags, which
+  // always keeps the derived tags regardless of how many presets are picked.
   tags: string[];
   termsAgreed: boolean;
 };
@@ -1087,7 +1088,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             </div>
             {/* Issue #311: preset tags as chips — one tap adds it, one tap on
                 a saved chip removes it. Optional; typing stays on the notes
-                field. Tutors search this vocabulary on /tutors. */}
+                field. Parent picks never displace the auto-derived subject
+                tags (mergeCaseTags keeps those in full). Tutors search this
+                vocabulary on /tutors. */}
             <div className="sm:col-span-2">
               <span className={labelClassName}>Tags (Optional)</span>
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -1102,7 +1105,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                         update({
                           tags: active
                             ? form.tags.filter((item) => item !== tag)
-                            : form.tags.length < 5
+                            : form.tags.length < MAX_PROFILE_TAGS
                               ? [...form.tags, tag]
                               : form.tags,
                         })
@@ -1120,9 +1123,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                   );
                 })}
               </div>
-              {form.tags.length >= 5 ? (
+              {form.tags.length >= MAX_PROFILE_TAGS ? (
                 <p className="mt-1.5 text-xs font-medium text-muted-foreground">
-                  Maximum of 5 tags.
+                  Maximum of {MAX_PROFILE_TAGS} tags.
                 </p>
               ) : null}
             </div>

@@ -105,6 +105,31 @@ function rowTitle(item: PublicCaseBoardItem): string {
   return item.subjects.filter(Boolean).slice(0, 2).join(", ") || item.title;
 }
 
+/**
+ * Issue #311: tag chips on a board row. Rendered OUTSIDE the row's
+ * `<Link>` — a `<button>` nested in a link is invalid HTML and breaks
+ * keyboard/SR behavior, so the row renders as a non-link container with
+ * the row Link covering the card content and these chips as siblings.
+ */
+function CaseRowTags({ tags }: { tags: string[] }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {tags.map((tag) => (
+        <Link
+          key={tag}
+          to="/tutor-requests"
+          search={{ tag }}
+          aria-label={`Show cases tagged ${tag}`}
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+        >
+          <Hash className="h-3 w-3 shrink-0" aria-hidden="true" />
+          {tag}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 const CASE_SECTION_ORDER = [
   "IB",
   "DSE",
@@ -134,9 +159,11 @@ function caseSectionLabel(section: string): string {
 
 function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
   const { pills, overflow } = casePillsForCard(item);
-  const navigate = useNavigate();
   return (
-    <li>
+    <li className="relative">
+      {/* Row container is NOT a link (issue #311 review): the tag chips
+          below must not be nested interactive content. The Link covers the
+          card content; chips are siblings. */}
       <Link
         to="/tutor-requests/$caseCode"
         params={{ caseCode: item.caseCode }}
@@ -178,26 +205,6 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
               ) : null}
             </div>
           ) : null}
-          {item.tags.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-1.5">
-              {item.tags.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    void navigate({ to: "/tutor-requests", search: { tag } });
-                  }}
-                  aria-label={`Show cases tagged ${tag}`}
-                  className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
-                >
-                  <Hash className="h-3 w-3 shrink-0" aria-hidden="true" />
-                  {tag}
-                </button>
-              ))}
-            </div>
-          ) : null}
         </div>
         <span className="flex shrink-0 items-center gap-1 text-sm font-semibold text-[color:var(--ink)]">
           <CaseCompareToggle caseId={item.id} />
@@ -209,6 +216,11 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
           />
         </span>
       </Link>
+      {item.tags.length > 0 ? (
+        <div className="px-4 pb-3.5">
+          <CaseRowTags tags={item.tags} />
+        </div>
+      ) : null}
     </li>
   );
 }
@@ -245,13 +257,19 @@ function TutorRequestsPage() {
     q: search.q,
     category: search.category,
     district: search.district,
+    tag: search.tag,
   });
   const [formOpen, setFormOpen] = useState(Boolean(initialPost));
   const [noticeOpen, setNoticeOpen] = useState(false);
   const formSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setDraft({ q: search.q, category: search.category, district: search.district });
+    setDraft({
+      q: search.q,
+      category: search.category,
+      district: search.district,
+      tag: search.tag,
+    });
   }, [search]);
 
   const setDraftParam = (patch: Partial<CasesSearchState>) => {
@@ -266,6 +284,9 @@ function TutorRequestsPage() {
         q: next.q,
         category: next.category,
         district: next.district,
+        // Issue #311: keep the active tag filter when the search bar is
+        // applied — tag ANDs with q/category/district.
+        tag: search.tag,
       },
     });
   };
