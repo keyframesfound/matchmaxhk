@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
@@ -40,7 +40,9 @@ export const Route = createFileRoute("/notes/$slug")({
   }),
   loader: async ({ params }) => {
     const note = await getPublicNote({ data: { slug: params.slug } });
-    if (!note) throw new Error("404");
+    // Render the 404 page (matches tutors.$tutorCode / tutor-requests.$caseCode)
+    // — a bare Error would surface as HTTP 500 on prod for any bogus slug.
+    if (!note) throw notFound();
     return { note };
   },
   component: NotePage,
