@@ -112,13 +112,16 @@ function rowTitle(item: PublicCaseBoardItem): string {
  * the row Link covering the card content and these chips as siblings.
  */
 function CaseRowTags({ tags }: { tags: string[] }) {
+  // Issue #311 review: setting the tag filter keeps the other active
+  // filters (q/category/district) so tag ANDs with the rest of the search.
+  const { q, category, district } = Route.useSearch();
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {tags.map((tag) => (
         <Link
           key={tag}
           to="/tutor-requests"
-          search={{ tag }}
+          search={{ q, category, district, tag }}
           aria-label={`Show cases tagged ${tag}`}
           className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
         >
