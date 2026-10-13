@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Hash, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -33,6 +33,7 @@ import {
   getSubjectOptionsForCurriculum,
 } from "@/features/cases/case-options";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
+import { PRESET_PROFILE_TAGS } from "@/features/tutors/profile-tags";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
@@ -97,6 +98,9 @@ type FormState = {
   budgetMax: string;
   tutorBackground: string;
   notes: string;
+  // Issue #311: parent-picked preset tags (max 5) — merged with the derived
+  // requirement tags server-side by mergeCaseTags.
+  tags: string[];
   termsAgreed: boolean;
 };
 
@@ -125,8 +129,13 @@ const INITIAL_FORM: FormState = {
   budgetMax: "",
   tutorBackground: "any",
   notes: "",
+  tags: [],
   termsAgreed: false,
 };
+
+/** Issue #311: the preset tag seeds shown as one-tap chips on the case form
+ * (same vocabulary as tutor profile tags). */
+const CASE_TAG_OPTIONS: string[] = [...PRESET_PROFILE_TAGS];
 
 type CaseRequestFormProps = {
   idPrefix?: string;
@@ -176,7 +185,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           INSTRUCTION_LANGUAGE_OPTIONS.some((o) => o.value === v),
         )
       : [];
-    setForm((prev) => ({ ...prev, ...restored, instructionLanguage: languages }));
+    // Issue #311: drafts saved before tags existed have no tags array.
+    const tags = Array.isArray(restored.tags) ? restored.tags : [];
+    setForm((prev) => ({ ...prev, ...restored, instructionLanguage: languages, tags }));
   }, [restored]);
 
   const isBlankDraft = (value: FormState) =>
@@ -352,6 +363,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           tutorBackground: (form.tutorBackground || "any") as
             "uni_student" | "official_examiner" | "any",
           notes: form.notes.trim() || null,
+          tags: form.tags,
           termsAck: form.termsAgreed,
           website: honeypot.current?.value || null,
           elapsedMs: Date.now() - startedAt.current,
@@ -1072,6 +1084,47 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 value={form.notes}
                 onChange={(e) => update({ notes: e.target.value })}
               />
+            </div>
+            {/* Issue #311: preset tags as chips — one tap adds it, one tap on
+                a saved chip removes it. Optional; typing stays on the notes
+                field. Tutors search this vocabulary on /tutors. */}
+            <div className="sm:col-span-2">
+              <span className={labelClassName}>Tags (Optional)</span>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {CASE_TAG_OPTIONS.map((tag) => {
+                  const active = form.tags.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() =>
+                        update({
+                          tags: active
+                            ? form.tags.filter((item) => item !== tag)
+                            : form.tags.length < 5
+                              ? [...form.tags, tag]
+                              : form.tags,
+                        })
+                      }
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+                        active
+                          ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 text-[color:var(--ink)]"
+                          : "border-border text-muted-foreground hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)]",
+                      )}
+                    >
+                      <Hash className="h-3 w-3" aria-hidden="true" />
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
+              {form.tags.length >= 5 ? (
+                <p className="mt-1.5 text-xs font-medium text-muted-foreground">
+                  Maximum of 5 tags.
+                </p>
+              ) : null}
             </div>
           </>
         ) : null}

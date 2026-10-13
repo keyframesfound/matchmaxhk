@@ -72,8 +72,9 @@ import {
   getSubjectOptionsForCategory,
 } from "@/features/tutors/subjects";
 import { getCurriculumGroupLabel, getTutorSubjectGroups } from "@/features/tutors/tutor-display";
-import { parseProfileTags } from "@/features/tutors/profile-tags";
+import { parseProfileTags, popularProfileTags } from "@/features/tutors/profile-tags";
 import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
+import { fetchPublishedTutors } from "@/features/tutors/queries";
 import { supabase } from "@/integrations/supabase/client";
 import {
   IA_EE_TOK_SUPPORT_OPTIONS,
@@ -1069,6 +1070,15 @@ export function TutorEditor({
     () => getTutorSubjectGroups({ subjects: form.subjects, exam_results: form.exam_results }),
     [form.subjects, form.exam_results],
   );
+
+  // Issue #311: tags used by 3+ tutors, with counts, for the tag editor's
+  // type-ahead suggestions.
+  const tagSuggestionsQuery = useQuery({
+    queryKey: ["tutors", "tag-suggestions"],
+    queryFn: fetchPublishedTutors,
+    select: (tutors) => popularProfileTags(tutors),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const applyAutofill = (result: TutorAutofillResult) => {
     const snapshot = form;
@@ -2181,8 +2191,9 @@ export function TutorEditor({
                 />
               </FormField>
 
-              {/* Issue #217: up to five free-text tags shown on the public
-                  card; the cap + contact-detail rule are in ProfileTagsField. */}
+              {/* Issue #217/#311: up to five free-text tags shown on the
+                  public card; the cap + contact-detail rule are in
+                  ProfileTagsField, which also suggests existing tags. */}
               <FormField
                 label="Profile Tags"
                 hint="Free-text search tags on the card (max 5, stored lowercase, no hash). Tags that look like phone numbers, emails, or handles are rejected."
@@ -2190,6 +2201,7 @@ export function TutorEditor({
                 <ProfileTagsField
                   tags={form.profile_tags}
                   onChange={(profile_tags) => setForm({ ...form, profile_tags })}
+                  suggestions={tagSuggestionsQuery.data}
                 />
               </FormField>
             </EditorSection>

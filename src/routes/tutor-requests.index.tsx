@@ -7,6 +7,7 @@ import {
   BadgeCheck,
   CalendarClock,
   Clock,
+  Hash,
   Inbox,
   MapPin,
   SearchX,
@@ -40,20 +41,38 @@ import {
   useCaseCompare,
 } from "@/features/cases/compare-cases";
 import { CASE_MODE_LABEL, formatCaseBudgetHkd, formatCaseSchedule } from "@/features/cases/display";
+import { normalizeProfileTag } from "@/features/tutors/profile-tags";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
 export const Route = createFileRoute("/tutor-requests/")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { post?: true; q?: string; category?: string; district?: string; open?: true } => {
-    const result: { post?: true; q?: string; category?: string; district?: string; open?: true } =
-      {};
+  ): {
+    post?: true;
+    q?: string;
+    category?: string;
+    district?: string;
+    tag?: string;
+    open?: true;
+  } => {
+    const result: {
+      post?: true;
+      q?: string;
+      category?: string;
+      district?: string;
+      tag?: string;
+      open?: true;
+    } = {};
     if (search.post === "1" || search.post === true || search.post === "true") result.post = true;
     if (typeof search.q === "string" && search.q.trim()) result.q = search.q;
     if (typeof search.category === "string" && search.category.trim())
       result.category = search.category;
     if (typeof search.district === "string" && search.district.trim())
       result.district = search.district;
+    // Issue #311: tag filter shares the tutor-tag vocabulary and its
+    // normalization, so ?tag=ia-review and ?tag=ia review hit the same cases.
+    if (typeof search.tag === "string" && search.tag.trim())
+      result.tag = normalizeProfileTag(search.tag);
     if (search.open === "1" || search.open === "true" || search.open === true) result.open = true;
     return result;
   },
@@ -115,6 +134,7 @@ function caseSectionLabel(section: string): string {
 
 function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
   const { pills, overflow } = casePillsForCard(item);
+  const navigate = useNavigate();
   return (
     <li>
       <Link
@@ -156,6 +176,26 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
                   +{overflow} more requirement{overflow === 1 ? "" : "s"}
                 </span>
               ) : null}
+            </div>
+          ) : null}
+          {item.tags.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {item.tags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    void navigate({ to: "/tutor-requests", search: { tag } });
+                  }}
+                  aria-label={`Show cases tagged ${tag}`}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                >
+                  <Hash className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  {tag}
+                </button>
+              ))}
             </div>
           ) : null}
         </div>
@@ -244,9 +284,13 @@ function TutorRequestsPage() {
 
   const filteredCases = useMemo(() => {
     const query = (search.q ?? "").trim().toLowerCase();
+    // Issue #311: ?tag= is an exact-match filter on the case's stored tags,
+    // mirroring the /tutors tag filter.
+    const tagFilter = search.tag ? normalizeProfileTag(search.tag) : "";
     return cases.filter((item) => {
       if (search.category && caseSectionKey(item.examSystem) !== search.category) return false;
       if (search.district && item.district !== search.district) return false;
+      if (tagFilter && !(item.tags ?? []).includes(tagFilter)) return false;
       if (query) {
         const haystack = [
           item.title,
@@ -324,7 +368,7 @@ function TutorRequestsPage() {
     }));
   }, [filteredCases]);
 
-  const hasActiveFilters = Boolean(search.q || search.category || search.district);
+  const hasActiveFilters = Boolean(search.q || search.category || search.district || search.tag);
 
   const compactSegments = useCasesCompactSegments(draft);
 
@@ -460,6 +504,31 @@ function TutorRequestsPage() {
                   Real tutoring requests from Hong Kong parents. Open a case for the full details
                   and apply for the ones that fit your schedule.
                 </p>
+                {/* Issue #311: the active tag filter, one click to clear. */}
+                {search.tag ? (
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate({
+                          search: {
+                            post: initialPost,
+                            q: search.q,
+                            category: search.category,
+                            district: search.district,
+                          },
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                    >
+                      <Hash className="h-3 w-3" aria-hidden="true" />
+                      {search.tag}
+                      <span aria-hidden="true" className="text-[color:var(--ink)]/50">
+                        ×
+                      </span>
+                    </button>
+                  </div>
+                ) : null}
               </div>
 
               <div className="p-0 sm:p-2">
