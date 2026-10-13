@@ -17,6 +17,9 @@ export type CasesSearchState = {
   q?: string;
   category?: string;
   district?: string;
+  /** Issue #311: active tag filter. Lives on the route, not the search
+   * bar draft — applySearch preserves it, clearSearch clears it. */
+  tag?: string;
 };
 
 type CasesSearchProps = {

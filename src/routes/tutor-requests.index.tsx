@@ -7,6 +7,7 @@ import {
   BadgeCheck,
   CalendarClock,
   Clock,
+  Hash,
   Inbox,
   MapPin,
   SearchX,
@@ -40,20 +41,38 @@ import {
   useCaseCompare,
 } from "@/features/cases/compare-cases";
 import { CASE_MODE_LABEL, formatCaseBudgetHkd, formatCaseSchedule } from "@/features/cases/display";
+import { normalizeProfileTag } from "@/features/tutors/profile-tags";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
 export const Route = createFileRoute("/tutor-requests/")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { post?: true; q?: string; category?: string; district?: string; open?: true } => {
-    const result: { post?: true; q?: string; category?: string; district?: string; open?: true } =
-      {};
+  ): {
+    post?: true;
+    q?: string;
+    category?: string;
+    district?: string;
+    tag?: string;
+    open?: true;
+  } => {
+    const result: {
+      post?: true;
+      q?: string;
+      category?: string;
+      district?: string;
+      tag?: string;
+      open?: true;
+    } = {};
     if (search.post === "1" || search.post === true || search.post === "true") result.post = true;
     if (typeof search.q === "string" && search.q.trim()) result.q = search.q;
     if (typeof search.category === "string" && search.category.trim())
       result.category = search.category;
     if (typeof search.district === "string" && search.district.trim())
       result.district = search.district;
+    // Issue #311: tag filter shares the tutor-tag vocabulary and its
+    // normalization, so ?tag=ia-review and ?tag=ia review hit the same cases.
+    if (typeof search.tag === "string" && search.tag.trim())
+      result.tag = normalizeProfileTag(search.tag);
     if (search.open === "1" || search.open === "true" || search.open === true) result.open = true;
     return result;
   },
@@ -86,6 +105,34 @@ function rowTitle(item: PublicCaseBoardItem): string {
   return item.subjects.filter(Boolean).slice(0, 2).join(", ") || item.title;
 }
 
+/**
+ * Issue #311: tag chips on a board row. Rendered OUTSIDE the row's
+ * `<Link>` — a `<button>` nested in a link is invalid HTML and breaks
+ * keyboard/SR behavior, so the row renders as a non-link container with
+ * the row Link covering the card content and these chips as siblings.
+ */
+function CaseRowTags({ tags }: { tags: string[] }) {
+  // Issue #311 review: setting the tag filter keeps the other active
+  // filters (q/category/district) so tag ANDs with the rest of the search.
+  const { q, category, district } = Route.useSearch();
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {tags.map((tag) => (
+        <Link
+          key={tag}
+          to="/tutor-requests"
+          search={{ q, category, district, tag }}
+          aria-label={`Show cases tagged ${tag}`}
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+        >
+          <Hash className="h-3 w-3 shrink-0" aria-hidden="true" />
+          {tag}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 const CASE_SECTION_ORDER = [
   "IB",
   "DSE",
@@ -116,7 +163,10 @@ function caseSectionLabel(section: string): string {
 function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
   const { pills, overflow } = casePillsForCard(item);
   return (
-    <li>
+    <li className="relative">
+      {/* Row container is NOT a link (issue #311 review): the tag chips
+          below must not be nested interactive content. The Link covers the
+          card content; chips are siblings. */}
       <Link
         to="/tutor-requests/$caseCode"
         params={{ caseCode: item.caseCode }}
@@ -169,6 +219,11 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
           />
         </span>
       </Link>
+      {item.tags.length > 0 ? (
+        <div className="px-4 pb-3.5">
+          <CaseRowTags tags={item.tags} />
+        </div>
+      ) : null}
     </li>
   );
 }
@@ -205,13 +260,19 @@ function TutorRequestsPage() {
     q: search.q,
     category: search.category,
     district: search.district,
+    tag: search.tag,
   });
   const [formOpen, setFormOpen] = useState(Boolean(initialPost));
   const [noticeOpen, setNoticeOpen] = useState(false);
   const formSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setDraft({ q: search.q, category: search.category, district: search.district });
+    setDraft({
+      q: search.q,
+      category: search.category,
+      district: search.district,
+      tag: search.tag,
+    });
   }, [search]);
 
   const setDraftParam = (patch: Partial<CasesSearchState>) => {
@@ -226,6 +287,9 @@ function TutorRequestsPage() {
         q: next.q,
         category: next.category,
         district: next.district,
+        // Issue #311: keep the active tag filter when the search bar is
+        // applied — tag ANDs with q/category/district.
+        tag: search.tag,
       },
     });
   };
@@ -244,9 +308,13 @@ function TutorRequestsPage() {
 
   const filteredCases = useMemo(() => {
     const query = (search.q ?? "").trim().toLowerCase();
+    // Issue #311: ?tag= is an exact-match filter on the case's stored tags,
+    // mirroring the /tutors tag filter.
+    const tagFilter = search.tag ? normalizeProfileTag(search.tag) : "";
     return cases.filter((item) => {
       if (search.category && caseSectionKey(item.examSystem) !== search.category) return false;
       if (search.district && item.district !== search.district) return false;
+      if (tagFilter && !(item.tags ?? []).includes(tagFilter)) return false;
       if (query) {
         const haystack = [
           item.title,
@@ -324,7 +392,7 @@ function TutorRequestsPage() {
     }));
   }, [filteredCases]);
 
-  const hasActiveFilters = Boolean(search.q || search.category || search.district);
+  const hasActiveFilters = Boolean(search.q || search.category || search.district || search.tag);
 
   const compactSegments = useCasesCompactSegments(draft);
 
@@ -460,6 +528,31 @@ function TutorRequestsPage() {
                   Real tutoring requests from Hong Kong parents. Open a case for the full details
                   and apply for the ones that fit your schedule.
                 </p>
+                {/* Issue #311: the active tag filter, one click to clear. */}
+                {search.tag ? (
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate({
+                          search: {
+                            post: initialPost,
+                            q: search.q,
+                            category: search.category,
+                            district: search.district,
+                          },
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                    >
+                      <Hash className="h-3 w-3" aria-hidden="true" />
+                      {search.tag}
+                      <span aria-hidden="true" className="text-[color:var(--ink)]/50">
+                        ×
+                      </span>
+                    </button>
+                  </div>
+                ) : null}
               </div>
 
               <div className="p-0 sm:p-2">

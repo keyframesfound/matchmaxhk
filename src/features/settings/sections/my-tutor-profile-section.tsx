@@ -29,7 +29,8 @@ import {
   tutorToFormData,
   type TutorFormData,
 } from "@/features/tutors/admin/TutorEditor";
-import { fetchEducationValues, type Tutor } from "@/features/tutors/queries";
+import { fetchEducationValues, fetchPublishedTutors, type Tutor } from "@/features/tutors/queries";
+import { popularProfileTags } from "@/features/tutors/profile-tags";
 import {
   collectEducationValueSets,
   highSchoolEditorOptions,
@@ -93,6 +94,15 @@ export function MyTutorProfileSection() {
   const educationValuesQuery = useQuery({
     queryKey: ["tutors", "education-values"],
     queryFn: fetchEducationValues,
+  });
+
+  // Issue #311: tags used by 3+ tutors, for type-ahead suggestions with
+  // their tutor counts.
+  const tagSuggestionsQuery = useQuery({
+    queryKey: ["tutors", "tag-suggestions"],
+    queryFn: fetchPublishedTutors,
+    select: (tutors) => popularProfileTags(tutors),
+    staleTime: 5 * 60 * 1000,
   });
   const educationValues = React.useMemo(
     () => collectEducationValueSets(educationValuesQuery.data ?? []),
@@ -412,10 +422,12 @@ export function MyTutorProfileSection() {
             </p>
           </div>
 
-          {/* Issue #217: up to five free-text tags, shown on the public card. */}
+          {/* Issue #217/#311: up to five free-text tags, shown on the public
+              card. Type-ahead suggests existing tags with tutor counts. */}
           <ProfileTagsField
             tags={form.profile_tags}
             onChange={(profile_tags) => setForm({ ...form, profile_tags })}
+            suggestions={tagSuggestionsQuery.data}
           />
 
           <div className="grid gap-4 sm:grid-cols-2">

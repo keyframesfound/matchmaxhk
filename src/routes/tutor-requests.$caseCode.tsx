@@ -7,6 +7,7 @@ import {
   Check,
   Clock,
   GraduationCap,
+  Hash,
   MapPin,
   Share2,
   Wallet,
@@ -197,6 +198,22 @@ function CaseDetailPage() {
                         <CasePillBadge key={pill.key} pill={pill} />
                       ))}
                     </div>
+                  ))}
+                </div>
+              ) : null}
+              {item.tags.length > 0 ? (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="mr-1 text-xs font-medium text-muted-foreground">Tags:</span>
+                  {item.tags.map((tag) => (
+                    <Link
+                      key={tag}
+                      to="/tutor-requests"
+                      search={{ tag }}
+                      className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                    >
+                      <Hash className="h-3 w-3 shrink-0" aria-hidden="true" />
+                      {tag}
+                    </Link>
                   ))}
                 </div>
               ) : null}

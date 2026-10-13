@@ -417,18 +417,20 @@ function TutorsDirectory() {
                       <span className="text-xs text-muted-foreground">
                         {t("directory.popular_tags")}
                       </span>
-                      {popularTags.map((tag) => (
+                      {popularTags.map((item) => (
                         <button
-                          key={tag}
+                          key={item.tag}
                           type="button"
                           onClick={() => {
-                            setDraftParam({ tag });
-                            applySearch({ tag });
+                            setDraftParam({ tag: item.tag });
+                            applySearch({ tag: item.tag });
                           }}
                           className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
                         >
                           <Hash className="h-3 w-3" aria-hidden="true" />
-                          {tag}
+                          {item.tag}
+                          <span aria-hidden="true">·</span>
+                          <span>{item.count}</span>
                         </button>
                       ))}
                     </div>

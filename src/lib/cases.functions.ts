@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+
+import { mergeCaseTags } from "@/features/tutors/profile-tags";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { TARGET_PATHWAY_LABELS, TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
@@ -15,6 +17,11 @@ const CaseRequestInput = z
     // "Admissions" for the admissions path; the chosen curriculum otherwise.
     curriculum: z.string().trim().max(40).optional().nullable(),
     subjects: z.array(z.string().trim().min(1).max(120)).max(4),
+    // Issue #311: parent-picked preset tags, max five (the preset
+    // allowlist + dedupe/contact gating runs in mergeCaseTags at save
+    // time — one tag table shared with tutor profile tags; non-preset
+    // input from a crafted payload is dropped, never published).
+    tags: z.array(z.string().trim().min(1).max(30)).max(5).optional().nullable(),
     specificComponent: z.string().trim().max(80).optional().nullable(),
     instructionLanguage: z
       .array(z.enum(["english_only", "cantonese", "mandarin", "any"]))
@@ -318,7 +325,10 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       school_type: data.supportType === "subject_tutoring" ? data.schoolType || null : null,
       tutor_background: data.tutorBackground,
       language_of_instruction: instructionLanguageToDb(data.instructionLanguage),
-      tags: buildCaseTags(data),
+      // Issue #311: parent-picked preset tags first; derived requirement
+      // tags always survive (mergeCaseTags keeps them in full up to
+      // MAX_CASE_TAGS), so five parent picks never drop the subjects.
+      tags: mergeCaseTags(data.tags, buildCaseTags(data)),
       district: data.district || null,
       mode: MODE_TO_DB[data.mode] ?? "either",
       sessions_per_week: 1,
