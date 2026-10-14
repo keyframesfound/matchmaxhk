@@ -285,7 +285,10 @@
       "deletion_help": "為保障現有客戶嘅課堂安排，帳戶刪除會由我哋團隊喺 3-5 個工作天內處理，以確保所有現行配對費用同進行中嘅試堂個案已經結算。處理完成之後，你嘅資料將會被永久移除。",
       "deletion_submitting": "提交中…",
       "deletion_pending_badge": "已收到你嘅刪除申請——我哋團隊會喺 3-5 個工作天內處理",
-      "deletion_requested_toast": "已收到你嘅刪除申請——我哋團隊會聯絡你"
+      "deletion_requested_toast": "已收到你嘅刪除申請——我哋團隊會聯絡你",
+      "verified_lock_note": "已認證嘅導師無法自行修改學校、學位、公開試成績或成就宣稱 — 如需更改請聯絡 MatchMax 團隊，以保持你嘅認證徽章可信。",
+      "display_name": "顯示名稱",
+      "display_name_hint": "會喺你嘅公開導師卡上、導師編號旁邊顯示。"
     },
     "grid": {
       "title": "每週補習時間表",

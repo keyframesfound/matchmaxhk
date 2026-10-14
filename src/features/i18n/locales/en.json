@@ -285,7 +285,10 @@
       "deletion_help": "To protect active client bookings, account deletions are processed by our team within 3-5 business days to ensure all current matching fees and active trial cases are settled. Once processed, your data will be permanently removed.",
       "deletion_submitting": "Submitting…",
       "deletion_pending_badge": "Deletion request received — our team will process it within 3-5 business days",
-      "deletion_requested_toast": "Deletion request received — our team will be in touch"
+      "deletion_requested_toast": "Deletion request received — our team will be in touch",
+      "verified_lock_note": "Verified tutors can't edit school, degree, exam results, or achievement claims — ask the MatchMax team to change these (they keep your badge trustworthy).",
+      "display_name": "Preferred name",
+      "display_name_hint": "Shown on your public card next to your tutor code."
     },
     "grid": {
       "title": "Weekly availability grid",

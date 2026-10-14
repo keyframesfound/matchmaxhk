@@ -74,7 +74,11 @@ export function CapacityEditorFields({
     <div className="space-y-4">
       <div className="space-y-2">
         <Label className="text-[color:var(--ink)]">{t("settings.capacity.status_label")}</Label>
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("settings.capacity.status_label")}>
+        <div
+          className="flex flex-wrap gap-2"
+          role="radiogroup"
+          aria-label={t("settings.capacity.status_label")}
+        >
           {STATUS_OPTIONS.map((option) => (
             <button
               key={option.value}

@@ -286,6 +286,7 @@ BEGIN
   IF COALESCE(OLD.verification_tier, 'tier_1_standard') = 'tier_2_verified' THEN
     IF (NEW.secondary_school IS DISTINCT FROM OLD.secondary_school)
       OR (NEW.highschool IS DISTINCT FROM OLD.highschool)
+      OR (NEW.academic_headline IS DISTINCT FROM OLD.academic_headline)
       OR (NEW.undergrad_university IS DISTINCT FROM OLD.undergrad_university)
       OR (NEW.undergrad_degree IS DISTINCT FROM OLD.undergrad_degree)
       OR (NEW.undergrad_graduation_year IS DISTINCT FROM OLD.undergrad_graduation_year)
