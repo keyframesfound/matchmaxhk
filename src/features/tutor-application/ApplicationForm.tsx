@@ -1125,7 +1125,14 @@ export function ApplicationForm() {
   // change, but only while the tutor has not manually edited it (dirty flag).
   useEffect(() => {
     if (headlineDirty) return;
-    setAcademicHeadline(buildAcademicHeadline(qualifications));
+    setAcademicHeadline(
+      buildAcademicHeadline(
+        qualifications.map((qualification) => ({
+          curriculum: qualification.curriculum,
+          score: qualification.overall,
+        })),
+      ),
+    );
   }, [qualifications, headlineDirty]);
 
   function changeStep(nextStep: number) {
