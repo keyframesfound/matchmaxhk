@@ -288,7 +288,29 @@
       "deletion_requested_toast": "已收到你嘅刪除申請——我哋團隊會聯絡你",
       "verified_lock_note": "已認證嘅導師無法自行修改學校、學位、公開試成績或成就宣稱 — 如需更改請聯絡 MatchMax 團隊，以保持你嘅認證徽章可信。",
       "display_name": "顯示名稱",
-      "display_name_hint": "會喺你嘅公開導師卡上、導師編號旁邊顯示。"
+      "display_name_hint": "會喺你嘅公開導師卡上、導師編號旁邊顯示。",
+      "rates_heading": "時薪",
+      "rates_online": "網上時薪（HK$）",
+      "rates_in_person": "面授時薪（HK$）",
+      "suggest_a_rate": "建議時薪",
+      "suggest_not_enough_data": "暫時未有足夠數據",
+      "rate_rows_label": "其他收費（選填）",
+      "rate_row_label": "項目",
+      "rate_row_rate": "收費（HK$）",
+      "add_rate_row": "新增收費",
+      "remove_rate_row": "移除收費",
+      "travel_note": "上門備註",
+      "travel_note_placeholder": "例如：兩個港鐵站內，毋須額外收費",
+      "travel_note_needs_in_person": "請先填寫面授時薪，才可新增上門備註",
+      "travel_note_max": "上門備註不可超過 80 字",
+      "rate_note_label": "有甚麼會影響這個收費？",
+      "rate_note_placeholder": "例如：首堂半價",
+      "rate_note_max": "收費備註不可超過 120 字",
+      "rate_invalid_online": "網上時薪必須是 $50 至 $3,000 之間的整數",
+      "rate_invalid_in_person": "面授時薪必須是 $50 至 $3,000 之間的整數",
+      "rate_last_required": "兩個基本時薪至少須保留一個——只清除你想修改嘅一項，唔好兩項都清",
+      "academic_headline_max": "學術標題不可超過 40 字",
+      "academic_headline_auto_hint": "根據你嘅考試成績自動產生——只要你未曾自行修改，就會自動更新。"
     },
     "grid": {
       "title": "每週補習時間表",
@@ -665,7 +687,25 @@
     "success_title": "已收到申請",
     "success_message": "感謝你申請加入 MatchMax。我哋會逐一審閱申請，如有合適個案會以電郵或 WhatsApp 聯絡你。",
     "back_home": "返回首頁",
-    "browse_tutors": "瀏覽導師"
+    "browse_tutors": "瀏覽導師",
+    "academics": {
+      "headline": "學術標題",
+      "headline_hint": "系統根據上方課程及成績自動填寫——你可自行輸入修改；清空後點選其他欄位即會重新帶出建議。"
+    },
+    "rates": {
+      "online": "網上授課時薪（港幣）",
+      "in_person": "面授時薪（港幣）",
+      "invalid": "請輸入 50 至 3000 之間的整數",
+      "travel_note": "交通備註",
+      "travel_note_hint": "會顯示在你的面授收費旁，例如「只到九龍及港島區上課」。",
+      "rate_note": "有沒有影響此收費的條件？",
+      "rate_note_hint": "選填——一行即可，例如「車程超過 30 分鐘加 HK$100」。",
+      "rows_label": "額外收費項目",
+      "rows_hint": "選填——最多 {{max}} 項，例如小組班或假期精讀班收費。兩個欄位都填寫才會儲存。",
+      "row_label": "項目名稱",
+      "row_rate": "收費（港幣）",
+      "add_row": "新增收費項目"
+    }
   },
   "materials": {
     "section_title": "📚 溫習筆記",
@@ -802,7 +842,10 @@
     "claim_banner": {
       "text": "呢張係你嘅導師卡？認領之後就可以編輯你嘅公開檔案。",
       "cta": "認領呢張卡"
-    }
+    },
+    "section_rates": "收費",
+    "rates_online": "網上",
+    "rates_inperson": "實體"
   },
   "tutor_card": {
     "verified_fallback": "學術資料已核實",

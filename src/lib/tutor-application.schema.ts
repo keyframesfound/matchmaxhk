@@ -1,6 +1,16 @@
 import { z } from "zod";
 
 import { contactFilterError } from "@/lib/contact-filter";
+import {
+  MAX_RATE_ROWS,
+  RATE_MAX,
+  RATE_MIN,
+  RATE_NOTE_MAX,
+  RATE_ROW_LABEL_MAX,
+  TRAVEL_NOTE_MAX,
+  normalizeTutorRateRows,
+} from "@/features/tutors/rates";
+import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
 
 export const MAX_FILES = 5;
 export const MAX_ACHIEVEMENT_FILE_BYTES = 5 * 1024 * 1024;
@@ -163,7 +173,23 @@ export const tutorApplicationSchema = z
     highSchool: z.string().trim().min(1, "Required").max(200),
     curriculum: z.enum(CURRICULUM_OPTIONS),
     curricula: z.array(z.enum(CURRICULUM_OPTIONS)).min(1, "Select at least one curriculum"),
-    overallScore: z.string().trim().min(1, "Required").max(200),
+    // Issue #323: overall score is strictly OPTIONAL — tutors select a
+    // curriculum and may leave the score blank ("spiky" specialists).
+    overallScore: z.string().trim().max(200).optional().default(""),
+    // Issue #323: required smart headline (<= 40 chars, contact-filtered),
+    // auto-filled from the qualifications but editable; see academic-headline.ts.
+    academicHeadline: z
+      .string()
+      .trim()
+      .min(1, "Required")
+      .max(
+        MAX_ACADEMIC_HEADLINE,
+        `Keep the headline to ${MAX_ACADEMIC_HEADLINE} characters or fewer`,
+      )
+      .superRefine((text, ctx) => {
+        const error = contactFilterError(text);
+        if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+      }),
     subjectsConfident: z.string().trim().min(1, "Required").max(2000),
     subjectResults: z.string().trim().min(1, "Required").max(2000),
     awards: z.string().trim().max(2000).optional().default(""),
@@ -188,7 +214,48 @@ export const tutorApplicationSchema = z
         const error = contactFilterError(text);
         if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
       }),
-    hourlyRate: z.string().trim().min(1, "Required").max(20),
+    // Issue #319: the single "Proposed Hourly Rate" input is replaced by two
+    // base rates (whole HK dollars, 50-3000). Which one is required follows
+    // the lesson format — see the superRefine below. The legacy hourlyRate is
+    // no longer collected; tutor-application.functions.ts derives it as the
+    // Math.min of the two base rates before the application row is stored.
+    hourlyRate: z.string().trim().max(20).optional().default(""),
+    onlineRate: z.number().int().min(RATE_MIN).max(RATE_MAX).nullable().default(null),
+    inpersonRate: z.number().int().min(RATE_MIN).max(RATE_MAX).nullable().default(null),
+    // Extra rate rows (profile-only): lenient shape here — the same shared
+    // rules as the form run in superRefine, and functions.ts stores the
+    // normalized output (half-filled/invalid rows never reach the row).
+    rateRows: z
+      .array(
+        z.object({
+          label: z.string().trim().max(RATE_ROW_LABEL_MAX),
+          rate: z.union([z.number(), z.string()]),
+        }),
+      )
+      .max(MAX_RATE_ROWS)
+      .default([]),
+    // Issue #319: optional travel note, only filled when teaching in person.
+    travelNote: z
+      .string()
+      .trim()
+      .max(TRAVEL_NOTE_MAX)
+      .optional()
+      .default("")
+      .superRefine((text, ctx) => {
+        const error = contactFilterError(text);
+        if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+      }),
+    // Issue #319: one optional line about anything that changes the rate.
+    rateNote: z
+      .string()
+      .trim()
+      .max(RATE_NOTE_MAX)
+      .optional()
+      .default("")
+      .superRefine((text, ctx) => {
+        const error = contactFilterError(text);
+        if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+      }),
     // Issue #108: per-curriculum pricing tiers. standardize=true means one flat
     // rate across all curricula; false = explicit {curriculum, rate} rows (the
     // schema only enforces shape — blank rates are backfilled to the lowest
@@ -228,6 +295,43 @@ export const tutorApplicationSchema = z
   })
   .superRefine((data, context) => {
     const isProfessional = data.status === PROFESSIONAL_STATUS;
+
+    // Issue #319: base-rate requirements follow the lesson format. At least
+    // one base rate is always required because `format` is mandatory.
+    if (data.format === "Online" && data.onlineRate === null) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["onlineRate"], message: "Required" });
+    }
+    if (data.format === "Face to face" && data.inpersonRate === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["inpersonRate"],
+        message: "Required",
+      });
+    }
+    if (data.format === "Both") {
+      if (data.onlineRate === null) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["onlineRate"],
+          message: "Required",
+        });
+      }
+      if (data.inpersonRate === null) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["inpersonRate"],
+          message: "Required",
+        });
+      }
+    }
+    // Extra rate rows run the exact same shared rules as the form: a row saves
+    // only when BOTH label and rate are filled; half-filled rows are rejected.
+    const rateRowCheck = normalizeTutorRateRows(data.rateRows);
+    if (!rateRowCheck.ok) {
+      for (const message of rateRowCheck.errors) {
+        context.addIssue({ code: z.ZodIssueCode.custom, path: ["rateRows"], message });
+      }
+    }
 
     if (!isProfessional && !data.year) {
       context.addIssue({
@@ -419,7 +523,8 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     { label: "High school and graduation year", value: data.highSchool },
     { label: "Primary curriculum", value: data.curriculum },
     { label: "Curricula completed", value: data.curricula.join(", ") },
-    { label: "Overall achieved score", value: data.overallScore },
+    { label: "Academic headline", value: data.academicHeadline },
+    { label: "Overall achieved score", value: data.overallScore || "—" },
     { label: "Subjects and levels confident teaching", value: data.subjectsConfident },
     { label: "Relevant subject results / academic strengths", value: data.subjectResults },
     { label: "Awards / scholarships / achievements", value: data.awards || "—" },
@@ -451,7 +556,22 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     { label: "Teaching / tutoring experience", value: data.experience },
     { label: "Self-introduction", value: data.selfIntroduction || "—" },
     { label: "Profile photo", value: data.profilePhoto?.filename ?? "—" },
-    { label: "Normal hourly rate (HKD)", value: data.hourlyRate },
+    { label: "Normal hourly rate (HKD)", value: data.hourlyRate || "—" },
+    // Issue #319: the two base rates plus the profile-only extras.
+    {
+      label: "Online hourly rate (HKD)",
+      value: data.onlineRate === null ? "—" : `HK$${data.onlineRate}`,
+    },
+    {
+      label: "In-person hourly rate (HKD)",
+      value: data.inpersonRate === null ? "—" : `HK$${data.inpersonRate}`,
+    },
+    {
+      label: "Extra rate rows",
+      value: data.rateRows.map((row) => `${row.label}: HK$${row.rate}`).join("\n") || "—",
+    },
+    { label: "Travel note", value: data.travelNote || "—" },
+    { label: "Rate note", value: data.rateNote || "—" },
     {
       label: "Pricing (issue #108)",
       value: formatApplicationPricing(data),

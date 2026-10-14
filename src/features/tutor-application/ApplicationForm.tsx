@@ -44,6 +44,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { REFERRAL_CODE_PATTERN, readStoredReferralCode } from "@/lib/referral";
 import { contactFilterError } from "@/lib/contact-filter";
+import {
+  MAX_ACADEMIC_HEADLINE,
+  academicHeadlineError,
+  buildAcademicHeadline,
+} from "@/lib/academic-headline";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
@@ -93,6 +98,16 @@ import {
   TEACHING_CURRICULA,
   getSubjectOptionsForCategory,
 } from "@/features/tutors/subjects";
+import {
+  MAX_RATE_ROWS,
+  RATE_MAX,
+  RATE_MIN,
+  RATE_NOTE_MAX,
+  RATE_ROW_LABEL_MAX,
+  TRAVEL_NOTE_MAX,
+  isValidTutorRate,
+  normalizeTutorRateRows,
+} from "@/features/tutors/rates";
 
 type ScoreRow = {
   subject: string;
@@ -306,7 +321,11 @@ const FIELD_LABELS: Record<string, string> = {
   subjectsTaught: "Subjects Willing to Teach",
   format: "Mode of Lesson",
   stations: "Possible Teaching Locations (MTR Network)",
-  hourlyRate: "Proposed Hourly Rate",
+  onlineRate: "Online hourly rate (HKD)",
+  inpersonRate: "In-person hourly rate (HKD)",
+  rateRows: "Extra rate rows",
+  travelNote: "Travel note",
+  rateNote: "Rate note",
   materials: "Teaching materials",
   commission: "Commission acknowledgment (final step)",
   privacy: "Privacy consent (final step)",
@@ -904,7 +923,13 @@ type ApplicationBaseState = {
   portfolioImages: File[];
   portfolioConsent: boolean;
   selfIntroduction: string;
-  hourlyRate: string;
+  // Issue #319: two base rates (whole dollars) replace the single
+  // "Proposed Hourly Rate" input; rows/notes are profile-only extras.
+  onlineRate: string;
+  inpersonRate: string;
+  rateRows: { label: string; rate: string }[];
+  travelNote: string;
+  rateNote: string;
   // Issue #191: how many students the tutor can take on, surfaced on the
   // Logistics step and passed through to the admin application email.
   maxStudents: string;
@@ -924,6 +949,9 @@ type ApplicationDraft = {
   boards: string[];
   credentials: string[];
   qualifications: Qualification[];
+  // Issue #323: smart headline + whether the tutor has manually edited it.
+  academicHeadline: string;
+  headlineDirty: boolean;
 };
 
 export function ApplicationForm() {
@@ -993,7 +1021,11 @@ export function ApplicationForm() {
     portfolioImages: [] as File[],
     portfolioConsent: false,
     selfIntroduction: "",
-    hourlyRate: "",
+    onlineRate: "",
+    inpersonRate: "",
+    rateRows: [] as { label: string; rate: string }[],
+    travelNote: "",
+    rateNote: "",
     maxStudents: "",
     pricingStandardized: true,
     pricingTiers: [],
@@ -1011,6 +1043,11 @@ export function ApplicationForm() {
   // only; it narrows the suggestion list, never the submitted selection.
   const [taughtCurriculum, setTaughtCurriculum] = useState("");
   const [qualifications, setQualifications] = useState<Qualification[]>([blankQualification()]);
+  // Issue #323: smart headline + manual-edit (dirty) flag. Auto-filled from
+  // the qualifications while pristine; a manual keystroke freezes it, and
+  // clearing the field on blur unfreezes it (see the effect + input handlers).
+  const [academicHeadline, setAcademicHeadline] = useState("");
+  const [headlineDirty, setHeadlineDirty] = useState(false);
   const professional = base.status === PROFESSIONAL_STATUS;
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
@@ -1032,6 +1069,29 @@ export function ApplicationForm() {
     ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(whatsappGreeting)}`
     : "";
 
+  // Lowest filled base rate, used as the per-curriculum pricing placeholder.
+  const filledBaseRates = [base.onlineRate, base.inpersonRate]
+    .map((rate) => Number(rate))
+    .filter((rate) => Number.isFinite(rate) && rate > 0);
+  const rateFloor = filledBaseRates.length ? String(Math.min(...filledBaseRates)) : "";
+
+  function updateRateRow(index: number, patch: Partial<{ label: string; rate: string }>) {
+    setBaseField(
+      "rateRows",
+      base.rateRows.map((row, rowIndex) => (rowIndex === index ? { ...row, ...patch } : row)),
+    );
+  }
+  function addRateRow() {
+    if (base.rateRows.length >= MAX_RATE_ROWS) return;
+    setBaseField("rateRows", [...base.rateRows, { label: "", rate: "" }]);
+  }
+  function removeRateRow(index: number) {
+    setBaseField(
+      "rateRows",
+      base.rateRows.filter((_, rowIndex) => rowIndex !== index),
+    );
+  }
+
   const {
     restored: restoredDraft,
     savedAt: draftSavedAt,
@@ -1039,10 +1099,17 @@ export function ApplicationForm() {
     clearDraft,
   } = useFormDraft<ApplicationDraft>("tutor-application");
   const draftAppliedRef = useRef(false);
+  // Issue #323 review: when a draft restores, the headline-autofill effect can
+  // still fire in the SAME effect flush against pre-restore state (dirty flag
+  // still false) and queue a setAcademicHeadline(build(oldQuals)) that lands
+  // AFTER the restored value — freezing the wrong headline. Suppress that one
+  // pass; the next pass runs against the restored state and honours the flag.
+  const skipHeadlineAutofillRef = useRef(false);
 
   useEffect(() => {
     if (!restoredDraft) return;
     draftAppliedRef.current = true;
+    skipHeadlineAutofillRef.current = true;
     setBase((prev) => ({
       ...prev,
       ...restoredDraft.base,
@@ -1064,6 +1131,10 @@ export function ApplicationForm() {
           scores: Array.isArray(qualification.scores) ? qualification.scores : [],
         })),
       );
+    }
+    if (typeof restoredDraft.academicHeadline === "string") {
+      setAcademicHeadline(restoredDraft.academicHeadline);
+      setHeadlineDirty(Boolean(restoredDraft.headlineDirty));
     }
     if (
       typeof restoredDraft.step === "number" &&
@@ -1092,8 +1163,40 @@ export function ApplicationForm() {
         ...qualification,
         transcript: null,
       })),
+      academicHeadline,
+      headlineDirty,
     });
-  }, [restoredDraft, saveDraft, step, base, roles, boards, credentials, qualifications]);
+  }, [
+    restoredDraft,
+    saveDraft,
+    step,
+    base,
+    roles,
+    boards,
+    credentials,
+    qualifications,
+    academicHeadline,
+    headlineDirty,
+  ]);
+
+  // Issue #323: regenerate the smart headline whenever the qualifications
+  // change, but only while the tutor has not manually edited it (dirty flag).
+  useEffect(() => {
+    // Skip the pass queued against pre-restore state (see the ref above).
+    if (skipHeadlineAutofillRef.current) {
+      skipHeadlineAutofillRef.current = false;
+      return;
+    }
+    if (headlineDirty) return;
+    setAcademicHeadline(
+      buildAcademicHeadline(
+        qualifications.map((qualification) => ({
+          curriculum: qualification.curriculum,
+          score: qualification.overall,
+        })),
+      ),
+    );
+  }, [qualifications, headlineDirty]);
 
   function changeStep(nextStep: number) {
     shouldScrollToStepper.current = true;
@@ -1383,11 +1486,16 @@ export function ApplicationForm() {
         required("studentCard", base.studentCard);
         qualifications.forEach((qualification, index) => {
           required(`curriculum-${index}`, qualification.curriculum);
-          required(`overall-${index}`, qualification.overall.trim());
+          // Issue #323: overall score is optional — never block on a blank.
           if (["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum))
             required(`boards-${index}`, qualification.boards);
         });
       }
+      // Issue #323: the headline is required for every path; the shared helper
+      // enforces required + max 40 + contact filter in one place (mirrored
+      // server-side in the submit schema), per review FE note.
+      const headlineError = academicHeadlineError(academicHeadline);
+      if (headlineError) next.academicHeadline = headlineError;
     }
     const subjectStep = professional ? 3 : 2;
     if (step === subjectStep) {
@@ -1396,7 +1504,7 @@ export function ApplicationForm() {
         qualifications.forEach((qualification, qualificationIndex) =>
           qualification.scores.forEach((score, scoreIndex) => {
             required(`subject-${qualificationIndex}-${scoreIndex}`, score.subject);
-            required(`grade-${qualificationIndex}-${scoreIndex}`, score.grade);
+            // Issue #323: the grade is optional — only the subject is required.
           }),
         );
     }
@@ -1421,7 +1529,29 @@ export function ApplicationForm() {
     }
     const logisticsStep = professional ? 6 : 6;
     if (step === logisticsStep) {
-      required("hourlyRate", base.hourlyRate.trim());
+      // Issue #319: two base rates replace the single proposed rate. Which
+      // fields are required follows the lesson format; every entered rate
+      // must be a whole dollar amount between RATE_MIN and RATE_MAX.
+      const checkRate = (key: string, raw: string) => {
+        if (!raw) {
+          next[key] = "Required";
+        } else if (!isValidTutorRate(Number(raw))) {
+          next[key] = t("join.rates.invalid");
+        }
+      };
+      if (base.format !== "Face to face") checkRate("onlineRate", base.onlineRate.trim());
+      if (base.format !== "Online") checkRate("inpersonRate", base.inpersonRate.trim());
+      // Extra rate rows: same shared rules as the server (a row saves only
+      // when BOTH label and rate are filled; empty rows are dropped).
+      const rateRowCheck = normalizeTutorRateRows(base.rateRows);
+      if (!rateRowCheck.ok) next.rateRows = rateRowCheck.errors.join(" ");
+      // Travel note only exists when the in-person rate is set.
+      if (base.inpersonRate.trim() !== "") {
+        const travelError = contactFilterError(base.travelNote);
+        if (travelError) next.travelNote = travelError;
+      }
+      const rateNoteError = contactFilterError(base.rateNote);
+      if (rateNoteError) next.rateNote = rateNoteError;
       // Issue #108: with Standardize off, at least one curriculum rate must be
       // filled in and every rate entered must be a positive number.
       if (!base.pricingStandardized) {
@@ -1546,7 +1676,9 @@ export function ApplicationForm() {
                 const paperText = papers.length
                   ? ` (${papers.map((paper) => `${paper.label}: ${paper.score.trim()}`).join(", ")})`
                   : "";
-                return `${score.subject}: ${score.grade}${paperText}`;
+                // Issue #323: grade is optional — render "[Subject] - [Grade]"
+                // when filled, just "[Subject]" otherwise.
+                return `${score.subject}${score.grade ? ` - ${score.grade}` : ""}${paperText}`;
               })
               .join("\n")}`,
         )
@@ -1592,6 +1724,7 @@ export function ApplicationForm() {
         curriculum: primary.curriculum,
         curricula: qualifications.map((qualification) => qualification.curriculum),
         overallScore: professional ? "Not applicable - professional pathway" : primary.overall,
+        academicHeadline: academicHeadline.trim(),
         subjectsConfident: selectedTeachingSubjects.join(", "),
         subjectResults: professional
           ? `Professional subjects: ${selectedTeachingSubjects.join(", ")}\n${base.achievements.map((achievement) => achievement.description).join("\n")}`
@@ -1641,7 +1774,22 @@ export function ApplicationForm() {
           .map((achievement) => `${achievement.title}: ${achievement.description}`)
           .join("\n"),
         selfIntroduction: base.selfIntroduction,
-        hourlyRate: base.hourlyRate,
+        // Issue #319: two base rates + profile-only extras. hourlyRate is no
+        // longer collected — tutor-application.functions.ts derives it from
+        // the min of the two base rates before the row is stored.
+        onlineRate:
+          base.format !== "Face to face" && base.onlineRate.trim() !== ""
+            ? Number(base.onlineRate)
+            : null,
+        inpersonRate:
+          base.format !== "Online" && base.inpersonRate.trim() !== ""
+            ? Number(base.inpersonRate)
+            : null,
+        rateRows: base.rateRows
+          .filter((row) => row.label.trim() !== "" && row.rate.trim() !== "")
+          .map((row) => ({ label: row.label.trim(), rate: Number(row.rate) })),
+        travelNote: base.inpersonRate.trim() !== "" ? base.travelNote.trim() : "",
+        rateNote: base.rateNote.trim(),
         // Issue #108: per-curriculum pricing. Standardized (default) sends no
         // tiers; otherwise each row must name a distinct curriculum with a
         // positive integer rate (deduped here so the zod enum + DB stay clean).
@@ -2525,7 +2673,6 @@ export function ApplicationForm() {
                                     ? "Overall Achieved Score"
                                     : "Overall Achieved Grades"
                             }
-                            required
                             error={fieldErrors[`overall-${index}`]}
                           >
                             <Input
@@ -2746,6 +2893,30 @@ export function ApplicationForm() {
                     </Hint>
                   </div>
                 ) : null}
+              </div>
+              {/* Issue #323: required smart headline, auto-filled from the
+                  qualifications while pristine; manual edits freeze it. */}
+              <div className="mt-4">
+                <Field
+                  label="Academic Headline"
+                  required
+                  error={fieldErrors.academicHeadline}
+                  hint={`Auto-filled from your qualifications — edit freely. Shown on your public card (${MAX_ACADEMIC_HEADLINE} characters max).`}
+                >
+                  <Input
+                    maxLength={MAX_ACADEMIC_HEADLINE}
+                    value={academicHeadline}
+                    onChange={(event) => {
+                      setAcademicHeadline(event.target.value);
+                      setHeadlineDirty(true);
+                      if (fieldErrors.academicHeadline) clearFieldError("academicHeadline");
+                    }}
+                    onBlur={() => {
+                      if (academicHeadline.trim() === "") setHeadlineDirty(false);
+                    }}
+                    placeholder="e.g. IBDP 44/45 or HKDSE Tutor"
+                  />
+                </Field>
               </div>
               {/* Issue #188: legal-warning card removed by product decision. */}
             </>
@@ -3190,24 +3361,51 @@ export function ApplicationForm() {
           {step === 6 ? (
             <>
               <Heading step={professional ? 6 : 6} title="Logistics & Rate" />
+              {primary.curriculum === "IBDP" ? (
+                <Hint>
+                  Suggested recent graduate rates: 45/45 HK$500/hr, 43-44 HK$400/hr, 40-42
+                  HK$300-350/hr.
+                </Hint>
+              ) : primary.curriculum === "HKDSE" ? (
+                <Hint>
+                  Suggested DSE rates: high achievers HK$150-200/hr; premium HK$250-300/hr for top
+                  scorers, sought-after majors, or extensive experience.
+                </Hint>
+              ) : null}
+              {/* Issue #319: two base rates replace the single proposed rate.
+                  Whole dollars only (step=1 blocks decimals at the input);
+                  which field is required follows the lesson format. */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
-                  label="Proposed Hourly Rate (HKD)"
-                  required
-                  error={fieldErrors.hourlyRate}
-                  hint={
-                    primary.curriculum === "IBDP"
-                      ? "Suggested recent graduate rates: 45/45 HK$500/hr, 43-44 HK$400/hr, 40-42 HK$300-350/hr."
-                      : primary.curriculum === "HKDSE"
-                        ? "Suggested DSE rates: high achievers HK$150-200/hr; premium HK$250-300/hr for top scorers, sought-after majors, or extensive experience."
-                        : undefined
-                  }
+                  label={t("join.rates.online")}
+                  required={base.format !== "Face to face"}
+                  error={fieldErrors.onlineRate}
                 >
                   <Input
                     type="number"
-                    value={base.hourlyRate}
-                    onChange={(event) => setBaseField("hourlyRate", event.target.value)}
-                    placeholder="450"
+                    step={1}
+                    min={RATE_MIN}
+                    max={RATE_MAX}
+                    inputMode="numeric"
+                    value={base.onlineRate}
+                    onChange={(event) => setBaseField("onlineRate", event.target.value)}
+                    placeholder="250"
+                  />
+                </Field>
+                <Field
+                  label={t("join.rates.in_person")}
+                  required={base.format !== "Online"}
+                  error={fieldErrors.inpersonRate}
+                >
+                  <Input
+                    type="number"
+                    step={1}
+                    min={RATE_MIN}
+                    max={RATE_MAX}
+                    inputMode="numeric"
+                    value={base.inpersonRate}
+                    onChange={(event) => setBaseField("inpersonRate", event.target.value)}
+                    placeholder="350"
                   />
                 </Field>
                 <Field
@@ -3223,6 +3421,127 @@ export function ApplicationForm() {
                     invalid={Boolean(fieldErrors.materials)}
                   />
                 </Field>
+              </div>
+
+              {/* Issue #319: optional travel note — only meaningful when the
+                  tutor teaches in person. */}
+              {base.inpersonRate.trim() !== "" ? (
+                <Field
+                  label={t("join.rates.travel_note")}
+                  optional
+                  error={fieldErrors.travelNote}
+                  hint={t("join.rates.travel_note_hint")}
+                >
+                  <Input
+                    value={base.travelNote}
+                    maxLength={TRAVEL_NOTE_MAX}
+                    onChange={(event) => setBaseField("travelNote", event.target.value)}
+                    placeholder="Kowloon and Hong Kong Island only"
+                  />
+                </Field>
+              ) : null}
+
+              {/* Issue #319: one optional line about anything that changes the rate. */}
+              <Field
+                label={t("join.rates.rate_note")}
+                optional
+                error={fieldErrors.rateNote}
+                hint={t("join.rates.rate_note_hint")}
+              >
+                <Input
+                  value={base.rateNote}
+                  maxLength={RATE_NOTE_MAX}
+                  onChange={(event) => setBaseField("rateNote", event.target.value)}
+                  placeholder="+HK$100 for lessons over 30 minutes away"
+                />
+              </Field>
+
+              {/* Issue #319: optional extra rate rows (profile-only). A row
+                  saves only when BOTH the label and the rate are filled. */}
+              <div className="rounded-md border border-border p-4">
+                <p className="text-sm font-semibold text-foreground">
+                  {t("join.rates.rows_label")}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {t("join.rates.rows_hint", { max: MAX_RATE_ROWS })}
+                </p>
+                <div className="mt-3 grid gap-3">
+                  {base.rateRows.map((row, index) => (
+                    <div
+                      key={index}
+                      className="grid gap-2 rounded-sm border border-border/70 p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
+                    >
+                      <div className="grid gap-1.5">
+                        <Label
+                          htmlFor={`rate-row-label-${index}`}
+                          className="text-xs font-semibold text-foreground"
+                        >
+                          {t("join.rates.row_label")}
+                        </Label>
+                        <Input
+                          id={`rate-row-label-${index}`}
+                          value={row.label}
+                          maxLength={RATE_ROW_LABEL_MAX}
+                          onChange={(event) => updateRateRow(index, { label: event.target.value })}
+                          placeholder="Small group (2-3 students)"
+                        />
+                      </div>
+                      <div className="grid gap-1.5">
+                        <Label
+                          htmlFor={`rate-row-rate-${index}`}
+                          className="text-xs font-semibold text-foreground"
+                        >
+                          {t("join.rates.row_rate")}
+                        </Label>
+                        <div className="relative">
+                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                            HK$
+                          </span>
+                          <Input
+                            id={`rate-row-rate-${index}`}
+                            type="number"
+                            step={1}
+                            min={RATE_MIN}
+                            max={RATE_MAX}
+                            inputMode="numeric"
+                            value={row.rate}
+                            onChange={(event) => updateRateRow(index, { rate: event.target.value })}
+                            placeholder="200"
+                            className="pl-11"
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Remove rate row"
+                        onClick={() => removeRateRow(index)}
+                      >
+                        <Trash2 />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                {fieldErrors.rateRows ? (
+                  <p className="mt-2 text-xs font-medium text-destructive">
+                    {fieldErrors.rateRows}
+                  </p>
+                ) : null}
+                {base.rateRows.length < MAX_RATE_ROWS ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-3 w-fit rounded-sm"
+                    onClick={addRateRow}
+                  >
+                    <Plus /> {t("join.rates.add_row")}
+                  </Button>
+                ) : (
+                  <p className="mt-3 text-xs font-medium text-muted-foreground">
+                    Maximum of {MAX_RATE_ROWS} rate rows reached. Remove one to add another.
+                  </p>
+                )}
               </div>
 
               {/* Issue #191: intake asks capacity up front so admin can compare
@@ -3303,7 +3622,7 @@ export function ApplicationForm() {
                                 });
                                 clearFieldError("pricingTiers");
                               }}
-                              placeholder={base.hourlyRate || "450"}
+                              placeholder={rateFloor || "450"}
                               className="pl-11 text-sm font-semibold"
                             />
                           </div>

@@ -43,8 +43,6 @@ import {
 import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
 import {
   formatAvailabilityDate,
-  getCurriculumPricingLabel,
-  getSortedPricingTiers,
   getTutorAvailabilityReadiness,
   getTutorInquiryAction,
   getTutorPriceDisplay,
@@ -224,6 +222,18 @@ function AcademicQualification({ result }: { result: ExamResult }) {
         })}
       </ul>
     </div>
+  );
+}
+
+function RateValue({ rate }: { rate: number }) {
+  const { t } = useTranslation();
+  return (
+    <span className="shrink-0 text-sm font-bold text-[color:var(--ink)]">
+      ${rate}
+      <span className="ml-0.5 text-xs font-medium text-muted-foreground">
+        {t("featured.per_hour")}
+      </span>
+    </span>
   );
 }
 
@@ -488,7 +498,14 @@ function TutorDetail() {
   const lessonLanguages =
     tutorLanguages.length > 0 ? tutorLanguages.join(", ") : translate("profile.not_specified");
   const price = getTutorPriceDisplay(t);
-  const sortedPricingTiers = getSortedPricingTiers(t.pricing_tiers);
+  // Issue #319: the Rates block supersedes the old per-curriculum pricing
+  // tiers. Rows render only when the tutor filled them; the block hides
+  // entirely when there are no base rates and no extra rows.
+  const extraRateRows = (t.rate_rows ?? []).filter(
+    (row) => row.label.trim() && Number.isFinite(row.rate),
+  );
+  const hasRatesBlock =
+    t.online_rate !== null || t.inperson_rate !== null || extraRateRows.length > 0;
   const lessonFormat = (getTutorLessonModeLabel(t.lesson_mode) ?? "To be confirmed").replace(
     / tutoring$/,
     "",
@@ -502,9 +519,10 @@ function TutorDetail() {
       {
         title: `Tutor ${t.tutor_code} | MatchMax`,
         // Issue #125: flagged pricing strips the rate — omit it from shares.
+        // Issue #319: matches the card — "$X up/hr" (base-rate floor).
         text:
           price.baseRate > 0
-            ? `Check out tutor ${t.tutor_code} on MatchMax — HK$${price.baseRate}/hr.`
+            ? `Check out tutor ${t.tutor_code} on MatchMax — $${price.baseRate} up/hr.`
             : `Check out tutor ${t.tutor_code} on MatchMax.`,
         url: window.location.href,
       },
@@ -650,16 +668,13 @@ function TutorDetail() {
               <div className="w-full sm:w-auto sm:text-right">
                 <div className="flex items-center justify-start gap-1.5 sm:justify-end">
                   {/* Issue #125: flagged pricing strips the rate — hide the
-                      hero price instead of rendering HK$0. */}
+                      hero price instead of rendering HK$0. Issue #319: one
+                      "$X up/hr" figure — the base-rate floor, never a range. */}
                   {price.baseRate > 0 ? (
                     <p className="text-3xl font-bold text-[color:var(--ink)]">
-                      HK${price.baseRate}
-                      {price.isRange ? (
-                        <span className="ml-1 text-sm font-semibold text-muted-foreground">
-                          {translate("tutor_card.price_up")}
-                        </span>
-                      ) : null}
+                      ${price.baseRate}
                       <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                        {translate("tutor_card.price_up")}
                         {translate("featured.per_hour")}
                       </span>
                     </p>
@@ -862,29 +877,47 @@ function TutorDetail() {
                 </ProfileSection>
               ) : null}
 
-              {sortedPricingTiers.length > 0 ? (
-                <ProfileSection icon={Coins} title={translate("profile.section_pricing")}>
+              {hasRatesBlock ? (
+                <ProfileSection icon={Coins} title={translate("profile.section_rates")}>
                   <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border">
-                    {sortedPricingTiers.map((tier) => (
+                    {t.online_rate !== null ? (
+                      <li className="flex items-center justify-between gap-4 px-4 py-2.5">
+                        <span className="text-sm font-semibold text-[color:var(--ink)]">
+                          {translate("profile.rates_online")}
+                        </span>
+                        <RateValue rate={t.online_rate} />
+                      </li>
+                    ) : null}
+                    {t.inperson_rate !== null ? (
+                      <li className="px-4 py-2.5">
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="text-sm font-semibold text-[color:var(--ink)]">
+                            {translate("profile.rates_inperson")}
+                          </span>
+                          <RateValue rate={t.inperson_rate} />
+                        </div>
+                        {t.travel_note ? (
+                          <p className="mt-1 text-xs text-muted-foreground">{t.travel_note}</p>
+                        ) : null}
+                      </li>
+                    ) : null}
+                    {extraRateRows.map((row, index) => (
                       <li
-                        key={tier.curriculum}
+                        key={`${row.label}-${index}`}
                         className="flex items-center justify-between gap-4 px-4 py-2.5"
                       >
                         <span className="text-sm font-semibold text-[color:var(--ink)]">
-                          {getCurriculumPricingLabel(tier.curriculum)}
+                          {row.label}
                         </span>
-                        <span className="shrink-0 text-sm font-bold text-[color:var(--ink)]">
-                          HK${tier.rate}
-                          <span className="ml-0.5 text-xs font-medium text-muted-foreground">
-                            {translate("featured.per_hour")}
-                          </span>
-                        </span>
+                        <RateValue rate={row.rate} />
                       </li>
                     ))}
                   </ul>
-                  <p className="mt-3 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                    {translate("profile.pricing_disclaimer")}
-                  </p>
+                  {t.rate_note ? (
+                    <p className="mt-3 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                      {t.rate_note}
+                    </p>
+                  ) : null}
                 </ProfileSection>
               ) : null}
 

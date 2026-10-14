@@ -139,6 +139,12 @@ export type Tutor = {
   lesson_mode: "online" | "in_person" | "either";
   hourly_rate: number;
   pricing_tiers: PricingTier[];
+  /** Issue #319: base rates (whole dollars). Card floor = lowest of the two. */
+  online_rate: number | null;
+  inperson_rate: number | null;
+  rate_rows: { label: string; rate: number }[];
+  travel_note: string | null;
+  rate_note: string | null;
   /** Issue #112: native pricing currency + HKD-normalized rate snapshots. */
   currency: string | null;
   min_hourly_rate_hkd: number | null;
@@ -180,7 +186,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, portfolio_images, profile_tags, user_id";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, portfolio_images, profile_tags, user_id";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -353,6 +359,21 @@ function normalize(
     exam_results: exams,
     achievements: normalizeAchievements(row.achievements),
     pricing_tiers: normalizePricingTiers(row.pricing_tiers),
+    // Issue #319: tolerate missing columns pre-migration.
+    online_rate: typeof row.online_rate === "number" ? row.online_rate : null,
+    inperson_rate: typeof row.inperson_rate === "number" ? row.inperson_rate : null,
+    rate_rows: Array.isArray(row.rate_rows)
+      ? (row.rate_rows as unknown[])
+          .map((entry) => {
+            const record = entry as { label?: unknown; rate?: unknown } | null;
+            const label = typeof record?.label === "string" ? record.label.trim() : "";
+            const rate = typeof record?.rate === "number" ? record.rate : Number.NaN;
+            return label && Number.isFinite(rate) ? { label, rate } : null;
+          })
+          .filter((entry): entry is { label: string; rate: number } => entry !== null)
+      : [],
+    travel_note: typeof row.travel_note === "string" ? row.travel_note : null,
+    rate_note: typeof row.rate_note === "string" ? row.rate_note : null,
     ia_ee_tok_support: normalizeIaEeTokSupport(row.ia_ee_tok_support),
     ia_ee_tok_notes: typeof row.ia_ee_tok_notes === "string" ? row.ia_ee_tok_notes : null,
     tutor_status: typeof row.tutor_status === "string" ? row.tutor_status : null,

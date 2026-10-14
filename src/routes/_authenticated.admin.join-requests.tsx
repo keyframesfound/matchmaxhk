@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ConsolePanel } from "@/components/ui/console-panel";
 import {
   ConsoleTable,
@@ -465,6 +466,7 @@ const SECTION_LABELS = {
     "High school and graduation year",
     "Primary curriculum",
     "Curricula completed",
+    "Academic headline",
     "Overall achieved score",
     "Subjects and levels confident teaching",
     "Relevant subject results / academic strengths",
@@ -511,6 +513,135 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       </span>
       <span className="whitespace-pre-wrap text-sm text-[color:var(--ink)]">{value}</span>
     </div>
+  );
+}
+
+// Issue #323 Part 4 — partial transcript verification.
+//
+// Applications carry structured scores/grades in the jsonb `data` blob. The
+// join-form schema is evolving separately (overall score and per-subject
+// grades are becoming optional), so these readers are deliberately tolerant:
+// they read the raw record and return only data points that were explicitly
+// provided, so legacy and future shapes both render without per-row code.
+type SubjectGradeEntry = { subject: string; grade: string };
+
+function readOverallScore(data: Record<string, unknown>): string | null {
+  const raw = data.overallScore;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  // Professional-path applications store a placeholder, not a claim to verify.
+  if (/^not applicable/i.test(trimmed)) return null;
+  return trimmed;
+}
+
+function readSubjectGrades(data: Record<string, unknown>): SubjectGradeEntry[] {
+  const raw = data.subjectGrades ?? data.subject_grades;
+  if (Array.isArray(raw)) {
+    const entries: SubjectGradeEntry[] = [];
+    for (const item of raw) {
+      if (!item || typeof item !== "object") continue;
+      const record = item as Record<string, unknown>;
+      const subject = typeof record.subject === "string" ? record.subject.trim() : "";
+      if (!subject) continue;
+      const gradeRaw = record.grade;
+      const grade =
+        typeof gradeRaw === "number"
+          ? String(gradeRaw)
+          : typeof gradeRaw === "string"
+            ? gradeRaw.trim()
+            : "";
+      entries.push({ subject, grade });
+    }
+    return entries;
+  }
+  // Issue #323: the join form stores per-subject grades flattened into the
+  // free-text "subjectResults" answer, one "Subject: Grade" line per result
+  // (grouped under curriculum headers without colons). Parse the colon lines
+  // so staff still get one checkbox per stated grade; anything that does not
+  // match the pattern is bio-style prose and is not offered for verification.
+  const text = typeof data.subjectResults === "string" ? data.subjectResults : "";
+  const entries: SubjectGradeEntry[] = [];
+  for (const line of text.split("\n")) {
+    const match = line.match(/^([^:]{1,80}):\s+(.{1,60})$/);
+    if (!match) continue;
+    const subject = match[1].trim();
+    const grade = match[2].trim();
+    if (!subject || !grade) continue;
+    entries.push({ subject, grade });
+  }
+  return entries;
+}
+
+/** "[Subject] - Grade [X]", or just "[Subject]" when the grade was omitted. */
+function formatSubjectGradeLabel(entry: SubjectGradeEntry): string {
+  if (!entry.grade) return entry.subject;
+  return /^grade\b/i.test(entry.grade)
+    ? `${entry.subject} - ${entry.grade}`
+    : `${entry.subject} - Grade ${entry.grade}`;
+}
+
+function VerificationPanel({ application }: { application: TutorApplicationRecord }) {
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
+
+  const items = useMemo(() => {
+    const data = (application.data ?? {}) as unknown as Record<string, unknown>;
+    const overall = readOverallScore(data);
+    const grades = readSubjectGrades(data);
+    const list: { key: string; label: string }[] = [];
+    if (overall) {
+      const curriculum =
+        typeof data.curriculum === "string" && data.curriculum.trim()
+          ? data.curriculum.trim()
+          : "Overall";
+      list.push({ key: `overall:${overall}`, label: `${curriculum} overall score - ${overall}` });
+    }
+    for (const entry of grades) {
+      list.push({
+        key: `grade:${entry.subject}:${entry.grade}`,
+        label: formatSubjectGradeLabel(entry),
+      });
+    }
+    return list;
+  }, [application.data]);
+
+  return (
+    <ConsolePanel padding="lg">
+      <h2 className="text-base font-bold text-[color:var(--ink)]">Transcript verification</h2>
+      {items.length === 0 ? (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Nothing submitted for verification — the applicant did not provide an overall score or
+          per-subject grades.
+        </p>
+      ) : (
+        <>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Tick each data point you matched against the uploaded transcript. Verify the stated
+            grade and ignore the rest of the document.
+          </p>
+          <ul className="mt-3 space-y-1.5">
+            {items.map((item) => (
+              <li key={item.key}>
+                <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-[color:var(--ink)]/10 px-3 py-2 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)]/60">
+                  <Checkbox
+                    checked={checked[item.key] === true}
+                    onCheckedChange={(value) =>
+                      setChecked((prev) => ({ ...prev, [item.key]: value === true }))
+                    }
+                  />
+                  <span>{item.label}</span>
+                  {checked[item.key] === true ? (
+                    <span className="ml-auto rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
+                      Verified
+                    </span>
+                  ) : null}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </ConsolePanel>
   );
 }
 
@@ -700,6 +831,10 @@ function ApplicationDetail({
           <DocumentStatusSummary application={row} />
         </div>
       </ConsolePanel>
+
+      {/* Issue #323 Part 4: verify only the data points the applicant
+          explicitly provided (keyed by id so ticks reset between apps). */}
+      <VerificationPanel key={application.id} application={application} />
 
       {/* Submitted data */}
       {sections.map((section) => (
