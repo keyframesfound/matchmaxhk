@@ -159,7 +159,7 @@ BEGIN
     RAISE EXCEPTION 'forbidden' USING ERRCODE = '42501';
   END IF;
 
-  SELECT * INTO v_tutor FROM public.tutors WHERE id = p_tutor_id;
+  SELECT * INTO v_tutor FROM public.tutors WHERE id = p_tutor_id FOR UPDATE;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'tutor card not found' USING ERRCODE = 'P0002';
   END IF;
@@ -168,6 +168,7 @@ BEGIN
     RETURN 'already_owned';
   END IF;
 
+  -- Row is locked: any concurrent claim has serialized ahead of us.
   IF v_tutor.user_id IS NOT NULL THEN
     RAISE EXCEPTION 'card already claimed' USING ERRCODE = '23505';
   END IF;
@@ -187,6 +188,12 @@ BEGIN
   UPDATE public.tutors
     SET user_id = auth.uid(), claimed_at = now()
     WHERE id = p_tutor_id AND user_id IS NULL;
+
+  -- Race guard: two concurrent confirms serialize on the row lock above, but
+  -- the loser must never get the tutor role or a success return.
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'card already claimed' USING ERRCODE = '23505';
+  END IF;
 
   INSERT INTO public.user_roles (user_id, role)
   SELECT auth.uid(), 'tutor'::public.app_role
@@ -212,6 +219,7 @@ SET search_path TO 'public'
 AS $function$
 DECLARE
   v_req public.tutor_claim_requests%ROWTYPE;
+  v_prev_user_id uuid;
 BEGIN
   IF NOT (
     public.has_role(auth.uid(), 'admin')
@@ -237,9 +245,25 @@ BEGIN
     WHERE id = p_request_id;
 
   IF p_approve THEN
+    SELECT user_id INTO v_prev_user_id FROM public.tutors WHERE id = v_req.tutor_id;
+
+    -- Force-transfer (Ryan's call): staff approval ALWAYS moves ownership to
+    -- the claimant, even when the card is already linked to another account.
     UPDATE public.tutors
       SET user_id = v_req.user_id, claimed_at = now()
-      WHERE id = v_req.tutor_id AND user_id IS NULL;
+      WHERE id = v_req.tutor_id;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'tutor card not found' USING ERRCODE = 'P0002';
+    END IF;
+
+    -- Audit the forced takeover on the request row itself.
+    IF v_prev_user_id IS NOT NULL AND v_prev_user_id <> v_req.user_id THEN
+      UPDATE public.tutor_claim_requests
+        SET note = COALESCE(note, '')
+          || CASE WHEN COALESCE(note, '') = '' THEN '' ELSE E'\n' END
+          || 'force-transfer: previous owner ' || v_prev_user_id::text
+        WHERE id = p_request_id;
+    END IF;
 
     INSERT INTO public.user_roles (user_id, role)
     SELECT v_req.user_id, 'tutor'::public.app_role
@@ -283,6 +307,13 @@ BEGIN
     RETURN NEW;
   END IF;
 
+  -- Owner writes can NEVER move verification_tier or tutor_status, at any
+  -- tier: freeze both to their current values. Self-promotion to verified
+  -- (or examiner / status flips) is a staff-only decision; the UI never
+  -- sends these fields, so this is invisible to honest clients.
+  NEW.verification_tier := OLD.verification_tier;
+  NEW.tutor_status := OLD.tutor_status;
+
   IF COALESCE(OLD.verification_tier, 'tier_1_standard') = 'tier_2_verified' THEN
     IF (NEW.secondary_school IS DISTINCT FROM OLD.secondary_school)
       OR (NEW.highschool IS DISTINCT FROM OLD.highschool)
@@ -296,8 +327,6 @@ BEGIN
       OR (NEW.qualifications_summary IS DISTINCT FROM OLD.qualifications_summary)
       OR (NEW.exam_results IS DISTINCT FROM OLD.exam_results)
       OR (NEW.achievements IS DISTINCT FROM OLD.achievements)
-      OR (NEW.tutor_status IS DISTINCT FROM OLD.tutor_status)
-      OR (NEW.verification_tier IS DISTINCT FROM OLD.verification_tier)
     THEN
       RAISE EXCEPTION 'verified credential fields are locked; ask staff to change them'
         USING ERRCODE = 'P0001';
@@ -340,15 +369,17 @@ BEGIN
     NEW.qualifications_summary, NEW.academic_headline, NEW.academic_summary
   ] LOOP
     CONTINUE WHEN v_text IS NULL;
+    -- Mirrors src/lib/contact-filter.ts (the canonical filter): emails,
+    -- URLs/bare domains, HK-format and generic phone runs, and off-platform
+    -- channel words on word boundaries (Postgres \m/\M = \b in JS). The
+    -- same deliberately-loose phone rule: a false positive just asks the
+    -- tutor to rephrase.
     IF v_text ~* '[\w.+-]+@[\w-]+\.[\w.-]+'
+      OR v_text ~* '(https?://|www\.)\S+|\m[a-z0-9-]{2,}\.(com|net|org|hk|io|co|me|edu|gov)([/.?#]\S*)?'
+      OR v_text ~* '(\+?852[\s-]?)?[2-9]\d{3}[\s-]?\d{4}\M|\m\d{2,4}[\s-]\d{3,4}[\s-]\d{3,4}\M'
+      OR v_text ~* '\m(whatsapp|wechat|instagram|ig|telegram|signal|qr)\M'
       OR v_text ~* 'wa\.me'
-      OR v_text ~* 'whatsapp'
-      OR v_text ~* 'wechat'
-      OR v_text ~* 'signal'
-      OR v_text ~* 'telegram'
-      OR v_text ~* 'instagram'
       OR v_text ~* '小紅書'
-      OR v_text ~* 'ig[:\s]'
     THEN
       RAISE EXCEPTION 'contact details are not allowed on the public card'
         USING ERRCODE = 'P0001';
