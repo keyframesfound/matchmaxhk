@@ -192,7 +192,115 @@ export function boughtListAction(status: string): "download" | "refunded" | "pre
 }
 
 /**
- * P12/P8: which listing events ring a bell in this PR. Only delivery does
- * (buyer + tutor) — the #205 event bus owns everything else later.
- */
+ /** P12/P8: which listing events ring a bell in this PR. Only delivery does
+  * (buyer + tutor) — the #205 event bus owns everything else later.
+  */
 export const BELL_EVENTS_IN_PR = ["material_order.delivered"] as const;
+
+/**
+ * #313 note kinds: the classification a note carries on the marketplace.
+ * Curriculum is one of the site's canonical systems (plus Other); type is
+ * the 3-way notes/mock/exemplar split; topic is a free 40-char filter, not
+ * a syllabus tree; grade achieved is exemplar-only and self-reported.
+ */
+export const NOTE_CURRICULA = ["IB", "DSE", "IGCSE", "A-Level", "Other"] as const;
+export type NoteCurriculum = (typeof NOTE_CURRICULA)[number];
+
+export const MATERIAL_TYPES = ["notes", "mock", "exemplar"] as const;
+export type MaterialType = (typeof MATERIAL_TYPES)[number];
+
+export const NOTE_TOPIC_MAX_LEN = 40;
+export const GRADE_ACHIEVED_MAX_LEN = 20;
+
+/** Legacy document_type values map onto the new 3-way type (mock_exam →
+ * mock; everything else → notes — old coursework rows never carried the
+ * exemplar permission confirmation). */
+export function legacyDocumentTypeToMaterialType(documentType: string): MaterialType {
+  return documentType === "mock_exam" ? "mock" : "notes";
+}
+
+/**
+ * #313 strict validation at submit time: curriculum, subject and type are
+ * required; topic/grade respect their caps; grade achieved is exemplar-only;
+ * exemplars must carry the written-permission confirmation. Returns
+ * human-readable problems (server errors) — empty array means clean.
+ */
+export function validateNoteKindsForSubmit(input: {
+  curriculum?: string | null;
+  subject?: string | null;
+  materialType?: string | null;
+  topic?: string | null;
+  gradeAchieved?: string | null;
+  exemplarPermission?: boolean | null;
+}): string[] {
+  const errors: string[] = [];
+
+  const curriculum = (input.curriculum ?? "").trim();
+  if (!(NOTE_CURRICULA as readonly string[]).includes(curriculum)) {
+    errors.push("Curriculum must be IB, DSE, IGCSE, A-Level, or Other.");
+  }
+
+  const subject = (input.subject ?? "").trim();
+  if (subject.length === 0) errors.push("Subject is required.");
+  else if (subject.length > 160) errors.push("Subject is too long (160 characters max).");
+
+  const materialType = (input.materialType ?? "").trim();
+  if (!(MATERIAL_TYPES as readonly string[]).includes(materialType)) {
+    errors.push("Type must be notes, mock, or exemplar.");
+  }
+
+  const topic = (input.topic ?? "").trim();
+  if (topic.length > NOTE_TOPIC_MAX_LEN) {
+    errors.push(`Topic must be ${NOTE_TOPIC_MAX_LEN} characters or fewer.`);
+  }
+
+  const grade = (input.gradeAchieved ?? "").trim();
+  if (grade.length > GRADE_ACHIEVED_MAX_LEN) {
+    errors.push(`Grade achieved must be ${GRADE_ACHIEVED_MAX_LEN} characters or fewer.`);
+  }
+  if (grade && materialType !== "exemplar") {
+    errors.push("Grade achieved can only be set on an exemplar.");
+  }
+  if (materialType === "exemplar" && input.exemplarPermission !== true) {
+    errors.push("Exemplars need the written-permission confirmation.");
+  }
+
+  return errors;
+}
+
+/**
+ * #313 soft validation for partial draft saves: only check what is present
+ * (enum membership, caps). Required-field and exemplar gates run at submit.
+ */
+export function validateNoteKindsPartial(input: {
+  curriculum?: string | null;
+  materialType?: string | null;
+  topic?: string | null;
+  gradeAchieved?: string | null;
+}): string[] {
+  const errors: string[] = [];
+
+  if (input.curriculum != null) {
+    const curriculum = input.curriculum.trim();
+    if (curriculum && !(NOTE_CURRICULA as readonly string[]).includes(curriculum)) {
+      errors.push("Curriculum must be IB, DSE, IGCSE, A-Level, or Other.");
+    }
+  }
+
+  if (input.materialType != null && input.materialType.trim()) {
+    const materialType = input.materialType.trim();
+    if (!(MATERIAL_TYPES as readonly string[]).includes(materialType)) {
+      errors.push("Type must be notes, mock, or exemplar.");
+    }
+  }
+
+  if (input.topic != null && input.topic.trim().length > NOTE_TOPIC_MAX_LEN) {
+    errors.push(`Topic must be ${NOTE_TOPIC_MAX_LEN} characters or fewer.`);
+  }
+
+  if (input.gradeAchieved != null && input.gradeAchieved.trim().length > GRADE_ACHIEVED_MAX_LEN) {
+    errors.push(`Grade achieved must be ${GRADE_ACHIEVED_MAX_LEN} characters or fewer.`);
+  }
+
+  return errors;
+}

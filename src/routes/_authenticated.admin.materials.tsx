@@ -52,8 +52,6 @@ export const Route = createFileRoute("/_authenticated/admin/materials")({
   component: AdminMaterials,
 });
 
-const DOCUMENT_TYPES = ["custom_notes", "ia", "ee", "tok_essay", "mock_exam"] as const;
-
 type AdminTutorOption = { id: string; display_name: string; tutor_code: string };
 
 /**
@@ -81,7 +79,10 @@ function AdminMaterials() {
     schoolTag: "",
     curriculumTag: "",
     subjectTag: "",
-    documentType: "custom_notes" as (typeof DOCUMENT_TYPES)[number],
+    materialType: "notes" as "notes" | "mock" | "exemplar",
+    topic: "",
+    gradeAchieved: "",
+    exemplarPermission: false,
     yearTag: "",
     pageCount: "",
     adminStarRating: "",
@@ -175,7 +176,10 @@ function AdminMaterials() {
       schoolTag: "",
       curriculumTag: "",
       subjectTag: "",
-      documentType: "custom_notes",
+      materialType: "notes",
+      topic: "",
+      gradeAchieved: "",
+      exemplarPermission: false,
       yearTag: "",
       pageCount: "",
       adminStarRating: "",
@@ -216,7 +220,12 @@ function AdminMaterials() {
           schoolTag: form.schoolTag || undefined,
           curriculumTag: form.curriculumTag,
           subjectTag: form.subjectTag || undefined,
-          documentType: form.documentType,
+          materialType: form.materialType,
+          topic: form.topic || undefined,
+          gradeAchieved:
+            form.materialType === "exemplar" ? form.gradeAchieved || undefined : undefined,
+          exemplarPermission:
+            form.materialType === "exemplar" ? form.exemplarPermission : undefined,
           yearTag: form.yearTag || undefined,
           pageCount: form.pageCount ? Number(form.pageCount) : undefined,
           legalAgreed: true,
@@ -510,24 +519,60 @@ function AdminMaterials() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="admin-material-doc-type">
-                  {t("materials.field_document_type")}
-                </Label>
+                <Label htmlFor="admin-material-type">{t("notes.form.field_type")}</Label>
                 <select
-                  id="admin-material-doc-type"
-                  value={form.documentType}
+                  id="admin-material-type"
+                  value={form.materialType}
                   onChange={(event) =>
-                    setField({ documentType: event.target.value as typeof form.documentType })
+                    setField({
+                      materialType: event.target.value as typeof form.materialType,
+                      ...(event.target.value !== "exemplar"
+                        ? { gradeAchieved: "", exemplarPermission: false }
+                        : {}),
+                    })
                   }
                   className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
                 >
-                  {DOCUMENT_TYPES.map((value) => (
-                    <option key={value} value={value}>
-                      {t(`materials.doc_type_${value}`)}
-                    </option>
-                  ))}
+                  <option value="notes">{t("notes.form.type_notes")}</option>
+                  <option value="mock">{t("notes.form.type_mock")}</option>
+                  <option value="exemplar">{t("notes.form.type_exemplar")}</option>
                 </select>
               </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="admin-material-topic">{t("notes.form.field_topic")}</Label>
+                <Input
+                  id="admin-material-topic"
+                  value={form.topic}
+                  onChange={(event) => setField({ topic: event.target.value })}
+                  maxLength={40}
+                />
+              </div>
+              {form.materialType === "exemplar" ? (
+                <>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="admin-material-grade">{t("notes.form.field_grade")}</Label>
+                    <Input
+                      id="admin-material-grade"
+                      value={form.gradeAchieved}
+                      onChange={(event) => setField({ gradeAchieved: event.target.value })}
+                      maxLength={20}
+                      placeholder={t("notes.form.grade_placeholder")}
+                    />
+                    <p className="text-xs text-muted-foreground">{t("notes.form.grade_hint")}</p>
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+                      <input
+                        type="checkbox"
+                        checked={form.exemplarPermission}
+                        onChange={(event) => setField({ exemplarPermission: event.target.checked })}
+                        className="mt-1 h-4 w-4 shrink-0"
+                      />
+                      <span>{t("notes.form.exemplar_permission")}</span>
+                    </label>
+                  </div>
+                </>
+              ) : null}
               <div className="space-y-1.5">
                 <Label htmlFor="admin-material-rating">Star rating (optional)</Label>
                 <Input

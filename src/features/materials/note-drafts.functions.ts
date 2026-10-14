@@ -9,7 +9,10 @@ import {
   checkSubmitReadiness,
   extendedPreviewPageLimit,
   nextStatus,
+  validateNoteKindsForSubmit,
+  validateNoteKindsPartial,
   type MaterialStatus,
+  type MaterialType,
 } from "@/features/materials/lifecycle";
 import {
   asAdminDb,
@@ -42,15 +45,26 @@ type MaterialRow = {
   price_hkd: number;
   original_file_path: string | null;
   edit_status: string | null;
+  curriculum_tag: string;
+  subject_tag: string | null;
+  material_type: MaterialType;
+  topic: string | null;
+  grade_achieved: string | null;
+  exemplar_permission: boolean;
 };
 
 const DraftMetaInput = z.object({
   title: z.string().trim().max(160).optional(),
   description: z.string().trim().max(4000).optional(),
   priceHkd: z.number().min(0).max(100_000).optional(),
-  curriculumTag: z.string().trim().max(160).optional(),
+  // #313 note kinds: curriculum is the site's canonical list, type is the
+  // 3-way notes/mock/exemplar split, topic is a free 40-char filter.
+  curriculumTag: z.enum(["IB", "DSE", "IGCSE", "A-Level", "Other"]).optional(),
   subjectTag: z.string().trim().max(160).optional(),
-  documentType: z.enum(["custom_notes", "ia", "ee", "tok_essay", "mock_exam"]).optional(),
+  materialType: z.enum(["notes", "mock", "exemplar"]).optional(),
+  topic: z.string().trim().max(40).optional(),
+  gradeAchieved: z.string().trim().max(20).optional(),
+  exemplarPermission: z.boolean().optional(),
   yearTag: z.string().trim().max(20).optional(),
 });
 
@@ -82,6 +96,12 @@ export type MyMaterialsRow = {
   soldCount: number;
   previewUrl: string;
   updatedAt: string;
+  curriculumTag: string;
+  subjectTag: string | null;
+  materialType: MaterialType;
+  topic: string | null;
+  gradeAchieved: string | null;
+  exemplarPermission: boolean;
 };
 
 async function myTutorRow(
@@ -98,13 +118,24 @@ async function myTutorRow(
   return data;
 }
 
-function assertCleanCopy(fields: { title?: string; description?: string }) {
+function assertCleanCopy(fields: {
+  title?: string;
+  description?: string;
+  topic?: string;
+  gradeAchieved?: string;
+}) {
+  const labels: Record<string, string> = {
+    title: "Title",
+    description: "Description",
+    topic: "Topic",
+    gradeAchieved: "Grade achieved",
+  };
   for (const [field, text] of Object.entries(fields)) {
     if (!text) continue;
     const violations = findContactViolations(text);
     if (violations.length > 0) {
       throw new Error(
-        `${field === "title" ? "Title" : "Description"} contains contact details (${violations
+        `${labels[field]} contains contact details (${violations
           .map((v) => v.match)
           .slice(0, 2)
           .join(", ")}). Remove them to save.`,
@@ -121,7 +152,9 @@ async function loadOwnedMaterial(
 ): Promise<MaterialRow> {
   const { data, error } = await db
     .from<MaterialRow>("digital_materials")
-    .select("id, tutor_id, title, slug, status, price_hkd, original_file_path, edit_status")
+    .select(
+      "id, tutor_id, title, slug, status, price_hkd, original_file_path, edit_status, curriculum_tag, subject_tag, material_type, topic, grade_achieved, exemplar_permission",
+    )
     .eq("id", materialId)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -238,7 +271,19 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutor = await myTutorRow(db, context.userId);
-    assertCleanCopy({ title: data.title, description: data.description });
+    assertCleanCopy({
+      title: data.title,
+      description: data.description,
+      topic: data.topic,
+      gradeAchieved: data.gradeAchieved,
+    });
+    const kindErrors = validateNoteKindsPartial({
+      curriculum: data.curriculumTag,
+      materialType: data.materialType,
+      topic: data.topic,
+      gradeAchieved: data.gradeAchieved,
+    });
+    if (kindErrors.length > 0) throw new Error(kindErrors.join(" "));
 
     if (data.materialId) {
       await loadOwnedMaterial(db, data.materialId, tutor.id);
@@ -250,7 +295,12 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
           ...(data.priceHkd != null ? { price_hkd: data.priceHkd } : {}),
           ...(data.curriculumTag != null ? { curriculum_tag: data.curriculumTag } : {}),
           ...(data.subjectTag != null ? { subject_tag: data.subjectTag } : {}),
-          ...(data.documentType != null ? { document_type: data.documentType } : {}),
+          ...(data.materialType != null ? { material_type: data.materialType } : {}),
+          ...(data.topic != null ? { topic: data.topic } : {}),
+          ...(data.gradeAchieved != null ? { grade_achieved: data.gradeAchieved } : {}),
+          ...(data.exemplarPermission != null
+            ? { exemplar_permission: data.exemplarPermission }
+            : {}),
           ...(data.yearTag != null ? { year_tag: data.yearTag } : {}),
         })
         .eq("id", data.materialId);
@@ -267,7 +317,10 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
         price_hkd: data.priceHkd ?? 0,
         curriculum_tag: data.curriculumTag || "",
         subject_tag: data.subjectTag ?? null,
-        document_type: data.documentType || "custom_notes",
+        material_type: data.materialType || "notes",
+        topic: data.topic ?? null,
+        grade_achieved: data.gradeAchieved ?? null,
+        exemplar_permission: data.exemplarPermission ?? false,
         year_tag: data.yearTag ?? null,
         status: "draft",
         original_file_path: "",
@@ -318,7 +371,12 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutor = await myTutorRow(db, context.userId);
-    assertCleanCopy({ title: data.title, description: data.description });
+    assertCleanCopy({
+      title: data.title,
+      description: data.description,
+      topic: data.topic,
+      gradeAchieved: data.gradeAchieved,
+    });
 
     const existing = data.materialId
       ? await loadOwnedMaterial(db, data.materialId, tutor.id)
@@ -327,10 +385,21 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       title: data.title ?? existing?.title,
       priceHkd: data.priceHkd ?? Number(existing?.price_hkd ?? 0),
       hasPdf: Boolean(data.base64Data) || Boolean(existing?.original_file_path),
+      // #313 note kinds: submit-time fields merge over the stored draft.
+      curriculumTag: data.curriculumTag ?? existing?.curriculum_tag ?? "",
+      subjectTag: data.subjectTag ?? existing?.subject_tag ?? "",
+      materialType: data.materialType ?? existing?.material_type ?? "notes",
+      topic: data.topic ?? existing?.topic ?? "",
+      gradeAchieved: data.gradeAchieved ?? existing?.grade_achieved ?? "",
+      exemplarPermission: data.exemplarPermission ?? existing?.exemplar_permission ?? false,
     };
     const check = checkSubmitReadiness(merged);
     if (!check.ok) {
       throw new Error(`Missing: ${check.missing.join(", ")}`);
+    }
+    const kindErrors = validateNoteKindsForSubmit(merged);
+    if (kindErrors.length > 0) {
+      throw new Error(kindErrors.join(" "));
     }
     if (merged.priceHkd < MIN_PRICE_HKD) {
       throw new Error(`Price must be at least HK$${MIN_PRICE_HKD}.`);
@@ -374,7 +443,10 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
         price_hkd: merged.priceHkd,
         curriculum_tag: data.curriculumTag || "",
         subject_tag: data.subjectTag ?? null,
-        document_type: data.documentType || "custom_notes",
+        material_type: data.materialType || "notes",
+        topic: data.topic ?? null,
+        grade_achieved: data.gradeAchieved ?? null,
+        exemplar_permission: data.exemplarPermission ?? false,
         year_tag: data.yearTag ?? null,
         status: "pending_review",
         submitted_at: new Date().toISOString(),
@@ -409,7 +481,12 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
           ...(data.priceHkd != null ? { price_hkd: data.priceHkd } : {}),
           ...(data.curriculumTag != null ? { curriculum_tag: data.curriculumTag } : {}),
           ...(data.subjectTag != null ? { subject_tag: data.subjectTag } : {}),
-          ...(data.documentType != null ? { document_type: data.documentType } : {}),
+          ...(data.materialType != null ? { material_type: data.materialType } : {}),
+          ...(data.topic != null ? { topic: data.topic } : {}),
+          ...(data.gradeAchieved != null ? { grade_achieved: data.gradeAchieved } : {}),
+          ...(data.exemplarPermission != null
+            ? { exemplar_permission: data.exemplarPermission }
+            : {}),
           status: next,
           rejection_reason: null,
           submitted_at: new Date().toISOString(),
@@ -503,9 +580,15 @@ export const getMyMaterials = createServerFn({ method: "POST" })
         sold_count: number;
         watermarked_preview_url: string | null;
         updated_at: string;
+        curriculum_tag: string;
+        subject_tag: string | null;
+        material_type: MaterialType;
+        topic: string | null;
+        grade_achieved: string | null;
+        exemplar_permission: boolean;
       }>("digital_materials")
       .select(
-        "id, title, status, price_hkd, rejection_reason, edit_status, edit_rejection_reason, view_count, sold_count, watermarked_preview_url, updated_at",
+        "id, title, status, price_hkd, rejection_reason, edit_status, edit_rejection_reason, view_count, sold_count, watermarked_preview_url, updated_at, curriculum_tag, subject_tag, material_type, topic, grade_achieved, exemplar_permission",
       )
       .eq("tutor_id", tutor.id)
       .order("updated_at", { ascending: false });
@@ -522,5 +605,11 @@ export const getMyMaterials = createServerFn({ method: "POST" })
       soldCount: Number(row.sold_count ?? 0),
       previewUrl: row.watermarked_preview_url ?? "",
       updatedAt: row.updated_at ?? "",
+      curriculumTag: row.curriculum_tag ?? "",
+      subjectTag: row.subject_tag ?? null,
+      materialType: row.material_type ?? "notes",
+      topic: row.topic ?? null,
+      gradeAchieved: row.grade_achieved ?? null,
+      exemplarPermission: row.exemplar_permission === true,
     }));
   });

@@ -8,7 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { findContactViolations } from "@/lib/contact-filter";
-import { MIN_PRICE_HKD } from "@/features/materials/lifecycle";
+import {
+  GRADE_ACHIEVED_MAX_LEN,
+  MATERIAL_TYPES,
+  MIN_PRICE_HKD,
+  NOTE_CURRICULA,
+  NOTE_TOPIC_MAX_LEN,
+  type MaterialType,
+} from "@/features/materials/lifecycle";
+import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import {
   saveNoteDraft,
   submitNoteForReview,
@@ -16,14 +24,14 @@ import {
 } from "@/features/materials/note-drafts.functions";
 
 /**
- * P8 (#288) / P9 (#289): the draft-or-submit note form, shared by
+ * P8 (#288) / P9 (#289) / #313: the draft-or-submit note form, shared by
  * /account/notes/new and /account/notes/$id/edit. Any subset saves as a
- * draft; submit enforces the required fields (title, price, PDF) and the
- * HK$30 floor, and runs the contact filter client-side so the tutor sees
- * which sentence failed before the server rejects it.
+ * draft; submit enforces the required fields (title, price, PDF, curriculum,
+ * subject, type) and the HK$30 floor, runs the contact filter client-side
+ * (title, description, topic, grade achieved) so the tutor sees which
+ * sentence failed before the server rejects it, and gates exemplars on the
+ * written-permission checkbox.
  */
-
-const DOC_TYPES = ["custom_notes", "ia", "ee", "tok_essay", "mock_exam"] as const;
 
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -34,6 +42,12 @@ async function fileToBase64(file: File): Promise<string> {
   });
 }
 
+const isNoteCurriculum = (value: string): value is (typeof NOTE_CURRICULA)[number] =>
+  (NOTE_CURRICULA as readonly string[]).includes(value);
+
+const isMaterialType = (value: string): value is MaterialType =>
+  (MATERIAL_TYPES as readonly string[]).includes(value);
+
 export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null }) {
   const { t } = useTranslation();
   const [title, setTitle] = useState(existing?.title ?? "");
@@ -41,39 +55,64 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   const [price, setPrice] = useState<string>(
     existing && existing.priceHkd > 0 ? String(existing.priceHkd) : "",
   );
-  const [curriculum, setCurriculum] = useState("");
-  const [subject, setSubject] = useState("");
-  const [documentType, setDocumentType] = useState<(typeof DOC_TYPES)[number]>("custom_notes");
+  const [curriculum, setCurriculum] = useState<string>(
+    existing?.curriculumTag && isNoteCurriculum(existing.curriculumTag)
+      ? existing.curriculumTag
+      : "",
+  );
+  const [subject, setSubject] = useState(existing?.subjectTag ?? "");
+  const [materialType, setMaterialType] = useState<MaterialType>(
+    existing?.materialType && isMaterialType(existing.materialType)
+      ? existing.materialType
+      : "notes",
+  );
+  const [topic, setTopic] = useState(existing?.topic ?? "");
+  const [gradeAchieved, setGradeAchieved] = useState(existing?.gradeAchieved ?? "");
+  const [exemplarPermission, setExemplarPermission] = useState(
+    existing?.exemplarPermission === true,
+  );
   const [year, setYear] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const subjectOptions = useMemo(
+    () => getSubjectOptionsForCategory(curriculum || undefined),
+    [curriculum],
+  );
+
   const copyViolations = useMemo(() => {
     const titleV = findContactViolations(title);
     const descV = findContactViolations(description);
-    return { titleV, descV };
-  }, [title, description]);
+    const topicV = findContactViolations(topic);
+    const gradeV = findContactViolations(gradeAchieved);
+    return { titleV, descV, topicV, gradeV };
+  }, [title, description, topic, gradeAchieved]);
 
   const done = () => {
     window.location.assign("/account");
   };
 
+  const payload = () => ({
+    title: title.trim(),
+    description: description.trim() || undefined,
+    priceHkd: price ? Number(price) : undefined,
+    curriculumTag: curriculum || undefined,
+    subjectTag: subject.trim() || undefined,
+    materialType,
+    topic: topic.trim() || undefined,
+    gradeAchieved: materialType === "exemplar" ? gradeAchieved.trim() || undefined : undefined,
+    exemplarPermission: materialType === "exemplar" ? exemplarPermission : undefined,
+    yearTag: year.trim() || undefined,
+  });
+
   const draftMutation = useMutation({
-    mutationFn: async () => {
-      const base64 = file ? await fileToBase64(file) : undefined;
-      return saveNoteDraft({
+    mutationFn: async () =>
+      saveNoteDraft({
         data: {
           materialId: existing?.id,
-          title: title.trim() || undefined,
-          description: description.trim() || undefined,
-          priceHkd: price ? Number(price) : undefined,
-          curriculumTag: curriculum.trim() || undefined,
-          subjectTag: subject.trim() || undefined,
-          documentType,
-          yearTag: year.trim() || undefined,
+          ...payload(),
         },
-      });
-    },
+      }),
     onSuccess: () => {
       toast.success(t("notes.form.draft_saved"));
       done();
@@ -89,13 +128,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       return submitNoteForReview({
         data: {
           materialId: existing?.id,
-          title: title.trim(),
-          description: description.trim() || undefined,
-          priceHkd: Number(price),
-          curriculumTag: curriculum.trim() || undefined,
-          subjectTag: subject.trim() || undefined,
-          documentType,
-          yearTag: year.trim() || undefined,
+          ...payload(),
           base64Data: base64,
           fileName: file?.name,
         },
@@ -115,14 +148,34 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   if (!price || Number(price) < MIN_PRICE_HKD)
     missing.push(`${t("notes.form.field_price")} (min HK$${MIN_PRICE_HKD})`);
   if (!file && !existing?.previewUrl) missing.push(t("notes.form.field_pdf"));
+  if (!curriculum) missing.push(t("notes.form.field_curriculum"));
+  if (!subject.trim()) missing.push(t("notes.form.field_subject"));
+  if (materialType === "exemplar" && !exemplarPermission)
+    missing.push(t("notes.form.exemplar_permission_short"));
 
-  const blockedByContact = copyViolations.titleV.length > 0 || copyViolations.descV.length > 0;
+  const blockedByContact =
+    copyViolations.titleV.length > 0 ||
+    copyViolations.descV.length > 0 ||
+    copyViolations.topicV.length > 0 ||
+    copyViolations.gradeV.length > 0;
 
   const run = (kind: "draft" | "submit") => {
     setSaving(true);
     if (kind === "draft") draftMutation.mutate();
     else submitMutation.mutate();
   };
+
+  const violationNote = (violations: { match: string }[]) =>
+    violations.length > 0 ? (
+      <p className="text-xs text-[#B42318]">
+        {t("notes.form.contact_block", {
+          match: violations
+            .map((v) => v.match)
+            .slice(0, 2)
+            .join(", "),
+        })}
+      </p>
+    ) : null;
 
   return (
     <form
@@ -142,16 +195,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           placeholder={t("notes.form.title_placeholder")}
           className="h-11"
         />
-        {copyViolations.titleV.length > 0 && (
-          <p className="text-xs text-[#B42318]">
-            {t("notes.form.contact_block", {
-              match: copyViolations.titleV
-                .map((v) => v.match)
-                .slice(0, 2)
-                .join(", "),
-            })}
-          </p>
-        )}
+        {violationNote(copyViolations.titleV)}
       </div>
 
       <div className="space-y-1.5">
@@ -165,19 +209,84 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           placeholder={t("notes.form.contents_placeholder")}
           className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
         />
-        {copyViolations.descV.length > 0 && (
-          <p className="text-xs text-[#B42318]">
-            {t("notes.form.contact_block", {
-              match: copyViolations.descV
-                .map((v) => v.match)
-                .slice(0, 2)
-                .join(", "),
-            })}
-          </p>
-        )}
+        {violationNote(copyViolations.descV)}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="note-curriculum">{t("notes.form.field_curriculum")}</Label>
+          <select
+            id="note-curriculum"
+            value={curriculum}
+            onChange={(e) => {
+              setCurriculum(e.target.value);
+              setSubject("");
+            }}
+            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
+          >
+            <option value="" disabled>
+              {t("notes.form.curriculum_placeholder")}
+            </option>
+            {NOTE_CURRICULA.map((entry) => (
+              <option key={entry} value={entry}>
+                {entry === "Other" ? t("notes.form.curriculum_other") : entry}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="note-subject">{t("notes.form.field_subject")}</Label>
+          <select
+            id="note-subject"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
+          >
+            <option value="" disabled>
+              {t("notes.form.subject_placeholder")}
+            </option>
+            {subjectOptions.map((entry) => (
+              <option key={entry} value={entry}>
+                {entry}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="note-type">{t("notes.form.field_type")}</Label>
+          <select
+            id="note-type"
+            value={materialType}
+            onChange={(e) => {
+              if (isMaterialType(e.target.value)) {
+                setMaterialType(e.target.value);
+                if (e.target.value !== "exemplar") {
+                  setGradeAchieved("");
+                  setExemplarPermission(false);
+                }
+              }
+            }}
+            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
+          >
+            {MATERIAL_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {t(`notes.form.type_${type}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="note-topic">{t("notes.form.field_topic")}</Label>
+          <Input
+            id="note-topic"
+            value={topic}
+            maxLength={NOTE_TOPIC_MAX_LEN}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder={t("notes.form.topic_placeholder")}
+            className="h-11"
+          />
+          {violationNote(copyViolations.topicV)}
+        </div>
         <div className="space-y-1.5">
           <Label htmlFor="note-price">{t("notes.form.field_price")}</Label>
           <Input
@@ -192,43 +301,6 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="note-type">{t("notes.form.field_type")}</Label>
-          <select
-            id="note-type"
-            value={documentType}
-            onChange={(e) => setDocumentType(e.target.value as (typeof DOC_TYPES)[number])}
-            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
-          >
-            {DOC_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {t(`materials.doc_type_${type}`)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="note-curriculum">{t("notes.form.field_curriculum")}</Label>
-          <Input
-            id="note-curriculum"
-            value={curriculum}
-            maxLength={160}
-            onChange={(e) => setCurriculum(e.target.value)}
-            placeholder="IB / DSE / A-Level"
-            className="h-11"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="note-subject">{t("notes.form.field_subject")}</Label>
-          <Input
-            id="note-subject"
-            value={subject}
-            maxLength={160}
-            onChange={(e) => setSubject(e.target.value)}
-            placeholder="Physics"
-            className="h-11"
-          />
-        </div>
-        <div className="space-y-1.5">
           <Label htmlFor="note-year">{t("notes.form.field_year")}</Label>
           <Input
             id="note-year"
@@ -239,22 +311,50 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             className="h-11"
           />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="note-pdf">
-            {existing?.previewUrl ? t("notes.form.replace_pdf") : t("notes.form.field_pdf")}
-          </Label>
-          <Input
-            id="note-pdf"
-            type="file"
-            accept="application/pdf"
-            className="h-11 cursor-pointer"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Lock className="h-3 w-3" aria-hidden />
-            {t("notes.form.pdf_hint")}
-          </p>
+      </div>
+
+      {materialType === "exemplar" ? (
+        <div className="space-y-3 rounded-2xl border border-border bg-muted/30 p-4 sm:p-5">
+          <div className="space-y-1.5">
+            <Label htmlFor="note-grade">{t("notes.form.field_grade")}</Label>
+            <Input
+              id="note-grade"
+              value={gradeAchieved}
+              maxLength={GRADE_ACHIEVED_MAX_LEN}
+              onChange={(e) => setGradeAchieved(e.target.value)}
+              placeholder={t("notes.form.grade_placeholder")}
+              className="h-11"
+            />
+            <p className="text-xs text-muted-foreground">{t("notes.form.grade_hint")}</p>
+            {violationNote(copyViolations.gradeV)}
+          </div>
+          <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+            <input
+              type="checkbox"
+              checked={exemplarPermission}
+              onChange={(e) => setExemplarPermission(e.target.checked)}
+              className="mt-1 h-4 w-4 shrink-0"
+            />
+            <span>{t("notes.form.exemplar_permission")}</span>
+          </label>
         </div>
+      ) : null}
+
+      <div className="space-y-1.5">
+        <Label htmlFor="note-pdf">
+          {existing?.previewUrl ? t("notes.form.replace_pdf") : t("notes.form.field_pdf")}
+        </Label>
+        <Input
+          id="note-pdf"
+          type="file"
+          accept="application/pdf"
+          className="h-11 cursor-pointer"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        />
+        <p className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Lock className="h-3 w-3" aria-hidden />
+          {t("notes.form.pdf_hint")}
+        </p>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">

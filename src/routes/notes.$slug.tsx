@@ -17,7 +17,7 @@ import {
 } from "@/features/materials/notes.functions";
 import { startCheckout } from "@/features/materials/checkout.functions";
 import { NotePreviewViewer } from "@/features/materials/note-preview-viewer";
-import { formatDocumentTypeLabel } from "@/features/materials/queries";
+import { formatMaterialTypeLabel } from "@/features/materials/queries";
 import { ReportMenuButton } from "@/features/reports/report-button";
 
 /**
@@ -95,6 +95,7 @@ function NotePage() {
   });
 
   const iaLabel = ["ia", "ee", "tok_essay"].includes(note.documentType);
+  const isExemplar = note.materialType === "exemplar" || iaLabel;
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
@@ -106,8 +107,13 @@ function NotePage() {
             <header className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-md bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">
-                  {formatDocumentTypeLabel(note.documentType, t)}
+                  {formatMaterialTypeLabel(note.materialType, t)}
                 </span>
+                {isExemplar && note.gradeAchieved ? (
+                  <span className="rounded-md border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/5 px-2.5 py-0.5 text-xs font-bold text-[color:var(--brand-link)]">
+                    {t("notes.field_grade")}: {note.gradeAchieved}
+                  </span>
+                ) : null}
                 {note.curriculumTag && (
                   <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
                     {note.curriculumTag}
@@ -182,6 +188,12 @@ function NotePage() {
                     <dd className="font-semibold">{note.subjectTag}</dd>
                   </div>
                 )}
+                {note.topic && (
+                  <div className="flex justify-between gap-4 sm:block">
+                    <dt className="text-muted-foreground">{t("notes.field_topic")}</dt>
+                    <dd className="font-semibold">{note.topic}</dd>
+                  </div>
+                )}
                 {note.yearTag && (
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-muted-foreground">{t("notes.field_year")}</dt>
@@ -201,7 +213,7 @@ function NotePage() {
                   <dd className="font-semibold">PDF</dd>
                 </div>
               </dl>
-              {iaLabel && (
+              {isExemplar && (
                 <p className="text-xs text-muted-foreground">{t("notes.exemplar_disclaimer")}</p>
               )}
             </section>

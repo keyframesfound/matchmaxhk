@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { formatDocumentTypeLabel, type StudyMaterial } from "@/features/materials/queries";
+import { formatMaterialTypeLabel, type StudyMaterial } from "@/features/materials/queries";
 
 /**
  * Issues #131/#134: shared display pieces for the study-materials marketplace
@@ -128,6 +128,7 @@ export function StudyMaterialCard({
 }) {
   const { t } = useTranslation();
   const [previewOpen, setPreviewOpen] = useState(false);
+  const isExemplar = material.material_type === "exemplar";
   const courseworkMeta =
     material.document_type === "ia" ||
     material.document_type === "ee" ||
@@ -148,9 +149,10 @@ export function StudyMaterialCard({
             {material.title}
           </h3>
           <p className="mt-1 text-xs font-semibold text-muted-foreground">
-            {formatDocumentTypeLabel(material.document_type, t)}
+            {formatMaterialTypeLabel(material.material_type, t)}
             {material.curriculum_tag ? ` · ${material.curriculum_tag}` : ""}
             {material.subject_tag ? ` · ${material.subject_tag}` : ""}
+            {material.topic ? ` · ${material.topic}` : ""}
             {material.year_tag ? ` · ${material.year_tag}` : ""}
           </p>
         </div>
@@ -162,6 +164,11 @@ export function StudyMaterialCard({
       <div className="flex flex-wrap items-center gap-2">
         <MaterialStars rating={material.admin_star_rating} />
         <RetentionBadge />
+        {isExemplar && material.grade_achieved ? (
+          <span className="inline-flex items-center rounded-full border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/5 px-2.5 py-0.5 text-xs font-bold text-[color:var(--brand-link)]">
+            {t("materials.grade_label")}: {material.grade_achieved}
+          </span>
+        ) : null}
       </div>
 
       {material.admin_marketing_summary ? (

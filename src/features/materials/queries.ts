@@ -18,6 +18,10 @@ export type StudyMaterial = {
   curriculum_tag: string;
   subject_tag: string | null;
   document_type: string;
+  material_type: string;
+  topic: string | null;
+  grade_achieved: string | null;
+  exemplar_permission: boolean;
   year_tag: string | null;
   page_count: number | null;
   exact_score_achieved: string | null;
@@ -36,7 +40,7 @@ function isMissingRelation(error: unknown): boolean {
 }
 
 const MATERIAL_COLS =
-  "id, tutor_id, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, year_tag, page_count, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, admin_marketing_summary, created_at";
+  "id, tutor_id, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, admin_marketing_summary, created_at";
 
 function mapMaterial(row: Record<string, unknown>): StudyMaterial {
   return {
@@ -49,6 +53,10 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
     curriculum_tag: typeof row.curriculum_tag === "string" ? row.curriculum_tag : "",
     subject_tag: typeof row.subject_tag === "string" ? row.subject_tag : null,
     document_type: typeof row.document_type === "string" ? row.document_type : "custom_notes",
+    material_type: typeof row.material_type === "string" ? row.material_type : "notes",
+    topic: typeof row.topic === "string" ? row.topic : null,
+    grade_achieved: typeof row.grade_achieved === "string" ? row.grade_achieved : null,
+    exemplar_permission: row.exemplar_permission === true,
     year_tag: typeof row.year_tag === "string" ? row.year_tag : null,
     page_count: typeof row.page_count === "number" ? row.page_count : null,
     exact_score_achieved:
@@ -163,6 +171,13 @@ export function formatDocumentTypeLabel(type: string, t: (key: string) => string
   // Legacy rows may carry types the CHECK no longer allows (e.g. removed
   // past_paper_solutions) — fall back to a humanized value instead of
   // rendering the raw i18n key.
+  const label = t(key);
+  return label === key ? type.replace(/_/g, " ") : label;
+}
+
+/** #313: the 3-way type label (Notes / Mock / Exemplar) for new listings. */
+export function formatMaterialTypeLabel(type: string, t: (key: string) => string): string {
+  const key = `materials.type_${type}`;
   const label = t(key);
   return label === key ? type.replace(/_/g, " ") : label;
 }
