@@ -124,7 +124,7 @@ const SECTIONS: Section[] = [
       {
         kind: "ul",
         items: [
-          "Finish preparation and equipment checks 10 minutes before the start. Be ready online a few minutes early, or arrive at in-person locations exactly at the agreed time.",
+          "Finish preparation and equipment checks 10 minutes before the start. Be ready online a few minutes early, or arrive at in-person locations 5–7 minutes early.",
           "Always use a consistent Zoom link for each student and pin it in the chat so it's never lost.",
           "Maintain a separate Google Drive folder for each student containing notes, resources, and homework, and pin this link in the chat as well.",
         ],
@@ -680,8 +680,9 @@ function TutorPlaybookPage() {
                 from day one.
               </p>
               <aside className="border-l-2 border-border pl-4 text-sm italic leading-7 text-muted-foreground">
-                Note: Classroom management and teaching techniques are covered in the separate
-                MatchMax Tutor Lesson Quality Guide. This guide focuses strictly on mastering parent
+                Note: Classroom management and teaching techniques are covered in the Tutor Handbook
+                in the Help Centre (delivery standards, client mastery, decoding students, lesson
+                blueprints, safeguarding). This guide focuses strictly on mastering parent
                 relations, etiquette, and essential admin.
               </aside>
             </div>

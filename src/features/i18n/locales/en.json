@@ -916,8 +916,8 @@
     "verification_eyebrow": "Transparency",
     "verification_title": "Understanding Tutor Verification",
     "verification_disclaimer": "MatchMax is not endorsed by the IB, HKEAA, or any school. We check documents the tutor uploads. We do not guarantee a grade, an offer, or a teacher's marking style.",
-    "verification_tier2_title": "Gold Verified badge",
-    "verification_tier2_body": "MatchMax operates a dual-tier ecosystem. Tutors with the gold 'Verified' badge have submitted their official Academic Transcripts and Hong Kong Identity Card (HKID) to our administrative team for cross-referencing.",
+    "verification_tier2_title": "Gold Verified Scholar Badge",
+    "verification_tier2_body": "MatchMax operates a dual-tier ecosystem. Tutors with the gold Verified Scholar Badge have submitted their official Academic Transcripts and Hong Kong Identity Card (HKID) to our administrative team for cross-referencing.",
     "verification_tier1_title": "Self-reported profiles",
     "verification_tier1_body": "Unverified tutors rely on self-reported scores and are required to provide their academic proof directly to you prior to the first lesson.",
     "quality_eyebrow": "03 / Trust & Quality",
@@ -1023,7 +1023,7 @@
       },
       "verification": {
         "q": "How does MatchMax verify tutor qualifications and grades?",
-        "a": "MatchMax uses a two-tier system. Tier 1 tutors list self-reported results as “Stated Qualifications”—MatchMax does not cryptographically verify these claims, so you can request photographic proof directly from the tutor before the first lesson. Tier 2 tutors carry the blue Verified Scholar Badge, meaning our team has manually checked their identity and academic documents. Either way, you can always ask for proof before committing."
+        "a": "MatchMax uses a two-tier system. Tier 1 tutors list self-reported results as “Stated Qualifications”—MatchMax does not cryptographically verify these claims, so you can request photographic proof directly from the tutor before the first lesson. Tier 2 tutors carry the gold Verified Scholar Badge, meaning our team has manually checked their identity and academic documents. Either way, you can always ask for proof before committing."
       },
       "payments": {
         "q": "How do payments work between parents and tutors?",
@@ -1033,7 +1033,7 @@
     "billing_faq": {
       "pay": {
         "q": "How and when do I pay for the lessons?",
-        "a": "To keep the process simple and secure, MatchMax charges our one-time administrative matching fee directly to us via FPS within 24 hours after a successful trial lesson. For standard ongoing cases, this fee is equivalent to the cost of 1.5 lessons. For short-term assignments (5 lessons or fewer), the fee is strictly 20% of the total scheduled package. After this initial matching fee is settled, you pay your tutor directly for all remaining lessons."
+        "a": "MatchMax charges one administrative matching fee, settled once by FPS after your first two lessons. Our concierge stays close for those first two lessons and makes sure the match is right; once you are happy, you pay the fee. For standard ongoing cases the fee equals the cost of 1.5 lessons; for short-term assignments (5 lessons or fewer) it is strictly 20% of the total scheduled package. After the fee is settled, you pay your tutor directly for every remaining lesson."
       },
       "rematch": {
         "q": "What if the tutor isn't a good fit after the first lesson?",
@@ -1044,8 +1044,8 @@
         "a": "We understand that schedules change and emergencies happen. We simply ask that parents and tutors communicate directly in your dedicated MatchMax WhatsApp group and aim to provide at least 24 hours' notice out of mutual respect."
       },
       "account": {
-        "q": "Do I need to create an account to request a tutor?",
-        "a": "No. You can request a tutor directly through our website as a guest, and our concierge team will handle the matching process personally via WhatsApp."
+        "q": "Do I need an account to request a tutor?",
+        "a": "Browsing is free and open — you can look at tutors, guides, and study notes without an account. To submit a request you sign in with Google, one tap, so the concierge knows who to contact and can manage your case."
       },
       "notes": {
         "q": "How do purchases of digital study materials work?",
@@ -1300,8 +1300,8 @@
       "fact_fit_body": "If the fit is wrong after lesson one, tell the concierge and we will arrange a replacement tutor.",
       "fact_sickness_label": "Sickness is rescheduled with the tutor",
       "fact_sickness_body": "A lesson missed through sickness is rescheduled directly with the tutor — nobody loses the money.",
-      "fact_account_label": "An account is needed to request",
-      "fact_account_body": "Browsing is free and open. Submitting a case request needs a parent account so the concierge knows who to contact.",
+      "fact_account_label": "A Google sign-in is needed to request",
+      "fact_account_body": "Browsing is free and open. Submitting a case request needs a quick Google sign-in so the concierge knows who to contact.",
       "not_lessons_label": "We don't sit in after lesson two",
       "not_lessons_body": "The concierge stays close for the first two lessons. Once the fee is paid, the arrangement is between you and the tutor.",
       "not_cut_label": "We don't take a cut of later lessons",
@@ -1407,6 +1407,10 @@
     "verification": {
       "intro": "Every tutor card is checked by a person before it goes live. Here is exactly what we verify — and what verification does not mean.",
       "tiers_title": "What we verify",
+      "tier2_title": "Tier 2 — Verified Scholar Badge",
+      "tier2_body": "Tier 2 is our top verification bar. Tutors submit their official academic transcripts and Hong Kong Identity Card (HKID), and a staff member cross-checks every document by hand. Approved tutors carry the gold Verified Scholar Badge on their card.",
+      "tier1_title": "Tier 1 — Stated Qualifications",
+      "tier1_body": "Tier 1 tutors list self-reported results as stated qualifications. These claims are not cryptographically verified, so you can always ask the tutor for photographic proof before the first lesson.",
       "professionals_title": "Professionals",
       "professionals_body": "Working professionals are judged on their degree, PGDE, and tutoring record rather than a single exam score.",
       "process_title": "How the check runs",
