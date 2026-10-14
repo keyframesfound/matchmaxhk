@@ -265,6 +265,67 @@ async function buildExtendedPreview(bytes: Uint8Array): Promise<{
   return { pageCount, previewPages, previewBytes };
 }
 
+type DraftKindInput = {
+  curriculumTag?: string | null;
+  subjectTag?: string | null;
+  materialType?: MaterialType | null;
+  topic?: string | null;
+  gradeAchieved?: string | null;
+  exemplarPermission?: boolean | null;
+};
+
+type StoredKindRow = Pick<
+  MaterialRow,
+  | "curriculum_tag"
+  | "subject_tag"
+  | "material_type"
+  | "topic"
+  | "grade_achieved"
+  | "exemplar_permission"
+>;
+
+/**
+ * #340: tutor draft/submit zod fields are `curriculumTag` / `subjectTag`.
+ * `mergeNoteKinds` reads `curriculum` / `subject`, so passing the zod object
+ * through treats a filled curriculum as "keep stored" (empty on a new note).
+ * Both save and submit go through this remap. `undefined` still means keep;
+ * `null` / empty still means clear.
+ */
+export function mergeDraftNoteKinds(data: DraftKindInput, existing?: StoredKindRow | null) {
+  return mergeNoteKinds(
+    {
+      curriculum: data.curriculumTag,
+      subject: data.subjectTag,
+      materialType: data.materialType,
+      topic: data.topic,
+      gradeAchieved: data.gradeAchieved,
+      exemplarPermission: data.exemplarPermission,
+    },
+    existing
+      ? {
+          curriculumTag: existing.curriculum_tag,
+          subjectTag: existing.subject_tag,
+          materialType: existing.material_type,
+          topic: existing.topic,
+          gradeAchieved: existing.grade_achieved,
+          exemplarPermission: existing.exemplar_permission,
+        }
+      : undefined,
+  );
+}
+
+/** Same remap, into the strict submit validator (which also reads `curriculum` / `subject`). */
+export function validateDraftNoteKindsForSubmit(kinds: ReturnType<typeof mergeDraftNoteKinds>) {
+  return validateNoteKindsForSubmit({
+    curriculum: kinds.curriculum,
+    subject: kinds.subject,
+    materialType: kinds.materialType,
+    topic: kinds.topic,
+    gradeAchieved: kinds.gradeAchieved,
+    exemplarPermission: kinds.exemplarPermission,
+  });
+}
+
 /** P8: create or update the signed-in tutor's draft. Any subset of fields. */
 export const saveNoteDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -293,19 +354,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
     const existing = data.materialId
       ? await loadOwnedMaterial(db, data.materialId, tutor.id)
       : null;
-    const kinds = mergeNoteKinds(
-      data,
-      existing
-        ? {
-            curriculumTag: existing.curriculum_tag,
-            subjectTag: existing.subject_tag,
-            materialType: existing.material_type,
-            topic: existing.topic,
-            gradeAchieved: existing.grade_achieved,
-            exemplarPermission: existing.exemplar_permission,
-          }
-        : undefined,
-    );
+    const kinds = mergeDraftNoteKinds(data, existing);
 
     if (existing) {
       const { error } = await db
@@ -403,36 +452,18 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     // #313 review fix: explicit-clear semantics — a null/empty grade or
     // topic clears the stored value, and a non-exemplar type drops the
     // stale grade/permission instead of letting them fail validation.
-    const kinds = mergeNoteKinds(
-      data,
-      existing
-        ? {
-            curriculumTag: existing.curriculum_tag,
-            subjectTag: existing.subject_tag,
-            materialType: existing.material_type,
-            topic: existing.topic,
-            gradeAchieved: existing.grade_achieved,
-            exemplarPermission: existing.exemplar_permission,
-          }
-        : undefined,
-    );
+    // #340: curriculum/subject are remapped inside mergeDraftNoteKinds.
+    const kinds = mergeDraftNoteKinds(data, existing);
     const merged = {
       title: data.title ?? existing?.title,
       priceHkd: data.priceHkd ?? Number(existing?.price_hkd ?? 0),
       hasPdf: Boolean(data.base64Data) || Boolean(existing?.original_file_path),
-      // #313 note kinds: submit-time fields merge over the stored draft.
-      curriculumTag: kinds.curriculum,
-      subjectTag: kinds.subject,
-      materialType: kinds.materialType,
-      topic: kinds.topic,
-      gradeAchieved: kinds.gradeAchieved,
-      exemplarPermission: kinds.exemplarPermission,
     };
     const check = checkSubmitReadiness(merged);
     if (!check.ok) {
       throw new Error(`Missing: ${check.missing.join(", ")}`);
     }
-    const kindErrors = validateNoteKindsForSubmit(merged);
+    const kindErrors = validateDraftNoteKindsForSubmit(kinds);
     if (kindErrors.length > 0) {
       throw new Error(kindErrors.join(" "));
     }
