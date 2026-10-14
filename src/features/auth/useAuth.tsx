@@ -65,6 +65,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           fetchRoles(sess.user.id).then((r) => {
             if (mounted) setRoles(r);
           });
+          // P2 (#280): record the Google subject id on the profile for
+          // reference. Ownership itself is the auth user id; this column is
+          // an audit/linking aid. Best-effort — never blocks sign-in.
+          const identity = sess.user.identities?.find((i) => i.provider === "google");
+          const googleSub =
+            identity?.id ?? (sess.user.user_metadata?.sub as string | undefined);
+          if (googleSub) {
+            void supabase
+              .from("profiles")
+              .upsert(
+                { id: sess.user.id, google_sub: googleSub },
+                { onConflict: "id", ignoreDuplicates: false },
+              );
+          }
         }, 0);
       } else {
         setRoles([]);

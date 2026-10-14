@@ -432,6 +432,7 @@
   },
   "auth": {
     "sign_in_title": "歡迎返嚟",
+    "google_only_subtitle": "用 Google 登入，管理你嘅帳戶、個案同收藏嘅導師。",
     "sign_in_subtitle": "登入你嘅 MatchMax 帳戶",
     "sign_up_title": "建立帳戶",
     "sign_up_subtitle": "立即加入 MatchMax，開始搵導師或接補習",

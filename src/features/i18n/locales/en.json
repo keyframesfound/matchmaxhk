@@ -410,6 +410,7 @@
   },
   "auth": {
     "sign_in_title": "Welcome back",
+    "google_only_subtitle": "Sign in with Google to manage your account, cases, and saved tutors.",
     "sign_in_subtitle": "Log in to your MatchMax account",
     "sign_up_title": "Create your account",
     "sign_up_subtitle": "Join MatchMax as a parent or tutor",

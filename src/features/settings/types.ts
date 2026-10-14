@@ -51,7 +51,6 @@ export type SettingsCategory =
   | "availability"
   | "materials"
   | "account"
-  | "security"
   | "notifications"
   | "referrals"
   | "privacy"
@@ -64,7 +63,6 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   "availability",
   "materials",
   "account",
-  "security",
   "notifications",
   "referrals",
   "privacy",
@@ -75,6 +73,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
 const HASH_ALIASES: Record<string, SettingsCategory> = {
   appearance: "general",
   "account-type": "account",
+  security: "account",
 };
 
 export function categoryFromHash(hash: string): SettingsCategory {

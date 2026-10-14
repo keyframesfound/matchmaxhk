@@ -15,12 +15,10 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
 import { Route as CaseRequestRouteImport } from './routes/case-request'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TosRouteImport } from './routes/tos'
 import { Route as TutorPlaybookRouteImport } from './routes/tutor-playbook'
@@ -96,11 +94,6 @@ const CaseRequestRoute = CaseRequestRouteImport.update({
   path: '/case-request',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
@@ -119,11 +112,6 @@ const PricingRoute = PricingRouteImport.update({
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -372,12 +360,10 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
-  '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/join': typeof JoinRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
@@ -430,12 +416,10 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
-  '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/join': typeof JoinRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
@@ -489,12 +473,10 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
-  '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/join': typeof JoinRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
@@ -549,12 +531,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
-    | '/forgot-password'
     | '/how-it-works'
     | '/join'
     | '/pricing'
     | '/privacy-policy'
-    | '/reset-password'
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
@@ -607,12 +587,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
-    | '/forgot-password'
     | '/how-it-works'
     | '/join'
     | '/pricing'
     | '/privacy-policy'
-    | '/reset-password'
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
@@ -665,12 +643,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
-    | '/forgot-password'
     | '/how-it-works'
     | '/join'
     | '/pricing'
     | '/privacy-policy'
-    | '/reset-password'
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
@@ -725,12 +701,10 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
   CaseRequestRoute: typeof CaseRequestRoute
-  ForgotPasswordRoute: typeof ForgotPasswordRoute
   HowItWorksRoute: typeof HowItWorksRoute
   JoinRoute: typeof JoinRoute
   PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TosRoute: typeof TosRoute
   TutorPlaybookRoute: typeof TutorPlaybookRoute
@@ -801,13 +775,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CaseRequestRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/how-it-works': {
       id: '/how-it-works'
       path: '/how-it-works'
@@ -834,13 +801,6 @@ declare module '@tanstack/react-router' {
       path: '/privacy-policy'
       fullPath: '/privacy-policy'
       preLoaderRoute: typeof PrivacyPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1238,12 +1198,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
   CaseRequestRoute: CaseRequestRoute,
-  ForgotPasswordRoute: ForgotPasswordRoute,
   HowItWorksRoute: HowItWorksRoute,
   JoinRoute: JoinRoute,
   PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TosRoute: TosRoute,
   TutorPlaybookRoute: TutorPlaybookRoute,

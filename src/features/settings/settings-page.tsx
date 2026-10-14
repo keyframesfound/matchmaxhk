@@ -34,7 +34,6 @@ import { NotificationsSection } from "@/features/settings/sections/notifications
 import { PrivacySection } from "@/features/settings/sections/privacy-section";
 import { ProfileSection } from "@/features/settings/sections/profile-section";
 import { ReferralsSection } from "@/features/settings/sections/referrals-section";
-import { SecuritySection } from "@/features/settings/sections/security-section";
 import { StudyMaterialsSection } from "@/features/settings/sections/study-materials-section";
 import {
   categoryFromHash,
@@ -53,7 +52,6 @@ const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof S
   availability: { labelKey: "settings.nav.availability", icon: CalendarClock },
   materials: { labelKey: "settings.nav.materials", icon: BookOpen },
   account: { labelKey: "settings.nav.account", icon: UserCog },
-  security: { labelKey: "settings.nav.security", icon: KeyRound },
   notifications: { labelKey: "settings.nav.notifications", icon: Bell },
   referrals: { labelKey: "settings.nav.referrals", icon: Gift },
   privacy: { labelKey: "settings.nav.privacy", icon: Database },
@@ -81,7 +79,6 @@ const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSection
   availability: AvailabilityTab,
   materials: StudyMaterialsSection,
   account: AccountSection,
-  security: SecuritySection,
   notifications: NotificationsSection,
   referrals: ReferralsSection,
   privacy: PrivacySection,
