@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { contactFilterError } from "@/lib/contact-filter";
+import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
 
 export const MAX_FILES = 5;
 export const MAX_ACHIEVEMENT_FILE_BYTES = 5 * 1024 * 1024;
@@ -163,7 +164,23 @@ export const tutorApplicationSchema = z
     highSchool: z.string().trim().min(1, "Required").max(200),
     curriculum: z.enum(CURRICULUM_OPTIONS),
     curricula: z.array(z.enum(CURRICULUM_OPTIONS)).min(1, "Select at least one curriculum"),
-    overallScore: z.string().trim().min(1, "Required").max(200),
+    // Issue #323: overall score is strictly OPTIONAL — tutors select a
+    // curriculum and may leave the score blank ("spiky" specialists).
+    overallScore: z.string().trim().max(200).optional().default(""),
+    // Issue #323: required smart headline (<= 40 chars, contact-filtered),
+    // auto-filled from the qualifications but editable; see academic-headline.ts.
+    academicHeadline: z
+      .string()
+      .trim()
+      .min(1, "Required")
+      .max(
+        MAX_ACADEMIC_HEADLINE,
+        `Keep the headline to ${MAX_ACADEMIC_HEADLINE} characters or fewer`,
+      )
+      .superRefine((text, ctx) => {
+        const error = contactFilterError(text);
+        if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+      }),
     subjectsConfident: z.string().trim().min(1, "Required").max(2000),
     subjectResults: z.string().trim().min(1, "Required").max(2000),
     awards: z.string().trim().max(2000).optional().default(""),
@@ -419,7 +436,8 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     { label: "High school and graduation year", value: data.highSchool },
     { label: "Primary curriculum", value: data.curriculum },
     { label: "Curricula completed", value: data.curricula.join(", ") },
-    { label: "Overall achieved score", value: data.overallScore },
+    { label: "Academic headline", value: data.academicHeadline },
+    { label: "Overall achieved score", value: data.overallScore || "—" },
     { label: "Subjects and levels confident teaching", value: data.subjectsConfident },
     { label: "Relevant subject results / academic strengths", value: data.subjectResults },
     { label: "Awards / scholarships / achievements", value: data.awards || "—" },
