@@ -144,8 +144,12 @@ function toHelpArticle(fileName: string, raw: string): HelpArticle {
   let body = parsed.body;
   const duplicateHeading = /^\s*#\s+(.+?)\s*(?:\n|$)/.exec(body);
   if (duplicateHeading && duplicateHeading[1] === title) {
-    const headingEnd = body.indexOf("\n", duplicateHeading.index);
-    body = headingEnd === -1 ? "" : body.slice(headingEnd + 1).replace(/^\n+/, "");
+    // Cut at the end of the matched heading line itself (index + match
+    // length). Searching from match.index instead would land on the first
+    // blank line when the body opens with whitespace, stripping only the
+    // blanks and leaving the duplicate `# Title` behind.
+    const headingEnd = duplicateHeading.index + duplicateHeading[0].length;
+    body = body.slice(headingEnd).replace(/^\n+/, "");
   }
   const data = parsed.data;
   return {
