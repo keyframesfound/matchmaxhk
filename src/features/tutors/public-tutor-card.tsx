@@ -225,9 +225,11 @@ export function PublicTutorCard({
       {
         title: `Tutor ${formatTutorCode(tutor.tutor_code)} | MatchMax`,
         // Issue #125: a flagged pricing field strips the rate — omit it.
+        // Issue #319: the shared figure is always the card floor ("$X up/hr"),
+        // never a range and never max_hourly_rate_hkd.
         text:
           price.baseRate > 0
-            ? `Check out tutor ${tutor.tutor_code} on MatchMax — HK$${price.baseRate}/hr.`
+            ? `Check out tutor ${tutor.tutor_code} on MatchMax — $${price.baseRate} up/hr.`
             : `Check out tutor ${tutor.tutor_code} on MatchMax.`,
         url: `${window.location.origin}/tutors/${tutor.tutor_code}`,
       },
@@ -468,16 +470,14 @@ export function PublicTutorCard({
           <FitText
             as="p"
             maxLines={1}
-            contentKey={`${price.baseRate}-${price.isRange}-${priceSuffix}`}
+            contentKey={`${price.baseRate}-${priceSuffix}`}
             className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
           >
+            {/* Issue #319: one "$X up/hr" figure — the base rate floor. Extra
+                rate rows never appear here, so they can never lower it. */}
             ${price.baseRate}
-            {price.isRange ? (
-              <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
-                {t("tutor_card.price_up")}
-              </span>
-            ) : null}
             <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
+              {t("tutor_card.price_up")}
               {priceSuffix}
             </span>
           </FitText>
