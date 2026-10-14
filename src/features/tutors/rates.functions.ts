@@ -47,9 +47,7 @@ export const suggestTutorRates = createServerFn({ method: "POST" })
     );
     for (const curriculum of data.subjects) ownSubjectKeys.add(normalizeKey(curriculum));
 
-    const ownCurriculumKeys = new Set(
-      data.curricula.map(normalizeKey).filter(Boolean),
-    );
+    const ownCurriculumKeys = new Set(data.curricula.map(normalizeKey).filter(Boolean));
     const ownTiers = Array.isArray(owned.pricing_tiers) ? owned.pricing_tiers : [];
     for (const tier of ownTiers) {
       const curriculum = normalizeKey(String((tier as { curriculum?: string })?.curriculum ?? ""));
@@ -70,7 +68,9 @@ export const suggestTutorRates = createServerFn({ method: "POST" })
       if (subjects.some((subject) => subject && ownSubjectKeys.has(subject))) return true;
       const tiers = Array.isArray(card.pricing_tiers) ? card.pricing_tiers : [];
       return tiers.some((tier) => {
-        const curriculum = normalizeKey(String((tier as { curriculum?: string })?.curriculum ?? ""));
+        const curriculum = normalizeKey(
+          String((tier as { curriculum?: string })?.curriculum ?? ""),
+        );
         return curriculum && ownCurriculumKeys.has(curriculum);
       });
     });

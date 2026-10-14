@@ -578,6 +578,14 @@ function mergeAutofillResult(prev: TutorFormData, result: TutorAutofillResult): 
       ? result.lesson_mode
       : prev.lesson_mode,
     hourly_rate: result.hourly_rate > 0 ? result.hourly_rate : prev.hourly_rate,
+    online_rate:
+      typeof result.online_rate === "number" ? String(result.online_rate) : prev.online_rate,
+    inperson_rate:
+      typeof result.inperson_rate === "number" ? String(result.inperson_rate) : prev.inperson_rate,
+    rate_rows:
+      result.rate_rows.length > 0 ? result.rate_rows.slice(0, MAX_RATE_ROWS) : prev.rate_rows,
+    travel_note: result.travel_note || prev.travel_note,
+    rate_note: result.rate_note || prev.rate_note,
     start_immediately: result.start_immediately,
     earliest_start_date: result.start_immediately
       ? ""

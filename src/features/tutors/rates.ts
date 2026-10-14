@@ -24,16 +24,12 @@ export type TutorRateRow = { label: string; rate: number };
 /** Whole dollars inside the 50-3000 band — $49 and $3001 are rejected. */
 export function isValidTutorRate(value: unknown): value is number {
   return (
-    typeof value === "number" &&
-    Number.isInteger(value) &&
-    value >= RATE_MIN &&
-    value <= RATE_MAX
+    typeof value === "number" && Number.isInteger(value) && value >= RATE_MIN && value <= RATE_MAX
   );
 }
 
 export type NormalizedRateRows =
-  | { ok: true; rows: TutorRateRow[] }
-  | { ok: false; rows: TutorRateRow[]; errors: string[] };
+  { ok: true; rows: TutorRateRow[] } | { ok: false; rows: TutorRateRow[]; errors: string[] };
 
 /**
  * Extra rate rows (profile-only): a row saves only when BOTH the label and
@@ -54,7 +50,7 @@ export function normalizeTutorRateRows(
         ? rawRate.trim() === ""
           ? null
           : Number(rawRate)
-        : rawRate ?? null;
+        : (rawRate ?? null);
     const hasLabel = label.length > 0;
     const hasRate = rate !== null && rate !== undefined && Number.isFinite(rate);
 
@@ -68,7 +64,9 @@ export function normalizeTutorRateRows(
       continue;
     }
     if (label.length > RATE_ROW_LABEL_MAX) {
-      errors.push(`Extra rate row ${index + 1}: label must be ${RATE_ROW_LABEL_MAX} characters or fewer`);
+      errors.push(
+        `Extra rate row ${index + 1}: label must be ${RATE_ROW_LABEL_MAX} characters or fewer`,
+      );
       continue;
     }
     if (!isValidTutorRate(rate)) {
@@ -128,8 +126,7 @@ export function medianRate(values: number[]): number | null {
   const clean = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
   if (clean.length === 0) return null;
   const mid = Math.floor(clean.length / 2);
-  const median =
-    clean.length % 2 === 1 ? clean[mid] : (clean[mid - 1] + clean[mid]) / 2;
+  const median = clean.length % 2 === 1 ? clean[mid] : (clean[mid - 1] + clean[mid]) / 2;
   return median;
 }
 
@@ -139,8 +136,7 @@ export function roundRateTo10(value: number): number {
 }
 
 export type SuggestedRates =
-  | { status: "not_enough_data" }
-  | { status: "ok"; online: number | null; inPerson: number | null };
+  { status: "not_enough_data" } | { status: "ok"; online: number | null; inPerson: number | null };
 
 /**
  * Suggest-a-rate core (issue #319): median online and in-person base rates of

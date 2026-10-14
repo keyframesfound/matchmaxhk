@@ -529,25 +529,45 @@ function readOverallScore(data: Record<string, unknown>): string | null {
   const raw = data.overallScore;
   if (typeof raw !== "string") return null;
   const trimmed = raw.trim();
-  return trimmed ? trimmed : null;
+  if (!trimmed) return null;
+  // Professional-path applications store a placeholder, not a claim to verify.
+  if (/^not applicable/i.test(trimmed)) return null;
+  return trimmed;
 }
 
 function readSubjectGrades(data: Record<string, unknown>): SubjectGradeEntry[] {
   const raw = data.subjectGrades ?? data.subject_grades;
-  if (!Array.isArray(raw)) return [];
+  if (Array.isArray(raw)) {
+    const entries: SubjectGradeEntry[] = [];
+    for (const item of raw) {
+      if (!item || typeof item !== "object") continue;
+      const record = item as Record<string, unknown>;
+      const subject = typeof record.subject === "string" ? record.subject.trim() : "";
+      if (!subject) continue;
+      const gradeRaw = record.grade;
+      const grade =
+        typeof gradeRaw === "number"
+          ? String(gradeRaw)
+          : typeof gradeRaw === "string"
+            ? gradeRaw.trim()
+            : "";
+      entries.push({ subject, grade });
+    }
+    return entries;
+  }
+  // Issue #323: the join form stores per-subject grades flattened into the
+  // free-text "subjectResults" answer, one "Subject: Grade" line per result
+  // (grouped under curriculum headers without colons). Parse the colon lines
+  // so staff still get one checkbox per stated grade; anything that does not
+  // match the pattern is bio-style prose and is not offered for verification.
+  const text = typeof data.subjectResults === "string" ? data.subjectResults : "";
   const entries: SubjectGradeEntry[] = [];
-  for (const item of raw) {
-    if (!item || typeof item !== "object") continue;
-    const record = item as Record<string, unknown>;
-    const subject = typeof record.subject === "string" ? record.subject.trim() : "";
-    if (!subject) continue;
-    const gradeRaw = record.grade;
-    const grade =
-      typeof gradeRaw === "number"
-        ? String(gradeRaw)
-        : typeof gradeRaw === "string"
-          ? gradeRaw.trim()
-          : "";
+  for (const line of text.split("\n")) {
+    const match = line.match(/^([^:]{1,80}):\s+(.{1,60})$/);
+    if (!match) continue;
+    const subject = match[1].trim();
+    const grade = match[2].trim();
+    if (!subject || !grade) continue;
     entries.push({ subject, grade });
   }
   return entries;

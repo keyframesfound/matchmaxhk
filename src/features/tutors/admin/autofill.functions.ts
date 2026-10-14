@@ -13,6 +13,15 @@ import {
   MAX_TUTOR_CARD_HIGHLIGHTS,
   TUTOR_CARD_HIGHLIGHT_ROW_LIMIT,
 } from "@/features/tutors/queries";
+import {
+  ACADEMIC_HEADLINE_MAX,
+  MAX_RATE_ROWS,
+  RATE_MAX,
+  RATE_MIN,
+  RATE_NOTE_MAX,
+  RATE_ROW_LABEL_MAX,
+  TRAVEL_NOTE_MAX,
+} from "@/features/tutors/rates";
 import { buildAnswerRows, type TutorApplication } from "@/lib/tutor-application.schema";
 import { getRuntimeEnv } from "@/lib/runtime-env";
 
@@ -92,7 +101,22 @@ const autofillResultSchema = z.object({
     .regex(/^[A-Za-z0-9-]{2,20}$/)
     .catch(""),
   gender: z.enum(["male", "female", "other"]).catch("other"),
-  academic_headline: z.string().trim().max(200).catch(""),
+  academic_headline: z.string().trim().max(ACADEMIC_HEADLINE_MAX).catch(""),
+  // Issue #319: base rates + profile-only extras, transcribed from the
+  // application's own answers (never invented by the model).
+  online_rate: z.coerce.number().int().min(RATE_MIN).max(RATE_MAX).nullable().catch(null),
+  inperson_rate: z.coerce.number().int().min(RATE_MIN).max(RATE_MAX).nullable().catch(null),
+  rate_rows: z
+    .array(
+      z.object({
+        label: z.string().trim().min(1).max(RATE_ROW_LABEL_MAX),
+        rate: z.coerce.number().int().min(RATE_MIN).max(RATE_MAX),
+      }),
+    )
+    .max(MAX_RATE_ROWS)
+    .catch([]),
+  travel_note: z.string().trim().max(TRAVEL_NOTE_MAX).catch(""),
+  rate_note: z.string().trim().max(RATE_NOTE_MAX).catch(""),
   undergrad_university: z.string().trim().max(200).catch(""),
   secondary_school: z.string().trim().max(200).catch(""),
   subjects: z.array(z.string().trim().min(1).max(80)).max(20).catch([]),
@@ -207,7 +231,7 @@ function buildSystemPrompt(styleExamples: StyleExample[], suggestedCode: string)
 Return ONLY a JSON object with these keys:
 - tutor_code (suggest "${suggestedCode}" unless the source specifies a code)
 - gender ("male" | "female" | "other")
-- academic_headline (string <= 120 chars, e.g. "IBDP 44/45", "HKDSE Best 5: 32", "Official IB Maths Examiner & School Teacher")
+- academic_headline (string <= 40 chars, e.g. "IBDP 44/45", "HKDSE Best 5: 32", "Official IB Maths Examiner & School Teacher"; when the source has an "Academic headline" answer, copy it VERBATIM)
 - undergrad_university (short name e.g. "HKU", "CUHK", "University College London"; empty if unknown)
 - secondary_school (empty if unknown)
 - subjects (array of teachable subject names, using the exam-system vocabulary below where possible, or the curriculum subject vocabulary for primary school, junior secondary, and admissions/test-prep support)
@@ -215,6 +239,11 @@ Return ONLY a JSON object with these keys:
 - exam_results (array of at most 3 objects: { system: "<system id>", subjects: [{ subject, grade, papers?: [{ label, score }] }] }). Grade formats: IB "7"-"1" (TOK/EE "A"-"E"); DSE "5**","5*","5"...; IGCSE "A* (legacy)" or "9"-"1"; A-Level "A*"-"U"; AP "5"-"1"; IELTS bands like "8.5". Only include papers when the source gives component scores (labels "Paper 1", "Paper 2", "Paper 3").
 - lesson_mode ("online" | "in_person" | "either"; "Face to face" -> in_person, "Online" -> online, "Both" -> either)
 - hourly_rate (integer HKD)
+- online_rate (integer HKD 50-3000 or null; copy the source's "Online rate" answer; null when absent or out of range)
+- inperson_rate (integer HKD 50-3000 or null; copy the source's "In-person rate" answer; null when absent or out of range)
+- rate_rows (array of at most 6 objects { label, rate } copied from the source's "Extra rate rows" answer; empty array when none)
+- travel_note (<= 80 chars; copy the source's "Travel note" answer verbatim; empty string when absent)
+- rate_note (<= 120 chars; copy the source's "Rate note" / "Anything that changes this rate?" answer verbatim; empty string when absent)
 - start_immediately (boolean; false only when the source states a concrete future earliest start date)
 - earliest_start_date (ISO "yyyy-mm-dd" from the source's earliest start date; null when starting immediately or unknown)
 - stations (array of exact MTR station names from the list below; empty if online only or unknown)
