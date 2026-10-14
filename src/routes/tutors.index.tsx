@@ -482,19 +482,25 @@ function TutorsDirectory() {
                                 footerAction={
                                   <>
                                     <TutorSaveButton tutorId={tut.id} compact />
-                                    <Button
-                                      asChild
-                                      className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                                    >
-                                      <a
-                                        href={inquiry.href}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        onClick={(event) => event.stopPropagation()}
-                                      >
+                                    {inquiry.kind === "status" ? (
+                                      <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
                                         {inquiry.label}
-                                      </a>
-                                    </Button>
+                                      </span>
+                                    ) : (
+                                      <Button
+                                        asChild
+                                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                                      >
+                                        <a
+                                          href={inquiry.href}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          onClick={(event) => event.stopPropagation()}
+                                        >
+                                          {inquiry.label}
+                                        </a>
+                                      </Button>
+                                    )}
                                   </>
                                 }
                               />

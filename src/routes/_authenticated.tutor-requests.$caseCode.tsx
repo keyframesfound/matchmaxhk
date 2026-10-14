@@ -37,7 +37,7 @@ import { shareOrCopy } from "@/lib/share";
 
 type CaseDetailData = { item: PublicCaseBoardItem; whatsappNumber: string };
 
-export const Route = createFileRoute("/tutor-requests/$caseCode")({
+export const Route = createFileRoute("/_authenticated/tutor-requests/$caseCode")({
   loader: async ({ params }) => {
     const data = await getPublicCaseByCode({ data: { caseCode: params.caseCode } });
     if (!data) throw notFound();

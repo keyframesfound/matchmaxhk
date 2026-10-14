@@ -164,10 +164,26 @@ export function buildTutorPreBookingWhatsAppUrl(
 }
 
 export type TutorInquiryAction = {
-  kind: "request" | "pre_book" | "waitlist";
+  kind: "request" | "pre_book" | "waitlist" | "status";
   href: string;
   label: string;
 };
+
+/**
+ * Epic #280 P5: owner-controlled availability state.
+ *  - taking: accepting students with at least one open slot
+ *  - full: at the cap (remaining_student_slots = 0)
+ *  - inactive: owner paused the card (accepting_students = false)
+ */
+export type TutorAvailabilityState = "taking" | "full" | "inactive";
+
+export function getTutorAvailabilityState(
+  tutor: Pick<Tutor, "is_accepting_students" | "remaining_student_slots">,
+): TutorAvailabilityState {
+  if (tutor.is_accepting_students === false) return "inactive";
+  if (isTutorFullyBooked(tutor)) return "full";
+  return "taking";
+}
 
 /**
  * Issue #103: waitlist CTA for fully booked tutors — same WhatsApp deep link,
@@ -201,6 +217,15 @@ export function getTutorInquiryAction(
   whatsappNumber: string | undefined,
   language: string,
 ): TutorInquiryAction {
+  // P5 (#280): Full and Inactive hide the Request-tutor action; the caller
+  // renders a status chip instead (kind "status").
+  const availabilityState = getTutorAvailabilityState(tutor);
+  if (availabilityState === "inactive") {
+    return { kind: "status", href: "", label: "Inactive" };
+  }
+  if (availabilityState === "full") {
+    return { kind: "status", href: "", label: "Full" };
+  }
   if (isTutorFullyBooked(tutor)) {
     return {
       kind: "waitlist",

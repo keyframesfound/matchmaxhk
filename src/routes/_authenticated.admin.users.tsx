@@ -22,6 +22,7 @@ import { provisionUserAccount } from "@/lib/account.functions";
 import { ROLE_DISPLAY_NAMES } from "@/features/auth/roleLabel";
 
 import { UserStatsOverview, type UserRow } from "@/features/admin-users/UserStatsOverview";
+import { TutorClaimsQueue } from "@/features/admin-users/TutorClaimsQueue";
 import { UsersTable } from "@/features/admin-users/UsersTable";
 import { RolesMatrixTab } from "@/features/admin-users/RolesMatrixTab";
 import { RoleManagementDialog } from "@/features/admin-users/RoleManagementDialog";
@@ -262,6 +263,9 @@ function AdminUsers() {
 
           {/* Cloudflare KPI Overview Cards */}
           <UserStatsOverview users={rows} isLoading={isLoading} />
+
+          {/* Epic #280 P2: tutor card claims needing staff review */}
+          <TutorClaimsQueue />
 
           {/* Main Tabs Container */}
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "users" | "roles")}>

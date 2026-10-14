@@ -182,11 +182,7 @@ export function MobileBottomNav() {
                     color="blue"
                     className="h-11 w-full rounded-full text-sm font-bold"
                   >
-                    <Link
-                      to="/auth"
-                      search={{ mode: "sign_up" }}
-                      onClick={() => setAccountOpen(false)}
-                    >
+                    <Link to="/auth" onClick={() => setAccountOpen(false)}>
                       <UserRoundPlus className="h-4 w-4" aria-hidden="true" />
                       {t("nav.sign_up")}
                     </Link>

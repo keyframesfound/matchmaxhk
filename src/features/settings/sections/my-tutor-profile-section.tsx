@@ -147,6 +147,7 @@ export function MyTutorProfileSection() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [form, setForm] = React.useState<TutorFormData | null>(null);
+  const [preferredName, setPreferredName] = React.useState("");
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [rates, setRates] = React.useState<RatesDraft | null>(null);
   // Issue #319 review: a mid-edit refetch (window focus, invalidation) must
@@ -175,6 +176,10 @@ export function MyTutorProfileSection() {
     const nextForm = tutorToFormData(tutorQuery.data);
     setForm(nextForm);
     if (!ratesDirtyRef.current) setRates(ratesFromRow(tutorQuery.data));
+    // Epic #280 P2: preferred name is owner-editable, independent of the
+    // tutor code. Held outside TutorFormData — the shared admin schema
+    // derives display_name from tutor_code; owners set it directly.
+    setPreferredName(tutorQuery.data.display_name ?? "");
   }, [tutorQuery.data]);
 
   // Institution spellings already in use on tutor profiles, so tutors pick an
@@ -203,9 +208,11 @@ export function MyTutorProfileSection() {
     mutationFn: async ({
       data,
       rates: savedRates,
+      displayName,
     }: {
       data: TutorFormData;
       rates: SavedRateColumns;
+      displayName: string;
     }) => {
       // Reuse the admin editor's normalization, minus fields the tutor must
       // never change: tutor_code (their public slug) and field state. Capacity
@@ -221,6 +228,8 @@ export function MyTutorProfileSection() {
         availability_grid: _grid,
         ...rest
       } = formDataToPayload(data);
+      // Epic #280 P2: preferred name is owner-set, not derived from the code.
+      rest.display_name = displayName.trim() || rest.display_name;
       const previous = tutorQuery.data;
 
       // Issue #319: the new base-rate columns always follow this form. With at
@@ -344,13 +353,30 @@ export function MyTutorProfileSection() {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!form || !rates) return;
-    // Issue #215: block the save when the public introduction carries a
-    // phone number, email, link, or chat-app handle. Client-side twin of
-    // the same rule the concierge flow enforces at intake.
-    const introContactError = contactFilterError(form.self_introduction ?? "");
-    if (introContactError) {
-      setErrors((currentErrors) => ({ ...currentErrors, self_introduction: introContactError }));
-      toast.error(introContactError);
+    // Issue #215 / epic #280 P3: block the save when public free text carries
+    // a phone number, email, link, or chat-app handle. Client-side twin of the
+    // tutors_owner_contact_guard trigger.
+    const contactErrors = [
+      {
+        field: "academic_headline" as const,
+        error: contactFilterError(form.academic_headline ?? ""),
+      },
+      {
+        field: "qualifications_summary" as const,
+        error: contactFilterError(form.qualifications_summary ?? ""),
+      },
+      {
+        field: "self_introduction" as const,
+        error: contactFilterError(form.self_introduction ?? ""),
+      },
+    ].filter((entry) => Boolean(entry.error));
+    if (contactErrors.length > 0) {
+      setErrors((current) => {
+        const next = { ...current };
+        for (const entry of contactErrors) next[entry.field] = entry.error as string;
+        return next;
+      });
+      toast.error(contactErrors[0].error as string);
       return;
     }
     // Issue #323 review: the headline stays optional here (pre-#323 tutors may
@@ -453,8 +479,14 @@ export function MyTutorProfileSection() {
         travel_note: inPersonDropped ? null : travelNote || null,
         rate_note: rateNote || null,
       },
+      displayName: preferredName,
     });
   };
+
+  // Epic #280 P3: verified tutors cannot edit credential fields — the server
+  // trigger (tutors_owner_verified_guard) enforces the same list; the UI just
+  // mirrors it. P4's evidence queue will reopen these with review.
+  const isVerified = (current?.verification_tier ?? "tier_1_standard") === "tier_2_verified";
 
   // Issue #101: instant hide (reuses is_published) + admin-reviewed deletion.
   const [hidePending, setHidePending] = React.useState(false);
@@ -582,6 +614,29 @@ export function MyTutorProfileSection() {
             )}
           </div>
 
+          {/* Epic #280 P3: credential fields lock for verified tutors. */}
+          {isVerified ? (
+            <p className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3 text-xs leading-5 text-[color:var(--ink)]/70">
+              {t("settings.my_tutor.verified_lock_note")}
+            </p>
+          ) : null}
+
+          <div className="space-y-2">
+            <Label htmlFor="myt-name" className="text-[color:var(--ink)]">
+              {t("settings.my_tutor.display_name")}
+            </Label>
+            <Input
+              id="myt-name"
+              value={preferredName}
+              onChange={(e) => setPreferredName(e.target.value)}
+              maxLength={60}
+              className="bg-[color:var(--surface)]"
+            />
+            <p className="text-xs text-[color:var(--ink)]/55">
+              {t("settings.my_tutor.display_name_hint")}
+            </p>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="myt-academic" className="text-[color:var(--ink)]">
@@ -592,6 +647,7 @@ export function MyTutorProfileSection() {
                 value={form.academic_headline}
                 maxLength={MAX_ACADEMIC_HEADLINE}
                 onChange={(e) => setForm({ ...form, academic_headline: e.target.value })}
+                disabled={isVerified}
                 placeholder="e.g. IBDP 44/45 or HKDSE Best 5: 32"
                 className="bg-[color:var(--surface)]"
               />
@@ -612,6 +668,7 @@ export function MyTutorProfileSection() {
                 )}
                 emptyText={t("settings.my_tutor.education_empty_hint")}
                 allowCustom
+                disabled={isVerified}
                 className="bg-[color:var(--surface)]"
               />
             </div>
@@ -628,6 +685,7 @@ export function MyTutorProfileSection() {
                 )}
                 emptyText={t("settings.my_tutor.education_empty_hint")}
                 allowCustom
+                disabled={isVerified}
                 className="bg-[color:var(--surface)]"
               />
             </div>
@@ -641,6 +699,7 @@ export function MyTutorProfileSection() {
                 options={majorEditorOptions(form.undergrad_degree, educationValues.majors)}
                 emptyText={t("settings.my_tutor.education_empty_hint")}
                 allowCustom
+                disabled={isVerified}
                 className="bg-[color:var(--surface)]"
               />
             </div>
@@ -654,6 +713,7 @@ export function MyTutorProfileSection() {
               id="myt-qualifications"
               value={form.qualifications_summary}
               onChange={(e) => setForm({ ...form, qualifications_summary: e.target.value })}
+              disabled={isVerified}
               rows={4}
               className="bg-[color:var(--surface)]"
             />

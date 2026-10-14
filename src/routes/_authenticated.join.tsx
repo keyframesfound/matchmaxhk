@@ -5,7 +5,7 @@ import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { ApplicationForm } from "@/features/tutor-application/ApplicationForm";
 
-export const Route = createFileRoute("/join")({
+export const Route = createFileRoute("/_authenticated/join")({
   head: () => ({
     meta: [
       { title: "Apply to tutor with MatchMax - Tutor Application" },

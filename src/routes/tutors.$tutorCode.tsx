@@ -30,6 +30,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/features/auth/useAuth";
 import {
   fetchPublishedTutors,
   fetchTutorByCode,
@@ -396,6 +397,7 @@ function TutorDetail() {
   const { tutor } = Route.useLoaderData();
   const navigate = useNavigate();
   const { t: translate, i18n } = useTranslation();
+  const { user } = useAuth();
 
   const { data: whatsappNumber } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
@@ -554,6 +556,24 @@ function TutorDetail() {
       />
       <SiteHeader />
       <main className="flex-1">
+        {/* Epic #280 P2: unclaimed card + signed-in visitor → claim entry point.
+            Wrong-person claims are safe: the RPC routes them to staff review. */}
+        {user && !t.user_id ? (
+          <div className="border-b border-[color:var(--border)] bg-[color:var(--accent)]/10">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-5 py-2.5 sm:px-8">
+              <p className="text-sm text-[color:var(--muted-foreground)]">
+                {translate("profile.claim_banner.text")}
+              </p>
+              <Link
+                to="/account/claim"
+                search={{ tutor: t.id }}
+                className="text-sm font-bold text-[color:var(--brand-link)] hover:underline"
+              >
+                {translate("profile.claim_banner.cta")}
+              </Link>
+            </div>
+          </div>
+        ) : null}
         <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
             <Button
@@ -725,7 +745,12 @@ function TutorDetail() {
                     </p>
                   </div>
                 ) : null}
-                {waUrl ? (
+                {inquiry.kind === "status" ? (
+                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
+                    <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                    {inquiry.label}
+                  </p>
+                ) : waUrl ? (
                   <Button
                     asChild
                     variant="solid"
@@ -982,26 +1007,32 @@ function TutorDetail() {
                         void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
                       }
                       footerAction={
-                        <Button
-                          asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                        >
-                          <a
-                            href={candidateInquiry.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(event) => event.stopPropagation()}
+                        candidateInquiry.kind === "status" ? (
+                          <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
+                            {candidateInquiry.label}
+                          </span>
+                        ) : (
+                          <Button
+                            asChild
+                            className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                           >
-                            {candidateInquiry.kind === "pre_book" && candidate.earliest_start_date
-                              ? translate("tutor_card.prebook_cta", {
-                                  date: formatAvailabilityDate(
-                                    candidate.earliest_start_date,
-                                    i18n.language,
-                                  ),
-                                })
-                              : translate("profile.request_tutor")}
-                          </a>
-                        </Button>
+                            <a
+                              href={candidateInquiry.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              {candidateInquiry.kind === "pre_book" && candidate.earliest_start_date
+                                ? translate("tutor_card.prebook_cta", {
+                                    date: formatAvailabilityDate(
+                                      candidate.earliest_start_date,
+                                      i18n.language,
+                                    ),
+                                  })
+                                : translate("profile.request_tutor")}
+                            </a>
+                          </Button>
+                        )
                       }
                     />
                   );

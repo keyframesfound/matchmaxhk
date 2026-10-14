@@ -340,11 +340,6 @@ export function SiteHeader({
                 ) : (
                   <div className="px-1.5 py-1.5">
                     <DropdownMenuItem asChild className={menuLinkClassName}>
-                      <Link to="/auth" search={{ mode: "sign_up" }}>
-                        {t("nav.sign_up")}
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className={menuLinkClassName}>
                       <Link to="/auth">{t("nav.sign_in")}</Link>
                     </DropdownMenuItem>
                   </div>
@@ -462,7 +457,7 @@ export function SiteHeader({
                         {t("nav.sign_in")}
                       </Button>
                     </Link>
-                    <Link to="/auth" search={{ mode: "sign_up" }} onClick={closeMenu}>
+                    <Link to="/auth" onClick={closeMenu}>
                       <Button
                         variant="solid"
                         color="blue"

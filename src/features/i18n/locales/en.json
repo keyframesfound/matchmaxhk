@@ -236,7 +236,14 @@
       "window_weekday_evening": "Weekday evenings (7–10 PM)",
       "window_weekend_morning": "Weekend mornings (9 AM–1 PM)",
       "window_weekend_afternoon": "Weekend afternoons (1–6 PM)",
-      "save_capacity": "Save changes"
+      "save_capacity": "Save changes",
+      "status_label": "Card status",
+      "status_taking": "Taking students",
+      "status_full": "Full",
+      "status_inactive": "Inactive",
+      "status_taking_hint": "Your card accepts new requests. Slots below is how many students you can still take.",
+      "status_full_hint": "At your cap — your card shows “Full” and hides the request button. Raise the slots to take more students.",
+      "status_inactive_hint": "Your card stays visible but shows “Inactive” and hides the request button until you reactivate it."
     },
     "my_tutor": {
       "title": "My tutor profile",
@@ -279,6 +286,9 @@
       "deletion_submitting": "Submitting…",
       "deletion_pending_badge": "Deletion request received — our team will process it within 3-5 business days",
       "deletion_requested_toast": "Deletion request received — our team will be in touch",
+      "verified_lock_note": "Verified tutors can't edit school, degree, exam results, or achievement claims — ask the MatchMax team to change these (they keep your badge trustworthy).",
+      "display_name": "Preferred name",
+      "display_name_hint": "Shown on your public card next to your tutor code.",
       "rates_heading": "Hourly rates",
       "rates_online": "Online hourly rate (HK$)",
       "rates_in_person": "In-person hourly rate (HK$)",
@@ -432,6 +442,7 @@
   },
   "auth": {
     "sign_in_title": "Welcome back",
+    "google_only_subtitle": "Sign in with Google to manage your account, cases, and saved tutors.",
     "sign_in_subtitle": "Log in to your MatchMax account",
     "sign_up_title": "Create your account",
     "sign_up_subtitle": "Join MatchMax as a parent or tutor",
@@ -806,6 +817,10 @@
     "grid_slot_am": "AM",
     "grid_slot_pm": "PM",
     "grid_cell_partial": "Partially available",
+    "claim_banner": {
+      "text": "Is this your card? Claim it to edit your public profile.",
+      "cta": "Claim this card"
+    },
     "section_rates": "Rates",
     "rates_online": "Online",
     "rates_inperson": "In person"
@@ -1625,6 +1640,43 @@
     "unhide_note": "Unhide note",
     "notes_updated": "Note updated.",
     "notes_update_failed": "Could not update the note.",
-    "finish_payment": "Finish payment"
+    "finish_payment": "Finish payment",
+    "claim": {
+      "title": "Claim your tutor card",
+      "subtitle": "If this card was created for you by the MatchMax team, confirm below to take ownership. Your sign-in email must match the application on file.",
+      "confirm": "This is my card",
+      "cancel": "Not mine",
+      "claiming": "Claiming…",
+      "claimed_toast": "Card linked to your account.",
+      "staff_review_body": "We couldn't confirm this card automatically, so your claim has been sent to our team for review. We'll be in touch by email.",
+      "not_found": "We couldn't find that tutor card.",
+      "error_toast": "Something went wrong. Please try again.",
+      "back_to_account": "Back to Account"
+    },
+    "reviews_count": "{{count}} reviews",
+    "new_label": "New",
+    "state_taking": "Taking students",
+    "state_full": "Full",
+    "state_inactive": "Inactive",
+    "view_public": "View public card",
+    "edit_profile": "Edit profile",
+    "edit": "Edit",
+    "tutor_cta_title": "Teach on MatchMax",
+    "tutor_cta_body": "Create your tutor card, set your rate and availability, and sell notes. If a card was already created for you, you can claim it from your public profile.",
+    "become_tutor": "Become a tutor",
+    "profile_block": "Public profile",
+    "block_rate": "Hourly rate",
+    "block_subjects": "Subjects",
+    "block_bio": "About you",
+    "status_block": "Availability",
+    "slots_left": "{{count}} open slots",
+    "cases_block": "My cases",
+    "no_cases": "No cases yet.",
+    "create_case": "Request a tutor",
+    "case_status_pending": "Pending",
+    "case_status_matched": "Matched",
+    "case_status_closed": "Closed",
+    "case_status_rejected": "Rejected",
+    "case_status_other": "In review"
   }
 }

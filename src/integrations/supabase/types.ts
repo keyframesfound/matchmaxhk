@@ -385,6 +385,7 @@ export type Database = {
           created_at: string;
           display_name: string | null;
           email: string | null;
+          google_sub: string | null;
           id: string;
           locale: string;
           notification_preferences: Json;
@@ -402,6 +403,7 @@ export type Database = {
           created_at?: string;
           display_name?: string | null;
           email?: string | null;
+          google_sub?: string | null;
           id: string;
           locale?: string;
           notification_preferences?: Json;
@@ -419,6 +421,7 @@ export type Database = {
           created_at?: string;
           display_name?: string | null;
           email?: string | null;
+          google_sub?: string | null;
           id?: string;
           locale?: string;
           notification_preferences?: Json;
@@ -665,6 +668,57 @@ export type Database = {
           },
         ];
       };
+      tutor_claim_requests: {
+        Row: {
+          created_at: string;
+          email: string | null;
+          id: string;
+          note: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          status: string;
+          tutor_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          email?: string | null;
+          id?: string;
+          note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: string;
+          tutor_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          email?: string | null;
+          id?: string;
+          note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: string;
+          tutor_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tutor_claim_requests_tutor_id_fkey";
+            columns: ["tutor_id"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tutor_claim_requests_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       tutor_reviews: {
         Row: {
           created_at: string;
@@ -893,6 +947,7 @@ export type Database = {
           gender: string | null;
           headline: string | null;
           card_highlights: string[];
+          claimed_at: string | null;
           hourly_rate: number;
           ia_ee_tok_notes: string | null;
           ia_ee_tok_support: string[];
@@ -955,6 +1010,7 @@ export type Database = {
           gender?: string | null;
           headline?: string | null;
           card_highlights?: string[];
+          claimed_at?: string | null;
           hourly_rate?: number;
           ia_ee_tok_notes?: string | null;
           ia_ee_tok_support?: string[];
@@ -1009,6 +1065,7 @@ export type Database = {
           gender?: string | null;
           headline?: string | null;
           card_highlights?: string[];
+          claimed_at?: string | null;
           hourly_rate?: number;
           ia_ee_tok_notes?: string | null;
           ia_ee_tok_support?: string[];
@@ -1092,6 +1149,12 @@ export type Database = {
     Functions: {
       claim_org_memberships: { Args: never; Returns: number };
       complete_onboarding: { Args: { _choice: string }; Returns: undefined };
+      confirm_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
+      request_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
+      resolve_tutor_claim: {
+        Args: { p_request_id: string; p_approve: boolean; p_note?: string | null };
+        Returns: string;
+      };
       find_user_id_by_email: { Args: { _email: string }; Returns: string };
       list_accounts_for_assignment: {
         Args: { _search: string };

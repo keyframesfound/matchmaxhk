@@ -236,7 +236,14 @@
       "window_weekday_evening": "平日晚上（7–10 PM）",
       "window_weekend_morning": "週末上午（9 AM–1 PM）",
       "window_weekend_afternoon": "週末下午（1–6 PM）",
-      "save_capacity": "儲存更改"
+      "save_capacity": "儲存更改",
+      "status_label": "導師卡狀態",
+      "status_taking": "接收學生",
+      "status_full": "已滿",
+      "status_inactive": "暫停",
+      "status_taking_hint": "你張卡會接收新申請。下方「剩餘名額」係你仲可以接收幾多位學生。",
+      "status_full_hint": "已達上限 — 你張卡會顯示「已滿」並隱藏申請按鈕。調高名額即可再接收學生。",
+      "status_inactive_hint": "你張卡仍然可見，但會顯示「暫停」並隱藏申請按鈕，直至你重新啟用。"
     },
     "my_tutor": {
       "title": "我的導師檔案",
@@ -279,6 +286,9 @@
       "deletion_submitting": "提交中…",
       "deletion_pending_badge": "已收到你嘅刪除申請——我哋團隊會喺 3-5 個工作天內處理",
       "deletion_requested_toast": "已收到你嘅刪除申請——我哋團隊會聯絡你",
+      "verified_lock_note": "已認證嘅導師無法自行修改學校、學位、公開試成績或成就宣稱 — 如需更改請聯絡 MatchMax 團隊，以保持你嘅認證徽章可信。",
+      "display_name": "顯示名稱",
+      "display_name_hint": "會喺你嘅公開導師卡上、導師編號旁邊顯示。",
       "rates_heading": "時薪",
       "rates_online": "網上時薪（HK$）",
       "rates_in_person": "面授時薪（HK$）",
@@ -454,6 +464,7 @@
   },
   "auth": {
     "sign_in_title": "歡迎返嚟",
+    "google_only_subtitle": "用 Google 登入，管理你嘅帳戶、個案同收藏嘅導師。",
     "sign_in_subtitle": "登入你嘅 MatchMax 帳戶",
     "sign_up_title": "建立帳戶",
     "sign_up_subtitle": "立即加入 MatchMax，開始搵導師或接補習",
@@ -828,6 +839,10 @@
     "grid_slot_am": "上午",
     "grid_slot_pm": "下午",
     "grid_cell_partial": "部分時段可補",
+    "claim_banner": {
+      "text": "呢張係你嘅導師卡？認領之後就可以編輯你嘅公開檔案。",
+      "cta": "認領呢張卡"
+    },
     "section_rates": "收費",
     "rates_online": "網上",
     "rates_inperson": "實體"
@@ -1625,6 +1640,43 @@
     "unhide_note": "重新上架",
     "notes_updated": "筆記已更新。",
     "notes_update_failed": "無法更新筆記。",
-    "finish_payment": "完成付款"
+    "finish_payment": "完成付款",
+    "claim": {
+      "title": "認領你嘅導師卡",
+      "subtitle": "如果呢張卡係 MatchMax 團隊幫你建立嘅，確認下方即可取得擁有權。你嘅 Google 登入電郵必須與申請時嘅電郵一致。",
+      "confirm": "呢張係我張卡",
+      "cancel": "唔係我",
+      "claiming": "處理中…",
+      "claimed_toast": "導師卡已連結到你嘅帳戶。",
+      "staff_review_body": "我哋未能自動確認呢張卡，你嘅認領申請已交俾團隊跟進，我哋會以電郵聯絡你。",
+      "not_found": "搵唔到嗰張導師卡。",
+      "error_toast": "發生錯誤，請再試一次。",
+      "back_to_account": "返回帳戶"
+    },
+    "reviews_count": "{{count}} 則評價",
+    "new_label": "新導師",
+    "state_taking": "接收學生",
+    "state_full": "已滿",
+    "state_inactive": "暫停",
+    "view_public": "查看公開導師卡",
+    "edit_profile": "編輯個人檔案",
+    "edit": "編輯",
+    "tutor_cta_title": "喺 MatchMax 教書",
+    "tutor_cta_body": "建立你嘅導師卡，設定價錢同時間，仲可以賣筆記。如果團隊已經幫你建立咗導師卡，你可以喺公開頁面認領。",
+    "become_tutor": "成為導師",
+    "profile_block": "公開檔案",
+    "block_rate": "每小時收費",
+    "block_subjects": "科目",
+    "block_bio": "關於你",
+    "status_block": "可用時間",
+    "slots_left": "剩餘 {{count}} 個名額",
+    "cases_block": "我嘅個案",
+    "no_cases": "仲未有個案。",
+    "create_case": "搵導師",
+    "case_status_pending": "待處理",
+    "case_status_matched": "已配對",
+    "case_status_closed": "已結束",
+    "case_status_rejected": "已拒絕",
+    "case_status_other": "審核中"
   }
 }
