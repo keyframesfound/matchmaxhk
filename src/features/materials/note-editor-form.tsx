@@ -92,7 +92,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     title: title.trim(),
     description: description.trim() || undefined,
     priceHkd: price ? Number(price) : undefined,
-    curriculumTag: curriculum || undefined,
+    curriculumTag: isNoteCurriculum(curriculum) ? curriculum : undefined,
     subjectTag: subject.trim() || null,
     materialType,
     topic: topic.trim() || null,
