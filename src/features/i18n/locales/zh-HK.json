@@ -788,7 +788,11 @@
     "reviews_disclaimer": "評價嚟自試堂後嘅已驗證家長同學生，經 MatchMax 審核後先會刊登。",
     "grid_slot_am": "上午",
     "grid_slot_pm": "下午",
-    "grid_cell_partial": "部分時段可補"
+    "grid_cell_partial": "部分時段可補",
+    "claim_banner": {
+      "text": "呢張係你嘅導師卡？認領之後就可以編輯你嘅公開檔案。",
+      "cta": "認領呢張卡"
+    }
   },
   "tutor_card": {
     "verified_fallback": "學術資料已核實",
@@ -1583,6 +1587,18 @@
     "unhide_note": "重新上架",
     "notes_updated": "筆記已更新。",
     "notes_update_failed": "無法更新筆記。",
-    "finish_payment": "完成付款"
+    "finish_payment": "完成付款",
+    "claim": {
+      "title": "認領你嘅導師卡",
+      "subtitle": "如果呢張卡係 MatchMax 團隊幫你建立嘅，確認下方即可取得擁有權。你嘅 Google 登入電郵必須與申請時嘅電郵一致。",
+      "confirm": "呢張係我張卡",
+      "cancel": "唔係我",
+      "claiming": "處理中…",
+      "claimed_toast": "導師卡已連結到你嘅帳戶。",
+      "staff_review_body": "我哋未能自動確認呢張卡，你嘅認領申請已交俾團隊跟進，我哋會以電郵聯絡你。",
+      "not_found": "搵唔到嗰張導師卡。",
+      "error_toast": "發生錯誤，請再試一次。",
+      "back_to_account": "返回帳戶"
+    }
   }
 }

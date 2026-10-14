@@ -1281,6 +1281,7 @@ export function TutorEditor({
     () => ({
       id: initialData?.id ?? "preview-tutor",
       created_at: initialData?.created_at ?? new Date().toISOString(),
+      user_id: initialData?.user_id ?? null,
       display_name: form.tutor_code.trim() || "MM-PREVIEW",
       headline:
         form.card_highlights

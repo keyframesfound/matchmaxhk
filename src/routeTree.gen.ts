@@ -40,6 +40,7 @@ import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
+import { Route as AuthenticatedAccountClaimRouteImport } from './routes/_authenticated.account.claim'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedAdminCasesRouteImport } from './routes/_authenticated.admin.cases'
 import { Route as AuthenticatedAdminJoinRequestsRouteImport } from './routes/_authenticated.admin.join-requests'
@@ -219,6 +220,12 @@ const TutorsTutorCodeRoute = TutorsTutorCodeRouteImport.update({
   path: '/tutors/$tutorCode',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountClaimRoute =
+  AuthenticatedAccountClaimRouteImport.update({
+    id: '/claim',
+    path: '/claim',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -388,6 +395,7 @@ export interface FileRoutesByFullPath {
   '/guide/': typeof GuideIndexRoute
   '/help/': typeof HelpIndexRoute
   '/tutors/': typeof TutorsIndexRoute
+  '/account/claim': typeof AuthenticatedAccountClaimRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
   '/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
   '/admin/materials': typeof AuthenticatedAdminMaterialsRoute
@@ -443,6 +451,7 @@ export interface FileRoutesByTo {
   '/guide': typeof GuideIndexRoute
   '/help': typeof HelpIndexRoute
   '/tutors': typeof TutorsIndexRoute
+  '/account/claim': typeof AuthenticatedAccountClaimRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
   '/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
   '/admin/materials': typeof AuthenticatedAdminMaterialsRoute
@@ -501,6 +510,7 @@ export interface FileRoutesById {
   '/guide/': typeof GuideIndexRoute
   '/help/': typeof HelpIndexRoute
   '/tutors/': typeof TutorsIndexRoute
+  '/_authenticated/account/claim': typeof AuthenticatedAccountClaimRoute
   '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
   '/_authenticated/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
   '/_authenticated/admin/materials': typeof AuthenticatedAdminMaterialsRoute
@@ -559,6 +569,7 @@ export interface FileRouteTypes {
     | '/guide/'
     | '/help/'
     | '/tutors/'
+    | '/account/claim'
     | '/admin/cases'
     | '/admin/join-requests'
     | '/admin/materials'
@@ -614,6 +625,7 @@ export interface FileRouteTypes {
     | '/guide'
     | '/help'
     | '/tutors'
+    | '/account/claim'
     | '/admin/cases'
     | '/admin/join-requests'
     | '/admin/materials'
@@ -671,6 +683,7 @@ export interface FileRouteTypes {
     | '/guide/'
     | '/help/'
     | '/tutors/'
+    | '/_authenticated/account/claim'
     | '/_authenticated/admin/cases'
     | '/_authenticated/admin/join-requests'
     | '/_authenticated/admin/materials'
@@ -949,6 +962,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TutorsTutorCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/account/claim': {
+      id: '/_authenticated/account/claim'
+      path: '/claim'
+      fullPath: '/account/claim'
+      preLoaderRoute: typeof AuthenticatedAccountClaimRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
       path: '/'
@@ -1121,11 +1141,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAccountRouteChildren {
+  AuthenticatedAccountClaimRoute: typeof AuthenticatedAccountClaimRoute
   AuthenticatedAccountNotesNewRoute: typeof AuthenticatedAccountNotesNewRoute
   AuthenticatedAccountNotesMaterialIdEditRoute: typeof AuthenticatedAccountNotesMaterialIdEditRoute
 }
 
 const AuthenticatedAccountRouteChildren: AuthenticatedAccountRouteChildren = {
+  AuthenticatedAccountClaimRoute: AuthenticatedAccountClaimRoute,
   AuthenticatedAccountNotesNewRoute: AuthenticatedAccountNotesNewRoute,
   AuthenticatedAccountNotesMaterialIdEditRoute:
     AuthenticatedAccountNotesMaterialIdEditRoute,
