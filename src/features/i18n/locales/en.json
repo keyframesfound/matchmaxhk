@@ -1609,6 +1609,31 @@
       "not_found": "We couldn't find that tutor card.",
       "error_toast": "Something went wrong. Please try again.",
       "back_to_account": "Back to Account"
-    }
+    },
+    "reviews_count": "{{count}} reviews",
+    "new_label": "New",
+    "state_taking": "Taking students",
+    "state_full": "Full",
+    "state_inactive": "Inactive",
+    "view_public": "View public card",
+    "edit_profile": "Edit profile",
+    "edit": "Edit",
+    "tutor_cta_title": "Teach on MatchMax",
+    "tutor_cta_body": "Create your tutor card, set your rate and availability, and sell notes. If a card was already created for you, you can claim it from your public profile.",
+    "become_tutor": "Become a tutor",
+    "profile_block": "Public profile",
+    "block_rate": "Hourly rate",
+    "block_subjects": "Subjects",
+    "block_bio": "About you",
+    "status_block": "Availability",
+    "slots_left": "{{count}} open slots",
+    "cases_block": "My cases",
+    "no_cases": "No cases yet.",
+    "create_case": "Request a tutor",
+    "case_status_pending": "Pending",
+    "case_status_matched": "Matched",
+    "case_status_closed": "Closed",
+    "case_status_rejected": "Rejected",
+    "case_status_other": "In review"
   }
 }

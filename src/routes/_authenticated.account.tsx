@@ -3,20 +3,28 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
   BookOpen,
+  CalendarClock,
   Download,
   Eye,
   FilePlus2,
+  Inbox,
   Loader2,
   Pencil,
   Plus,
   ShoppingCart,
+  Star,
 } from "lucide-react";
 import { toast } from "sonner";
-
+import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/useAuth";
+import {
+  formatAvailabilityDate,
+  getTutorAvailabilityReadiness,
+  getTutorAvailabilityState,
+} from "@/features/tutors/tutor-display";
 import {
   getMyMaterials,
   setNoteHidden,
@@ -26,12 +34,10 @@ import { getBoughtMaterials } from "@/features/materials/checkout.functions";
 import { getOwnedMaterialUrl } from "@/features/materials/orders.functions";
 
 /**
- * P6 (#286) marketplace slice + P8 (#288) + P13 (#293): the Account page's
- * store blocks. Tutor side: My notes (every status, edit, hide, stats) with
- * the Add-a-note empty state. Parent side: Bought (delivered orders with
- * Download; refunded rows keep their label and lose the button). The full
- * Carousell-order account page (identity header, profile blocks, Saved)
- * remains open on #286 — this PR ships the marketplace-owned blocks.
+ * Epic #280 P6: Account is the store page, Carousell order. Top is identity
+ * and rating; below, the public profile in blocks (each with its Edit link);
+ * then the marketplace blocks (P8 notes, P13 bought) and the parent's cases.
+ * Saved waits for P10; reviews they wrote wait for P7/#205.
  */
 
 export const Route = createFileRoute("/_authenticated/account")({
@@ -50,8 +56,55 @@ const STATUS_BADGE: Record<string, string> = {
   rejected: "bg-[#F4212E]/10 text-[#B42318]",
 };
 
+const CASE_STATUS_BADGE: Record<string, string> = {
+  pending: "bg-amber-500/10 text-amber-700",
+  matched: "bg-emerald-500/10 text-emerald-700",
+  closed: "bg-slate-500/10 text-slate-600",
+  rejected: "bg-[#F4212E]/10 text-[#B42318]",
+};
+
+const CASE_STATUS_KEY: Record<string, string> = {
+  pending: "account.case_status_pending",
+  matched: "account.case_status_matched",
+  closed: "account.case_status_closed",
+  rejected: "account.case_status_rejected",
+};
+
+const MY_TUTOR_BLOCK_COLS =
+  "id, display_name, tutor_code, photo_url, rating, review_count, hourly_rate, pricing_tiers, currency, subjects, self_introduction, lesson_mode, verification_tier, remaining_student_slots, is_accepting_students, start_immediately, earliest_start_date, is_published";
+
+/** P6 identity/profile block row — a slice of the tutors table (owner read). */
+type MyTutorCard = {
+  id: string;
+  display_name: string;
+  tutor_code: string;
+  photo_url: string | null;
+  rating: number | null;
+  review_count: number | null;
+  hourly_rate: number;
+  pricing_tiers: unknown;
+  currency: string | null;
+  subjects: string[] | null;
+  self_introduction: string | null;
+  lesson_mode: "online" | "in_person" | "either";
+  verification_tier: string | null;
+  remaining_student_slots: number | null;
+  is_accepting_students: boolean | null;
+  start_immediately: boolean | null;
+  earliest_start_date: string | null;
+  is_published: boolean;
+};
+
+type MyCaseRow = {
+  id: string;
+  title: string;
+  subjects: string[] | null;
+  status: string;
+  created_at: string;
+};
+
 function AccountPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -64,6 +117,39 @@ function AccountPage() {
   const boughtQuery = useQuery({
     queryKey: ["account", "bought", user?.id],
     queryFn: () => getBoughtMaterials(),
+    enabled: Boolean(user),
+  });
+
+  // P6: the signed-in account's own card (RLS tutors_owner_select — includes
+  // an unpublished card, so the owner still sees it here).
+  const myTutorQuery = useQuery({
+    queryKey: ["account", "my-tutor-card", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tutors")
+        .select(MY_TUTOR_BLOCK_COLS)
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as MyTutorCard | null) ?? null;
+    },
+    enabled: Boolean(user),
+  });
+
+  // P6 parent block: cases this account created (guest legacy rows have no
+  // parent_id — they stay on the concierge path).
+  const myCasesQuery = useQuery({
+    queryKey: ["account", "my-cases", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tutoring_cases")
+        .select("id, title, subjects, status, created_at")
+        .eq("parent_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return (data as MyCaseRow[]) ?? [];
+    },
     enabled: Boolean(user),
   });
 
@@ -96,15 +182,200 @@ function AccountPage() {
     );
   }
 
+  const tutor = myTutorQuery.data;
   const materials: MyMaterialsRow[] = materialsQuery.data ?? [];
   const bought = boughtQuery.data ?? [];
+  const cases = myCasesQuery.data ?? [];
+  const parentName =
+    (user.user_metadata?.name as string | undefined) ?? user.email?.split("@")[0] ?? "";
+  const availabilityState = tutor ? getTutorAvailabilityState(tutor) : null;
+  const readiness =
+    tutor != null
+      ? getTutorAvailabilityReadiness({
+          start_immediately: tutor.start_immediately,
+          earliest_start_date: tutor.earliest_start_date,
+        })
+      : null;
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
       <SiteHeader />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">
         <h1 className="text-2xl font-bold tracking-normal">{t("account.title")}</h1>
-        {/* My notes (tutor side, P8) */}
+
+        {/* P6: identity + rating — the store header */}
+        <section className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-5">
+          {tutor?.photo_url ? (
+            <img
+              src={tutor.photo_url}
+              alt=""
+              className="h-16 w-16 rounded-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] text-xl font-semibold text-[color:var(--muted-foreground)]">
+              {(tutor?.display_name ?? parentName).slice(0, 1).toUpperCase()}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-lg font-bold text-[color:var(--ink)]">
+              {tutor?.display_name ?? parentName}
+            </p>
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+              {tutor ? <span>{tutor.tutor_code}</span> : null}
+              {tutor ? (
+                (tutor.review_count ?? 0) > 0 ? (
+                  <span className="inline-flex items-center gap-1">
+                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden />
+                    {Number(tutor.rating ?? 0).toFixed(1)} ·{" "}
+                    {t("account.reviews_count", { count: tutor.review_count ?? 0 })}
+                  </span>
+                ) : (
+                  <span className="font-semibold text-[color:var(--ink)]">
+                    {t("account.new_label")}
+                  </span>
+                )
+              ) : null}
+              {availabilityState && availabilityState !== "taking" ? (
+                <span className="rounded-md bg-[color:var(--ink)]/[0.06] px-2 py-0.5 text-xs font-bold text-[color:var(--ink)]">
+                  {availabilityState === "full"
+                    ? t("account.state_full")
+                    : t("account.state_inactive")}
+                </span>
+              ) : null}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {tutor ? (
+              <Button variant="outline" className="font-semibold" asChild>
+                <Link
+                  to="/tutors/$tutorCode"
+                  params={{ tutorCode: tutor.tutor_code }}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Eye className="mr-2 h-4 w-4" aria-hidden />
+                  {t("account.view_public")}
+                </Link>
+              </Button>
+            ) : null}
+            <Button variant="outline" className="font-semibold" asChild>
+              <a href="/settings">
+                <Pencil className="mr-2 h-4 w-4" aria-hidden />
+                {t("account.edit_profile")}
+              </a>
+            </Button>
+          </div>
+        </section>
+
+        {/* P6: parent CTA — no card linked yet */}
+        {!tutor && !myTutorQuery.isLoading ? (
+          <section className="mt-6 rounded-2xl border border-dashed border-border bg-card p-6">
+            <p className="text-sm font-semibold text-[color:var(--ink)]">
+              {t("account.tutor_cta_title")}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("account.tutor_cta_body")}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button variant="solid" color="blue" className="font-bold" asChild>
+                <a href="/join">{t("account.become_tutor")}</a>
+              </Button>
+            </div>
+          </section>
+        ) : null}
+
+        {/* P6 tutor block: the public profile summary */}
+        {tutor ? (
+          <section className="mt-8 rounded-2xl border border-border bg-card p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-lg font-bold">{t("account.profile_block")}</h2>
+              <Button variant="ghost" size="sm" className="font-semibold" asChild>
+                <a href="/settings#my-tutor">
+                  <Pencil className="mr-2 h-4 w-4" aria-hidden />
+                  {t("account.edit")}
+                </a>
+              </Button>
+            </div>
+            <dl className="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-xs font-semibold text-muted-foreground">
+                  {t("account.block_rate")}
+                </dt>
+                <dd className="mt-0.5 font-semibold text-[color:var(--ink)]">
+                  {t("notes.price", { amount: tutor.hourly_rate })}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold text-muted-foreground">
+                  {t("account.block_subjects")}
+                </dt>
+                <dd className="mt-0.5 font-semibold text-[color:var(--ink)]">
+                  {(tutor.subjects ?? []).slice(0, 5).join(", ") || "—"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold text-muted-foreground">
+                  {t("settings.my_tutor.lesson_mode")}
+                </dt>
+                <dd className="mt-0.5 font-semibold text-[color:var(--ink)]">
+                  {tutor.lesson_mode === "online"
+                    ? t("settings.my_tutor.mode_online")
+                    : tutor.lesson_mode === "in_person"
+                      ? t("settings.my_tutor.mode_in_person")
+                      : t("settings.my_tutor.mode_either")}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold text-muted-foreground">
+                  {t("account.block_bio")}
+                </dt>
+                <dd className="mt-0.5 line-clamp-2 text-[color:var(--ink)]">
+                  {tutor.self_introduction || "—"}
+                </dd>
+              </div>
+            </dl>
+          </section>
+        ) : null}
+
+        {/* P6 tutor block: status + capacity */}
+        {tutor ? (
+          <section className="mt-6 rounded-2xl border border-border bg-card p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-lg font-bold">
+                <CalendarClock className="h-5 w-5" aria-hidden />
+                {t("account.status_block")}
+              </h2>
+              <Button variant="ghost" size="sm" className="font-semibold" asChild>
+                <a href="/settings#availability">
+                  <Pencil className="mr-2 h-4 w-4" aria-hidden />
+                  {t("account.edit")}
+                </a>
+              </Button>
+            </div>
+            <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[color:var(--ink)]">
+              <span className="font-semibold">
+                {availabilityState === "taking"
+                  ? t("account.state_taking")
+                  : availabilityState === "full"
+                    ? t("account.state_full")
+                    : t("account.state_inactive")}
+              </span>
+              {availabilityState === "taking" ? (
+                <span className="text-muted-foreground">
+                  {t("account.slots_left", { count: tutor.remaining_student_slots ?? 0 })}
+                </span>
+              ) : null}
+              {readiness === "pre_booking" && tutor.earliest_start_date ? (
+                <span className="text-muted-foreground">
+                  {t("settings.availability.status_pre_booking", {
+                    date: formatAvailabilityDate(tutor.earliest_start_date, i18n.language),
+                  })}
+                </span>
+              ) : null}
+            </p>
+          </section>
+        ) : null}
+
+        {/* My notes (tutor side, P8) — drafts included */}
         <section className="mt-8 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-lg font-bold">
@@ -198,6 +469,52 @@ function AccountPage() {
                       </Button>
                     )}
                   </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* P6 parent block: my cases */}
+        <section className="mt-12 space-y-4">
+          <h2 className="flex items-center gap-2 text-lg font-bold">
+            <Inbox className="h-5 w-5" aria-hidden />
+            {t("account.cases_block")}
+          </h2>
+          {myCasesQuery.isLoading ? (
+            <div className="flex h-24 items-center justify-center rounded-xl border border-border bg-card">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden />
+            </div>
+          ) : cases.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
+              {t("account.no_cases")}{" "}
+              <Link
+                to="/tutor-requests"
+                search={{ post: true }}
+                className="text-[color:var(--brand-link)] hover:underline"
+              >
+                {t("account.create_case")}
+              </Link>
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {cases.map((row) => (
+                <li
+                  key={row.id}
+                  className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-border bg-card p-4"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold">{row.title}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {(row.subjects ?? []).join(", ")} ·{" "}
+                      {new Date(row.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <span
+                    className={`rounded-md px-2 py-0.5 text-xs font-bold ${CASE_STATUS_BADGE[row.status] ?? "bg-slate-500/10 text-slate-600"}`}
+                  >
+                    {t(CASE_STATUS_KEY[row.status] ?? "account.case_status_other")}
+                  </span>
                 </li>
               ))}
             </ul>
