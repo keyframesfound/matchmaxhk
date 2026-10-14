@@ -69,8 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // reference. Ownership itself is the auth user id; this column is
           // an audit/linking aid. Best-effort — never blocks sign-in.
           const identity = sess.user.identities?.find((i) => i.provider === "google");
-          const googleSub =
-            identity?.id ?? (sess.user.user_metadata?.sub as string | undefined);
+          const googleSub = identity?.id ?? (sess.user.user_metadata?.sub as string | undefined);
           if (googleSub) {
             void supabase
               .from("profiles")

@@ -21,9 +21,7 @@ function withSave(path: string, save: string | undefined): string {
 const SAVE_PATTERN = /^(tutor|case|course):.{1,}$/;
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): { redirect?: string; save?: string } => {
+  validateSearch: (search: Record<string, unknown>): { redirect?: string; save?: string } => {
     const redirect =
       typeof search.redirect === "string" &&
       search.redirect.startsWith("/") &&
