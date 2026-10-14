@@ -44,7 +44,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { REFERRAL_CODE_PATTERN, readStoredReferralCode } from "@/lib/referral";
 import { contactFilterError } from "@/lib/contact-filter";
-import { MAX_ACADEMIC_HEADLINE, buildAcademicHeadline } from "@/lib/academic-headline";
+import {
+  MAX_ACADEMIC_HEADLINE,
+  academicHeadlineError,
+  buildAcademicHeadline,
+} from "@/lib/academic-headline";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
@@ -1048,10 +1052,17 @@ export function ApplicationForm() {
     clearDraft,
   } = useFormDraft<ApplicationDraft>("tutor-application");
   const draftAppliedRef = useRef(false);
+  // Issue #323 review: when a draft restores, the headline-autofill effect can
+  // still fire in the SAME effect flush against pre-restore state (dirty flag
+  // still false) and queue a setAcademicHeadline(build(oldQuals)) that lands
+  // AFTER the restored value — freezing the wrong headline. Suppress that one
+  // pass; the next pass runs against the restored state and honours the flag.
+  const skipHeadlineAutofillRef = useRef(false);
 
   useEffect(() => {
     if (!restoredDraft) return;
     draftAppliedRef.current = true;
+    skipHeadlineAutofillRef.current = true;
     setBase((prev) => ({
       ...prev,
       ...restoredDraft.base,
@@ -1124,6 +1135,11 @@ export function ApplicationForm() {
   // Issue #323: regenerate the smart headline whenever the qualifications
   // change, but only while the tutor has not manually edited it (dirty flag).
   useEffect(() => {
+    // Skip the pass queued against pre-restore state (see the ref above).
+    if (skipHeadlineAutofillRef.current) {
+      skipHeadlineAutofillRef.current = false;
+      return;
+    }
     if (headlineDirty) return;
     setAcademicHeadline(
       buildAcademicHeadline(
@@ -1428,11 +1444,11 @@ export function ApplicationForm() {
             required(`boards-${index}`, qualification.boards);
         });
       }
-      // Issue #323: the headline is required for every path, and contact
-      // details are rejected client-side (mirrored server-side in the schema).
-      required("academicHeadline", academicHeadline.trim());
-      const headlineContactError = contactFilterError(academicHeadline);
-      if (headlineContactError) next.academicHeadline = headlineContactError;
+      // Issue #323: the headline is required for every path; the shared helper
+      // enforces required + max 40 + contact filter in one place (mirrored
+      // server-side in the submit schema), per review FE note.
+      const headlineError = academicHeadlineError(academicHeadline);
+      if (headlineError) next.academicHeadline = headlineError;
     }
     const subjectStep = professional ? 3 : 2;
     if (step === subjectStep) {

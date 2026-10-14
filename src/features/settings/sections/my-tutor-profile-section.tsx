@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
+import { MAX_ACADEMIC_HEADLINE, academicHeadlineError } from "@/lib/academic-headline";
 import { Switch } from "@/components/ui/switch";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MtrStationMultiSelect } from "@/components/ui/mtr-station-select";
@@ -182,6 +182,19 @@ export function MyTutorProfileSection() {
       setErrors((current) => ({ ...current, self_introduction: introContactError }));
       toast.error(introContactError);
       return;
+    }
+    // Issue #323 review: the headline stays optional here (pre-#323 tutors may
+    // have none), but a non-empty value must pass the shared 40-char +
+    // contact-filter rule the public cards rely on — tutorFormSchema still
+    // allows max 120 for admin-edited legacy rows.
+    const headlineValue = (form.academic_headline ?? "").trim();
+    if (headlineValue) {
+      const headlineError = academicHeadlineError(headlineValue);
+      if (headlineError) {
+        setErrors((current) => ({ ...current, academic_headline: headlineError }));
+        toast.error(headlineError);
+        return;
+      }
     }
     const parsed = tutorFormSchema.safeParse(form);
     if (!parsed.success) {
