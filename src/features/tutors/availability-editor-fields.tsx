@@ -45,44 +45,64 @@ export function CapacityEditorFields({
   const { t } = useTranslation();
   const { acceptingStudents, openSlots, timeWindows } = value;
 
+  // Epic #280 P5: three owner states over the two stored fields.
+  // taking = accepting + ≥1 slot · full = accepting + 0 slots (the cap)
+  // inactive = not accepting (slots frozen until reactivated).
+  const status: "taking" | "full" | "inactive" = !acceptingStudents
+    ? "inactive"
+    : openSlots <= 0
+      ? "full"
+      : "taking";
+
+  const setStatus = (next: "taking" | "full" | "inactive") => {
+    if (next === "inactive") {
+      onChange({ ...value, acceptingStudents: false });
+    } else if (next === "full") {
+      onChange({ ...value, acceptingStudents: true, openSlots: 0 });
+    } else {
+      onChange({ ...value, acceptingStudents: true, openSlots: Math.max(1, openSlots) });
+    }
+  };
+
+  const STATUS_OPTIONS = [
+    { value: "taking", label: t("settings.capacity.status_taking") },
+    { value: "full", label: t("settings.capacity.status_full") },
+    { value: "inactive", label: t("settings.capacity.status_inactive") },
+  ] as const;
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <Label className="text-[color:var(--ink)]">{t("settings.capacity.accepting_label")}</Label>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={acceptingStudents}
-          onClick={() => onChange({ ...value, acceptingStudents: !acceptingStudents })}
-          className={cn(
-            "relative h-6 w-11 shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
-            acceptingStudents
-              ? "border-[color:var(--ink)] bg-[color:var(--ink)]"
-              : "border-[color:var(--ink)]/25 bg-transparent",
-          )}
-        >
-          <span
-            className={cn(
-              "absolute top-0.5 h-4.5 w-4.5 rounded-full transition-[left] duration-150",
-              acceptingStudents
-                ? "left-[1.375rem] bg-[color:var(--surface)]"
-                : "left-0.5 bg-[color:var(--ink)]/40",
-            )}
-          />
-          <span className="sr-only">
-            {acceptingStudents
-              ? t("settings.capacity.state_active")
-              : t("settings.capacity.state_paused")}
-          </span>
-        </button>
-      </div>
-      <p className="text-xs font-semibold text-[color:var(--ink)]/70">
-        {acceptingStudents
-          ? t("settings.capacity.state_active")
-          : t("settings.capacity.state_paused")}
-      </p>
-
       <div className="space-y-2">
+        <Label className="text-[color:var(--ink)]">{t("settings.capacity.status_label")}</Label>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("settings.capacity.status_label")}>
+          {STATUS_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={status === option.value}
+              onClick={() => setStatus(option.value)}
+              className={cn(
+                "min-h-10 rounded-full border px-4 text-sm font-bold transition-colors",
+                status === option.value
+                  ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface)]"
+                  : "border-[color:var(--ink)]/20 bg-transparent text-[color:var(--ink)] hover:bg-[color:var(--ink)]/[0.05]",
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-[color:var(--ink)]/55">
+          {status === "taking"
+            ? t("settings.capacity.status_taking_hint")
+            : status === "full"
+              ? t("settings.capacity.status_full_hint")
+              : t("settings.capacity.status_inactive_hint")}
+        </p>
+      </div>
+
+      <div className={cn("space-y-2", status !== "taking" && "opacity-50")}>
         <Label htmlFor="capacity-slots-input" className="text-[color:var(--ink)]">
           {t("settings.capacity.slots_label")}
         </Label>
@@ -91,8 +111,8 @@ export function CapacityEditorFields({
             type="button"
             variant="outline"
             aria-label={t("settings.capacity.slots_decrease")}
-            disabled={openSlots <= 0}
-            onClick={() => onChange({ ...value, openSlots: Math.max(0, openSlots - 1) })}
+            disabled={status !== "taking" || openSlots <= 1}
+            onClick={() => onChange({ ...value, openSlots: Math.max(1, openSlots - 1) })}
             className="h-10 w-10 shrink-0 p-0 text-base font-bold"
           >
             −
@@ -101,13 +121,14 @@ export function CapacityEditorFields({
             id="capacity-slots-input"
             type="number"
             inputMode="numeric"
-            min={0}
+            min={status === "taking" ? 1 : 0}
             max={99}
             value={openSlots}
+            disabled={status !== "taking"}
             onChange={(event) => {
               const raw = Number(event.target.value);
               if (!Number.isFinite(raw)) return;
-              onChange({ ...value, openSlots: Math.min(99, Math.max(0, Math.round(raw))) });
+              onChange({ ...value, openSlots: Math.min(99, Math.max(1, Math.round(raw))) });
             }}
             className="h-10 w-20 bg-[color:var(--surface)] text-center font-bold tabular-nums"
           />
@@ -115,16 +136,14 @@ export function CapacityEditorFields({
             type="button"
             variant="outline"
             aria-label={t("settings.capacity.slots_increase")}
-            disabled={openSlots >= 99}
+            disabled={status !== "taking" || openSlots >= 99}
             onClick={() => onChange({ ...value, openSlots: Math.min(99, openSlots + 1) })}
             className="h-10 w-10 shrink-0 p-0 text-base font-bold"
           >
             +
           </Button>
           <span className="text-xs text-[color:var(--ink)]/55">
-            {openSlots === 0
-              ? t("settings.capacity.slots_full")
-              : t("settings.capacity.slots_hint")}
+            {t("settings.capacity.slots_hint")}
           </span>
         </div>
       </div>

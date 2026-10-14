@@ -236,7 +236,14 @@
       "window_weekday_evening": "平日晚上（7–10 PM）",
       "window_weekend_morning": "週末上午（9 AM–1 PM）",
       "window_weekend_afternoon": "週末下午（1–6 PM）",
-      "save_capacity": "儲存更改"
+      "save_capacity": "儲存更改",
+      "status_label": "導師卡狀態",
+      "status_taking": "接收學生",
+      "status_full": "已滿",
+      "status_inactive": "暫停",
+      "status_taking_hint": "你張卡會接收新申請。下方「剩餘名額」係你仲可以接收幾多位學生。",
+      "status_full_hint": "已達上限 — 你張卡會顯示「已滿」並隱藏申請按鈕。調高名額即可再接收學生。",
+      "status_inactive_hint": "你張卡仍然可見，但會顯示「暫停」並隱藏申請按鈕，直至你重新啟用。"
     },
     "my_tutor": {
       "title": "我的導師檔案",

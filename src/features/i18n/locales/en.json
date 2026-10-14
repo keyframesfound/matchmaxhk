@@ -236,7 +236,14 @@
       "window_weekday_evening": "Weekday evenings (7–10 PM)",
       "window_weekend_morning": "Weekend mornings (9 AM–1 PM)",
       "window_weekend_afternoon": "Weekend afternoons (1–6 PM)",
-      "save_capacity": "Save changes"
+      "save_capacity": "Save changes",
+      "status_label": "Card status",
+      "status_taking": "Taking students",
+      "status_full": "Full",
+      "status_inactive": "Inactive",
+      "status_taking_hint": "Your card accepts new requests. Slots below is how many students you can still take.",
+      "status_full_hint": "At your cap — your card shows “Full” and hides the request button. Raise the slots to take more students.",
+      "status_inactive_hint": "Your card stays visible but shows “Inactive” and hides the request button until you reactivate it."
     },
     "my_tutor": {
       "title": "My tutor profile",

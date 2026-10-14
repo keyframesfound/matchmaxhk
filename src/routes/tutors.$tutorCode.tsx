@@ -730,7 +730,12 @@ function TutorDetail() {
                     </p>
                   </div>
                 ) : null}
-                {waUrl ? (
+                {inquiry.kind === "status" ? (
+                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
+                    <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                    {inquiry.label}
+                  </p>
+                ) : waUrl ? (
                   <Button
                     asChild
                     variant="solid"
@@ -969,26 +974,32 @@ function TutorDetail() {
                         void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
                       }
                       footerAction={
-                        <Button
-                          asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                        >
-                          <a
-                            href={candidateInquiry.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(event) => event.stopPropagation()}
+                        candidateInquiry.kind === "status" ? (
+                          <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
+                            {candidateInquiry.label}
+                          </span>
+                        ) : (
+                          <Button
+                            asChild
+                            className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                           >
-                            {candidateInquiry.kind === "pre_book" && candidate.earliest_start_date
-                              ? translate("tutor_card.prebook_cta", {
-                                  date: formatAvailabilityDate(
-                                    candidate.earliest_start_date,
-                                    i18n.language,
-                                  ),
-                                })
-                              : translate("profile.request_tutor")}
-                          </a>
-                        </Button>
+                            <a
+                              href={candidateInquiry.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              {candidateInquiry.kind === "pre_book" && candidate.earliest_start_date
+                                ? translate("tutor_card.prebook_cta", {
+                                    date: formatAvailabilityDate(
+                                      candidate.earliest_start_date,
+                                      i18n.language,
+                                    ),
+                                  })
+                                : translate("profile.request_tutor")}
+                            </a>
+                          </Button>
+                        )
                       }
                     />
                   );
