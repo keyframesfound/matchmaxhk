@@ -44,9 +44,10 @@ function GuideParentsPage() {
     (key) => [t(`guide.parents.fact_${key}_label`), t(`guide.parents.fact_${key}_body`)],
   );
 
-  const notDo: [string, string][] = (["dash", "collection", "lesson_quality"] as const).map(
-    (key) => [t(`guide.parents.not_${key}_label`), t(`guide.parents.not_${key}_body`)],
-  );
+  const notDo: [string, string][] = (["lessons", "cut", "schedule"] as const).map((key) => [
+    t(`guide.parents.not_${key}_label`),
+    t(`guide.parents.not_${key}_body`),
+  ]);
 
   return (
     <GuidePage current="/guide/parents">

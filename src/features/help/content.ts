@@ -131,15 +131,25 @@ const contentModules = import.meta.glob("./content/*.md", {
 }) as Record<string, string>;
 
 function toHelpArticle(fileName: string, raw: string): HelpArticle {
-  const { data, body } = parseFrontmatter(raw);
-  const slug = typeof data.slug === "string" && data.slug ? data.slug : "";
+  const parsed = parseFrontmatter(raw);
+  const slug = typeof parsed.data.slug === "string" && parsed.data.slug ? parsed.data.slug : "";
   if (!slug) {
     throw new Error(`Help article ${fileName} is missing a slug in its frontmatter.`);
   }
+  const title = typeof parsed.data.title === "string" ? parsed.data.title : slug;
+  // Many articles open with an `# Title` that repeats the frontmatter title;
+  // the article route renders its own H1, so strip the duplicate heading.
+  let body = parsed.body;
+  const duplicateHeading = /^#\s+(.+?)\s*$/m.exec(body);
+  if (duplicateHeading && duplicateHeading[1] === title) {
+    const headingEnd = body.indexOf("\n", duplicateHeading.index);
+    body = headingEnd === -1 ? "" : body.slice(headingEnd + 1).replace(/^\n+/, "");
+  }
+  const data = parsed.data;
   return {
     slug,
     category: typeof data.category === "string" ? data.category : "",
-    title: typeof data.title === "string" ? data.title : slug,
+    title,
     summary: typeof data.summary === "string" ? data.summary : "",
     audience: data.audience === "tutor" || data.audience === "all" ? data.audience : "parent",
     icon: typeof data.icon === "string" ? data.icon : "",
@@ -250,10 +260,13 @@ function matchesAudience(article: HelpAudience, selected: HelpAudience): boolean
   return article === "all" || article === selected;
 }
 
-/** Featured cards for one tab, sorted by article order. */
+/** Featured cards for one tab, sorted by article order. Drafts never feature. */
 export function getFeaturedHelpArticles(audience: Exclude<HelpAudience, "all">): HelpArticle[] {
   return HELP_ARTICLES.filter(
-    (article) => article.featured && matchesAudience(article.audience, audience),
+    (article) =>
+      article.status === "published" &&
+      article.featured &&
+      matchesAudience(article.audience, audience),
   );
 }
 
