@@ -14,7 +14,6 @@ import {
   TUTOR_CARD_HIGHLIGHT_ROW_LIMIT,
 } from "@/features/tutors/queries";
 import {
-  ACADEMIC_HEADLINE_MAX,
   MAX_RATE_ROWS,
   RATE_MAX,
   RATE_MIN,
@@ -22,6 +21,7 @@ import {
   RATE_ROW_LABEL_MAX,
   TRAVEL_NOTE_MAX,
 } from "@/features/tutors/rates";
+import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
 import { buildAnswerRows, type TutorApplication } from "@/lib/tutor-application.schema";
 import { getRuntimeEnv } from "@/lib/runtime-env";
 
@@ -101,7 +101,7 @@ const autofillResultSchema = z.object({
     .regex(/^[A-Za-z0-9-]{2,20}$/)
     .catch(""),
   gender: z.enum(["male", "female", "other"]).catch("other"),
-  academic_headline: z.string().trim().max(ACADEMIC_HEADLINE_MAX).catch(""),
+  academic_headline: z.string().trim().max(MAX_ACADEMIC_HEADLINE).catch(""),
   // Issue #319: base rates + profile-only extras, transcribed from the
   // application's own answers (never invented by the model).
   online_rate: z.coerce.number().int().min(RATE_MIN).max(RATE_MAX).nullable().catch(null),

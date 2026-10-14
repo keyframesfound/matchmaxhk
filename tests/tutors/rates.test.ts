@@ -1,14 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  ACADEMIC_HEADLINE_MAX,
-  buildSmartHeadline,
   computeSuggestedRates,
   isValidTutorRate,
   medianRate,
   normalizeTutorRateRows,
   roundRateTo10,
-  truncateHeadline,
 } from "../../src/features/tutors/rates";
 
 describe("isValidTutorRate", () => {
@@ -63,39 +60,6 @@ describe("normalizeTutorRateRows", () => {
   });
 });
 
-describe("buildSmartHeadline", () => {
-  it("formats curriculum + score (rule 1)", () => {
-    expect(buildSmartHeadline([{ curriculum: "IBDP", score: "44/45" }])).toBe("IBDP 44/45");
-  });
-
-  it("joins multiple curricula with ' - ' (rule 2)", () => {
-    expect(
-      buildSmartHeadline([
-        { curriculum: "IBDP", score: "44/45" },
-        { curriculum: "IGCSE", score: "9A*" },
-      ]),
-    ).toBe("IBDP 44/45 - IGCSE 9A*");
-  });
-
-  it("appends Tutor when the score is blank (rule 3)", () => {
-    expect(buildSmartHeadline([{ curriculum: "HKDSE", score: "" }])).toBe("HKDSE Tutor");
-  });
-
-  it("truncates at 40 chars and trims trailing separators (rule 4)", () => {
-    const long = buildSmartHeadline([
-      { curriculum: "IBDP", score: "44/45" },
-      { curriculum: "IGCSE", score: "9A*" },
-      { curriculum: "A-Level", score: "A*A*A" },
-    ]);
-    expect(long.length).toBeLessThanOrEqual(ACADEMIC_HEADLINE_MAX);
-    expect(long.endsWith("-") || long.endsWith(" ")).toBe(false);
-  });
-
-  it("trailing hyphen debris after a hard cut is trimmed", () => {
-    expect(truncateHeadline("AB - ".slice(0, 5))).toBe("AB");
-  });
-});
-
 describe("medianRate + rounding", () => {
   it("median ignores position, not extremes", () => {
     expect(medianRate([3000, 200, 250])).toBe(250);
@@ -121,19 +85,13 @@ describe("computeSuggestedRates", () => {
   });
 
   it("fills each mode from its own median, rounded to $10", () => {
-    const cards = [
-      ...Array.from({ length: 10 }, () => card(200, 400)),
-      card(300, null),
-    ];
+    const cards = [...Array.from({ length: 10 }, () => card(200, 400)), card(300, null)];
     const result = computeSuggestedRates(cards);
     expect(result).toEqual({ status: "ok", online: 200, inPerson: 400 });
   });
 
   it("a single $3000 card does not skew the median", () => {
-    const cards = [
-      ...Array.from({ length: 12 }, () => card(200, 200)),
-      card(3000, 3000),
-    ];
+    const cards = [...Array.from({ length: 12 }, () => card(200, 200)), card(3000, 3000)];
     const result = computeSuggestedRates(cards);
     expect(result).toEqual({ status: "ok", online: 200, inPerson: 200 });
   });

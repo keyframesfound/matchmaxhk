@@ -2,7 +2,6 @@ import { z } from "zod";
 
 import { contactFilterError } from "@/lib/contact-filter";
 import {
-  ACADEMIC_HEADLINE_MAX,
   MAX_RATE_ROWS,
   RATE_MAX,
   RATE_MIN,
@@ -11,6 +10,7 @@ import {
   TRAVEL_NOTE_MAX,
   normalizeTutorRateRows,
 } from "@/features/tutors/rates";
+import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
 
 export const MAX_FILES = 5;
 export const MAX_ACHIEVEMENT_FILE_BYTES = 5 * 1024 * 1024;
@@ -173,18 +173,18 @@ export const tutorApplicationSchema = z
     highSchool: z.string().trim().min(1, "Required").max(200),
     curriculum: z.enum(CURRICULUM_OPTIONS),
     curricula: z.array(z.enum(CURRICULUM_OPTIONS)).min(1, "Select at least one curriculum"),
-    // Issue #323: the overall score is optional — a curriculum can be listed
-    // without a score (professional path still stores its fixed sentinel).
+    // Issue #323: overall score is strictly OPTIONAL — tutors select a
+    // curriculum and may leave the score blank ("spiky" specialists).
     overallScore: z.string().trim().max(200).optional().default(""),
-    // Issue #323: required smart academic headline (max 40 chars, no contact
-    // details); auto-filled in the form from curricula + scores.
+    // Issue #323: required smart headline (<= 40 chars, contact-filtered),
+    // auto-filled from the qualifications but editable; see academic-headline.ts.
     academicHeadline: z
       .string()
       .trim()
       .min(1, "Required")
       .max(
-        ACADEMIC_HEADLINE_MAX,
-        `Keep the headline to ${ACADEMIC_HEADLINE_MAX} characters or fewer`,
+        MAX_ACADEMIC_HEADLINE,
+        `Keep the headline to ${MAX_ACADEMIC_HEADLINE} characters or fewer`,
       )
       .superRefine((text, ctx) => {
         const error = contactFilterError(text);

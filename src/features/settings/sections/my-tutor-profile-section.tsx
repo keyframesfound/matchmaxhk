@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { MAX_ACADEMIC_HEADLINE, academicHeadlineError } from "@/lib/academic-headline";
 import { Switch } from "@/components/ui/switch";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MtrStationMultiSelect } from "@/components/ui/mtr-station-select";
@@ -24,14 +25,12 @@ import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import { getSystem } from "@/features/tutors/examSystems";
 import {
-  ACADEMIC_HEADLINE_MAX,
   MAX_RATE_ROWS,
   RATE_MAX,
   RATE_MIN,
   RATE_NOTE_MAX,
   RATE_ROW_LABEL_MAX,
   TRAVEL_NOTE_MAX,
-  buildSmartHeadline,
   normalizeTutorRateRows,
 } from "@/features/tutors/rates";
 import { suggestTutorRates } from "@/features/tutors/rates.functions";
@@ -122,27 +121,25 @@ function parseRateInput(raw: string): number | null | "invalid" {
 }
 
 /**
- * Issue #323 — curricula the Smart Default headline is derived from. Exam
- * systems use their display label ("IB Diploma"); pricing-tier curricula are
- * the tutor's own teachable curriculum names. Scores are intentionally blank
- * here: this editor doesn't edit per-subject grades, so the Smart Default
- * leans on rule 3 ("IB Diploma Tutor").
+ * Issue #319 — curricula the suggest-a-rate query anchors to. Exam systems
+ * use their display label ("IB Diploma"); pricing-tier curricula are the
+ * tutor's own teachable curriculum names.
  */
-function smartHeadlineEntries(form: TutorFormData) {
-  const entries: { curriculum: string; score?: string | null }[] = [];
+function suggestCurriculaFor(form: TutorFormData): string[] {
   const seen = new Set<string>();
+  const out: string[] = [];
   const push = (curriculum: string) => {
     const name = curriculum.trim();
     const key = name.toLowerCase();
     if (!name || seen.has(key)) return;
     seen.add(key);
-    entries.push({ curriculum: name, score: null });
+    out.push(name);
   };
   for (const result of form.exam_results) {
     push(getSystem(result.system)?.label ?? result.system);
   }
   for (const tier of form.pricing_tiers) push(tier.curriculum);
-  return entries;
+  return out;
 }
 
 export function MyTutorProfileSection() {
@@ -152,10 +149,6 @@ export function MyTutorProfileSection() {
   const [form, setForm] = React.useState<TutorFormData | null>(null);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [rates, setRates] = React.useState<RatesDraft | null>(null);
-  // Issue #323: false while the headline still exactly equals the Smart
-  // Default (safe to auto-update); any manual edit flips it to true and the
-  // custom text is then protected from regeneration.
-  const [headlineDirty, setHeadlineDirty] = React.useState(true);
   const [suggestPending, setSuggestPending] = React.useState(false);
   const [suggestHint, setSuggestHint] = React.useState<string | null>(null);
 
@@ -178,11 +171,6 @@ export function MyTutorProfileSection() {
     const nextForm = tutorToFormData(tutorQuery.data);
     setForm(nextForm);
     setRates(ratesFromRow(tutorQuery.data));
-    // Issue #323: a saved headline exactly matching the Smart Default is a
-    // generated value (isDirty=false → may auto-update later); anything else
-    // is the tutor's custom text (isDirty=true → protected).
-    const smart = buildSmartHeadline(smartHeadlineEntries(nextForm));
-    setHeadlineDirty((tutorQuery.data.academic_headline ?? "").trim() !== smart);
   }, [tutorQuery.data]);
 
   // Institution spellings already in use on tutor profiles, so tutors pick an
@@ -300,17 +288,9 @@ export function MyTutorProfileSection() {
   const current = tutorQuery.data;
   const loading = tutorQuery.isLoading;
 
-  const smartHeadline = React.useMemo(
-    () => (form ? buildSmartHeadline(smartHeadlineEntries(form)) : ""),
-    [form],
-  );
-
   // Issue #319: suggest-a-rate anchors to the subjects picked in THIS form
   // plus the curricula already on the card (exam systems + pricing tiers).
-  const suggestCurricula = React.useMemo(
-    () => (form ? smartHeadlineEntries(form).map((entry) => entry.curriculum) : []),
-    [form],
-  );
+  const suggestCurricula = React.useMemo(() => (form ? suggestCurriculaFor(form) : []), [form]);
 
   const handleSuggestRate = async () => {
     if (!current?.tutor_code || !form) return;
@@ -367,17 +347,21 @@ export function MyTutorProfileSection() {
       toast.error(introContactError);
       return;
     }
+    // Issue #323 review: the headline stays optional here (pre-#323 tutors may
+    // have none), but a non-empty value must pass the shared 40-char +
+    // contact-filter rule the public cards rely on — tutorFormSchema still
+    // allows max 120 for admin-edited legacy rows.
+    const headlineValue = (form.academic_headline ?? "").trim();
+    if (headlineValue) {
+      const headlineError = academicHeadlineError(headlineValue);
+      if (headlineError) {
+        setErrors((current) => ({ ...current, academic_headline: headlineError }));
+        toast.error(headlineError);
+        return;
+      }
+    }
 
     const nextErrors: Record<string, string> = {};
-
-    // Issue #323: headline capped at 40 chars + contact-filtered.
-    const headline = (form.academic_headline ?? "").trim();
-    if (headline.length > ACADEMIC_HEADLINE_MAX) {
-      nextErrors.academic_headline = t("settings.my_tutor.academic_headline_max");
-    } else {
-      const headlineContactError = contactFilterError(headline);
-      if (headlineContactError) nextErrors.academic_headline = headlineContactError;
-    }
 
     // Issue #319: base rates must be whole dollars inside 50-3000, and the
     // failing field is named.
@@ -577,29 +561,13 @@ export function MyTutorProfileSection() {
               <Input
                 id="myt-academic"
                 value={form.academic_headline}
-                maxLength={ACADEMIC_HEADLINE_MAX}
-                onChange={(e) => {
-                  setForm({ ...form, academic_headline: e.target.value });
-                  // Issue #323: manual typing protects the text for the session.
-                  setHeadlineDirty(true);
-                }}
-                onBlur={() => {
-                  // Issue #323: emptying the field and blurring falls back to
-                  // a freshly generated Smart Default (and unlocks auto-update).
-                  if (!(form.academic_headline ?? "").trim()) {
-                    setForm({ ...form, academic_headline: smartHeadline });
-                    setHeadlineDirty(false);
-                  }
-                }}
+                maxLength={MAX_ACADEMIC_HEADLINE}
+                onChange={(e) => setForm({ ...form, academic_headline: e.target.value })}
                 placeholder="e.g. IBDP 44/45 or HKDSE Best 5: 32"
                 className="bg-[color:var(--surface)]"
               />
               {errors.academic_headline ? (
                 <p className="text-xs font-medium text-destructive">{errors.academic_headline}</p>
-              ) : !headlineDirty && smartHeadline ? (
-                <p className="text-xs text-[color:var(--ink)]/55">
-                  {t("settings.my_tutor.academic_headline_auto_hint")}
-                </p>
               ) : null}
             </div>
             <div className="space-y-2">

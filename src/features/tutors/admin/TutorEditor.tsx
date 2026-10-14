@@ -115,7 +115,6 @@ import { AutofillDialog } from "./AutofillDialog";
 import { TutorReviewsAdmin } from "./tutor-reviews-admin";
 import { TutorContactDetails } from "./tutor-contact-details";
 import {
-  ACADEMIC_HEADLINE_MAX,
   MAX_RATE_ROWS,
   RATE_MAX,
   RATE_MIN,
@@ -124,6 +123,7 @@ import {
   TRAVEL_NOTE_MAX,
   normalizeTutorRateRows,
 } from "@/features/tutors/rates";
+import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
 import type { TutorAutofillResult } from "./autofill.functions";
 
 export const TARGET_STUDENT_OPTIONS = [
@@ -207,7 +207,7 @@ export const tutorFormSchema = z.object({
   academic_headline: z
     .string()
     .trim()
-    .max(ACADEMIC_HEADLINE_MAX, `Keep the headline to ${ACADEMIC_HEADLINE_MAX} characters or fewer`)
+    .max(MAX_ACADEMIC_HEADLINE, `Keep the headline to ${MAX_ACADEMIC_HEADLINE} characters or fewer`)
     .optional()
     .or(z.literal("")),
   // Issue #107: undergraduate + optional postgraduate degree history.
@@ -578,8 +578,7 @@ function mergeAutofillResult(prev: TutorFormData, result: TutorAutofillResult): 
       ? result.lesson_mode
       : prev.lesson_mode,
     hourly_rate: result.hourly_rate > 0 ? result.hourly_rate : prev.hourly_rate,
-    online_rate:
-      typeof result.online_rate === "number" ? result.online_rate : prev.online_rate,
+    online_rate: typeof result.online_rate === "number" ? result.online_rate : prev.online_rate,
     inperson_rate:
       typeof result.inperson_rate === "number" ? result.inperson_rate : prev.inperson_rate,
     rate_rows:
@@ -1793,11 +1792,11 @@ export function TutorEditor({
                 <FormField
                   label="Academic Headline"
                   error={errors.academic_headline}
-                  hint={`Max ${ACADEMIC_HEADLINE_MAX} chars — e.g. IBDP 44/45`}
+                  hint={`Max ${MAX_ACADEMIC_HEADLINE} chars — e.g. IBDP 44/45`}
                 >
                   <Input
                     value={form.academic_headline}
-                    maxLength={ACADEMIC_HEADLINE_MAX}
+                    maxLength={MAX_ACADEMIC_HEADLINE}
                     onChange={(e) => setForm({ ...form, academic_headline: e.target.value })}
                     placeholder="e.g. IBDP 44/45 or HKDSE Best 5: 32"
                   />

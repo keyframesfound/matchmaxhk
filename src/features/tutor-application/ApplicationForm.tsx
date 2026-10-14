@@ -44,6 +44,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { REFERRAL_CODE_PATTERN, readStoredReferralCode } from "@/lib/referral";
 import { contactFilterError } from "@/lib/contact-filter";
+import {
+  MAX_ACADEMIC_HEADLINE,
+  academicHeadlineError,
+  buildAcademicHeadline,
+} from "@/lib/academic-headline";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
@@ -94,14 +99,12 @@ import {
   getSubjectOptionsForCategory,
 } from "@/features/tutors/subjects";
 import {
-  ACADEMIC_HEADLINE_MAX,
   MAX_RATE_ROWS,
   RATE_MAX,
   RATE_MIN,
   RATE_NOTE_MAX,
   RATE_ROW_LABEL_MAX,
   TRAVEL_NOTE_MAX,
-  buildSmartHeadline,
   isValidTutorRate,
   normalizeTutorRateRows,
 } from "@/features/tutors/rates";
@@ -318,7 +321,6 @@ const FIELD_LABELS: Record<string, string> = {
   subjectsTaught: "Subjects Willing to Teach",
   format: "Mode of Lesson",
   stations: "Possible Teaching Locations (MTR Network)",
-  headline: "Academic headline",
   onlineRate: "Online hourly rate (HKD)",
   inpersonRate: "In-person hourly rate (HKD)",
   rateRows: "Extra rate rows",
@@ -928,11 +930,6 @@ type ApplicationBaseState = {
   rateRows: { label: string; rate: string }[];
   travelNote: string;
   rateNote: string;
-  // Issue #323: smart academic headline + manual-edit flag. Any keystroke
-  // sets headlineDirty and stops auto-fill; clearing the field and blurring
-  // resets it so the default regenerates.
-  headline: string;
-  headlineDirty: boolean;
   // Issue #191: how many students the tutor can take on, surfaced on the
   // Logistics step and passed through to the admin application email.
   maxStudents: string;
@@ -952,6 +949,9 @@ type ApplicationDraft = {
   boards: string[];
   credentials: string[];
   qualifications: Qualification[];
+  // Issue #323: smart headline + whether the tutor has manually edited it.
+  academicHeadline: string;
+  headlineDirty: boolean;
 };
 
 export function ApplicationForm() {
@@ -1026,8 +1026,6 @@ export function ApplicationForm() {
     rateRows: [] as { label: string; rate: string }[],
     travelNote: "",
     rateNote: "",
-    headline: "",
-    headlineDirty: false,
     maxStudents: "",
     pricingStandardized: true,
     pricingTiers: [],
@@ -1045,6 +1043,11 @@ export function ApplicationForm() {
   // only; it narrows the suggestion list, never the submitted selection.
   const [taughtCurriculum, setTaughtCurriculum] = useState("");
   const [qualifications, setQualifications] = useState<Qualification[]>([blankQualification()]);
+  // Issue #323: smart headline + manual-edit (dirty) flag. Auto-filled from
+  // the qualifications while pristine; a manual keystroke freezes it, and
+  // clearing the field on blur unfreezes it (see the effect + input handlers).
+  const [academicHeadline, setAcademicHeadline] = useState("");
+  const [headlineDirty, setHeadlineDirty] = useState(false);
   const professional = base.status === PROFESSIONAL_STATUS;
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
@@ -1065,40 +1068,6 @@ export function ApplicationForm() {
   const whatsappActivateHref = whatsappDigits
     ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(whatsappGreeting)}`
     : "";
-
-  // Issue #323: smart default headline from the tutor's curricula + scores.
-  // The professional path has no curricula in the form, so it starts blank
-  // and the headline is typed manually there.
-  const smartHeadline = useMemo(
-    () =>
-      professional
-        ? ""
-        : buildSmartHeadline(
-            qualifications.map((qualification) => ({
-              curriculum: qualification.curriculum,
-              score: qualification.overall,
-            })),
-          ),
-    [professional, qualifications],
-  );
-  useEffect(() => {
-    if (base.headlineDirty) return;
-    setBase((previous) => {
-      if (previous.headline === smartHeadline) return previous;
-      return { ...previous, headline: smartHeadline };
-    });
-    if (smartHeadline) clearFieldError("headline");
-  }, [smartHeadline, base.headlineDirty]);
-
-  function setHeadlineField(value: string) {
-    // Any manual keystroke claims the field for the session.
-    setBase((previous) => ({ ...previous, headline: value, headlineDirty: true }));
-    clearFieldError("headline");
-  }
-  function handleHeadlineBlur() {
-    // Emptied + clicked away: release the field back to auto-fill.
-    if (base.headline.trim() === "") setBaseField("headlineDirty", false);
-  }
 
   // Lowest filled base rate, used as the per-curriculum pricing placeholder.
   const filledBaseRates = [base.onlineRate, base.inpersonRate]
@@ -1130,10 +1099,17 @@ export function ApplicationForm() {
     clearDraft,
   } = useFormDraft<ApplicationDraft>("tutor-application");
   const draftAppliedRef = useRef(false);
+  // Issue #323 review: when a draft restores, the headline-autofill effect can
+  // still fire in the SAME effect flush against pre-restore state (dirty flag
+  // still false) and queue a setAcademicHeadline(build(oldQuals)) that lands
+  // AFTER the restored value — freezing the wrong headline. Suppress that one
+  // pass; the next pass runs against the restored state and honours the flag.
+  const skipHeadlineAutofillRef = useRef(false);
 
   useEffect(() => {
     if (!restoredDraft) return;
     draftAppliedRef.current = true;
+    skipHeadlineAutofillRef.current = true;
     setBase((prev) => ({
       ...prev,
       ...restoredDraft.base,
@@ -1155,6 +1131,10 @@ export function ApplicationForm() {
           scores: Array.isArray(qualification.scores) ? qualification.scores : [],
         })),
       );
+    }
+    if (typeof restoredDraft.academicHeadline === "string") {
+      setAcademicHeadline(restoredDraft.academicHeadline);
+      setHeadlineDirty(Boolean(restoredDraft.headlineDirty));
     }
     if (
       typeof restoredDraft.step === "number" &&
@@ -1183,8 +1163,40 @@ export function ApplicationForm() {
         ...qualification,
         transcript: null,
       })),
+      academicHeadline,
+      headlineDirty,
     });
-  }, [restoredDraft, saveDraft, step, base, roles, boards, credentials, qualifications]);
+  }, [
+    restoredDraft,
+    saveDraft,
+    step,
+    base,
+    roles,
+    boards,
+    credentials,
+    qualifications,
+    academicHeadline,
+    headlineDirty,
+  ]);
+
+  // Issue #323: regenerate the smart headline whenever the qualifications
+  // change, but only while the tutor has not manually edited it (dirty flag).
+  useEffect(() => {
+    // Skip the pass queued against pre-restore state (see the ref above).
+    if (skipHeadlineAutofillRef.current) {
+      skipHeadlineAutofillRef.current = false;
+      return;
+    }
+    if (headlineDirty) return;
+    setAcademicHeadline(
+      buildAcademicHeadline(
+        qualifications.map((qualification) => ({
+          curriculum: qualification.curriculum,
+          score: qualification.overall,
+        })),
+      ),
+    );
+  }, [qualifications, headlineDirty]);
 
   function changeStep(nextStep: number) {
     shouldScrollToStepper.current = true;
@@ -1474,15 +1486,16 @@ export function ApplicationForm() {
         required("studentCard", base.studentCard);
         qualifications.forEach((qualification, index) => {
           required(`curriculum-${index}`, qualification.curriculum);
-          // Issue #323: the overall score is optional per curriculum.
+          // Issue #323: overall score is optional — never block on a blank.
           if (["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum))
             required(`boards-${index}`, qualification.boards);
         });
       }
-      // Issue #323: the academic headline is required and contact-free.
-      required("headline", base.headline.trim());
-      const headlineContactError = contactFilterError(base.headline);
-      if (headlineContactError) next.headline = headlineContactError;
+      // Issue #323: the headline is required for every path; the shared helper
+      // enforces required + max 40 + contact filter in one place (mirrored
+      // server-side in the submit schema), per review FE note.
+      const headlineError = academicHeadlineError(academicHeadline);
+      if (headlineError) next.academicHeadline = headlineError;
     }
     const subjectStep = professional ? 3 : 2;
     if (step === subjectStep) {
@@ -1491,8 +1504,7 @@ export function ApplicationForm() {
         qualifications.forEach((qualification, qualificationIndex) =>
           qualification.scores.forEach((score, scoreIndex) => {
             required(`subject-${qualificationIndex}-${scoreIndex}`, score.subject);
-            // Issue #323: grades are optional per subject — a subject can be
-            // added with no grade.
+            // Issue #323: the grade is optional — only the subject is required.
           }),
         );
     }
@@ -1664,7 +1676,9 @@ export function ApplicationForm() {
                 const paperText = papers.length
                   ? ` (${papers.map((paper) => `${paper.label}: ${paper.score.trim()}`).join(", ")})`
                   : "";
-                return `${score.subject}: ${score.grade}${paperText}`;
+                // Issue #323: grade is optional — render "[Subject] - [Grade]"
+                // when filled, just "[Subject]" otherwise.
+                return `${score.subject}${score.grade ? ` - ${score.grade}` : ""}${paperText}`;
               })
               .join("\n")}`,
         )
@@ -1710,6 +1724,7 @@ export function ApplicationForm() {
         curriculum: primary.curriculum,
         curricula: qualifications.map((qualification) => qualification.curriculum),
         overallScore: professional ? "Not applicable - professional pathway" : primary.overall,
+        academicHeadline: academicHeadline.trim(),
         subjectsConfident: selectedTeachingSubjects.join(", "),
         subjectResults: professional
           ? `Professional subjects: ${selectedTeachingSubjects.join(", ")}\n${base.achievements.map((achievement) => achievement.description).join("\n")}`
@@ -1775,8 +1790,6 @@ export function ApplicationForm() {
           .map((row) => ({ label: row.label.trim(), rate: Number(row.rate) })),
         travelNote: base.inpersonRate.trim() !== "" ? base.travelNote.trim() : "",
         rateNote: base.rateNote.trim(),
-        // Issue #323: required smart academic headline.
-        academicHeadline: base.headline.trim(),
         // Issue #108: per-curriculum pricing. Standardized (default) sends no
         // tiers; otherwise each row must name a distinct curriculum with a
         // positive integer rate (deduped here so the zod enum + DB stay clean).
@@ -2660,7 +2673,6 @@ export function ApplicationForm() {
                                     ? "Overall Achieved Score"
                                     : "Overall Achieved Grades"
                             }
-                            optional
                             error={fieldErrors[`overall-${index}`]}
                           >
                             <Input
@@ -2881,23 +2893,28 @@ export function ApplicationForm() {
                     </Hint>
                   </div>
                 ) : null}
-                {/* Issue #323: required smart academic headline, below the
-                    curriculum + overall-score inputs. Auto-fills from the
-                    curricula and scores above; typing claims the field for
-                    the session, clearing it and clicking away hands it back. */}
+              </div>
+              {/* Issue #323: required smart headline, auto-filled from the
+                  qualifications while pristine; manual edits freeze it. */}
+              <div className="mt-4">
                 <Field
-                  label={t("join.academics.headline")}
+                  label="Academic Headline"
                   required
-                  error={fieldErrors.headline}
-                  hint={t("join.academics.headline_hint")}
-                  className="sm:col-span-2"
+                  error={fieldErrors.academicHeadline}
+                  hint={`Auto-filled from your qualifications — edit freely. Shown on your public card (${MAX_ACADEMIC_HEADLINE} characters max).`}
                 >
                   <Input
-                    value={base.headline}
-                    maxLength={ACADEMIC_HEADLINE_MAX}
-                    onChange={(event) => setHeadlineField(event.target.value)}
-                    onBlur={handleHeadlineBlur}
-                    placeholder="IBDP 44/45 - HKDSE 5**"
+                    maxLength={MAX_ACADEMIC_HEADLINE}
+                    value={academicHeadline}
+                    onChange={(event) => {
+                      setAcademicHeadline(event.target.value);
+                      setHeadlineDirty(true);
+                      if (fieldErrors.academicHeadline) clearFieldError("academicHeadline");
+                    }}
+                    onBlur={() => {
+                      if (academicHeadline.trim() === "") setHeadlineDirty(false);
+                    }}
+                    placeholder="e.g. IBDP 44/45 or HKDSE Tutor"
                   />
                 </Field>
               </div>

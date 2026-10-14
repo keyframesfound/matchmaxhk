@@ -16,9 +16,6 @@ export const RATE_ROW_LABEL_MAX = 30;
 export const TRAVEL_NOTE_MAX = 80;
 export const RATE_NOTE_MAX = 120;
 
-/** Headline cap (issue #323). */
-export const ACADEMIC_HEADLINE_MAX = 40;
-
 export type TutorRateRow = { label: string; rate: number };
 
 /** Whole dollars inside the 50-3000 band — $49 and $3001 are rejected. */
@@ -92,33 +89,6 @@ export function normalizeTutorRateRows(
   }
 
   return errors.length > 0 ? { ok: false, rows: cleaned, errors } : { ok: true, rows: cleaned };
-}
-
-/**
- * Issue #323 — the Smart Default headline.
- * Rule 1: `[Curriculum] [Score]` ("IBDP 44/45"); Rule 2: multiple curricula
- * join with " - "; Rule 3: curriculum with a blank score appends "Tutor";
- * Rule 4: truncate at 40 and trim trailing separator debris.
- */
-export function buildSmartHeadline(
-  entries: { curriculum: string; score?: string | null }[],
-): string {
-  const parts = entries
-    .map((entry) => {
-      const curriculum = entry.curriculum.trim();
-      const score = (entry.score ?? "").trim();
-      if (!curriculum) return "";
-      return score ? `${curriculum} ${score}` : `${curriculum} Tutor`;
-    })
-    .filter(Boolean);
-
-  return truncateHeadline(parts.join(" - "));
-}
-
-/** Rule 4: hard 40-char cut, then strip trailing hyphens/spaces. */
-export function truncateHeadline(text: string): string {
-  const cut = text.slice(0, ACADEMIC_HEADLINE_MAX);
-  return cut.replace(/[\s-]+$/u, "");
 }
 
 /** Median of a rate sample; null when the sample is empty. */
