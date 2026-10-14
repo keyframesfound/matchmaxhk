@@ -44,6 +44,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { REFERRAL_CODE_PATTERN, readStoredReferralCode } from "@/lib/referral";
 import { contactFilterError } from "@/lib/contact-filter";
+import { MAX_ACADEMIC_HEADLINE, buildAcademicHeadline } from "@/lib/academic-headline";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
@@ -924,6 +925,9 @@ type ApplicationDraft = {
   boards: string[];
   credentials: string[];
   qualifications: Qualification[];
+  // Issue #323: smart headline + whether the tutor has manually edited it.
+  academicHeadline: string;
+  headlineDirty: boolean;
 };
 
 export function ApplicationForm() {
@@ -1011,6 +1015,11 @@ export function ApplicationForm() {
   // only; it narrows the suggestion list, never the submitted selection.
   const [taughtCurriculum, setTaughtCurriculum] = useState("");
   const [qualifications, setQualifications] = useState<Qualification[]>([blankQualification()]);
+  // Issue #323: smart headline + manual-edit (dirty) flag. Auto-filled from
+  // the qualifications while pristine; a manual keystroke freezes it, and
+  // clearing the field on blur unfreezes it (see the effect + input handlers).
+  const [academicHeadline, setAcademicHeadline] = useState("");
+  const [headlineDirty, setHeadlineDirty] = useState(false);
   const professional = base.status === PROFESSIONAL_STATUS;
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
@@ -1065,6 +1074,10 @@ export function ApplicationForm() {
         })),
       );
     }
+    if (typeof restoredDraft.academicHeadline === "string") {
+      setAcademicHeadline(restoredDraft.academicHeadline);
+      setHeadlineDirty(Boolean(restoredDraft.headlineDirty));
+    }
     if (
       typeof restoredDraft.step === "number" &&
       restoredDraft.step >= 1 &&
@@ -1092,8 +1105,28 @@ export function ApplicationForm() {
         ...qualification,
         transcript: null,
       })),
+      academicHeadline,
+      headlineDirty,
     });
-  }, [restoredDraft, saveDraft, step, base, roles, boards, credentials, qualifications]);
+  }, [
+    restoredDraft,
+    saveDraft,
+    step,
+    base,
+    roles,
+    boards,
+    credentials,
+    qualifications,
+    academicHeadline,
+    headlineDirty,
+  ]);
+
+  // Issue #323: regenerate the smart headline whenever the qualifications
+  // change, but only while the tutor has not manually edited it (dirty flag).
+  useEffect(() => {
+    if (headlineDirty) return;
+    setAcademicHeadline(buildAcademicHeadline(qualifications));
+  }, [qualifications, headlineDirty]);
 
   function changeStep(nextStep: number) {
     shouldScrollToStepper.current = true;
@@ -1383,11 +1416,16 @@ export function ApplicationForm() {
         required("studentCard", base.studentCard);
         qualifications.forEach((qualification, index) => {
           required(`curriculum-${index}`, qualification.curriculum);
-          required(`overall-${index}`, qualification.overall.trim());
+          // Issue #323: overall score is optional — never block on a blank.
           if (["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum))
             required(`boards-${index}`, qualification.boards);
         });
       }
+      // Issue #323: the headline is required for every path, and contact
+      // details are rejected client-side (mirrored server-side in the schema).
+      required("academicHeadline", academicHeadline.trim());
+      const headlineContactError = contactFilterError(academicHeadline);
+      if (headlineContactError) next.academicHeadline = headlineContactError;
     }
     const subjectStep = professional ? 3 : 2;
     if (step === subjectStep) {
@@ -1396,7 +1434,7 @@ export function ApplicationForm() {
         qualifications.forEach((qualification, qualificationIndex) =>
           qualification.scores.forEach((score, scoreIndex) => {
             required(`subject-${qualificationIndex}-${scoreIndex}`, score.subject);
-            required(`grade-${qualificationIndex}-${scoreIndex}`, score.grade);
+            // Issue #323: the grade is optional — only the subject is required.
           }),
         );
     }
@@ -1546,7 +1584,9 @@ export function ApplicationForm() {
                 const paperText = papers.length
                   ? ` (${papers.map((paper) => `${paper.label}: ${paper.score.trim()}`).join(", ")})`
                   : "";
-                return `${score.subject}: ${score.grade}${paperText}`;
+                // Issue #323: grade is optional — render "[Subject] - [Grade]"
+                // when filled, just "[Subject]" otherwise.
+                return `${score.subject}${score.grade ? ` - ${score.grade}` : ""}${paperText}`;
               })
               .join("\n")}`,
         )
@@ -1592,6 +1632,7 @@ export function ApplicationForm() {
         curriculum: primary.curriculum,
         curricula: qualifications.map((qualification) => qualification.curriculum),
         overallScore: professional ? "Not applicable - professional pathway" : primary.overall,
+        academicHeadline: academicHeadline.trim(),
         subjectsConfident: selectedTeachingSubjects.join(", "),
         subjectResults: professional
           ? `Professional subjects: ${selectedTeachingSubjects.join(", ")}\n${base.achievements.map((achievement) => achievement.description).join("\n")}`
@@ -2525,7 +2566,6 @@ export function ApplicationForm() {
                                     ? "Overall Achieved Score"
                                     : "Overall Achieved Grades"
                             }
-                            required
                             error={fieldErrors[`overall-${index}`]}
                           >
                             <Input
@@ -2746,6 +2786,30 @@ export function ApplicationForm() {
                     </Hint>
                   </div>
                 ) : null}
+              </div>
+              {/* Issue #323: required smart headline, auto-filled from the
+                  qualifications while pristine; manual edits freeze it. */}
+              <div className="mt-4">
+                <Field
+                  label="Academic Headline"
+                  required
+                  error={fieldErrors.academicHeadline}
+                  hint={`Auto-filled from your qualifications — edit freely. Shown on your public card (${MAX_ACADEMIC_HEADLINE} characters max).`}
+                >
+                  <Input
+                    maxLength={MAX_ACADEMIC_HEADLINE}
+                    value={academicHeadline}
+                    onChange={(event) => {
+                      setAcademicHeadline(event.target.value);
+                      setHeadlineDirty(true);
+                      if (fieldErrors.academicHeadline) clearFieldError("academicHeadline");
+                    }}
+                    onBlur={() => {
+                      if (academicHeadline.trim() === "") setHeadlineDirty(false);
+                    }}
+                    placeholder="e.g. IBDP 44/45 or HKDSE Tutor"
+                  />
+                </Field>
               </div>
               {/* Issue #188: legal-warning card removed by product decision. */}
             </>

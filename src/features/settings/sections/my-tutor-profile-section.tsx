@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
 import { Switch } from "@/components/ui/switch";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MtrStationMultiSelect } from "@/components/ui/mtr-station-select";
@@ -331,6 +332,7 @@ export function MyTutorProfileSection() {
               <Input
                 id="myt-academic"
                 value={form.academic_headline}
+                maxLength={MAX_ACADEMIC_HEADLINE}
                 onChange={(e) => setForm({ ...form, academic_headline: e.target.value })}
                 placeholder="e.g. IBDP 44/45 or HKDSE Best 5: 32"
                 className="bg-[color:var(--surface)]"
