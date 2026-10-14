@@ -14,7 +14,7 @@ import { buildBuyWhatsAppUrl, buildBookLessonsWhatsAppUrl } from "@/features/mat
  */
 
 export const PUBLIC_NOTE_COLUMNS =
-  "id, slug, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, year_tag, page_count, preview_pages, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, view_count, sold_count, created_at, tutor_id";
+  "id, slug, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, preview_pages, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, view_count, sold_count, created_at, tutor_id";
 
 /**
  * Public readers run under the SERVICE ROLE (RLS does not apply), so the
@@ -34,6 +34,9 @@ export type PublicNote = {
   curriculumTag: string;
   subjectTag: string | null;
   documentType: string;
+  materialType: string;
+  topic: string | null;
+  gradeAchieved: string | null;
   yearTag: string | null;
   pageCount: number | null;
   previewPages: number | null;
@@ -72,6 +75,9 @@ function mapPublicNote(row: NoteRow): PublicNote | null {
     curriculumTag: typeof row.curriculum_tag === "string" ? row.curriculum_tag : "",
     subjectTag: typeof row.subject_tag === "string" ? row.subject_tag : null,
     documentType: typeof row.document_type === "string" ? row.document_type : "custom_notes",
+    materialType: typeof row.material_type === "string" ? row.material_type : "notes",
+    topic: typeof row.topic === "string" ? row.topic : null,
+    gradeAchieved: typeof row.grade_achieved === "string" ? row.grade_achieved : null,
     yearTag: typeof row.year_tag === "string" ? row.year_tag : null,
     pageCount: typeof row.page_count === "number" ? row.page_count : null,
     previewPages: typeof row.preview_pages === "number" ? row.preview_pages : null,

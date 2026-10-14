@@ -2,7 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { findContactViolations } from "@/lib/contact-filter";
 import { watermarkPdfPreview, PREVIEW_PAGE_LIMIT } from "@/features/materials/watermark";
+import {
+  legacyDocumentTypeToMaterialType,
+  validateNoteKindsForSubmit,
+} from "@/features/materials/lifecycle";
 
 /**
  * Issues #131/#132/#133: server-side upload pipeline for the study-materials
@@ -41,9 +46,17 @@ const UploadMaterialInput = z.object({
   description: z.string().trim().max(4000).optional(),
   priceHkd: z.number().min(0).max(100_000),
   schoolTag: z.string().trim().max(160).optional(),
-  curriculumTag: z.string().trim().min(1).max(160),
-  subjectTag: z.string().trim().max(160).optional(),
-  documentType: z.enum(["custom_notes", "ia", "ee", "tok_essay", "mock_exam"]),
+  // #313 review fix: curriculum is the canonical list and subject is
+  // required on every path — no caller may skip the note-kind validation.
+  curriculumTag: z.enum(["IB", "DSE", "IGCSE", "A-Level", "Other"]),
+  subjectTag: z.string().trim().min(1).max(160),
+  // #313 note kinds: the 3-way type replaces the old document types for new
+  // uploads (documentType stays accepted for legacy callers and is mapped).
+  materialType: z.enum(["notes", "mock", "exemplar"]).optional(),
+  topic: z.string().trim().max(40).optional(),
+  gradeAchieved: z.string().trim().max(20).optional(),
+  exemplarPermission: z.boolean().optional(),
+  documentType: z.enum(["custom_notes", "ia", "ee", "tok_essay", "mock_exam"]).optional(),
   yearTag: z.string().trim().max(20).optional(),
   pageCount: z.number().int().min(1).max(10_000).optional(),
   exactScoreAchieved: z.string().trim().max(200).optional(),
@@ -191,6 +204,39 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
       tutor = await assertVerifiedTutor(context.supabase, context.userId);
     }
 
+    // #313: topic, title, description and grade all pass the contact filter;
+    // exemplar gates apply on the admin path too.
+    const effectiveType =
+      data.materialType ?? legacyDocumentTypeToMaterialType(data.documentType ?? "custom_notes");
+    for (const [label, text] of [
+      ["Title", data.title],
+      ["Description", data.description],
+      ["Topic", data.topic],
+      ["Grade achieved", data.gradeAchieved],
+    ] as const) {
+      if (!text) continue;
+      const violations = findContactViolations(text);
+      if (violations.length > 0) {
+        throw new Error(
+          `${label} contains contact details (${violations
+            .map((v) => v.match)
+            .slice(0, 2)
+            .join(", ")}). Remove them to upload.`,
+        );
+      }
+    }
+    // #313 review fix: every upload path runs the same strict note-kind
+    // validation (canonical curriculum, required subject, exemplar gates).
+    const kindErrors = validateNoteKindsForSubmit({
+      curriculum: data.curriculumTag,
+      subject: data.subjectTag,
+      materialType: effectiveType,
+      topic: data.topic,
+      gradeAchieved: data.gradeAchieved,
+      exemplarPermission: data.exemplarPermission,
+    });
+    if (kindErrors.length > 0) throw new Error(kindErrors.join(" "));
+
     const bytes = base64ToBytes(data.base64Data);
     if (bytes.byteLength > MAX_UPLOAD_BYTES) {
       throw new Error("PDF is too large. Maximum upload size is 20MB.");
@@ -235,8 +281,14 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
         price_hkd: data.priceHkd,
         school_tag: data.schoolTag ?? null,
         curriculum_tag: data.curriculumTag,
-        subject_tag: data.subjectTag ?? null,
-        document_type: data.documentType,
+        subject_tag: data.subjectTag,
+        material_type:
+          data.materialType ??
+          legacyDocumentTypeToMaterialType(data.documentType ?? "custom_notes"),
+        topic: data.topic ?? null,
+        grade_achieved: data.gradeAchieved ?? null,
+        exemplar_permission: data.exemplarPermission ?? false,
+        document_type: data.documentType ?? "custom_notes",
         year_tag: data.yearTag ?? null,
         page_count: data.pageCount ?? null,
         exact_score_achieved: data.exactScoreAchieved ?? null,
