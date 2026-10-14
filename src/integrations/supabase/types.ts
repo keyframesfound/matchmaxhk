@@ -896,6 +896,11 @@ export type Database = {
           hourly_rate: number;
           ia_ee_tok_notes: string | null;
           ia_ee_tok_support: string[];
+          inperson_rate: number | null;
+          online_rate: number | null;
+          rate_note: string | null;
+          rate_rows: Json;
+          travel_note: string | null;
           id: string;
           is_published: boolean;
           languages: string[];
@@ -939,6 +944,11 @@ export type Database = {
           created_by?: string | null;
           currency?: Database["public"]["Enums"]["supported_currency"];
           display_name: string;
+          inperson_rate?: number | null;
+          online_rate?: number | null;
+          rate_note?: string | null;
+          rate_rows?: Json;
+          travel_note?: string | null;
           district?: string | null;
           experience_years?: number | null;
           exam_results?: Json;
@@ -988,6 +998,11 @@ export type Database = {
           created_by?: string | null;
           currency?: Database["public"]["Enums"]["supported_currency"];
           display_name?: string;
+          inperson_rate?: number | null;
+          online_rate?: number | null;
+          rate_note?: string | null;
+          rate_rows?: Json;
+          travel_note?: string | null;
           district?: string | null;
           experience_years?: number | null;
           exam_results?: Json;

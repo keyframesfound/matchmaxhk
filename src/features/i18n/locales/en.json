@@ -278,7 +278,29 @@
       "deletion_help": "To protect active client bookings, account deletions are processed by our team within 3-5 business days to ensure all current matching fees and active trial cases are settled. Once processed, your data will be permanently removed.",
       "deletion_submitting": "Submitting…",
       "deletion_pending_badge": "Deletion request received — our team will process it within 3-5 business days",
-      "deletion_requested_toast": "Deletion request received — our team will be in touch"
+      "deletion_requested_toast": "Deletion request received — our team will be in touch",
+      "rates_heading": "Hourly rates",
+      "rates_online": "Online hourly rate (HK$)",
+      "rates_in_person": "In-person hourly rate (HK$)",
+      "suggest_a_rate": "Suggest a rate",
+      "suggest_not_enough_data": "Not enough data yet",
+      "rate_rows_label": "Extra rates (optional)",
+      "rate_row_label": "Label",
+      "rate_row_rate": "Rate (HK$)",
+      "add_rate_row": "Add a rate",
+      "remove_rate_row": "Remove rate",
+      "travel_note": "Travel note",
+      "travel_note_placeholder": "e.g. Within two MTR stops, no extra charge",
+      "travel_note_needs_in_person": "Add an in-person rate before adding a travel note",
+      "travel_note_max": "Travel note must be 80 characters or fewer",
+      "rate_note_label": "Anything that changes this rate?",
+      "rate_note_placeholder": "e.g. First lesson half price",
+      "rate_note_max": "Rate note must be 120 characters or fewer",
+      "rate_invalid_online": "Online hourly rate must be a whole number between $50 and $3,000",
+      "rate_invalid_in_person": "In-person hourly rate must be a whole number between $50 and $3,000",
+      "rate_last_required": "Keep at least one of the two base rates — clear the one you want to change, not both",
+      "academic_headline_max": "Academic headline must be 40 characters or fewer",
+      "academic_headline_auto_hint": "Auto-generated from your exam results — it updates automatically until you edit it."
     },
     "grid": {
       "title": "Weekly availability grid",
@@ -632,7 +654,25 @@
     "success_title": "Application received",
     "success_message": "Thanks for applying to MatchMax. Our team reviews every application and will contact you by email or WhatsApp if there is a suitable case.",
     "back_home": "Back home",
-    "browse_tutors": "Browse tutors"
+    "browse_tutors": "Browse tutors",
+    "academics": {
+      "headline": "Academic headline",
+      "headline_hint": "Auto-filled from your curricula and scores above — type to edit it yourself; clear it and click away to bring the suggestion back."
+    },
+    "rates": {
+      "online": "Online hourly rate (HKD)",
+      "in_person": "In-person hourly rate (HKD)",
+      "invalid": "Enter a whole number between 50 and 3000",
+      "travel_note": "Travel note",
+      "travel_note_hint": "Shown beside your in-person rate, e.g. \"Kowloon and Hong Kong Island only\".",
+      "rate_note": "Anything that changes this rate?",
+      "rate_note_hint": "Optional — one line, e.g. \"+HK$100 for lessons over 30 minutes away\".",
+      "rows_label": "Extra rate rows",
+      "rows_hint": "Optional — up to {{max}}, e.g. small-group or holiday intensive rates. A row saves only when both fields are filled.",
+      "row_label": "Label",
+      "row_rate": "Rate (HKD)",
+      "add_row": "Add rate row"
+    }
   },
   "materials": {
     "section_title": "📚 Study Materials",
@@ -765,7 +805,10 @@
     "reviews_disclaimer": "Reviews are collected from verified parents and students after their trial lessons, and published by MatchMax after review.",
     "grid_slot_am": "AM",
     "grid_slot_pm": "PM",
-    "grid_cell_partial": "Partially available"
+    "grid_cell_partial": "Partially available",
+    "section_rates": "Rates",
+    "rates_online": "Online",
+    "rates_inperson": "In person"
   },
   "tutor_card": {
     "verified_fallback": "Academic profile verified",

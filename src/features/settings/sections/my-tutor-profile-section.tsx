@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { ExternalLink, Loader2 } from "lucide-react";
+import { ExternalLink, Loader2, Plus } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,17 @@ import { contactFilterError } from "@/lib/contact-filter";
 import { notifyTutorPriceChange } from "@/lib/tutor-pricing.functions";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
+import { getSystem } from "@/features/tutors/examSystems";
+import {
+  MAX_RATE_ROWS,
+  RATE_MAX,
+  RATE_MIN,
+  RATE_NOTE_MAX,
+  RATE_ROW_LABEL_MAX,
+  TRAVEL_NOTE_MAX,
+  normalizeTutorRateRows,
+} from "@/features/tutors/rates";
+import { suggestTutorRates } from "@/features/tutors/rates.functions";
 import {
   TARGET_STUDENT_OPTIONS,
   formDataToPayload,
@@ -51,7 +62,7 @@ import {
 /** Columns the tutor-facing editor reads/writes. Mirrors SELECT_COLS minus
  * admin-managed identity (tutor_code, created_at, referral). */
 const MY_TUTOR_COLUMNS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, deletion_requested_at";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, deletion_requested_at";
 
 type MyTutorRow = Tutor & {
   user_id?: string | null;
@@ -65,12 +76,85 @@ function sortTiersForCompare(tiers: { curriculum: string; rate: number }[]) {
     .sort((a, b) => a.curriculum.localeCompare(b.curriculum) || a.rate - b.rate);
 }
 
+/** Draft shape for the rate editor (issue #319) — strings so an empty input
+ * stays distinguishable from a typed 0 while the tutor is mid-edit. */
+type RateRowDraft = { label: string; rate: string };
+
+type RatesDraft = {
+  onlineRate: string;
+  inPersonRate: string;
+  rows: RateRowDraft[];
+  travelNote: string;
+  rateNote: string;
+};
+
+/** Validated rate columns written to the tutors row on save. */
+type SavedRateColumns = {
+  online_rate: number | null;
+  inperson_rate: number | null;
+  rate_rows: { label: string; rate: number }[];
+  travel_note: string | null;
+  rate_note: string | null;
+};
+
+function ratesFromRow(row: MyTutorRow): RatesDraft {
+  const savedRows = Array.isArray(row.rate_rows) ? row.rate_rows : [];
+  return {
+    onlineRate: typeof row.online_rate === "number" ? String(row.online_rate) : "",
+    inPersonRate: typeof row.inperson_rate === "number" ? String(row.inperson_rate) : "",
+    rows: savedRows
+      .slice(0, MAX_RATE_ROWS)
+      .map((rateRow) => ({ label: rateRow.label ?? "", rate: String(rateRow.rate ?? "") })),
+    travelNote: row.travel_note ?? "",
+    rateNote: row.rate_note ?? "",
+  };
+}
+
+/** "" → null (cleared); whole dollars inside the 50-3000 band → number;
+ * anything else → "invalid" (decimals, out of range). */
+function parseRateInput(raw: string): number | null | "invalid" {
+  const text = raw.trim();
+  if (!text) return null;
+  if (!/^\d+$/u.test(text)) return "invalid";
+  const value = Number(text);
+  return value >= RATE_MIN && value <= RATE_MAX ? value : "invalid";
+}
+
+/**
+ * Issue #319 — curricula the suggest-a-rate query anchors to. Exam systems
+ * use their display label ("IB Diploma"); pricing-tier curricula are the
+ * tutor's own teachable curriculum names.
+ */
+function suggestCurriculaFor(form: TutorFormData): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  const push = (curriculum: string) => {
+    const name = curriculum.trim();
+    const key = name.toLowerCase();
+    if (!name || seen.has(key)) return;
+    seen.add(key);
+    out.push(name);
+  };
+  for (const result of form.exam_results) {
+    push(getSystem(result.system)?.label ?? result.system);
+  }
+  for (const tier of form.pricing_tiers) push(tier.curriculum);
+  return out;
+}
+
 export function MyTutorProfileSection() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [form, setForm] = React.useState<TutorFormData | null>(null);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [rates, setRates] = React.useState<RatesDraft | null>(null);
+  // Issue #319 review: a mid-edit refetch (window focus, invalidation) must
+  // not clobber unsaved rate edits — same race class as the #323 headline
+  // fix. Once dirty, the draft only resets after a successful save.
+  const ratesDirtyRef = React.useRef(false);
+  const [suggestPending, setSuggestPending] = React.useState(false);
+  const [suggestHint, setSuggestHint] = React.useState<string | null>(null);
 
   const tutorQuery = useQuery({
     queryKey: ["settings", "my-tutor-profile", user?.id],
@@ -87,7 +171,10 @@ export function MyTutorProfileSection() {
   });
 
   React.useEffect(() => {
-    if (tutorQuery.data) setForm(tutorToFormData(tutorQuery.data));
+    if (!tutorQuery.data) return;
+    const nextForm = tutorToFormData(tutorQuery.data);
+    setForm(nextForm);
+    if (!ratesDirtyRef.current) setRates(ratesFromRow(tutorQuery.data));
   }, [tutorQuery.data]);
 
   // Institution spellings already in use on tutor profiles, so tutors pick an
@@ -113,7 +200,13 @@ export function MyTutorProfileSection() {
   const notifyPriceChange = useServerFn(notifyTutorPriceChange);
 
   const save = useMutation({
-    mutationFn: async (data: TutorFormData) => {
+    mutationFn: async ({
+      data,
+      rates: savedRates,
+    }: {
+      data: TutorFormData;
+      rates: SavedRateColumns;
+    }) => {
       // Reuse the admin editor's normalization, minus fields the tutor must
       // never change: tutor_code (their public slug) and field state. Capacity
       // and the availability grid are omitted too — they have their own
@@ -129,28 +222,53 @@ export function MyTutorProfileSection() {
         ...rest
       } = formDataToPayload(data);
       const previous = tutorQuery.data;
+
+      // Issue #319: the new base-rate columns always follow this form. With at
+      // least one base rate set, hourly_rate is kept consistent for legacy
+      // surfaces (min of the two, matching the DB trigger's card floor).
+      // With neither set, the columns are nulled and the legacy pricing
+      // fields are left exactly as the row already has them.
+      const hasBaseRate = savedRates.online_rate !== null || savedRates.inperson_rate !== null;
+      const payload: Record<string, unknown> = { ...rest, ...savedRates };
+      if (hasBaseRate) {
+        payload.hourly_rate = Math.min(
+          savedRates.online_rate ?? Number.POSITIVE_INFINITY,
+          savedRates.inperson_rate ?? Number.POSITIVE_INFINITY,
+        );
+      } else {
+        delete payload.hourly_rate;
+        delete payload.pricing_tiers;
+      }
+
       const { error } = await supabase
         .from("tutors")
-        .update(rest as never)
+        .update(payload as never)
         .eq("user_id", user!.id);
       if (error) throw error;
 
       // Issue #110: after a successful save, ping the admin safety-guardrail
       // when pricing actually changed. Best-effort — a notification failure
       // must never block the tutor's save (the server fn also swallows).
+      const nextTiers = Array.isArray(payload.pricing_tiers)
+        ? (payload.pricing_tiers as { curriculum: string; rate: number }[])
+        : undefined;
       const pricingChanged =
         previous &&
-        (previous.hourly_rate !== rest.hourly_rate ||
-          JSON.stringify(sortTiersForCompare(previous.pricing_tiers ?? [])) !==
-            JSON.stringify(sortTiersForCompare(rest.pricing_tiers ?? [])));
+        (("hourly_rate" in payload && previous.hourly_rate !== payload.hourly_rate) ||
+          (nextTiers !== undefined &&
+            JSON.stringify(sortTiersForCompare(previous.pricing_tiers ?? [])) !==
+              JSON.stringify(sortTiersForCompare(nextTiers))));
       if (pricingChanged && current?.tutor_code) {
         try {
           await notifyPriceChange({
             data: {
               tutorCode: current.tutor_code,
               displayName: current.display_name ?? "",
-              hourlyRate: rest.hourly_rate,
-              pricingTiers: rest.pricing_tiers,
+              hourlyRate:
+                typeof payload.hourly_rate === "number"
+                  ? payload.hourly_rate
+                  : (previous.hourly_rate ?? 0),
+              pricingTiers: nextTiers ?? previous.pricing_tiers ?? [],
               previousHourlyRate: previous.hourly_rate ?? 0,
               previousPricingTiers: previous.pricing_tiers ?? [],
             },
@@ -161,6 +279,7 @@ export function MyTutorProfileSection() {
       }
     },
     onSuccess: async () => {
+      ratesDirtyRef.current = false;
       await queryClient.invalidateQueries({
         queryKey: ["settings", "my-tutor-profile", user?.id],
       });
@@ -171,15 +290,66 @@ export function MyTutorProfileSection() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const current = tutorQuery.data;
+  const loading = tutorQuery.isLoading;
+
+  // Issue #319: suggest-a-rate anchors to the subjects picked in THIS form
+  // plus the curricula already on the card (exam systems + pricing tiers).
+  const suggestCurricula = React.useMemo(() => (form ? suggestCurriculaFor(form) : []), [form]);
+
+  const handleSuggestRate = async () => {
+    if (!current?.tutor_code || !form) return;
+    setSuggestHint(null);
+    setSuggestPending(true);
+    try {
+      const result = await suggestTutorRates({
+        data: {
+          tutorCode: current.tutor_code,
+          subjects: form.subjects,
+          curricula: suggestCurricula,
+        },
+      });
+      if (result.status === "not_enough_data") {
+        setSuggestHint(t("settings.my_tutor.suggest_not_enough_data"));
+        return;
+      }
+      // Fill only the empty base fields — a typed number is never overwritten.
+      setRates((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          onlineRate:
+            prev.onlineRate === "" && result.online !== null
+              ? String(result.online)
+              : prev.onlineRate,
+          inPersonRate:
+            prev.inPersonRate === "" && result.inPerson !== null
+              ? String(result.inPerson)
+              : prev.inPersonRate,
+        };
+      });
+    } catch (suggestError) {
+      // Auth/ownership failures are swallowed — suggesting is best-effort.
+      console.error("[my-tutor] suggest-a-rate failed:", suggestError);
+    } finally {
+      setSuggestPending(false);
+    }
+  };
+
+  const handleRateField = (patch: Partial<RatesDraft>) => {
+    ratesDirtyRef.current = true;
+    setRates((prev) => (prev ? { ...prev, ...patch } : prev));
+  };
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!form) return;
+    if (!form || !rates) return;
     // Issue #215: block the save when the public introduction carries a
     // phone number, email, link, or chat-app handle. Client-side twin of
     // the same rule the concierge flow enforces at intake.
     const introContactError = contactFilterError(form.self_introduction ?? "");
     if (introContactError) {
-      setErrors((current) => ({ ...current, self_introduction: introContactError }));
+      setErrors((currentErrors) => ({ ...currentErrors, self_introduction: introContactError }));
       toast.error(introContactError);
       return;
     }
@@ -196,20 +366,95 @@ export function MyTutorProfileSection() {
         return;
       }
     }
+
+    const nextErrors: Record<string, string> = {};
+
+    // Issue #319: base rates must be whole dollars inside 50-3000, and the
+    // failing field is named.
+    const onlineParsed = parseRateInput(rates.onlineRate);
+    const inPersonParsed = parseRateInput(rates.inPersonRate);
+    if (onlineParsed === "invalid") {
+      nextErrors.online_rate = t("settings.my_tutor.rate_invalid_online");
+    }
+    if (inPersonParsed === "invalid") {
+      nextErrors.inperson_rate = t("settings.my_tutor.rate_invalid_in_person");
+    }
+
+    // Issue #319 review: a rate for a mode the tutor does not offer is
+    // dropped on save (same rule as /join) — the card floor then recomputes
+    // from the remaining base rates only.
+    const onlineDropped = form.lesson_mode === "in_person";
+    const inPersonDropped = form.lesson_mode === "online";
+    const onlineValue = onlineDropped ? null : onlineParsed;
+    const inPersonValue = inPersonDropped ? null : inPersonParsed;
+
+    // Issue #319 AC: the last base rate cannot be deleted. Once the saved row
+    // carries a base rate, an edit that clears both is rejected instead of
+    // silently falling back to the legacy pricing fields.
+    const hadBaseRate =
+      (current?.online_rate ?? null) !== null || (current?.inperson_rate ?? null) !== null;
+    if (
+      hadBaseRate &&
+      onlineValue !== "invalid" &&
+      inPersonValue !== "invalid" &&
+      onlineValue === null &&
+      inPersonValue === null
+    ) {
+      nextErrors.online_rate = t("settings.my_tutor.rate_last_required");
+    }
+
+    // Extra rows: normalizeTutorRateRows rejects half-filled rows, out-of-band
+    // rates and contact details in labels; empty rows are dropped silently.
+    const rowsResult = normalizeTutorRateRows(rates.rows);
+    if (!rowsResult.ok) {
+      nextErrors.rate_rows = rowsResult.errors.join(" ");
+    }
+
+    // Travel note exists only for in-person lessons.
+    const travelNote = rates.travelNote.trim();
+    if (travelNote.length > TRAVEL_NOTE_MAX) {
+      nextErrors.travel_note = t("settings.my_tutor.travel_note_max");
+    } else {
+      const travelContactError = contactFilterError(travelNote);
+      if (travelContactError) {
+        nextErrors.travel_note = travelContactError;
+      } else if (travelNote && !inPersonDropped && inPersonParsed === null) {
+        nextErrors.travel_note = t("settings.my_tutor.travel_note_needs_in_person");
+      }
+    }
+
+    const rateNote = rates.rateNote.trim();
+    if (rateNote.length > RATE_NOTE_MAX) {
+      nextErrors.rate_note = t("settings.my_tutor.rate_note_max");
+    } else {
+      const rateNoteContactError = contactFilterError(rateNote);
+      if (rateNoteContactError) nextErrors.rate_note = rateNoteContactError;
+    }
+
     const parsed = tutorFormSchema.safeParse(form);
     if (!parsed.success) {
-      const errs: Record<string, string> = {};
-      for (const issue of parsed.error.issues) errs[issue.path.join(".")] = issue.message;
-      setErrors(errs);
+      for (const issue of parsed.error.issues) {
+        const key = issue.path.join(".");
+        if (!nextErrors[key]) nextErrors[key] = issue.message;
+      }
+    }
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
       toast.error(t("settings.my_tutor.form_errors"));
       return;
     }
     setErrors({});
-    save.mutate(parsed.data as TutorFormData);
+    save.mutate({
+      data: parsed.data as TutorFormData,
+      rates: {
+        online_rate: onlineValue === "invalid" ? null : onlineValue,
+        inperson_rate: inPersonValue === "invalid" ? null : inPersonValue,
+        rate_rows: rowsResult.rows,
+        travel_note: inPersonDropped ? null : travelNote || null,
+        rate_note: rateNote || null,
+      },
+    });
   };
-
-  const current = tutorQuery.data;
-  const loading = tutorQuery.isLoading;
 
   // Issue #101: instant hide (reuses is_published) + admin-reviewed deletion.
   const [hidePending, setHidePending] = React.useState(false);
@@ -268,7 +513,7 @@ export function MyTutorProfileSection() {
         </div>
       ) : tutorQuery.isError ? (
         <p className="text-sm font-medium text-destructive">{t("settings.load_error")}</p>
-      ) : !current || !form ? (
+      ) : !current || !form || !rates ? (
         <p className="text-sm leading-6 text-[color:var(--ink)]/70">
           {t("settings.my_tutor.not_linked")}
         </p>
@@ -445,36 +690,205 @@ export function MyTutorProfileSection() {
             suggestions={tagSuggestionsQuery.data}
           />
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="myt-rate" className="text-[color:var(--ink)]">
-                {t("settings.my_tutor.hourly_rate")}
-              </Label>
-              <Input
-                id="myt-rate"
-                type="number"
-                min={0}
-                value={form.hourly_rate}
-                onChange={(e) => setForm({ ...form, hourly_rate: Number(e.target.value) || 0 })}
-                className="bg-[color:var(--surface)]"
-              />
-            </div>
-            <div className="space-y-2">
+          {/* Issue #319: base rates + extra rows + travel/rate notes. At least
+              one base rate keeps hourly_rate in sync; with neither set the
+              legacy pricing fields are left untouched. */}
+          <div className="space-y-4 rounded-xl border border-[color:var(--ink)]/10 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <Label className="text-[color:var(--ink)]">
-                {t("settings.my_tutor.lesson_mode")}
+                {t("settings.my_tutor.rates_heading")}
               </Label>
-              <SearchableSelect
-                value={form.lesson_mode}
-                onChange={(v) =>
-                  setForm({ ...form, lesson_mode: v as TutorFormData["lesson_mode"] })
-                }
-                options={[
-                  { value: "either", label: t("settings.my_tutor.mode_either") },
-                  { value: "online", label: t("settings.my_tutor.mode_online") },
-                  { value: "in_person", label: t("settings.my_tutor.mode_in_person") },
-                ]}
-              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={form.subjects.length === 0 || suggestPending}
+                onClick={handleSuggestRate}
+              >
+                {suggestPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                    {t("settings.my_tutor.suggest_a_rate")}
+                  </>
+                ) : (
+                  t("settings.my_tutor.suggest_a_rate")
+                )}
+              </Button>
             </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="myt-rate-online" className="text-[color:var(--ink)]">
+                  {t("settings.my_tutor.rates_online")}
+                </Label>
+                <Input
+                  id="myt-rate-online"
+                  type="number"
+                  inputMode="numeric"
+                  step={1}
+                  min={RATE_MIN}
+                  max={RATE_MAX}
+                  value={rates.onlineRate}
+                  onChange={(e) =>
+                    handleRateField({
+                      onlineRate: e.target.value.replace(/[^\d]/gu, "").slice(0, 4),
+                    })
+                  }
+                  aria-invalid={errors.online_rate ? true : undefined}
+                  className="bg-[color:var(--surface)]"
+                />
+                {errors.online_rate ? (
+                  <p className="text-xs font-medium text-destructive">{errors.online_rate}</p>
+                ) : null}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="myt-rate-inperson" className="text-[color:var(--ink)]">
+                  {t("settings.my_tutor.rates_in_person")}
+                </Label>
+                <Input
+                  id="myt-rate-inperson"
+                  type="number"
+                  inputMode="numeric"
+                  step={1}
+                  min={RATE_MIN}
+                  max={RATE_MAX}
+                  value={rates.inPersonRate}
+                  onChange={(e) =>
+                    handleRateField({
+                      inPersonRate: e.target.value.replace(/[^\d]/gu, "").slice(0, 4),
+                    })
+                  }
+                  aria-invalid={errors.inperson_rate ? true : undefined}
+                  className="bg-[color:var(--surface)]"
+                />
+                {errors.inperson_rate ? (
+                  <p className="text-xs font-medium text-destructive">{errors.inperson_rate}</p>
+                ) : null}
+              </div>
+            </div>
+            {suggestHint ? (
+              <p className="text-xs text-[color:var(--ink)]/60">{suggestHint}</p>
+            ) : null}
+
+            {rates.rows.length > 0 || errors.rate_rows ? (
+              <div className="space-y-2">
+                <Label className="text-[color:var(--ink)]">
+                  {t("settings.my_tutor.rate_rows_label")}
+                </Label>
+                {rates.rows.map((row, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={row.label}
+                      maxLength={RATE_ROW_LABEL_MAX}
+                      placeholder={t("settings.my_tutor.rate_row_label")}
+                      aria-label={t("settings.my_tutor.rate_row_label")}
+                      onChange={(e) => {
+                        const nextRows = [...rates.rows];
+                        nextRows[index] = { ...row, label: e.target.value };
+                        handleRateField({ rows: nextRows });
+                      }}
+                      className="flex-1 bg-[color:var(--surface)]"
+                    />
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      step={1}
+                      min={RATE_MIN}
+                      max={RATE_MAX}
+                      value={row.rate}
+                      placeholder={t("settings.my_tutor.rate_row_rate")}
+                      aria-label={t("settings.my_tutor.rate_row_rate")}
+                      onChange={(e) => {
+                        const nextRows = [...rates.rows];
+                        nextRows[index] = {
+                          ...row,
+                          rate: e.target.value.replace(/[^\d]/gu, "").slice(0, 4),
+                        };
+                        handleRateField({ rows: nextRows });
+                      }}
+                      className="w-28 bg-[color:var(--surface)]"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      aria-label={t("settings.my_tutor.remove_rate_row")}
+                      onClick={() =>
+                        handleRateField({ rows: rates.rows.filter((_, i) => i !== index) })
+                      }
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+                {errors.rate_rows ? (
+                  <p className="text-xs font-medium text-destructive">{errors.rate_rows}</p>
+                ) : null}
+              </div>
+            ) : null}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={rates.rows.length >= MAX_RATE_ROWS}
+              onClick={() => handleRateField({ rows: [...rates.rows, { label: "", rate: "" }] })}
+            >
+              <Plus className="mr-1.5 h-4 w-4" aria-hidden="true" />
+              {t("settings.my_tutor.add_rate_row")}
+            </Button>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="myt-travel-note" className="text-[color:var(--ink)]">
+                  {t("settings.my_tutor.travel_note")}
+                </Label>
+                <Input
+                  id="myt-travel-note"
+                  value={rates.travelNote}
+                  maxLength={TRAVEL_NOTE_MAX}
+                  disabled={rates.inPersonRate.trim() === ""}
+                  placeholder={t("settings.my_tutor.travel_note_placeholder")}
+                  aria-invalid={errors.travel_note ? true : undefined}
+                  onChange={(e) => handleRateField({ travelNote: e.target.value })}
+                  className="bg-[color:var(--surface)]"
+                />
+                {errors.travel_note ? (
+                  <p className="text-xs font-medium text-destructive">{errors.travel_note}</p>
+                ) : null}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="myt-rate-note" className="text-[color:var(--ink)]">
+                  {t("settings.my_tutor.rate_note_label")}
+                </Label>
+                <Input
+                  id="myt-rate-note"
+                  value={rates.rateNote}
+                  maxLength={RATE_NOTE_MAX}
+                  placeholder={t("settings.my_tutor.rate_note_placeholder")}
+                  aria-invalid={errors.rate_note ? true : undefined}
+                  onChange={(e) => handleRateField({ rateNote: e.target.value })}
+                  className="bg-[color:var(--surface)]"
+                />
+                {errors.rate_note ? (
+                  <p className="text-xs font-medium text-destructive">{errors.rate_note}</p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="myt-mode" className="text-[color:var(--ink)]">
+              {t("settings.my_tutor.lesson_mode")}
+            </Label>
+            <SearchableSelect
+              value={form.lesson_mode}
+              onChange={(v) => setForm({ ...form, lesson_mode: v as TutorFormData["lesson_mode"] })}
+              options={[
+                { value: "either", label: t("settings.my_tutor.mode_either") },
+                { value: "online", label: t("settings.my_tutor.mode_online") },
+                { value: "in_person", label: t("settings.my_tutor.mode_in_person") },
+              ]}
+            />
           </div>
 
           {form.lesson_mode !== "online" ? (

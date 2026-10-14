@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { IB_BLOCKS } from "@/features/tutors/examSystems";
+import { normalizeTutorRateRows } from "@/features/tutors/rates";
 import { CURRICULUM_OPTIONS, tutorApplicationSchema } from "./tutor-application.schema";
 import { getRuntimeEnv } from "./runtime-env";
 
@@ -153,8 +154,30 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
       throw new Error("Application verification failed.");
     }
 
+    // Issue #319: build the stored payload. The application row keeps the
+    // whole application as jsonb (`data`), so this mapping is what downstream
+    // readers (admin join-requests, autofill) see:
+    // - hourlyRate (legacy, NOT NULL, still read by legacy surfaces) becomes
+    //   the card floor: Math.min of the two base rates (schema guarantees at
+    //   least one is set per the format rules).
+    // - onlineRate/inpersonRate are blanked when the format excludes them.
+    // - rateRows are stored as the normalized output (empty rows dropped,
+    //   half-filled rows already rejected by the schema).
+    // - travelNote is blanked unless the in-person rate is set.
+    const baseRates = [application.onlineRate, application.inpersonRate].filter(
+      (rate): rate is number => typeof rate === "number",
+    );
+    const normalizedRateRows = normalizeTutorRateRows(application.rateRows);
+    const storedApplication = {
+      ...application,
+      hourlyRate: String(Math.min(...baseRates)),
+      onlineRate: application.format === "Face to face" ? null : application.onlineRate,
+      inpersonRate: application.format === "Online" ? null : application.inpersonRate,
+      rateRows: normalizedRateRows.ok ? normalizedRateRows.rows : [],
+      travelNote: application.format === "Online" ? "" : application.travelNote,
+    };
     const { storeTutorApplication } = await import("./tutor-application.server");
-    const { id } = await storeTutorApplication(application);
+    const { id } = await storeTutorApplication(storedApplication);
     // Issue #189: the WhatsApp activation message names this reference so the
     // team can match the chat thread to the stored application row.
     return { ok: true as const, applicationId: id };
