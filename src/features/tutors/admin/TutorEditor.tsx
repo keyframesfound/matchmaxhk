@@ -114,6 +114,16 @@ import {
 import { AutofillDialog } from "./AutofillDialog";
 import { TutorReviewsAdmin } from "./tutor-reviews-admin";
 import { TutorContactDetails } from "./tutor-contact-details";
+import {
+  ACADEMIC_HEADLINE_MAX,
+  MAX_RATE_ROWS,
+  RATE_MAX,
+  RATE_MIN,
+  RATE_NOTE_MAX,
+  RATE_ROW_LABEL_MAX,
+  TRAVEL_NOTE_MAX,
+  normalizeTutorRateRows,
+} from "@/features/tutors/rates";
 import type { TutorAutofillResult } from "./autofill.functions";
 
 export const TARGET_STUDENT_OPTIONS = [
@@ -193,7 +203,13 @@ export const tutorFormSchema = z.object({
     .refine((values) => values.some((value) => value.trim()), "Add at least one card highlight"),
   subjects: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one subject"),
   target_students: z.array(z.string().trim().min(1).max(80)),
-  academic_headline: z.string().trim().max(120).optional().or(z.literal("")),
+  // Issue #323: hard 40-char cap shared with the join form and profile editor.
+  academic_headline: z
+    .string()
+    .trim()
+    .max(ACADEMIC_HEADLINE_MAX, `Keep the headline to ${ACADEMIC_HEADLINE_MAX} characters or fewer`)
+    .optional()
+    .or(z.literal("")),
   // Issue #107: undergraduate + optional postgraduate degree history.
   undergrad_university: z.string().trim().max(120).optional().or(z.literal("")),
   undergrad_degree: z.string().trim().max(120).optional().or(z.literal("")),
@@ -209,6 +225,33 @@ export const tutorFormSchema = z.object({
   stations: z.array(z.string().trim().min(1).max(80)).max(200),
   lesson_mode: z.enum(["online", "in_person", "either"]),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
+  // Issue #319: base rates (whole HKD, 50-3000). Blank = null; admins may
+  // save legacy cards with neither base rate set, so neither is required.
+  online_rate: z.coerce
+    .number()
+    .int(`Whole dollars only`)
+    .min(RATE_MIN, `Rate must be at least HK$${RATE_MIN}`)
+    .max(RATE_MAX, `Rate must be at most HK$${RATE_MAX}`)
+    .optional()
+    .or(z.literal("")),
+  inperson_rate: z.coerce
+    .number()
+    .int(`Whole dollars only`)
+    .min(RATE_MIN, `Rate must be at least HK$${RATE_MIN}`)
+    .max(RATE_MAX, `Rate must be at most HK$${RATE_MAX}`)
+    .optional()
+    .or(z.literal("")),
+  // Issue #319: extra profile-only rate rows. Shape only here — the pairing,
+  // contact-filter and cap rules live in normalizeTutorRateRows, checked at
+  // submit so half-filled rows are rejected, not silently trimmed.
+  rate_rows: z.array(
+    z.object({
+      label: z.string().trim().max(RATE_ROW_LABEL_MAX),
+      rate: z.union([z.string(), z.coerce.number()]),
+    }),
+  ),
+  travel_note: z.string().trim().max(TRAVEL_NOTE_MAX).optional().or(z.literal("")),
+  rate_note: z.string().trim().max(RATE_NOTE_MAX).optional().or(z.literal("")),
   pricing_tiers: z
     .array(
       z.object({
@@ -304,6 +347,11 @@ export const emptyTutorForm: TutorFormData = {
   stations: [],
   lesson_mode: "either",
   hourly_rate: 0,
+  online_rate: "",
+  inperson_rate: "",
+  rate_rows: [],
+  travel_note: "",
+  rate_note: "",
   pricing_tiers: [],
   photo_url: "",
   portfolio_images: [],
@@ -348,6 +396,14 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     stations: t.stations ?? [],
     lesson_mode: t.lesson_mode ?? "either",
     hourly_rate: t.hourly_rate ?? 0,
+    online_rate: typeof t.online_rate === "number" ? t.online_rate : "",
+    inperson_rate: typeof t.inperson_rate === "number" ? t.inperson_rate : "",
+    rate_rows: (t.rate_rows ?? []).slice(0, MAX_RATE_ROWS).map((row) => ({
+      label: row.label ?? "",
+      rate: String(row.rate ?? ""),
+    })),
+    travel_note: t.travel_note ?? "",
+    rate_note: t.rate_note ?? "",
     pricing_tiers: (t.pricing_tiers ?? []).slice(0, MAX_PRICING_TIERS),
     photo_url: t.photo_url ?? "",
     portfolio_images: t.portfolio_images ?? [],
@@ -453,6 +509,16 @@ export function formDataToPayload(v: TutorFormData) {
         : [...new Set(v.stations.map((station) => station.trim()).filter(Boolean))],
     lesson_mode: v.lesson_mode,
     hourly_rate: v.hourly_rate,
+    // Issue #319: blank base rates save as null (legacy cards may have
+    // neither); the DB trigger recomputes the HKD card-floor snapshots.
+    online_rate: v.online_rate === "" ? null : v.online_rate,
+    inperson_rate: v.inperson_rate === "" ? null : v.inperson_rate,
+    rate_rows: (() => {
+      const normalized = normalizeTutorRateRows(v.rate_rows);
+      return normalized.ok ? normalized.rows : [];
+    })(),
+    travel_note: v.travel_note?.trim() || null,
+    rate_note: v.rate_note?.trim() || null,
     pricing_tiers: cleanPricingTiersResult,
     photo_url: v.photo_url?.trim() || null,
     portfolio_images: v.portfolio_images.map((url) => url.trim()).filter(Boolean),
@@ -1312,6 +1378,17 @@ export function TutorEditor({
       verification_tier: form.verification_tier || null,
       lesson_mode: form.lesson_mode,
       hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
+      online_rate:
+        typeof form.online_rate === "number" && Number.isFinite(form.online_rate)
+          ? form.online_rate
+          : null,
+      inperson_rate:
+        typeof form.inperson_rate === "number" && Number.isFinite(form.inperson_rate)
+          ? form.inperson_rate
+          : null,
+      rate_rows: normalizeTutorRateRows(form.rate_rows).rows,
+      travel_note: form.travel_note?.trim() || null,
+      rate_note: form.rate_note?.trim() || null,
       pricing_tiers: cleanFormPricingTiers(form.pricing_tiers),
       // Issue #112: the preview derives from native HKD inputs; normalized
       // snapshots only exist on saved rows.
@@ -1365,6 +1442,12 @@ export function TutorEditor({
     }
 
     const publishErrors: Record<string, string> = {};
+    // Issue #319: extra rate rows reject half-filled rows, bad rates and
+    // contact-looking labels instead of silently trimming them.
+    const rateRowsResult = normalizeTutorRateRows(parsed.data.rate_rows);
+    if (!rateRowsResult.ok) {
+      publishErrors.rate_rows = rateRowsResult.errors[0] ?? "Fix the extra rate rows.";
+    }
     if (parsed.data.is_published) {
       if (
         !(parsed.data.academic_headline ?? "").trim() &&
@@ -1460,6 +1543,29 @@ export function TutorEditor({
     setForm((prev) => ({
       ...prev,
       pricing_tiers: prev.pricing_tiers.filter((_, idx) => idx !== index),
+    }));
+  };
+
+  // Extra rate rows (issue #319): profile-only label + rate pairs.
+  const addRateRow = () => {
+    setForm((prev) => {
+      if (prev.rate_rows.length >= MAX_RATE_ROWS) return prev;
+      return { ...prev, rate_rows: [...prev.rate_rows, { label: "", rate: "" }] };
+    });
+  };
+
+  const updateRateRow = (index: number, patch: Partial<{ label: string; rate: string }>) => {
+    setForm((prev) => {
+      const rows = [...prev.rate_rows];
+      rows[index] = { ...rows[index], ...patch };
+      return { ...prev, rate_rows: rows };
+    });
+  };
+
+  const removeRateRow = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      rate_rows: prev.rate_rows.filter((_, idx) => idx !== index),
     }));
   };
 
@@ -1679,10 +1785,11 @@ export function TutorEditor({
                 <FormField
                   label="Academic Headline"
                   error={errors.academic_headline}
-                  hint="IBDP 45 / 45 | AP"
+                  hint={`Max ${ACADEMIC_HEADLINE_MAX} chars — e.g. IBDP 44/45`}
                 >
                   <Input
                     value={form.academic_headline}
+                    maxLength={ACADEMIC_HEADLINE_MAX}
                     onChange={(e) => setForm({ ...form, academic_headline: e.target.value })}
                     placeholder="e.g. IBDP 44/45 or HKDSE Best 5: 32"
                   />
@@ -2465,6 +2572,171 @@ export function TutorEditor({
                     />
                   </div>
                 </FormField>
+              </div>
+
+              {/* Issue #319: base rates + profile-only extras. The DB trigger
+                  recomputes the HKD card-floor snapshots on save. */}
+              <div className="space-y-4 border-t border-[color:var(--ink)]/10 pt-6">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    label="Online rate (HKD)"
+                    error={errors.online_rate}
+                    hint="Blank = not offered online"
+                  >
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                        HK$
+                      </span>
+                      <Input
+                        type="number"
+                        min={RATE_MIN}
+                        max={RATE_MAX}
+                        value={form.online_rate}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            online_rate: e.target.value === "" ? "" : Number(e.target.value),
+                          })
+                        }
+                        placeholder="e.g. 400"
+                        className="pl-10 font-semibold"
+                      />
+                    </div>
+                  </FormField>
+
+                  <FormField
+                    label="In-person rate (HKD)"
+                    error={errors.inperson_rate}
+                    hint="Blank = not offered in person"
+                  >
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                        HK$
+                      </span>
+                      <Input
+                        type="number"
+                        min={RATE_MIN}
+                        max={RATE_MAX}
+                        value={form.inperson_rate}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            inperson_rate: e.target.value === "" ? "" : Number(e.target.value),
+                          })
+                        }
+                        placeholder="e.g. 500"
+                        className="pl-10 font-semibold"
+                      />
+                    </div>
+                  </FormField>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Whole dollars, HK${RATE_MIN}–{RATE_MAX}. Legacy cards may have neither rate set —
+                  only fill what applies. The lowest entered rate becomes the card's “HK$X up”
+                  floor.
+                </p>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    label="Travel note"
+                    error={errors.travel_note}
+                    hint={`${(form.travel_note ?? "").length}/${TRAVEL_NOTE_MAX} — e.g. “No travel to Lantau”`}
+                  >
+                    <Input
+                      value={form.travel_note ?? ""}
+                      maxLength={TRAVEL_NOTE_MAX}
+                      onChange={(e) => setForm({ ...form, travel_note: e.target.value })}
+                      placeholder="e.g. Happy to travel within NT East"
+                    />
+                  </FormField>
+
+                  <FormField
+                    label="Rate note"
+                    error={errors.rate_note}
+                    hint={`${(form.rate_note ?? "").length}/${RATE_NOTE_MAX} — e.g. “+HK$100 for a second student”`}
+                  >
+                    <Input
+                      value={form.rate_note ?? ""}
+                      maxLength={RATE_NOTE_MAX}
+                      onChange={(e) => setForm({ ...form, rate_note: e.target.value })}
+                      placeholder="e.g. Small-group rate available"
+                    />
+                  </FormField>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-end justify-between gap-2">
+                    <div>
+                      <Label className="text-xs font-semibold">
+                        Extra rate rows (profile only)
+                      </Label>
+                      <p className="mt-1 max-w-md text-xs text-muted-foreground">
+                        Optional label + rate pairs shown on the profile (max {MAX_RATE_ROWS}).
+                        Half-filled rows are rejected on save.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addRateRow}
+                      disabled={form.rate_rows.length >= MAX_RATE_ROWS}
+                    >
+                      <Plus className="mr-1.5 h-3.5 w-3.5" />
+                      Add rate row ({form.rate_rows.length}/{MAX_RATE_ROWS})
+                    </Button>
+                  </div>
+                  {errors.rate_rows ? (
+                    <p className="flex items-center gap-1 text-xs font-medium text-destructive">
+                      <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                      {errors.rate_rows}
+                    </p>
+                  ) : null}
+                  {form.rate_rows.length > 0 ? (
+                    <div className="space-y-2">
+                      {form.rate_rows.map((row, index) => (
+                        <div
+                          key={index}
+                          className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_9rem_auto] sm:items-center"
+                        >
+                          <Input
+                            value={row.label}
+                            maxLength={RATE_ROW_LABEL_MAX}
+                            onChange={(e) => updateRateRow(index, { label: e.target.value })}
+                            placeholder={`Label (e.g. Small group of 3, max ${RATE_ROW_LABEL_MAX} chars)`}
+                            aria-label={`Extra rate row ${index + 1} label`}
+                            className="text-xs"
+                          />
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                              HK$
+                            </span>
+                            <Input
+                              type="number"
+                              min={RATE_MIN}
+                              max={RATE_MAX}
+                              value={row.rate}
+                              onChange={(e) => updateRateRow(index, { rate: e.target.value })}
+                              placeholder="450"
+                              aria-label={`Extra rate row ${index + 1} rate`}
+                              className="pl-10 text-xs font-semibold"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 shrink-0"
+                            aria-label={`Remove extra rate row ${index + 1}`}
+                            onClick={() => removeRateRow(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               </div>
 
               <div className="mt-6">
