@@ -192,9 +192,9 @@ export function boughtListAction(status: string): "download" | "refunded" | "pre
 }
 
 /**
- /** P12/P8: which listing events ring a bell in this PR. Only delivery does
-  * (buyer + tutor) — the #205 event bus owns everything else later.
-  */
+ * P12/P8: which listing events ring a bell in this PR. Only delivery does
+ * (buyer + tutor) — the #205 event bus owns everything else later.
+ */
 export const BELL_EVENTS_IN_PR = ["material_order.delivered"] as const;
 
 /**
@@ -217,6 +217,69 @@ export const GRADE_ACHIEVED_MAX_LEN = 20;
  * exemplar permission confirmation). */
 export function legacyDocumentTypeToMaterialType(documentType: string): MaterialType {
   return documentType === "mock_exam" ? "mock" : "notes";
+}
+
+/**
+ * #313 merge with explicit-clear semantics (review fix): `null` / empty
+ * clears a stored value, `undefined` keeps it. Whenever the effective type
+ * is not exemplar, grade_achieved is dropped and exemplar_permission is
+ * reset — a switched-away exemplar must never keep stale grade/permission
+ * data that later fails validation (or leaks to the public card).
+ */
+export function mergeNoteKinds(
+  input: {
+    curriculum?: string | null;
+    subject?: string | null;
+    materialType?: MaterialType | null;
+    topic?: string | null;
+    gradeAchieved?: string | null;
+    exemplarPermission?: boolean | null;
+  },
+  existing?: {
+    curriculumTag?: string | null;
+    subjectTag?: string | null;
+    materialType?: MaterialType | null;
+    topic?: string | null;
+    gradeAchieved?: string | null;
+    exemplarPermission?: boolean | null;
+  },
+): {
+  curriculum: string;
+  subject: string;
+  materialType: MaterialType;
+  topic: string;
+  gradeAchieved: string | null;
+  exemplarPermission: boolean;
+} {
+  const materialType =
+    input.materialType != null && (MATERIAL_TYPES as readonly string[]).includes(input.materialType)
+      ? input.materialType
+      : (existing?.materialType ?? "notes");
+  const curriculum =
+    input.curriculum !== undefined
+      ? (input.curriculum ?? "").trim()
+      : (existing?.curriculumTag ?? "");
+  const subject =
+    input.subject !== undefined ? (input.subject ?? "").trim() : (existing?.subjectTag ?? "");
+  const topic = input.topic !== undefined ? (input.topic ?? "").trim() : (existing?.topic ?? "");
+  let gradeAchieved: string | null;
+  if (input.gradeAchieved !== undefined) {
+    gradeAchieved = input.gradeAchieved?.trim() ? input.gradeAchieved.trim() : null;
+  } else {
+    gradeAchieved = existing?.gradeAchieved ?? null;
+  }
+  let exemplarPermission: boolean;
+  if (input.exemplarPermission !== undefined) {
+    exemplarPermission = input.exemplarPermission === true;
+  } else {
+    exemplarPermission = existing?.exemplarPermission === true;
+  }
+
+  if (materialType !== "exemplar") {
+    gradeAchieved = null;
+    exemplarPermission = false;
+  }
+  return { curriculum, subject, materialType, topic, gradeAchieved, exemplarPermission };
 }
 
 /**

@@ -38,6 +38,8 @@ import {
 } from "@/features/materials/orders.functions";
 
 import { MaterialsOrdersDesk } from "@/features/materials/materials-orders-desk";
+import { NOTE_CURRICULA } from "@/features/materials/lifecycle";
+import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -219,7 +221,7 @@ function AdminMaterials() {
           priceHkd: Number(form.price),
           schoolTag: form.schoolTag || undefined,
           curriculumTag: form.curriculumTag,
-          subjectTag: form.subjectTag || undefined,
+          subjectTag: form.subjectTag,
           materialType: form.materialType,
           topic: form.topic || undefined,
           gradeAchieved:
@@ -492,22 +494,43 @@ function AdminMaterials() {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="admin-material-curriculum">{t("materials.field_curriculum")}</Label>
-                <Input
+                <select
                   id="admin-material-curriculum"
                   value={form.curriculumTag}
-                  onChange={(event) => setField({ curriculumTag: event.target.value })}
+                  onChange={(event) =>
+                    setField({ curriculumTag: event.target.value, subjectTag: "" })
+                  }
                   required
-                  maxLength={160}
-                />
+                  className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                >
+                  <option value="" disabled>
+                    {t("notes.form.curriculum_placeholder")}
+                  </option>
+                  {NOTE_CURRICULA.map((entry) => (
+                    <option key={entry} value={entry}>
+                      {entry === "Other" ? t("notes.form.curriculum_other") : entry}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="admin-material-subject">{t("materials.field_subject")}</Label>
-                <Input
+                <select
                   id="admin-material-subject"
                   value={form.subjectTag}
                   onChange={(event) => setField({ subjectTag: event.target.value })}
-                  maxLength={160}
-                />
+                  required
+                  className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                >
+                  <option value="" disabled>
+                    {t("notes.form.subject_placeholder")}
+                  </option>
+                  {getSubjectOptionsForCategory(form.curriculumTag || undefined).map((entry) => (
+                    <option key={entry} value={entry}>
+                      {entry}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="admin-material-school">{t("materials.field_school_tag")}</Label>

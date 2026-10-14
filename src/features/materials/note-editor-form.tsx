@@ -55,11 +55,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   const [price, setPrice] = useState<string>(
     existing && existing.priceHkd > 0 ? String(existing.priceHkd) : "",
   );
-  const [curriculum, setCurriculum] = useState<string>(
-    existing?.curriculumTag && isNoteCurriculum(existing.curriculumTag)
-      ? existing.curriculumTag
-      : "",
-  );
+  const [curriculum, setCurriculum] = useState<string>(existing?.curriculumTag ?? "");
   const [subject, setSubject] = useState(existing?.subjectTag ?? "");
   const [materialType, setMaterialType] = useState<MaterialType>(
     existing?.materialType && isMaterialType(existing.materialType)
@@ -97,11 +93,11 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     description: description.trim() || undefined,
     priceHkd: price ? Number(price) : undefined,
     curriculumTag: curriculum || undefined,
-    subjectTag: subject.trim() || undefined,
+    subjectTag: subject.trim() || null,
     materialType,
-    topic: topic.trim() || undefined,
-    gradeAchieved: materialType === "exemplar" ? gradeAchieved.trim() || undefined : undefined,
-    exemplarPermission: materialType === "exemplar" ? exemplarPermission : undefined,
+    topic: topic.trim() || null,
+    gradeAchieved: materialType === "exemplar" ? gradeAchieved.trim() || null : null,
+    exemplarPermission: materialType === "exemplar" ? exemplarPermission : false,
     yearTag: year.trim() || undefined,
   });
 
@@ -232,6 +228,13 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
                 {entry === "Other" ? t("notes.form.curriculum_other") : entry}
               </option>
             ))}
+            {/* #313 review fix: legacy free-text values stay visible so the
+                owner can migrate them onto the canonical list. */}
+            {curriculum && !isNoteCurriculum(curriculum) ? (
+              <option value={curriculum}>
+                {curriculum} ({t("notes.form.legacy_value")})
+              </option>
+            ) : null}
           </select>
         </div>
         <div className="space-y-1.5">
@@ -250,6 +253,13 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
                 {entry}
               </option>
             ))}
+            {/* #313 review fix: a stored subject outside the current
+                curriculum's list still renders instead of a blank select. */}
+            {subject && !subjectOptions.includes(subject) ? (
+              <option value={subject}>
+                {subject} ({t("notes.form.legacy_value")})
+              </option>
+            ) : null}
           </select>
         </div>
         <div className="space-y-1.5">

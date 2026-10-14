@@ -8,6 +8,7 @@ import {
   buildMaterialSlug,
   checkSubmitReadiness,
   extendedPreviewPageLimit,
+  mergeNoteKinds,
   nextStatus,
   validateNoteKindsForSubmit,
   validateNoteKindsPartial,
@@ -59,11 +60,12 @@ const DraftMetaInput = z.object({
   priceHkd: z.number().min(0).max(100_000).optional(),
   // #313 note kinds: curriculum is the site's canonical list, type is the
   // 3-way notes/mock/exemplar split, topic is a free 40-char filter.
+  // nullish topic/grade/subject = explicit clear (null) vs keep (absent).
   curriculumTag: z.enum(["IB", "DSE", "IGCSE", "A-Level", "Other"]).optional(),
-  subjectTag: z.string().trim().max(160).optional(),
+  subjectTag: z.string().trim().max(160).nullish(),
   materialType: z.enum(["notes", "mock", "exemplar"]).optional(),
-  topic: z.string().trim().max(40).optional(),
-  gradeAchieved: z.string().trim().max(20).optional(),
+  topic: z.string().trim().max(40).nullish(),
+  gradeAchieved: z.string().trim().max(20).nullish(),
   exemplarPermission: z.boolean().optional(),
   yearTag: z.string().trim().max(20).optional(),
 });
@@ -274,8 +276,8 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
     assertCleanCopy({
       title: data.title,
       description: data.description,
-      topic: data.topic,
-      gradeAchieved: data.gradeAchieved,
+      topic: data.topic ?? undefined,
+      gradeAchieved: data.gradeAchieved ?? undefined,
     });
     const kindErrors = validateNoteKindsPartial({
       curriculum: data.curriculumTag,
@@ -285,22 +287,39 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
     });
     if (kindErrors.length > 0) throw new Error(kindErrors.join(" "));
 
-    if (data.materialId) {
-      await loadOwnedMaterial(db, data.materialId, tutor.id);
+    // #313 review fix: merge with explicit-clear semantics — switching the
+    // type away from exemplar (or clearing topic/grade) must actually write
+    // the cleared values, not silently keep the stored ones.
+    const existing = data.materialId
+      ? await loadOwnedMaterial(db, data.materialId, tutor.id)
+      : null;
+    const kinds = mergeNoteKinds(
+      data,
+      existing
+        ? {
+            curriculumTag: existing.curriculum_tag,
+            subjectTag: existing.subject_tag,
+            materialType: existing.material_type,
+            topic: existing.topic,
+            gradeAchieved: existing.grade_achieved,
+            exemplarPermission: existing.exemplar_permission,
+          }
+        : undefined,
+    );
+
+    if (existing) {
       const { error } = await db
         .from<never>("digital_materials")
         .update({
           ...(data.title != null ? { title: data.title } : {}),
           ...(data.description != null ? { description: data.description } : {}),
           ...(data.priceHkd != null ? { price_hkd: data.priceHkd } : {}),
-          ...(data.curriculumTag != null ? { curriculum_tag: data.curriculumTag } : {}),
-          ...(data.subjectTag != null ? { subject_tag: data.subjectTag } : {}),
-          ...(data.materialType != null ? { material_type: data.materialType } : {}),
-          ...(data.topic != null ? { topic: data.topic } : {}),
-          ...(data.gradeAchieved != null ? { grade_achieved: data.gradeAchieved } : {}),
-          ...(data.exemplarPermission != null
-            ? { exemplar_permission: data.exemplarPermission }
-            : {}),
+          curriculum_tag: kinds.curriculum,
+          subject_tag: kinds.subject || null,
+          material_type: kinds.materialType,
+          topic: kinds.topic || null,
+          grade_achieved: kinds.gradeAchieved,
+          exemplar_permission: kinds.exemplarPermission,
           ...(data.yearTag != null ? { year_tag: data.yearTag } : {}),
         })
         .eq("id", data.materialId);
@@ -315,12 +334,12 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
         title: data.title?.trim() || "Untitled note",
         description: data.description ?? null,
         price_hkd: data.priceHkd ?? 0,
-        curriculum_tag: data.curriculumTag || "",
-        subject_tag: data.subjectTag ?? null,
-        material_type: data.materialType || "notes",
-        topic: data.topic ?? null,
-        grade_achieved: data.gradeAchieved ?? null,
-        exemplar_permission: data.exemplarPermission ?? false,
+        curriculum_tag: kinds.curriculum,
+        subject_tag: kinds.subject || null,
+        material_type: kinds.materialType,
+        topic: kinds.topic || null,
+        grade_achieved: kinds.gradeAchieved,
+        exemplar_permission: kinds.exemplarPermission,
         year_tag: data.yearTag ?? null,
         status: "draft",
         original_file_path: "",
@@ -374,24 +393,40 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     assertCleanCopy({
       title: data.title,
       description: data.description,
-      topic: data.topic,
-      gradeAchieved: data.gradeAchieved,
+      topic: data.topic ?? undefined,
+      gradeAchieved: data.gradeAchieved ?? undefined,
     });
 
     const existing = data.materialId
       ? await loadOwnedMaterial(db, data.materialId, tutor.id)
       : null;
+    // #313 review fix: explicit-clear semantics — a null/empty grade or
+    // topic clears the stored value, and a non-exemplar type drops the
+    // stale grade/permission instead of letting them fail validation.
+    const kinds = mergeNoteKinds(
+      data,
+      existing
+        ? {
+            curriculumTag: existing.curriculum_tag,
+            subjectTag: existing.subject_tag,
+            materialType: existing.material_type,
+            topic: existing.topic,
+            gradeAchieved: existing.grade_achieved,
+            exemplarPermission: existing.exemplar_permission,
+          }
+        : undefined,
+    );
     const merged = {
       title: data.title ?? existing?.title,
       priceHkd: data.priceHkd ?? Number(existing?.price_hkd ?? 0),
       hasPdf: Boolean(data.base64Data) || Boolean(existing?.original_file_path),
       // #313 note kinds: submit-time fields merge over the stored draft.
-      curriculumTag: data.curriculumTag ?? existing?.curriculum_tag ?? "",
-      subjectTag: data.subjectTag ?? existing?.subject_tag ?? "",
-      materialType: data.materialType ?? existing?.material_type ?? "notes",
-      topic: data.topic ?? existing?.topic ?? "",
-      gradeAchieved: data.gradeAchieved ?? existing?.grade_achieved ?? "",
-      exemplarPermission: data.exemplarPermission ?? existing?.exemplar_permission ?? false,
+      curriculumTag: kinds.curriculum,
+      subjectTag: kinds.subject,
+      materialType: kinds.materialType,
+      topic: kinds.topic,
+      gradeAchieved: kinds.gradeAchieved,
+      exemplarPermission: kinds.exemplarPermission,
     };
     const check = checkSubmitReadiness(merged);
     if (!check.ok) {
@@ -441,12 +476,12 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
         title: merged.title,
         description: data.description ?? null,
         price_hkd: merged.priceHkd,
-        curriculum_tag: data.curriculumTag || "",
-        subject_tag: data.subjectTag ?? null,
-        material_type: data.materialType || "notes",
-        topic: data.topic ?? null,
-        grade_achieved: data.gradeAchieved ?? null,
-        exemplar_permission: data.exemplarPermission ?? false,
+        curriculum_tag: kinds.curriculum,
+        subject_tag: kinds.subject || null,
+        material_type: kinds.materialType,
+        topic: kinds.topic || null,
+        grade_achieved: kinds.gradeAchieved,
+        exemplar_permission: kinds.exemplarPermission,
         year_tag: data.yearTag ?? null,
         status: "pending_review",
         submitted_at: new Date().toISOString(),
@@ -479,14 +514,12 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
           ...(data.title != null ? { title: data.title } : {}),
           ...(data.description != null ? { description: data.description } : {}),
           ...(data.priceHkd != null ? { price_hkd: data.priceHkd } : {}),
-          ...(data.curriculumTag != null ? { curriculum_tag: data.curriculumTag } : {}),
-          ...(data.subjectTag != null ? { subject_tag: data.subjectTag } : {}),
-          ...(data.materialType != null ? { material_type: data.materialType } : {}),
-          ...(data.topic != null ? { topic: data.topic } : {}),
-          ...(data.gradeAchieved != null ? { grade_achieved: data.gradeAchieved } : {}),
-          ...(data.exemplarPermission != null
-            ? { exemplar_permission: data.exemplarPermission }
-            : {}),
+          curriculum_tag: kinds.curriculum,
+          subject_tag: kinds.subject || null,
+          material_type: kinds.materialType,
+          topic: kinds.topic || null,
+          grade_achieved: kinds.gradeAchieved,
+          exemplar_permission: kinds.exemplarPermission,
           status: next,
           rejection_reason: null,
           submitted_at: new Date().toISOString(),

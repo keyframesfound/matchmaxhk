@@ -4,6 +4,7 @@ import {
   GRADE_ACHIEVED_MAX_LEN,
   NOTE_TOPIC_MAX_LEN,
   legacyDocumentTypeToMaterialType,
+  mergeNoteKinds,
   validateNoteKindsForSubmit,
   validateNoteKindsPartial,
 } from "../../src/features/materials/lifecycle";
@@ -101,5 +102,75 @@ describe("legacyDocumentTypeToMaterialType (#313 backfill)", () => {
     expect(legacyDocumentTypeToMaterialType("ia")).toBe("notes");
     expect(legacyDocumentTypeToMaterialType("ee")).toBe("notes");
     expect(legacyDocumentTypeToMaterialType("tok_essay")).toBe("notes");
+  });
+});
+
+describe("mergeNoteKinds (#313 review fix — explicit-clear semantics)", () => {
+  const exemplarRow = {
+    curriculumTag: "IB",
+    subjectTag: "History",
+    materialType: "exemplar" as const,
+    topic: "Cold War",
+    gradeAchieved: "IB 7",
+    exemplarPermission: true,
+  };
+
+  it("keeps stored values when the input omits fields", () => {
+    const merged = mergeNoteKinds({}, exemplarRow);
+    expect(merged.curriculum).toBe("IB");
+    expect(merged.subject).toBe("History");
+    expect(merged.materialType).toBe("exemplar");
+    expect(merged.topic).toBe("Cold War");
+    expect(merged.gradeAchieved).toBe("IB 7");
+    expect(merged.exemplarPermission).toBe(true);
+  });
+
+  it("null clears topic and grade instead of falling back to the stored value", () => {
+    const merged = mergeNoteKinds({ topic: null }, exemplarRow);
+    expect(merged.topic).toBe("");
+    expect(merged.curriculum).toBe("IB");
+    expect(merged.gradeAchieved).toBe("IB 7");
+
+    const cleared = mergeNoteKinds({ gradeAchieved: "" }, exemplarRow);
+    expect(cleared.gradeAchieved).toBeNull();
+  });
+
+  it("switching the type away from exemplar drops grade and permission", () => {
+    const merged = mergeNoteKinds({ materialType: "notes" }, exemplarRow);
+    expect(merged.materialType).toBe("notes");
+    expect(merged.gradeAchieved).toBeNull();
+    expect(merged.exemplarPermission).toBe(false);
+    expect(merged.curriculum).toBe("IB");
+    expect(merged.subject).toBe("History");
+    expect(merged.topic).toBe("Cold War");
+  });
+
+  it("explicit false permission on an exemplar is not resurrected from storage", () => {
+    const merged = mergeNoteKinds(
+      { materialType: "exemplar", exemplarPermission: false },
+      exemplarRow,
+    );
+    expect(merged.exemplarPermission).toBe(false);
+  });
+
+  it("never keeps grade or permission on a non-exemplar row even if supplied", () => {
+    const merged = mergeNoteKinds(
+      { materialType: "mock", gradeAchieved: "DSE 5**", exemplarPermission: true },
+      undefined,
+    );
+    expect(merged.gradeAchieved).toBeNull();
+    expect(merged.exemplarPermission).toBe(false);
+  });
+
+  it("new rows default to notes with empty optional fields", () => {
+    const merged = mergeNoteKinds({}, undefined);
+    expect(merged).toEqual({
+      curriculum: "",
+      subject: "",
+      materialType: "notes",
+      topic: "",
+      gradeAchieved: null,
+      exemplarPermission: false,
+    });
   });
 });

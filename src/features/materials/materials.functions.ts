@@ -4,7 +4,10 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { findContactViolations } from "@/lib/contact-filter";
 import { watermarkPdfPreview, PREVIEW_PAGE_LIMIT } from "@/features/materials/watermark";
-import { legacyDocumentTypeToMaterialType } from "@/features/materials/lifecycle";
+import {
+  legacyDocumentTypeToMaterialType,
+  validateNoteKindsForSubmit,
+} from "@/features/materials/lifecycle";
 
 /**
  * Issues #131/#132/#133: server-side upload pipeline for the study-materials
@@ -43,8 +46,10 @@ const UploadMaterialInput = z.object({
   description: z.string().trim().max(4000).optional(),
   priceHkd: z.number().min(0).max(100_000),
   schoolTag: z.string().trim().max(160).optional(),
-  curriculumTag: z.string().trim().min(1).max(160),
-  subjectTag: z.string().trim().max(160).optional(),
+  // #313 review fix: curriculum is the canonical list and subject is
+  // required on every path — no caller may skip the note-kind validation.
+  curriculumTag: z.enum(["IB", "DSE", "IGCSE", "A-Level", "Other"]),
+  subjectTag: z.string().trim().min(1).max(160),
   // #313 note kinds: the 3-way type replaces the old document types for new
   // uploads (documentType stays accepted for legacy callers and is mapped).
   materialType: z.enum(["notes", "mock", "exemplar"]).optional(),
@@ -220,12 +225,17 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
         );
       }
     }
-    if (data.gradeAchieved?.trim() && effectiveType !== "exemplar") {
-      throw new Error("Grade achieved can only be set on an exemplar.");
-    }
-    if (effectiveType === "exemplar" && data.exemplarPermission !== true) {
-      throw new Error("Exemplars need the written-permission confirmation.");
-    }
+    // #313 review fix: every upload path runs the same strict note-kind
+    // validation (canonical curriculum, required subject, exemplar gates).
+    const kindErrors = validateNoteKindsForSubmit({
+      curriculum: data.curriculumTag,
+      subject: data.subjectTag,
+      materialType: effectiveType,
+      topic: data.topic,
+      gradeAchieved: data.gradeAchieved,
+      exemplarPermission: data.exemplarPermission,
+    });
+    if (kindErrors.length > 0) throw new Error(kindErrors.join(" "));
 
     const bytes = base64ToBytes(data.base64Data);
     if (bytes.byteLength > MAX_UPLOAD_BYTES) {
@@ -271,7 +281,7 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
         price_hkd: data.priceHkd,
         school_tag: data.schoolTag ?? null,
         curriculum_tag: data.curriculumTag,
-        subject_tag: data.subjectTag ?? null,
+        subject_tag: data.subjectTag,
         material_type:
           data.materialType ??
           legacyDocumentTypeToMaterialType(data.documentType ?? "custom_notes"),
