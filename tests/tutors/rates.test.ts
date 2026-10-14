@@ -6,7 +6,10 @@ import {
   medianRate,
   normalizeTutorRateRows,
   roundRateTo10,
+  tutorCardIsSimilar,
 } from "../../src/features/tutors/rates";
+
+const normalizeKey = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim();
 
 describe("isValidTutorRate", () => {
   it("accepts whole dollars inside the 50-3000 band", () => {
@@ -70,6 +73,55 @@ describe("medianRate + rounding", () => {
   it("rounds to the nearest $10 ($247 -> $250)", () => {
     expect(roundRateTo10(247)).toBe(250);
     expect(roundRateTo10(244)).toBe(240);
+  });
+});
+
+describe("tutorCardIsSimilar", () => {
+  const subjects = new Set(["maths", "physics"]);
+  const curricula = new Set(["ib diploma", "dse"]);
+
+  it("matches a shared subject (case/space-insensitive)", () => {
+    expect(
+      tutorCardIsSimilar(
+        { subjects: ["  MATHS "], pricing_tiers: [] },
+        subjects,
+        curricula,
+        normalizeKey,
+      ),
+    ).toBe(true);
+  });
+
+  it("matches a shared pricing-tier curriculum", () => {
+    expect(
+      tutorCardIsSimilar(
+        { subjects: ["chemistry"], pricing_tiers: [{ curriculum: "IB Diploma", rate: 500 }] },
+        subjects,
+        curricula,
+        normalizeKey,
+      ),
+    ).toBe(true);
+  });
+
+  it("is false when nothing overlaps", () => {
+    expect(
+      tutorCardIsSimilar(
+        { subjects: ["chemistry"], pricing_tiers: [{ curriculum: "A-Level", rate: 500 }] },
+        subjects,
+        curricula,
+        normalizeKey,
+      ),
+    ).toBe(false);
+  });
+
+  it("tolerates null/missing columns", () => {
+    expect(
+      tutorCardIsSimilar(
+        { subjects: null, pricing_tiers: null },
+        subjects,
+        curricula,
+        normalizeKey,
+      ),
+    ).toBe(false);
   });
 });
 

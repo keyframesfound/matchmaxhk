@@ -149,6 +149,10 @@ export function MyTutorProfileSection() {
   const [form, setForm] = React.useState<TutorFormData | null>(null);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [rates, setRates] = React.useState<RatesDraft | null>(null);
+  // Issue #319 review: a mid-edit refetch (window focus, invalidation) must
+  // not clobber unsaved rate edits — same race class as the #323 headline
+  // fix. Once dirty, the draft only resets after a successful save.
+  const ratesDirtyRef = React.useRef(false);
   const [suggestPending, setSuggestPending] = React.useState(false);
   const [suggestHint, setSuggestHint] = React.useState<string | null>(null);
 
@@ -170,7 +174,7 @@ export function MyTutorProfileSection() {
     if (!tutorQuery.data) return;
     const nextForm = tutorToFormData(tutorQuery.data);
     setForm(nextForm);
-    setRates(ratesFromRow(tutorQuery.data));
+    if (!ratesDirtyRef.current) setRates(ratesFromRow(tutorQuery.data));
   }, [tutorQuery.data]);
 
   // Institution spellings already in use on tutor profiles, so tutors pick an
@@ -275,6 +279,7 @@ export function MyTutorProfileSection() {
       }
     },
     onSuccess: async () => {
+      ratesDirtyRef.current = false;
       await queryClient.invalidateQueries({
         queryKey: ["settings", "my-tutor-profile", user?.id],
       });
@@ -332,6 +337,7 @@ export function MyTutorProfileSection() {
   };
 
   const handleRateField = (patch: Partial<RatesDraft>) => {
+    ratesDirtyRef.current = true;
     setRates((prev) => (prev ? { ...prev, ...patch } : prev));
   };
 
@@ -374,6 +380,29 @@ export function MyTutorProfileSection() {
       nextErrors.inperson_rate = t("settings.my_tutor.rate_invalid_in_person");
     }
 
+    // Issue #319 review: a rate for a mode the tutor does not offer is
+    // dropped on save (same rule as /join) — the card floor then recomputes
+    // from the remaining base rates only.
+    const onlineDropped = form.lesson_mode === "in_person";
+    const inPersonDropped = form.lesson_mode === "online";
+    const onlineValue = onlineDropped ? null : onlineParsed;
+    const inPersonValue = inPersonDropped ? null : inPersonParsed;
+
+    // Issue #319 AC: the last base rate cannot be deleted. Once the saved row
+    // carries a base rate, an edit that clears both is rejected instead of
+    // silently falling back to the legacy pricing fields.
+    const hadBaseRate =
+      (current?.online_rate ?? null) !== null || (current?.inperson_rate ?? null) !== null;
+    if (
+      hadBaseRate &&
+      onlineValue !== "invalid" &&
+      inPersonValue !== "invalid" &&
+      onlineValue === null &&
+      inPersonValue === null
+    ) {
+      nextErrors.online_rate = t("settings.my_tutor.rate_last_required");
+    }
+
     // Extra rows: normalizeTutorRateRows rejects half-filled rows, out-of-band
     // rates and contact details in labels; empty rows are dropped silently.
     const rowsResult = normalizeTutorRateRows(rates.rows);
@@ -389,7 +418,7 @@ export function MyTutorProfileSection() {
       const travelContactError = contactFilterError(travelNote);
       if (travelContactError) {
         nextErrors.travel_note = travelContactError;
-      } else if (travelNote && inPersonParsed === null) {
+      } else if (travelNote && !inPersonDropped && inPersonParsed === null) {
         nextErrors.travel_note = t("settings.my_tutor.travel_note_needs_in_person");
       }
     }
@@ -418,10 +447,10 @@ export function MyTutorProfileSection() {
     save.mutate({
       data: parsed.data as TutorFormData,
       rates: {
-        online_rate: onlineParsed === "invalid" ? null : onlineParsed,
-        inperson_rate: inPersonParsed === "invalid" ? null : inPersonParsed,
+        online_rate: onlineValue === "invalid" ? null : onlineValue,
+        inperson_rate: inPersonValue === "invalid" ? null : inPersonValue,
         rate_rows: rowsResult.rows,
-        travel_note: travelNote || null,
+        travel_note: inPersonDropped ? null : travelNote || null,
         rate_note: rateNote || null,
       },
     });

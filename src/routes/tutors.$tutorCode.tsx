@@ -652,7 +652,7 @@ function TutorDetail() {
                       "$X up/hr" figure — the base-rate floor, never a range. */}
                   {price.baseRate > 0 ? (
                     <p className="text-3xl font-bold text-[color:var(--ink)]">
-                      HK${price.baseRate}
+                      ${price.baseRate}
                       <span className="ml-1 text-sm font-semibold text-muted-foreground">
                         {translate("tutor_card.price_up")}
                         {translate("featured.per_hour")}

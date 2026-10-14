@@ -298,6 +298,7 @@
       "rate_note_max": "Rate note must be 120 characters or fewer",
       "rate_invalid_online": "Online hourly rate must be a whole number between $50 and $3,000",
       "rate_invalid_in_person": "In-person hourly rate must be a whole number between $50 and $3,000",
+      "rate_last_required": "Keep at least one of the two base rates — clear the one you want to change, not both",
       "academic_headline_max": "Academic headline must be 40 characters or fewer",
       "academic_headline_auto_hint": "Auto-generated from your exam results — it updates automatically until you edit it."
     },

@@ -109,6 +109,28 @@ export type SuggestedRates =
   { status: "not_enough_data" } | { status: "ok"; online: number | null; inPerson: number | null };
 
 /**
+ * Similarity for the suggest-a-rate sample (issue #319): a live card shares
+ * at least one subject or curriculum with the caller. Keys are pre-normalized
+ * by the caller; `normalizeKey` is injected so the function stays pure.
+ */
+export function tutorCardIsSimilar(
+  card: { subjects: unknown; pricing_tiers: unknown },
+  subjectKeys: Set<string>,
+  curriculumKeys: Set<string>,
+  normalizeKey: (value: string) => string,
+): boolean {
+  const subjects = Array.isArray(card.subjects)
+    ? (card.subjects as unknown[]).map((s) => normalizeKey(String(s)))
+    : [];
+  if (subjects.some((subject) => subject && subjectKeys.has(subject))) return true;
+  const tiers = Array.isArray(card.pricing_tiers) ? card.pricing_tiers : [];
+  return tiers.some((tier) => {
+    const curriculum = normalizeKey(String((tier as { curriculum?: string })?.curriculum ?? ""));
+    return Boolean(curriculum) && curriculumKeys.has(curriculum);
+  });
+}
+
+/**
  * Suggest-a-rate core (issue #319): median online and in-person base rates of
  * similar live cards, each rounded to the nearest $10. Fewer than ten similar
  * cards fills nothing. Suggests base fields only — never extra rows.

@@ -123,6 +123,7 @@ import {
   TRAVEL_NOTE_MAX,
   normalizeTutorRateRows,
 } from "@/features/tutors/rates";
+import { contactFilterError } from "@/lib/contact-filter";
 import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
 import type { TutorAutofillResult } from "./autofill.functions";
 
@@ -1455,6 +1456,13 @@ export function TutorEditor({
     if (!rateRowsResult.ok) {
       publishErrors.rate_rows = rateRowsResult.errors[0] ?? "Fix the extra rate rows.";
     }
+    // Same contact filter the tutor self-serve form applies: the travel and
+    // rate notes render on the public Rates block, so they cannot carry
+    // phone numbers, links or chat-app handles.
+    const adminTravelNoteError = contactFilterError((parsed.data.travel_note ?? "").trim());
+    if (adminTravelNoteError) publishErrors.travel_note = adminTravelNoteError;
+    const adminRateNoteError = contactFilterError((parsed.data.rate_note ?? "").trim());
+    if (adminRateNoteError) publishErrors.rate_note = adminRateNoteError;
     if (parsed.data.is_published) {
       if (
         !(parsed.data.academic_headline ?? "").trim() &&
@@ -2596,6 +2604,7 @@ export function TutorEditor({
                       </span>
                       <Input
                         type="number"
+                        step={1}
                         min={RATE_MIN}
                         max={RATE_MAX}
                         value={form.online_rate}
@@ -2622,6 +2631,7 @@ export function TutorEditor({
                       </span>
                       <Input
                         type="number"
+                        step={1}
                         min={RATE_MIN}
                         max={RATE_MAX}
                         value={form.inperson_rate}

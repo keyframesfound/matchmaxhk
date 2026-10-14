@@ -298,6 +298,7 @@
       "rate_note_max": "收費備註不可超過 120 字",
       "rate_invalid_online": "網上時薪必須是 $50 至 $3,000 之間的整數",
       "rate_invalid_in_person": "面授時薪必須是 $50 至 $3,000 之間的整數",
+      "rate_last_required": "兩個基本時薪至少須保留一個——只清除你想修改嘅一項，唔好兩項都清",
       "academic_headline_max": "學術標題不可超過 40 字",
       "academic_headline_auto_hint": "根據你嘅考試成績自動產生——只要你未曾自行修改，就會自動更新。"
     },
