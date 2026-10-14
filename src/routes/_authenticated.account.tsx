@@ -34,7 +34,7 @@ import { getOwnedMaterialUrl } from "@/features/materials/orders.functions";
  * remains open on #286 — this PR ships the marketplace-owned blocks.
  */
 
-export const Route = createFileRoute("/account")({
+export const Route = createFileRoute("/_authenticated/account")({
   ssr: false,
   head: () => ({
     meta: [{ title: "Account | MatchMax" }, { name: "robots", content: "noindex" }],

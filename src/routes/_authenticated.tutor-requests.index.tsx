@@ -44,7 +44,7 @@ import { CASE_MODE_LABEL, formatCaseBudgetHkd, formatCaseSchedule } from "@/feat
 import { normalizeProfileTag } from "@/features/tutors/profile-tags";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
-export const Route = createFileRoute("/tutor-requests/")({
+export const Route = createFileRoute("/_authenticated/tutor-requests/")({
   validateSearch: (
     search: Record<string, unknown>,
   ): {

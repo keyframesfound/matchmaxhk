@@ -12,7 +12,7 @@ import { NoteEditorForm } from "@/features/materials/note-editor-form";
  * still there the next day").
  */
 
-export const Route = createFileRoute("/account/notes/new")({
+export const Route = createFileRoute("/_authenticated/account/notes/new")({
   ssr: false,
   head: () => ({
     meta: [{ title: "Add a note | MatchMax" }, { name: "robots", content: "noindex" }],

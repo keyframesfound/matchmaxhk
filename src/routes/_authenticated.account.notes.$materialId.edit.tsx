@@ -15,7 +15,7 @@ import { NoteEditorForm } from "@/features/materials/note-editor-form";
  * old file stays on sale until approval.
  */
 
-export const Route = createFileRoute("/account/notes/$materialId/edit")({
+export const Route = createFileRoute("/_authenticated/account/notes/$materialId/edit")({
   ssr: false,
   head: () => ({
     meta: [{ title: "Edit note | MatchMax" }, { name: "robots", content: "noindex" }],

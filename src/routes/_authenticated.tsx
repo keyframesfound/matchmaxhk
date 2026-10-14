@@ -13,7 +13,15 @@ function AuthedLayout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth", replace: true });
+    if (loading || user) return;
+    // Carry the intended destination so sign-in returns the user here
+    // (epic #280 P1: sign-in happens before the form, then resumes it).
+    const target = `${window.location.pathname}${window.location.search}`;
+    void navigate({
+      to: "/auth",
+      search: { redirect: target },
+      replace: true,
+    });
   }, [loading, user, navigate]);
 
   if (loading || !user) {
