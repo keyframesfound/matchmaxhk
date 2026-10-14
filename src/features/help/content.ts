@@ -139,8 +139,10 @@ function toHelpArticle(fileName: string, raw: string): HelpArticle {
   const title = typeof parsed.data.title === "string" ? parsed.data.title : slug;
   // Many articles open with an `# Title` that repeats the frontmatter title;
   // the article route renders its own H1, so strip the duplicate heading.
+  // Anchor at the very start of the body (leading whitespace allowed) so an
+  // H1 later in the article never eats content above it.
   let body = parsed.body;
-  const duplicateHeading = /^#\s+(.+?)\s*$/m.exec(body);
+  const duplicateHeading = /^\s*#\s+(.+?)\s*(?:\n|$)/.exec(body);
   if (duplicateHeading && duplicateHeading[1] === title) {
     const headingEnd = body.indexOf("\n", duplicateHeading.index);
     body = headingEnd === -1 ? "" : body.slice(headingEnd + 1).replace(/^\n+/, "");
