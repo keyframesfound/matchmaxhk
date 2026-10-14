@@ -483,8 +483,6 @@ export function MyTutorProfileSection() {
     });
   };
 
-  const current = tutorQuery.data;
-  const loading = tutorQuery.isLoading;
   // Epic #280 P3: verified tutors cannot edit credential fields — the server
   // trigger (tutors_owner_verified_guard) enforces the same list; the UI just
   // mirrors it. P4's evidence queue will reopen these with review.
