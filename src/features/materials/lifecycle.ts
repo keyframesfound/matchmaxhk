@@ -393,8 +393,12 @@ export function validateNoteKindsPartial(
     if (subject.length > 160) {
       errors.push("Subject is too long (160 characters max).");
     } else if (
-      input.curriculum != null &&
-      !isAllowedNoteSubject(input.curriculum, subject, storedSubject)
+      // #346 review fix: always allowlist, even without a curriculum —
+      // otherwise a subject-only draft save launders junk into subject_tag
+      // and submit later accepts it via the stored-value exemption. With no
+      // curriculum present, fall back to the full catalog (same pool the
+      // "Other" curriculum uses).
+      !isAllowedNoteSubject(input.curriculum ?? undefined, subject, storedSubject)
     ) {
       errors.push("Subject must be selected from the list for the chosen curriculum.");
     }

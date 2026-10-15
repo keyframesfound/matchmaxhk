@@ -194,9 +194,41 @@ describe("validateNoteKindsPartial (#313 draft saves)", () => {
         "Legacy Free Text",
       ),
     ).not.toEqual([]);
-    // Subject without a curriculum can't be pool-checked — allowed through
-    // (the strict submit validator catches it before publication).
-    expect(validateNoteKindsPartial({ subject: "Anything at all" })).toEqual([]);
+    // Subject without a curriculum still allowlists against the FULL
+    // catalog (the "Other" fallback) — junk must not land in a partial
+    // draft save (#346 review fix).
+    expect(validateNoteKindsPartial({ subject: "Physics" })).toEqual([]);
+    expect(validateNoteKindsPartial({ subject: "WhatsApp me at 9xxx" })).toContain(
+      "Subject must be selected from the list for the chosen curriculum.",
+    );
+    expect(validateNoteKindsPartial({ subject: "91234567" })).toContain(
+      "Subject must be selected from the list for the chosen curriculum.",
+    );
+  });
+
+  it("blocks the save-then-submit launder path (#346 review fix)", () => {
+    // The laundering sequence: a subject-only draft save used to skip the
+    // allowlist, then submit accepted the junk via the stored-value
+    // exemption. Neither leg may pass now.
+    const junk = "WhatsApp me at 91234567";
+    // Leg 1: partial draft save with junk subject (no curriculum) fails…
+    expect(validateNoteKindsPartial({ subject: junk })).not.toEqual([]);
+    // …so the junk never becomes "stored legacy".
+    // Leg 2: even if junk were somehow stored, NEW junk cannot hide behind
+    // a different stored value, and submit (curriculum present) rejects it.
+    expect(validateNoteKindsPartial({ subject: junk }, "Real Legacy Subject")).not.toEqual([]);
+    expect(
+      validateNoteKindsForSubmit({ curriculum: "DSE", subject: junk, materialType: "notes" }),
+    ).toContain("Subject must be selected from the list for the chosen curriculum.");
+    // The true legacy re-save stays exempt through both validators.
+    const legacy = "Legacy Free Text";
+    expect(validateNoteKindsPartial({ subject: legacy }, legacy)).toEqual([]);
+    expect(
+      validateNoteKindsForSubmit(
+        { curriculum: "DSE", subject: legacy, materialType: "notes" },
+        legacy,
+      ),
+    ).toEqual([]);
   });
 });
 
