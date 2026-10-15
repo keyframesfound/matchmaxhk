@@ -52,10 +52,7 @@ import {
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
-import {
-  extractTranscriptQualification,
-  submitTutorApplication,
-} from "@/lib/tutor-application.functions";
+import { submitTutorApplication } from "@/lib/tutor-application.functions";
 import {
   ACCEPT_ATTRIBUTE,
   ACCEPTED_FILE_TYPES,
@@ -118,20 +115,18 @@ type ScoreRow = {
   gradeSystem: string;
   papers: { label: string; score: string }[];
 };
+// Issue #309: no evidence at /join — qualifications are TEXT answers only;
+// grade slips upload per-grade from the profile editor (tutor_grades).
 type Qualification = {
   curriculum: string;
   overall: string;
   boards: string[];
   scores: ScoreRow[];
   best6: string;
-  transcript: File | null;
-  transcriptStatus: "upload" | "not_applicable" | "provide_later";
 };
 type Achievement = {
   title: string;
   description: string;
-  proof: File | null;
-  proofStatus: "upload" | "not_applicable" | "provide_later";
 };
 
 const SYSTEM_IDS: Record<string, string> = {
@@ -274,26 +269,6 @@ function Hint({ children }: { children: React.ReactNode }) {
   return <p className="text-xs italic leading-relaxed text-muted-foreground">{children}</p>;
 }
 
-function EvidenceNote({ className }: { className?: string }) {
-  return (
-    <p
-      className={cn(
-        "flex gap-2.5 rounded-sm border border-border bg-[color:var(--surface-subtle)] px-3 py-2.5 text-xs leading-relaxed text-muted-foreground",
-        className,
-      )}
-    >
-      <ShieldCheck
-        className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
-        aria-hidden="true"
-      />
-      <span>
-        Uploaded credentials and evidence are used strictly for verification. They are kept secure
-        and will not be displayed directly to the public on your profile.
-      </span>
-    </p>
-  );
-}
-
 function readableFileSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} MB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -314,7 +289,6 @@ const FIELD_LABELS: Record<string, string> = {
   programme: "Degree / Programme Major",
   postgradUniversity: "Postgraduate University / Institution",
   postgradDegree: "Postgraduate Degree / Qualification",
-  studentCard: "Student ID card (evidence of university and major)",
   medium: "Medium of Instruction",
   roles: "Professional Role",
   boards: "Examining Board(s)",
@@ -353,13 +327,7 @@ function describeFieldError(key: string): string {
   if (match) return `Achievement ${Number(match[1]) + 1} — Title`;
   match = key.match(/^achievement-description-(\d+)$/);
   if (match) return `Achievement ${Number(match[1]) + 1} — Description`;
-  match = key.match(/^achievement-proof-(\d+)$/);
-  if (match) return `Achievement ${Number(match[1]) + 1} — Evidence file`;
   return key;
-}
-
-function isTranscriptImage(file: File) {
-  return ["image/jpeg", "image/png"].includes(file.type) || /\.(jpe?g|png)$/i.test(file.name);
 }
 
 function isProfilePhoto(file: File) {
@@ -503,116 +471,6 @@ function TrophyCabinetUpload({
   );
 }
 
-function DocumentUpload({
-  file,
-  onSelect,
-  onRemove,
-  disabled,
-  accept = ACCEPT_ATTRIBUTE,
-  prompt = "Drop a file here or choose a file",
-  invalid,
-}: {
-  file: File | null;
-  onSelect: (file: File) => void;
-  onRemove: () => void;
-  disabled?: boolean;
-  accept?: string;
-  prompt?: string;
-  invalid?: boolean;
-}) {
-  const [dragging, setDragging] = useState(false);
-  const [progress, setProgress] = useState(file ? 100 : 0);
-  useEffect(() => {
-    if (!file) {
-      setProgress(0);
-      return;
-    }
-    setProgress(0);
-    const interval = window.setInterval(() => {
-      setProgress((current) => {
-        if (current >= 100) {
-          window.clearInterval(interval);
-          return 100;
-        }
-        return Math.min(current + 20, 100);
-      });
-    }, 75);
-    return () => window.clearInterval(interval);
-  }, [file]);
-  const selectFile = (candidate: File | undefined) => {
-    if (candidate) onSelect(candidate);
-  };
-  return (
-    <div className="grid min-w-0 gap-2">
-      <label
-        className={cn(
-          "mx-auto flex min-h-20 w-full max-w-xs cursor-pointer flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-border bg-[color:var(--surface-subtle)] px-3 py-3 text-center text-sm text-muted-foreground transition-colors",
-          invalid && "border-destructive",
-          dragging && "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.05]",
-          disabled && "cursor-not-allowed opacity-60",
-        )}
-        aria-invalid={invalid || undefined}
-        onDragEnter={(event) => {
-          event.preventDefault();
-          if (!disabled) setDragging(true);
-        }}
-        onDragOver={(event) => event.preventDefault()}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(event) => {
-          event.preventDefault();
-          setDragging(false);
-          if (!disabled) selectFile(event.dataTransfer.files[0]);
-        }}
-      >
-        <Upload className="h-4 w-4 text-[color:var(--muted-foreground)]" />
-        <span>{prompt}</span>
-        <input
-          type="file"
-          className="sr-only"
-          accept={accept}
-          disabled={disabled}
-          onChange={(event) => {
-            selectFile(event.target.files?.[0]);
-            event.currentTarget.value = "";
-          }}
-        />
-      </label>
-      {file ? (
-        <div className="grid min-w-0 gap-1.5 rounded-sm border border-border px-3 py-2 text-xs text-muted-foreground">
-          <div className="flex items-start justify-between gap-2">
-            <span className="flex min-w-0 items-start gap-2">
-              <Paperclip className="mt-0.5 h-3 w-3 shrink-0" />
-              <span className="break-all text-left leading-snug">
-                {file.name} ({readableFileSize(file.size)})
-              </span>
-            </span>
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              aria-label="Remove file"
-              onClick={onRemove}
-              disabled={disabled}
-            >
-              <X />
-            </Button>
-          </div>
-          <div
-            className="h-1.5 overflow-hidden rounded-full bg-muted"
-            aria-label={`Upload ${progress}%`}
-          >
-            <div
-              className="h-full bg-[color:var(--brand-teal)] transition-[width] duration-100"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <span>{progress < 100 ? `Preparing upload ${progress}%` : "Ready"}</span>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 function ProfilePhotoUpload({
   file,
   onSelect,
@@ -734,8 +592,6 @@ function blankQualification(curriculum = "IBDP"): Qualification {
     boards: [],
     scores: [blankScoreRow(curriculum)],
     best6: "",
-    transcript: null,
-    transcriptStatus: "upload",
   };
 }
 
@@ -914,7 +770,6 @@ type ApplicationBaseState = {
   hasPostgrad: boolean;
   postgradUniversity: string;
   postgradDegree: string;
-  studentCard: File | null;
   year: string;
   subjectsTaught: string[];
   format: string;
@@ -972,7 +827,6 @@ export function ApplicationForm() {
     const match = REFERRAL_CODE_PATTERN.exec(raw.trim());
     return match ? match[0] : readStoredReferralCode();
   });
-  const extractTranscript = useServerFn(extractTranscriptQualification);
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   // Remembered at submit time so the WhatsApp activation deep link can greet
@@ -987,8 +841,6 @@ export function ApplicationForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [transcriptStatus, setTranscriptStatus] = useState<"idle" | "reading">("idle");
-  const [transcriptMessage, setTranscriptMessage] = useState("");
   const [captcha, setCaptcha] = useState<string | null>(null);
   const [captchaError, setCaptchaError] = useState<string | null>(null);
   const captchaRef = useRef<HTMLDivElement>(null);
@@ -1022,7 +874,6 @@ export function ApplicationForm() {
     hasPostgrad: false,
     postgradUniversity: "",
     postgradDegree: "",
-    studentCard: null,
     year: "",
     subjectsTaught: [] as string[],
     format: "",
@@ -1127,11 +978,6 @@ export function ApplicationForm() {
       ...prev,
       ...restoredDraft.base,
       photo: null,
-      studentCard: null,
-      achievements: (restoredDraft.base.achievements ?? []).map((achievement) => ({
-        ...achievement,
-        proof: null,
-      })),
     }));
     if (Array.isArray(restoredDraft.roles)) setRoles(restoredDraft.roles);
     if (Array.isArray(restoredDraft.boards)) setBoards(restoredDraft.boards);
@@ -1140,7 +986,6 @@ export function ApplicationForm() {
       setQualifications(
         restoredDraft.qualifications.map((qualification) => ({
           ...qualification,
-          transcript: null,
           scores: Array.isArray(qualification.scores) ? qualification.scores : [],
         })),
       );
@@ -1166,16 +1011,11 @@ export function ApplicationForm() {
       base: {
         ...base,
         photo: null,
-        studentCard: null,
-        achievements: base.achievements.map((achievement) => ({ ...achievement, proof: null })),
       },
       roles,
       boards,
       credentials,
-      qualifications: qualifications.map((qualification) => ({
-        ...qualification,
-        transcript: null,
-      })),
+      qualifications,
       academicHeadline,
       headlineDirty,
     });
@@ -1496,7 +1336,6 @@ export function ApplicationForm() {
           required("postgradUniversity", base.postgradUniversity.trim());
           required("postgradDegree", base.postgradDegree.trim());
         }
-        required("studentCard", base.studentCard);
         qualifications.forEach((qualification, index) => {
           required(`curriculum-${index}`, qualification.curriculum);
           // Issue #323: overall score is optional — never block on a blank.
@@ -1533,8 +1372,6 @@ export function ApplicationForm() {
       base.achievements.forEach((achievement, index) => {
         required(`achievement-title-${index}`, achievement.title.trim());
         required(`achievement-description-${index}`, achievement.description.trim());
-        if (achievement.proofStatus === "upload")
-          required(`achievement-proof-${index}`, achievement.proof);
       });
       // Issue #215: no contact details in the public self-introduction.
       const introError = contactFilterError(base.selfIntroduction);
@@ -1606,81 +1443,6 @@ export function ApplicationForm() {
       reader.readAsDataURL(file);
     });
   }
-  async function autoFillQualification(qualificationIndex: number, file: File) {
-    if (!isTranscriptImage(file) || file.size > MAX_FILE_BYTES) {
-      setError("Use a JPG or PNG transcript image no larger than 5 MB.");
-      return;
-    }
-    setTranscriptStatus("reading");
-    setTranscriptMessage("Reading transcript with AI...");
-    setError(null);
-    try {
-      const extracted = await extractTranscript({
-        data: {
-          curriculum: qualifications[qualificationIndex]
-            .curriculum as (typeof CURRICULUM_OPTIONS)[number],
-          contentType: (file.type === "image/png" || /\.png$/i.test(file.name)
-            ? "image/png"
-            : "image/jpeg") as "image/jpeg" | "image/png",
-          content: await fileData(file),
-        },
-      });
-      const fixedSubject = FIXED_SCORE_SUBJECTS[qualifications[qualificationIndex].curriculum];
-      if (fixedSubject) {
-        const curriculum = qualifications[qualificationIndex].curriculum;
-        const componentLabels = isUcatCurriculum(curriculum)
-          ? ucatComponentLabels(curriculum)
-          : (getSystem(SYSTEM_IDS[curriculum] ?? "other")?.paperLabels ?? []);
-        const bands = new Map(
-          extracted.scores.map((score) => [score.subject.trim().toLowerCase(), score.grade.trim()]),
-        );
-        const overallBand =
-          extracted.overall.trim() ||
-          bands.get("overall") ||
-          bands.get("total") ||
-          bands.get(`${curriculum.toLowerCase()} overall`) ||
-          "";
-        const papers = componentLabels.map((label) => ({
-          label,
-          score: bands.get(label.toLowerCase()) ?? "",
-        }));
-        updateQualification(qualificationIndex, {
-          overall: overallBand,
-          best6: extracted.best6,
-          scores: [
-            {
-              subject: fixedSubject,
-              grade: overallBand,
-              level: "",
-              gradeSystem: "",
-              papers,
-            },
-          ],
-        });
-        setTranscriptMessage(
-          `Added ${papers.filter((paper) => paper.score).length} component scores. Review the fields below.`,
-        );
-        return;
-      }
-      updateQualification(qualificationIndex, {
-        overall: extracted.overall,
-        best6: extracted.best6,
-        scores: extracted.scores.map((score) => ({
-          ...score,
-          papers: [],
-        })),
-      });
-      setTranscriptMessage(
-        `Added ${extracted.scores.length} result${extracted.scores.length === 1 ? "" : "s"}. Review the fields below.`,
-      );
-    } catch (reason) {
-      const message = reason instanceof Error ? reason.message : "Transcript auto-fill failed.";
-      setError(message);
-      setTranscriptMessage(message);
-    } finally {
-      setTranscriptStatus("idle");
-    }
-  }
   async function submitForm() {
     if (!validateCurrentStep()) return;
     setSubmitting(true);
@@ -1730,14 +1492,6 @@ export function ApplicationForm() {
         hasPostgrad: base.hasPostgrad,
         postgradUniversity: base.hasPostgrad ? base.postgradUniversity : "",
         postgradDegree: base.hasPostgrad ? base.postgradDegree : "",
-        studentCard: base.studentCard
-          ? {
-              filename: base.studentCard.name,
-              contentType: base.studentCard.type,
-              size: base.studentCard.size,
-              content: await fileData(base.studentCard),
-            }
-          : undefined,
         highSchool: professional ? base.highSchool || "Not provided" : base.highSchool,
         year: base.year.trim(),
         curriculum: primary.curriculum,
@@ -1749,35 +1503,12 @@ export function ApplicationForm() {
           ? `Professional subjects: ${selectedTeachingSubjects.join(", ")}\n${base.achievements.map((achievement) => achievement.description).join("\n")}`
           : subjectResults,
         awards: "",
-        achievements: await Promise.all(
-          base.achievements.map(async (achievement) => ({
-            title: achievement.title,
-            description: achievement.description,
-            proofStatus: achievement.proofStatus,
-            proof: achievement.proof
-              ? {
-                  filename: achievement.proof.name,
-                  contentType: achievement.proof.type,
-                  size: achievement.proof.size,
-                  content: await fileData(achievement.proof),
-                }
-              : undefined,
-          })),
-        ),
-        academicDocuments: await Promise.all(
-          qualifications.map(async (qualification) => ({
-            curriculum: qualification.curriculum,
-            status: qualification.transcriptStatus,
-            file: qualification.transcript
-              ? {
-                  filename: qualification.transcript.name,
-                  contentType: qualification.transcript.type,
-                  size: qualification.transcript.size,
-                  content: await fileData(qualification.transcript),
-                }
-              : undefined,
-          })),
-        ),
+        // Issue #309: achievements are TEXT answers only — no evidence files
+        // at join time; slips upload per-grade from the profile editor.
+        achievements: base.achievements.map((achievement) => ({
+          title: achievement.title,
+          description: achievement.description,
+        })),
         // Issue #97: Trophy Cabinet — files + publication consent (zod enforces
         // consent only when at least one photo is attached).
         portfolioImages: await Promise.all(
@@ -2635,33 +2366,6 @@ export function ApplicationForm() {
                   </>
                 ) : null}
                 {!professional ? (
-                  <Field
-                    label="Student ID Card"
-                    required
-                    error={fieldErrors.studentCard}
-                    hint="Upload a photo or scan of your student ID card showing your university and programme, so we can verify your enrollment. JPG, PNG, PDF, or DOC, up to 5 MB."
-                    className="sm:col-span-2"
-                  >
-                    <DocumentUpload
-                      file={base.studentCard}
-                      invalid={Boolean(fieldErrors.studentCard)}
-                      prompt="Drop your student ID card here or choose a file"
-                      onRemove={() => setBaseField("studentCard", null)}
-                      onSelect={(file) => {
-                        if (
-                          !ACCEPTED_FILE_TYPES.includes(file.type) ||
-                          file.size > MAX_FILE_BYTES
-                        ) {
-                          setError("Choose a supported student ID file no larger than 5 MB.");
-                          return;
-                        }
-                        setBaseField("studentCard", file);
-                      }}
-                    />
-                    <EvidenceNote className="mt-2" />
-                  </Field>
-                ) : null}
-                {!professional ? (
                   <div className="sm:col-span-2">
                     <Hint>
                       Parents and students actively seek alumni from their own secondary schools, or
@@ -2795,112 +2499,6 @@ export function ApplicationForm() {
                               />
                             </Field>
                           ) : null}
-                          <Field label="Academic transcript / supporting document">
-                            <Select
-                              value={
-                                qualification.transcriptStatus === "upload"
-                                  ? "File upload"
-                                  : qualification.transcriptStatus === "provide_later"
-                                    ? "Provide later"
-                                    : "N/A"
-                              }
-                              onValueChange={(choice) =>
-                                updateQualification(index, {
-                                  transcriptStatus:
-                                    choice === "File upload"
-                                      ? "upload"
-                                      : choice === "Provide later"
-                                        ? "provide_later"
-                                        : "not_applicable",
-                                  transcript:
-                                    choice === "File upload" ? qualification.transcript : null,
-                                })
-                              }
-                            >
-                              <SelectTrigger
-                                aria-label="Academic document option"
-                                className={controlClassName}
-                              >
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {["File upload", "N/A", "Provide later"].map((option) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            {qualification.transcriptStatus === "upload" ? (
-                              <div className="mt-3 grid gap-2">
-                                <DocumentUpload
-                                  file={qualification.transcript}
-                                  disabled={transcriptStatus === "reading"}
-                                  accept=".jpg,.jpeg,.png,image/jpeg,image/png"
-                                  prompt="Drop a JPG or PNG image here or choose one"
-                                  onRemove={() => updateQualification(index, { transcript: null })}
-                                  onSelect={(file) => {
-                                    if (!isTranscriptImage(file)) {
-                                      setError(
-                                        "PDFs and documents cannot be uploaded here. Use a JPG or PNG image of your transcript instead.",
-                                      );
-                                      return;
-                                    }
-                                    if (file.size > MAX_FILE_BYTES) {
-                                      setError("Transcript images must be no larger than 5 MB.");
-                                      return;
-                                    }
-                                    updateQualification(index, { transcript: file });
-                                  }}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  className="w-fit rounded-sm"
-                                  loading={transcriptStatus === "reading"}
-                                  disabled={transcriptStatus === "reading"}
-                                  onClick={() => {
-                                    if (!qualification.transcript) {
-                                      setError(
-                                        "Upload a JPG or PNG transcript before using AI auto-fill.",
-                                      );
-                                      return;
-                                    }
-                                    if (!isTranscriptImage(qualification.transcript)) {
-                                      setError(
-                                        "AI auto-fill supports JPG and PNG transcript images only.",
-                                      );
-                                      return;
-                                    }
-                                    void autoFillQualification(index, qualification.transcript);
-                                  }}
-                                >
-                                  <Sparkles /> Auto-fill with AI
-                                </Button>
-                                <Hint>
-                                  JPG and PNG transcripts can be read by AI. Review every populated
-                                  field before submitting.
-                                </Hint>
-                                {transcriptMessage ? (
-                                  <p
-                                    className={cn(
-                                      "text-xs font-medium",
-                                      transcriptStatus === "reading"
-                                        ? "animate-pulse text-[color:var(--muted-foreground)]"
-                                        : transcriptMessage.startsWith("Added")
-                                          ? "text-emerald-700"
-                                          : "text-destructive",
-                                    )}
-                                    role="status"
-                                    aria-live="polite"
-                                  >
-                                    {transcriptMessage}
-                                  </p>
-                                ) : null}
-                              </div>
-                            ) : null}
-                            <EvidenceNote />
-                          </Field>
                         </div>
                         <div className="mt-5 border-t border-border pt-5">
                           <h3 className="text-base font-bold text-[color:var(--ink)]">
@@ -3195,16 +2793,14 @@ export function ApplicationForm() {
               <Heading step={professional ? 5 : 5} title="Achievements and Experiences" />
               <Hint>
                 Achievements and experience are optional. Add only items you would like MatchMax to
-                consider. Items without uploaded evidence will not be shown on your public profile,
-                except claims that cannot be documented, such as private tutoring experience or
-                student feedback.
+                consider. You do not upload any evidence here — grade slips are added later from
+                your profile editor, where MatchMax staff review them.
               </Hint>
-              <EvidenceNote className="mt-2" />
               <div className="mt-5 grid gap-4">
                 {base.achievements.map((achievement, index) => (
                   <div
                     key={index}
-                    className="grid gap-3 rounded-sm border border-border p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(15rem,1fr)_auto]"
+                    className="grid gap-3 rounded-sm border border-border p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_auto]"
                   >
                     <Field label="Title" required error={fieldErrors[`achievement-title-${index}`]}>
                       <Input
@@ -3236,61 +2832,6 @@ export function ApplicationForm() {
                         )}
                       />
                     </Field>
-                    <Field label="Evidence" error={fieldErrors[`achievement-proof-${index}`]}>
-                      <Select
-                        value={
-                          achievement.proofStatus === "upload"
-                            ? "File upload"
-                            : achievement.proofStatus === "provide_later"
-                              ? "Provide later"
-                              : "N/A"
-                        }
-                        onValueChange={(choice) =>
-                          updateAchievement(index, {
-                            proofStatus:
-                              choice === "File upload"
-                                ? "upload"
-                                : choice === "Provide later"
-                                  ? "provide_later"
-                                  : "not_applicable",
-                            proof: choice === "File upload" ? achievement.proof : null,
-                          })
-                        }
-                      >
-                        <SelectTrigger
-                          aria-label="Achievement evidence option"
-                          className={controlClassName}
-                        >
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {["File upload", "N/A", "Provide later"].map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {achievement.proofStatus === "upload" ? (
-                        <div className="mt-2">
-                          <DocumentUpload
-                            file={achievement.proof}
-                            invalid={Boolean(fieldErrors[`achievement-proof-${index}`])}
-                            onRemove={() => updateAchievement(index, { proof: null })}
-                            onSelect={(file) => {
-                              if (
-                                !ACCEPTED_FILE_TYPES.includes(file.type) ||
-                                file.size > MAX_FILE_BYTES
-                              ) {
-                                setError("Choose a supported evidence file no larger than 5 MB.");
-                                return;
-                              }
-                              updateAchievement(index, { proof: file });
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                    </Field>
                     <Button
                       type="button"
                       size="icon"
@@ -3315,7 +2856,7 @@ export function ApplicationForm() {
                     onClick={() =>
                       setBaseField("achievements", [
                         ...base.achievements,
-                        { title: "", description: "", proof: null, proofStatus: "not_applicable" },
+                        { title: "", description: "" },
                       ])
                     }
                   >
@@ -3784,6 +3325,13 @@ export function ApplicationForm() {
                           Required
                         </span>
                       ) : null}
+                      {/* Issue #309: verification scope lines — part of the
+                          tutor terms consent, in both locales. */}
+                      <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-relaxed">
+                        {([1, 2, 3, 4] as const).map((line) => (
+                          <li key={line}>{t(`join.terms_verification_${line}`)}</li>
+                        ))}
+                      </ul>
                     </span>
                   </label>
                 </div>

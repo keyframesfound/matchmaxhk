@@ -700,9 +700,18 @@ function ApplicationDetail({
 }
 
 function DocumentStatusSummary({ application }: { application: TutorApplicationRecord }) {
-  const transcripts = application.data.academicDocuments ?? [];
-  const achievements = application.data.achievements ?? [];
-  const studentCard = application.data.studentCard;
+  // Issue #309: /join no longer collects evidence — grades now upload per-grade
+  // from the tutor profile editor (tutor_grades + the staff queue). This
+  // summary keeps rendering LEGACY applications, whose stored jsonb still
+  // carries the old evidence fields; read them defensively off the raw row.
+  const legacy = application.data as unknown as {
+    academicDocuments?: { curriculum: string; status?: string; file?: unknown }[];
+    achievements?: { title: string; description: string; proof?: unknown; proofStatus?: string }[];
+    studentCard?: unknown;
+  };
+  const transcripts = Array.isArray(legacy.academicDocuments) ? legacy.academicDocuments : [];
+  const achievements = Array.isArray(legacy.achievements) ? legacy.achievements : [];
+  const studentCard = "studentCard" in legacy ? legacy.studentCard : undefined;
   const isProfessional = application.data.status === PROFESSIONAL_STATUS;
   if (transcripts.length === 0 && achievements.length === 0 && !studentCard) return null;
 
@@ -717,7 +726,7 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
             <li className="flex items-center gap-2">
               <ImageIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <span className="font-semibold text-[color:var(--ink)]">
-                Enrollment evidence for university / major
+                Enrollment evidence for university / major (legacy)
               </span>
               <span
                 className={cn(
@@ -736,7 +745,7 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
       {transcripts.length > 0 ? (
         <div className="rounded-xl border border-[color:var(--ink)]/10 p-3.5">
           <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-            Academic documents
+            Academic documents (legacy)
           </p>
           <ul className="mt-2 space-y-1.5 text-xs">
             {transcripts.map((doc, index) => (
@@ -763,7 +772,7 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
       {achievements.length > 0 ? (
         <div className="rounded-xl border border-[color:var(--ink)]/10 p-3.5">
           <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-            Achievement evidence
+            Achievement evidence (legacy)
           </p>
           <ul className="mt-2 space-y-2 text-xs">
             {achievements.map((achievement, index) => (

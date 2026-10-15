@@ -33,7 +33,10 @@ export type StoredApplicationFile = {
   filename: string;
   contentType: string;
   size: number;
-  source: "achievement" | "transcript" | "profile_photo" | "student_card" | "portfolio_image";
+  // Issue #309: join no longer collects evidence — only the profile photo and
+  // Trophy Cabinet photos upload at intake. Legacy rows keep their original
+  // source tags ("achievement" | "transcript" | "student_card") on disk.
+  source: "profile_photo" | "portfolio_image";
   label: string;
 };
 
@@ -73,7 +76,7 @@ async function uploadApplicationFile(
   config: ReturnType<typeof getR2Config>,
   file: { filename: string; contentType: string; content: string; size: number },
   meta: {
-    source: "achievement" | "transcript" | "profile_photo" | "student_card" | "portfolio_image";
+    source: StoredApplicationFile["source"];
     label: string;
     applicationId: string;
     index: number;
@@ -132,24 +135,14 @@ export async function storeTutorApplication(
   data: Omit<TutorApplication, "turnstileToken">,
 ): Promise<{ id: string }> {
   const attachments = [
-    ...data.achievements.flatMap((achievement) =>
-      achievement.proof
-        ? [{ file: achievement.proof, source: "achievement" as const, label: achievement.title }]
-        : [],
-    ),
-    ...data.academicDocuments.flatMap((document) =>
-      document.file
-        ? [{ file: document.file, source: "transcript" as const, label: document.curriculum }]
-        : [],
-    ),
+    // Issue #309: evidence files are gone from /join — grade slips now upload
+    // per-grade from the profile editor into the private grade-slips bucket.
+    // Only the profile photo and Trophy Cabinet photos upload at intake.
     ...(data.profilePhoto
       ? [{ file: data.profilePhoto, source: "profile_photo" as const, label: "Profile photo" }]
       : []),
-    ...(data.studentCard
-      ? [{ file: data.studentCard, source: "student_card" as const, label: "Student ID card" }]
-      : []),
-    // Issue #97: Trophy Cabinet photos go to R2 like the other evidence, tagged
-    // portfolio_image so the admin review shows them as public portfolio files.
+    // Issue #97: Trophy Cabinet photos go to R2, tagged portfolio_image so the
+    // admin review shows them as public portfolio files.
     ...data.portfolioImages.map((image) => ({
       file: image,
       source: "portfolio_image" as const,
