@@ -20,6 +20,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/useAuth";
+import { SignupChecklistCard } from "@/features/account/signup-checklist";
 import {
   formatAvailabilityDate,
   getTutorAvailabilityReadiness,
@@ -202,6 +203,9 @@ function AccountPage() {
       <SiteHeader />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">
         <h1 className="text-2xl font-bold tracking-normal">{t("account.title")}</h1>
+
+        {/* #141: post-signup checklist — first block, dismissible, hidden once done */}
+        <SignupChecklistCard />
 
         {/* P6: identity + rating — the store header */}
         <section className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-5">
