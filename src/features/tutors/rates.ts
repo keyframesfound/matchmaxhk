@@ -15,6 +15,8 @@ export const MAX_RATE_ROWS = 6;
 export const RATE_ROW_LABEL_MAX = 30;
 export const TRAVEL_NOTE_MAX = 80;
 export const RATE_NOTE_MAX = 120;
+/** Minimum similar live cards before suggest-a-rate fills anything (issue #345). */
+export const SUGGEST_MIN_SIMILAR = 10;
 
 export type TutorRateRow = { label: string; rate: number };
 
@@ -132,13 +134,14 @@ export function tutorCardIsSimilar(
 
 /**
  * Suggest-a-rate core (issue #319): median online and in-person base rates of
- * similar live cards, each rounded to the nearest $10. Fewer than ten similar
- * cards fills nothing. Suggests base fields only — never extra rows.
+ * similar live cards, each rounded to the nearest $10. Fewer than
+ * SUGGEST_MIN_SIMILAR similar cards fills nothing. Suggests base fields
+ * only — never extra rows.
  */
 export function computeSuggestedRates(
   cards: { online_rate: number | null; inperson_rate: number | null }[],
 ): SuggestedRates {
-  if (cards.length < 10) return { status: "not_enough_data" };
+  if (cards.length < SUGGEST_MIN_SIMILAR) return { status: "not_enough_data" };
   const online = medianRate(
     cards.map((card) => card.online_rate).filter((rate): rate is number => rate !== null),
   );
