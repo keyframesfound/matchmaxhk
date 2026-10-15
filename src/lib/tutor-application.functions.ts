@@ -152,6 +152,51 @@ async function publishTutorCardFromApplication(
     ? (record.attachment_files as { source?: string; url?: string }[])
     : [];
 
+  // Issue #310 retry guard: if a previous attempt of this same email already
+  // published a card, reuse it instead of allocating a second live card
+  // (a failed publish leaves the first application row stored, so a resubmit
+  // would otherwise double-publish).
+  const applicationEmail =
+    typeof application.email === "string" ? application.email.trim().toLowerCase() : "";
+  if (applicationEmail) {
+    const { data: linkedApps, error: dupeError } = await supabaseAdmin
+      .from("tutor_applications")
+      .select("id, linked_tutor_id")
+      .eq("status", "accepted")
+      .not("linked_tutor_id", "is", null)
+      .neq("id", applicationId)
+      .filter("data->>email", "ilike", applicationEmail)
+      .limit(25);
+    if (!dupeError) {
+      const existingTutorId = (linkedApps as { linked_tutor_id: string }[] | null)?.[0]
+        ?.linked_tutor_id;
+      if (existingTutorId) {
+        const { data: existingCard } = await supabaseAdmin
+          .from("tutors")
+          .select("id, tutor_code, is_published")
+          .eq("id", existingTutorId)
+          .maybeSingle();
+        const card = existingCard as {
+          id: string;
+          tutor_code: string;
+          is_published: boolean | null;
+        } | null;
+        if (card?.tutor_code) {
+          await supabaseAdmin
+            .from("tutor_applications")
+            .update({ status: "accepted", linked_tutor_id: card.id } as never)
+            .eq("id", applicationId);
+          return {
+            tutorId: card.id,
+            tutorCode: card.tutor_code,
+            email: applicationEmail,
+            name: application.name ?? "",
+          };
+        }
+      }
+    }
+  }
+
   const { data: tutorRows, error: tutorError } = await supabaseAdmin
     .from("tutors")
     .select("tutor_code");
