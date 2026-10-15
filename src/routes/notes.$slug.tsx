@@ -96,6 +96,9 @@ function NotePage() {
 
   const iaLabel = ["ia", "ee", "tok_essay"].includes(note.documentType);
   const isExemplar = note.materialType === "exemplar" || iaLabel;
+  // #314: an .apkg deck has no watermarked preview — the page shows a
+  // download panel instead of the in-browser viewer (no Anki player).
+  const isApkgDeck = note.materialType === "flashcards" && !note.previewUrl;
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
@@ -143,6 +146,12 @@ function NotePage() {
                     {t("notes.page_count", { count: note.pageCount })}
                   </span>
                 )}
+                {note.wordCount != null && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <FileText className="h-4 w-4" aria-hidden />
+                    {t("notes.card.word_count", { count: note.wordCount })}
+                  </span>
+                )}
                 <span className="inline-flex items-center gap-1.5">
                   <Eye className="h-4 w-4" aria-hidden />
                   {t("notes.views", { count: note.viewCount })}
@@ -156,13 +165,27 @@ function NotePage() {
               </div>
             </header>
 
-            <NotePreviewViewer
-              previewUrl={note.previewUrl}
-              previewPages={note.previewPages}
-              pageCount={note.pageCount}
-              ctaLabel={t("notes.unlock_cta")}
-              lockedLabel={t("notes.locked_title")}
-            />
+            {isApkgDeck ? (
+              <div className="flex items-start gap-4 rounded-xl border border-border bg-card p-6">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent">
+                  <FileText className="h-5 w-5 text-accent-foreground" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold">{t("notes.apkg_panel_title")}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    {t("notes.apkg_panel_body")}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <NotePreviewViewer
+                previewUrl={note.previewUrl}
+                previewPages={note.previewPages}
+                pageCount={note.pageCount}
+                ctaLabel={t("notes.unlock_cta")}
+                lockedLabel={t("notes.locked_title")}
+              />
+            )}
 
             {note.description && (
               <section className="space-y-2">
@@ -208,9 +231,17 @@ function NotePage() {
                     </dd>
                   </div>
                 )}
+                {note.wordCount != null && (
+                  <div className="flex justify-between gap-4 sm:block">
+                    <dt className="text-muted-foreground">{t("notes.field_word_count")}</dt>
+                    <dd className="font-semibold">
+                      {t("notes.card.word_count", { count: note.wordCount })}
+                    </dd>
+                  </div>
+                )}
                 <div className="flex justify-between gap-4 sm:block">
                   <dt className="text-muted-foreground">{t("notes.field_format")}</dt>
-                  <dd className="font-semibold">PDF</dd>
+                  <dd className="font-semibold">{isApkgDeck ? t("notes.format_apkg") : "PDF"}</dd>
                 </div>
               </dl>
               {isExemplar && (
@@ -223,7 +254,9 @@ function NotePage() {
           <aside className="lg:sticky lg:top-24 lg:self-start" id="buy">
             <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
               <p className="text-3xl font-bold tracking-normal">
-                {t("notes.price", { amount: note.priceHkd })}
+                {note.priceHkd === 0
+                  ? t("notes.card.free")
+                  : t("notes.price", { amount: note.priceHkd })}
               </p>
               <Link
                 to="/tutors/$tutorCode"
@@ -291,7 +324,9 @@ function NotePage() {
                 >
                   <p className="font-semibold group-hover:underline">{other.title}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {t("notes.price", { amount: other.priceHkd })}
+                    {other.priceHkd === 0
+                      ? t("notes.card.free")
+                      : t("notes.price", { amount: other.priceHkd })}
                   </p>
                 </a>
               ))}

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { BookOpen, Gift, MessageCircle, Star } from "lucide-react";
+import { BadgeCheck, BookOpen, Gift, MessageCircle, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -119,16 +119,21 @@ export function StudyMaterialCard({
   tutorCode,
   actions,
   showTutorLink = false,
+  verifiedTutor = false,
 }: {
   material: StudyMaterial;
   tutorName: string;
   tutorCode?: string;
   actions: MaterialCardAction;
   showTutorLink?: boolean;
+  /** #314: the tutor holds the Verified badge — the line never implies an
+   * examiner wrote the file, only that MatchMax verified the tutor. */
+  verifiedTutor?: boolean;
 }) {
   const { t } = useTranslation();
   const [previewOpen, setPreviewOpen] = useState(false);
   const isExemplar = material.material_type === "exemplar";
+  const isFree = Number(material.price_hkd) === 0;
   const courseworkMeta =
     material.document_type === "ia" ||
     material.document_type === "ee" ||
@@ -157,7 +162,7 @@ export function StudyMaterialCard({
           </p>
         </div>
         <p className="shrink-0 text-lg font-bold text-[color:var(--ink)]">
-          ${Number(material.price_hkd).toFixed(0)}
+          {isFree ? t("notes.card.free") : `$${Number(material.price_hkd).toFixed(0)}`}
         </p>
       </div>
 
@@ -167,6 +172,19 @@ export function StudyMaterialCard({
         {isExemplar && material.grade_achieved ? (
           <span className="inline-flex items-center rounded-full border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/5 px-2.5 py-0.5 text-xs font-bold text-[color:var(--brand-link)]">
             {t("materials.grade_label")}: {material.grade_achieved}
+          </span>
+        ) : null}
+        {/* #136: approximate word count, tutor-entered (optional). */}
+        {material.word_count != null ? (
+          <span className="inline-flex items-center rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+            {t("notes.card.word_count", { count: material.word_count })}
+          </span>
+        ) : null}
+        {/* #314: Verified-tutor badge line — verified account, not authorship. */}
+        {verifiedTutor ? (
+          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+            <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+            {t("notes.card.verified_tutor")}
           </span>
         ) : null}
       </div>

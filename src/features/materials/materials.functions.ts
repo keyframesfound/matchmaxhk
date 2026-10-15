@@ -5,7 +5,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { findContactViolations } from "@/lib/contact-filter";
 import { watermarkPdfPreview, PREVIEW_PAGE_LIMIT } from "@/features/materials/watermark";
 import {
+  isAllowedMaterialFile,
   legacyDocumentTypeToMaterialType,
+  materialFileContentType,
+  materialFileKind,
+  MAX_APKG_BYTES,
   validateNoteKindsForSubmit,
 } from "@/features/materials/lifecycle";
 
@@ -31,7 +35,9 @@ import {
 
 const PRIVATE_BUCKET = "materials-originals";
 const PUBLIC_BUCKET = "materials-previews";
-const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20MB
+// Repo upload cap: 20MB for every file kind (the issue's 40MB loses to the
+// Workers body limit — MAX_APKG_BYTES === MAX_PDF_BYTES by design).
+const MAX_UPLOAD_BYTES = MAX_APKG_BYTES;
 
 const UploadMaterialInput = z.object({
   fileName: z
@@ -39,8 +45,10 @@ const UploadMaterialInput = z.object({
     .trim()
     .min(1)
     .max(200)
-    .regex(/\.pdf$/i, "Only PDF files are supported"),
-  // Base64 of the PDF bytes (client reads the File with FileReader).
+    // #314: flashcards may carry an .apkg deck; the type-aware gate below
+    // still rejects .apkg on notes/mock/exemplar.
+    .regex(/\.(pdf|apkg)$/i, "Only PDF or .apkg files are supported"),
+  // Base64 of the file bytes (client reads the File with FileReader).
   base64Data: z.string().trim().min(100).max(60_000_000),
   title: z.string().trim().min(3).max(160),
   description: z.string().trim().max(4000).optional(),
@@ -50,12 +58,15 @@ const UploadMaterialInput = z.object({
   // required on every path — no caller may skip the note-kind validation.
   curriculumTag: z.enum(["IB", "DSE", "IGCSE", "A-Level", "Other"]),
   subjectTag: z.string().trim().min(1).max(160),
-  // #313 note kinds: the 3-way type replaces the old document types for new
-  // uploads (documentType stays accepted for legacy callers and is mapped).
-  materialType: z.enum(["notes", "mock", "exemplar"]).optional(),
+  // #313/#314 note kinds: the 4-way type (flashcards added by #314) replaces
+  // the old document types for new uploads (documentType stays accepted for
+  // legacy callers and is mapped).
+  materialType: z.enum(["notes", "mock", "exemplar", "flashcards"]).optional(),
   topic: z.string().trim().max(40).optional(),
   gradeAchieved: z.string().trim().max(20).optional(),
   exemplarPermission: z.boolean().optional(),
+  // #136: approximate word count — optional, positive integer when present.
+  wordCount: z.number().int().min(1).max(500_000).optional(),
   documentType: z.enum(["custom_notes", "ia", "ee", "tok_essay", "mock_exam"]).optional(),
   yearTag: z.string().trim().max(20).optional(),
   pageCount: z.number().int().min(1).max(10_000).optional(),
@@ -74,8 +85,10 @@ export type UploadMaterialResult = {
   id: string;
   title: string;
   originalPath: string;
+  /** "" for .apkg decks — no preview is generated (#314). */
   previewUrl: string;
-  previewPages: number;
+  /** null for .apkg decks — the file has no pages (#314). */
+  previewPages: number | null;
 };
 
 async function assertVerifiedTutor(supabase: unknown, userId: string) {
@@ -171,7 +184,7 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-function safePdfName(title: string, tutorLabel: string): string {
+function safePdfName(title: string, tutorLabel: string, kind: "pdf" | "apkg" = "pdf"): string {
   const clean = (value: string) =>
     value
       .replace(/[^\p{L}\p{N}]+/gu, " ")
@@ -180,7 +193,7 @@ function safePdfName(title: string, tutorLabel: string): string {
       .slice(0, 60);
   const slug = `${clean(tutorLabel)} - ${clean(title)}`.replace(/^ - | - $/g, "");
   const stamp = Date.now().toString(36);
-  return `materials/${stamp}-${slug || "study-materials"}.pdf`;
+  return `materials/${stamp}-${slug || "study-materials"}${kind === "apkg" ? ".apkg" : ".pdf"}`;
 }
 
 export const uploadStudyMaterial = createServerFn({ method: "POST" })
@@ -237,42 +250,66 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
     });
     if (kindErrors.length > 0) throw new Error(kindErrors.join(" "));
 
+    // #314: the file kind must match the listing type — an .apkg deck only
+    // rides a flashcards listing; everything else stays PDF-only.
+    if (!isAllowedMaterialFile(effectiveType, data.fileName)) {
+      throw new Error(
+        effectiveType === "flashcards"
+          ? "Flashcards need a PDF or an .apkg file."
+          : "This listing type needs a PDF file.",
+      );
+    }
+    const fileKind = materialFileKind(data.fileName) ?? "pdf";
+    const isApkg = fileKind === "apkg";
+
     const bytes = base64ToBytes(data.base64Data);
     if (bytes.byteLength > MAX_UPLOAD_BYTES) {
-      throw new Error("PDF is too large. Maximum upload size is 20MB.");
+      throw new Error("File is too large. Maximum upload size is 20MB.");
     }
-    if (bytes[0] !== 0x25 || bytes[1] !== 0x50 || bytes[2] !== 0x44 || bytes[3] !== 0x46) {
+    if (
+      !isApkg &&
+      (bytes[0] !== 0x25 || bytes[1] !== 0x50 || bytes[2] !== 0x44 || bytes[3] !== 0x46)
+    ) {
       throw new Error("That file is not a valid PDF.");
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const originalPath = safePdfName(data.title, tutor.display_name);
+    const originalPath = safePdfName(data.title, tutor.display_name, fileKind);
     const { error: originalError } = await supabaseAdmin.storage
       .from(PRIVATE_BUCKET)
       .upload(originalPath, bytes as unknown as BlobPart, {
-        contentType: "application/pdf",
+        contentType: materialFileContentType(fileKind),
         upsert: false,
       });
     if (originalError) throw new Error(originalError.message);
 
     try {
-      const { bytes: previewBytes, pageCount } = await watermarkPdfPreview(bytes, {
-        pageLimit: PREVIEW_PAGE_LIMIT,
-      });
+      // #314: an .apkg deck skips the PDF-only pipeline entirely — no
+      // pdf-lib watermark, no preview URL, no page count. The buyer
+      // downloads the deck; there is no in-browser reviewer or player.
+      const watermark = isApkg
+        ? null
+        : await watermarkPdfPreview(bytes, {
+            pageLimit: PREVIEW_PAGE_LIMIT,
+          });
 
-      const previewPath = originalPath.replace(/^materials\//, "previews/");
-      const { error: previewError } = await supabaseAdmin.storage
-        .from(PUBLIC_BUCKET)
-        .upload(previewPath, previewBytes as unknown as BlobPart, {
-          contentType: "application/pdf",
-          upsert: false,
-        });
-      if (previewError) throw new Error(previewError.message);
+      let previewUrl = "";
+      if (watermark) {
+        const previewPath = originalPath.replace(/^materials\//, "previews/");
+        const { error: previewError } = await supabaseAdmin.storage
+          .from(PUBLIC_BUCKET)
+          .upload(previewPath, watermark.bytes as unknown as BlobPart, {
+            contentType: "application/pdf",
+            upsert: false,
+          });
+        if (previewError) throw new Error(previewError.message);
 
-      const { data: publicUrl } = supabaseAdmin.storage
-        .from(PUBLIC_BUCKET)
-        .getPublicUrl(previewPath);
+        const { data: publicUrl } = supabaseAdmin.storage
+          .from(PUBLIC_BUCKET)
+          .getPublicUrl(previewPath);
+        previewUrl = publicUrl?.publicUrl ?? "";
+      }
 
       const payload = {
         tutor_id: tutor.id,
@@ -288,13 +325,14 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
         topic: data.topic ?? null,
         grade_achieved: data.gradeAchieved ?? null,
         exemplar_permission: data.exemplarPermission ?? false,
+        word_count: data.wordCount ?? null,
         document_type: data.documentType ?? "custom_notes",
         year_tag: data.yearTag ?? null,
-        page_count: data.pageCount ?? null,
+        page_count: watermark ? (data.pageCount ?? null) : null,
         exact_score_achieved: data.exactScoreAchieved ?? null,
         includes_examiner_comments: data.includesExaminerComments ?? false,
         original_file_path: originalPath,
-        watermarked_preview_url: publicUrl?.publicUrl ?? "",
+        watermarked_preview_url: previewUrl,
         // The legacy boolean is gone from the schema (#203); admins publish
         // instantly, tutor uploads land as drafts awaiting review.
         status: publishNow ? "published" : "draft",
@@ -313,8 +351,8 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
         id: inserted.id,
         title: inserted.title,
         originalPath,
-        previewUrl: publicUrl?.publicUrl ?? "",
-        previewPages: pageCount,
+        previewUrl,
+        previewPages: watermark ? watermark.pageCount : null,
       };
     } catch (err) {
       // Roll the private original back if the preview/row half failed so we
@@ -388,6 +426,8 @@ export type AdminMaterialRow = {
   title: string;
   price_hkd: number;
   document_type: string;
+  material_type: string;
+  word_count: number | null;
   admin_star_rating: number | null;
   admin_marketing_summary: string | null;
   commission_rate: number;
@@ -443,7 +483,7 @@ export const listAllMaterialsAdmin = createServerFn({ method: "POST" })
     )
       .from("digital_materials")
       .select(
-        "id, title, price_hkd, document_type, admin_star_rating, admin_marketing_summary, commission_rate, commission_status, is_published, status, edit_status, submitted_at, created_at, tutors(display_name, tutor_code)",
+        "id, title, price_hkd, document_type, material_type, word_count, admin_star_rating, admin_marketing_summary, commission_rate, commission_status, is_published, status, edit_status, submitted_at, created_at, tutors(display_name, tutor_code)",
       )
       .order("created_at", { ascending: false })
       .limit(200);

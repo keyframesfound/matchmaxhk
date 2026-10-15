@@ -38,7 +38,8 @@ import {
 } from "@/features/materials/orders.functions";
 
 import { MaterialsOrdersDesk } from "@/features/materials/materials-orders-desk";
-import { NOTE_CURRICULA } from "@/features/materials/lifecycle";
+import { formatMaterialTypeLabel } from "@/features/materials/queries";
+import { MATERIAL_TYPES, NOTE_CURRICULA } from "@/features/materials/lifecycle";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -81,10 +82,11 @@ function AdminMaterials() {
     schoolTag: "",
     curriculumTag: "",
     subjectTag: "",
-    materialType: "notes" as "notes" | "mock" | "exemplar",
+    materialType: "notes" as "notes" | "mock" | "exemplar" | "flashcards",
     topic: "",
     gradeAchieved: "",
     exemplarPermission: false,
+    wordCount: "",
     yearTag: "",
     pageCount: "",
     adminStarRating: "",
@@ -182,6 +184,7 @@ function AdminMaterials() {
       topic: "",
       gradeAchieved: "",
       exemplarPermission: false,
+      wordCount: "",
       yearTag: "",
       pageCount: "",
       adminStarRating: "",
@@ -228,6 +231,7 @@ function AdminMaterials() {
             form.materialType === "exemplar" ? form.gradeAchieved || undefined : undefined,
           exemplarPermission:
             form.materialType === "exemplar" ? form.exemplarPermission : undefined,
+          wordCount: form.wordCount ? Number(form.wordCount) : undefined,
           yearTag: form.yearTag || undefined,
           pageCount: form.pageCount ? Number(form.pageCount) : undefined,
           legalAgreed: true,
@@ -333,7 +337,10 @@ function AdminMaterials() {
                     {row.title}
                   </span>
                   <span className="text-xs text-[color:var(--ink)]/55">
-                    {t(`materials.doc_type_${row.document_type}`)}
+                    {formatMaterialTypeLabel(row.material_type, t)}
+                    {row.word_count != null
+                      ? ` · ${t("notes.card.word_count", { count: row.word_count })}`
+                      : ""}
                   </span>
                 </ConsoleTd>
                 <ConsoleTd>
@@ -556,9 +563,11 @@ function AdminMaterials() {
                   }
                   className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
                 >
-                  <option value="notes">{t("notes.form.type_notes")}</option>
-                  <option value="mock">{t("notes.form.type_mock")}</option>
-                  <option value="exemplar">{t("notes.form.type_exemplar")}</option>
+                  {MATERIAL_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {t(`notes.form.type_${type}`)}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="space-y-1.5">
@@ -597,6 +606,21 @@ function AdminMaterials() {
                 </>
               ) : null}
               <div className="space-y-1.5">
+                <Label htmlFor="admin-material-word-count">
+                  {t("notes.form.field_word_count")}
+                </Label>
+                <Input
+                  id="admin-material-word-count"
+                  type="number"
+                  min={1}
+                  step="1"
+                  value={form.wordCount}
+                  onChange={(event) => setField({ wordCount: event.target.value })}
+                  placeholder="12000"
+                />
+                <p className="text-xs text-muted-foreground">{t("notes.form.word_count_hint")}</p>
+              </div>
+              <div className="space-y-1.5">
                 <Label htmlFor="admin-material-rating">Star rating (optional)</Label>
                 <Input
                   id="admin-material-rating"
@@ -625,7 +649,7 @@ function AdminMaterials() {
                   id="admin-material-file"
                   ref={fileInputRef}
                   type="file"
-                  accept="application/pdf,.pdf"
+                  accept="application/pdf,.pdf,.apkg"
                   required
                 />
               </div>

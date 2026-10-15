@@ -192,6 +192,7 @@ export function MaterialsDirectory({ whatsappNumber }: { whatsappNumber: string 
                 tutorName={material.tutor_display_name}
                 tutorCode={material.tutor_code}
                 showTutorLink
+                verifiedTutor={material.tutor_verified}
                 actions={{
                   buyHref: buildBuyWhatsAppUrl(
                     whatsappNumber,

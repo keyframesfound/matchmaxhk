@@ -22,13 +22,6 @@ export type MaterialStatus = (typeof MATERIAL_STATUSES)[number];
 /** Fields the owner may always edit (P8 "after publish" list + P9). */
 export const OWNER_EDITABLE_FIELDS = ["title", "price", "description"] as const;
 
-/**
- * #203's HK$30 floor, RETIRED by #314: HK$0 free packs are allowed for any
- * listing type. Kept as an export only until the last form/server usage is
- * removed in this same PR — do not use it in new code.
- */
-export const MIN_PRICE_HKD = 0;
-
 /** #203 file rules. */
 export const MAX_PDF_BYTES = 20 * 1024 * 1024; // repo upload cap (issue allows 40MB; Workers body limits win)
 
@@ -227,6 +220,48 @@ export type MaterialType = (typeof MATERIAL_TYPES)[number];
 
 export const NOTE_TOPIC_MAX_LEN = 40;
 export const GRADE_ACHIEVED_MAX_LEN = 20;
+
+/**
+ * #136: tutor-entered approximate word count — OPTIONAL (Ryan: empty never
+ * blocks publish). When present it must be a positive whole number; the cap
+ * just stops fat-fingered 9-digit values from landing in the DB.
+ */
+export const WORD_COUNT_MAX = 500_000;
+
+/** Returns a human-readable problem, or null when the value is acceptable. */
+export function validateWordCount(value: number | null | undefined): string | null {
+  if (value == null) return null;
+  if (!Number.isInteger(value) || value <= 0 || value > WORD_COUNT_MAX) {
+    return "Approximate word count must be a positive whole number.";
+  }
+  return null;
+}
+
+/**
+ * #314: which kind of file a listing carries, decided by extension. PDF is
+ * valid for every type; an .apkg deck is only valid for flashcards (no
+ * in-browser player — the buyer downloads the file).
+ */
+export type MaterialFileKind = "pdf" | "apkg";
+
+export function materialFileKind(fileName: string): MaterialFileKind | null {
+  const name = fileName.trim().toLowerCase();
+  if (name.endsWith(".pdf")) return "pdf";
+  if (name.endsWith(".apkg")) return "apkg";
+  return null;
+}
+
+export function isAllowedMaterialFile(materialType: MaterialType, fileName: string): boolean {
+  const kind = materialFileKind(fileName);
+  if (!kind) return false;
+  if (kind === "apkg") return materialType === "flashcards";
+  return true;
+}
+
+/** Storage/content-type for an original upload by file kind. */
+export function materialFileContentType(kind: MaterialFileKind): string {
+  return kind === "apkg" ? "application/octet-stream" : "application/pdf";
+}
 
 /**
  * #346: subject is allowlisted server-side to match what the forms can
