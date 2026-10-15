@@ -96,14 +96,14 @@ function renderNoteCard(note: HomeNote, className?: string) {
   return <HomeNoteCard key={note.id} note={note} className={className} />;
 }
 
-// The Study Materials route (/study-materials) lands with the marketplace
-// batch — plain anchors keep this file tsc-clean before that route exists in
-// the route tree, and work unchanged once it does.
+// The Study Materials directory lives at /tutors?view=materials (Ryan's
+// directory-toggle decision, 2026-10-10) — plain Link-free anchors keep this
+// file free of route imports; swap to <Link> if a dedicated route ever lands.
 function SeeAllTile({ className }: { className?: string }) {
   const { t } = useTranslation();
   return (
     <a
-      href="/study-materials"
+      href="/tutors?view=materials"
       className={cn(
         "flex flex-col items-center justify-center gap-3 rounded-[var(--radius-panel)] border border-dashed border-border bg-[color:var(--surface-subtle)]/40 text-center transition-colors hover:bg-[color:var(--surface-subtle)]",
         className,
@@ -202,7 +202,7 @@ export function HomeNotesRow() {
           variant="ghost"
           className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
         >
-          <a href="/study-materials">
+          <a href="/tutors?view=materials">
             {t("notes.home.view_all")}
             <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
           </a>

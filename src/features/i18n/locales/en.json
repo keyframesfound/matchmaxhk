@@ -746,7 +746,8 @@
     "upload_requires_login": "Sign in with your verified tutor account to upload study materials.",
     "my_listings_title": "My study materials",
     "listing_pending": "Pending admin review",
-    "listing_published": "Published"
+    "listing_published": "Published",
+    "type_flashcards": "Flashcards"
   },
   "directory": {
     "subtitle": "Every tutor is transcript-verified and team-approved before going live.",
@@ -1583,8 +1584,34 @@
       "save_failed": "Could not save the draft.",
       "submit_failed": "Could not submit the note.",
       "contact_block": "Remove contact details (\"{{match}}\") before saving.",
-      "missing_note": "Before submitting, add: {{fields}}. You can also save a draft."
-    }
+      "missing_note": "Before submitting, add: {{fields}}. You can also save a draft.",
+      "type_flashcards": "Flashcards",
+      "field_word_count": "Approximate word count (optional)",
+      "word_count_hint": "Enter a rough positive whole number — buyers use it to judge length.",
+      "word_count_invalid": "Approximate word count must be a positive whole number.",
+      "price_free_hint": "HK$ (enter 0 for free)",
+      "price_free_note": "HK$0 is allowed — free packs still go through staff review.",
+      "field_file_flashcards": "Deck file (PDF or Anki .apkg)",
+      "file_hint_flashcards": "PDF or Anki .apkg, max 20MB. Buyers download the file — there is no in-browser preview.",
+      "file_too_large": "File is too large. Maximum is 20MB."
+    },
+    "home": {
+      "heading": "Study notes",
+      "view_all": "View all",
+      "prev": "Previous notes",
+      "next": "Next notes",
+      "bought_count": "{{count}} sold",
+      "authored_heading": "Authored notes"
+    },
+    "card": {
+      "free": "Free",
+      "word_count": "≈ {{count}} words",
+      "verified_tutor": "Verified tutor"
+    },
+    "field_word_count": "Approximate word count",
+    "format_apkg": "Anki deck (.apkg)",
+    "apkg_panel_title": "Flashcard deck — download only",
+    "apkg_panel_body": "Delivered as a file in your MatchMax account after purchase. There is no in-browser preview or player."
   },
   "orders": {
     "eyebrow": "Notes order",
@@ -1677,6 +1704,18 @@
     "case_status_matched": "Matched",
     "case_status_closed": "Closed",
     "case_status_rejected": "Rejected",
-    "case_status_other": "In review"
+    "case_status_other": "In review",
+    "checklist": {
+      "title": "Get started",
+      "dismiss": "Dismiss",
+      "dismiss_failed": "Couldn't dismiss the checklist",
+      "step_tutor_card": "Complete your tutor card",
+      "step_tutor_verify": "Submit documents for verification",
+      "step_tutor_capacity": "Set your availability and student slots",
+      "step_tutor_listing": "Add a study note",
+      "step_parent_save": "Save tutors you like",
+      "step_parent_case": "Request a tutor or open a case",
+      "step_parent_bought": "Buy study notes"
+    }
   }
 }
