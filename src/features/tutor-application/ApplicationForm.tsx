@@ -1389,12 +1389,7 @@ export function ApplicationForm() {
         required(`achievement-title-${index}`, achievement.title.trim());
         rejectContact(`achievement-title-${index}`, achievement.title);
         required(`achievement-description-${index}`, achievement.description.trim());
-<<<<<<< HEAD
-=======
         rejectContact(`achievement-description-${index}`, achievement.description);
-        if (achievement.proofStatus === "upload")
-          required(`achievement-proof-${index}`, achievement.proof);
->>>>>>> origin/main
       });
       // Issue #215: no contact details in the public self-introduction.
       const introError = contactFilterError(base.selfIntroduction);
