@@ -59,7 +59,8 @@ const searchSchema = z.object({
   status: z.string().optional(), // uni_student | full_part_time_tutor | examiner
   tag: z.string().optional(), // issue #217: profile-tag search (?tag=ia review)
   verified: z.preprocess(
-    (value) => (value === "1" || value === "true" || value === true ? true : undefined),
+    (value) =>
+      value === 1 || value === "1" || value === "true" || value === true ? true : undefined,
     z.boolean().optional(),
   ), // issue #142: Verified Tutors Only (tier_2_verified), default off
   university: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
@@ -67,7 +68,8 @@ const searchSchema = z.object({
   major: z.string().optional(), // issue #23 exact major over the free-text degree fields
   // Issue #199: SEN-experienced tutors only + required categories ("||"-joined).
   sen: z.preprocess(
-    (value) => (value === "1" || value === "true" || value === true ? true : undefined),
+    (value) =>
+      value === 1 || value === "1" || value === "true" || value === true ? true : undefined,
     z.boolean().optional(),
   ),
   sen_categories: z.string().optional(), // SEN categories, ALL must match
@@ -76,7 +78,8 @@ const searchSchema = z.object({
   sort: z.string().optional(), // "" | price_asc | price_desc
   q: z.string().optional(),
   open: z.preprocess(
-    (value) => (value === "1" || value === "true" || value === true ? true : undefined),
+    (value) =>
+      value === 1 || value === "1" || value === "true" || value === true ? true : undefined,
     z.boolean().optional(),
   ), // transient: opens the mobile search overlay when hopping tabs
   view: z.enum(["tutors", "materials"]).optional(), // #131 directory tab
