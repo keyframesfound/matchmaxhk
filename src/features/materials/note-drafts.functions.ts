@@ -314,16 +314,24 @@ export function mergeDraftNoteKinds(data: DraftKindInput, existing?: StoredKindR
   );
 }
 
-/** Same remap, into the strict submit validator (which also reads `curriculum` / `subject`). */
-export function validateDraftNoteKindsForSubmit(kinds: ReturnType<typeof mergeDraftNoteKinds>) {
-  return validateNoteKindsForSubmit({
-    curriculum: kinds.curriculum,
-    subject: kinds.subject,
-    materialType: kinds.materialType,
-    topic: kinds.topic,
-    gradeAchieved: kinds.gradeAchieved,
-    exemplarPermission: kinds.exemplarPermission,
-  });
+/** Same remap, into the strict submit validator (which also reads `curriculum` / `subject`).
+ * #346: the stored legacy subjectTag is passed through so a re-save of a
+ * pre-catalog value (the form's legacy option) still validates. */
+export function validateDraftNoteKindsForSubmit(
+  kinds: ReturnType<typeof mergeDraftNoteKinds>,
+  storedSubject?: string | null,
+) {
+  return validateNoteKindsForSubmit(
+    {
+      curriculum: kinds.curriculum,
+      subject: kinds.subject,
+      materialType: kinds.materialType,
+      topic: kinds.topic,
+      gradeAchieved: kinds.gradeAchieved,
+      exemplarPermission: kinds.exemplarPermission,
+    },
+    storedSubject,
+  );
 }
 
 /** P8: create or update the signed-in tutor's draft. Any subset of fields. */
@@ -340,20 +348,26 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
       topic: data.topic ?? undefined,
       gradeAchieved: data.gradeAchieved ?? undefined,
     });
-    const kindErrors = validateNoteKindsPartial({
-      curriculum: data.curriculumTag,
-      materialType: data.materialType,
-      topic: data.topic,
-      gradeAchieved: data.gradeAchieved,
-    });
+    // #346: the stored row loads first so the partial subject check can
+    // exempt the note's own legacy subjectTag (the form's legacy option).
+    const existing = data.materialId
+      ? await loadOwnedMaterial(db, data.materialId, tutor.id)
+      : null;
+    const kindErrors = validateNoteKindsPartial(
+      {
+        curriculum: data.curriculumTag,
+        subject: data.subjectTag,
+        materialType: data.materialType,
+        topic: data.topic,
+        gradeAchieved: data.gradeAchieved,
+      },
+      existing?.subject_tag ?? null,
+    );
     if (kindErrors.length > 0) throw new Error(kindErrors.join(" "));
 
     // #313 review fix: merge with explicit-clear semantics — switching the
     // type away from exemplar (or clearing topic/grade) must actually write
     // the cleared values, not silently keep the stored ones.
-    const existing = data.materialId
-      ? await loadOwnedMaterial(db, data.materialId, tutor.id)
-      : null;
     const kinds = mergeDraftNoteKinds(data, existing);
 
     if (existing) {
@@ -463,7 +477,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     if (!check.ok) {
       throw new Error(`Missing: ${check.missing.join(", ")}`);
     }
-    const kindErrors = validateDraftNoteKindsForSubmit(kinds);
+    const kindErrors = validateDraftNoteKindsForSubmit(kinds, existing?.subject_tag ?? null);
     if (kindErrors.length > 0) {
       throw new Error(kindErrors.join(" "));
     }

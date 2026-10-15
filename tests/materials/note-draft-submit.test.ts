@@ -15,7 +15,7 @@ import {
 describe("tutor note submit mapping (#340)", () => {
   const filled = {
     curriculumTag: "IB" as const,
-    subjectTag: "Physics",
+    subjectTag: "Phys HL",
     materialType: "notes" as const,
     topic: "Waves",
     gradeAchieved: null,
@@ -25,7 +25,7 @@ describe("tutor note submit mapping (#340)", () => {
   it("accepts a submit whose curriculum and subject arrived as tag fields", () => {
     const kinds = mergeDraftNoteKinds(filled);
     expect(kinds.curriculum).toBe("IB");
-    expect(kinds.subject).toBe("Physics");
+    expect(kinds.subject).toBe("Phys HL");
     expect(validateDraftNoteKindsForSubmit(kinds)).toEqual([]);
   });
 
@@ -75,14 +75,14 @@ describe("tutor note submit mapping (#340)", () => {
     const kinds = mergeDraftNoteKinds(
       {
         curriculumTag: "A-Level",
-        subjectTag: "Maths",
+        subjectTag: "Mathematics",
         materialType: "notes",
         gradeAchieved: null,
         exemplarPermission: false,
       },
       {
         curriculum_tag: "A-Level",
-        subject_tag: "Maths",
+        subject_tag: "Mathematics",
         material_type: "exemplar",
         topic: "Calculus",
         grade_achieved: "A*",
@@ -115,5 +115,37 @@ describe("tutor note submit mapping (#340)", () => {
       exemplarPermission: true,
     });
     expect(validateDraftNoteKindsForSubmit(allowed)).toEqual([]);
+  });
+});
+
+describe("subject allowlist through the tutor remap (#346)", () => {
+  const storedLegacyRow = {
+    curriculum_tag: "DSE",
+    subject_tag: "Legacy Free Text",
+    material_type: "notes" as const,
+    topic: "Cold War",
+    grade_achieved: null,
+    exemplar_permission: false,
+  };
+
+  it("a re-saved stored legacy subject passes when the stored value is passed through", () => {
+    const kinds = mergeDraftNoteKinds({ subjectTag: "Legacy Free Text" }, storedLegacyRow);
+    expect(kinds.subject).toBe("Legacy Free Text");
+    expect(validateDraftNoteKindsForSubmit(kinds)).toContain(
+      "Subject must be selected from the list for the chosen curriculum.",
+    );
+    expect(validateDraftNoteKindsForSubmit(kinds, storedLegacyRow.subject_tag)).toEqual([]);
+  });
+
+  it("junk subjects are rejected even with a stored value", () => {
+    const kinds = mergeDraftNoteKinds({ subjectTag: "WhatsApp me at 91234567" }, storedLegacyRow);
+    expect(validateDraftNoteKindsForSubmit(kinds, storedLegacyRow.subject_tag)).toContain(
+      "Subject must be selected from the list for the chosen curriculum.",
+    );
+  });
+
+  it("catalog subjects pass without any stored value", () => {
+    const kinds = mergeDraftNoteKinds({ curriculumTag: "DSE", subjectTag: "physics" });
+    expect(validateDraftNoteKindsForSubmit(kinds)).toEqual([]);
   });
 });
