@@ -13,6 +13,7 @@ import {
   Image as ImageIcon,
   LayoutDashboard,
   Settings,
+  ShieldCheck,
   UserPlus,
   Users,
 } from "lucide-react";
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 const ADMIN_TITLES: { prefix: string; title: string }[] = [
   { prefix: "/admin/tutors", title: "Manage tutors" },
+  { prefix: "/admin/grades", title: "Grade review queue" },
   { prefix: "/admin/join-requests", title: "Tutor join requests" },
   { prefix: "/admin/cases", title: "Cases" },
   { prefix: "/admin/referrals", title: "Referrals & bounties" },
@@ -48,6 +50,11 @@ function useAdminNavGroups(pendingJoinRequests: number | undefined): ConsoleNavG
       items: [
         { label: "Overview", to: "/admin", icon: LayoutDashboard },
         { label: "Tutors", to: "/admin/tutors", icon: GraduationCap },
+        {
+          label: "Grade Review",
+          to: "/admin/grades",
+          icon: ShieldCheck,
+        },
         {
           label: "Join Requests",
           to: "/admin/join-requests",
