@@ -60,6 +60,7 @@ type PublicMaterialRow = {
   price_hkd: number;
   status: string;
   original_file_path: string | null;
+  material_type: string;
   page_count: number | null;
   tutor_id: string;
 };
@@ -142,7 +143,9 @@ export const startCheckout = createServerFn({ method: "POST" })
 
     const { data: material } = await db
       .from<PublicMaterialRow>("digital_materials")
-      .select("id, title, slug, price_hkd, status, original_file_path, page_count, tutor_id")
+      .select(
+        "id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id",
+      )
       .eq("id", data.materialId)
       .maybeSingle();
     if (!material || material.status !== "published") {
@@ -151,9 +154,10 @@ export const startCheckout = createServerFn({ method: "POST" })
     if (!material.original_file_path) {
       throw new Error("This note is not available right now.");
     }
-    if (material.price_hkd <= 0) {
-      throw new Error("This note is not purchasable right now.");
-    }
+    // #314: HK$0 free packs ARE purchasable — they run the same manual
+    // cashier flow (staff approve + release, ban list already applied at
+    // submit), the delivered order counts in the listing's bought count,
+    // and the file is released inside the buyer's account.
     // No self-purchase: tutors.user_id is the listing owner's AUTH account.
     const { data: ownerTutor } = await db
       .from<{ user_id: string }>("tutors")
@@ -250,7 +254,7 @@ export const getMyOrder = createServerFn({ method: "POST" })
     const { data: order } = await db
       .from<OrderWithMaterial>("material_orders")
       .select(
-        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, page_count, tutor_id)",
+        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id)",
       )
       .eq("id", data.orderId)
       .eq("buyer_account_id", context.userId)
@@ -283,7 +287,7 @@ export const getBoughtMaterials = createServerFn({ method: "POST" })
     const { data, error } = await db
       .from<OrderWithMaterial>("material_orders")
       .select(
-        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, page_count, tutor_id)",
+        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id)",
       )
       .eq("buyer_account_id", context.userId)
       .in("status", [
@@ -468,7 +472,7 @@ export const releaseOrder = createServerFn({ method: "POST" })
     const { data: order } = await db
       .from<OrderWithMaterial>("material_orders")
       .select(
-        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, page_count, tutor_id)",
+        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id)",
       )
       .eq("id", data.orderId)
       .maybeSingle();
@@ -493,13 +497,22 @@ export const releaseOrder = createServerFn({ method: "POST" })
       const res = await fetch(signed.signedUrl);
       if (!res.ok) throw new Error("Could not read original");
       const originalBytes = new Uint8Array(await res.arrayBuffer());
-      const stamped = await buildDeliveredFile(originalBytes, order);
 
-      const path = `delivered/${order.id}.pdf`;
+      // #314: a PDF gets the per-order stamp; an .apkg deck has no pages to
+      // stamp (and pdf-lib cannot read it), so the deck itself is released
+      // as the per-order copy. Either way delivery stays in-account and the
+      // tutor never sees the buyer.
+      const isApkg = /\.apkg$/i.test(material.original_file_path);
+      const ext = isApkg ? "apkg" : "pdf";
+      const deliveredBytes = isApkg
+        ? originalBytes
+        : await buildDeliveredFile(originalBytes, order);
+
+      const path = `delivered/${order.id}.${ext}`;
       const { error: uploadError } = await db.storage
         .from(ORIGINALS_BUCKET)
-        .upload(path, stamped as unknown as BlobPart, {
-          contentType: "application/pdf",
+        .upload(path, deliveredBytes as unknown as BlobPart, {
+          contentType: isApkg ? "application/octet-stream" : "application/pdf",
           upsert: true,
         });
       if (uploadError) throw new Error(uploadError.message);
@@ -578,7 +591,7 @@ export async function sendOrderReceipt(orderId: string): Promise<void> {
   const { data: order } = await db
     .from<OrderWithMaterial>("material_orders")
     .select(
-      "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, receipt_sent_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, page_count, tutor_id)",
+      "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, receipt_sent_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id)",
     )
     .eq("id", orderId)
     .maybeSingle();

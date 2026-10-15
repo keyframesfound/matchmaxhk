@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { mergeNoteKinds, validateNoteKindsForSubmit } from "../../src/features/materials/lifecycle";
+import {
+  checkSubmitReadiness,
+  isAllowedMaterialFile,
+  materialFileKind,
+  mergeNoteKinds,
+  validateNoteKindsForSubmit,
+  validateWordCount,
+} from "../../src/features/materials/lifecycle";
 import {
   mergeDraftNoteKinds,
   validateDraftNoteKindsForSubmit,
@@ -147,5 +154,74 @@ describe("subject allowlist through the tutor remap (#346)", () => {
   it("catalog subjects pass without any stored value", () => {
     const kinds = mergeDraftNoteKinds({ curriculumTag: "DSE", subjectTag: "physics" });
     expect(validateDraftNoteKindsForSubmit(kinds)).toEqual([]);
+  });
+});
+
+describe("free packs pass the submit gate (#314)", () => {
+  it("price 0 passes checkSubmitReadiness — the price floor is retired", () => {
+    expect(
+      checkSubmitReadiness({ title: "Free flashcard deck", priceHkd: 0, hasPdf: true }).ok,
+    ).toBe(true);
+  });
+
+  it("a full flashcards submit payload passes the kind validator", () => {
+    const kinds = mergeDraftNoteKinds({
+      curriculumTag: "DSE",
+      subjectTag: "Physics",
+      materialType: "flashcards",
+      topic: "Mechanics",
+      gradeAchieved: null,
+      exemplarPermission: false,
+    });
+    expect(kinds.materialType).toBe("flashcards");
+    expect(validateDraftNoteKindsForSubmit(kinds)).toEqual([]);
+    expect(
+      validateNoteKindsForSubmit({
+        curriculum: "DSE",
+        subject: "Physics",
+        materialType: "flashcards",
+        exemplarPermission: false,
+      }),
+    ).toEqual([]);
+  });
+});
+
+describe("#314 file-kind rules: PDF everywhere, .apkg only on flashcards", () => {
+  it("classifies by extension, case-insensitively", () => {
+    expect(materialFileKind("deck.APKG")).toBe("apkg");
+    expect(materialFileKind("notes.Pdf")).toBe("pdf");
+    expect(materialFileKind("archive.zip")).toBeNull();
+    expect(materialFileKind("")).toBeNull();
+  });
+
+  it("accepts a PDF for every type and an .apkg only for flashcards", () => {
+    for (const type of ["notes", "mock", "exemplar", "flashcards"] as const) {
+      expect(isAllowedMaterialFile(type, "file.pdf")).toBe(true);
+    }
+    expect(isAllowedMaterialFile("flashcards", "deck.apkg")).toBe(true);
+    expect(isAllowedMaterialFile("notes", "deck.apkg")).toBe(false);
+    expect(isAllowedMaterialFile("mock", "deck.apkg")).toBe(false);
+    expect(isAllowedMaterialFile("exemplar", "deck.apkg")).toBe(false);
+    expect(isAllowedMaterialFile("flashcards", "virus.exe")).toBe(false);
+  });
+});
+
+describe("#136 approximate word count: optional, positive integer when present", () => {
+  it("empty (null/undefined) passes — it never blocks publish", () => {
+    expect(validateWordCount(null)).toBeNull();
+    expect(validateWordCount(undefined)).toBeNull();
+  });
+
+  it("a positive whole number passes", () => {
+    expect(validateWordCount(1)).toBeNull();
+    expect(validateWordCount(12000)).toBeNull();
+  });
+
+  it("present-but-invalid values are rejected", () => {
+    expect(validateWordCount(0)).toContain("positive whole number");
+    expect(validateWordCount(-5)).toContain("positive whole number");
+    expect(validateWordCount(12.5)).toContain("positive whole number");
+    expect(validateWordCount(Number.NaN)).toContain("positive whole number");
+    expect(validateWordCount(999_999)).toContain("positive whole number");
   });
 });

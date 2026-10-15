@@ -11,9 +11,10 @@ import { findContactViolations } from "@/lib/contact-filter";
 import {
   GRADE_ACHIEVED_MAX_LEN,
   MATERIAL_TYPES,
-  MIN_PRICE_HKD,
+  MAX_APKG_BYTES,
   NOTE_CURRICULA,
   NOTE_TOPIC_MAX_LEN,
+  validateWordCount,
   type MaterialType,
 } from "@/features/materials/lifecycle";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
@@ -24,13 +25,16 @@ import {
 } from "@/features/materials/note-drafts.functions";
 
 /**
- * P8 (#288) / P9 (#289) / #313: the draft-or-submit note form, shared by
- * /account/notes/new and /account/notes/$id/edit. Any subset saves as a
- * draft; submit enforces the required fields (title, price, PDF, curriculum,
- * subject, type) and the HK$30 floor, runs the contact filter client-side
- * (title, description, topic, grade achieved) so the tutor sees which
- * sentence failed before the server rejects it, and gates exemplars on the
- * written-permission checkbox.
+ * P8 (#288) / P9 (#289) / #313 / #314 / #136: the draft-or-submit note form,
+ * shared by /account/notes/new and /account/notes/$id/edit. Any subset saves
+ * as a draft; submit enforces the required fields (title, price, file,
+ * curriculum, subject, type) and the ban list via the contact filter, runs
+ * it client-side (title, description, topic, grade achieved) so the tutor
+ * sees which sentence failed before the server rejects it, gates exemplars
+ * on the written-permission checkbox, allows HK$0 (free pack), and takes an
+ * OPTIONAL approximate word count (positive integer when present). A
+ * flashcards file may be a PDF or an .apkg deck (max 20MB — the repo upload
+ * cap wins over the issue's 40MB); decks get no in-browser preview.
  */
 
 async function fileToBase64(file: File): Promise<string> {
@@ -52,9 +56,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   const { t } = useTranslation();
   const [title, setTitle] = useState(existing?.title ?? "");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState<string>(
-    existing && existing.priceHkd > 0 ? String(existing.priceHkd) : "",
-  );
+  const [price, setPrice] = useState<string>(existing ? String(existing.priceHkd ?? 0) : "");
   const [curriculum, setCurriculum] = useState<string>(existing?.curriculumTag ?? "");
   const [subject, setSubject] = useState(existing?.subjectTag ?? "");
   const [materialType, setMaterialType] = useState<MaterialType>(
@@ -68,6 +70,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     existing?.exemplarPermission === true,
   );
   const [year, setYear] = useState("");
+  const [wordCount, setWordCount] = useState(
+    existing?.wordCount != null ? String(existing.wordCount) : "",
+  );
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -98,6 +103,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     topic: topic.trim() || null,
     gradeAchieved: materialType === "exemplar" ? gradeAchieved.trim() || null : null,
     exemplarPermission: materialType === "exemplar" ? exemplarPermission : false,
+    wordCount: wordCount.trim() === "" ? null : Number(wordCount),
     yearTag: year.trim() || undefined,
   });
 
@@ -141,13 +147,21 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
 
   const missing: string[] = [];
   if (title.trim().length < 3) missing.push(t("notes.form.field_title"));
-  if (!price || Number(price) < MIN_PRICE_HKD)
-    missing.push(`${t("notes.form.field_price")} (min HK$${MIN_PRICE_HKD})`);
+  const priceNum = price.trim() === "" ? Number.NaN : Number(price);
+  if (Number.isNaN(priceNum) || priceNum < 0) missing.push(t("notes.form.field_price"));
   if (!file && !existing?.previewUrl) missing.push(t("notes.form.field_pdf"));
   if (!curriculum) missing.push(t("notes.form.field_curriculum"));
   if (!subject.trim()) missing.push(t("notes.form.field_subject"));
   if (materialType === "exemplar" && !exemplarPermission)
     missing.push(t("notes.form.exemplar_permission_short"));
+
+  // #136: the approximate word count is OPTIONAL — empty never blocks
+  // publish — but a present value must be a positive whole number.
+  const wordCountError = validateWordCount(wordCount.trim() === "" ? null : Number(wordCount));
+  // A present-but-invalid file is also a hard block (#314): only PDFs and,
+  // for flashcards, .apkg decks are accepted, and the repo upload cap is
+  // 20MB (the issue's 40MB loses to the Workers body limit).
+  const fileTooLarge = file != null && file.size > MAX_APKG_BYTES;
 
   const blockedByContact =
     copyViolations.titleV.length > 0 ||
@@ -156,6 +170,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     copyViolations.gradeV.length > 0;
 
   const run = (kind: "draft" | "submit") => {
+    if (wordCountError || fileTooLarge) return;
     setSaving(true);
     if (kind === "draft") draftMutation.mutate();
     else submitMutation.mutate();
@@ -302,13 +317,31 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           <Input
             id="note-price"
             type="number"
-            min={MIN_PRICE_HKD}
+            min={0}
             step="1"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            placeholder={`HK$ (min ${MIN_PRICE_HKD})`}
+            placeholder={t("notes.form.price_free_hint")}
             className="h-11"
           />
+          <p className="text-xs text-muted-foreground">{t("notes.form.price_free_note")}</p>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="note-word-count">{t("notes.form.field_word_count")}</Label>
+          <Input
+            id="note-word-count"
+            type="number"
+            min={1}
+            step="1"
+            value={wordCount}
+            onChange={(e) => setWordCount(e.target.value)}
+            placeholder="12000"
+            className="h-11"
+          />
+          <p className="text-xs text-muted-foreground">{t("notes.form.word_count_hint")}</p>
+          {wordCountError ? (
+            <p className="text-xs text-[#B42318]">{t("notes.form.word_count_invalid")}</p>
+          ) : null}
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="note-year">{t("notes.form.field_year")}</Label>
@@ -352,23 +385,41 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
 
       <div className="space-y-1.5">
         <Label htmlFor="note-pdf">
-          {existing?.previewUrl ? t("notes.form.replace_pdf") : t("notes.form.field_pdf")}
+          {materialType === "flashcards"
+            ? t("notes.form.field_file_flashcards")
+            : existing?.previewUrl
+              ? t("notes.form.replace_pdf")
+              : t("notes.form.field_pdf")}
         </Label>
         <Input
           id="note-pdf"
           type="file"
-          accept="application/pdf"
+          accept={materialType === "flashcards" ? "application/pdf,.pdf,.apkg" : "application/pdf"}
           className="h-11 cursor-pointer"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
-        <p className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Lock className="h-3 w-3" aria-hidden />
-          {t("notes.form.pdf_hint")}
-        </p>
+        {fileTooLarge ? (
+          <p className="text-xs text-[#B42318]">{t("notes.form.file_too_large")}</p>
+        ) : materialType === "flashcards" ? (
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Lock className="h-3 w-3" aria-hidden />
+            {t("notes.form.file_hint_flashcards")}
+          </p>
+        ) : (
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Lock className="h-3 w-3" aria-hidden />
+            {t("notes.form.pdf_hint")}
+          </p>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
-        <Button type="button" variant="outline" disabled={saving} onClick={() => run("draft")}>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={saving || Boolean(wordCountError) || fileTooLarge}
+          onClick={() => run("draft")}
+        >
           {saving && draftMutation.isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
           ) : null}
@@ -379,7 +430,13 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           variant="solid"
           color="accent"
           className="font-bold"
-          disabled={saving || blockedByContact || missing.length > 0}
+          disabled={
+            saving ||
+            blockedByContact ||
+            missing.length > 0 ||
+            Boolean(wordCountError) ||
+            fileTooLarge
+          }
         >
           {saving && submitMutation.isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />

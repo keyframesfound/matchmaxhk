@@ -133,11 +133,15 @@ export async function fetchMaterialsForTutor(tutorId: string): Promise<StudyMate
 export type MarketplaceMaterial = StudyMaterial & {
   tutor_display_name: string;
   tutor_code: string;
+  /** #314: the tutor holds the Verified badge (verification_tier tier_2_verified). */
+  tutor_verified: boolean;
 };
 
 export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]> {
   const { data, error } = await materialsTable()
-    .select(`${MATERIAL_COLS}, tutors!inner(display_name, tutor_code, is_published)`)
+    .select(
+      `${MATERIAL_COLS}, tutors!inner(display_name, tutor_code, is_published, verification_tier)`,
+    )
     .eq("status", "published")
     .order("created_at", { ascending: false });
   if (error) {
@@ -154,6 +158,7 @@ export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]
         tutor_display_name:
           typeof tutor?.display_name === "string" ? tutor.display_name : "MatchMax Tutor",
         tutor_code: typeof tutor?.tutor_code === "string" ? tutor.tutor_code : "",
+        tutor_verified: tutor?.verification_tier === "tier_2_verified",
       };
     })
     .filter((m) => m.id && m.tutor_code);

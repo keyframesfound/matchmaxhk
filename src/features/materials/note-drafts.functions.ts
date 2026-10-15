@@ -4,14 +4,17 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { findContactViolations } from "@/lib/contact-filter";
 import {
-  MIN_PRICE_HKD,
   buildMaterialSlug,
   checkSubmitReadiness,
   extendedPreviewPageLimit,
+  isAllowedMaterialFile,
+  materialFileContentType,
+  materialFileKind,
   mergeNoteKinds,
   nextStatus,
   validateNoteKindsForSubmit,
   validateNoteKindsPartial,
+  WORD_COUNT_MAX,
   type MaterialStatus,
   type MaterialType,
 } from "@/features/materials/lifecycle";
@@ -57,16 +60,20 @@ type MaterialRow = {
 const DraftMetaInput = z.object({
   title: z.string().trim().max(160).optional(),
   description: z.string().trim().max(4000).optional(),
+  // #314: HK$0 is a valid price (free pack) — only negatives are rejected.
   priceHkd: z.number().min(0).max(100_000).optional(),
   // #313 note kinds: curriculum is the site's canonical list, type is the
-  // 3-way notes/mock/exemplar split, topic is a free 40-char filter.
+  // notes/mock/exemplar/flashcards split, topic is a free 40-char filter.
   // nullish topic/grade/subject = explicit clear (null) vs keep (absent).
   curriculumTag: z.enum(["IB", "DSE", "IGCSE", "A-Level", "Other"]).optional(),
   subjectTag: z.string().trim().max(160).nullish(),
-  materialType: z.enum(["notes", "mock", "exemplar"]).optional(),
+  materialType: z.enum(["notes", "mock", "exemplar", "flashcards"]).optional(),
   topic: z.string().trim().max(40).nullish(),
   gradeAchieved: z.string().trim().max(20).nullish(),
   exemplarPermission: z.boolean().optional(),
+  // #136: approximate word count — optional, positive integer when present.
+  // null clears a stored value; absent keeps it (same semantics as topic).
+  wordCount: z.number().int().min(1).max(WORD_COUNT_MAX).nullish(),
   yearTag: z.string().trim().max(20).optional(),
 });
 
@@ -104,6 +111,7 @@ export type MyMaterialsRow = {
   topic: string | null;
   gradeAchieved: string | null;
   exemplarPermission: boolean;
+  wordCount: number | null;
 };
 
 async function myTutorRow(
@@ -181,30 +189,44 @@ async function generateUniqueSlug(db: AdminDb, title: string, excludeId?: string
 const UNLOCKED_FILE_ERROR = "This PDF is password-protected. Please upload an unlocked file.";
 
 /**
- * Shared PDF staging used by uploadNotePdf, submitNoteForReview and
+ * Shared file staging used by uploadNotePdf, submitNoteForReview and
  * editLiveNote. Server functions cannot call each other's fetchers
  * server-side, so the pipeline lives in this plain helper instead.
  * Returns whether the file was staged as a pending edit (live doc) or
  * attached directly (draft).
+ *
+ * #314: PDFs ride the watermark pipeline; an .apkg deck (flashcards only)
+ * skips it entirely — no encryption probe, no stamping, no preview URL and
+ * no page count (watermarked_preview_url stays "", page_count null). The
+ * buyer downloads the deck; there is no in-browser reviewer or player.
  */
-async function stagePdfForMaterial(
+async function stageFileForMaterial(
   db: AdminDb,
   tutor: { id: string; display_name: string },
   material: MaterialRow,
   fileName: string,
   base64Data: string,
 ): Promise<{ staged: boolean }> {
+  const kind = materialFileKind(fileName);
+  if (!kind || !isAllowedMaterialFile(material.material_type, fileName)) {
+    throw new Error(
+      material.material_type === "flashcards"
+        ? "Flashcards need a PDF or an .apkg file."
+        : "This listing type needs a PDF file.",
+    );
+  }
+  const isApkg = kind === "apkg";
   const bytes = base64ToBytes(base64Data);
   const isLiveDoc = material.status === "published" || material.status === "hidden";
   // Live docs skip preview generation until approval — the staged file is
   // not public, and stamping the wrong version onto the live preview URL
   // would leak the replacement before staff sign it off.
-  const preview = isLiveDoc ? null : await buildExtendedPreview(bytes);
+  const preview = isLiveDoc || isApkg ? null : await buildExtendedPreview(bytes);
 
   const path = buildMaterialStorageName(fileName, tutor.display_name);
   const { error } = await db.storage
     .from(PRIVATE_BUCKET)
-    .upload(path, bytes as unknown as BlobPart, { contentType: "application/pdf" });
+    .upload(path, bytes as unknown as BlobPart, { contentType: materialFileContentType(kind) });
   if (error) throw new Error(error.message);
 
   if (preview) {
@@ -232,10 +254,27 @@ async function stagePdfForMaterial(
       await db.storage.from(PRIVATE_BUCKET).remove([path]);
       throw new Error(updateError.message);
     }
-  } else {
+  } else if (isLiveDoc) {
     const { error: updateError } = await db
       .from<never>("digital_materials")
       .update({ pending_original_file_path: path, edit_status: "pending_review" })
+      .eq("id", material.id);
+    if (updateError) {
+      await db.storage.from(PRIVATE_BUCKET).remove([path]);
+      throw new Error(updateError.message);
+    }
+  } else {
+    // Draft attachment with no preview (an .apkg deck rides no watermark
+    // pipeline): store the original and clear any stale preview fields so a
+    // switched type never keeps a dead watermark URL behind it.
+    const { error: updateError } = await db
+      .from<never>("digital_materials")
+      .update({
+        original_file_path: path,
+        watermarked_preview_url: "",
+        preview_pages: null,
+        page_count: null,
+      })
       .eq("id", material.id);
     if (updateError) {
       await db.storage.from(PRIVATE_BUCKET).remove([path]);
@@ -383,6 +422,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
           topic: kinds.topic || null,
           grade_achieved: kinds.gradeAchieved,
           exemplar_permission: kinds.exemplarPermission,
+          ...(data.wordCount !== undefined ? { word_count: data.wordCount } : {}),
           ...(data.yearTag != null ? { year_tag: data.yearTag } : {}),
         })
         .eq("id", data.materialId);
@@ -403,6 +443,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
         topic: kinds.topic || null,
         grade_achieved: kinds.gradeAchieved,
         exemplar_permission: kinds.exemplarPermission,
+        word_count: data.wordCount ?? null,
         year_tag: data.yearTag ?? null,
         status: "draft",
         original_file_path: "",
@@ -424,12 +465,14 @@ export const uploadNotePdf = createServerFn({ method: "POST" })
     z
       .object({
         materialId: z.string().uuid(),
+        // #314: flashcards may carry an .apkg deck; the type-aware gate in
+        // stageFileForMaterial rejects mismatches server-side.
         fileName: z
           .string()
           .trim()
           .min(1)
           .max(200)
-          .regex(/\.pdf$/i),
+          .regex(/\.(pdf|apkg)$/i, "Only PDF or .apkg files are supported"),
         base64Data: z.string().trim().min(100).max(60_000_000),
       })
       .parse(data),
@@ -440,7 +483,7 @@ export const uploadNotePdf = createServerFn({ method: "POST" })
     const tutor = await myTutorRow(db, context.userId);
     const material = await loadOwnedMaterial(db, data.materialId, tutor.id);
 
-    return stagePdfForMaterial(db, tutor, material, data.fileName, data.base64Data);
+    return stageFileForMaterial(db, tutor, material, data.fileName, data.base64Data);
   });
 
 const SubmitForReviewInput = SubmitInput;
@@ -481,17 +524,32 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     if (kindErrors.length > 0) {
       throw new Error(kindErrors.join(" "));
     }
-    if (merged.priceHkd < MIN_PRICE_HKD) {
-      throw new Error(`Price must be at least HK$${MIN_PRICE_HKD}.`);
+    // #314: HK$0 is valid — the old MIN_PRICE_HKD floor is gone; the zod
+    // input already rejects negative prices, and checkSubmitReadiness above
+    // blocks null/negative merges.
+
+    // #314: file type must match the listing type — an .apkg deck only
+    // rides a flashcards listing; everything else stays PDF-only.
+    if (data.base64Data && !isAllowedMaterialFile(kinds.materialType, data.fileName ?? "")) {
+      throw new Error(
+        kinds.materialType === "flashcards"
+          ? "Flashcards need a PDF or an .apkg file."
+          : "This listing type needs a PDF file.",
+      );
     }
+    const fileKind = data.base64Data ? materialFileKind(data.fileName ?? "") : null;
+    const isApkgUpload = fileKind === "apkg";
 
     let materialId: string;
     if (!existing) {
-      // First submission doubles as draft creation: validate + watermark +
-      // upload, then insert straight into pending_review.
+      // First submission doubles as draft creation: validate (+ watermark
+      // for PDFs), upload, then insert straight into pending_review.
       if (!data.base64Data) throw new Error("Missing: pdf");
       const bytes = base64ToBytes(data.base64Data);
-      const preview = await buildExtendedPreview(bytes);
+      // #314: an .apkg deck skips the PDF-only pipeline entirely — no
+      // encryption probe, no pdf-lib watermark, no page count and no
+      // preview URL. The buyer downloads the deck from their account.
+      const preview = isApkgUpload ? null : await buildExtendedPreview(bytes);
       materialId = crypto.randomUUID();
       const originalPath = buildMaterialStorageName(
         data.fileName || "note.pdf",
@@ -499,20 +557,30 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       );
       const { error } = await db.storage
         .from(PRIVATE_BUCKET)
-        .upload(originalPath, bytes as unknown as BlobPart, { contentType: "application/pdf" });
+        .upload(originalPath, bytes as unknown as BlobPart, {
+          contentType: isApkgUpload
+            ? materialFileContentType("apkg")
+            : materialFileContentType("pdf"),
+        });
       if (error) throw new Error(error.message);
 
-      const previewPath = previewPathFor(originalPath);
-      const { error: previewError } = await db.storage
-        .from(PUBLIC_BUCKET)
-        .upload(previewPath, preview.previewBytes as unknown as BlobPart, {
-          contentType: "application/pdf",
-        });
-      if (previewError) {
-        await db.storage.from(PRIVATE_BUCKET).remove([originalPath]);
-        throw new Error(previewError.message);
+      let previewUrl = "";
+      let previewPages: number | null = null;
+      if (preview) {
+        const previewPath = previewPathFor(originalPath);
+        const { error: previewError } = await db.storage
+          .from(PUBLIC_BUCKET)
+          .upload(previewPath, preview.previewBytes as unknown as BlobPart, {
+            contentType: "application/pdf",
+          });
+        if (previewError) {
+          await db.storage.from(PRIVATE_BUCKET).remove([originalPath]);
+          throw new Error(previewError.message);
+        }
+        const { data: url } = db.storage.from(PUBLIC_BUCKET).getPublicUrl(previewPath);
+        previewUrl = url?.publicUrl ?? "";
+        previewPages = preview.previewPages;
       }
-      const { data: url } = db.storage.from(PUBLIC_BUCKET).getPublicUrl(previewPath);
 
       const slug = await generateUniqueSlug(db, merged.title as string, materialId);
       const { error: insertError } = await db.from<never>("digital_materials").insert({
@@ -527,14 +595,16 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
         topic: kinds.topic || null,
         grade_achieved: kinds.gradeAchieved,
         exemplar_permission: kinds.exemplarPermission,
+        word_count: data.wordCount ?? null,
         year_tag: data.yearTag ?? null,
         status: "pending_review",
         submitted_at: new Date().toISOString(),
         slug,
         original_file_path: originalPath,
-        watermarked_preview_url: url?.publicUrl ?? "",
-        preview_pages: preview.previewPages,
-        page_count: preview.pageCount,
+        // .apkg: watermarked_preview_url stays "" and page_count stays null.
+        watermarked_preview_url: previewUrl,
+        preview_pages: previewPages,
+        page_count: preview ? preview.pageCount : null,
       });
       if (insertError) {
         await db.storage.from(PRIVATE_BUCKET).remove([originalPath]);
@@ -543,7 +613,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     } else {
       materialId = existing.id;
       if (data.base64Data) {
-        await stagePdfForMaterial(
+        await stageFileForMaterial(
           db,
           tutor,
           existing,
@@ -565,6 +635,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
           topic: kinds.topic || null,
           grade_achieved: kinds.gradeAchieved,
           exemplar_permission: kinds.exemplarPermission,
+          ...(data.wordCount !== undefined ? { word_count: data.wordCount } : {}),
           status: next,
           rejection_reason: null,
           submitted_at: new Date().toISOString(),
@@ -599,7 +670,7 @@ export const editLiveNote = createServerFn({ method: "POST" })
     assertCleanCopy({ title: data.title, description: data.description });
 
     if (data.base64Data) {
-      await stagePdfForMaterial(db, tutor, material, data.fileName || "note.pdf", data.base64Data);
+      await stageFileForMaterial(db, tutor, material, data.fileName || "note.pdf", data.base64Data);
     }
 
     const { error } = await db
@@ -664,9 +735,10 @@ export const getMyMaterials = createServerFn({ method: "POST" })
         topic: string | null;
         grade_achieved: string | null;
         exemplar_permission: boolean;
+        word_count: number | null;
       }>("digital_materials")
       .select(
-        "id, title, status, price_hkd, rejection_reason, edit_status, edit_rejection_reason, view_count, sold_count, watermarked_preview_url, updated_at, curriculum_tag, subject_tag, material_type, topic, grade_achieved, exemplar_permission",
+        "id, title, status, price_hkd, rejection_reason, edit_status, edit_rejection_reason, view_count, sold_count, watermarked_preview_url, updated_at, curriculum_tag, subject_tag, material_type, topic, grade_achieved, exemplar_permission, word_count",
       )
       .eq("tutor_id", tutor.id)
       .order("updated_at", { ascending: false });
@@ -689,5 +761,6 @@ export const getMyMaterials = createServerFn({ method: "POST" })
       topic: row.topic ?? null,
       gradeAchieved: row.grade_achieved ?? null,
       exemplarPermission: row.exemplar_permission === true,
+      wordCount: typeof row.word_count === "number" ? row.word_count : null,
     }));
   });

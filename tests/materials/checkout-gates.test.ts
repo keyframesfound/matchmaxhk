@@ -13,6 +13,7 @@ import {
   pickReusableOrder,
   reusableExistingOrder,
 } from "../../src/features/materials/checkout.functions";
+import { splitMaterialMoney } from "../../src/features/materials/lifecycle";
 
 describe("reusableExistingOrder — refunded orders must not trap re-purchase", () => {
   const order = {
@@ -133,5 +134,15 @@ describe("escapeHtml — tutor titles must not inject into receipt HTML", () => 
 
   it("escapes already-double-encoded text exactly once (no decoding)", () => {
     expect(escapeHtml("&lt;script&gt;")).toBe("&amp;lt;script&amp;gt;");
+  });
+});
+
+describe("free-order money (#314): an HK$0 order splits to zero everywhere", () => {
+  it("platform fee and tutor net are both 0 for a free pack", () => {
+    expect(splitMaterialMoney(0)).toEqual({ platformFeeHkd: 0, tutorNetHkd: 0 });
+  });
+
+  it("paid money splits are unchanged", () => {
+    expect(splitMaterialMoney(100)).toEqual({ platformFeeHkd: 20, tutorNetHkd: 80 });
   });
 });
