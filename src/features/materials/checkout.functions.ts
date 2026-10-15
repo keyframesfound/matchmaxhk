@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { asAdminDb, type AdminDb } from "@/features/materials/storage-helpers";
 import { isUniqueViolation } from "@/features/materials/orders.functions";
 import {
@@ -321,7 +322,7 @@ export const getBoughtMaterials = createServerFn({ method: "POST" })
 
 /** P14/checkout support: buyer attaches the one optional FPS proof screenshot. */
 export const uploadPaymentScreenshot = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) =>
     z
       .object({
