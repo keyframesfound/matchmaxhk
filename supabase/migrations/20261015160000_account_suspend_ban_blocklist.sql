@@ -155,3 +155,38 @@ CREATE TRIGGER trg_reject_blocked_account_signup
   BEFORE INSERT ON auth.users
   FOR EACH ROW
   EXECUTE FUNCTION public.reject_blocked_account_signup();
+
+-- ---------------------------------------------------------------------------
+-- 5. Keep profiles.google_sub fed (the ban flow stores it in the blocklist).
+--    For OAuth users GoTrue writes the provider subject into raw_user_meta_data
+--    ('sub' / 'provider_id', 21-digit Google ids on this project); email-only
+--    users have neither, so they stay NULL.
+-- ---------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION public.sync_profile_google_sub()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE public.profiles
+  SET google_sub = NULLIF(NEW.raw_user_meta_data ->> 'provider_id', '')
+  WHERE id = NEW.id
+    AND google_sub IS DISTINCT FROM NULLIF(NEW.raw_user_meta_data ->> 'provider_id', '');
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_sync_profile_google_sub ON auth.users;
+CREATE TRIGGER trg_sync_profile_google_sub
+  AFTER INSERT OR UPDATE OF raw_user_meta_data ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.sync_profile_google_sub();
+
+-- Backfill existing accounts.
+UPDATE public.profiles p
+SET google_sub = NULLIF(u.raw_user_meta_data ->> 'provider_id', '')
+FROM auth.users u
+WHERE p.id = u.id
+  AND p.google_sub IS DISTINCT FROM NULLIF(u.raw_user_meta_data ->> 'provider_id', '');
