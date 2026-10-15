@@ -686,8 +686,8 @@
     "sample_locations": "九龍塘、中環",
     "sample_medium": "英文 / 廣東話",
     "sample_notes": "經朋友轉介，平日晚上及週末時間較彈性。",
-    "success_title": "已收到申請",
-    "success_message": "感謝你申請加入 MatchMax。我哋會逐一審閱申請，如有合適個案會以電郵或 WhatsApp 聯絡你。",
+    "success_title": "你的導師卡已經上架",
+    "success_message": "你一提交，導師卡已即時在 MatchMax 上架，家長而家就可以搵到你。最後一步：喺 WhatsApp 啟用，等我哋團隊可以就配對個案聯絡你。",
     "back_home": "返回首頁",
     "browse_tutors": "瀏覽導師",
     "academics": {
@@ -707,7 +707,9 @@
       "row_label": "項目名稱",
       "row_rate": "收費（港幣）",
       "add_row": "新增收費項目"
-    }
+    },
+    "view_live_card": "查看你的上架導師卡",
+    "manage_hint": "請保存 WhatsApp 訊息入面嘅申請編號，我哋團隊會用佢嚟對應你嘅申請。"
   },
   "materials": {
     "section_title": "📚 溫習筆記",

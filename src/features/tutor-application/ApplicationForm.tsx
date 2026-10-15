@@ -974,6 +974,9 @@ export function ApplicationForm() {
   // Issue #189: server-assigned application id, surfaced in the WhatsApp
   // activation message so the team can match the chat to the stored row.
   const [applicationRef, setApplicationRef] = useState("");
+  // Issue #310: tutor code of the card published at submit (empty when the
+  // server could not publish — the success screen hides the card link then).
+  const [liveTutorCode, setLiveTutorCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -1828,6 +1831,9 @@ export function ApplicationForm() {
       }
       await submit({ data: parsed.data }).then((result) => {
         setApplicationRef(result?.applicationId ?? "");
+        // Issue #310: the card is published at submit — keep its public path
+        // so the success screen can link straight to the live card.
+        setLiveTutorCode(result?.tutorCode ?? "");
         return result;
       });
       clearDraft();
@@ -1853,11 +1859,25 @@ export function ApplicationForm() {
             aria-hidden="true"
           />
           <h1 className="mt-4 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
-            Application received
+            {t("join.success_title")}
           </h1>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
-            Your application has been received{professional ? " securely" : ""}! That’s step 1
-            complete — one quick step left to activate it.
+            {t("join.success_message")}
+          </p>
+          {liveTutorCode ? (
+            <Button
+              asChild
+              variant="solid"
+              size="lg"
+              className="mt-6 h-12 rounded-sm bg-[color:var(--ink)] px-8 font-bold text-[color:var(--surface)] hover:opacity-90"
+            >
+              <Link to="/tutors/$tutorCode" params={{ tutorCode: liveTutorCode }}>
+                {t("join.view_live_card")}
+              </Link>
+            </Button>
+          ) : null}
+          <p className="mx-auto mt-4 max-w-lg text-xs text-muted-foreground">
+            {t("join.manage_hint")}
           </p>
         </div>
         <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-8 text-center sm:p-12">
