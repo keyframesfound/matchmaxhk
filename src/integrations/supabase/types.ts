@@ -829,6 +829,9 @@ export type Database = {
           requester_type: string | null;
           schedule_note: string | null;
           school_type: string | null;
+          sen_categories: string[];
+          sen_details: string | null;
+          sen_required: boolean;
           session_length_minutes: number;
           sessions_per_week: number;
           source: string;
@@ -886,6 +889,9 @@ export type Database = {
           student_grade_current?: string | null;
           student_level: string;
           student_school?: string | null;
+          sen_categories?: string[];
+          sen_details?: string | null;
+          sen_required?: boolean;
           subjects?: string[];
           support_type?: string | null;
           tags?: string[];
@@ -925,6 +931,9 @@ export type Database = {
           requester_type?: string | null;
           schedule_note?: string | null;
           school_type?: string | null;
+          sen_categories?: string[];
+          sen_details?: string | null;
+          sen_required?: boolean;
           session_length_minutes?: number;
           sessions_per_week?: number;
           source?: string;
@@ -1007,6 +1016,9 @@ export type Database = {
           referral_code: string | null;
           referred_by: string | null;
           secondary_school: string | null;
+          sen_categories: string[];
+          sen_enabled: boolean;
+          sen_experience: string | null;
           start_immediately: boolean;
           earliest_start_date: string | null;
           stations: string[];
@@ -1067,6 +1079,9 @@ export type Database = {
           referral_code?: string | null;
           referred_by?: string | null;
           secondary_school?: string | null;
+          sen_categories?: string[];
+          sen_enabled?: boolean;
+          sen_experience?: string | null;
           start_immediately?: boolean;
           earliest_start_date?: string | null;
           stations?: string[];
@@ -1124,6 +1139,9 @@ export type Database = {
           referral_code?: string | null;
           referred_by?: string | null;
           secondary_school?: string | null;
+          sen_categories?: string[];
+          sen_enabled?: boolean;
+          sen_experience?: string | null;
           start_immediately?: boolean;
           earliest_start_date?: string | null;
           stations?: string[];

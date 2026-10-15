@@ -293,6 +293,16 @@ export function PublicTutorCard({
                 {statusLabel}
               </span>
             ) : null}
+            {/* Issue #199: neutral SEN capability badge (azure stays reserved
+                for money CTAs). Shown only when sen_enabled. */}
+            {tutor.sen_enabled ? (
+              <span
+                className="max-w-full whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-[color:var(--ink)]"
+                title={t("sen.badge_title")}
+              >
+                SEN
+              </span>
+            ) : null}
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">

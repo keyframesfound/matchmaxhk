@@ -11,6 +11,7 @@ import {
   normalizeTutorRateRows,
 } from "@/features/tutors/rates";
 import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
+import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 
 export const MAX_FILES = 5;
 export const MAX_ACHIEVEMENT_FILE_BYTES = 5 * 1024 * 1024;
@@ -200,6 +201,21 @@ export const tutorApplicationSchema = z
     // Consent required only when photos are actually uploaded (see superRefine).
     portfolioConsent: z.boolean().default(false),
     profilePhoto: profilePhotoSchema.optional(),
+    // Issue #199: SEN experience & qualifications. Revealed by the SEN
+    // toggle; at least one HK-common category is required when enabled so
+    // the /tutors SEN filter stays meaningful.
+    senEnabled: z.boolean().default(false),
+    senCategories: z.array(z.enum(SEN_CATEGORY_OPTIONS)).default([]),
+    senExperience: z
+      .string()
+      .trim()
+      .max(2000)
+      .optional()
+      .default("")
+      .superRefine((text, ctx) => {
+        const error = contactFilterError(text);
+        if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+      }),
     experience: z.string().trim().max(2000).optional().default(""),
     // Issue #119: optional tutor-written pitch shown on the public profile
     // once the concierge team has proofread it (2,000-char cap, line breaks
@@ -431,6 +447,15 @@ export const tutorApplicationSchema = z
         message: "Tick the consent box to publish your photos",
       });
     }
+
+    // Issue #199: SEN categories are required once the SEN toggle is on.
+    if (data.senEnabled && data.senCategories.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["senCategories"],
+        message: "Select at least one SEN category",
+      });
+    }
   });
 
 export type TutorApplicationInput = z.input<typeof tutorApplicationSchema>;
@@ -554,6 +579,15 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
         (data.portfolioConsent ? "— (consent ticked, no photos)" : "—"),
     },
     { label: "Teaching / tutoring experience", value: data.experience },
+    // Issue #199: SEN capability captured at intake.
+    {
+      label: "SEN experience",
+      value: data.senEnabled ? `Yes — ${data.senCategories.join(", ")}` : "No",
+    },
+    {
+      label: "SEN experience & qualifications",
+      value: data.senEnabled ? data.senExperience || "—" : "—",
+    },
     { label: "Self-introduction", value: data.selfIntroduction || "—" },
     { label: "Profile photo", value: data.profilePhoto?.filename ?? "—" },
     { label: "Normal hourly rate (HKD)", value: data.hourlyRate || "—" },
