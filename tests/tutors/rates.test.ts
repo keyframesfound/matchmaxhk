@@ -6,6 +6,7 @@ import {
   medianRate,
   normalizeTutorRateRows,
   roundRateTo10,
+  SUGGEST_MIN_SIMILAR,
   tutorCardIsSimilar,
 } from "../../src/features/tutors/rates";
 
@@ -131,13 +132,16 @@ describe("computeSuggestedRates", () => {
     inperson_rate: inperson,
   });
 
-  it("returns not_enough_data under ten similar cards", () => {
-    const cards = Array.from({ length: 9 }, () => card(200, 400));
+  it(`returns not_enough_data under ${SUGGEST_MIN_SIMILAR} similar cards`, () => {
+    const cards = Array.from({ length: SUGGEST_MIN_SIMILAR - 1 }, () => card(200, 400));
     expect(computeSuggestedRates(cards)).toEqual({ status: "not_enough_data" });
   });
 
   it("fills each mode from its own median, rounded to $10", () => {
-    const cards = [...Array.from({ length: 10 }, () => card(200, 400)), card(300, null)];
+    const cards = [
+      ...Array.from({ length: SUGGEST_MIN_SIMILAR }, () => card(200, 400)),
+      card(300, null),
+    ];
     const result = computeSuggestedRates(cards);
     expect(result).toEqual({ status: "ok", online: 200, inPerson: 400 });
   });
@@ -149,7 +153,9 @@ describe("computeSuggestedRates", () => {
   });
 
   it("suggests base fields only (extra rows never appear)", () => {
-    const result = computeSuggestedRates(Array.from({ length: 10 }, () => card(150, 250)));
+    const result = computeSuggestedRates(
+      Array.from({ length: SUGGEST_MIN_SIMILAR }, () => card(150, 250)),
+    );
     expect(result).toEqual({ status: "ok", online: 150, inPerson: 250 });
     expect(JSON.stringify(result)).not.toContain("label");
   });
