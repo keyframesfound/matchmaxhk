@@ -1293,6 +1293,10 @@ export type Database = {
       complete_onboarding: { Args: { _choice: string }; Returns: undefined };
       confirm_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
       request_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
+      publish_tutor_from_application: {
+        Args: { p_application_id: string; p_card: Json };
+        Returns: Json;
+      };
       resolve_tutor_claim: {
         Args: { p_request_id: string; p_approve: boolean; p_note?: string | null };
         Returns: string;

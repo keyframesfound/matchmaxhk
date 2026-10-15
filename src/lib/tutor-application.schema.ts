@@ -13,6 +13,19 @@ import {
 import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 
+/**
+ * Issue #357 / #359 — every free-text answer that is copied onto the public
+ * card must fail intake before the row is stored. `superRefine` runs on the
+ * schema output (after trim / default), so empty optional fields pass.
+ */
+function withContactFilter<T extends z.ZodTypeAny>(schema: T) {
+  return schema.superRefine((value, ctx) => {
+    if (typeof value !== "string") return;
+    const error = contactFilterError(value);
+    if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+  });
+}
+
 export const MAX_FILES = 5;
 export const MAX_ACHIEVEMENT_FILE_BYTES = 5 * 1024 * 1024;
 export const MAX_FILE_BYTES = MAX_ACHIEVEMENT_FILE_BYTES;
@@ -112,7 +125,8 @@ export const portfolioImageSchema = attachmentSchema.superRefine((image, context
 export const tutorApplicationSchema = z
   .object({
     turnstileToken: z.string().trim().min(1, "Complete the security check").max(2048),
-    name: z.string().trim().min(1, "Required").max(120),
+    // Issue #359: name is the public display_name.
+    name: withContactFilter(z.string().trim().min(1, "Required").max(120)),
     // Issue #189: optional preferred name so the WhatsApp activation message
     // and later concierge chats can use what the tutor actually goes by.
     preferredName: z.string().trim().max(80).optional().default(""),
@@ -120,7 +134,7 @@ export const tutorApplicationSchema = z
     email: z.string().trim().email("Enter a valid email"),
     country: z.string().trim().min(1, "Required").max(100),
     year: z.string().trim().max(40).optional().default(""),
-    graduationYear: z.string().trim().max(40).optional().default(""),
+    graduationYear: withContactFilter(z.string().trim().max(40).optional().default("")),
     // Issue #106: tutors pick "Immediately" or a concrete earliest start date
     // (stored as an ISO yyyy-mm-dd string) so profiles can pre-book or hide
     // themselves from public browse automatically.
@@ -131,13 +145,13 @@ export const tutorApplicationSchema = z
     professionalRoles: z.array(z.enum(PROFESSIONAL_ROLE_OPTIONS)).default([]),
     examiningBoards: z.array(z.enum(EXAMINING_BOARD_OPTIONS)).default([]),
     teachingQualifications: z.array(z.enum(TEACHING_QUALIFICATION_OPTIONS)).default([]),
-    university: z.string().trim().max(200).optional().default(""),
-    programme: z.string().trim().max(200).optional().default(""),
+    university: withContactFilter(z.string().trim().max(200).optional().default("")),
+    programme: withContactFilter(z.string().trim().max(200).optional().default("")),
     // Issue #107: optional Master's / postgraduate / dual-degree history.
     hasPostgrad: z.boolean().default(false),
-    postgradUniversity: z.string().trim().max(200).optional().default(""),
-    postgradDegree: z.string().trim().max(200).optional().default(""),
-    highSchool: z.string().trim().min(1, "Required").max(200),
+    postgradUniversity: withContactFilter(z.string().trim().max(200).optional().default("")),
+    postgradDegree: withContactFilter(z.string().trim().max(200).optional().default("")),
+    highSchool: withContactFilter(z.string().trim().min(1, "Required").max(200)),
     curriculum: z.enum(CURRICULUM_OPTIONS),
     curricula: z.array(z.enum(CURRICULUM_OPTIONS)).min(1, "Select at least one curriculum"),
     // Issue #323: overall score is strictly OPTIONAL — tutors select a
@@ -157,14 +171,18 @@ export const tutorApplicationSchema = z
         const error = contactFilterError(text);
         if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
       }),
-    subjectsConfident: z.string().trim().min(1, "Required").max(2000),
+    // Issue #359: joined picker text is published as tutors.subjects.
+    subjectsConfident: withContactFilter(z.string().trim().min(1, "Required").max(2000)),
     subjectResults: z.string().trim().min(1, "Required").max(2000),
-    awards: z.string().trim().max(2000).optional().default(""),
+    // Issue #357: awards is the qualifications_summary fallback when there
+    // are no achievement blocks — both go live on the card, so both are
+    // contact-filtered (issue #357/#359 leak fix preserved post-#309).
+    awards: withContactFilter(z.string().trim().max(2000).optional().default("")),
     achievements: z
       .array(
         z.object({
-          title: z.string().trim().min(1, "Required").max(200),
-          description: z.string().trim().min(1, "Required").max(2000),
+          title: withContactFilter(z.string().trim().min(1, "Required").max(200)),
+          description: withContactFilter(z.string().trim().min(1, "Required").max(2000)),
         }),
       )
       .max(MAX_FILES)
@@ -217,6 +235,8 @@ export const tutorApplicationSchema = z
     // Extra rate rows (profile-only): lenient shape here — the same shared
     // rules as the form run in superRefine, and functions.ts stores the
     // normalized output (half-filled/invalid rows never reach the row).
+    // Issue #359: labels are contact-filtered inside normalizeTutorRateRows
+    // (shared with the profile editor) before a row is accepted.
     rateRows: z
       .array(
         z.object({
@@ -265,13 +285,16 @@ export const tutorApplicationSchema = z
     materials: z.enum(MATERIALS_OPTIONS),
     format: z.enum(FORMAT_OPTIONS),
     maxStudents: z.string().trim().max(20).optional().default(""),
-    locations: z
-      .string()
-      .trim()
-      .max(2000, "Too many teaching locations selected — please narrow your station selection.")
-      .optional()
-      .default(""),
-    medium: z.string().trim().min(1, "Required").max(200),
+    // Issue #359: locations and medium are published as stations / languages.
+    locations: withContactFilter(
+      z
+        .string()
+        .trim()
+        .max(2000, "Too many teaching locations selected — please narrow your station selection.")
+        .optional()
+        .default(""),
+    ),
+    medium: withContactFilter(z.string().trim().min(1, "Required").max(200)),
     notes: z.string().trim().max(2000).optional().default(""),
     referralCode: z
       .string()
