@@ -75,6 +75,7 @@ import { getCurriculumGroupLabel, getTutorSubjectGroups } from "@/features/tutor
 import { parseProfileTags, popularProfileTags } from "@/features/tutors/profile-tags";
 import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import { fetchPublishedTutors } from "@/features/tutors/queries";
+import { SEN_CATEGORY_OPTIONS, normalizeSenCategories } from "@/features/tutors/sen";
 import { supabase } from "@/integrations/supabase/client";
 import {
   IA_EE_TOK_SUPPORT_OPTIONS,
@@ -311,6 +312,11 @@ export const tutorFormSchema = z.object({
     .max(MAX_TUTOR_ACHIEVEMENTS, "Add no more than three achievements"),
   ia_ee_tok_support: z.array(z.enum(IA_EE_TOK_SUPPORT_OPTIONS)),
   ia_ee_tok_notes: z.string().trim().max(1000).optional().or(z.literal("")),
+  // Issue #199: SEN capability. Categories use the shared HK-common
+  // vocabulary; the experience note is a profile-only free-text field.
+  sen_enabled: z.boolean(),
+  sen_categories: z.array(z.enum(SEN_CATEGORY_OPTIONS)),
+  sen_experience: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
 export type TutorFormData = z.infer<typeof tutorFormSchema>;
@@ -374,6 +380,9 @@ export const emptyTutorForm: TutorFormData = {
   achievements: [],
   ia_ee_tok_support: [],
   ia_ee_tok_notes: "",
+  sen_enabled: false,
+  sen_categories: [],
+  sen_experience: "",
 };
 
 export function tutorToFormData(t: Tutor): TutorFormData {
@@ -445,6 +454,9 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     })),
     ia_ee_tok_support: t.ia_ee_tok_support ?? [],
     ia_ee_tok_notes: t.ia_ee_tok_notes ?? "",
+    sen_enabled: t.sen_enabled === true,
+    sen_categories: normalizeSenCategories(t.sen_categories),
+    sen_experience: t.sen_experience ?? "",
   };
 }
 
@@ -544,6 +556,10 @@ export function formDataToPayload(v: TutorFormData) {
     achievements: cleanAchievements,
     ia_ee_tok_support: v.ia_ee_tok_support,
     ia_ee_tok_notes: v.ia_ee_tok_notes?.trim() || null,
+    // Issue #199: categories only persist while SEN experience is enabled.
+    sen_enabled: v.sen_enabled,
+    sen_categories: v.sen_enabled ? v.sen_categories : [],
+    sen_experience: v.sen_enabled ? v.sen_experience?.trim() || null : null,
   };
 }
 
@@ -1429,6 +1445,9 @@ export function TutorEditor({
         .filter((a) => a.short_text),
       ia_ee_tok_support: form.ia_ee_tok_support,
       ia_ee_tok_notes: form.ia_ee_tok_notes?.trim() || null,
+      sen_enabled: form.sen_enabled,
+      sen_categories: form.sen_enabled ? form.sen_categories : [],
+      sen_experience: form.sen_enabled ? form.sen_experience?.trim() || null : null,
       remaining_student_slots: form.remaining_student_slots,
       is_accepting_students: form.is_accepting_students,
       preferred_time_windows: form.preferred_time_windows,
@@ -3138,6 +3157,73 @@ export function TutorEditor({
                     />
                   </FormField>
                 )}
+              </div>
+
+              {/* Issue #199: SEN experience & qualifications. Drives the SEN
+                  search filter and the SEN badge on the tutor card. */}
+              <div className="space-y-3 pt-2 border-t border-[color:var(--ink)]/10">
+                <label className="flex cursor-pointer items-center justify-between gap-3">
+                  <span>
+                    <Label className="text-xs font-semibold text-[color:var(--ink)]">
+                      SEN Experience & Qualifications
+                    </Label>
+                    <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                      Tutor has experience or qualifications teaching students with Special
+                      Educational Needs (SEN).
+                    </span>
+                  </span>
+                  <Checkbox
+                    checked={form.sen_enabled}
+                    onCheckedChange={(checked) =>
+                      setForm({ ...form, sen_enabled: checked === true })
+                    }
+                  />
+                </label>
+
+                {form.sen_enabled ? (
+                  <>
+                    <div className="flex flex-wrap gap-2.5">
+                      {SEN_CATEGORY_OPTIONS.map((category) => (
+                        <label
+                          key={category}
+                          className={cn(
+                            "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors",
+                            form.sen_categories.includes(category)
+                              ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
+                              : "border-border bg-background text-[color:var(--ink)] hover:bg-muted/40",
+                          )}
+                        >
+                          <Checkbox
+                            checked={form.sen_categories.includes(category)}
+                            onCheckedChange={(checked) =>
+                              setForm({
+                                ...form,
+                                sen_categories: checked
+                                  ? [...form.sen_categories, category]
+                                  : form.sen_categories.filter((item) => item !== category),
+                              })
+                            }
+                          />
+                          <span>{category}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <FormField
+                      label="SEN Experience Details"
+                      error={errors.sen_experience}
+                      hint="Certificates, coursework, years of SEN experience (shown on the profile)"
+                    >
+                      <Textarea
+                        rows={3}
+                        maxLength={2000}
+                        value={form.sen_experience}
+                        onChange={(e) => setForm({ ...form, sen_experience: e.target.value })}
+                        placeholder="e.g. PGDE with SEN specialization; 4 years supporting dyslexic students in 1:1 English lessons."
+                        className="text-xs"
+                      />
+                    </FormField>
+                  </>
+                ) : null}
               </div>
             </EditorSection>
 

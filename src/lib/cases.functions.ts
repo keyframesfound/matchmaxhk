@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { mergeCaseTags } from "@/features/tutors/profile-tags";
+import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { TARGET_PATHWAY_LABELS, TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
@@ -47,6 +48,15 @@ const CaseRequestInput = z
     // until #114 ships the selector; the API already accepts the field.
     budgetCurrency: z.enum(SUPPORTED_CURRENCIES).optional(),
     tutorBackground: z.enum(["uni_student", "official_examiner", "any"]),
+    // Issue #199: SEN support requirements. Categories use the shared
+    // HK-common vocabulary; details stay off the public board (see
+    // PUBLIC_CASE_COLUMNS) and are only used for matching.
+    senRequired: z.boolean().default(false),
+    senCategories: z
+      .array(z.enum(SEN_CATEGORY_OPTIONS))
+      .max(SEN_CATEGORY_OPTIONS.length)
+      .default([]),
+    senDetails: z.string().trim().max(2000).optional().nullable(),
     notes: z.string().trim().max(2000).optional().nullable(),
     termsAck: z.literal(true),
     website: z.string().max(0).optional().nullable(),
@@ -120,6 +130,8 @@ export type PublicCaseBoardItem = {
   specificComponent: string | null;
   targetSchool: string | null;
   tags: string[];
+  senRequired: boolean;
+  senCategories: string[];
   preferredGender: "any" | "male" | "female";
   startTiming: string | null;
   budgetCurrency: string;
@@ -132,9 +144,11 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, preferred_gender, start_timing, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at";
+  "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, start_timing, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
+// sen_details is also withheld: the board is public and the free-text needs
+// details can identify the student — matching reads it via admin surfaces.
 function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
   return {
     id: row.id as string,
@@ -153,6 +167,12 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
     specificComponent: (row.specific_component as string | null) ?? null,
     targetSchool: (row.target_school as string | null) ?? null,
     tags: (row.tags as string[] | null) ?? [],
+    senRequired: row.sen_required === true,
+    senCategories: Array.isArray(row.sen_categories)
+      ? (row.sen_categories as string[]).filter(
+          (value): value is string => typeof value === "string",
+        )
+      : [],
     preferredGender: (row.preferred_gender as "any" | "male" | "female") ?? "any",
     startTiming: (row.start_timing as string | null) ?? null,
     budgetCurrency: (row.budget_currency as string) ?? "HKD",
@@ -329,6 +349,10 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       // tags always survive (mergeCaseTags keeps them in full up to
       // MAX_CASE_TAGS), so five parent picks never drop the subjects.
       tags: mergeCaseTags(data.tags, buildCaseTags(data)),
+      // Issue #199: SEN requirements (categories only when required).
+      sen_required: data.senRequired,
+      sen_categories: data.senRequired ? data.senCategories : [],
+      sen_details: data.senRequired ? data.senDetails?.trim() || null : null,
       district: data.district || null,
       mode: MODE_TO_DB[data.mode] ?? "either",
       sessions_per_week: 1,

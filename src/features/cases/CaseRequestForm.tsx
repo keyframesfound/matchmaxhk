@@ -34,6 +34,7 @@ import {
 } from "@/features/cases/case-options";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { MAX_PROFILE_TAGS, PRESET_PROFILE_TAGS } from "@/features/tutors/profile-tags";
+import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
@@ -98,6 +99,10 @@ type FormState = {
   budgetMax: string;
   tutorBackground: string;
   notes: string;
+  // Issue #199: SEN support requirements (step 3).
+  senRequired: boolean;
+  senCategories: string[];
+  senDetails: string;
   // Issue #311: parent-picked preset tags (max MAX_PROFILE_TAGS) — merged
   // with the derived requirement tags server-side by mergeCaseTags, which
   // always keeps the derived tags regardless of how many presets are picked.
@@ -130,6 +135,9 @@ const INITIAL_FORM: FormState = {
   budgetMax: "",
   tutorBackground: "any",
   notes: "",
+  senRequired: false,
+  senCategories: [],
+  senDetails: "",
   tags: [],
   termsAgreed: false,
 };
@@ -364,6 +372,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           tutorBackground: (form.tutorBackground || "any") as
             "uni_student" | "official_examiner" | "any",
           notes: form.notes.trim() || null,
+          senRequired: form.senRequired,
+          senCategories: form.senRequired ? form.senCategories : [],
+          senDetails: form.senRequired ? form.senDetails.trim() || null : null,
           tags: form.tags,
           termsAck: form.termsAgreed,
           website: honeypot.current?.value || null,
@@ -1072,6 +1083,86 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 Note: Official Examiners typically command double the hourly rate of University
                 Students
               </p>
+            </div>
+            {/* Issue #199: SEN support section — Yes/No toggle reveals the
+                category multi-select and optional details. */}
+            <div className="sm:col-span-2">
+              <span className={labelClassName}>Does the student require SEN support?</span>
+              <div className="mt-2 flex gap-2">
+                {[
+                  { value: false, label: "No" },
+                  { value: true, label: "Yes" },
+                ].map((option) => {
+                  const active = form.senRequired === option.value;
+                  return (
+                    <button
+                      key={option.label}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() =>
+                        update({
+                          senRequired: option.value,
+                          ...(option.value ? {} : { senCategories: [], senDetails: "" }),
+                        })
+                      }
+                      className={cn(
+                        "inline-flex h-9 items-center rounded-full border px-5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+                        active
+                          ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 text-[color:var(--ink)]"
+                          : "border-border text-muted-foreground hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)]",
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {form.senRequired ? (
+                <div className="mt-4 space-y-4">
+                  <div
+                    role="group"
+                    aria-label="SEN categories"
+                    className="space-y-1 rounded-sm border border-border p-3"
+                  >
+                    {SEN_CATEGORY_OPTIONS.map((category) => {
+                      const active = form.senCategories.includes(category);
+                      return (
+                        <label
+                          key={category}
+                          className="flex cursor-pointer items-center gap-3 rounded-sm px-2 py-1.5 text-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.04]"
+                        >
+                          <Checkbox
+                            checked={active}
+                            onCheckedChange={(checked) =>
+                              update({
+                                senCategories: checked
+                                  ? [...form.senCategories, category]
+                                  : form.senCategories.filter((item) => item !== category),
+                              })
+                            }
+                          />
+                          <span className="font-medium">{category}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <div>
+                    <label className={labelClassName} htmlFor={`${idPrefix}-sen-details`}>
+                      Additional details regarding the student's learning needs (Optional)
+                    </label>
+                    <Textarea
+                      id={`${idPrefix}-sen-details`}
+                      rows={3}
+                      maxLength={2000}
+                      className="w-full rounded-sm"
+                      placeholder="Diagnosis status, classroom accommodations, strategies that work, what the tutor should focus on…"
+                      value={form.senDetails}
+                      onChange={(e) => update({ senDetails: e.target.value })}
+                    />
+                  </div>
+                </div>
+              ) : null}
             </div>
             <div className="sm:col-span-2">
               <label className={labelClassName} htmlFor={`${idPrefix}-notes`}>

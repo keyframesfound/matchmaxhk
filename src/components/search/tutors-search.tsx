@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Coins,
   GraduationCap,
+  HeartHandshake,
   MapPin,
   Mars,
   Monitor,
@@ -40,6 +41,7 @@ import {
   getSubjectOptionsForCategory,
 } from "@/features/tutors/subjects";
 import type { EducationValueSets } from "@/features/tutors/education-filters";
+import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { cn } from "@/lib/utils";
 
 export type TutorsSearchState = {
@@ -55,6 +57,10 @@ export type TutorsSearchState = {
   university?: string;
   high_school?: string;
   major?: string;
+  /** Issue #199: SEN-experienced tutors only (sen_enabled = true). */
+  sen?: boolean;
+  /** Issue #199: required SEN categories ("||"-joined); ALL must match. */
+  sen_categories?: string;
   min_price?: number;
   max_price?: number;
   sort?: string;
@@ -90,6 +96,14 @@ const setSelectedSubjects = (
     subjects_extra: rest.length > 0 ? rest.join("||") : undefined,
   };
 };
+
+/** Issue #199: the draft's full SEN category pick ("||"-joined in the URL). */
+export function getSelectedSenCategories(draft: TutorsSearchState): string[] {
+  return (draft.sen_categories ?? "")
+    .split("||")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
 
 const formatPrice = (price: number) =>
   price === PRICE_MAX ? `HK$${price.toLocaleString()}+` : `HK$${price.toLocaleString()}`;
@@ -201,6 +215,16 @@ const tutorsQuickPicks = (
     icon: MapPin,
     active: draft.mode === "in_person",
     onToggle: () => onDraftChange({ mode: draft.mode === "in_person" ? undefined : "in_person" }),
+  },
+  {
+    id: "sen",
+    label: "SEN",
+    icon: HeartHandshake,
+    active: draft.sen === true,
+    onToggle: () =>
+      onDraftChange(
+        draft.sen === true ? { sen: undefined, sen_categories: undefined } : { sen: true },
+      ),
   },
 ];
 
@@ -335,6 +359,8 @@ export function TutorsSearchBar({
     draft.gender,
     draft.status,
     draft.verified === true ? "verified" : "",
+    // Issue #199: the SEN toggle (with or without category picks) is one filter.
+    draft.sen === true ? "sen" : "",
     draft.university,
     draft.high_school,
     draft.major,
@@ -531,6 +557,11 @@ export function TutorsSearchBar({
             />
             {t("search_ui.verified_only")}
           </label>
+        </FiltersSection>
+        {/* Issue #199: SEN support filter — toggle plus a match-all category
+            multi-select (a tutor must carry every picked category). */}
+        <FiltersSection id="sen" title="SEN support">
+          <SenFilterContent draft={draft} onDraftChange={onDraftChange} />
         </FiltersSection>
         <FiltersSection id="university" title={t("search_ui.university_title")}>
           <SearchableSelect
@@ -818,6 +849,13 @@ export function TutorsSearchMobile({
             </label>
           </div>
 
+          {/* Issue #199: SEN support filter (same control as the desktop
+              filters dialog). */}
+          <div className="space-y-2">
+            <PanelLabel>SEN support</PanelLabel>
+            <SenFilterContent draft={draft} onDraftChange={onDraftChange} />
+          </div>
+
           <div className="space-y-2">
             <PanelLabel>{t("search_ui.university_title")}</PanelLabel>
             <SearchableSelect
@@ -883,6 +921,50 @@ export function TutorsSearchMobile({
           </div>
         </div>
       </MobileSearchOverlay>
+    </div>
+  );
+}
+
+/** Issue #199: SEN support filter body — "SEN-experienced only" toggle plus
+ * the check-marked category multi-select (match-all, same anatomy as the
+ * subject picker). */
+function SenFilterContent({
+  draft,
+  onDraftChange,
+}: {
+  draft: TutorsSearchState;
+  onDraftChange: (patch: Partial<TutorsSearchState>) => void;
+}) {
+  const selected = getSelectedSenCategories(draft);
+  return (
+    <div className="space-y-3">
+      <label className="flex w-fit cursor-pointer items-center gap-3 text-sm font-medium text-[color:var(--ink)]">
+        <Checkbox
+          checked={draft.sen === true}
+          onCheckedChange={(checked) =>
+            onDraftChange(
+              checked === true ? { sen: true } : { sen: undefined, sen_categories: undefined },
+            )
+          }
+        />
+        SEN-experienced tutors only
+      </label>
+      {draft.sen === true ? (
+        <SubjectMultiSelect
+          options={[...SEN_CATEGORY_OPTIONS]}
+          selected={selected}
+          onToggle={(category) => {
+            const next = selected.includes(category)
+              ? selected.filter((value) => value !== category)
+              : [...selected, category];
+            onDraftChange({ sen_categories: next.length > 0 ? next.join("||") : undefined });
+          }}
+          onClear={() => onDraftChange({ sen_categories: undefined })}
+          clearLabel="Clear categories"
+          searchPlaceholder="Search SEN categories"
+          emptyText="No matches found."
+        />
+      ) : null}
     </div>
   );
 }

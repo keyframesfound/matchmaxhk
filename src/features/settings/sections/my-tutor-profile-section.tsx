@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { MAX_ACADEMIC_HEADLINE, academicHeadlineError } from "@/lib/academic-headline";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MtrStationMultiSelect } from "@/components/ui/mtr-station-select";
 import { SettingsCard } from "@/features/settings/option-card";
@@ -22,6 +23,7 @@ import { requestAccountDeletion } from "@/lib/account.functions";
 import { contactFilterError } from "@/lib/contact-filter";
 import { notifyTutorPriceChange } from "@/lib/tutor-pricing.functions";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
+import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import { getSystem } from "@/features/tutors/examSystems";
 import {
@@ -62,7 +64,7 @@ import {
 /** Columns the tutor-facing editor reads/writes. Mirrors SELECT_COLS minus
  * admin-managed identity (tutor_code, created_at, referral). */
 const MY_TUTOR_COLUMNS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, deletion_requested_at";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, sen_enabled, sen_categories, sen_experience, deletion_requested_at";
 
 type MyTutorRow = Tutor & {
   user_id?: string | null;
@@ -740,6 +742,74 @@ export function MyTutorProfileSection() {
             <p className="text-xs text-[color:var(--ink)]/55">
               {t("settings.my_tutor.self_introduction_hint")}
             </p>
+          </div>
+
+          {/* Issue #199: SEN experience & qualifications. Feeds the SEN search
+              filter and the SEN badge on the public card. */}
+          <div className="space-y-3 rounded-xl border border-[color:var(--ink)]/10 p-4">
+            <label className="flex cursor-pointer items-center justify-between gap-3">
+              <span>
+                <Label className="text-[color:var(--ink)]">
+                  SEN Experience &amp; Qualifications
+                </Label>
+                <span className="mt-0.5 block text-xs text-[color:var(--ink)]/55">
+                  I have experience or qualifications teaching students with Special Educational
+                  Needs (SEN).
+                </span>
+              </span>
+              <Checkbox
+                checked={form.sen_enabled}
+                onCheckedChange={(checked) => setForm({ ...form, sen_enabled: checked === true })}
+              />
+            </label>
+
+            {form.sen_enabled ? (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {SEN_CATEGORY_OPTIONS.map((category) => {
+                    const active = form.sen_categories.includes(category);
+                    return (
+                      <label
+                        key={category}
+                        className={cn(
+                          "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors",
+                          active
+                            ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
+                            : "border-border bg-[color:var(--surface)] text-[color:var(--ink)] hover:bg-muted/40",
+                        )}
+                      >
+                        <Checkbox
+                          checked={active}
+                          onCheckedChange={(checked) =>
+                            setForm({
+                              ...form,
+                              sen_categories: checked
+                                ? [...form.sen_categories, category]
+                                : form.sen_categories.filter((item) => item !== category),
+                            })
+                          }
+                        />
+                        <span>{category}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="myt-sen-experience" className="text-[color:var(--ink)]">
+                    SEN experience details (certificates, coursework, years of experience)
+                  </Label>
+                  <Textarea
+                    id="myt-sen-experience"
+                    value={form.sen_experience}
+                    onChange={(e) => setForm({ ...form, sen_experience: e.target.value })}
+                    rows={3}
+                    maxLength={2000}
+                    className="bg-[color:var(--surface)]"
+                    placeholder="e.g. PGCE with SEN coursework; 3 years supporting students with ADHD in maths."
+                  />
+                </div>
+              </>
+            ) : null}
           </div>
 
           {/* Issue #217/#311: up to five free-text tags, shown on the public

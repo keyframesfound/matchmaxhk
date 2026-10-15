@@ -1,4 +1,11 @@
-import { BookOpen, ClipboardList, School, Star, type LucideIcon } from "lucide-react";
+import {
+  BookOpen,
+  ClipboardList,
+  HeartHandshake,
+  School,
+  Star,
+  type LucideIcon,
+} from "lucide-react";
 
 import { TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
 import type { PublicCaseBoardItem } from "@/lib/cases.functions";
@@ -83,6 +90,26 @@ export function casePills(item: PublicCaseBoardItem): CasePill[] {
 
   const background = backgroundPill(item);
   if (background) pills.push(background);
+
+  // Issue #199: SEN support required — a hard requirement for matching.
+  // Specific categories surface as extra hard pills so tutors can see the
+  // exact needs at a glance.
+  if (item.senRequired) {
+    pills.push({
+      key: "sen",
+      label: "SEN support",
+      icon: HeartHandshake,
+      tone: "hard",
+    });
+    for (const category of item.senCategories) {
+      pills.push({
+        key: `sen:${category}`,
+        label: `SEN: ${category}`,
+        icon: HeartHandshake,
+        tone: "hard",
+      });
+    }
+  }
 
   return pills;
 }

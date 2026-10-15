@@ -108,6 +108,7 @@ import {
   isValidTutorRate,
   normalizeTutorRateRows,
 } from "@/features/tutors/rates";
+import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 
 type ScoreRow = {
   subject: string;
@@ -923,6 +924,10 @@ type ApplicationBaseState = {
   portfolioImages: File[];
   portfolioConsent: boolean;
   selfIntroduction: string;
+  // Issue #199: SEN experience & qualifications (step 5).
+  senEnabled: boolean;
+  senCategories: string[];
+  senExperience: string;
   // Issue #319: two base rates (whole dollars) replace the single
   // "Proposed Hourly Rate" input; rows/notes are profile-only extras.
   onlineRate: string;
@@ -1021,6 +1026,9 @@ export function ApplicationForm() {
     portfolioImages: [] as File[],
     portfolioConsent: false,
     selfIntroduction: "",
+    senEnabled: false,
+    senCategories: [] as string[],
+    senExperience: "",
     onlineRate: "",
     inpersonRate: "",
     rateRows: [] as { label: string; rate: string }[],
@@ -1526,6 +1534,12 @@ export function ApplicationForm() {
       // Issue #215: no contact details in the public self-introduction.
       const introError = contactFilterError(base.selfIntroduction);
       if (introError) next.selfIntroduction = introError;
+      // Issue #199: at least one SEN category once the SEN toggle is on.
+      if (base.senEnabled && base.senCategories.length === 0) {
+        next.senCategories = "Select at least one SEN category";
+      }
+      const senExperienceError = contactFilterError(base.senExperience);
+      if (senExperienceError) next.senExperience = senExperienceError;
     }
     const logisticsStep = professional ? 6 : 6;
     if (step === logisticsStep) {
@@ -1770,6 +1784,10 @@ export function ApplicationForm() {
           })),
         ),
         portfolioConsent: base.portfolioConsent,
+        // Issue #199: SEN experience & qualifications.
+        senEnabled: base.senEnabled,
+        senCategories: base.senEnabled ? base.senCategories : [],
+        senExperience: base.senEnabled ? base.senExperience.trim() : "",
         experience: base.achievements
           .map((achievement) => `${achievement.title}: ${achievement.description}`)
           .join("\n"),
@@ -3354,6 +3372,84 @@ export function ApplicationForm() {
                     {base.selfIntroduction.length}/2000
                   </p>
                 </Field>
+              </div>
+              <div className="mt-6 border-t border-border pt-5">
+                {/* Issue #199: SEN experience & qualifications. Categories use
+                    the shared HK-common vocabulary (src/features/tutors/sen.ts). */}
+                <label className="flex cursor-pointer items-start justify-between gap-3">
+                  <span>
+                    <span className="block text-sm font-semibold text-[color:var(--ink)]">
+                      Do you have experience or qualifications teaching students with Special
+                      Educational Needs (SEN)?
+                    </span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      MatchMax parents can filter tutors by SEN support.
+                    </span>
+                  </span>
+                  <Checkbox
+                    checked={base.senEnabled}
+                    onCheckedChange={(checked) => {
+                      setBaseField("senEnabled", checked === true);
+                      if (checked) clearFieldError("senCategories");
+                    }}
+                    aria-invalid={fieldErrors.senCategories ? true : undefined}
+                    className={fieldErrors.senCategories ? "border-destructive" : undefined}
+                  />
+                </label>
+
+                {base.senEnabled ? (
+                  <div className="mt-4 space-y-4">
+                    <div
+                      role="group"
+                      aria-label="SEN categories"
+                      className="space-y-1.5 rounded-sm border border-border p-3"
+                    >
+                      {SEN_CATEGORY_OPTIONS.map((category) => {
+                        const active = base.senCategories.includes(category);
+                        return (
+                          <label
+                            key={category}
+                            className="flex cursor-pointer items-center gap-3 rounded-sm px-2 py-1.5 text-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.04]"
+                          >
+                            <Checkbox
+                              checked={active}
+                              onCheckedChange={(checked) => {
+                                setBaseField(
+                                  "senCategories",
+                                  checked
+                                    ? [...base.senCategories, category]
+                                    : base.senCategories.filter((item) => item !== category),
+                                );
+                                if (checked) clearFieldError("senCategories");
+                              }}
+                              aria-invalid={fieldErrors.senCategories ? true : undefined}
+                            />
+                            <span className="font-medium">{category}</span>
+                          </label>
+                        );
+                      })}
+                      {fieldErrors.senCategories ? (
+                        <p className="text-xs font-medium text-destructive">
+                          {fieldErrors.senCategories}
+                        </p>
+                      ) : null}
+                    </div>
+                    <Field
+                      label="SEN Experience & Qualifications"
+                      optional
+                      hint="Certificates, SEN coursework, years of experience supporting students with special educational needs."
+                    >
+                      <Textarea
+                        rows={4}
+                        maxLength={2000}
+                        value={base.senExperience}
+                        onChange={(event) => setBaseField("senExperience", event.target.value)}
+                        placeholder="e.g. Completed Jockey Club 'Dyslexia' teacher training; 3 years supporting students with ADHD and ASD in 1:1 maths lessons."
+                        className="w-full rounded-sm"
+                      />
+                    </Field>
+                  </div>
+                ) : null}
               </div>
             </>
           ) : null}
