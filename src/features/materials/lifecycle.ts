@@ -22,11 +22,11 @@ export type MaterialStatus = (typeof MATERIAL_STATUSES)[number];
 /** Fields the owner may always edit (P8 "after publish" list + P9). */
 export const OWNER_EDITABLE_FIELDS = ["title", "price", "description"] as const;
 
-/** #203 price floor; below this needs an admin (admins bypass server-side). */
-export const MIN_PRICE_HKD = 30;
-
 /** #203 file rules. */
 export const MAX_PDF_BYTES = 20 * 1024 * 1024; // repo upload cap (issue allows 40MB; Workers body limits win)
+
+/** #314 flashcards: .apkg decks ride the same 40MB cap as the issue allows. */
+export const MAX_APKG_BYTES = MAX_PDF_BYTES;
 
 /** P8: pages shown before the blur starts on the note page. */
 export const CRISP_PREVIEW_PAGES = 3;
@@ -51,6 +51,7 @@ export type SubmitCheckResult = {
 /**
  * P8 required-before-submit gate: title, price, PDF. (The sample images are
  * auto-generated from the PDF at upload, so they are never a tutor duty.)
+ * #314: HK$0 is a VALID price (free pack) — only null/negative is missing.
  */
 export function checkSubmitReadiness(input: {
   title?: string | null;
@@ -59,7 +60,7 @@ export function checkSubmitReadiness(input: {
 }): SubmitCheckResult {
   const missing: string[] = [];
   if (!input.title || input.title.trim().length < 3) missing.push("title");
-  if (input.priceHkd == null || Number.isNaN(input.priceHkd) || input.priceHkd < MIN_PRICE_HKD) {
+  if (input.priceHkd == null || Number.isNaN(input.priceHkd) || input.priceHkd < 0) {
     missing.push("price");
   }
   if (!input.hasPdf) missing.push("pdf");
@@ -202,17 +203,65 @@ export const BELL_EVENTS_IN_PR = ["material_order.delivered"] as const;
 /**
  * #313 note kinds: the classification a note carries on the marketplace.
  * Curriculum is one of the site's canonical systems (plus Other); type is
- * the 3-way notes/mock/exemplar split; topic is a free 40-char filter, not
- * a syllabus tree; grade achieved is exemplar-only and self-reported.
+ * the notes/mock/exemplar/flashcards split (#314 added flashcards); topic
+ * is a free 40-char filter, not a syllabus tree; grade achieved is
+ * exemplar-only and self-reported.
  */
 export const NOTE_CURRICULA = ["IB", "DSE", "IGCSE", "A-Level", "Other"] as const;
 export type NoteCurriculum = (typeof NOTE_CURRICULA)[number];
 
-export const MATERIAL_TYPES = ["notes", "mock", "exemplar"] as const;
+/**
+ * #314: flashcards join the 3-way split. A deck is a PDF or an .apkg file
+ * (max 40MB) — no in-browser player, buyers download the file. Subject
+ * allowlist + ban list + staff review still apply.
+ */
+export const MATERIAL_TYPES = ["notes", "mock", "exemplar", "flashcards"] as const;
 export type MaterialType = (typeof MATERIAL_TYPES)[number];
 
 export const NOTE_TOPIC_MAX_LEN = 40;
 export const GRADE_ACHIEVED_MAX_LEN = 20;
+
+/**
+ * #136: tutor-entered approximate word count — OPTIONAL (Ryan: empty never
+ * blocks publish). When present it must be a positive whole number; the cap
+ * just stops fat-fingered 9-digit values from landing in the DB.
+ */
+export const WORD_COUNT_MAX = 500_000;
+
+/** Returns a human-readable problem, or null when the value is acceptable. */
+export function validateWordCount(value: number | null | undefined): string | null {
+  if (value == null) return null;
+  if (!Number.isInteger(value) || value <= 0 || value > WORD_COUNT_MAX) {
+    return "Approximate word count must be a positive whole number.";
+  }
+  return null;
+}
+
+/**
+ * #314: which kind of file a listing carries, decided by extension. PDF is
+ * valid for every type; an .apkg deck is only valid for flashcards (no
+ * in-browser player — the buyer downloads the file).
+ */
+export type MaterialFileKind = "pdf" | "apkg";
+
+export function materialFileKind(fileName: string): MaterialFileKind | null {
+  const name = fileName.trim().toLowerCase();
+  if (name.endsWith(".pdf")) return "pdf";
+  if (name.endsWith(".apkg")) return "apkg";
+  return null;
+}
+
+export function isAllowedMaterialFile(materialType: MaterialType, fileName: string): boolean {
+  const kind = materialFileKind(fileName);
+  if (!kind) return false;
+  if (kind === "apkg") return materialType === "flashcards";
+  return true;
+}
+
+/** Storage/content-type for an original upload by file kind. */
+export function materialFileContentType(kind: MaterialFileKind): string {
+  return kind === "apkg" ? "application/octet-stream" : "application/pdf";
+}
 
 /**
  * #346: subject is allowlisted server-side to match what the forms can
@@ -343,7 +392,7 @@ export function validateNoteKindsForSubmit(
 
   const materialType = (input.materialType ?? "").trim();
   if (!(MATERIAL_TYPES as readonly string[]).includes(materialType)) {
-    errors.push("Type must be notes, mock, or exemplar.");
+    errors.push("Type must be notes, mock, exemplar, or flashcards.");
   }
 
   const topic = (input.topic ?? "").trim();
@@ -407,7 +456,7 @@ export function validateNoteKindsPartial(
   if (input.materialType != null && input.materialType.trim()) {
     const materialType = input.materialType.trim();
     if (!(MATERIAL_TYPES as readonly string[]).includes(materialType)) {
-      errors.push("Type must be notes, mock, or exemplar.");
+      errors.push("Type must be notes, mock, exemplar, or flashcards.");
     }
   }
 

@@ -24,6 +24,8 @@ export type StudyMaterial = {
   exemplar_permission: boolean;
   year_tag: string | null;
   page_count: number | null;
+  /** #136: tutor-entered approximate word count (optional). */
+  word_count: number | null;
   exact_score_achieved: string | null;
   includes_examiner_comments: boolean;
   watermarked_preview_url: string;
@@ -40,7 +42,7 @@ function isMissingRelation(error: unknown): boolean {
 }
 
 const MATERIAL_COLS =
-  "id, tutor_id, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, admin_marketing_summary, created_at";
+  "id, tutor_id, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, word_count, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, admin_marketing_summary, created_at";
 
 function mapMaterial(row: Record<string, unknown>): StudyMaterial {
   return {
@@ -59,6 +61,7 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
     exemplar_permission: row.exemplar_permission === true,
     year_tag: typeof row.year_tag === "string" ? row.year_tag : null,
     page_count: typeof row.page_count === "number" ? row.page_count : null,
+    word_count: typeof row.word_count === "number" ? row.word_count : null,
     exact_score_achieved:
       typeof row.exact_score_achieved === "string" ? row.exact_score_achieved : null,
     includes_examiner_comments: row.includes_examiner_comments === true,
@@ -130,11 +133,15 @@ export async function fetchMaterialsForTutor(tutorId: string): Promise<StudyMate
 export type MarketplaceMaterial = StudyMaterial & {
   tutor_display_name: string;
   tutor_code: string;
+  /** #314: the tutor holds the Verified badge (verification_tier tier_2_verified). */
+  tutor_verified: boolean;
 };
 
 export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]> {
   const { data, error } = await materialsTable()
-    .select(`${MATERIAL_COLS}, tutors!inner(display_name, tutor_code, is_published)`)
+    .select(
+      `${MATERIAL_COLS}, tutors!inner(display_name, tutor_code, is_published, verification_tier)`,
+    )
     .eq("status", "published")
     .order("created_at", { ascending: false });
   if (error) {
@@ -151,6 +158,7 @@ export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]
         tutor_display_name:
           typeof tutor?.display_name === "string" ? tutor.display_name : "MatchMax Tutor",
         tutor_code: typeof tutor?.tutor_code === "string" ? tutor.tutor_code : "",
+        tutor_verified: tutor?.verification_tier === "tier_2_verified",
       };
     })
     .filter((m) => m.id && m.tutor_code);

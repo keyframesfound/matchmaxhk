@@ -19,6 +19,7 @@ import {
 } from "@/components/search/tutors-search";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
+import { HomeNotesRow } from "@/features/materials/home-notes-row";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
 import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
 import { cn } from "@/lib/utils";
@@ -481,6 +482,9 @@ function Landing() {
         <section className="relative pb-10 md:pt-6 md:pb-16">
           <div className="mx-auto max-w-[1440px] px-4 md:px-6">
             <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
+              {/* Issue #312: approved notes under the search bar, above the
+                  IB rail; renders nothing below three public notes. */}
+              <HomeNotesRow />
               {CURRICULUM_CATEGORIES.map(({ label, value }) => (
                 <CurriculumTutorSection
                   key={value}

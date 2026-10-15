@@ -88,12 +88,13 @@ function cleanNamePart(value: string): string {
     .slice(0, 60);
 }
 
-/** Private-original path: materials/<stamp>-<Tutor> - <Title>.pdf */
+/** Private-original path: materials/<stamp>-<Tutor> - <Title>.pdf (or .apkg — #314). */
 export function buildMaterialStorageName(fileName: string, tutorLabel: string): string {
-  const base = fileName.replace(/\.pdf$/i, "");
+  const apkg = /\.apkg$/i.test(fileName);
+  const base = fileName.replace(/\.(pdf|apkg)$/i, "");
   const slug = `${cleanNamePart(tutorLabel)} - ${cleanNamePart(base)}`.replace(/^ - | - $/g, "");
   const stamp = Date.now().toString(36);
-  return `materials/${stamp}-${slug || "study-materials"}.pdf`;
+  return `materials/${stamp}-${slug || "study-materials"}${apkg ? ".apkg" : ".pdf"}`;
 }
 
 /** Public preview path (mirrors the original's stamp so pairs stay greppable). */

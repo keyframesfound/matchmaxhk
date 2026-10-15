@@ -768,7 +768,8 @@
     "upload_requires_login": "請以已核實導師帳戶登入後上傳溫習教材。",
     "my_listings_title": "我嘅溫習教材",
     "listing_pending": "待管理員審核",
-    "listing_published": "已上架"
+    "listing_published": "已上架",
+    "type_flashcards": "閃卡"
   },
   "directory": {
     "subtitle": "每位導師均經成績表核實同團隊審批後先會上架。",
@@ -1583,8 +1584,34 @@
       "save_failed": "無法儲存草稿。",
       "submit_failed": "無法提交筆記。",
       "contact_block": "請先移除聯絡方式（「{{match}}」）再儲存。",
-      "missing_note": "提交前請補上：{{fields}}。也可以先儲存草稿。"
-    }
+      "missing_note": "提交前請補上：{{fields}}。也可以先儲存草稿。",
+      "type_flashcards": "閃卡",
+      "field_word_count": "大約字數（可選）",
+      "word_count_hint": "輸入大約的正整數，讓買家估計篇幅。",
+      "word_count_invalid": "大約字數必須是正整數。",
+      "price_free_hint": "HK$（輸入 0 即免費）",
+      "price_free_note": "允許 HK$0——免費組合同樣需要職員審核。",
+      "field_file_flashcards": "檔案（PDF 或 Anki .apkg）",
+      "file_hint_flashcards": "PDF 或 Anki .apkg，最大 20MB。買家會下載檔案——瀏覽器內不提供預覽。",
+      "file_too_large": "檔案太大。上限為 20MB。"
+    },
+    "home": {
+      "heading": "學習筆記",
+      "view_all": "查看全部",
+      "prev": "上一頁筆記",
+      "next": "下一頁筆記",
+      "bought_count": "已售 {{count}} 份",
+      "authored_heading": "導師筆記"
+    },
+    "card": {
+      "free": "免費",
+      "word_count": "約 {{count}} 字",
+      "verified_tutor": "已驗證導師"
+    },
+    "field_word_count": "大約字數",
+    "format_apkg": "Anki 卡組（.apkg）",
+    "apkg_panel_title": "閃卡卡組——僅供下載",
+    "apkg_panel_body": "購買後會以檔案形式發放到你的 MatchMax 帳戶。瀏覽器內不提供預覽或播放器。"
   },
   "orders": {
     "eyebrow": "筆記訂單",
@@ -1677,6 +1704,18 @@
     "case_status_matched": "已配對",
     "case_status_closed": "已結束",
     "case_status_rejected": "已拒絕",
-    "case_status_other": "審核中"
+    "case_status_other": "審核中",
+    "checklist": {
+      "title": "新手指南",
+      "dismiss": "關閉",
+      "dismiss_failed": "無法關閉清單",
+      "step_tutor_card": "填好你嘅導師檔案",
+      "step_tutor_verify": "提交文件申請核實",
+      "step_tutor_capacity": "設定你嘅接受時間同名額",
+      "step_tutor_listing": "新增學習筆記",
+      "step_parent_save": "儲存你鍾意嘅導師",
+      "step_parent_case": "提出導師請求或開設個案",
+      "step_parent_bought": "購買學習筆記"
+    }
   }
 }
