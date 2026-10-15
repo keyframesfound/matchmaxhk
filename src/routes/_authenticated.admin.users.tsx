@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Users, Search, UserPlus, RefreshCw, Shield, X } from "lucide-react";
+import { Users, Search, UserPlus, RefreshCw, Shield, Ban, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,6 +28,10 @@ import { RolesMatrixTab } from "@/features/admin-users/RolesMatrixTab";
 import { RoleManagementDialog } from "@/features/admin-users/RoleManagementDialog";
 import { InviteUserDialog } from "@/features/admin-users/InviteUserDialog";
 import { DeleteUserAlertDialog } from "@/features/admin-users/DeleteUserAlertDialog";
+import { AccountStatusDialog } from "@/features/admin-users/AccountStatusDialog";
+import { BlocklistTab } from "@/features/admin-users/BlocklistTab";
+import { setAccountStatus } from "@/features/admin-users/account-status.functions";
+import type { StatusAction } from "@/features/admin-users/account-status.shared";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({
@@ -54,17 +58,23 @@ function AdminUsers() {
 
   const deleteFn = useServerFn(deleteUserAccount);
   const provisionFn = useServerFn(provisionUserAccount);
+  const statusFn = useServerFn(setAccountStatus);
 
   // Filter & Search states
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name">("newest");
-  const [activeTab, setActiveTab] = useState<"users" | "roles">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "roles" | "blocklist">("users");
+
+  // Issue #308: staff/concierge can suspend; only admins may ban or restore.
+  const canBan = hasAnyRole(["admin", "super_admin"]);
 
   // Dialog States
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [roleUser, setRoleUser] = useState<UserRow | null>(null);
   const [deleteUser, setDeleteUser] = useState<UserRow | null>(null);
+  const [statusUser, setStatusUser] = useState<UserRow | null>(null);
+  const [statusAction, setStatusAction] = useState<StatusAction>("suspend");
 
   useEffect(() => {
     if (!loading && !hasAnyRole(["admin", "super_admin"])) {
@@ -81,15 +91,33 @@ function AdminUsers() {
   } = useQuery({
     queryKey: ["admin", "users"],
     queryFn: async (): Promise<UserRow[]> => {
-      const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("id, display_name, email, created_at")
-          .order("created_at", { ascending: false }),
-        supabase.from("user_roles").select("user_id, role"),
-      ]);
+      type ProfileRow = {
+        id: string;
+        display_name: string | null;
+        email: string | null;
+        created_at: string;
+        account_status?: string | null;
+        account_status_reason?: string | null;
+      };
+      const baseCols = "id, display_name, email, created_at";
+      const orderProfiles = (query: ReturnType<typeof supabase.from>) =>
+        query.order("created_at", { ascending: false });
 
-      if (pErr) throw pErr;
+      // Issue #308: read the account status with the profiles; tolerate a
+      // pre-migration database by falling back to the base columns.
+      let { data: profiles, error: pErr } = (await orderProfiles(
+        supabase.from("profiles").select(`${baseCols}, account_status, account_status_reason`),
+      )) as { data: ProfileRow[] | null; error: { message: string } | null };
+      if (pErr && /account_status/i.test(pErr.message)) {
+        ({ data: profiles, error: pErr } = (await orderProfiles(
+          supabase.from("profiles").select(baseCols),
+        )) as { data: ProfileRow[] | null; error: { message: string } | null });
+      }
+      const { data: roles, error: rErr } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
+
+      if (pErr) throw new Error(pErr.message);
       if (rErr) throw rErr;
 
       const byUser = new Map<string, AppRole[]>();
@@ -104,6 +132,8 @@ function AdminUsers() {
         display_name: p.display_name,
         email: p.email,
         created_at: p.created_at,
+        account_status: p.account_status ?? null,
+        account_status_reason: p.account_status_reason ?? null,
         roles: byUser.get(p.id) ?? [],
       }));
     },
@@ -210,6 +240,24 @@ function AdminUsers() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Issue #308: suspend / ban / restore via the admin-gated server fn.
+  const statusMutation = useMutation({
+    mutationFn: async (input: {
+      userId: string;
+      action: StatusAction;
+      reason?: string;
+      note?: string;
+      reportId?: string;
+    }) => {
+      return statusFn({ data: input });
+    },
+    onSuccess: (res) => {
+      toast.success(`Account status updated to ${res.status}`);
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const hasActiveFilters = search.trim() !== "" || roleFilter !== "all" || sortBy !== "newest";
 
   const clearFilters = () => {
@@ -279,6 +327,12 @@ function AdminUsers() {
                   <Shield className="h-3.5 w-3.5" />
                   Roles & Matrix
                 </TabsTrigger>
+                {canBan && (
+                  <TabsTrigger value="blocklist" className="gap-2 text-xs font-bold">
+                    <Ban className="h-3.5 w-3.5" />
+                    Block List
+                  </TabsTrigger>
+                )}
               </TabsList>
             </div>
 
@@ -321,7 +375,10 @@ function AdminUsers() {
                     </SelectContent>
                   </Select>
 
-                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                  <Select
+                    value={sortBy}
+                    onValueChange={(v) => setSortBy(v as "newest" | "oldest" | "name")}
+                  >
                     <SelectTrigger className="h-9 w-[140px] text-xs font-semibold">
                       <SelectValue placeholder="Sort Order" />
                     </SelectTrigger>
@@ -351,8 +408,20 @@ function AdminUsers() {
                 isLoading={isLoading}
                 onManageRoles={(user) => setRoleUser(user)}
                 onDeleteUser={(user) => setDeleteUser(user)}
+                onStatusAction={(user, action) => {
+                  setStatusUser(user);
+                  setStatusAction(action);
+                }}
+                canBan={canBan}
               />
             </TabsContent>
+
+            {/* BLOCKLIST TAB CONTENT (admins only, issue #308) */}
+            {canBan && (
+              <TabsContent value="blocklist" className="mt-6 focus-visible:outline-none">
+                <BlocklistTab />
+              </TabsContent>
+            )}
 
             {/* ROLES MATRIX TAB CONTENT */}
             <TabsContent value="roles" className="mt-6 focus-visible:outline-none">
@@ -391,6 +460,18 @@ function AdminUsers() {
               await deleteAccountMutation.mutateAsync(userId);
             }}
             isDeleting={deleteAccountMutation.isPending}
+          />
+
+          <AccountStatusDialog
+            user={statusUser}
+            action={statusAction}
+            onActionChange={setStatusAction}
+            open={!!statusUser}
+            onOpenChange={(open) => !open && setStatusUser(null)}
+            onConfirm={async (input) => {
+              await statusMutation.mutateAsync(input);
+            }}
+            isPending={statusMutation.isPending}
           />
         </div>
       </main>
