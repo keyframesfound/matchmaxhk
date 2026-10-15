@@ -6,6 +6,8 @@
  * end-to-end — see tests/materials/orders.test.ts for the precedent).
  */
 
+import { getSubjectOptionsForCategory } from "../tutors/subjects";
+
 /** #203 listing status machine. */
 export const MATERIAL_STATUSES = [
   "draft",
@@ -212,6 +214,30 @@ export type MaterialType = (typeof MATERIAL_TYPES)[number];
 export const NOTE_TOPIC_MAX_LEN = 40;
 export const GRADE_ACHIEVED_MAX_LEN = 20;
 
+/**
+ * #346: subject is allowlisted server-side to match what the forms can
+ * actually send. Both note forms render subject as a SELECT narrowed by
+ * getSubjectOptionsForCategory (the "Other" curriculum falls back to the
+ * full catalog pool), so free-text junk (contact details, arbitrary
+ * strings) has no legitimate path in. One escape hatch survives: the
+ * note's OWN stored legacy subjectTag — the form re-renders it as an
+ * option so pre-#313 rows can be re-saved and migrated, so the stored
+ * value is accepted (case-insensitively) alongside the catalog.
+ */
+export function isAllowedNoteSubject(
+  curriculum: string | undefined,
+  subject: string,
+  storedSubject?: string | null,
+): boolean {
+  const normalized = subject.trim().toLowerCase();
+  if (!normalized) return false;
+  const stored = storedSubject?.trim().toLowerCase();
+  if (stored && stored === normalized) return true;
+  return getSubjectOptionsForCategory(curriculum?.trim() || undefined).some(
+    (option) => option.trim().toLowerCase() === normalized,
+  );
+}
+
 /** Legacy document_type values map onto the new 3-way type (mock_exam →
  * mock; everything else → notes — old coursework rows never carried the
  * exemplar permission confirmation). */
@@ -288,14 +314,17 @@ export function mergeNoteKinds(
  * exemplars must carry the written-permission confirmation. Returns
  * human-readable problems (server errors) — empty array means clean.
  */
-export function validateNoteKindsForSubmit(input: {
-  curriculum?: string | null;
-  subject?: string | null;
-  materialType?: string | null;
-  topic?: string | null;
-  gradeAchieved?: string | null;
-  exemplarPermission?: boolean | null;
-}): string[] {
+export function validateNoteKindsForSubmit(
+  input: {
+    curriculum?: string | null;
+    subject?: string | null;
+    materialType?: string | null;
+    topic?: string | null;
+    gradeAchieved?: string | null;
+    exemplarPermission?: boolean | null;
+  },
+  storedSubject?: string | null,
+): string[] {
   const errors: string[] = [];
 
   const curriculum = (input.curriculum ?? "").trim();
@@ -306,6 +335,11 @@ export function validateNoteKindsForSubmit(input: {
   const subject = (input.subject ?? "").trim();
   if (subject.length === 0) errors.push("Subject is required.");
   else if (subject.length > 160) errors.push("Subject is too long (160 characters max).");
+  // #346: the forms can only send catalog values (plus the note's own
+  // stored legacy subject) — reject anything else on this authed path.
+  else if (!isAllowedNoteSubject(curriculum, subject, storedSubject)) {
+    errors.push("Subject must be selected from the list for the chosen curriculum.");
+  }
 
   const materialType = (input.materialType ?? "").trim();
   if (!(MATERIAL_TYPES as readonly string[]).includes(materialType)) {
@@ -335,18 +369,38 @@ export function validateNoteKindsForSubmit(input: {
  * #313 soft validation for partial draft saves: only check what is present
  * (enum membership, caps). Required-field and exemplar gates run at submit.
  */
-export function validateNoteKindsPartial(input: {
-  curriculum?: string | null;
-  materialType?: string | null;
-  topic?: string | null;
-  gradeAchieved?: string | null;
-}): string[] {
+export function validateNoteKindsPartial(
+  input: {
+    curriculum?: string | null;
+    subject?: string | null;
+    materialType?: string | null;
+    topic?: string | null;
+    gradeAchieved?: string | null;
+  },
+  storedSubject?: string | null,
+): string[] {
   const errors: string[] = [];
 
   if (input.curriculum != null) {
     const curriculum = input.curriculum.trim();
     if (curriculum && !(NOTE_CURRICULA as readonly string[]).includes(curriculum)) {
       errors.push("Curriculum must be IB, DSE, IGCSE, A-Level, or Other.");
+    }
+  }
+
+  if (input.subject != null && input.subject.trim()) {
+    const subject = input.subject.trim();
+    if (subject.length > 160) {
+      errors.push("Subject is too long (160 characters max).");
+    } else if (
+      // #346 review fix: always allowlist, even without a curriculum —
+      // otherwise a subject-only draft save launders junk into subject_tag
+      // and submit later accepts it via the stored-value exemption. With no
+      // curriculum present, fall back to the full catalog (same pool the
+      // "Other" curriculum uses).
+      !isAllowedNoteSubject(input.curriculum ?? undefined, subject, storedSubject)
+    ) {
+      errors.push("Subject must be selected from the list for the chosen curriculum.");
     }
   }
 

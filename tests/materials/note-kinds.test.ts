@@ -11,7 +11,7 @@ import {
 
 describe("validateNoteKindsForSubmit (#313)", () => {
   const clean = {
-    curriculum: "IB",
+    curriculum: "DSE",
     subject: "Physics",
     materialType: "notes",
     topic: "Waves",
@@ -77,6 +77,80 @@ describe("validateNoteKindsForSubmit (#313)", () => {
   });
 });
 
+describe("validateNoteKindsForSubmit subject allowlist (#346)", () => {
+  const SUBJECT_ERROR = "Subject must be selected from the list for the chosen curriculum.";
+
+  it("accepts a catalog subject for the chosen curriculum", () => {
+    expect(
+      validateNoteKindsForSubmit({ curriculum: "DSE", subject: "Physics", materialType: "notes" }),
+    ).toEqual([]);
+    expect(
+      validateNoteKindsForSubmit({ curriculum: "IB", subject: "Phys HL", materialType: "notes" }),
+    ).toEqual([]);
+  });
+
+  it("matches catalog values case-insensitively", () => {
+    expect(
+      validateNoteKindsForSubmit({ curriculum: "DSE", subject: "physics", materialType: "notes" }),
+    ).toEqual([]);
+    expect(
+      validateNoteKindsForSubmit({
+        curriculum: "DSE",
+        subject: "  PHYSICS  ",
+        materialType: "notes",
+      }),
+    ).toEqual([]);
+  });
+
+  it("rejects contact-like and arbitrary junk subjects", () => {
+    for (const junk of [
+      "WhatsApp me at 91234567",
+      "https://example.com/notes",
+      "t.me/somenotes",
+      "Totally Not A Real Subject",
+    ]) {
+      expect(validateNoteKindsForSubmit({ curriculum: "DSE", subject: junk })).toContain(
+        SUBJECT_ERROR,
+      );
+    }
+  });
+
+  it("rejects a subject from another curriculum's pool", () => {
+    // "Biology" is an IGCSE/DSE subject but not in the IB catalog list.
+    expect(validateNoteKindsForSubmit({ curriculum: "IB", subject: "Biology" })).toContain(
+      SUBJECT_ERROR,
+    );
+  });
+
+  it("'Other' falls back to the full catalog pool but still allowlists", () => {
+    expect(
+      validateNoteKindsForSubmit({
+        curriculum: "Other",
+        subject: "Physics",
+        materialType: "notes",
+      }),
+    ).toEqual([]);
+    expect(validateNoteKindsForSubmit({ curriculum: "Other", subject: "9xxx whatsapp" })).toContain(
+      SUBJECT_ERROR,
+    );
+  });
+
+  it("the note's own stored legacy subject still passes", () => {
+    expect(
+      validateNoteKindsForSubmit(
+        { curriculum: "DSE", subject: "Legacy Free Text", materialType: "notes" },
+        "Legacy Free Text",
+      ),
+    ).toEqual([]);
+    expect(
+      validateNoteKindsForSubmit(
+        { curriculum: "DSE", subject: "legacy free text", materialType: "notes" },
+        "Legacy Free Text",
+      ),
+    ).toEqual([]);
+  });
+});
+
 describe("validateNoteKindsPartial (#313 draft saves)", () => {
   it("accepts empty and partial inputs", () => {
     expect(validateNoteKindsPartial({})).toEqual([]);
@@ -92,6 +166,69 @@ describe("validateNoteKindsPartial (#313 draft saves)", () => {
     expect(
       validateNoteKindsPartial({ gradeAchieved: "x".repeat(GRADE_ACHIEVED_MAX_LEN + 1) }),
     ).not.toEqual([]);
+  });
+
+  it("allowlists the subject on draft saves when curriculum and subject are present (#346)", () => {
+    expect(
+      validateNoteKindsPartial({ curriculum: "DSE", subject: "Physics", materialType: "notes" }),
+    ).toEqual([]);
+    expect(
+      validateNoteKindsPartial({ curriculum: "DSE", subject: "physics", materialType: "notes" }),
+    ).toEqual([]);
+    expect(
+      validateNoteKindsPartial({ curriculum: "DSE", subject: "WhatsApp me at 9xxx" }),
+    ).toContain("Subject must be selected from the list for the chosen curriculum.");
+    expect(validateNoteKindsPartial({ curriculum: "DSE", subject: "91234567" })).toContain(
+      "Subject must be selected from the list for the chosen curriculum.",
+    );
+    // Stored legacy value is exempt; a junk value never is.
+    expect(
+      validateNoteKindsPartial(
+        { curriculum: "DSE", subject: "Legacy Free Text" },
+        "Legacy Free Text",
+      ),
+    ).toEqual([]);
+    expect(
+      validateNoteKindsPartial(
+        { curriculum: "DSE", subject: "WhatsApp me at 9xxx" },
+        "Legacy Free Text",
+      ),
+    ).not.toEqual([]);
+    // Subject without a curriculum still allowlists against the FULL
+    // catalog (the "Other" fallback) — junk must not land in a partial
+    // draft save (#346 review fix).
+    expect(validateNoteKindsPartial({ subject: "Physics" })).toEqual([]);
+    expect(validateNoteKindsPartial({ subject: "WhatsApp me at 9xxx" })).toContain(
+      "Subject must be selected from the list for the chosen curriculum.",
+    );
+    expect(validateNoteKindsPartial({ subject: "91234567" })).toContain(
+      "Subject must be selected from the list for the chosen curriculum.",
+    );
+  });
+
+  it("blocks the save-then-submit launder path (#346 review fix)", () => {
+    // The laundering sequence: a subject-only draft save used to skip the
+    // allowlist, then submit accepted the junk via the stored-value
+    // exemption. Neither leg may pass now.
+    const junk = "WhatsApp me at 91234567";
+    // Leg 1: partial draft save with junk subject (no curriculum) fails…
+    expect(validateNoteKindsPartial({ subject: junk })).not.toEqual([]);
+    // …so the junk never becomes "stored legacy".
+    // Leg 2: even if junk were somehow stored, NEW junk cannot hide behind
+    // a different stored value, and submit (curriculum present) rejects it.
+    expect(validateNoteKindsPartial({ subject: junk }, "Real Legacy Subject")).not.toEqual([]);
+    expect(
+      validateNoteKindsForSubmit({ curriculum: "DSE", subject: junk, materialType: "notes" }),
+    ).toContain("Subject must be selected from the list for the chosen curriculum.");
+    // The true legacy re-save stays exempt through both validators.
+    const legacy = "Legacy Free Text";
+    expect(validateNoteKindsPartial({ subject: legacy }, legacy)).toEqual([]);
+    expect(
+      validateNoteKindsForSubmit(
+        { curriculum: "DSE", subject: legacy, materialType: "notes" },
+        legacy,
+      ),
+    ).toEqual([]);
   });
 });
 
