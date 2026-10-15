@@ -55,6 +55,7 @@ import { AvailabilityGrid } from "@/features/tutors/availability-grid";
 import { TutorReviews } from "@/features/tutors/tutor-reviews";
 import { fetchMaterialsForTutor } from "@/features/materials/queries";
 import { TutorMaterialsSection } from "@/features/materials/tutor-materials-section";
+import { TutorAuthoredNotes } from "@/features/materials/home-notes-row";
 import { InlineReportLink, ReportMenuButton } from "@/features/reports/report-button";
 import {
   countAvailableCells,
@@ -822,6 +823,11 @@ function TutorDetail() {
                   </div>
                 </ProfileSection>
               ) : null}
+
+              {/* Issue #312: the tutor's public notes with delivered-order
+                  bought counts; hidden when the tutor has none. Sits under
+                  the bio, above the marketplace section (#176). */}
+              <TutorAuthoredNotes tutorCode={t.tutor_code} />
 
               {/* Issue #97: Trophy Cabinet — optional award photos; hidden
                   entirely when the tutor uploaded none. */}
