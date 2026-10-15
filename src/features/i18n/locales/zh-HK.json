@@ -1723,5 +1723,39 @@
     "suspended_banner_body": "你的帳戶已被停用。你可以瀏覽 MatchMax，但無法要求導師、申請個案、上載內容或聯絡其他用戶。",
     "suspended_reason_label": "原因：{{reason}}",
     "suspended_dismiss": "關閉"
+  },
+  "sen": {
+    "filter_title": "SEN 支援",
+    "filter_toggle": "僅顯示具 SEN 經驗的導師",
+    "clear_categories": "清除類別",
+    "search_categories": "搜尋 SEN 類別",
+    "no_matches": "沒有符合的結果。",
+    "badge_title": "具 SEN 經驗的導師",
+    "board_pill": "SEN 支援",
+    "case_pill": "SEN：{{category}}",
+    "case_toggle": "學生是否需要特殊教育需要（SEN）支援？",
+    "yes": "是",
+    "no": "否",
+    "case_details_label": "有關學生學習需要的其他詳情（選填）",
+    "case_details_placeholder": "診斷情況、課堂調適、有效策略、導師應聚焦的方向……",
+    "join_toggle": "你是否有教導特殊教育需要（SEN）學生的經驗或資歷？",
+    "join_toggle_hint": "MatchMax 家長可以按 SEN 支援篩選導師。",
+    "select_category_error": "請至少選擇一個 SEN 類別",
+    "experience_label": "SEN 經驗及資歷",
+    "experience_hint": "證書、SEN 相關課程、支援特殊教育需要學生的年資。",
+    "experience_placeholder": "例如：完成賽馬會「讀寫障礙」教師培訓；3 年一對一數學課支援 ADHD 及 ASD 學生。",
+    "details_label": "SEN 經驗詳情（證書、課程、年資）",
+    "details_hint": "證書、課程、SEN 經驗年資（會顯示於個人檔案）",
+    "details_placeholder": "例如：修畢 PGCE SEN 課程；3 年數學課支援 ADHD 學生。",
+    "profile_toggle_hint": "我具備教授特殊教育需要（SEN）學生的經驗或資歷。",
+    "categories_aria": "SEN 類別",
+    "category": {
+      "adhd": "ADHD（專注力失調及過度活躍症）",
+      "asd": "ASD（自閉症譜系障礙）",
+      "dyslexia": "讀寫障礙／特殊學習困難",
+      "dyspraxia": "動作協調障礙",
+      "speech": "言語及語言障礙",
+      "other": "其他"
+    }
   }
 }

@@ -1723,5 +1723,39 @@
     "suspended_banner_body": "Your account is suspended. You can browse MatchMax but cannot request tutors, apply to cases, upload content, or message others.",
     "suspended_reason_label": "Reason: {{reason}}",
     "suspended_dismiss": "Dismiss"
+  },
+  "sen": {
+    "filter_title": "SEN support",
+    "filter_toggle": "SEN-experienced tutors only",
+    "clear_categories": "Clear categories",
+    "search_categories": "Search SEN categories",
+    "no_matches": "No matches found.",
+    "badge_title": "SEN-experienced tutor",
+    "board_pill": "SEN support",
+    "case_pill": "SEN: {{category}}",
+    "case_toggle": "Does the student require SEN support?",
+    "yes": "Yes",
+    "no": "No",
+    "case_details_label": "Additional details regarding the student's learning needs (Optional)",
+    "case_details_placeholder": "Diagnosis status, classroom accommodations, strategies that work, what the tutor should focus on…",
+    "join_toggle": "Do you have experience or qualifications teaching students with Special Educational Needs (SEN)?",
+    "join_toggle_hint": "MatchMax parents can filter tutors by SEN support.",
+    "select_category_error": "Select at least one SEN category",
+    "experience_label": "SEN Experience & Qualifications",
+    "experience_hint": "Certificates, SEN coursework, years of experience supporting students with special educational needs.",
+    "experience_placeholder": "e.g. Completed Jockey Club 'Dyslexia' teacher training; 3 years supporting students with ADHD and ASD in 1:1 maths lessons.",
+    "details_label": "SEN experience details (certificates, coursework, years of experience)",
+    "details_hint": "Certificates, coursework, years of SEN experience (shown on the profile)",
+    "details_placeholder": "e.g. PGCE with SEN coursework; 3 years supporting students with ADHD in maths.",
+    "profile_toggle_hint": "I have experience or qualifications teaching students with Special Educational Needs (SEN).",
+    "categories_aria": "SEN categories",
+    "category": {
+      "adhd": "ADHD",
+      "asd": "ASD",
+      "dyslexia": "Dyslexia/SpLD",
+      "dyspraxia": "Dyspraxia",
+      "speech": "Speech & Language Impairment",
+      "other": "Other"
+    }
   }
 }

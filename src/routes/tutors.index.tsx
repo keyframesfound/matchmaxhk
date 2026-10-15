@@ -35,6 +35,7 @@ import {
   matchesStationFilter,
   type Tutor,
 } from "@/features/tutors/queries";
+import { matchesSenFilter } from "@/features/tutors/sen";
 import { normalizeProfileTag, popularProfileTags } from "@/features/tutors/profile-tags";
 import { matchesCategoryFilter, matchesSubjectQuery } from "@/features/tutors/subjects";
 import {
@@ -58,18 +59,27 @@ const searchSchema = z.object({
   status: z.string().optional(), // uni_student | full_part_time_tutor | examiner
   tag: z.string().optional(), // issue #217: profile-tag search (?tag=ia review)
   verified: z.preprocess(
-    (value) => (value === "1" || value === "true" || value === true ? true : undefined),
+    (value) =>
+      value === 1 || value === "1" || value === "true" || value === true ? true : undefined,
     z.boolean().optional(),
   ), // issue #142: Verified Tutors Only (tier_2_verified), default off
   university: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
   high_school: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
   major: z.string().optional(), // issue #23 exact major over the free-text degree fields
+  // Issue #199: SEN-experienced tutors only + required categories ("||"-joined).
+  sen: z.preprocess(
+    (value) =>
+      value === 1 || value === "1" || value === "true" || value === true ? true : undefined,
+    z.boolean().optional(),
+  ),
+  sen_categories: z.string().optional(), // SEN categories, ALL must match
   min_price: z.coerce.number().int().min(0).optional(),
   max_price: z.coerce.number().int().min(0).optional(),
   sort: z.string().optional(), // "" | price_asc | price_desc
   q: z.string().optional(),
   open: z.preprocess(
-    (value) => (value === "1" || value === "true" || value === true ? true : undefined),
+    (value) =>
+      value === 1 || value === "1" || value === "true" || value === true ? true : undefined,
     z.boolean().optional(),
   ), // transient: opens the mobile search overlay when hopping tabs
   view: z.enum(["tutors", "materials"]).optional(), // #131 directory tab
@@ -164,6 +174,12 @@ function TutorsDirectory() {
   const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
   // Issue #217: profile-tag filter (the tag chips on the cards link here).
   const tagFilter = normalizeProfileTag(draft.tag ?? "");
+  // Issue #199: SEN capability filter — sen_enabled AND every picked category.
+  const senOnly = draft.sen === true;
+  const senCategoryFilters = (draft.sen_categories ?? "")
+    .split("||")
+    .map((value) => value.trim())
+    .filter(Boolean);
 
   const filtered = useMemo(() => {
     const query = (draft.q ?? "").trim().toLowerCase();
@@ -201,6 +217,9 @@ function TutorsDirectory() {
       if (tagFilter && !(tut.profile_tags ?? []).includes(tagFilter)) return false;
       // Issue #142: Verified Tutors Only — hide everything below tier_2_verified.
       if (verifiedOnly && tut.verification_tier !== "tier_2_verified") return false;
+      // Issue #199: SEN support — enabled tutors only, and every picked
+      // category must be on the tutor's profile (match-all).
+      if (senOnly && !matchesSenFilter(senCategoryFilters, tut)) return false;
       // Issue #130: institutional-pedigree filters over free-text education fields.
       if (
         !matchesUniversityFilter(universityFilter, {
@@ -261,6 +280,8 @@ function TutorsDirectory() {
     genderFilter,
     statusFilter,
     verifiedOnly,
+    senOnly,
+    senCategoryFilters,
     universityFilter,
     highSchoolFilter,
     majorFilter,
