@@ -20,10 +20,12 @@
 -- ---------------------------------------------------------------------------
 -- PostgreSQL ORs table-level and column-level privileges, so
 -- REVOKE UPDATE (col) is a no-op while GRANT UPDATE ON the table remains.
--- Replace the table grant with every existing profiles column except the
--- three enforcement columns. service_role keeps GRANT ALL from the
--- foundation migration. INSERT is unchanged (the row already exists; the
--- live hole is UPDATE).
+-- Replace the table grant with the live profiles columns except the three
+-- enforcement columns. theme_preference exists in an older repo migration
+-- but not on project igtqwupxipvxkrinaxiw, so it must not appear here or
+-- apply_migration fails. service_role keeps GRANT ALL from the foundation
+-- migration. INSERT is unchanged (the row already exists; the live hole
+-- is UPDATE).
 
 REVOKE UPDATE ON TABLE public.profiles FROM authenticated;
 
@@ -36,11 +38,10 @@ GRANT UPDATE (
   avatar_url,
   created_at,
   updated_at,
-  theme_preference,
-  notification_preferences,
   tos_accepted_at,
   tos_version,
   onboarding_completed_at,
+  notification_preferences,
   community_commitment_at,
   community_commitment_version,
   google_sub
