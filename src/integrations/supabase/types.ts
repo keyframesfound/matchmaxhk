@@ -8,6 +8,33 @@ export type Database = {
   };
   public: {
     Tables: {
+      account_blocklist: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          email: string;
+          google_sub: string | null;
+          id: string;
+          note: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          email: string;
+          google_sub?: string | null;
+          id?: string;
+          note?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          email?: string;
+          google_sub?: string | null;
+          id?: string;
+          note?: string | null;
+        };
+        Relationships: [];
+      };
       app_settings: {
         Row: {
           key: string;
@@ -379,6 +406,9 @@ export type Database = {
       };
       profiles: {
         Row: {
+          account_status: string;
+          account_status_at: string | null;
+          account_status_reason: string | null;
           avatar_url: string | null;
           community_commitment_at: string | null;
           community_commitment_version: string | null;
@@ -397,6 +427,9 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          account_status?: string;
+          account_status_at?: string | null;
+          account_status_reason?: string | null;
           avatar_url?: string | null;
           community_commitment_at?: string | null;
           community_commitment_version?: string | null;
@@ -415,6 +448,9 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          account_status?: string;
+          account_status_at?: string | null;
+          account_status_reason?: string | null;
           avatar_url?: string | null;
           community_commitment_at?: string | null;
           community_commitment_version?: string | null;
@@ -946,6 +982,8 @@ export type Database = {
           achievements: Json;
           academic_headline: string | null;
           badge: string | null;
+          card_hidden_by_ban: boolean;
+          owner_account_status: string;
           created_at: string;
           created_by: string | null;
           currency: Database["public"]["Enums"]["supported_currency"];
@@ -1007,6 +1045,8 @@ export type Database = {
           achievements?: Json;
           academic_headline?: string | null;
           badge?: string | null;
+          card_hidden_by_ban?: boolean;
+          owner_account_status?: string;
           created_at?: string;
           created_by?: string | null;
           currency?: Database["public"]["Enums"]["supported_currency"];
@@ -1065,6 +1105,8 @@ export type Database = {
           achievements?: Json;
           academic_headline?: string | null;
           badge?: string | null;
+          card_hidden_by_ban?: boolean;
+          owner_account_status?: string;
           created_at?: string;
           created_by?: string | null;
           currency?: Database["public"]["Enums"]["supported_currency"];

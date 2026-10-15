@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountActive } from "@/lib/account-status-enforcement";
 
 /**
  * Issue #216: Report button — one report form for a tutor card, a photo, an
@@ -76,7 +77,7 @@ export type AdminReportRow = ReportRow & {
 };
 
 export const submitReport = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) =>
     z
       .object({

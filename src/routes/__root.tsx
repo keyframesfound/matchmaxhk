@@ -14,6 +14,7 @@ import { ProfileLocaleSync } from "@/features/i18n/ProfileLocaleSync";
 import { AuthProvider } from "@/features/auth/useAuth";
 import { OnboardingGate } from "@/features/auth/OnboardingGate";
 import { CommunityCommitmentGate } from "@/features/auth/CommunityCommitmentGate";
+import { AccountStatusBanners } from "@/features/auth/AccountStatusBanners";
 import { ThemeProvider } from "@/features/theme/ThemeProvider";
 
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
@@ -186,6 +187,7 @@ function RootComponent() {
           <ProfileLocaleSync />
           <ReferralCapture />
           <ThemeProvider>
+            <AccountStatusBanners />
             <OnboardingGate>
               <CommunityCommitmentGate>
                 <main id="main-content">

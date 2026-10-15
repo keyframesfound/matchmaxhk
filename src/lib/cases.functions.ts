@@ -4,6 +4,7 @@ import { z } from "zod";
 import { mergeCaseTags } from "@/features/tutors/profile-tags";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { TARGET_PATHWAY_LABELS, TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
 
@@ -391,7 +392,7 @@ async function assertAdmin(supabase: unknown, userId: string) {
 
 // Account deletion (admin only)
 export const deleteUserAccount = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => z.object({ userId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);

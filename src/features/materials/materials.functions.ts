@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { findContactViolations } from "@/lib/contact-filter";
 import { watermarkPdfPreview, PREVIEW_PAGE_LIMIT } from "@/features/materials/watermark";
 import {
@@ -197,7 +198,7 @@ function safePdfName(title: string, tutorLabel: string, kind: "pdf" | "apkg" = "
 }
 
 export const uploadStudyMaterial = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => UploadMaterialInput.parse(data))
   .handler(async ({ data, context }): Promise<UploadMaterialResult> => {
     // Admins add listings on behalf of any tutor ("like we add tutors");

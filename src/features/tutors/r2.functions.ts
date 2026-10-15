@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountActive } from "@/lib/account-status-enforcement";
 import {
   buildPublicUrl,
   buildR2ApiHeaders,
@@ -115,7 +116,7 @@ export const listTutorProfileImages = createServerFn({ method: "POST" })
   });
 
 export const uploadTutorProfileImage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => UploadInput.parse(data))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);

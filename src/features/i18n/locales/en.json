@@ -530,7 +530,9 @@
     "onboarding_tutor_label": "I'm a tutor",
     "onboarding_tutor_desc": "I want to teach and find new students.",
     "onboarding_next": "Next",
-    "onboarding_error": "Could not save your choice. Please try again."
+    "onboarding_error": "Could not save your choice. Please try again.",
+    "account_blocked_title": "Account blocked",
+    "account_blocked_message": "This account is suspended. Contact support."
   },
   "dashboard": {
     "welcome": "Welcome back",
@@ -1716,7 +1718,11 @@
       "step_parent_save": "Save tutors you like",
       "step_parent_case": "Request a tutor or open a case",
       "step_parent_bought": "Buy study notes"
-    }
+    },
+    "suspended_banner_title": "Account suspended",
+    "suspended_banner_body": "Your account is suspended. You can browse MatchMax but cannot request tutors, apply to cases, upload content, or message others.",
+    "suspended_reason_label": "Reason: {{reason}}",
+    "suspended_dismiss": "Dismiss"
   },
   "sen": {
     "filter_title": "SEN support",
