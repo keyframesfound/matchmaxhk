@@ -298,7 +298,7 @@ export function PublicTutorCard({
             {tutor.sen_enabled ? (
               <span
                 className="max-w-full whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-[color:var(--ink)]"
-                title="SEN-experienced tutor"
+                title={t("sen.badge_title")}
               >
                 SEN
               </span>

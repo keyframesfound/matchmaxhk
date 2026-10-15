@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 
 import { TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
+import i18n from "@/features/i18n/config";
+import { senCategoryLabel } from "@/features/tutors/sen-labels";
 import type { PublicCaseBoardItem } from "@/lib/cases.functions";
 
 /**
@@ -97,14 +99,15 @@ export function casePills(item: PublicCaseBoardItem): CasePill[] {
   if (item.senRequired) {
     pills.push({
       key: "sen",
-      label: "SEN support",
+      label: i18n.t("sen.board_pill"),
       icon: HeartHandshake,
       tone: "hard",
     });
     for (const category of item.senCategories) {
       pills.push({
         key: `sen:${category}`,
-        label: `SEN: ${category}`,
+        // Stored category values are data — interpolate the translated label.
+        label: i18n.t("sen.case_pill", { category: senCategoryLabel(category) }),
         icon: HeartHandshake,
         tone: "hard",
       });

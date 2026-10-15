@@ -35,6 +35,7 @@ import {
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { MAX_PROFILE_TAGS, PRESET_PROFILE_TAGS } from "@/features/tutors/profile-tags";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
+import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
@@ -153,6 +154,7 @@ type CaseRequestFormProps = {
 
 export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFormProps) {
   const { t } = useTranslation();
+  const senCategoryLabels = useSenCategoryLabels();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
@@ -1087,16 +1089,16 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             {/* Issue #199: SEN support section — Yes/No toggle reveals the
                 category multi-select and optional details. */}
             <div className="sm:col-span-2">
-              <span className={labelClassName}>Does the student require SEN support?</span>
+              <span className={labelClassName}>{t("sen.case_toggle")}</span>
               <div className="mt-2 flex gap-2">
                 {[
-                  { value: false, label: "No" },
-                  { value: true, label: "Yes" },
+                  { value: false, label: t("sen.no") },
+                  { value: true, label: t("sen.yes") },
                 ].map((option) => {
                   const active = form.senRequired === option.value;
                   return (
                     <button
-                      key={option.label}
+                      key={String(option.value)}
                       type="button"
                       aria-pressed={active}
                       onClick={() =>
@@ -1122,7 +1124,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 <div className="mt-4 space-y-4">
                   <div
                     role="group"
-                    aria-label="SEN categories"
+                    aria-label={t("sen.categories_aria")}
                     className="space-y-1 rounded-sm border border-border p-3"
                   >
                     {SEN_CATEGORY_OPTIONS.map((category) => {
@@ -1142,21 +1144,21 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                               })
                             }
                           />
-                          <span className="font-medium">{category}</span>
+                          <span className="font-medium">{senCategoryLabels[category]}</span>
                         </label>
                       );
                     })}
                   </div>
                   <div>
                     <label className={labelClassName} htmlFor={`${idPrefix}-sen-details`}>
-                      Additional details regarding the student's learning needs (Optional)
+                      {t("sen.case_details_label")}
                     </label>
                     <Textarea
                       id={`${idPrefix}-sen-details`}
                       rows={3}
                       maxLength={2000}
                       className="w-full rounded-sm"
-                      placeholder="Diagnosis status, classroom accommodations, strategies that work, what the tutor should focus on…"
+                      placeholder={t("sen.case_details_placeholder")}
                       value={form.senDetails}
                       onChange={(e) => update({ senDetails: e.target.value })}
                     />

@@ -24,6 +24,7 @@ import { contactFilterError } from "@/lib/contact-filter";
 import { notifyTutorPriceChange } from "@/lib/tutor-pricing.functions";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
+import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import { getSystem } from "@/features/tutors/examSystems";
 import {
@@ -146,6 +147,7 @@ function suggestCurriculaFor(form: TutorFormData): string[] {
 
 export function MyTutorProfileSection() {
   const { t } = useTranslation();
+  const senCategoryLabels = useSenCategoryLabels();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [form, setForm] = React.useState<TutorFormData | null>(null);
@@ -749,12 +751,9 @@ export function MyTutorProfileSection() {
           <div className="space-y-3 rounded-xl border border-[color:var(--ink)]/10 p-4">
             <label className="flex cursor-pointer items-center justify-between gap-3">
               <span>
-                <Label className="text-[color:var(--ink)]">
-                  SEN Experience &amp; Qualifications
-                </Label>
+                <Label className="text-[color:var(--ink)]">{t("sen.experience_label")}</Label>
                 <span className="mt-0.5 block text-xs text-[color:var(--ink)]/55">
-                  I have experience or qualifications teaching students with Special Educational
-                  Needs (SEN).
+                  {t("sen.profile_toggle_hint")}
                 </span>
               </span>
               <Checkbox
@@ -789,14 +788,14 @@ export function MyTutorProfileSection() {
                             })
                           }
                         />
-                        <span>{category}</span>
+                        <span>{senCategoryLabels[category]}</span>
                       </label>
                     );
                   })}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="myt-sen-experience" className="text-[color:var(--ink)]">
-                    SEN experience details (certificates, coursework, years of experience)
+                    {t("sen.details_label")}
                   </Label>
                   <Textarea
                     id="myt-sen-experience"
@@ -805,7 +804,7 @@ export function MyTutorProfileSection() {
                     rows={3}
                     maxLength={2000}
                     className="bg-[color:var(--surface)]"
-                    placeholder="e.g. PGCE with SEN coursework; 3 years supporting students with ADHD in maths."
+                    placeholder={t("sen.details_placeholder")}
                   />
                 </div>
               </>

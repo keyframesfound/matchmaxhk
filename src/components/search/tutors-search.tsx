@@ -41,7 +41,8 @@ import {
   getSubjectOptionsForCategory,
 } from "@/features/tutors/subjects";
 import type { EducationValueSets } from "@/features/tutors/education-filters";
-import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
+import { SEN_CATEGORY_OPTIONS, type SenCategory } from "@/features/tutors/sen";
+import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 import { cn } from "@/lib/utils";
 
 export type TutorsSearchState = {
@@ -560,7 +561,7 @@ export function TutorsSearchBar({
         </FiltersSection>
         {/* Issue #199: SEN support filter — toggle plus a match-all category
             multi-select (a tutor must carry every picked category). */}
-        <FiltersSection id="sen" title="SEN support">
+        <FiltersSection id="sen" title={t("sen.filter_title")}>
           <SenFilterContent draft={draft} onDraftChange={onDraftChange} />
         </FiltersSection>
         <FiltersSection id="university" title={t("search_ui.university_title")}>
@@ -852,7 +853,7 @@ export function TutorsSearchMobile({
           {/* Issue #199: SEN support filter (same control as the desktop
               filters dialog). */}
           <div className="space-y-2">
-            <PanelLabel>SEN support</PanelLabel>
+            <PanelLabel>{t("sen.filter_title")}</PanelLabel>
             <SenFilterContent draft={draft} onDraftChange={onDraftChange} />
           </div>
 
@@ -935,6 +936,8 @@ function SenFilterContent({
   draft: TutorsSearchState;
   onDraftChange: (patch: Partial<TutorsSearchState>) => void;
 }) {
+  const { t } = useTranslation();
+  const senCategoryLabels = useSenCategoryLabels();
   const selected = getSelectedSenCategories(draft);
   return (
     <div className="space-y-3">
@@ -947,11 +950,12 @@ function SenFilterContent({
             )
           }
         />
-        SEN-experienced tutors only
+        {t("sen.filter_toggle")}
       </label>
       {draft.sen === true ? (
         <SubjectMultiSelect
           options={[...SEN_CATEGORY_OPTIONS]}
+          labelFor={(category: string) => senCategoryLabels[category as SenCategory] ?? category}
           selected={selected}
           onToggle={(category) => {
             const next = selected.includes(category)
@@ -960,9 +964,9 @@ function SenFilterContent({
             onDraftChange({ sen_categories: next.length > 0 ? next.join("||") : undefined });
           }}
           onClear={() => onDraftChange({ sen_categories: undefined })}
-          clearLabel="Clear categories"
-          searchPlaceholder="Search SEN categories"
-          emptyText="No matches found."
+          clearLabel={t("sen.clear_categories")}
+          searchPlaceholder={t("sen.search_categories")}
+          emptyText={t("sen.no_matches")}
         />
       ) : null}
     </div>

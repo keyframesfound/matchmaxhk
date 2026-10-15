@@ -109,6 +109,7 @@ import {
   normalizeTutorRateRows,
 } from "@/features/tutors/rates";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
+import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 
 type ScoreRow = {
   subject: string;
@@ -961,6 +962,7 @@ type ApplicationDraft = {
 
 export function ApplicationForm() {
   const { t } = useTranslation();
+  const senCategoryLabels = useSenCategoryLabels();
   const submit = useServerFn(submitTutorApplication);
   // Referral attribution: an explicit ?ref= wins (last click); otherwise fall
   // back to a code captured earlier on the site (30-day window). The code
@@ -3379,11 +3381,10 @@ export function ApplicationForm() {
                 <label className="flex cursor-pointer items-start justify-between gap-3">
                   <span>
                     <span className="block text-sm font-semibold text-[color:var(--ink)]">
-                      Do you have experience or qualifications teaching students with Special
-                      Educational Needs (SEN)?
+                      {t("sen.join_toggle")}
                     </span>
                     <span className="mt-0.5 block text-xs text-muted-foreground">
-                      MatchMax parents can filter tutors by SEN support.
+                      {t("sen.join_toggle_hint")}
                     </span>
                   </span>
                   <Checkbox
@@ -3401,7 +3402,7 @@ export function ApplicationForm() {
                   <div className="mt-4 space-y-4">
                     <div
                       role="group"
-                      aria-label="SEN categories"
+                      aria-label={t("sen.categories_aria")}
                       className="space-y-1.5 rounded-sm border border-border p-3"
                     >
                       {SEN_CATEGORY_OPTIONS.map((category) => {
@@ -3424,7 +3425,7 @@ export function ApplicationForm() {
                               }}
                               aria-invalid={fieldErrors.senCategories ? true : undefined}
                             />
-                            <span className="font-medium">{category}</span>
+                            <span className="font-medium">{senCategoryLabels[category]}</span>
                           </label>
                         );
                       })}
@@ -3435,16 +3436,16 @@ export function ApplicationForm() {
                       ) : null}
                     </div>
                     <Field
-                      label="SEN Experience & Qualifications"
+                      label={t("sen.experience_label")}
                       optional
-                      hint="Certificates, SEN coursework, years of experience supporting students with special educational needs."
+                      hint={t("sen.experience_hint")}
                     >
                       <Textarea
                         rows={4}
                         maxLength={2000}
                         value={base.senExperience}
                         onChange={(event) => setBaseField("senExperience", event.target.value)}
-                        placeholder="e.g. Completed Jockey Club 'Dyslexia' teacher training; 3 years supporting students with ADHD and ASD in 1:1 maths lessons."
+                        placeholder={t("sen.experience_placeholder")}
                         className="w-full rounded-sm"
                       />
                     </Field>
