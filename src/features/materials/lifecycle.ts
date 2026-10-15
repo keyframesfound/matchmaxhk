@@ -22,11 +22,18 @@ export type MaterialStatus = (typeof MATERIAL_STATUSES)[number];
 /** Fields the owner may always edit (P8 "after publish" list + P9). */
 export const OWNER_EDITABLE_FIELDS = ["title", "price", "description"] as const;
 
-/** #203 price floor; below this needs an admin (admins bypass server-side). */
-export const MIN_PRICE_HKD = 30;
+/**
+ * #203's HK$30 floor, RETIRED by #314: HK$0 free packs are allowed for any
+ * listing type. Kept as an export only until the last form/server usage is
+ * removed in this same PR — do not use it in new code.
+ */
+export const MIN_PRICE_HKD = 0;
 
 /** #203 file rules. */
 export const MAX_PDF_BYTES = 20 * 1024 * 1024; // repo upload cap (issue allows 40MB; Workers body limits win)
+
+/** #314 flashcards: .apkg decks ride the same 40MB cap as the issue allows. */
+export const MAX_APKG_BYTES = MAX_PDF_BYTES;
 
 /** P8: pages shown before the blur starts on the note page. */
 export const CRISP_PREVIEW_PAGES = 3;
@@ -51,6 +58,7 @@ export type SubmitCheckResult = {
 /**
  * P8 required-before-submit gate: title, price, PDF. (The sample images are
  * auto-generated from the PDF at upload, so they are never a tutor duty.)
+ * #314: HK$0 is a VALID price (free pack) — only null/negative is missing.
  */
 export function checkSubmitReadiness(input: {
   title?: string | null;
@@ -59,7 +67,7 @@ export function checkSubmitReadiness(input: {
 }): SubmitCheckResult {
   const missing: string[] = [];
   if (!input.title || input.title.trim().length < 3) missing.push("title");
-  if (input.priceHkd == null || Number.isNaN(input.priceHkd) || input.priceHkd < MIN_PRICE_HKD) {
+  if (input.priceHkd == null || Number.isNaN(input.priceHkd) || input.priceHkd < 0) {
     missing.push("price");
   }
   if (!input.hasPdf) missing.push("pdf");
@@ -202,13 +210,19 @@ export const BELL_EVENTS_IN_PR = ["material_order.delivered"] as const;
 /**
  * #313 note kinds: the classification a note carries on the marketplace.
  * Curriculum is one of the site's canonical systems (plus Other); type is
- * the 3-way notes/mock/exemplar split; topic is a free 40-char filter, not
- * a syllabus tree; grade achieved is exemplar-only and self-reported.
+ * the notes/mock/exemplar/flashcards split (#314 added flashcards); topic
+ * is a free 40-char filter, not a syllabus tree; grade achieved is
+ * exemplar-only and self-reported.
  */
 export const NOTE_CURRICULA = ["IB", "DSE", "IGCSE", "A-Level", "Other"] as const;
 export type NoteCurriculum = (typeof NOTE_CURRICULA)[number];
 
-export const MATERIAL_TYPES = ["notes", "mock", "exemplar"] as const;
+/**
+ * #314: flashcards join the 3-way split. A deck is a PDF or an .apkg file
+ * (max 40MB) — no in-browser player, buyers download the file. Subject
+ * allowlist + ban list + staff review still apply.
+ */
+export const MATERIAL_TYPES = ["notes", "mock", "exemplar", "flashcards"] as const;
 export type MaterialType = (typeof MATERIAL_TYPES)[number];
 
 export const NOTE_TOPIC_MAX_LEN = 40;
@@ -343,7 +357,7 @@ export function validateNoteKindsForSubmit(
 
   const materialType = (input.materialType ?? "").trim();
   if (!(MATERIAL_TYPES as readonly string[]).includes(materialType)) {
-    errors.push("Type must be notes, mock, or exemplar.");
+    errors.push("Type must be notes, mock, exemplar, or flashcards.");
   }
 
   const topic = (input.topic ?? "").trim();
@@ -407,7 +421,7 @@ export function validateNoteKindsPartial(
   if (input.materialType != null && input.materialType.trim()) {
     const materialType = input.materialType.trim();
     if (!(MATERIAL_TYPES as readonly string[]).includes(materialType)) {
-      errors.push("Type must be notes, mock, or exemplar.");
+      errors.push("Type must be notes, mock, exemplar, or flashcards.");
     }
   }
 

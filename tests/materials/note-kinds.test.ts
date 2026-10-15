@@ -32,8 +32,14 @@ describe("validateNoteKindsForSubmit (#313)", () => {
       "Subject is required.",
     );
     expect(validateNoteKindsForSubmit({ ...clean, materialType: "question_bank" })).toContain(
-      "Type must be notes, mock, or exemplar.",
+      "Type must be notes, mock, exemplar, or flashcards.",
     );
+  });
+
+  it("accepts flashcards as a material type (#314)", () => {
+    expect(validateNoteKindsForSubmit({ ...clean, materialType: "flashcards" })).toEqual([]);
+    expect(validateNoteKindsPartial({ materialType: "flashcards" })).toEqual([]);
+    expect(mergeNoteKinds({ materialType: "flashcards" }).materialType).toBe("flashcards");
   });
 
   it("blocks exemplars without the written-permission confirmation", () => {
@@ -161,7 +167,7 @@ describe("validateNoteKindsPartial (#313 draft saves)", () => {
 
   it("still enforces enum membership and caps on present fields", () => {
     expect(validateNoteKindsPartial({ curriculum: "HKCEE" })).not.toEqual([]);
-    expect(validateNoteKindsPartial({ materialType: "flashcards" })).not.toEqual([]);
+    expect(validateNoteKindsPartial({ materialType: "question_bank" })).not.toEqual([]);
     expect(validateNoteKindsPartial({ topic: "x".repeat(NOTE_TOPIC_MAX_LEN + 1) })).not.toEqual([]);
     expect(
       validateNoteKindsPartial({ gradeAchieved: "x".repeat(GRADE_ACHIEVED_MAX_LEN + 1) }),

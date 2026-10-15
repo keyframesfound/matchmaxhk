@@ -24,6 +24,8 @@ export type StudyMaterial = {
   exemplar_permission: boolean;
   year_tag: string | null;
   page_count: number | null;
+  /** #136: tutor-entered approximate word count (optional). */
+  word_count: number | null;
   exact_score_achieved: string | null;
   includes_examiner_comments: boolean;
   watermarked_preview_url: string;
@@ -40,7 +42,7 @@ function isMissingRelation(error: unknown): boolean {
 }
 
 const MATERIAL_COLS =
-  "id, tutor_id, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, admin_marketing_summary, created_at";
+  "id, tutor_id, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, word_count, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, admin_marketing_summary, created_at";
 
 function mapMaterial(row: Record<string, unknown>): StudyMaterial {
   return {
@@ -59,6 +61,7 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
     exemplar_permission: row.exemplar_permission === true,
     year_tag: typeof row.year_tag === "string" ? row.year_tag : null,
     page_count: typeof row.page_count === "number" ? row.page_count : null,
+    word_count: typeof row.word_count === "number" ? row.word_count : null,
     exact_score_achieved:
       typeof row.exact_score_achieved === "string" ? row.exact_score_achieved : null,
     includes_examiner_comments: row.includes_examiner_comments === true,
