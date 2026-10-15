@@ -1,14 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
-  Check,
   Download,
   FileText,
   Image as ImageIcon,
-  RotateCcw,
   Search,
   ShieldCheck,
   X,
@@ -26,18 +23,7 @@ import {
   ConsoleTd,
   ConsoleTh,
 } from "@/components/ui/console-table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import {
   fetchTutorApplications,
   formatDate,
@@ -124,14 +110,23 @@ function ApplicationNotFound({ onBack }: { onBack: () => void }) {
   );
 }
 
+// Issue #310: join-requests is now a READ-ONLY archive. Cards go live at
+// submit (submitTutorApplication → publishTutorCardFromApplication), so the
+// Accept/Reject queue is gone — staff manage the published cards from
+// /admin/tutors (unpublish / suspend / ban).
+type ArchiveTab = "all" | "linked";
+
+const TAB_LABELS: Record<ArchiveTab, string> = {
+  all: "All",
+  linked: "Live-linked",
+};
+
 function AdminJoinRequests() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const search = Route.useSearch();
-  const [tab, setTab] = useState<TutorApplicationStatus>("pending");
+  const [tab, setTab] = useState<ArchiveTab>("all");
   const [searchText, setSearchText] = useState("");
   const [detailId, setDetailId] = useState<string | null>(search.application ?? null);
-  const [rejecting, setRejecting] = useState<TutorApplicationRecord | null>(null);
 
   const {
     data: applications = [],
@@ -147,40 +142,6 @@ function AdminJoinRequests() {
     if (search.application) setDetailId(search.application);
   }, [search.application]);
 
-  const updateStatus = useMutation({
-    mutationFn: async ({
-      id,
-      status,
-      rejectedAt,
-      purgeAfter,
-    }: {
-      id: string;
-      status: TutorApplicationStatus;
-      rejectedAt?: string | null;
-      purgeAfter?: string | null;
-    }) => {
-      const { data, error } = await supabase
-        .from("tutor_applications")
-        .update({
-          status,
-          rejected_at: rejectedAt ?? null,
-          purge_after: purgeAfter ?? null,
-        } as never)
-        .eq("id", id)
-        .select("id");
-      if (error) throw error;
-      if (!data || data.length === 0) {
-        throw new Error(
-          "No changes were saved — your session may not have admin access to this application.",
-        );
-      }
-    },
-    onError: (e: Error) => toast.error(e.message),
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ["admin", "join-requests"] });
-    },
-  });
-
   const clearDetailParam = () => {
     navigate({ to: "/admin/join-requests", search: { application: undefined } });
   };
@@ -192,9 +153,8 @@ function AdminJoinRequests() {
 
   const counts = useMemo(
     () => ({
-      pending: applications.filter((a) => a.status === "pending").length,
-      rejected: applications.filter((a) => a.status === "rejected").length,
-      accepted: applications.filter((a) => a.status === "accepted").length,
+      all: applications.length,
+      linked: applications.filter((a) => a.linked_tutor_id).length,
     }),
     [applications],
   );
@@ -202,68 +162,18 @@ function AdminJoinRequests() {
   const filtered = useMemo(() => {
     const q = searchText.trim().toLowerCase();
     return applications.filter((row) => {
-      if (row.status !== tab) return false;
+      if (tab === "linked" && !row.linked_tutor_id) return false;
       if (!q) return true;
       return (
         row.data.name?.toLowerCase().includes(q) ||
         row.data.email?.toLowerCase().includes(q) ||
-        row.id.toLowerCase().includes(q)
+        row.id.toLowerCase().includes(q) ||
+        (row.linked_tutor_code ?? "").toLowerCase().includes(q)
       );
     });
   }, [applications, tab, searchText]);
 
   const detailApplication = applications.find((row) => row.id === detailId) ?? null;
-
-  const acceptApplication = (row: TutorApplicationRecord) => {
-    if (row.status !== "pending") {
-      updateStatus.mutate(
-        { id: row.id, status: "pending", rejectedAt: null, purgeAfter: null },
-        {
-          onSuccess: () =>
-            toast.success("Application moved back to pending", {
-              description:
-                "You can accept or reject it again. Any tutor card already created from it is unaffected.",
-            }),
-        },
-      );
-      return;
-    }
-    updateStatus.mutate(
-      { id: row.id, status: "accepted" },
-      {
-        onSuccess: () => {
-          toast.success("Application accepted", {
-            description: "Create the tutor card from the Tutors page.",
-          });
-          navigate({
-            to: "/admin/tutors",
-            search: { create: true, applicationId: row.id },
-          });
-        },
-      },
-    );
-  };
-
-  const rejectApplication = (row: TutorApplicationRecord) => {
-    const now = new Date();
-    const purgeAfter = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-    updateStatus.mutate(
-      {
-        id: row.id,
-        status: "rejected",
-        rejectedAt: now.toISOString(),
-        purgeAfter: purgeAfter.toISOString(),
-      },
-      {
-        onSuccess: () => {
-          toast.success("Application rejected", {
-            description: "Data is kept for 30 days, then auto-deleted.",
-          });
-          setRejecting(null);
-        },
-      },
-    );
-  };
 
   if (detailApplication) {
     return (
@@ -274,16 +184,6 @@ function AdminJoinRequests() {
             setDetailId(null);
             clearDetailParam();
           }}
-          isMutating={updateStatus.isPending}
-          onAccept={() => acceptApplication(detailApplication)}
-          onReject={() => setRejecting(detailApplication)}
-        />
-        <RejectDialog
-          open={Boolean(rejecting)}
-          application={rejecting}
-          isPending={updateStatus.isPending}
-          onConfirm={() => rejecting && rejectApplication(rejecting)}
-          onCancel={() => setRejecting(null)}
         />
       </div>
     );
@@ -305,19 +205,12 @@ function AdminJoinRequests() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[color:var(--ink)]/10">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
-              Tutor Join Requests
-            </h1>
-            {counts.pending > 0 ? (
-              <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400">
-                {counts.pending} pending
-              </span>
-            ) : null}
-          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
+            Tutor Join Requests
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Review join form submissions. Rejected applications stay recoverable for 30 days before
-            automatic deletion.
+            Read-only archive of join form submissions — every card went live at submit. Manage the
+            published cards (unpublish / suspend / ban) from the Tutors page.
           </p>
         </div>
       </div>
@@ -325,7 +218,7 @@ function AdminJoinRequests() {
       {/* Tabs + Search */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-1 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)]/60 p-1">
-          {(["pending", "rejected", "accepted"] as const).map((value) => (
+          {(["all", "linked"] as const).map((value) => (
             <button
               key={value}
               type="button"
@@ -337,7 +230,7 @@ function AdminJoinRequests() {
                   : "text-muted-foreground hover:text-[color:var(--ink)]",
               )}
             >
-              {STATUS_LABELS[value]}
+              {TAB_LABELS[value]}
               {counts[value] > 0 ? (
                 <span className="ml-1.5 tabular-nums opacity-70">{counts[value]}</span>
               ) : null}
@@ -347,7 +240,7 @@ function AdminJoinRequests() {
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name, email, or reference..."
+            placeholder="Search by name, email, reference, or tutor code..."
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             className="pl-9 h-10 bg-[color:var(--surface)] border-[color:var(--ink)]/15"
@@ -362,16 +255,17 @@ function AdminJoinRequests() {
             <ConsoleTh>Path</ConsoleTh>
             <ConsoleTh>Overall Score</ConsoleTh>
             <ConsoleTh>Rate</ConsoleTh>
+            <ConsoleTh>Live Card</ConsoleTh>
             <ConsoleTh>Submitted</ConsoleTh>
             <ConsoleTh align="right">Actions</ConsoleTh>
           </tr>
         </ConsoleTableHead>
         <ConsoleTableBody>
-          {isLoading && <ConsoleTableSkeletonRows columns={6} />}
+          {isLoading && <ConsoleTableSkeletonRows columns={7} />}
 
           {isError && (
             <ConsoleTableEmpty
-              colSpan={6}
+              colSpan={7}
               icon={X}
               title="Could not load applications"
               description={(error as Error)?.message || "Please try again."}
@@ -380,15 +274,15 @@ function AdminJoinRequests() {
 
           {!isLoading && !isError && filtered.length === 0 && (
             <ConsoleTableEmpty
-              colSpan={6}
+              colSpan={7}
               icon={ShieldCheck}
               title={searchText ? "No matching applications" : "You're all caught up"}
               description={
                 searchText
                   ? "Try adjusting your search."
-                  : tab === "pending"
-                    ? "New tutor join requests will appear here."
-                    : `No ${STATUS_LABELS[tab].toLowerCase()} applications right now.`
+                  : tab === "linked"
+                    ? "No applications have a linked live card yet."
+                    : "New tutor join requests will appear here."
               }
             />
           )}
@@ -413,6 +307,21 @@ function AdminJoinRequests() {
                 HK${row.data.hourlyRate}
                 <span className="text-xs text-muted-foreground font-normal">/hr</span>
               </ConsoleTd>
+              <ConsoleTd>
+                {row.linked_tutor_code ? (
+                  <Link
+                    to="/tutors/$tutorCode"
+                    params={{ tutorCode: row.linked_tutor_code }}
+                    target="_blank"
+                    className="text-xs font-bold text-[color:var(--ink)] underline decoration-[color:var(--ink)]/30 underline-offset-2 hover:decoration-[color:var(--ink)]"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {row.linked_tutor_code}
+                  </Link>
+                ) : (
+                  <span className="text-xs text-muted-foreground">—</span>
+                )}
+              </ConsoleTd>
               <ConsoleTd className="text-xs text-muted-foreground">
                 {formatDate(row.created_at)}
               </ConsoleTd>
@@ -426,21 +335,13 @@ function AdminJoinRequests() {
                     openDetail(row.id);
                   }}
                 >
-                  Review
+                  View
                 </Button>
               </ConsoleTd>
             </tr>
           ))}
         </ConsoleTableBody>
       </ConsoleTable>
-
-      <RejectDialog
-        open={Boolean(rejecting)}
-        application={rejecting}
-        isPending={updateStatus.isPending}
-        onConfirm={() => rejecting && rejectApplication(rejecting)}
-        onCancel={() => setRejecting(null)}
-      />
     </div>
   );
 }
@@ -648,15 +549,9 @@ function VerificationPanel({ application }: { application: TutorApplicationRecor
 function ApplicationDetail({
   application,
   onBack,
-  isMutating,
-  onAccept,
-  onReject,
 }: {
   application: TutorApplicationRecord;
   onBack: () => void;
-  isMutating: boolean;
-  onAccept: () => void;
-  onReject: () => void;
 }) {
   const row = application;
   const rows = useMemo(() => {
@@ -703,76 +598,29 @@ function ApplicationDetail({
         </div>
 
         <div className="flex items-center gap-2">
-          {row.status === "rejected" ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isMutating}
-              onClick={onAccept}
-              className="h-9 text-xs font-bold"
+          {row.linked_tutor_code ? (
+            <Link
+              to="/tutors/$tutorCode"
+              params={{ tutorCode: row.linked_tutor_code }}
+              target="_blank"
+              className="inline-flex h-9 items-center rounded-sm border border-[color:var(--ink)]/20 px-3 text-xs font-bold text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)]"
             >
-              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-              Re-accept (back to pending)
-            </Button>
-          ) : row.status === "accepted" ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isMutating}
-              onClick={onAccept}
-              className="h-9 text-xs font-bold"
-            >
-              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-              Move back to pending
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isMutating}
-              onClick={onAccept}
-              className="h-9 text-xs font-bold"
-            >
-              <Check className="mr-1.5 h-3.5 w-3.5" />
-              Accept &amp; Create Tutor
-            </Button>
-          )}
-          {row.status !== "rejected" ? (
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              disabled={isMutating}
-              onClick={onReject}
-              className="h-9 text-xs font-bold"
-            >
-              <X className="mr-1.5 h-3.5 w-3.5" />
-              Reject
-            </Button>
+              View live card · {row.linked_tutor_code}
+            </Link>
           ) : null}
         </div>
       </div>
 
       {row.status === "rejected" && purgeDays !== null ? (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.06] px-4 py-3 text-xs font-medium text-amber-800 dark:text-amber-300">
-          This application was rejected on {formatDate(row.rejected_at)}. You can re-accept it for
-          the next {purgeDays} day{purgeDays === 1 ? "" : "s"}; afterwards all submitted data is
-          permanently deleted from our servers.
+          Legacy rejected application (no card was published). Auto-deletes in {purgeDays} day
+          {purgeDays === 1 ? "" : "s"}.
         </div>
       ) : null}
-      {row.status === "accepted" ? (
+      {row.linked_tutor_code ? (
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] px-4 py-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-          <p>
-            Accepted. Use “AI Autofill → Load application data” in the tutor editor as a source
-            while you create the tutor card manually.
-          </p>
-          <p className="mt-1">
-            You can move it back to pending or reject it — any tutor card already created from it is
-            unaffected.
-          </p>
+          Published at submit — live card {row.linked_tutor_code}. Manage it (unpublish / suspend /
+          ban) from the Tutors page.
         </div>
       ) : null}
 
@@ -952,46 +800,4 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
   );
 }
 
-function RejectDialog({
-  open,
-  application,
-  isPending,
-  onConfirm,
-  onCancel,
-}: {
-  open: boolean;
-  application: TutorApplicationRecord | null;
-  isPending: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  return (
-    <AlertDialog
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) onCancel();
-      }}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Reject this application?</AlertDialogTitle>
-          <AlertDialogDescription>
-            {application?.data.name ?? "This applicant"} will move to the rejected list and stay
-            recoverable for 30 days — you can re-accept within that window. After 30 days all
-            submitted data is permanently deleted from our servers.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            disabled={isPending}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            Reject application
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-}
+// Issue #310: the RejectDialog was removed with the Accept/Reject queue.
