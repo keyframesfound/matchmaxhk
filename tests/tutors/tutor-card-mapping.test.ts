@@ -5,6 +5,7 @@ import {
   buildQualificationsSummary,
   mapApplicationFormatToLessonMode,
   mapApplicationStatusToTutorStatus,
+  mappedCardContactError,
   splitApplicationList,
   type ApplicationAttachmentFile,
 } from "../../src/lib/tutor-card-mapping";
@@ -54,6 +55,9 @@ function baseApplication(overrides: Partial<StoredApplication> = {}): StoredAppl
     portfolioImages: [],
     portfolioConsent: false,
     experience: "",
+    senEnabled: false,
+    senCategories: [],
+    senExperience: "",
     selfIntroduction: "I teach maths the way I learned it.",
     hourlyRate: "150",
     onlineRate: 200,
@@ -224,6 +228,32 @@ describe("buildTutorCardInsert (#310 publish-at-submit mapping)", () => {
     );
     expect(payload.tutor_status).toBe("examiner");
     expect(payload.secondary_school).toBeNull();
+  });
+});
+
+describe("mappedCardContactError (#357 / #359)", () => {
+  it("accepts a normal card, including R2 photo URLs", () => {
+    const payload = buildTutorCardInsert(baseApplication(), "MM-T001", [
+      { source: "profile_photo", url: "https://r2.example/photo.jpg" },
+    ]);
+    expect(mappedCardContactError(payload)).toBeNull();
+  });
+
+  it("flags contact text that the mapper copies onto the public card", () => {
+    const withAward = buildTutorCardInsert(
+      baseApplication({ awards: "Email me at tutor@example.com" }),
+      "MM-T001",
+    );
+    expect(mappedCardContactError(withAward)).toMatch(/email/i);
+
+    const withSubject = buildTutorCardInsert(
+      baseApplication({ subjectsConfident: "Maths, whatsapp" }),
+      "MM-T001",
+    );
+    expect(mappedCardContactError(withSubject)).toMatch(/whatsapp/i);
+
+    const withName = buildTutorCardInsert(baseApplication({ name: "Chan 9123 4567" }), "MM-T001");
+    expect(mappedCardContactError(withName)).toMatch(/phone/i);
   });
 });
 

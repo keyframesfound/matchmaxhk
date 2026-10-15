@@ -1456,8 +1456,15 @@ export function ApplicationForm() {
     const required = (key: string, value: unknown) => {
       if (!value || (Array.isArray(value) && value.length === 0)) next[key] = "Required";
     };
+    const rejectContact = (key: string, value: string) => {
+      if (next[key]) return;
+      const error = contactFilterError(value);
+      if (error) next[key] = error;
+    };
     if (step === 1) {
       required("name", base.name.trim());
+      rejectContact("name", base.name);
+      rejectContact("graduationYear", base.graduationYear);
       required("phone", base.phone.trim());
       required("email", base.email.trim());
       required("country", base.country.trim());
@@ -1489,6 +1496,7 @@ export function ApplicationForm() {
       if (professional) required("credentials", credentials);
       else {
         required("highSchool", base.highSchool.trim());
+        rejectContact("highSchool", base.highSchool);
         required("year", base.year.trim());
         required("university", base.university.trim());
         required("programme", base.programme.trim());
@@ -1503,6 +1511,14 @@ export function ApplicationForm() {
           if (["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum))
             required(`boards-${index}`, qualification.boards);
         });
+      }
+      // University / programme are on this step for both paths and are copied
+      // onto the public card. Contact text fails here, before submit.
+      rejectContact("university", base.university);
+      rejectContact("programme", base.programme);
+      if (base.hasPostgrad) {
+        rejectContact("postgradUniversity", base.postgradUniversity);
+        rejectContact("postgradDegree", base.postgradDegree);
       }
       // Issue #323: the headline is required for every path; the shared helper
       // enforces required + max 40 + contact filter in one place (mirrored
@@ -1532,7 +1548,9 @@ export function ApplicationForm() {
     if (step === experienceStep) {
       base.achievements.forEach((achievement, index) => {
         required(`achievement-title-${index}`, achievement.title.trim());
+        rejectContact(`achievement-title-${index}`, achievement.title);
         required(`achievement-description-${index}`, achievement.description.trim());
+        rejectContact(`achievement-description-${index}`, achievement.description);
         if (achievement.proofStatus === "upload")
           required(`achievement-proof-${index}`, achievement.proof);
       });
@@ -2426,7 +2444,7 @@ export function ApplicationForm() {
                       invalid={Boolean(fieldErrors.medium)}
                     />
                   </Field>
-                  <Field label="Graduation Year">
+                  <Field label="Graduation Year" error={fieldErrors.graduationYear}>
                     <Input
                       value={base.graduationYear}
                       onChange={(event) => setBaseField("graduationYear", event.target.value)}
