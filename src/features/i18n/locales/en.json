@@ -664,8 +664,8 @@
     "sample_locations": "Kowloon Tong, Central",
     "sample_medium": "English / Cantonese",
     "sample_notes": "Referred by a friend. Flexible on weekday evenings and weekends.",
-    "success_title": "Application received",
-    "success_message": "Thanks for applying to MatchMax. Our team reviews every application and will contact you by email or WhatsApp if there is a suitable case.",
+    "success_title": "Your tutor card is live",
+    "success_message": "Your card was published the moment you submitted — parents can find it on MatchMax right now. One last step: activate via WhatsApp so the team can reach you about matching cases.",
     "back_home": "Back home",
     "browse_tutors": "Browse tutors",
     "academics": {
@@ -685,7 +685,9 @@
       "row_label": "Label",
       "row_rate": "Rate (HKD)",
       "add_row": "Add rate row"
-    }
+    },
+    "view_live_card": "View your live card",
+    "manage_hint": "Keep your reference from the WhatsApp message — the MatchMax team uses it to match your chat to your application."
   },
   "materials": {
     "section_title": "📚 Study Materials",

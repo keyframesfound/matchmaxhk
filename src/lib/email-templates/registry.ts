@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import { AccountStatusEmail } from "./account-status";
+import { TutorCardLiveEmail } from "./tutor-card-live";
 
 export interface TemplateEntry {
   component: ComponentType<Record<string, unknown>>;
@@ -28,5 +29,11 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   "account-status": {
     component: AccountStatusEmail as unknown as ComponentType<Record<string, unknown>>,
     subject: "Your MatchMax account status changed",
+  },
+
+  // Issue #310: sent to the applicant right after /join publishes their card.
+  "tutor-card-live": {
+    component: TutorCardLiveEmail as unknown as ComponentType<Record<string, unknown>>,
+    subject: "Your MatchMax tutor card is live",
   },
 };
