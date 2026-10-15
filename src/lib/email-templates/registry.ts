@@ -1,10 +1,12 @@
 import type { ComponentType } from "react";
 
+import { AccountStatusEmail } from "./account-status";
+
 export interface TemplateEntry {
-  component: ComponentType<any>;
-  subject: string | ((data: Record<string, any>) => string);
+  component: ComponentType<Record<string, unknown>>;
+  subject: string | ((data: Record<string, unknown>) => string);
   displayName?: string;
-  previewData?: Record<string, any>;
+  previewData?: Record<string, unknown>;
   /** Fixed recipient — overrides caller-provided recipientEmail when set. */
   to?: string;
 }
@@ -20,4 +22,11 @@ export interface TemplateEntry {
 export const TEMPLATES: Record<string, TemplateEntry> = {
   // Add templates here as they are created, e.g.:
   // 'welcome': welcomeTemplate,
+
+  // Issue #308: one email per account status change (suspend / ban /
+  // restore). Content is the status line + community-commitment pointer.
+  "account-status": {
+    component: AccountStatusEmail as unknown as ComponentType<Record<string, unknown>>,
+    subject: "Your MatchMax account status changed",
+  },
 };

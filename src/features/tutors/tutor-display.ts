@@ -213,10 +213,17 @@ export function getTutorInquiryAction(
     | "earliest_start_date"
     | "is_accepting_students"
     | "remaining_student_slots"
+    | "owner_account_status"
   >,
   whatsappNumber: string | undefined,
   language: string,
 ): TutorInquiryAction {
+  // Issue #308: a suspended owner keeps their card up but loses every
+  // request/waitlist/pre-book action; the caller renders a status chip.
+  // Undefined (pre-migration data) counts as active.
+  if (tutor.owner_account_status === "suspended" || tutor.owner_account_status === "banned") {
+    return { kind: "status", href: "", label: "Requests paused" };
+  }
   // P5 (#280): Full and Inactive hide the Request-tutor action; the caller
   // renders a status chip instead (kind "status").
   const availabilityState = getTutorAvailabilityState(tutor);

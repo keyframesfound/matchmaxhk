@@ -552,7 +552,9 @@
     "onboarding_tutor_label": "我係導師",
     "onboarding_tutor_desc": "我想教書同搵新學生。",
     "onboarding_next": "下一步",
-    "onboarding_error": "無法儲存你嘅選擇，請再試一次。"
+    "onboarding_error": "無法儲存你嘅選擇，請再試一次。",
+    "account_blocked_title": "帳戶已被封鎖",
+    "account_blocked_message": "此帳戶已被停用。請聯絡客戶支援。"
   },
   "dashboard": {
     "welcome": "歡迎返嚟",
@@ -1716,6 +1718,10 @@
       "step_parent_save": "儲存你鍾意嘅導師",
       "step_parent_case": "提出導師請求或開設個案",
       "step_parent_bought": "購買學習筆記"
-    }
+    },
+    "suspended_banner_title": "帳戶已被停用",
+    "suspended_banner_body": "你的帳戶已被停用。你可以瀏覽 MatchMax，但無法要求導師、申請個案、上載內容或聯絡其他用戶。",
+    "suspended_reason_label": "原因：{{reason}}",
+    "suspended_dismiss": "關閉"
   }
 }

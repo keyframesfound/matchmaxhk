@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { findContactViolations } from "@/lib/contact-filter";
 import {
   buildMaterialSlug,
@@ -375,7 +376,7 @@ export function validateDraftNoteKindsForSubmit(
 
 /** P8: create or update the signed-in tutor's draft. Any subset of fields. */
 export const saveNoteDraft = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => SaveDraftInput.parse(data))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -460,7 +461,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
  * (P9 — the live file stays on sale until staff approve the swap).
  */
 export const uploadNotePdf = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) =>
     z
       .object({
@@ -490,7 +491,7 @@ const SubmitForReviewInput = SubmitInput;
 
 /** P8 submit: validates required fields, then parks the note for staff review. */
 export const submitNoteForReview = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => SubmitForReviewInput.parse(data))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -660,7 +661,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
 
 /** P9: edit a live note's text/price — live after the contact filter. */
 export const editLiveNote = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => EditLiveInput.parse(data))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
