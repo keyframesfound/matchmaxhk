@@ -1,4 +1,5 @@
 import { buildAcademicHeadline } from "@/lib/academic-headline";
+import { contactFilterError } from "@/lib/contact-filter";
 import {
   normalizeApplicationPricingTiers,
   type TutorApplication,
@@ -179,4 +180,37 @@ export function buildTutorCardInsert(
     portfolio_images: portfolioImages,
     created_by: null,
   };
+}
+
+/**
+ * Issue #357 / #359 — last app-layer gate before a card is inserted.
+ *
+ * Scans every free-text value the mapper copies onto the public card.
+ * Photo and portfolio URLs are our own R2 links, so they are not scanned
+ * (the contact filter treats any URL as a violation).
+ */
+export function mappedCardContactError(card: TutorCardInsert): string | null {
+  const texts = [
+    card.display_name,
+    card.qualifications_summary,
+    card.self_introduction,
+    card.academic_headline,
+    card.travel_note,
+    card.rate_note,
+    ...card.subjects,
+    ...card.languages,
+    ...card.stations,
+    ...card.rate_rows.map((row) => row.label),
+    card.undergrad_university ?? "",
+    card.undergrad_degree ?? "",
+    card.undergrad_graduation_year ?? "",
+    card.postgrad_university ?? "",
+    card.postgrad_degree ?? "",
+    card.secondary_school ?? "",
+  ];
+  for (const text of texts) {
+    const error = contactFilterError(text);
+    if (error) return error;
+  }
+  return null;
 }
