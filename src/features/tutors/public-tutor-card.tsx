@@ -10,6 +10,7 @@ import {
   Hash,
   School,
   Share2,
+  ShieldCheck,
   UserRound,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -21,7 +22,6 @@ import {
   getTutorEducationLines,
   getTutorPriceDisplay,
   getTutorStatusLabelKey,
-  getTutorSubjectChips,
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
 import { useFitText } from "@/hooks/use-fit-text";
@@ -127,7 +127,19 @@ export function PublicTutorCard({
 }: PublicTutorCardProps) {
   const { t, i18n } = useTranslation();
   const interactive = typeof onOpen === "function";
-  const academicChips = useMemo(() => getTutorSubjectChips(tutor), [tutor]);
+  // Issue #309: the academic chips show APPROVED tutor_grades labels only.
+  // Pending/rejected rows never reach the public card; the slip file itself is
+  // never displayed or linked to parents.
+  const approvedGradeLabels = useMemo(
+    () => (tutor.approved_grade_labels ?? []).map((label) => label.trim()).filter(Boolean),
+    [tutor],
+  );
+  const academicChips = useMemo<TutorSubjectChip[]>(
+    () => approvedGradeLabels.map((label) => ({ subject: label, grade: null })),
+    [approvedGradeLabels],
+  );
+  // One Verified badge — derived from ">=1 approved grade".
+  const verified = approvedGradeLabels.length > 0;
   const cardHighlights = useMemo(() => getTutorCardHighlights(tutor), [tutor]);
   const price = useMemo(() => getTutorPriceDisplay(tutor), [tutor]);
   const availabilityReadiness = useMemo(() => getTutorAvailabilityReadiness(tutor), [tutor]);
@@ -303,6 +315,17 @@ export function PublicTutorCard({
                 SEN
               </span>
             ) : null}
+            {/* Issue #309: one Verified badge when >=1 approved grade. Azure
+                stays reserved for money CTAs, so this is a neutral badge. */}
+            {verified ? (
+              <span
+                className="inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border border-emerald-600/30 bg-emerald-500/10 px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-emerald-700 dark:text-emerald-400"
+                title={t("tutor_card.verified_disclaimer")}
+              >
+                <ShieldCheck className="h-3 w-3 shrink-0" aria-hidden="true" />
+                {t("tutor_card.verified_badge")}
+              </span>
+            ) : null}
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">
@@ -347,6 +370,13 @@ export function PublicTutorCard({
           ) : null}
         </div>
       </header>
+
+      {/* Issue #309: the exact card line under the Verified badge. */}
+      {verified ? (
+        <p className="border-b border-border bg-[color:var(--surface-subtle)] px-3 py-1.5 text-[11px] leading-snug text-muted-foreground md:px-4">
+          {t("tutor_card.verified_disclaimer")}
+        </p>
+      ) : null}
 
       {availabilityReadiness === "pre_booking" && tutor.earliest_start_date ? (
         <p className="flex items-center gap-1.5 border-b border-border bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-700 md:px-4 dark:text-amber-400">

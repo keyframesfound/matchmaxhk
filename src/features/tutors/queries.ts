@@ -185,6 +185,12 @@ export type Tutor = {
    * and partial picks still type-check; undefined counts as active.
    */
   owner_account_status?: string;
+  /**
+   * Issue #309: labels of staff-APPROVED tutor_grades rows, kept in sync by a
+   * DB trigger. Drives the one Verified badge and the public grade line —
+   * labels only, never the slip file. Optional pre-migration; [] = no badge.
+   */
+  approved_grade_labels?: string[];
 };
 
 export type TutorPhotoDefaults = {
@@ -198,7 +204,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, approved_grade_labels";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -418,6 +424,13 @@ function normalize(
     // Issue #308: owner status mirror; 'active' when the column is missing.
     owner_account_status:
       typeof row.owner_account_status === "string" ? row.owner_account_status : "active",
+    // Issue #309: approved grade labels; tolerate the missing pre-migration
+    // column so every public feed keeps rendering.
+    approved_grade_labels: Array.isArray(row.approved_grade_labels)
+      ? row.approved_grade_labels.filter(
+          (label): label is string => typeof label === "string" && label.trim() !== "",
+        )
+      : [],
   };
 }
 

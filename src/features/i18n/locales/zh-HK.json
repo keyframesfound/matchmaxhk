@@ -310,7 +310,44 @@
       "rate_invalid_in_person": "面授時薪必須是 $50 至 $3,000 之間的整數",
       "rate_last_required": "兩個基本時薪至少須保留一個——只清除你想修改嘅一項，唔好兩項都清",
       "academic_headline_max": "學術標題不可超過 40 字",
-      "academic_headline_auto_hint": "根據你嘅考試成績自動產生——只要你未曾自行修改，就會自動更新。"
+      "academic_headline_auto_hint": "根據你嘅考試成績自動產生——只要你未曾自行修改，就會自動更新。",
+      "grades_heading": "成績與核實",
+      "grades_hint": "每個成績開一行，並上載對應嘅成績證明（PDF或圖片，最多10MB）。Staff會逐張核實；獲批嘅成績會喺你嘅公開卡片顯示，並附「已核實」徽章。",
+      "grades_empty": "仲未有任何成績。喺下面加入第一個成績，例如「IBDP 44」或「DSE 5**」。",
+      "grades_row_label": "成績標籤",
+      "grade_status_none": "未上載證明",
+      "grade_status_pending": "待審核",
+      "grade_status_approved": "已批准",
+      "grade_status_rejected": "已拒絕",
+      "grades_rejected_reason": "Staff原因：{{reason}}",
+      "grades_upload_slip": "上載成績紙",
+      "grades_replace_slip": "更換成績紙",
+      "grades_slip_hint": "PDF或圖片，最多{{max}}。成績紙屬私人文件——只有MatchMax staff可以查看。",
+      "grades_label_required": "請先填寫成績標籤。",
+      "grades_hkid_error": "請勿上載身份證。",
+      "grades_file_type": "請上載PDF或圖片（JPG、PNG、WebP）。",
+      "grades_file_too_large": "檔案不可超過10MB。",
+      "grades_added": "已加入成績。",
+      "grades_uploaded": "成績紙已提交審核。",
+      "grades_back_to_pending": "文字已更改——此成績會重新排隊審核，重新批准前唔會喺卡片顯示。",
+      "grades_deleted": "已刪除成績。",
+      "grades_delete": "刪除成績",
+      "grades_add_label": "加入成績",
+      "grades_add_placeholder": "例如：IBDP 44、DSE 5**、BSc Mathematics",
+      "grades_add": "加入成績",
+      "grades_add_with_slip": "連成績紙一齊加入",
+      "grades_add_hint": "你可以而家先加入成績，之後喺該行再上載成績紙。",
+      "notice_approved_title": "成績已批准",
+      "notice_rejected_title": "成績被拒",
+      "notice_about": "成績：{{label}}。",
+      "notice_rejected_reason": "原因：{{reason}}{{note}}。",
+      "notice_open_grade": "查看該成績",
+      "notice_dismiss": "關閉",
+      "reject_reason_name_does_not_match": "姓名唔相符",
+      "reject_reason_unreadable": "睇唔清楚",
+      "reject_reason_not_a_result_slip": "唔係成績證明",
+      "reject_reason_looks_altered": "疑似被改動",
+      "reject_reason_wrong_document": "文件錯誤"
     },
     "grid": {
       "title": "每週補習時間表",
@@ -709,7 +746,11 @@
       "add_row": "新增收費項目"
     },
     "view_live_card": "查看你的上架導師卡",
-    "manage_hint": "請保存 WhatsApp 訊息入面嘅申請編號，我哋團隊會用佢嚟對應你嘅申請。"
+    "manage_hint": "請保存 WhatsApp 訊息入面嘅申請編號，我哋團隊會用佢嚟對應你嘅申請。",
+    "terms_verification_1": "我哋會查核導師上載嘅文件，但唔會向IB、HKEAA或任何學校確認。",
+    "terms_verification_2": "我哋唔會保證成績、取錄或教學成果。",
+    "terms_verification_3": "徽章只涵蓋卡片上顯示嘅成績，唔包括個人簡介。",
+    "terms_verification_4": "家長如果想看成績紙，喺介紹之後直接向導師攞。MatchMax唔會發送任何身份證明文件。"
   },
   "materials": {
     "section_title": "📚 溫習筆記",
@@ -872,7 +913,9 @@
     "gender_female": "女",
     "gender_other": "其他",
     "available_from": "{{date}}起可上課",
-    "prebook_cta": "預約 {{date}} 起"
+    "prebook_cta": "預約 {{date}} 起",
+    "verified_badge": "已核實",
+    "verified_disclaimer": "Staff已查核卡片上顯示嘅成績，但未向考試局確認。第一堂之前，請直接向導師攞成績紙。"
   },
   "help": {
     "title": "你好，有咩可以幫到你？",
@@ -1492,7 +1535,12 @@
       "not_grade": "我們不保證成績。",
       "not_offer": "我們不保證獲學校或大學取錄。",
       "not_marking": "我們不為導師的評卷風格背書。",
-      "not_endorsement": "MatchMax 並非獲 IB、HKEAA 或任何學校認可。"
+      "not_endorsement": "MatchMax 並非獲 IB、HKEAA 或任何學校認可。",
+      "badge_title": "「已核實」成績徽章嘅涵蓋範圍",
+      "badge_line_1": "我哋會查核導師上載嘅文件，但唔會向IB、HKEAA或任何學校確認。",
+      "badge_line_2": "我哋唔會保證成績、取錄或教學成果。",
+      "badge_line_3": "徽章只涵蓋卡片上顯示嘅成績，唔包括個人簡介。",
+      "badge_line_4": "家長如果想看成績紙，喺介紹之後直接向導師攞。MatchMax唔會發送任何身份證明文件。"
     }
   },
   "legal": {

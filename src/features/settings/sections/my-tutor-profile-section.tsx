@@ -26,6 +26,7 @@ import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
+import { TutorGradesEditor } from "@/features/settings/sections/tutor-grades-editor";
 import { getSystem } from "@/features/tutors/examSystems";
 import {
   MAX_RATE_ROWS,
@@ -745,6 +746,10 @@ export function MyTutorProfileSection() {
               {t("settings.my_tutor.self_introduction_hint")}
             </p>
           </div>
+
+          {/* Issue #309: per-grade slip upload + staff review status, replacing
+              the old join-time evidence uploads. */}
+          <TutorGradesEditor />
 
           {/* Issue #199: SEN experience & qualifications. Feeds the SEN search
               filter and the SEN badge on the public card. */}

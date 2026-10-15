@@ -755,6 +755,85 @@ export type Database = {
           },
         ];
       };
+      tutor_grades: {
+        Row: {
+          created_at: string;
+          file_path: string | null;
+          id: string;
+          label: string;
+          reviewed_at: string | null;
+          staff_reason: string | null;
+          status: Database["public"]["Enums"]["tutor_grade_status"];
+          tutor_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          file_path?: string | null;
+          id?: string;
+          label: string;
+          reviewed_at?: string | null;
+          staff_reason?: string | null;
+          status?: Database["public"]["Enums"]["tutor_grade_status"];
+          tutor_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          file_path?: string | null;
+          id?: string;
+          label?: string;
+          reviewed_at?: string | null;
+          staff_reason?: string | null;
+          status?: Database["public"]["Enums"]["tutor_grade_status"];
+          tutor_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tutor_grades_tutor_id_fkey";
+            columns: ["tutor_id"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      tutor_notices: {
+        Row: {
+          created_at: string;
+          id: string;
+          kind: string;
+          payload: Json;
+          read_at: string | null;
+          tutor_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          kind: string;
+          payload?: Json;
+          read_at?: string | null;
+          tutor_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          payload?: Json;
+          read_at?: string | null;
+          tutor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tutor_notices_tutor_id_fkey";
+            columns: ["tutor_id"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       tutor_reviews: {
         Row: {
           created_at: string;
@@ -1040,6 +1119,7 @@ export type Database = {
           availability_grid: Json;
           deletion_requested_at: string | null;
           portfolio_images: string[];
+          approved_grade_labels: string[];
         };
         Insert: {
           achievements?: Json;
@@ -1100,6 +1180,7 @@ export type Database = {
           availability_grid?: Json;
           deletion_requested_at?: string | null;
           portfolio_images?: string[];
+          approved_grade_labels?: string[];
         };
         Update: {
           achievements?: Json;
@@ -1163,6 +1244,7 @@ export type Database = {
           availability_grid?: Json;
           deletion_requested_at?: string | null;
           portfolio_images?: string[];
+          approved_grade_labels?: string[];
         };
         Relationships: [
           {
@@ -1319,6 +1401,7 @@ export type Database = {
       referral_bounty_status: "pending" | "ready_for_payout" | "paid";
       supported_currency: "AUD" | "CAD" | "CNY" | "EUR" | "GBP" | "HKD" | "SGD" | "USD";
       tutor_application_status: "pending" | "accepted" | "rejected";
+      tutor_grade_status: "none" | "pending" | "approved" | "rejected";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1452,6 +1535,7 @@ export const Constants = {
       referral_bounty_status: ["pending", "ready_for_payout", "paid"],
       supported_currency: ["AUD", "CAD", "CNY", "EUR", "GBP", "HKD", "SGD", "USD"],
       tutor_application_status: ["pending", "accepted", "rejected"],
+      tutor_grade_status: ["none", "pending", "approved", "rejected"],
     },
   },
 } as const;

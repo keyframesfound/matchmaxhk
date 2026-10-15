@@ -122,57 +122,6 @@ export const portfolioImageSchema = attachmentSchema.superRefine((image, context
   }
 });
 
-export const achievementSchema = z
-  .object({
-    title: z.string().trim().min(1, "Required").max(200),
-    description: z.string().trim().min(1, "Required").max(2000),
-    proof: attachmentSchema.optional(),
-    proofStatus: z.enum(["upload", "not_applicable", "provide_later"]),
-  })
-  .superRefine((achievement, context) => {
-    // Issue #357 / #359: title and description are copied into
-    // qualifications_summary and go live with the card.
-    const titleError = contactFilterError(achievement.title);
-    if (titleError) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["title"],
-        message: titleError,
-      });
-    }
-    const descriptionError = contactFilterError(achievement.description);
-    if (descriptionError) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["description"],
-        message: descriptionError,
-      });
-    }
-    if (achievement.proofStatus === "upload" && !achievement.proof) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["proof"],
-        message: "Choose an evidence file",
-      });
-    }
-  });
-
-export const academicDocumentSchema = z
-  .object({
-    curriculum: z.enum(CURRICULUM_OPTIONS),
-    file: attachmentSchema.optional(),
-    status: z.enum(["upload", "not_applicable", "provide_later"]),
-  })
-  .superRefine((document, context) => {
-    if (document.status === "upload" && !document.file) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["file"],
-        message: "Choose a transcript file",
-      });
-    }
-  });
-
 export const tutorApplicationSchema = z
   .object({
     turnstileToken: z.string().trim().min(1, "Complete the security check").max(2048),
@@ -202,7 +151,6 @@ export const tutorApplicationSchema = z
     hasPostgrad: z.boolean().default(false),
     postgradUniversity: withContactFilter(z.string().trim().max(200).optional().default("")),
     postgradDegree: withContactFilter(z.string().trim().max(200).optional().default("")),
-    studentCard: attachmentSchema.optional(),
     highSchool: withContactFilter(z.string().trim().min(1, "Required").max(200)),
     curriculum: z.enum(CURRICULUM_OPTIONS),
     curricula: z.array(z.enum(CURRICULUM_OPTIONS)).min(1, "Select at least one curriculum"),
@@ -227,10 +175,21 @@ export const tutorApplicationSchema = z
     subjectsConfident: withContactFilter(z.string().trim().min(1, "Required").max(2000)),
     subjectResults: z.string().trim().min(1, "Required").max(2000),
     // Issue #357: awards is the qualifications_summary fallback when there
-    // are no achievement blocks.
+    // are no achievement blocks — both go live on the card, so both are
+    // contact-filtered (issue #357/#359 leak fix preserved post-#309).
     awards: withContactFilter(z.string().trim().max(2000).optional().default("")),
-    achievements: z.array(achievementSchema).max(MAX_FILES).default([]),
-    academicDocuments: z.array(academicDocumentSchema).max(MAX_FILES).default([]),
+    achievements: z
+      .array(
+        z.object({
+          title: withContactFilter(z.string().trim().min(1, "Required").max(200)),
+          description: withContactFilter(z.string().trim().min(1, "Required").max(2000)),
+        }),
+      )
+      .max(MAX_FILES)
+      .default([]),
+    // Issue #309: join no longer collects evidence files — grade slips are
+    // uploaded per-grade from the profile editor and reviewed by staff there.
+    // Grade TEXT answers (curriculum/scores) stay plain text above.
     // Issue #97: optional Trophy Cabinet photos (public on the profile).
     portfolioImages: z.array(portfolioImageSchema).max(MAX_PORTFOLIO_FILES).default([]),
     // Consent required only when photos are actually uploaded (see superRefine).
@@ -412,13 +371,6 @@ export const tutorApplicationSchema = z
           message: "Required",
         });
       }
-      if (!data.studentCard) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["studentCard"],
-          message: "Upload your student ID card as evidence of your university and major",
-        });
-      }
     }
 
     if (data.hasPostgrad) {
@@ -583,7 +535,6 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
           },
         ]
       : []),
-    { label: "Student ID card", value: data.studentCard?.filename ?? "—" },
     { label: "Current year of study", value: data.year || "—" },
     { label: "High school and graduation year", value: data.highSchool },
     { label: "Primary curriculum", value: data.curriculum },
@@ -594,22 +545,10 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     { label: "Relevant subject results / academic strengths", value: data.subjectResults },
     { label: "Awards / scholarships / achievements", value: data.awards || "—" },
     {
-      label: "Achievement evidence",
-      value: data.achievements
-        .map(
-          (achievement) =>
-            `${achievement.title}: ${achievement.description} (${achievement.proof?.filename ?? (achievement.proofStatus === "provide_later" ? "Provide later" : "N/A")})`,
-        )
-        .join("\n"),
-    },
-    {
-      label: "Academic documents",
+      label: "Achievements",
       value:
-        data.academicDocuments
-          .map(
-            (document) =>
-              `${document.curriculum}: ${document.file?.filename ?? (document.status === "provide_later" ? "Provide later" : "N/A")}`,
-          )
+        data.achievements
+          .map((achievement) => `${achievement.title}: ${achievement.description}`)
           .join("\n") || "—",
     },
     {

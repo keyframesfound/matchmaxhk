@@ -310,7 +310,44 @@
       "rate_invalid_in_person": "In-person hourly rate must be a whole number between $50 and $3,000",
       "rate_last_required": "Keep at least one of the two base rates — clear the one you want to change, not both",
       "academic_headline_max": "Academic headline must be 40 characters or fewer",
-      "academic_headline_auto_hint": "Auto-generated from your exam results — it updates automatically until you edit it."
+      "academic_headline_auto_hint": "Auto-generated from your exam results — it updates automatically until you edit it.",
+      "grades_heading": "Grades & verification",
+      "grades_hint": "Add each grade as its own row and upload the matching result slip (PDF or image, up to 10 MB). Staff check every slip; approved grades show on your public card with the Verified badge.",
+      "grades_empty": "No grades yet. Add your first grade below — for example “IBDP 44” or “DSE 5**”.",
+      "grades_row_label": "Grade label",
+      "grade_status_none": "No slip",
+      "grade_status_pending": "Pending review",
+      "grade_status_approved": "Approved",
+      "grade_status_rejected": "Rejected",
+      "grades_rejected_reason": "Staff reason: {{reason}}",
+      "grades_upload_slip": "Upload slip",
+      "grades_replace_slip": "Replace slip",
+      "grades_slip_hint": "PDF or image, up to {{max}}. Slips are private — only MatchMax staff can view them.",
+      "grades_label_required": "Give the grade a label first.",
+      "grades_hkid_error": "Do not upload an identity card.",
+      "grades_file_type": "Upload a PDF or an image (JPG, PNG, WebP).",
+      "grades_file_too_large": "Files must be 10 MB or smaller.",
+      "grades_added": "Grade added.",
+      "grades_uploaded": "Slip submitted for review.",
+      "grades_back_to_pending": "Text changed — this grade goes back to review and is hidden from your card until re-approved.",
+      "grades_deleted": "Grade deleted.",
+      "grades_delete": "Delete grade",
+      "grades_add_label": "Add a grade",
+      "grades_add_placeholder": "e.g. IBDP 44, DSE 5**, BSc Mathematics",
+      "grades_add": "Add grade",
+      "grades_add_with_slip": "Add with slip",
+      "grades_add_hint": "You can add a grade now and upload the slip later from the grade row.",
+      "notice_approved_title": "Grade approved",
+      "notice_rejected_title": "Grade rejected",
+      "notice_about": "Grade: {{label}}.",
+      "notice_rejected_reason": "Reason: {{reason}}{{note}}.",
+      "notice_open_grade": "Open the grade",
+      "notice_dismiss": "Dismiss",
+      "reject_reason_name_does_not_match": "Name does not match",
+      "reject_reason_unreadable": "Unreadable",
+      "reject_reason_not_a_result_slip": "Not a result slip",
+      "reject_reason_looks_altered": "Looks altered",
+      "reject_reason_wrong_document": "Wrong document"
     },
     "grid": {
       "title": "Weekly availability grid",
@@ -687,7 +724,11 @@
       "add_row": "Add rate row"
     },
     "view_live_card": "View your live card",
-    "manage_hint": "Keep your reference from the WhatsApp message — the MatchMax team uses it to match your chat to your application."
+    "manage_hint": "Keep your reference from the WhatsApp message — the MatchMax team uses it to match your chat to your application.",
+    "terms_verification_1": "We check documents the tutor uploads. We do not confirm them with the IB, HKEAA, or any school.",
+    "terms_verification_2": "We do not guarantee a grade, an offer, or a teaching result.",
+    "terms_verification_3": "The badge covers the grades shown on the card, not the bio.",
+    "terms_verification_4": "A parent who wants the slip asks the tutor after the introduction. MatchMax does not send identity documents."
   },
   "materials": {
     "section_title": "📚 Study Materials",
@@ -850,7 +891,9 @@
     "gender_female": "Female",
     "gender_other": "Other",
     "available_from": "Available from {{date}}",
-    "prebook_cta": "Pre-book for {{date}}"
+    "prebook_cta": "Pre-book for {{date}}",
+    "verified_badge": "Verified",
+    "verified_disclaimer": "Staff checked the grades shown. Not confirmed with the exam board. Ask the tutor for the slip before lesson one."
   },
   "help": {
     "title": "Hi, how can we help?",
@@ -1492,7 +1535,12 @@
       "not_grade": "We do not guarantee a grade.",
       "not_offer": "We do not guarantee a school or university offer.",
       "not_marking": "We do not vouch for a tutor's marking style.",
-      "not_endorsement": "MatchMax is not endorsed by the IB, HKEAA, or any school."
+      "not_endorsement": "MatchMax is not endorsed by the IB, HKEAA, or any school.",
+      "badge_title": "What the Verified grade badge covers",
+      "badge_line_1": "We check documents the tutor uploads. We do not confirm them with the IB, HKEAA, or any school.",
+      "badge_line_2": "We do not guarantee a grade, an offer, or a teaching result.",
+      "badge_line_3": "The badge covers the grades shown on the card, not the bio.",
+      "badge_line_4": "A parent who wants the slip asks the tutor after the introduction. MatchMax does not send identity documents."
     }
   },
   "legal": {
