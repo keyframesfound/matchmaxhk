@@ -18,6 +18,7 @@ import {
   type MaterialType,
 } from "@/features/materials/lifecycle";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
+import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
 import {
   saveNoteDraft,
   submitNoteForReview,
@@ -75,6 +76,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   );
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  // Issue #214: the notes-terms gate — required for SUBMIT (drafts save
+  // without it); the server fn re-validates and records the acceptance row.
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const subjectOptions = useMemo(
     () => getSubjectOptionsForCategory(curriculum || undefined),
@@ -133,6 +137,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           ...payload(),
           base64Data: base64,
           fileName: file?.name,
+          // Issue #214: only reachable with the terms gate checked (it sits
+          // in the `missing` list below), but the server re-validates it.
+          legalAgreed: true,
         },
       });
     },
@@ -154,6 +161,8 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   if (!subject.trim()) missing.push(t("notes.form.field_subject"));
   if (materialType === "exemplar" && !exemplarPermission)
     missing.push(t("notes.form.exemplar_permission_short"));
+  // Issue #214: submit (not draft) is also the notes-terms acceptance click.
+  if (!termsAccepted) missing.push(t("terms.gate.missing"));
 
   // #136: the approximate word count is OPTIONAL — empty never blocks
   // publish — but a present value must be a positive whole number.
@@ -412,6 +421,14 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           </p>
         )}
       </div>
+
+      {/* Issue #214: the notes-terms gate — required to submit for review;
+          drafts save without it. Links the notes section of the ToS. */}
+      <TermsGateCheckbox
+        section="notes"
+        checked={termsAccepted}
+        onCheckedChange={setTermsAccepted}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
         <Button

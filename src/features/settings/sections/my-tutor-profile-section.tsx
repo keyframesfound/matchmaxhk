@@ -28,6 +28,19 @@ import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import { TutorGradesEditor } from "@/features/settings/sections/tutor-grades-editor";
 import { getSystem } from "@/features/tutors/examSystems";
+import { GRADE_SLIP_ACCEPT_ATTRIBUTE } from "@/features/tutors/grades";
+import {
+  CREDENTIAL_EDIT_FIELDS,
+  MAX_EVIDENCE_BYTES,
+  validateCredentialEditInput,
+  type CredentialEditField,
+} from "@/features/tutors/credential-edits";
+import {
+  changedCredentialFields,
+  credentialEditRejectionsMessage,
+  submitCredentialEdit,
+  type SubmitCredentialEditResult,
+} from "@/features/tutors/credential-edit.functions";
 import {
   MAX_RATE_ROWS,
   RATE_MAX,
@@ -66,7 +79,7 @@ import {
 /** Columns the tutor-facing editor reads/writes. Mirrors SELECT_COLS minus
  * admin-managed identity (tutor_code, created_at, referral). */
 const MY_TUTOR_COLUMNS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, sen_enabled, sen_categories, sen_experience, deletion_requested_at";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, sen_enabled, sen_categories, sen_experience, deletion_requested_at";
 
 type MyTutorRow = Tutor & {
   user_id?: string | null;
@@ -99,6 +112,36 @@ type SavedRateColumns = {
   rate_rows: { label: string; rate: number }[];
   travel_note: string | null;
   rate_note: string | null;
+};
+
+/** "10.0 MB" — evidence documents share the grade-slip 10 MB cap. */
+function readableEvidenceSize(bytes: number): string {
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** Issue #284: uploaded evidence files travel to the server fn as base64. */
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/** Deep-clone a form value so the saved baseline never aliases live drafts. */
+function cloneFormDataValue(value: unknown): unknown {
+  return value == null ? value : JSON.parse(JSON.stringify(value));
+}
+
+/** One tutor_credential_edits row as the owner sees it (RLS SELECT). */
+type TutorCredentialEditRow = {
+  id: string;
+  field: string;
+  status: "pending" | "approved" | "rejected";
+  staff_reason: string | null;
+  created_at: string;
+  reviewed_at: string | null;
 };
 
 function ratesFromRow(row: MyTutorRow): RatesDraft {
@@ -161,6 +204,13 @@ export function MyTutorProfileSection() {
   const ratesDirtyRef = React.useRef(false);
   const [suggestPending, setSuggestPending] = React.useState(false);
   const [suggestHint, setSuggestHint] = React.useState<string | null>(null);
+  // Issue #284: per-field evidence documents for verified tutors' credential
+  // changes, plus the form as the row loaded (to detect what actually changed).
+  const [evidenceFiles, setEvidenceFiles] = React.useState<
+    Partial<Record<CredentialEditField, File>>
+  >({});
+  const [editsSubmitting, setEditsSubmitting] = React.useState(false);
+  const baselineFormRef = React.useRef<TutorFormData | null>(null);
 
   const tutorQuery = useQuery({
     queryKey: ["settings", "my-tutor-profile", user?.id],
@@ -180,6 +230,7 @@ export function MyTutorProfileSection() {
     if (!tutorQuery.data) return;
     const nextForm = tutorToFormData(tutorQuery.data);
     setForm(nextForm);
+    baselineFormRef.current = nextForm;
     if (!ratesDirtyRef.current) setRates(ratesFromRow(tutorQuery.data));
     // Epic #280 P2: preferred name is owner-editable, independent of the
     // tutor code. Held outside TutorFormData — the shared admin schema
@@ -208,6 +259,15 @@ export function MyTutorProfileSection() {
   );
 
   const notifyPriceChange = useServerFn(notifyTutorPriceChange);
+  const submitEdit = useServerFn(submitCredentialEdit);
+
+  const current = tutorQuery.data;
+  const loading = tutorQuery.isLoading;
+
+  // Epic #280 P3 / issue #284: verified tutors cannot write credential fields
+  // directly (tutors_owner_verified_guard rejects the row) — changes go
+  // through the evidence-gated review queue instead.
+  const isVerified = (current?.verification_tier ?? "tier_1_standard") === "tier_2_verified";
 
   const save = useMutation({
     mutationFn: async ({
@@ -252,6 +312,12 @@ export function MyTutorProfileSection() {
       } else {
         delete payload.hourly_rate;
         delete payload.pricing_tiers;
+      }
+      // Issue #284: verified tutors never write the locked credential columns
+      // directly — the owner guard would reject the whole row. Their changes
+      // were already submitted through the evidence queue in handleSubmit.
+      if (isVerified) {
+        for (const field of CREDENTIAL_EDIT_FIELDS) delete payload[field];
       }
 
       const { error } = await supabase
@@ -304,8 +370,33 @@ export function MyTutorProfileSection() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const current = tutorQuery.data;
-  const loading = tutorQuery.isLoading;
+  // Issue #284: the tutor's own credential-edit requests (owner RLS SELECT —
+  // status, staff reason, review time; no client write path exists).
+  const credEditsQuery = useQuery({
+    queryKey: ["tutor-credential-edits", user?.id],
+    queryFn: async () => {
+      const { data, error } = (await supabase
+        .from("tutor_credential_edits" as never)
+        .select("id, field, status, staff_reason, created_at, reviewed_at")
+        .order("created_at", { ascending: false })
+        .limit(20)) as unknown as {
+        data: TutorCredentialEditRow[] | null;
+        error: { message: string } | null;
+      };
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+    enabled: Boolean(user) && isVerified,
+  });
+
+  const credEdits = credEditsQuery.data ?? [];
+
+  // Credential fields the verified tutor has changed relative to the loaded
+  // row — these need documents before the form can be submitted. Recomputed
+  // every render (11 fields): the baseline mutates on successful submits, so a
+  // memo keyed on form alone would go stale.
+  const changedCredFields =
+    form && baselineFormRef.current ? changedCredentialFields(baselineFormRef.current, form) : [];
 
   // Issue #319: suggest-a-rate anchors to the subjects picked in THIS form
   // plus the curricula already on the card (exam systems + pricing tiers).
@@ -355,9 +446,9 @@ export function MyTutorProfileSection() {
     setRates((prev) => (prev ? { ...prev, ...patch } : prev));
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!form || !rates) return;
+    if (!form || !rates || !current) return;
     // Issue #215 / epic #280 P3: block the save when public free text carries
     // a phone number, email, link, or chat-app handle. Client-side twin of the
     // tutors_owner_contact_guard trigger.
@@ -475,8 +566,87 @@ export function MyTutorProfileSection() {
       return;
     }
     setErrors({});
+
+    // Issue #284: verified tutors' credential changes never enter the direct
+    // write. Each changed field is submitted as its own evidence-gated review
+    // request; the rest of the form still saves normally (credential columns
+    // are stripped from the verified payload in the save mutation).
+    let workingForm: TutorFormData = form;
+    if (isVerified && baselineFormRef.current) {
+      const changedFields = changedCredentialFields(baselineFormRef.current, workingForm);
+      if (changedFields.length > 0) {
+        for (const field of changedFields) {
+          const file = evidenceFiles[field];
+          if (!file) {
+            toast.error(t("credEdits.evidence_missing", { field: credFieldLabel(field) }));
+            return;
+          }
+          // Same validation the server runs — fail fast, name the problem.
+          const rejections = validateCredentialEditInput({
+            field,
+            newValue: (workingForm as unknown as Record<string, unknown>)[field],
+            evidence: { name: file.name, size: file.size, type: file.type },
+          });
+          if (rejections.length > 0) {
+            toast.error(credentialEditRejectionsMessage(rejections));
+            return;
+          }
+        }
+        setEditsSubmitting(true);
+        try {
+          for (const field of changedFields) {
+            const file = evidenceFiles[field];
+            if (!file) continue;
+            const content = await fileToBase64(file);
+            const result = (await submitEdit({
+              data: {
+                tutorId: current.id,
+                field,
+                newValue: (workingForm as unknown as Record<string, unknown>)[field],
+                file: { filename: file.name, contentType: file.type, size: file.size, content },
+              },
+            })) as SubmitCredentialEditResult;
+            if (result.ok) {
+              toast.success(t("credEdits.submitted_toast"));
+              setEvidenceFiles((previous) => {
+                const next = { ...previous };
+                delete next[field];
+                return next;
+              });
+              // Freeze the baseline so the submitted value stops counting as
+              // an unsaved change.
+              baselineFormRef.current = {
+                ...baselineFormRef.current,
+                [field]: cloneFormDataValue(
+                  (workingForm as unknown as Record<string, unknown>)[field],
+                ),
+              };
+            } else {
+              // One-open-per-field: a request for this field is already in the
+              // queue. Snap the draft back to the public value and continue.
+              toast.info(t("credEdits.already_review_toast", { field: credFieldLabel(field) }));
+              const baselineRecord = baselineFormRef.current as Record<string, unknown>;
+              workingForm = {
+                ...workingForm,
+                [field]: cloneFormDataValue(baselineRecord[field]),
+              } as TutorFormData;
+            }
+          }
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : t("credEdits.submit_failed"));
+          return;
+        } finally {
+          setEditsSubmitting(false);
+        }
+        await queryClient.invalidateQueries({
+          queryKey: ["tutor-credential-edits", user?.id],
+        });
+      }
+    }
+    if (workingForm !== form) setForm(workingForm);
+
     save.mutate({
-      data: parsed.data as TutorFormData,
+      data: workingForm,
       rates: {
         online_rate: onlineValue === "invalid" ? null : onlineValue,
         inperson_rate: inPersonValue === "invalid" ? null : inPersonValue,
@@ -488,10 +658,12 @@ export function MyTutorProfileSection() {
     });
   };
 
-  // Epic #280 P3: verified tutors cannot edit credential fields — the server
-  // trigger (tutors_owner_verified_guard) enforces the same list; the UI just
-  // mirrors it. P4's evidence queue will reopen these with review.
-  const isVerified = (current?.verification_tier ?? "tier_1_standard") === "tier_2_verified";
+  /** Existing-translation labels first; raw field name as the fallback. */
+  const credFieldLabel = (field: string) => t(`credEdits.field_${field}`, { defaultValue: field });
+
+  // Epic #280 P3: verified tutors cannot edit academic_headline (the guard
+  // locks it and it has no evidence queue); the 11 credential fields below are
+  // reopened by issue #284's evidence-gated review flow.
 
   // Issue #101: instant hide (reuses is_published) + admin-reviewed deletion.
   const [hidePending, setHidePending] = React.useState(false);
@@ -619,10 +791,10 @@ export function MyTutorProfileSection() {
             )}
           </div>
 
-          {/* Epic #280 P3: credential fields lock for verified tutors. */}
+          {/* Issue #284: the evidence rule replaces the old hard lock note. */}
           {isVerified ? (
             <p className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3 text-xs leading-5 text-[color:var(--ink)]/70">
-              {t("settings.my_tutor.verified_lock_note")}
+              {t("credEdits.lock_note")}
             </p>
           ) : null}
 
@@ -673,7 +845,6 @@ export function MyTutorProfileSection() {
                 )}
                 emptyText={t("settings.my_tutor.education_empty_hint")}
                 allowCustom
-                disabled={isVerified}
                 className="bg-[color:var(--surface)]"
               />
             </div>
@@ -704,7 +875,6 @@ export function MyTutorProfileSection() {
                 options={majorEditorOptions(form.undergrad_degree, educationValues.majors)}
                 emptyText={t("settings.my_tutor.education_empty_hint")}
                 allowCustom
-                disabled={isVerified}
                 className="bg-[color:var(--surface)]"
               />
             </div>
@@ -718,11 +888,116 @@ export function MyTutorProfileSection() {
               id="myt-qualifications"
               value={form.qualifications_summary}
               onChange={(e) => setForm({ ...form, qualifications_summary: e.target.value })}
-              disabled={isVerified}
               rows={4}
               className="bg-[color:var(--surface)]"
             />
           </div>
+
+          {/* Issue #284: one document per changed credential field. Appears as
+              soon as a verified tutor edits one of the reopened inputs. */}
+          {isVerified && changedCredFields.length > 0 ? (
+            <div className="space-y-3 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4">
+              <Label className="text-[color:var(--ink)]">{t("credEdits.documents_heading")}</Label>
+              <p className="text-xs leading-5 text-[color:var(--ink)]/60">
+                {t("credEdits.documents_hint", { max: readableEvidenceSize(MAX_EVIDENCE_BYTES) })}
+              </p>
+              {changedCredFields.map((field) => {
+                const file = evidenceFiles[field];
+                return (
+                  <div key={field} className="space-y-1">
+                    <Label
+                      htmlFor={`cred-evidence-${field}`}
+                      className="cursor-pointer text-xs font-semibold text-[color:var(--brand-link)] underline-offset-2 hover:underline"
+                    >
+                      {t("credEdits.field_evidence_label", { field: credFieldLabel(field) })}
+                    </Label>
+                    <input
+                      id={`cred-evidence-${field}`}
+                      type="file"
+                      className="sr-only"
+                      accept={GRADE_SLIP_ACCEPT_ATTRIBUTE}
+                      onChange={(event) => {
+                        const picked = event.target.files?.[0];
+                        event.currentTarget.value = "";
+                        if (picked) {
+                          setEvidenceFiles((previous) => ({ ...previous, [field]: picked }));
+                        }
+                      }}
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      {file
+                        ? t("credEdits.document_chosen", { name: file.name })
+                        : t("credEdits.document_none")}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {/* Issue #284: the tutor's own requests — old value stays public
+              while a change is pending. */}
+          {isVerified ? (
+            <div className="space-y-3 rounded-xl border border-[color:var(--ink)]/10 p-4">
+              <Label className="text-[color:var(--ink)]">{t("credEdits.pending_heading")}</Label>
+              <p className="text-xs leading-5 text-[color:var(--ink)]/60">
+                {t("credEdits.pending_rule")}
+              </p>
+              {credEditsQuery.isLoading ? (
+                <div
+                  className="h-12 animate-pulse rounded-lg bg-[color:var(--ink)]/5"
+                  aria-hidden
+                />
+              ) : credEdits.length === 0 ? (
+                <p className="text-xs text-[color:var(--ink)]/60">{t("credEdits.pending_empty")}</p>
+              ) : (
+                <div className="space-y-2">
+                  {credEdits.map((edit) => (
+                    <div
+                      key={edit.id}
+                      className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-[color:var(--ink)]/10 px-3 py-2.5"
+                    >
+                      <span className="text-sm font-semibold text-[color:var(--ink)]">
+                        {credFieldLabel(edit.field)}
+                      </span>
+                      <span
+                        className={cn(
+                          "rounded-full px-2.5 py-0.5 text-[11px] font-bold",
+                          edit.status === "pending" &&
+                            "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+                          edit.status === "approved" &&
+                            "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+                          edit.status === "rejected" && "bg-destructive/10 text-destructive",
+                        )}
+                      >
+                        {t(`credEdits.status_${edit.status}`)}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {edit.reviewed_at
+                          ? t("credEdits.reviewed_at", {
+                              date: new Date(edit.reviewed_at).toLocaleString("en-HK", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              }),
+                            })
+                          : t("credEdits.submitted_at", {
+                              date: new Date(edit.created_at).toLocaleString("en-HK", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              }),
+                            })}
+                      </span>
+                      {edit.status === "rejected" && edit.staff_reason ? (
+                        <p className="w-full text-xs font-medium text-destructive">
+                          {t("credEdits.staff_reason", { reason: edit.staff_reason })}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : null}
 
           <div className="space-y-2">
             <Label htmlFor="myt-intro" className="text-[color:var(--ink)]">
@@ -1123,11 +1398,11 @@ export function MyTutorProfileSection() {
             ) : null}
           </div>
 
-          <Button type="submit" disabled={save.isPending} className="font-bold">
-            {save.isPending ? (
+          <Button type="submit" disabled={save.isPending || editsSubmitting} className="font-bold">
+            {save.isPending || editsSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t("settings.my_tutor.saving")}
+                {editsSubmitting ? t("credEdits.submitting") : t("settings.my_tutor.saving")}
               </>
             ) : (
               t("settings.my_tutor.save")

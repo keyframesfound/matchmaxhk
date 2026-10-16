@@ -1357,7 +1357,8 @@
     "duplicate": "You have already reported this, and it is still being reviewed.",
     "rate_limited": "You've submitted several reports recently. Please wait a little before reporting again.",
     "self_report": "You can't report your own listing. Contact us if something needs fixing.",
-    "failed": "Could not submit the report. Please try again."
+    "failed": "Could not submit the report. Please try again.",
+    "self_own_profile": "You cannot report your own profile."
   },
   "guide": {
     "tab_why": "Why us",
@@ -1772,7 +1773,8 @@
     "suspended_banner_title": "Account suspended",
     "suspended_banner_body": "Your account is suspended. You can browse MatchMax but cannot request tutors, apply to cases, upload content, or message others.",
     "suspended_reason_label": "Reason: {{reason}}",
-    "suspended_dismiss": "Dismiss"
+    "suspended_dismiss": "Dismiss",
+    "preview_cta": "Preview as parent"
   },
   "sen": {
     "filter_title": "SEN support",
@@ -1807,5 +1809,77 @@
       "speech": "Speech & Language Impairment",
       "other": "Other"
     }
+  },
+  "terms": {
+    "gate": {
+      "label": "I accept the MatchMax Terms and Conditions, including the {{section}} section.",
+      "section_matching": "matching, verification and referral",
+      "section_notes": "notes",
+      "read": "Read the terms",
+      "required": "Required",
+      "missing": "Notes terms acceptance"
+    }
+  },
+  "credEdits": {
+    "lock_note": "Verified tutors change school, degree, exam and achievement details by request: enter the new value, attach a supporting document, and the MatchMax team reviews it. Your current value stays on the public card until approval.",
+    "documents_heading": "Documents for your changes",
+    "documents_hint": "Attach one PDF or image (max {{max}}) for each changed field.",
+    "field_evidence_label": "Attach document for: {{field}}",
+    "document_chosen": "Selected: {{name}}",
+    "document_none": "No file selected yet",
+    "pending_heading": "Credential changes under review",
+    "pending_rule": "Your current value stays public until staff approve a change.",
+    "pending_empty": "No credential changes yet.",
+    "status_pending": "Under review",
+    "status_approved": "Approved",
+    "status_rejected": "Rejected",
+    "reviewed_at": "Reviewed {{date}}",
+    "submitted_at": "Submitted {{date}}",
+    "staff_reason": "Staff note: {{reason}}",
+    "submitted_toast": "Change submitted for review.",
+    "already_review_toast": "\"{{field}}\" is already under review — its value was left unchanged.",
+    "submit_failed": "Could not submit the change.",
+    "submitting": "Submitting…",
+    "field_secondary_school": "Secondary school",
+    "field_highschool": "High school",
+    "field_undergrad_university": "Undergrad university",
+    "field_undergrad_degree": "Undergrad degree",
+    "field_undergrad_graduation_year": "Graduation year",
+    "field_has_postgrad": "Has postgraduate degree",
+    "field_postgrad_university": "Postgrad university",
+    "field_postgrad_degree": "Postgrad degree",
+    "field_qualifications_summary": "Qualifications",
+    "field_exam_results": "Exam results",
+    "field_achievements": "Achievements",
+    "evidence_missing": "Attach a document for {{field}} before submitting."
+  },
+  "caseFilters": {
+    "all_curricula": "All curricula",
+    "all_levels": "All levels",
+    "all_modes": "All modes",
+    "all_districts": "All areas",
+    "subjects_all": "All subjects",
+    "subjects_count": "Subjects ({{count}})",
+    "rate_any": "Any rate",
+    "rate_under_100": "Under HK$100",
+    "rate_100_200": "HK$100–200",
+    "rate_200_300": "HK$200–300",
+    "rate_300_plus": "HK$300 or more",
+    "created_any": "Any date",
+    "created_7d": "Last 7 days",
+    "created_30d": "Last 30 days",
+    "empty_filtered": "Try adjusting your filters",
+    "clear_filters": "Clear filters"
+  },
+  "preview": {
+    "banner": "Preview mode: this is exactly how parents will see your profile. Review your bio, credentials and subjects below.",
+    "banner_dismiss": "Dismiss preview banner",
+    "card_eyebrow": "Your card in the tutor directory",
+    "profile_eyebrow": "Your public profile",
+    "edit_cta": "Edit details",
+    "submit_cta": "Submit to go live",
+    "empty_title": "Your card is not live yet",
+    "empty_body": "Submit your tutor application and your card goes live for parents right away. This preview will then show exactly what they see.",
+    "empty_cta": "Submit your application"
   }
 }

@@ -4,7 +4,7 @@ import {
   formatAvailabilityDate,
   getTutorAvailabilityState,
   getTutorInquiryAction,
-} from "@/features/tutors/tutor-display";
+} from "../../src/features/tutors/tutor-display";
 
 /**
  * Epic #280 P5: owner-controlled availability state drives the public

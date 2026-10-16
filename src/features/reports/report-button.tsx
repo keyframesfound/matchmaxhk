@@ -113,12 +113,19 @@ export function ReportButton({
   targetId,
   label,
   className,
+  isOwn = false,
 }: {
   targetType: ReportTargetType;
   targetId: string;
   /** What the reporter is reporting, shown in the dialog ("this tutor card"). */
   label: string;
   className?: string;
+  /**
+   * Issue #294 remainder: set by the owner-only preview surface — the owner
+   * sees the same button but clicking explains instead of opening the dialog.
+   * No data fetch happens here; the caller decides ownership.
+   */
+  isOwn?: boolean;
 }) {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -131,10 +138,10 @@ export function ReportButton({
   // Resume a stashed report intent once the user is signed in (see
   // PENDING_REPORT_KEY above).
   useEffect(() => {
-    if (user && takePendingReport({ targetType, targetId })) {
+    if (user && !isOwn && takePendingReport({ targetType, targetId })) {
       setDialogOpen(true);
     }
-  }, [user, targetType, targetId]);
+  }, [user, isOwn, targetType, targetId]);
 
   // Success keeps the dialog open — the dialog shows the "sent" screen while
   // `submitted` is true; closing clears it.
@@ -152,6 +159,10 @@ export function ReportButton({
         className={className}
         onOpen={(event) => {
           event.stopPropagation();
+          if (isOwn) {
+            toast.info(t("report.self_own_profile"));
+            return;
+          }
           if (user) {
             setDialogOpen(true);
           } else {
@@ -193,10 +204,13 @@ export function InlineReportLink({
   targetType,
   targetId,
   label,
+  isOwn = false,
 }: {
   targetType: ReportTargetType;
   targetId: string;
   label: string;
+  /** Issue #294 remainder: owner-preview guard — see ReportButton. */
+  isOwn?: boolean;
 }) {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -207,10 +221,10 @@ export function InlineReportLink({
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    if (user && takePendingReport({ targetType, targetId })) {
+    if (user && !isOwn && takePendingReport({ targetType, targetId })) {
       setDialogOpen(true);
     }
-  }, [user, targetType, targetId]);
+  }, [user, isOwn, targetType, targetId]);
 
   // Success shows the "sent" screen in the dialog; a final close clears the
   // link (one report per item is all we need from this surface).
@@ -230,6 +244,10 @@ export function InlineReportLink({
         type="button"
         onClick={(event) => {
           event.stopPropagation();
+          if (isOwn) {
+            toast.info(t("report.self_own_profile"));
+            return;
+          }
           if (user) {
             setDialogOpen(true);
           } else {
@@ -281,11 +299,14 @@ export function ReportMenuButton({
   targets,
   menuLabel,
   className,
+  isOwn = false,
 }: {
   targets: { targetType: ReportTargetType; targetId: string; label: string }[];
   /** Screen-reader/tooltip label for the flag button itself. */
   menuLabel: string;
   className?: string;
+  /** Issue #294 remainder: owner-preview guard — see ReportButton. */
+  isOwn?: boolean;
 }) {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -302,10 +323,10 @@ export function ReportMenuButton({
 
   // Resume a stashed report intent once the user is signed in.
   useEffect(() => {
-    if (user && pendingTarget && takePendingReport(pendingTarget)) {
+    if (user && !isOwn && pendingTarget && takePendingReport(pendingTarget)) {
       setDialogOpen(true);
     }
-  }, [user, pendingTarget]);
+  }, [user, isOwn, pendingTarget]);
 
   // Success keeps the dialog open (sent screen); closing resets everything.
   const reset = () => {
@@ -335,28 +356,45 @@ export function ReportMenuButton({
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            aria-label={menuLabel}
-            title={menuLabel}
-            className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
-              className,
-            )}
-          >
-            <Flag className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {targets.map((target) => (
-            <DropdownMenuItem key={target.targetType} onSelect={() => openFor(target)}>
-              {t("report.menu_item", { item: target.label })}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* Owner preview (#294 remainder): the same flag button renders, but
+          clicking explains instead of opening the target menu / dialog. */}
+      {isOwn ? (
+        <button
+          type="button"
+          aria-label={menuLabel}
+          title={menuLabel}
+          onClick={() => toast.info(t("report.self_own_profile"))}
+          className={cn(
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
+            className,
+          )}
+        >
+          <Flag className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
+        </button>
+      ) : (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label={menuLabel}
+              title={menuLabel}
+              className={cn(
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
+                className,
+              )}
+            >
+              <Flag className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {targets.map((target) => (
+              <DropdownMenuItem key={target.targetType} onSelect={() => openFor(target)}>
+                {t("report.menu_item", { item: target.label })}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
       <AuthGateDialog
         open={gateOpen}
         onOpenChange={(open) => {

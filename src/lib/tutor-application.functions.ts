@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { referralSurfaceFor } from "@/features/legal/referral-surface";
 import { normalizeTutorRateRows } from "@/features/tutors/rates";
 import { buildTutorCardInsert, mappedCardContactError } from "@/lib/tutor-card-mapping";
 import { tutorApplicationSchema } from "./tutor-application.schema";
@@ -9,6 +11,13 @@ import type { Json } from "@/integrations/supabase/types";
 import { getRuntimeEnv } from "./runtime-env";
 
 const PUBLIC_SITE_URL = "https://matchmax.hk";
+
+/**
+ * Issue #214: the join form's terms gate. The checkbox must arrive true or
+ * the application is rejected before anything is stored; the acceptance row
+ * itself is written after the application insert succeeds (see handler).
+ */
+const TermsGateInput = z.object({ legalAgreed: z.literal(true) });
 
 const publishResultSchema = z.object({
   tutor_id: z.string().uuid(),
@@ -111,8 +120,17 @@ async function sendCardLiveEmail(params: {
 }
 
 export const submitTutorApplication = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => tutorApplicationSchema.parse(input))
-  .handler(async ({ data }) => {
+  // #214: the acceptance row references auth.users(id), so the submit must
+  // carry the applicant's session (the /join page sits behind the
+  // _authenticated layout, so this never blocks a legitimate applicant).
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => {
+    // #214: validate the terms gate FIRST so a missing/unchecked checkbox is
+    // rejected before any application field is even parsed.
+    TermsGateInput.parse(input);
+    return tutorApplicationSchema.parse(input);
+  })
+  .handler(async ({ data, context }) => {
     const { turnstileToken, ...application } = data;
     const secret = getRuntimeEnv("TURNSTILE_SECRET");
     const expectedHostnames = new Set(
@@ -173,6 +191,19 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
     };
     const { storeTutorApplication } = await import("./tutor-application.server");
     const { id } = await storeTutorApplication(storedApplication);
+
+    // Issue #214: record WHICH terms version the applicant accepted, tagged
+    // by how they arrived — through a referrer link (?ref=) the surface is
+    // referral_signup, otherwise plain signup. Recorded AFTER the application
+    // insert succeeds (subject_id = application id) and BEFORE the card is
+    // published; the insert is fail-closed, so an acceptance that was never
+    // recorded can never let a card go live.
+    const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
+    await recordTermsAcceptance({
+      userId: context.userId,
+      surface: referralSurfaceFor(application.referralCode),
+      subjectId: id,
+    });
 
     // Issue #310: publish the card immediately. Everything above this line
     // (zod schema incl. the server-side contact filter on every field that

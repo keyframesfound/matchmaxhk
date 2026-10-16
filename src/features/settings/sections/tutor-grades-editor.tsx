@@ -105,6 +105,10 @@ export function TutorGradesEditor() {
       const { data, error } = await supabase
         .from("tutor_notices")
         .select("id, kind, payload, read_at, created_at")
+        // Grade notices only — this editor renders grade decisions.
+        // credential_approved / credential_rejected render in the
+        // credential-edits pending list instead (issue #284).
+        .in("kind", ["grade_approved", "grade_rejected"])
         .is("read_at", null)
         .order("created_at", { ascending: false })
         .limit(10);

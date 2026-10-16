@@ -127,6 +127,16 @@ export function escapeHtml(text: string): string {
 }
 
 /**
+ * Issue #214: record the checkout acceptance for an order. Thin wrapper so
+ * all three startCheckout paths (create, reuse, race-winner) stay fail-closed
+ * — a failed insert throws and the whole checkout fails.
+ */
+async function recordCheckoutAcceptance(userId: string, orderId: string): Promise<void> {
+  const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
+  await recordTermsAcceptance({ userId, surface: "checkout", subjectId: orderId });
+}
+
+/**
  * #203 flow step 3: create (or return) the awaiting_payment order for this
  * buyer + pack. Unique (material, buyer) among NON-refunded orders makes
  * double-checkout impossible — the second attempt gets the existing order
@@ -137,7 +147,17 @@ export function escapeHtml(text: string): string {
  */
 export const startCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ materialId: z.string().uuid() }).parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        materialId: z.string().uuid(),
+        // Issue #214: the buy click doubles as the notes-terms acceptance
+        // click — the checkbox must arrive true, and the handler records the
+        // terms_acceptances row (surface checkout, subject_id = order id).
+        legalAgreed: z.literal(true),
+      })
+      .parse(data),
+  )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
@@ -185,7 +205,12 @@ export const startCheckout = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(2);
     const reusable = pickReusableOrder(existingRows ?? []);
-    if (reusable) return reusable;
+    if (reusable) {
+      // Issue #214: the gate fires on the reuse path too — the checkbox was
+      // still clicked, so record the acceptance for the returned order.
+      await recordCheckoutAcceptance(context.userId, reusable.orderId);
+      return reusable;
+    }
 
     const reference = buildOrderReference();
     const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(Number(material.price_hkd));
@@ -215,12 +240,20 @@ export const startCheckout = createServerFn({ method: "POST" })
         .order("created_at", { ascending: false })
         .limit(2);
       const reusableWinner = pickReusableOrder(winnerRows ?? []);
-      if (reusableWinner) return reusableWinner;
+      if (reusableWinner) {
+        await recordCheckoutAcceptance(context.userId, reusableWinner.orderId);
+        return reusableWinner;
+      }
       if (isUniqueViolation(insert.error)) {
         throw new Error("Could not create the order. Please try again.");
       }
       throw new Error(insert.error?.message || "Could not create the order.");
     }
+    // Issue #214: the order exists — record WHICH terms version the buyer
+    // accepted (subject_id = order id). Fail-closed: an insert failure fails
+    // the whole checkout, so no order is ever placed without a recorded
+    // acceptance.
+    await recordCheckoutAcceptance(context.userId, insert.data.id);
     return { orderId: insert.data.id, reference };
   });
 
