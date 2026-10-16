@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,14 @@ import {
   getTutorCardHighlights,
   type Tutor,
 } from "@/features/tutors/queries";
+import {
+  isTopScorer,
+  rankTrending,
+  type EngagementQuality,
+  type RankedTrending,
+} from "@/features/tutors/engagement";
+import { fetchTrendingTutorSummaries } from "@/features/tutors/trending";
+import { trackTutorEvent } from "@/features/tracking/engagement-client";
 import { matchesCategoryFilter } from "@/features/tutors/subjects";
 import { collectEducationValueSets } from "@/features/tutors/education-filters";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +63,17 @@ const CURRICULUM_CATEGORIES = [
 
 const TUTORS_PER_PAGE = 3;
 const MAX_HOME_TUTORS = 6;
+
+// Issue #151 Option A: the home trending showcase. Candidates come from the
+// get_trending_tutors RPC, get re-ranked here with the quality multipliers
+// and are capped at 8 rendered cards. Cold-start guardrail: below three
+// tutors with ANY real engagement we keep the previous page (no near-empty
+// trending row — the empty-restaurant problem).
+const TRENDING_CANDIDATE_LIMIT = 24;
+const TRENDING_TUTOR_LIMIT = 8;
+const TRENDING_MIN_ELIGIBLE = 3;
+
+type TrendingEntry = { tutor: Tutor; engagement: RankedTrending };
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -284,6 +303,94 @@ function CurriculumTutorSection({
   );
 }
 
+// Issue #151 Option A: horizontal trending carousel. Same card-row anatomy as
+// the curriculum rails' swipeable row (snap scroll, same card width), with
+// the section's demand + Parent Favorite badges fed by the candidate's
+// engagement summary. The WhatsApp inquiry CTA fires the inquiry_click
+// tracking event via a capture-phase wrapper so the click itself is never
+// blocked (tracking is fire-and-forget).
+function TrendingTutorsSection({
+  entries,
+  priceSuffix,
+  whatsappNumber,
+  onOpen,
+  compareSelectedIds,
+  onCompareToggle,
+}: {
+  entries: TrendingEntry[];
+  priceSuffix: string;
+  whatsappNumber: string;
+  onOpen: (tutorCode: string) => void;
+  compareSelectedIds: string[];
+  onCompareToggle: (tutor: Tutor) => void;
+}) {
+  const { t, i18n } = useTranslation();
+
+  return (
+    <section className="mx-auto max-w-7xl">
+      <div className="mb-4 flex items-center gap-2 sm:gap-3">
+        <span
+          aria-hidden="true"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--surface-subtle)] sm:h-9 sm:w-9"
+        >
+          <Flame className="h-5 w-5 text-[color:var(--brand-link)]" />
+        </span>
+        <h2 className="min-w-0 truncate text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
+          {t("home.trending_title")}
+        </h2>
+      </div>
+
+      <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pt-1 pb-2">
+        {entries.map((entry) => {
+          const { tutor } = entry;
+          const inquiry = getTutorInquiryAction(tutor, whatsappNumber, i18n.language);
+          return (
+            <div key={tutor.id} className="min-w-0 w-[min(80vw,380px)] shrink-0 snap-start">
+              <PublicTutorCard
+                tutor={tutor}
+                engagement={entry.engagement}
+                priceSuffix={priceSuffix}
+                onOpen={onOpen}
+                compareSelected={compareSelectedIds.includes(tutor.id)}
+                onCompareToggle={() => onCompareToggle(tutor)}
+                footerAction={
+                  <>
+                    <TutorSaveButton tutorId={tutor.id} compact />
+                    {inquiry.kind === "status" ? (
+                      <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs">
+                        {inquiry.label}
+                      </span>
+                    ) : (
+                      <span
+                        className="contents"
+                        onClickCapture={() => void trackTutorEvent(tutor.id, "inquiry_click")}
+                      >
+                        <Button
+                          asChild
+                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
+                        >
+                          <a
+                            href={inquiry.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            {inquiry.label}
+                          </a>
+                        </Button>
+                      </span>
+                    )}
+                  </>
+                }
+              />
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function Landing() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -328,10 +435,44 @@ function Landing() {
     queryFn: () => fetchTopWeeklyTutors(3),
   });
 
+  const { data: trendingCandidates = [] } = useQuery({
+    queryKey: ["landing", "trending_candidates"],
+    queryFn: () => fetchTrendingTutorSummaries(TRENDING_CANDIDATE_LIMIT),
+  });
+
   const { data: publishedTutors = [], isLoading: publishedTutorsLoading } = useQuery({
     queryKey: ["landing", "published_tutors"],
     queryFn: fetchPublishedTutors,
   });
+
+  // Issue #151 Option A: merge the RPC's base-score candidates with the full
+  // Tutor rows already fetched for the curriculum rails (no new SELECT),
+  // re-rank with the quality multipliers and keep the top 8. qualityFor keys
+  // off the public Tutor row: verification_tier ships in the public select
+  // (#142; tier_2_verified = transcripts + HKID passed manual review) and
+  // top-scorer detection runs over APPROVED grade labels only. Cold-start
+  // guardrail: fewer than three candidates with popularity_score > 0 means
+  // the page renders exactly as before — no near-empty trending row.
+  const trendingEntries = useMemo<TrendingEntry[]>(() => {
+    if (publishedTutors.length === 0 || trendingCandidates.length === 0) return [];
+    const tutorById = new Map(publishedTutors.map((tutor) => [tutor.id, tutor]));
+    const qualityFor = (tutorId: string): EngagementQuality => {
+      const tutor = tutorById.get(tutorId);
+      return {
+        verified: tutor?.verification_tier === "tier_2_verified",
+        topScorer: isTopScorer(tutor?.approved_grade_labels),
+      };
+    };
+    const eligible = rankTrending(
+      trendingCandidates.filter((candidate) => tutorById.has(candidate.tutor_id)),
+      qualityFor,
+    ).filter((candidate) => candidate.popularity_score > 0);
+    if (eligible.length < TRENDING_MIN_ELIGIBLE) return [];
+    return eligible.slice(0, TRENDING_TUTOR_LIMIT).flatMap((candidate) => {
+      const tutor = tutorById.get(candidate.tutor_id);
+      return tutor ? [{ tutor, engagement: candidate }] : [];
+    });
+  }, [publishedTutors, trendingCandidates]);
 
   // Education dropdown options = the distinct values that actually appear on
   // tutor profiles (issue #130), refreshed whenever the tutor list does.
@@ -413,12 +554,18 @@ function Landing() {
     },
   };
 
+  // Issue #151: ItemList JSON-LD follows what actually renders on the page —
+  // the trending tutors once the carousel is up, the previous newest-tutors
+  // featured list while the cold-start guardrail holds it back.
+  const itemListTutors =
+    trendingEntries.length > 0 ? trendingEntries.map((entry) => entry.tutor) : featuredTutors;
+
   const tutorListStructuredData =
-    featuredTutors.length > 0
+    itemListTutors.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "ItemList",
-          itemListElement: featuredTutors.map((tut, i) => ({
+          itemListElement: itemListTutors.map((tut, i) => ({
             "@type": "ListItem",
             position: i + 1,
             item: {
@@ -485,6 +632,18 @@ function Landing() {
               {/* Issue #312: approved notes under the search bar, above the
                   IB rail; renders nothing below three public notes. */}
               <HomeNotesRow />
+              {/* Issue #151 Option A: trending showcase; hidden entirely
+                  (existing page) until 3+ tutors clear the guardrail. */}
+              {trendingEntries.length > 0 ? (
+                <TrendingTutorsSection
+                  entries={trendingEntries}
+                  priceSuffix={t("featured.per_hour")}
+                  whatsappNumber={whatsappNumber}
+                  onOpen={openTutorDetail}
+                  compareSelectedIds={compareIds}
+                  onCompareToggle={toggleCompare}
+                />
+              ) : null}
               {CURRICULUM_CATEGORIES.map(({ label, value }) => (
                 <CurriculumTutorSection
                   key={value}
