@@ -164,13 +164,15 @@ export const submitReport = createServerFn({ method: "POST" })
       // Same self-report rule as cards/photos/introductions: the note's owner
       // reporting their own listing is a support request, not a signal
       // (issue #294 — the owner cannot report themselves).
-      const { data: materialOwner } = await admin
-        .from("tutors")
-        .select("user_id")
-        .eq("id", material.tutor_id)
-        .maybeSingle();
-      if (materialOwner?.user_id && materialOwner.user_id === context.userId) {
-        throw new Error("SELF_REPORT");
+      if (material.tutor_id) {
+        const { data: materialOwner } = await admin
+          .from("tutors")
+          .select("user_id")
+          .eq("id", material.tutor_id)
+          .maybeSingle();
+        if (materialOwner?.user_id && materialOwner.user_id === context.userId) {
+          throw new Error("SELF_REPORT");
+        }
       }
     } else {
       const { data: tutor, error } = await admin
