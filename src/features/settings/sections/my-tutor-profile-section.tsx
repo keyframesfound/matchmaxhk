@@ -852,6 +852,9 @@ export function MyTutorProfileSection() {
               <Label htmlFor="myt-undergrad-uni" className="text-[color:var(--ink)]">
                 {t("settings.my_tutor.undergrad_university")}
               </Label>
+              {/* Verified tutors change this through the #284 evidence queue, same
+                  as degree and secondary school. The owner save strips
+                  CREDENTIAL_EDIT_FIELDS, so this does not bypass the trigger. */}
               <SearchableSelect
                 value={form.undergrad_university ?? ""}
                 onChange={(v) => setForm({ ...form, undergrad_university: v })}
@@ -861,7 +864,6 @@ export function MyTutorProfileSection() {
                 )}
                 emptyText={t("settings.my_tutor.education_empty_hint")}
                 allowCustom
-                disabled={isVerified}
                 className="bg-[color:var(--surface)]"
               />
             </div>

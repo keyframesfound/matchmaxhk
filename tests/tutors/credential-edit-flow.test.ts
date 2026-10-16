@@ -81,11 +81,18 @@ describe("changedCredentialFields", () => {
     ).toEqual(["has_postgrad"]);
   });
 
+  it("queues an undergrad university change for evidence review", () => {
+    expect(
+      changedCredentialFields(baseline, { ...baseline, undergrad_university: "CUHK" }),
+    ).toEqual(["undergrad_university"]);
+  });
+
   it("agrees with the snapshot shapes used for old_value/new_value", () => {
     const field = "undergrad_university" as const;
     const before = toValueSnapshot(field, baseline[field]);
     const after = toValueSnapshot(field, "CUHK");
     expect(stableSnapshotJson(before)).not.toBe(stableSnapshotJson(after));
+    expect(toValueSnapshot(field, "CUHK")).toEqual({ text: "CUHK" });
   });
 });
 
