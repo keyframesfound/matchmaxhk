@@ -24,6 +24,12 @@ import {
   getTutorStatusLabelKey,
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
+import {
+  isParentFavorite,
+  selectDemandBadge,
+  type EngagementSummary,
+} from "@/features/tutors/engagement";
+import { DemandBadge, ParentFavoriteBadge } from "@/features/tutors/engagement-badges";
 import { useFitText } from "@/hooks/use-fit-text";
 import { shareOrCopy } from "@/lib/share";
 import { cn } from "@/lib/utils";
@@ -111,6 +117,9 @@ type PublicTutorCardProps = {
   shareable?: boolean;
   /** Issue #217: clicking a profile-tag chip searches /tutors?tag=<tag>. */
   tagQuery?: (tag: string) => void;
+  /** Issues #102/#151: engagement summary from get_tutor_engagement. When
+   *  absent (or null) no demand / Parent Favorite badges render. */
+  engagement?: EngagementSummary | null;
 };
 
 export function PublicTutorCard({
@@ -124,6 +133,7 @@ export function PublicTutorCard({
   onCompareToggle,
   shareable = true,
   tagQuery,
+  engagement,
 }: PublicTutorCardProps) {
   const { t, i18n } = useTranslation();
   const interactive = typeof onOpen === "function";
@@ -155,6 +165,16 @@ export function PublicTutorCard({
   }) as string;
   // Issues #77/#52: tutor status pill ("University student" etc.).
   const statusKey = getTutorStatusLabelKey(tutor.tutor_status);
+  // Issues #102/#151: dynamic demand badge (null = hidden — empty-restaurant
+  // guard) + Parent Favorite, computed from the engagement summary prop.
+  const demandBadge = engagement
+    ? selectDemandBadge({
+        remaining_student_slots: tutor.remaining_student_slots,
+        inquiries_7d: engagement.inquiries_7d,
+        saves_total: engagement.saves_total,
+      })
+    : null;
+  const showParentFavorite = engagement ? isParentFavorite(engagement) : false;
   const statusLabel = statusKey ? t(statusKey) : "";
   const primaryCredential = removeEmoji(
     tutor.academic_headline ??
@@ -326,6 +346,11 @@ export function PublicTutorCard({
                 {t("tutor_card.verified_badge")}
               </span>
             ) : null}
+            {/* Issues #102/#151: dynamic demand + Parent Favorite badges in
+                the card's badge column (same wrap-friendly pill anatomy as
+                the status/SEN/Verified badges above). */}
+            {demandBadge ? <DemandBadge kind={demandBadge} /> : null}
+            {showParentFavorite ? <ParentFavoriteBadge /> : null}
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">

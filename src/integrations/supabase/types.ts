@@ -1290,6 +1290,33 @@ export type Database = {
     };
     Functions: {
       claim_org_memberships: { Args: never; Returns: number };
+      get_trending_tutors: {
+        Args: { p_candidate_limit?: number };
+        Returns: {
+          tutor_id: string;
+          base_score: number;
+          inquiries_7d: number;
+          views_30d: number;
+          requests_30d: number;
+          saves_total: number;
+          saves_30d: number;
+        }[];
+      };
+      get_tutor_engagement: {
+        Args: { p_tutor_ids: string[] };
+        Returns: {
+          tutor_id: string;
+          inquiries_7d: number;
+          views_30d: number;
+          requests_30d: number;
+          saves_total: number;
+          saves_30d: number;
+        }[];
+      };
+      record_tutor_engagement: {
+        Args: { p_tutor_id: string; p_event_type: string; p_viewer_key: string };
+        Returns: undefined;
+      };
       complete_onboarding: { Args: { _choice: string }; Returns: undefined };
       confirm_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
       request_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
