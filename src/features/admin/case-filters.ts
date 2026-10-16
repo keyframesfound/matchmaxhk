@@ -174,7 +174,8 @@ export function parseCaseFilters(raw: Record<string, unknown>): CaseFilters {
   if (q !== null && q.trim()) filters.q = q.trim();
 
   const status = asString(raw.status);
-  if (status && oneOf(status, CASE_STATUSES)) filters.status = status;
+  const statusHit = status ? oneOf(status, CASE_STATUSES) : null;
+  if (statusHit) filters.status = statusHit;
 
   const tag = asString(raw.tag);
   if (tag !== null && tag.trim()) filters.tag = tag.trim();
@@ -200,7 +201,8 @@ export function parseCaseFilters(raw: Record<string, unknown>): CaseFilters {
   if (district !== null && district.trim()) filters.district = district.trim();
 
   const rate = asString(raw.rate);
-  if (rate && oneOf(rate, RATE_BAND_IDS)) filters.rateBand = rate;
+  const rateHit = rate ? oneOf(rate, RATE_BAND_IDS) : null;
+  if (rateHit) filters.rateBand = rateHit;
 
   const created = asString(raw.created);
   if (created) {
