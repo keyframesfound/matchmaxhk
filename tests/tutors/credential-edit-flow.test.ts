@@ -49,6 +49,25 @@ describe("changedCredentialFields", () => {
     ]);
   });
 
+  it("detects an undergrad university change for the evidence queue", () => {
+    expect(
+      changedCredentialFields(baseline, { ...baseline, undergrad_university: "CUHK" }),
+    ).toEqual(["undergrad_university"]);
+  });
+
+  it("detects a has_postgrad toggle and keeps false distinct from null", () => {
+    expect(changedCredentialFields(baseline, { ...baseline, has_postgrad: true })).toEqual([
+      "has_postgrad",
+    ]);
+    expect(changedCredentialFields(baseline, { ...baseline, has_postgrad: false })).toEqual([]);
+    expect(
+      changedCredentialFields(
+        { ...baseline, has_postgrad: false },
+        { ...baseline, has_postgrad: null },
+      ),
+    ).toEqual(["has_postgrad"]);
+  });
+
   it("detects jsonb edits regardless of key order", () => {
     const next = {
       ...baseline,
@@ -86,6 +105,22 @@ describe("valueSnapshotToColumn", () => {
     const json = [{ system: "IBDP", score: 42 }] as CredentialSnapshotValue;
     expect(valueSnapshotToColumn("exam_results", json)).toBe(json);
     expect(valueSnapshotToColumn("achievements", null)).toBeNull();
+  });
+
+  it("returns boolean|null for has_postgrad true, false, and null", () => {
+    expect(valueSnapshotToColumn("has_postgrad", toValueSnapshot("has_postgrad", true))).toBe(true);
+    expect(valueSnapshotToColumn("has_postgrad", toValueSnapshot("has_postgrad", false))).toBe(
+      false,
+    );
+    expect(valueSnapshotToColumn("has_postgrad", toValueSnapshot("has_postgrad", null))).toBeNull();
+    expect(valueSnapshotToColumn("has_postgrad", true)).toBe(true);
+    expect(valueSnapshotToColumn("has_postgrad", false)).toBe(false);
+    expect(valueSnapshotToColumn("has_postgrad", null)).toBeNull();
+    expect(typeof valueSnapshotToColumn("has_postgrad", false)).toBe("boolean");
+    // A legacy {text} box must not approve as the string "true"/"false".
+    expect(valueSnapshotToColumn("has_postgrad", { text: "true" })).toBe(true);
+    expect(valueSnapshotToColumn("has_postgrad", { text: "false" })).toBe(false);
+    expect(valueSnapshotToColumn("has_postgrad", { text: "" })).toBeNull();
   });
 });
 

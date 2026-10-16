@@ -6,7 +6,9 @@ import {
   CREDENTIAL_EDIT_FIELDS,
   MAX_EVIDENCE_BYTES,
   applyCredentialDecision,
+  booleanCredentialSnapshot,
   credentialFieldValue,
+  isBooleanCredentialField,
   isCredentialEditField,
   isJsonbCredentialField,
   toValueSnapshot,
@@ -66,8 +68,12 @@ export function changedCredentialFields(
   });
 }
 
-/** Parse an approved snapshot back into the tutors column value. */
+/**
+ * Parse an approved snapshot back into the tutors column value.
+ * `has_postgrad` returns boolean|null so the tutors update is a real boolean.
+ */
 export function valueSnapshotToColumn(field: CredentialEditField, snapshot: unknown): unknown {
+  if (isBooleanCredentialField(field)) return booleanCredentialSnapshot(snapshot);
   if (isJsonbCredentialField(field)) return snapshot ?? null;
   const text = valueSnapshotToText(snapshot);
   return text.length > 0 ? text : null;
