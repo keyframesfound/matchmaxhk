@@ -11,6 +11,7 @@ import {
   Loader2,
   Pencil,
   Plus,
+  ScanEye,
   ShoppingCart,
   Star,
 } from "lucide-react";
@@ -260,6 +261,15 @@ function AccountPage() {
                 >
                   <Eye className="mr-2 h-4 w-4" aria-hidden />
                   {t("account.view_public")}
+                </Link>
+              </Button>
+            ) : null}
+            {/* Issue #104: guided Preview-as-Parent sandbox. */}
+            {tutor ? (
+              <Button variant="outline" className="font-semibold" asChild>
+                <Link to="/account/preview">
+                  <ScanEye className="mr-2 h-4 w-4" aria-hidden />
+                  {t("account.preview_cta")}
                 </Link>
               </Button>
             ) : null}
