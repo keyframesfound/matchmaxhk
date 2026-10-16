@@ -487,7 +487,12 @@ export const uploadNotePdf = createServerFn({ method: "POST" })
     return stageFileForMaterial(db, tutor, material, data.fileName, data.base64Data);
   });
 
-const SubmitForReviewInput = SubmitInput;
+const SubmitForReviewInput = SubmitInput.extend({
+  // Issue #214: the submit doubles as the notes-terms acceptance click — the
+  // checkbox must arrive true (mirrors /legal/notes-terms), and the handler
+  // records the terms_acceptances row (surface note_upload) on success.
+  legalAgreed: z.literal(true),
+});
 
 /** P8 submit: validates required fields, then parks the note for staff review. */
 export const submitNoteForReview = createServerFn({ method: "POST" })
@@ -655,6 +660,16 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
         await db.from<never>("digital_materials").update({ slug }).eq("id", materialId);
       }
     }
+
+    // Issue #214: the note-upload terms gate — record WHICH terms version the
+    // tutor accepted, tied to this material (subject_id), after the submit
+    // went through. Fail-closed: an insert failure fails the whole submit.
+    const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
+    await recordTermsAcceptance({
+      userId: context.userId,
+      surface: "note_upload",
+      subjectId: materialId,
+    });
 
     return { materialId };
   });

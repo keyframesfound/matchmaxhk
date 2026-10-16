@@ -16,6 +16,7 @@ import {
   type PublicNote,
 } from "@/features/materials/notes.functions";
 import { startCheckout } from "@/features/materials/checkout.functions";
+import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
 import { NotePreviewViewer } from "@/features/materials/note-preview-viewer";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
 import { ReportMenuButton } from "@/features/reports/report-button";
@@ -55,6 +56,12 @@ function NotePage() {
   const router = useRouter();
   const navigate = router.navigate.bind(router);
   const [gateOpen, setGateOpen] = useState(false);
+  // Issue #214: the checkout terms gate — the buy click doubles as the
+  // notes-terms acceptance click. Client gate here (button refuses to place
+  // the order unchecked); startCheckout re-validates server-side and records
+  // the terms_acceptances row (surface checkout, subject_id = order id).
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsGateInvalid, setTermsGateInvalid] = useState(false);
   // Owner check uses the tutor's AUTH id (tutors.user_id), not the tutors
   // row id — review fix: note.tutorId is the FK, user.id is an auth uid.
   const isOwner = Boolean(user && note.tutorUserId && user.id === note.tutorUserId);
@@ -81,7 +88,7 @@ function NotePage() {
   });
 
   const checkoutMutation = useMutation({
-    mutationFn: () => startCheckout({ data: { materialId: note.id } }),
+    mutationFn: () => startCheckout({ data: { materialId: note.id, legalAgreed: true } }),
     onSuccess: ({ orderId }) => {
       void navigate({ to: `/orders/${orderId}` });
     },
@@ -266,6 +273,17 @@ function NotePage() {
                 <GraduationCap className="h-4 w-4" aria-hidden />
                 {note.tutorName}
               </Link>
+              {!isOwner && (
+                <TermsGateCheckbox
+                  section="notes"
+                  checked={termsAccepted}
+                  invalid={termsGateInvalid}
+                  onCheckedChange={(checked) => {
+                    setTermsAccepted(checked);
+                    if (checked) setTermsGateInvalid(false);
+                  }}
+                />
+              )}
               <Button
                 variant="solid"
                 color="accent"
@@ -274,6 +292,12 @@ function NotePage() {
                 onClick={() => {
                   if (!user) {
                     setGateOpen(true);
+                    return;
+                  }
+                  // Issue #214: refuse to place the order with the terms
+                  // gate unchecked (client half; server re-validates).
+                  if (!termsAccepted) {
+                    setTermsGateInvalid(true);
                     return;
                   }
                   checkoutMutation.mutate();

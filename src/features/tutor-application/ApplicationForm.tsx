@@ -53,6 +53,7 @@ import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
 import { submitTutorApplication } from "@/lib/tutor-application.functions";
+import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
 import {
   ACCEPT_ATTRIBUTE,
   ACCEPTED_FILE_TYPES,
@@ -306,6 +307,7 @@ const FIELD_LABELS: Record<string, string> = {
   commission: "Commission acknowledgment (final step)",
   privacy: "Privacy consent (final step)",
   terms: "Terms and Conditions consent (final step)",
+  termsGate: "Terms of Service acceptance (final step)",
   captcha: "Security check (final step)",
 };
 
@@ -801,6 +803,11 @@ type ApplicationBaseState = {
   commission: boolean;
   privacy: boolean;
   terms: boolean;
+  // Issue #214: the terms-gate checkbox (records WHICH ToS version was
+  // accepted, server-side, on submit). Same checkbox serves signup and
+  // referral_signup — the surface tag is decided server-side by whether the
+  // submit arrived through a referrer link.
+  termsGate: boolean;
 };
 
 type ApplicationDraft = {
@@ -898,6 +905,7 @@ export function ApplicationForm() {
     commission: false,
     privacy: false,
     terms: false,
+    termsGate: false,
   });
   const [roles, setRoles] = useState<string[]>([]);
   const [boards, setBoards] = useState<string[]>([]);
@@ -1444,6 +1452,9 @@ export function ApplicationForm() {
       required("commission", base.commission);
       required("privacy", base.privacy);
       required("terms", base.terms);
+      // Issue #214: the terms gate must be checked before submit; the server
+      // fn independently validates and records the acceptance row.
+      required("termsGate", base.termsGate);
       if (!captcha) next.captcha = "Complete the security check.";
     }
     setFieldErrors(next);
@@ -1598,7 +1609,10 @@ export function ApplicationForm() {
         scrollToStepperTop();
         return;
       }
-      await submit({ data: parsed.data }).then((result) => {
+      // Issue #214: the client gate above (validateCurrentStep) only reaches
+      // this line with the terms gate checked, so legalAgreed: true is the
+      // contract the server fn re-validates before storing anything.
+      await submit({ data: { ...parsed.data, legalAgreed: true } }).then((result) => {
         setApplicationRef(result?.applicationId ?? "");
         // Issue #310: the card is published at submit — keep its public path
         // so the success screen can link straight to the live card.
@@ -3353,6 +3367,14 @@ export function ApplicationForm() {
                     </span>
                   </label>
                 </div>
+                {/* Issue #214: the terms gate — records which ToS version the
+                    applicant accepted (server-side) and links the matching,
+                    verification and referral sections. */}
+                <TermsGateCheckbox
+                  checked={base.termsGate}
+                  invalid={Boolean(fieldErrors.termsGate)}
+                  onCheckedChange={(checked) => setBaseField("termsGate", checked)}
+                />
                 <div className="grid gap-1.5">
                   <label className="flex gap-3 text-sm text-muted-foreground">
                     <Checkbox
