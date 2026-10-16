@@ -1357,7 +1357,8 @@
     "duplicate": "你已經舉報過呢項，仍然喺處理緊。",
     "rate_limited": "你近期已提交咗幾個舉報，請稍候再試。",
     "self_report": "唔可以舉報自己嘅項目。如有問題需要修改，請聯絡我哋。",
-    "failed": "舉報未能提交，請再試一次。"
+    "failed": "舉報未能提交，請再試一次。",
+    "self_own_profile": "唔可以舉報自己嘅檔案。"
   },
   "guide": {
     "tab_why": "為何選擇我們",
@@ -1772,7 +1773,8 @@
     "suspended_banner_title": "帳戶已被停用",
     "suspended_banner_body": "你的帳戶已被停用。你可以瀏覽 MatchMax，但無法要求導師、申請個案、上載內容或聯絡其他用戶。",
     "suspended_reason_label": "原因：{{reason}}",
-    "suspended_dismiss": "關閉"
+    "suspended_dismiss": "關閉",
+    "preview_cta": "以家長視角預覽"
   },
   "sen": {
     "filter_title": "SEN 支援",
@@ -1807,5 +1809,77 @@
       "speech": "言語及語言障礙",
       "other": "其他"
     }
+  },
+  "terms": {
+    "gate": {
+      "label": "我接受 MatchMax 條款及細則（包括{{section}}一節）。",
+      "section_matching": "配對、核證及轉介",
+      "section_notes": "筆記",
+      "read": "閱讀條款",
+      "required": "必須勾選",
+      "missing": "接受筆記條款"
+    }
+  },
+  "credEdits": {
+    "lock_note": "已認證導師如需更改學校、學位、考試或成就資料，請提交申請：輸入新數值並附上證明文件，MatchMax 團隊會進行審核。審批前，公開卡片會繼續顯示現有資料。",
+    "documents_heading": "更改所需的證明文件",
+    "documents_hint": "每個更改的欄位請附上一份 PDF 或圖片（最大 {{max}}）。",
+    "field_evidence_label": "為「{{field}}」附上證明文件",
+    "document_chosen": "已選擇：{{name}}",
+    "document_none": "尚未選擇文件",
+    "pending_heading": "憑證更改審核狀態",
+    "pending_rule": "在職員審批更改之前，公開卡片會繼續顯示現有資料。",
+    "pending_empty": "暫無憑證更改記錄。",
+    "status_pending": "審核中",
+    "status_approved": "已批准",
+    "status_rejected": "已拒絕",
+    "reviewed_at": "已於 {{date}} 審核",
+    "submitted_at": "已於 {{date}} 提交",
+    "staff_reason": "職員備註：{{reason}}",
+    "submitted_toast": "更改已提交審核。",
+    "already_review_toast": "「{{field}}」已在審核中——其數值保持不變。",
+    "submit_failed": "無法提交更改。",
+    "submitting": "提交中……",
+    "field_secondary_school": "中學",
+    "field_highschool": "高中",
+    "field_undergrad_university": "大學（學士）",
+    "field_undergrad_degree": "學士學位",
+    "field_undergrad_graduation_year": "畢業年份",
+    "field_has_postgrad": "曾修讀研究院課程",
+    "field_postgrad_university": "研究院大學",
+    "field_postgrad_degree": "研究院學位",
+    "field_qualifications_summary": "學歷資格",
+    "field_exam_results": "考試成績",
+    "field_achievements": "成就",
+    "evidence_missing": "提交前請為「{{field}}」附上證明文件。"
+  },
+  "caseFilters": {
+    "all_curricula": "全部課程",
+    "all_levels": "全部程度",
+    "all_modes": "全部上課模式",
+    "all_districts": "全部地區",
+    "subjects_all": "全部科目",
+    "subjects_count": "科目（{{count}}）",
+    "rate_any": "不限時薪",
+    "rate_under_100": "HK$100 以下",
+    "rate_100_200": "HK$100–200",
+    "rate_200_300": "HK$200–300",
+    "rate_300_plus": "HK$300 或以上",
+    "created_any": "不限日期",
+    "created_7d": "最近 7 日",
+    "created_30d": "最近 30 日",
+    "empty_filtered": "試調整篩選條件",
+    "clear_filters": "清除篩選"
+  },
+  "preview": {
+    "banner": "預覽模式：呢個正正係家長會見到嘅畫面。請檢查下面嘅個人簡介、學歷同科目。",
+    "banner_dismiss": "關閉預覽橫額",
+    "card_eyebrow": "你喺導師目錄入面嘅卡片",
+    "profile_eyebrow": "你嘅公開檔案",
+    "edit_cta": "編輯資料",
+    "submit_cta": "提交即可上架",
+    "empty_title": "你嘅導師卡仍未上架",
+    "empty_body": "提交導師申請之後，你嘅導師卡會即時向家長上架。到時呢個預覽就會顯示家長實際見到嘅畫面。",
+    "empty_cta": "提交申請"
   }
 }
