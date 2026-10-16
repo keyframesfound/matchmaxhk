@@ -21,7 +21,7 @@ import {
   reviewCredentialEdit,
   type CredentialEditQueueRow,
 } from "@/features/tutors/credential-edit.functions";
-import { isCredentialEditField, valueSnapshotToText } from "@/features/tutors/credential-edits";
+import { valueSnapshotToText } from "@/features/tutors/credential-edits";
 import {
   fetchGradeQueue,
   getGradeSlipUrl,
@@ -55,7 +55,11 @@ const REASON_LABELS: Record<GradeRejectionReason, string> = {
   wrong_document: "Wrong document",
 };
 
-/** Issue #284: staff-facing labels for the 11 credential-edit fields. */
+/**
+ * Issue #284: staff-facing labels for credential-edit fields.
+ * `highschool` is display-only: the live CHECK still allows the value, but
+ * the app no longer accepts new highschool edits (no tutors.highschool column).
+ */
 const CRED_FIELD_LABELS: Record<string, string> = {
   secondary_school: "Secondary school",
   highschool: "High school",
@@ -383,9 +387,7 @@ function AdminGrades() {
               </thead>
               <tbody>
                 {(credQueueQuery.data ?? []).map((row) => {
-                  const fieldLabel = isCredentialEditField(row.field)
-                    ? (CRED_FIELD_LABELS[row.field] ?? row.field)
-                    : row.field;
+                  const fieldLabel = CRED_FIELD_LABELS[row.field] ?? row.field;
                   const reason = credReasons[row.id] ?? "";
                   return (
                     <tr key={row.id} className="border-t border-border align-top">

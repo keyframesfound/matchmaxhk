@@ -6,7 +6,9 @@ import {
   CREDENTIAL_EDIT_FIELDS,
   MAX_EVIDENCE_BYTES,
   applyCredentialDecision,
+  booleanCredentialSnapshot,
   credentialFieldValue,
+  isBooleanCredentialField,
   isCredentialEditField,
   isJsonbCredentialField,
   toValueSnapshot,
@@ -52,8 +54,9 @@ export function stableSnapshotJson(value: unknown): string {
  * Which credential fields did the tutor actually edit? Compare the form the
  * row loaded as (baseline) against the live draft, so server-side payload
  * normalization (trims, has_postgrad nulling postgrad_*) never counts as a
- * change. Both inputs are TutorFormData-like records; `highschool` is simply
- * absent from the form and therefore never reported.
+ * change. Both inputs are TutorFormData-like records. `highschool` is not in
+ * CREDENTIAL_EDIT_FIELDS (the column was dropped; the live CHECK still names
+ * it until a follow-up migration) and is therefore never reported.
  */
 export function changedCredentialFields(
   baseline: Record<string, unknown>,
@@ -66,8 +69,12 @@ export function changedCredentialFields(
   });
 }
 
-/** Parse an approved snapshot back into the tutors column value. */
+/**
+ * Parse an approved snapshot back into the tutors column value.
+ * `has_postgrad` returns boolean|null so the tutors update is a real boolean.
+ */
 export function valueSnapshotToColumn(field: CredentialEditField, snapshot: unknown): unknown {
+  if (isBooleanCredentialField(field)) return booleanCredentialSnapshot(snapshot);
   if (isJsonbCredentialField(field)) return snapshot ?? null;
   const text = valueSnapshotToText(snapshot);
   return text.length > 0 ? text : null;

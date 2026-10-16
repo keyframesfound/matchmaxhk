@@ -662,7 +662,7 @@ export function MyTutorProfileSection() {
   const credFieldLabel = (field: string) => t(`credEdits.field_${field}`, { defaultValue: field });
 
   // Epic #280 P3: verified tutors cannot edit academic_headline (the guard
-  // locks it and it has no evidence queue); the 11 credential fields below are
+  // locks it and it has no evidence queue); the credential fields below are
   // reopened by issue #284's evidence-gated review flow.
 
   // Issue #101: instant hide (reuses is_published) + admin-reviewed deletion.

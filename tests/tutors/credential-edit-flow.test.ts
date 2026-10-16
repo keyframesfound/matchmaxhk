@@ -63,8 +63,22 @@ describe("changedCredentialFields", () => {
     ).toEqual(["exam_results"]);
   });
 
-  it("ignores fields the form does not carry (highschool)", () => {
+  it("ignores the dropped highschool column and other keys the form does not carry", () => {
     expect(changedCredentialFields({}, {})).toEqual([]);
+    expect(changedCredentialFields({ highschool: "old" }, { highschool: "new" })).toEqual([]);
+  });
+
+  it("detects a has_postgrad toggle and keeps false distinct from null", () => {
+    expect(changedCredentialFields(baseline, { ...baseline, has_postgrad: true })).toEqual([
+      "has_postgrad",
+    ]);
+    expect(changedCredentialFields(baseline, { ...baseline, has_postgrad: false })).toEqual([]);
+    expect(
+      changedCredentialFields(
+        { ...baseline, has_postgrad: false },
+        { ...baseline, has_postgrad: null },
+      ),
+    ).toEqual(["has_postgrad"]);
   });
 
   it("agrees with the snapshot shapes used for old_value/new_value", () => {
@@ -86,6 +100,22 @@ describe("valueSnapshotToColumn", () => {
     const json = [{ system: "IBDP", score: 42 }] as CredentialSnapshotValue;
     expect(valueSnapshotToColumn("exam_results", json)).toBe(json);
     expect(valueSnapshotToColumn("achievements", null)).toBeNull();
+  });
+
+  it("returns boolean|null for has_postgrad true, false, and null", () => {
+    expect(valueSnapshotToColumn("has_postgrad", toValueSnapshot("has_postgrad", true))).toBe(true);
+    expect(valueSnapshotToColumn("has_postgrad", toValueSnapshot("has_postgrad", false))).toBe(
+      false,
+    );
+    expect(valueSnapshotToColumn("has_postgrad", toValueSnapshot("has_postgrad", null))).toBeNull();
+    expect(valueSnapshotToColumn("has_postgrad", true)).toBe(true);
+    expect(valueSnapshotToColumn("has_postgrad", false)).toBe(false);
+    expect(valueSnapshotToColumn("has_postgrad", null)).toBeNull();
+    expect(typeof valueSnapshotToColumn("has_postgrad", false)).toBe("boolean");
+    // A legacy {text} box must not approve as the string "true"/"false".
+    expect(valueSnapshotToColumn("has_postgrad", { text: "true" })).toBe(true);
+    expect(valueSnapshotToColumn("has_postgrad", { text: "false" })).toBe(false);
+    expect(valueSnapshotToColumn("has_postgrad", { text: "" })).toBeNull();
   });
 });
 
@@ -119,17 +149,17 @@ describe("credentialEditRejectionsMessage", () => {
     ).toMatch(/document/i);
     expect(
       credentialEditRejectionsMessage([
-        { code: "evidence_too_large", field: "highschool", size: 11 },
+        { code: "evidence_too_large", field: "secondary_school", size: 11 },
       ]),
     ).toMatch(/10 MB/);
     expect(
       credentialEditRejectionsMessage([
-        { code: "evidence_bad_type", field: "highschool", type: "x" },
+        { code: "evidence_bad_type", field: "secondary_school", type: "x" },
       ]),
     ).toMatch(/PDF/);
-    expect(credentialEditRejectionsMessage([{ code: "empty_value", field: "highschool" }])).toMatch(
-      /new value/i,
-    );
+    expect(
+      credentialEditRejectionsMessage([{ code: "empty_value", field: "secondary_school" }]),
+    ).toMatch(/new value/i);
     expect(credentialEditRejectionsMessage([])).toBeTruthy();
   });
 });

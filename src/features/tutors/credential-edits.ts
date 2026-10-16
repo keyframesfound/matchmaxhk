@@ -12,9 +12,19 @@
  * columns the owner-verified guard locks.
  */
 
+/**
+ * Credential columns a verified tutor may change only with evidence.
+ *
+ * `highschool` is intentionally absent. Migration 20260902100000 dropped
+ * `tutors.highschool` (values live on `secondary_school`). The CHECK on
+ * `tutor_credential_edits.field` in 20261016151000 still lists `'highschool'`
+ * because that migration is already applied on the live database; removing
+ * an allowed CHECK value needs a follow-up migration and is not done here.
+ * `isCredentialEditField` rejects it, so a crafted submit cannot open a
+ * highschool edit whose approve would 500 (there is no column to write).
+ */
 export const CREDENTIAL_EDIT_FIELDS = [
   "secondary_school",
-  "highschool",
   "undergrad_university",
   "undergrad_degree",
   "undergrad_graduation_year",
@@ -31,15 +41,42 @@ export type CredentialEditField = (typeof CREDENTIAL_EDIT_FIELDS)[number];
 /** Columns whose value is a jsonb payload rather than a plain string. */
 const JSONB_FIELDS: ReadonlySet<string> = new Set(["exam_results", "achievements"]);
 
+/**
+ * `tutors.has_postgrad` is `boolean NOT NULL`. Its snapshot is the raw jsonb
+ * boolean (or null), never `{ text: "true" }`.
+ */
+const BOOLEAN_FIELDS: ReadonlySet<string> = new Set(["has_postgrad"]);
+
 export function isCredentialEditField(value: unknown): value is CredentialEditField {
-  return (
-    typeof value === "string" &&
-    (CREDENTIAL_EDIT_FIELDS as readonly string[]).includes(value)
-  );
+  return typeof value === "string" && (CREDENTIAL_EDIT_FIELDS as readonly string[]).includes(value);
 }
 
 export function isJsonbCredentialField(field: CredentialEditField): boolean {
   return JSONB_FIELDS.has(field);
+}
+
+export function isBooleanCredentialField(field: CredentialEditField): boolean {
+  return BOOLEAN_FIELDS.has(field);
+}
+
+/**
+ * Read a has_postgrad value or snapshot as boolean|null.
+ * Accepts a raw boolean, null, "true"/"false", and a legacy `{ text }` box
+ * so an in-flight edit still approves as a boolean.
+ */
+export function booleanCredentialSnapshot(value: unknown): boolean | null {
+  if (typeof value === "boolean") return value;
+  if (value == null) return null;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true") return true;
+    if (normalized === "false") return false;
+    return null;
+  }
+  if (typeof value === "object" && "text" in (value as Record<string, unknown>)) {
+    return booleanCredentialSnapshot((value as Record<string, unknown>).text);
+  }
+  return null;
 }
 
 export type CredentialEditStatus = "pending" | "approved" | "rejected";
@@ -74,7 +111,7 @@ export type CredentialEditRejection =
 
 export type ValidatedCredentialEdit = {
   field: CredentialEditField;
-  /** jsonb snapshot for new_value (strings boxed as {text: string}). */
+  /** jsonb snapshot for new_value (text boxed as {text}; has_postgrad is boolean|null). */
   newValueJson: unknown;
 };
 
@@ -83,9 +120,7 @@ export type ValidatedCredentialEdit = {
  * UI can show them all); an empty array means the server fn may proceed.
  * Evidence is mandatory for every field — that is the point of the issue.
  */
-export function validateCredentialEditInput(
-  input: CredentialEditInput,
-): CredentialEditRejection[] {
+export function validateCredentialEditInput(input: CredentialEditInput): CredentialEditRejection[] {
   const rejections: CredentialEditRejection[] = [];
 
   if (!isCredentialEditField(input.field)) {
@@ -126,15 +161,21 @@ function isEmptyValue(value: unknown): boolean {
   return false;
 }
 
-/** Box a field's new value into its jsonb snapshot shape. */
+/**
+ * Box a field's new value into its jsonb snapshot shape.
+ * Text columns are `{ text }`. jsonb columns pass through. `has_postgrad`
+ * is a raw boolean or null so approve writes the boolean column, not "true".
+ */
 export function toValueSnapshot(field: CredentialEditField, value: unknown): unknown {
   if (isJsonbCredentialField(field)) return value ?? null;
+  if (isBooleanCredentialField(field)) return booleanCredentialSnapshot(value);
   return { text: value == null ? "" : String(value) };
 }
 
 /** Read a jsonb snapshot back into the display string for staff/UI. */
 export function valueSnapshotToText(snapshot: unknown): string {
   if (snapshot == null) return "";
+  if (typeof snapshot === "boolean") return snapshot ? "true" : "false";
   if (typeof snapshot === "string") return snapshot;
   if (typeof snapshot === "object" && "text" in (snapshot as Record<string, unknown>)) {
     return String((snapshot as Record<string, unknown>).text ?? "");
@@ -175,6 +216,9 @@ export function applyCredentialDecision(
  * staff see exactly what the public card shows today. Unknown fields throw —
  * call only after isCredentialEditField.
  */
-export function credentialFieldValue(tutor: Record<string, unknown>, field: CredentialEditField): unknown {
+export function credentialFieldValue(
+  tutor: Record<string, unknown>,
+  field: CredentialEditField,
+): unknown {
   return tutor[field] ?? null;
 }
