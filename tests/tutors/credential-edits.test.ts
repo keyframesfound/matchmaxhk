@@ -4,6 +4,7 @@ import {
   MAX_EVIDENCE_BYTES,
   applyCredentialDecision,
   credentialFieldValue,
+  isBooleanCredentialField,
   isCredentialEditField,
   isJsonbCredentialField,
   toValueSnapshot,
@@ -40,9 +41,7 @@ describe("validateCredentialEditInput", () => {
       newValue: "HKU",
       evidence: null,
     });
-    expect(rejections).toEqual([
-      { code: "evidence_required", field: "undergrad_university" },
-    ]);
+    expect(rejections).toEqual([{ code: "evidence_required", field: "undergrad_university" }]);
   });
 
   it("rejects empty new values", () => {
@@ -51,9 +50,7 @@ describe("validateCredentialEditInput", () => {
       newValue: "   ",
       evidence: goodEvidence,
     });
-    expect(rejections).toEqual([
-      { code: "empty_value", field: "qualifications_summary" },
-    ]);
+    expect(rejections).toEqual([{ code: "empty_value", field: "qualifications_summary" }]);
   });
 
   it("enforces the 10 MB cap", () => {
@@ -77,11 +74,24 @@ describe("validateCredentialEditInput", () => {
     ]);
   });
 
-  it("knows the field set and jsonb split", () => {
+  it("knows the field set and jsonb/boolean split", () => {
     expect(isCredentialEditField("exam_results")).toBe(true);
+    expect(isCredentialEditField("undergrad_university")).toBe(true);
     expect(isCredentialEditField("hourly_rate")).toBe(false);
     expect(isJsonbCredentialField("exam_results")).toBe(true);
     expect(isJsonbCredentialField("secondary_school")).toBe(false);
+    expect(isBooleanCredentialField("has_postgrad")).toBe(true);
+    expect(isBooleanCredentialField("undergrad_university")).toBe(false);
+  });
+
+  it("accepts has_postgrad false — a boolean is not an empty value", () => {
+    expect(
+      validateCredentialEditInput({
+        field: "has_postgrad",
+        newValue: false,
+        evidence: goodEvidence,
+      }),
+    ).toEqual([]);
   });
 });
 
@@ -99,6 +109,15 @@ describe("value snapshots", () => {
       JSON.stringify([{ title: "X" }]),
     );
     expect(valueSnapshotToText(null)).toBe("");
+  });
+
+  it("snapshots has_postgrad as boolean|null, not {text}", () => {
+    expect(toValueSnapshot("has_postgrad", true)).toBe(true);
+    expect(toValueSnapshot("has_postgrad", false)).toBe(false);
+    expect(toValueSnapshot("has_postgrad", null)).toBeNull();
+    expect(toValueSnapshot("has_postgrad", true)).not.toEqual({ text: "true" });
+    expect(toValueSnapshot("undergrad_university", "HKU")).toEqual({ text: "HKU" });
+    expect(valueSnapshotToText(toValueSnapshot("has_postgrad", false))).toBe("false");
   });
 });
 
@@ -118,12 +137,8 @@ describe("applyCredentialDecision", () => {
   });
 
   it("rejects only with a staff reason — old value stays public", () => {
-    expect(
-      applyCredentialDecision({ status: "pending" }, "reject", null).ok,
-    ).toBe(false);
-    expect(
-      applyCredentialDecision({ status: "pending" }, "reject", "  ").ok,
-    ).toBe(false);
+    expect(applyCredentialDecision({ status: "pending" }, "reject", null).ok).toBe(false);
+    expect(applyCredentialDecision({ status: "pending" }, "reject", "  ").ok).toBe(false);
     const result = applyCredentialDecision(
       { status: "pending" },
       "reject",
