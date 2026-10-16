@@ -1,7 +1,8 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
 import { Clock, Download, Flame, Inbox, MessageCircle, Search, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -48,6 +55,19 @@ import {
   type CaseRow,
   type CaseStatus,
 } from "@/features/cases/admin/shared";
+import {
+  applyCaseFilters,
+  caseFilterOptions,
+  caseFiltersToSearch,
+  CASE_CREATED_PRESETS,
+  CASE_MODE_VALUES,
+  CASE_RATE_BANDS,
+  CLEAR_ALL,
+  isDefaultFilters,
+  parseCaseFilters,
+  type CaseFilters,
+  type CaseFiltersSearch,
+} from "@/features/admin/case-filters";
 
 export const Route = createFileRoute("/_authenticated/admin/cases")({
   head: () => ({
@@ -57,20 +77,38 @@ export const Route = createFileRoute("/_authenticated/admin/cases")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  // Issue #71: filter state lives in the URL. validateSearch stores the
+  // serialized (URL-shaped) form — parse into defaults-filled filters in
+  // the component. The parse layer tolerates JSON-decoded params
+  // (?status=1 → number, ?status=true → boolean) and drops junk.
+  validateSearch: (search: Record<string, unknown>): CaseFiltersSearch =>
+    caseFiltersToSearch(parseCaseFilters(search)),
   component: AdminCases,
 });
 
 function AdminCases() {
   const { hasAnyRole, loading } = useAuth();
-  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const navigate = Route.useNavigate();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [tagFilter, setTagFilter] = useState<string>("all");
+  const searchParams = Route.useSearch();
+  const filters = useMemo(() => parseCaseFilters(searchParams), [searchParams]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmBatchDelete, setConfirmBatchDelete] = useState(false);
+
+  /** One writer for every filter control — lands in the URL, clean defaults. */
+  const setFilters = (patch: Partial<CaseFilters>) => {
+    navigate({
+      search: caseFiltersToSearch({ ...filters, ...patch }),
+      replace: true,
+    });
+  };
+
+  const clearFilters = () => {
+    navigate({ search: caseFiltersToSearch(CLEAR_ALL), replace: true });
+  };
 
   useEffect(() => {
     if (!loading && !hasAnyRole(["admin", "super_admin", "staff"])) {
@@ -95,28 +133,24 @@ function AdminCases() {
     queryClient.invalidateQueries({ queryKey: ["admin", "cases"] });
   };
 
-  const allTags = useMemo(() => {
-    const set = new Set<string>();
-    cases.forEach((row) => (row.tags ?? []).forEach((t) => t && set.add(t)));
-    return [...set].sort((a, b) => a.localeCompare(b));
-  }, [cases]);
+  const filterOptions = useMemo(() => caseFilterOptions(cases), [cases]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return cases.filter((row) => {
-      if (statusFilter !== "all" && row.status !== statusFilter) return false;
-      if (tagFilter !== "all" && !(row.tags ?? []).includes(tagFilter)) return false;
-      if (!q) return true;
-      return (
-        (row.case_code ?? "").toLowerCase().includes(q) ||
-        (row.title ?? "").toLowerCase().includes(q) ||
-        (row.contact_name ?? "").toLowerCase().includes(q) ||
-        (row.contact_phone ?? "").toLowerCase().includes(q) ||
-        (row.subjects ?? []).some((s) => (s ?? "").toLowerCase().includes(q)) ||
-        (row.tags ?? []).some((t) => (t ?? "").toLowerCase().includes(q))
-      );
-    });
-  }, [cases, search, statusFilter, tagFilter]);
+  const filtered = useMemo(() => applyCaseFilters(cases, filters), [cases, filters]);
+  const hasActiveFilters = !isDefaultFilters(filters);
+
+  const rateBandLabels: Record<CaseFilters["rateBand"], string> = {
+    all: t("caseFilters.rate_any", { defaultValue: "Any rate" }),
+    lt100: t("caseFilters.rate_under_100", { defaultValue: "Under HK$100" }),
+    "100-200": t("caseFilters.rate_100_200", { defaultValue: "HK$100–200" }),
+    "200-300": t("caseFilters.rate_200_300", { defaultValue: "HK$200–300" }),
+    gte300: t("caseFilters.rate_300_plus", { defaultValue: "HK$300 or more" }),
+  };
+
+  const createdLabels: Record<CaseFilters["created"], string> = {
+    all: t("caseFilters.created_any", { defaultValue: "Any date" }),
+    "7d": t("caseFilters.created_7d", { defaultValue: "Last 7 days" }),
+    "30d": t("caseFilters.created_30d", { defaultValue: "Last 30 days" }),
+  };
 
   const openCase = openId ? (cases.find((row) => row.id === openId) ?? null) : null;
 
@@ -241,7 +275,11 @@ function AdminCases() {
       <main className="flex-1 bg-[color:var(--surface)]">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           {openCase ? (
-            <CaseDetailView caseRow={openCase} allTags={allTags} onBack={() => setOpenId(null)} />
+            <CaseDetailView
+              caseRow={openCase}
+              allTags={filterOptions.tags}
+              onBack={() => setOpenId(null)}
+            />
           ) : (
             <div className="space-y-8">
               {/* Header Bar */}
@@ -262,46 +300,198 @@ function AdminCases() {
                 </div>
               </div>
 
-              {/* Filters & Search */}
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="relative w-full sm:max-w-md">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by code, contact, subject, tag..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="h-10 border-[color:var(--ink)]/15 bg-[color:var(--surface)] pl-9"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="h-10 w-36 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All statuses</SelectItem>
-                      {CASE_STATUSES.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {STATUS_LABEL[s]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {allTags.length > 0 ? (
-                    <Select value={tagFilter} onValueChange={setTagFilter}>
+              {/* Filters & Search — issue #71: URL-persisted structured filters */}
+              <div className="space-y-3">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                  <div className="relative w-full lg:max-w-md">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by code, contact, subject, tag..."
+                      value={filters.q}
+                      onChange={(e) => setFilters({ q: e.target.value })}
+                      className="h-10 border-[color:var(--ink)]/15 bg-[color:var(--surface)] pl-9"
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Select
+                      value={filters.status}
+                      onValueChange={(v) => setFilters({ status: v as CaseFilters["status"] })}
+                    >
                       <SelectTrigger className="h-10 w-36 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All tags</SelectItem>
-                        {allTags.map((t) => (
-                          <SelectItem key={t} value={t}>
-                            {t}
+                        <SelectItem value="all">All statuses</SelectItem>
+                        {CASE_STATUSES.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {STATUS_LABEL[s]}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {filterOptions.tags.length > 0 ? (
+                      <Select value={filters.tag} onValueChange={(v) => setFilters({ tag: v })}>
+                        <SelectTrigger className="h-10 w-36 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All tags</SelectItem>
+                          {filterOptions.tags.map((tag) => (
+                            <SelectItem key={tag} value={tag}>
+                              {tag}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : null}
+                    {hasActiveFilters ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-10 text-muted-foreground hover:text-[color:var(--ink)]"
+                        onClick={clearFilters}
+                      >
+                        <X className="mr-1.5 h-3.5 w-3.5" />
+                        {t("caseFilters.clear_filters", { defaultValue: "Clear filters" })}
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select
+                    value={filters.curriculum}
+                    onValueChange={(v) => setFilters({ curriculum: v })}
+                  >
+                    <SelectTrigger className="h-10 w-40 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        {t("caseFilters.all_curricula", { defaultValue: "All curricula" })}
+                      </SelectItem>
+                      {filterOptions.curricula.map((curriculum) => (
+                        <SelectItem key={curriculum} value={curriculum}>
+                          {curriculum}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {filterOptions.subjects.length > 0 ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="h-10 border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3 text-sm font-normal text-[color:var(--ink)]"
+                        >
+                          {filters.subjects.length === 0
+                            ? t("caseFilters.subjects_all", { defaultValue: "All subjects" })
+                            : t("caseFilters.subjects_count", {
+                                defaultValue: "Subjects ({{count}})",
+                                count: filters.subjects.length,
+                              })}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="max-h-72 w-56 overflow-y-auto">
+                        {filterOptions.subjects.map((subject) => (
+                          <DropdownMenuCheckboxItem
+                            key={subject}
+                            checked={filters.subjects.includes(subject)}
+                            onCheckedChange={() =>
+                              setFilters({
+                                subjects: filters.subjects.includes(subject)
+                                  ? filters.subjects.filter((s) => s !== subject)
+                                  : [...filters.subjects, subject],
+                              })
+                            }
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            {subject}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   ) : null}
+                  <Select value={filters.level} onValueChange={(v) => setFilters({ level: v })}>
+                    <SelectTrigger className="h-10 w-44 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        {t("caseFilters.all_levels", { defaultValue: "All levels" })}
+                      </SelectItem>
+                      {filterOptions.levels.map((level) => (
+                        <SelectItem key={level} value={level}>
+                          {level}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={filters.mode}
+                    onValueChange={(v) => setFilters({ mode: v as CaseFilters["mode"] })}
+                  >
+                    <SelectTrigger className="h-10 w-36 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        {t("caseFilters.all_modes", { defaultValue: "All modes" })}
+                      </SelectItem>
+                      {CASE_MODE_VALUES.map((mode) => (
+                        <SelectItem key={mode} value={mode}>
+                          {MODE_LABEL[mode] ?? mode}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={filters.district}
+                    onValueChange={(v) => setFilters({ district: v })}
+                  >
+                    <SelectTrigger className="h-10 w-36 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        {t("caseFilters.all_districts", { defaultValue: "All areas" })}
+                      </SelectItem>
+                      {filterOptions.districts.map((district) => (
+                        <SelectItem key={district} value={district}>
+                          {district}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={filters.rateBand}
+                    onValueChange={(v) => setFilters({ rateBand: v as CaseFilters["rateBand"] })}
+                  >
+                    <SelectTrigger className="h-10 w-40 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CASE_RATE_BANDS.map((band) => (
+                        <SelectItem key={band.id} value={band.id}>
+                          {rateBandLabels[band.id]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={filters.created}
+                    onValueChange={(v) => setFilters({ created: v as CaseFilters["created"] })}
+                  >
+                    <SelectTrigger className="h-10 w-36 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CASE_CREATED_PRESETS.map((preset) => (
+                        <SelectItem key={preset} value={preset}>
+                          {createdLabels[preset]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -398,9 +588,18 @@ function AdminCases() {
                       icon={Inbox}
                       title="No case requests found"
                       description={
-                        search || statusFilter !== "all" || tagFilter !== "all"
-                          ? "Try adjusting your filters"
+                        hasActiveFilters
+                          ? t("caseFilters.empty_filtered", {
+                              defaultValue: "Try adjusting your filters",
+                            })
                           : "New submissions from the case request form will appear here."
+                      }
+                      action={
+                        hasActiveFilters ? (
+                          <Button size="sm" variant="outline" onClick={clearFilters}>
+                            {t("caseFilters.clear_filters", { defaultValue: "Clear filters" })}
+                          </Button>
+                        ) : undefined
                       }
                     />
                   )}
