@@ -10,8 +10,10 @@ import {
   CalendarDays,
   Clock,
   Coins,
+  Flame,
   Globe,
   GraduationCap,
+  Heart,
   Languages,
   Layers,
   LineChart,
@@ -31,6 +33,12 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
+import {
+  trackTutorEvent,
+  useTutorEngagementSummaries,
+  useTrackProfileView,
+} from "@/features/tracking/engagement-client";
+import { selectProfileSocialProof } from "@/features/tutors/engagement";
 import {
   fetchPublishedTutors,
   fetchTutorByCode,
@@ -461,6 +469,18 @@ function TutorDetail() {
       .map((entry) => entry.tutor);
   }, [allPublished, t]);
 
+  // Issue #102: one profile_view per mount, plus batched engagement summaries
+  // for this tutor's social-proof block and the suggested-tutor cards below.
+  useTrackProfileView(t.id);
+  const engagementTutorIds = useMemo(
+    () => [t.id, ...suggestedTutors.map((candidate) => candidate.id)],
+    [t.id, suggestedTutors],
+  );
+  const { data: engagementSummaries } = useTutorEngagementSummaries(engagementTutorIds);
+  const profileEngagement = engagementSummaries?.get(t.id) ?? null;
+  // Renders nothing below both thresholds — never a "0 inquiries" line.
+  const profileSocialProof = profileEngagement ? selectProfileSocialProof(profileEngagement) : null;
+
   const waDigits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
   const inquiry = getTutorInquiryAction(t, whatsappNumber, i18n.language);
   const waUrl = waDigits ? inquiry.href : "";
@@ -746,6 +766,36 @@ function TutorDetail() {
                     </p>
                   </div>
                 ) : null}
+                {/* Issue #102: social-proof lines, each only above its
+                    threshold (selectProfileSocialProof); nothing renders for
+                    quiet tutors. No response-time line — no real data (#102). */}
+                {profileSocialProof &&
+                (profileSocialProof.showInquiries || profileSocialProof.showSaves) ? (
+                  <div className="mt-3 space-y-1">
+                    {profileSocialProof.showInquiries ? (
+                      <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
+                        <Flame
+                          className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
+                          aria-hidden="true"
+                        />
+                        {translate("engagement.profile.inquiries_7d", {
+                          count: profileEngagement?.inquiries_7d ?? 0,
+                        })}
+                      </p>
+                    ) : null}
+                    {profileSocialProof.showSaves ? (
+                      <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
+                        <Heart
+                          className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
+                          aria-hidden="true"
+                        />
+                        {translate("engagement.profile.saves", {
+                          count: profileEngagement?.saves_total ?? 0,
+                        })}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
                 {inquiry.kind === "status" ? (
                   <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
                     <Lock className="h-3.5 w-3.5" aria-hidden="true" />
@@ -758,7 +808,15 @@ function TutorDetail() {
                     color="blue"
                     className="mt-3 w-full rounded-sm font-bold sm:w-auto"
                   >
-                    <a href={waUrl} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={waUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClickCapture={() => {
+                        // Issue #102: fire-and-forget; never blocks the CTA.
+                        void trackTutorEvent(t.id, "inquiry_click");
+                      }}
+                    >
                       <MessageCircle className="mr-2 h-4 w-4" /> {inquiry.label}
                     </a>
                   </Button>
@@ -1008,6 +1066,7 @@ function TutorDetail() {
                     <PublicTutorCard
                       key={candidate.id}
                       tutor={candidate}
+                      engagement={engagementSummaries?.get(candidate.id) ?? null}
                       priceSuffix={translate("featured.per_hour")}
                       onOpen={(code) =>
                         void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
