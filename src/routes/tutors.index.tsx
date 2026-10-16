@@ -19,6 +19,10 @@ import {
   TutorsSearchMobile,
   useTutorsCompactSegments,
 } from "@/components/search/tutors-search";
+import {
+  trackTutorEvent,
+  useTutorEngagementSummaries,
+} from "@/features/tracking/engagement-client";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
@@ -310,6 +314,15 @@ function TutorsDirectory() {
       .slice(0, 6);
   }, [educationFiltered, filtered.length, tutors]);
 
+  // Issue #102: batched engagement summaries for every rendered card (main
+  // grid + pedigree fallback) — one RPC call; the card renders demand /
+  // parent-favorite badges only above the #102/#151 thresholds.
+  const engagementTutorIds = useMemo(
+    () => [...filtered.map((tut) => tut.id), ...fallbackTutors.map((tut) => tut.id)],
+    [filtered, fallbackTutors],
+  );
+  const { data: engagementSummaries } = useTutorEngagementSummaries(engagementTutorIds);
+
   const { compareIds, compareTutors, toggleCompare, compareOpen, setCompareOpen, clearCompare } =
     useTutorCompare(tutors);
 
@@ -498,6 +511,7 @@ function TutorsDirectory() {
                               <PublicTutorCard
                                 key={tut.id}
                                 tutor={tut}
+                                engagement={engagementSummaries?.get(tut.id) ?? null}
                                 priceSuffix={t("featured.per_hour")}
                                 onOpen={openTutorDetail}
                                 footerAction={
@@ -517,6 +531,11 @@ function TutorsDirectory() {
                                           target="_blank"
                                           rel="noreferrer"
                                           onClick={(event) => event.stopPropagation()}
+                                          onClickCapture={() => {
+                                            // Issue #102: fire-and-forget; never
+                                            // blocks or alters the CTA itself.
+                                            void trackTutorEvent(tut.id, "inquiry_click");
+                                          }}
                                         >
                                           {inquiry.label}
                                         </a>
@@ -579,6 +598,7 @@ function TutorsDirectory() {
                         <PublicTutorCard
                           key={tut.id}
                           tutor={tut}
+                          engagement={engagementSummaries?.get(tut.id) ?? null}
                           priceSuffix={t("featured.per_hour")}
                           onOpen={openTutorDetail}
                           onCompareToggle={() => toggleCompare(tut)}
@@ -599,6 +619,11 @@ function TutorsDirectory() {
                                   target="_blank"
                                   rel="noreferrer"
                                   onClick={(event) => event.stopPropagation()}
+                                  onClickCapture={() => {
+                                    // Issue #102: fire-and-forget; never blocks
+                                    // or alters the CTA itself.
+                                    void trackTutorEvent(tut.id, "inquiry_click");
+                                  }}
                                 >
                                   {inquiry.label}
                                 </a>
