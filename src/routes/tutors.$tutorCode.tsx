@@ -4,6 +4,7 @@ import { useMemo, useEffect, useState } from "react";
 import {
   MapPin,
   MessageCircle,
+  Star,
   ArrowLeft,
   Award,
   BookOpen,
@@ -30,6 +31,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { ReviewSummarySection } from "@/features/tutors/review-summary-section";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
@@ -999,6 +1001,12 @@ function TutorDetail() {
                   <TutorReviews reviews={reviews} />
                 </ProfileSection>
               ) : null}
+
+              {/* #205 + #287: in-platform case reviews (avg, count, latest 5);
+                  "New tutor" when none. */}
+              <ProfileSection icon={Star} title={translate("sor.case_reviews_title")}>
+                <ReviewSummarySection tutorId={t.id} />
+              </ProfileSection>
 
               {/* Issues #131/#134: study materials marketplace listings;
                   hidden entirely when the tutor has none. */}

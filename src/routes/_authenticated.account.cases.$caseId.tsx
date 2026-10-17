@@ -1,0 +1,303 @@
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { CalendarPlus, Check, Loader2, Star, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
+
+import { SiteFooter } from "@/components/layout/SiteFooter";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  cancelLessonParent,
+  confirmLessonParent,
+  getParentCaseDetail,
+  requestSlot,
+  submitParentReview,
+  type ParentCaseDetail,
+} from "@/features/cases/parent.functions";
+import { REVIEW_COMMENT_MAX_PARENT, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
+
+export const Route = createFileRoute("/_authenticated/account/cases/$caseId")({
+  ssr: false,
+  head: () => ({
+    meta: [{ title: "Case | MatchMax" }, { name: "robots", content: "noindex" }],
+  }),
+  component: ParentCaseDetailPage,
+});
+
+function ParentCaseDetailPage() {
+  const { caseId } = Route.useParams();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["sor", "parent-case", caseId],
+    queryFn: () => getParentCaseDetail({ data: { caseId } }),
+  });
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["sor", "parent-case", caseId] });
+    queryClient.invalidateQueries({ queryKey: ["sor", "parent-cases"] });
+  };
+
+  const confirm = useMutation({
+    mutationFn: (lessonId: string) => confirmLessonParent({ data: { lessonId } }),
+    onSuccess: () => {
+      toast.success(t("sor.tutor_confirmed"));
+      invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const cancel = useMutation({
+    mutationFn: (lessonId: string) => cancelLessonParent({ data: { lessonId } }),
+    onSuccess: (res) => {
+      toast.success(
+        t(res.status === "late_cancel" ? "sor.tutor_late_cancelled" : "sor.tutor_cancelled"),
+      );
+      invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const request = useMutation({
+    mutationFn: (startsAt: string) => requestSlot({ data: { caseId, startsAt } }),
+    onSuccess: () => {
+      toast.success(t("sor.parent_slot_requested"));
+      invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  if (isError) throw notFound();
+
+  return (
+    <div className="min-h-screen bg-[color:var(--background)]">
+      <SiteHeader />
+      <PageContainer>
+        {isLoading || !data ? (
+          <div className="space-y-3">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-24 w-full rounded-xl" />
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-[color:var(--ink)]">
+                {data.case_code} · {data.title}
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {data.subjects?.[0] ?? ""}
+                {data.exam_system ? ` · ${data.exam_system}` : ""}
+                {data.tutor_code ? ` · ${t("sor.parent_tutor")} ${data.tutor_code}` : ""}
+                {data.sor_status ? ` · ${t(`sor.status_${data.sor_status}`)}` : ""}
+              </p>
+            </div>
+
+            {/* Fee (amount + status only; no tutor contact) */}
+            {data.fee && (
+              <p className="inline-flex items-center gap-2 rounded-full bg-[color:var(--foreground)]/[0.06] px-3 py-1.5 text-sm text-muted-foreground">
+                <span className="font-medium text-[color:var(--ink)]">
+                  {t(`sor.fee_status_${data.fee.status}`)} · HK$
+                  {Number(data.fee.amount_hkd).toFixed(0)}
+                </span>
+                <span className="text-xs">{t("sor.parent_fee_note")}</span>
+              </p>
+            )}
+
+            {/* Lesson timeline */}
+            <section className="space-y-2">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("sor.parent_lessons_title")}
+              </h2>
+              {data.lessons.length === 0 && (
+                <p className="text-sm text-muted-foreground">{t("sor.parent_lessons_empty")}</p>
+              )}
+              {data.lessons.map((l) => (
+                <div
+                  key={l.id}
+                  className="flex flex-wrap items-center gap-2 rounded-lg border border-[color:var(--ink)]/10 p-3"
+                >
+                  <span className="text-sm font-medium text-[color:var(--ink)]">
+                    {t("sor.tutor_lesson_n", { n: l.sequence })} ·{" "}
+                    {format(new Date(l.starts_at), "EEE d MMM HH:mm")}
+                  </span>
+                  <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-2 py-0.5 text-xs text-muted-foreground">
+                    {t(`sor.tutor_lesson_status_${l.status}`)}
+                  </span>
+                  {l.location_or_link && l.status !== "cancelled" && l.status !== "late_cancel" && (
+                    <span className="text-xs text-muted-foreground">{l.location_or_link}</span>
+                  )}
+                  {(l.status === "planned" || l.status === "confirmed") && (
+                    <span className="ml-auto flex gap-2">
+                      {l.confirmed_by_parent_at === null && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={confirm.isPending}
+                          onClick={() => confirm.mutate(l.id)}
+                        >
+                          <Check className="h-4 w-4" />
+                          {t("sor.parent_confirm")}
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={cancel.isPending}
+                        onClick={() => cancel.mutate(l.id)}
+                      >
+                        <X className="h-4 w-4" />
+                        {t("sor.tutor_cancel")}
+                      </Button>
+                    </span>
+                  )}
+                </div>
+              ))}
+            </section>
+
+            {/* Slot request (#204) — fee_paid|active cases only */}
+            {data.canRequestSlot && (
+              <section className="space-y-2">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t("sor.parent_slots_title")}
+                </h2>
+                {data.slots.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t("sor.parent_slots_empty")}</p>
+                ) : (
+                  data.slotDays.map((day) => (
+                    <div key={day} className="flex flex-wrap items-center gap-2">
+                      <span className="w-24 text-xs font-semibold text-muted-foreground">
+                        {format(new Date(`${day}T00:00:00Z`), "EEE d MMM")}
+                      </span>
+                      {data.slots
+                        .filter((s) => s.startsAt.startsWith(day))
+                        .map((s) => (
+                          <Button
+                            key={s.startsAt}
+                            size="sm"
+                            variant="outline"
+                            disabled={request.isPending}
+                            onClick={() => request.mutate(s.startsAt)}
+                          >
+                            <CalendarPlus className="h-4 w-4" />
+                            {format(new Date(s.startsAt), "HH:mm")}
+                          </Button>
+                        ))}
+                    </div>
+                  ))
+                )}
+              </section>
+            )}
+
+            <ReviewSection caseId={caseId} detail={data} onChanged={invalidate} />
+          </div>
+        )}
+      </PageContainer>
+      <SiteFooter />
+    </div>
+  );
+}
+
+function ReviewSection({
+  caseId,
+  detail,
+  onChanged,
+}: {
+  caseId: string;
+  detail: ParentCaseDetail;
+  onChanged: () => void;
+}) {
+  const { t } = useTranslation();
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const hasDoneLesson = detail.lessons.some((l) => l.status === "done");
+  const hasVisibleOrHeld =
+    detail.myReview !== null &&
+    (detail.myReview.status === "visible" || detail.myReview.status === "held");
+
+  const submit = useMutation({
+    mutationFn: () => submitParentReview({ data: { caseId, rating, comment } }),
+    onSuccess: (res) => {
+      toast.success(
+        t(res.status === "held" ? "sor.parent_review_held" : "sor.parent_review_thanks"),
+      );
+      setRating(0);
+      setComment("");
+      onChanged();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const canSubmit =
+    hasDoneLesson &&
+    !hasVisibleOrHeld &&
+    rating >= 1 &&
+    comment.trim().length >= REVIEW_COMMENT_MIN &&
+    comment.trim().length <= REVIEW_COMMENT_MAX_PARENT;
+
+  if (!hasDoneLesson) {
+    // #205/#287 acceptance: no done lesson, no review.
+    return null;
+  }
+
+  return (
+    <section id="review" className="space-y-2">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        {t("sor.parent_review_title")}
+      </h2>
+      {detail.myReview &&
+      (detail.myReview.status === "visible" || detail.myReview.status === "held") ? (
+        <p className="text-sm text-muted-foreground">
+          {detail.myReview.status === "held"
+            ? t("sor.parent_review_pending_state")
+            : t("sor.parent_review_submitted_state", { rating: detail.myReview.rating })}
+        </p>
+      ) : (
+        <div className="rounded-xl border border-[color:var(--ink)]/10 p-4">
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <button key={s} type="button" aria-label={`${s}/5`} onClick={() => setRating(s)}>
+                <Star
+                  className={cn(
+                    "h-6 w-6",
+                    s <= rating ? "fill-current text-amber-500" : "text-muted-foreground/40",
+                  )}
+                />
+              </button>
+            ))}
+          </div>
+          <textarea
+            className="mt-2 w-full rounded-md border border-[color:var(--ink)]/15 bg-transparent p-2 text-sm"
+            rows={4}
+            maxLength={REVIEW_COMMENT_MAX_PARENT}
+            placeholder={t("sor.parent_review_placeholder", {
+              min: REVIEW_COMMENT_MIN,
+              max: REVIEW_COMMENT_MAX_PARENT,
+            })}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">
+              {comment.trim().length}/{REVIEW_COMMENT_MAX_PARENT} ·{" "}
+              {t("sor.parent_review_hold_note")}
+            </span>
+            <Button
+              size="sm"
+              disabled={!canSubmit || submit.isPending}
+              onClick={() => submit.mutate()}
+            >
+              {submit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {t("sor.parent_review_submit")}
+            </Button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
