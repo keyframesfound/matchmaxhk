@@ -4,6 +4,7 @@ import {
   bellLinkFor,
   DELIVERY_MAX_ATTEMPTS,
   planDeliveriesForEvent,
+  redactBellPayload,
   REVIEW_PROMPT_DELAY_MS,
   SKIPPED_EVENT_TYPES,
 } from "../../src/features/cases/bus";
@@ -72,5 +73,39 @@ describe("bus planning (#205/#292)", () => {
 
   it("never plans a save ping (#292: someone saved your note is not an event)", () => {
     expect(planDeliveriesForEvent("listing.saved")).toEqual({ kind: "skip" });
+  });
+
+  it("tutor bell items link to the tutor surface, never the parent case route (#375 QA)", () => {
+    const payload = { case_id: "c1", lesson_id: "l1", starts_at: "2026-10-19T08:00:00Z" };
+    expect(bellLinkFor("lesson.reminder_due", payload, "tutor")).toBe("/dashboard#lessons");
+    expect(bellLinkFor("lesson.reminder_due", payload, "parent")).toBe("/account/cases/c1");
+    // review.published carries no tutor_slug from the trigger — a tutor lands
+    // on their Lessons tab, not the parent-owned /account/cases route.
+    expect(bellLinkFor("review.published", { case_id: "c1" }, "tutor")).toBe("/dashboard#lessons");
+    expect(bellLinkFor("review.published", { case_id: "c1" }, "parent")).toBe("/account/cases/c1");
+    expect(bellLinkFor("review.published", { tutor_slug: "me" }, "tutor")).toBe("/tutors/me");
+  });
+
+  it("redacts tutor-side money from the buyer's bell payload (#375 back-end)", () => {
+    const payload = {
+      order_id: "o1",
+      material_id: "m1",
+      tutor_id: "t1",
+      buyer_account_id: "b1",
+      gross_hkd: 500,
+      tutor_net_hkd: 400,
+    };
+    const forBuyer = redactBellPayload("note_order.delivered", payload, "parent");
+    expect(forBuyer).not.toHaveProperty("tutor_net_hkd");
+    expect(forBuyer).not.toHaveProperty("gross_hkd");
+    expect(forBuyer).toMatchObject({ order_id: "o1", material_id: "m1" });
+
+    const forTutor = redactBellPayload("note_order.delivered", payload, "tutor");
+    expect(forTutor).toMatchObject({ gross_hkd: 500, tutor_net_hkd: 400 });
+
+    // Non-delivery events are untouched for every role.
+    expect(redactBellPayload("admin_fee.invoiced", { amount_hkd: 750 }, "parent")).toEqual({
+      amount_hkd: 750,
+    });
   });
 });

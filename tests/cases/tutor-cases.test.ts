@@ -86,4 +86,29 @@ describe("tutor week model (#201/#204)", () => {
     const early = new Date(start.getTime() - 30 * 60000);
     expect(lessonActionsFor(planned, early, canMarkDone).done).toBe(false);
   });
+
+  it("hides confirm/decline once a slot request is past the 12h expiry (#375 QA)", () => {
+    const start = hktFromParts("2026-10-19", 16 * 60);
+    const now = new Date(start.getTime() - 10 * 60000);
+    const fresh = {
+      starts_at: start.toISOString(),
+      status: "planned",
+      created_at: new Date(now.getTime() - 60 * 60000).toISOString(),
+    };
+    expect(lessonActionsFor(fresh, now, canMarkDone).confirm).toBe(true);
+    expect(lessonActionsFor(fresh, now, canMarkDone).decline).toBe(true);
+
+    const stale = {
+      starts_at: start.toISOString(),
+      status: "planned",
+      created_at: new Date(now.getTime() - 13 * 60 * 60000).toISOString(),
+    };
+    const a = lessonActionsFor(stale, now, canMarkDone);
+    expect(a.confirm).toBe(false);
+    expect(a.decline).toBe(false);
+
+    // Legacy rows without created_at keep the old behavior.
+    const legacy = { starts_at: start.toISOString(), status: "planned" };
+    expect(lessonActionsFor(legacy, now, canMarkDone).confirm).toBe(true);
+  });
 });

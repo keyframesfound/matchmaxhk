@@ -108,25 +108,61 @@ export function planDeliveriesForEvent(eventType: string): PlanResult {
   return { kind: "deliver", deliveries: [...plan] };
 }
 
-/** Deep links for bell items (#292: each item opens the related page). */
-export function bellLinkFor(eventType: string, payload: Record<string, unknown>): string | null {
+/**
+ * Deep links for bell items (#292: each item opens the related page).
+ * `role` is the recipient's side: tutors land on their Lessons surface
+ * (/dashboard#lessons), never on the parent-owned case route — the trigger
+ * payloads carry case_id only, so the parent /account/cases/{id} link is
+ * parent-only.
+ */
+export function bellLinkFor(
+  eventType: string,
+  payload: Record<string, unknown>,
+  role?: BusRole | "unknown" | null,
+): string | null {
   const caseId = typeof payload.case_id === "string" ? payload.case_id : null;
+  const tutorHome = "/dashboard#lessons";
   switch (eventType) {
     case "note_order.delivered": {
       const orderId = typeof payload.order_id === "string" ? payload.order_id : null;
       return orderId ? `/orders/${orderId}` : "/account";
     }
     case "review.published": {
+      if (role === "tutor") {
+        const slug = typeof payload.tutor_slug === "string" ? payload.tutor_slug : null;
+        return slug ? `/tutors/${slug}` : tutorHome;
+      }
       const slug = typeof payload.tutor_slug === "string" ? payload.tutor_slug : null;
       return slug ? `/tutors/${slug}` : caseId ? `/account/cases/${caseId}` : "/account";
     }
     case "lesson.review_prompt":
       return caseId ? `/account/cases/${caseId}#review` : "/account";
     case "lesson.reminder_due":
+      if (role === "tutor") return tutorHome;
+      return caseId ? `/account/cases/${caseId}` : "/account";
     case "admin_fee.invoiced":
     case "admin_fee.unpaid":
       return caseId ? `/account/cases/${caseId}` : "/account";
     default:
       return null;
   }
+}
+
+/**
+ * Per-recipient payload redaction (#375 Back-end blocker 3): the raw event
+ * payload is shared across all recipients of an event, but tutor-side money
+ * must never reach the buyer's bell. note_order.delivered carries
+ * gross_hkd + tutor_net_hkd (tutor economics) — strip both for parent
+ * recipients; the tutor's own copy keeps them.
+ */
+export function redactBellPayload(
+  eventType: string,
+  payload: Record<string, unknown>,
+  role: BusRole | "unknown",
+): Record<string, unknown> {
+  if (eventType === "note_order.delivered" && role === "parent") {
+    const { gross_hkd: _gross, tutor_net_hkd: _net, ...safe } = payload;
+    return safe;
+  }
+  return payload;
 }

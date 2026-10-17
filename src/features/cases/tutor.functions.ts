@@ -17,6 +17,7 @@ import {
   cancelActionFor,
   hktFromParts,
   isActiveStudentCase,
+  isRequestExpired,
   TUTOR_PLUS_THRESHOLD,
 } from "@/features/cases/sor";
 import { generateSlots, type GeneratedSlot } from "@/features/cases/slot";
@@ -112,6 +113,7 @@ export type TutorCaseItem = {
     starts_at: string;
     duration_min: number;
     status: string;
+    created_at: string;
     confirmed_by_parent_at: string | null;
     confirmed_by_tutor_at: string | null;
     location_or_link: string | null;
@@ -153,13 +155,14 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         starts_at: string;
         duration_min: number;
         status: string;
+        created_at: string;
         confirmed_by_parent_at: string | null;
         confirmed_by_tutor_at: string | null;
         location_or_link: string | null;
       }>(
         db,
         "case_lessons",
-        "id, case_id, sequence, starts_at, duration_min, status, confirmed_by_parent_at, confirmed_by_tutor_at, location_or_link",
+        "id, case_id, sequence, starts_at, duration_min, status, created_at, confirmed_by_parent_at, confirmed_by_tutor_at, location_or_link",
         [{ col: "case_id", op: "in", value: caseIds }],
         { col: "starts_at", asc: true },
       ),
@@ -170,6 +173,24 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         [{ col: "case_id", op: "in", value: caseIds }],
       ),
     ]);
+
+    // #204: a slot request the tutor never confirmed within 12h expires —
+    // lazy-cancel on read (idempotent: only still-planned rows are touched).
+    const now = new Date();
+    const expired = lessons.filter(
+      (l) => l.status === "planned" && isRequestExpired(new Date(l.created_at), now),
+    );
+    if (expired.length > 0) {
+      for (const l of expired) {
+        const { error: expireError } = await db
+          .from<Row>("case_lessons")
+          .update({ status: "cancelled" })
+          .eq("id", l.id);
+        if (expireError) throw new Error(expireError.message);
+        await insertAudit(db, l.case_id, null, "lesson_request_expired", null);
+        l.status = "cancelled";
+      }
+    }
 
     const openFeeByCase = new Map<string, { status: FeeStatus; amount_hkd: number }>();
     for (const f of fees) {
@@ -198,6 +219,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
           starts_at: l.starts_at,
           duration_min: l.duration_min,
           status: l.status,
+          created_at: l.created_at,
           confirmed_by_parent_at: l.confirmed_by_parent_at,
           confirmed_by_tutor_at: l.confirmed_by_tutor_at,
           location_or_link: l.location_or_link,
@@ -240,6 +262,10 @@ export const confirmLessonTutor = createServerFn({ method: "POST" })
     const tutorId = await myTutorId(db, context.userId);
     const lesson = await myLesson(db, data.lessonId, tutorId);
     if (lesson.status !== "planned") throw new Error("NOT_PLANNED");
+    // #204: a slot request unconfirmed for 12h has expired — no late confirms.
+    if (isRequestExpired(new Date(lesson.created_at), new Date())) {
+      throw new Error("REQUEST_EXPIRED");
+    }
 
     const parentConfirmed = lesson.confirmed_by_parent_at !== null;
     const nextStatus = parentConfirmed ? "confirmed" : "planned";

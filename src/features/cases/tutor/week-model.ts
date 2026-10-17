@@ -3,7 +3,12 @@
  * validation, student-name privacy rule). No DB access; vitest-covered.
  */
 
-import { hktDateKey, isActiveStudentCase, type LessonStatus } from "@/features/cases/sor";
+import {
+  hktDateKey,
+  isActiveStudentCase,
+  isRequestExpired,
+  type LessonStatus,
+} from "@/features/cases/sor";
 
 /** #201 tutor-list privacy: student FIRST NAME only. */
 export function firstNameOf(studentName: string | null | undefined): string {
@@ -114,15 +119,21 @@ export function countActiveStudents(
 
 /** Lesson action availability for the tutor UI (mirrors the server gates). */
 export function lessonActionsFor(
-  lesson: { starts_at: string; status: string },
+  lesson: { starts_at: string; status: string; created_at?: string | null },
   now: Date,
   canMarkDone: (startsAt: Date, now: Date) => boolean,
 ): { confirm: boolean; decline: boolean; done: boolean; cancel: boolean } {
   const planned = lesson.status === "planned";
   const live = lesson.status === "planned" || lesson.status === "confirmed";
+  // #204: a slot request unconfirmed for 12h has expired — hide the confirm/
+  // decline affordances (the server fns refuse expired confirms regardless).
+  const requestExpired =
+    planned &&
+    typeof lesson.created_at === "string" &&
+    isRequestExpired(new Date(lesson.created_at), now);
   return {
-    confirm: planned,
-    decline: planned,
+    confirm: planned && !requestExpired,
+    decline: planned && !requestExpired,
     done:
       (lesson.status === "planned" || lesson.status === "confirmed") &&
       canMarkDone(new Date(lesson.starts_at), now),

@@ -19,6 +19,7 @@ import {
   bellLinkFor,
   DELIVERY_MAX_ATTEMPTS,
   planDeliveriesForEvent,
+  redactBellPayload,
   type BusChannel,
   type BusRole,
 } from "@/features/cases/bus";
@@ -627,6 +628,30 @@ export const getMyBell = createServerFn({ method: "POST" })
       { col: "created_at", asc: false, limit: 15 },
     );
 
+    // lesson.reminder_due reaches both sides of a case; the delivery row carries
+    // no role, so derive it from the case owner (one batched query, only when a
+    // reminder is actually in the inbox).
+    const reminderCaseIds = [
+      ...new Set(
+        rows
+          .filter((r) => r.case_events?.event_type === "lesson.reminder_due")
+          .map((r) => r.case_events?.payload?.case_id)
+          .filter((v): v is string => typeof v === "string"),
+      ),
+    ];
+    const reminderOwnerByCase = new Map<string, string>();
+    if (reminderCaseIds.length > 0) {
+      const reminderCases = await selectRows<{ id: string; parent_id: string | null }>(
+        db,
+        "tutoring_cases",
+        "id, parent_id",
+        [{ col: "id", op: "in", value: reminderCaseIds }],
+      );
+      for (const c of reminderCases) {
+        if (c.parent_id) reminderOwnerByCase.set(c.id, c.parent_id);
+      }
+    }
+
     const items: BellItem[] = rows.map((r) => {
       const eventType = r.case_events?.event_type ?? "unknown";
       const payload = r.case_events?.payload ?? {};
@@ -638,15 +663,17 @@ export const getMyBell = createServerFn({ method: "POST" })
       } else if (eventType === "review.published" || eventType === "lesson.review_prompt") {
         roleHint = eventType === "review.published" ? "tutor" : "parent";
       } else if (eventType === "lesson.reminder_due") {
-        roleHint = "unknown";
+        const caseId = typeof payload.case_id === "string" ? payload.case_id : null;
+        roleHint =
+          caseId && reminderOwnerByCase.get(caseId) === context.userId ? "parent" : "tutor";
       }
       return {
         id: r.id,
         event_type: eventType,
-        payload: (payload ?? {}) as EventPayload,
+        payload: redactBellPayload(eventType, payload ?? {}, roleHint) as EventPayload,
         created_at: r.created_at,
         read: r.read_at !== null,
-        link: bellLinkFor(eventType, payload),
+        link: bellLinkFor(eventType, payload ?? {}, roleHint),
         role_hint: roleHint,
       };
     });

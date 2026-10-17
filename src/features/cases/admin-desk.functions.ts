@@ -19,6 +19,7 @@ import {
   computeFeeAmountHkd,
   feeDueAtFrom,
   hktFromParts,
+  isLegalTransition,
 } from "@/features/cases/sor";
 
 type Row = Record<string, unknown>;
@@ -389,6 +390,34 @@ export const feeInvoiceCustom = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * QA (#375): fee desk actions must drive the SoR status machine, not only the
+ * fee row. Advances fee_invoiced → fee_paid / waived when the case sits on the
+ * SoR machine and the edge is legal; legacy cases (sor_status NULL) and
+ * already-advanced cases are left untouched.
+ */
+async function advanceSorCaseStatus(
+  db: ReturnType<typeof asAdminDb>,
+  actorId: string,
+  caseId: string,
+  to: SorStatus,
+): Promise<void> {
+  const rows = await selectRows<{ sor_status: SorStatus | null }>(
+    db,
+    "tutoring_cases",
+    "sor_status",
+    [{ col: "id", op: "eq", value: caseId }],
+  );
+  const from = rows[0]?.sor_status;
+  if (!from || !isLegalTransition(from, to)) return;
+  const { error } = await db
+    .from<Row>("tutoring_cases")
+    .update({ sor_status: to, sor_status_at: new Date().toISOString() })
+    .eq("id", caseId);
+  if (error) throw new Error(error.message);
+  await insertAudit(db, caseId, actorId, from, to, `fee action → ${to}`);
+}
+
 export const feeMarkPaid = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -413,7 +442,7 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
     const feeCase = await selectRows<{ case_id: string }>(db, "case_fees", "case_id", [
       { col: "id", op: "eq", value: data.feeId },
     ]);
-    if (feeCase[0])
+    if (feeCase[0]) {
       await insertAudit(
         db,
         feeCase[0].case_id,
@@ -422,6 +451,10 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
         "fee_paid",
         data.fpsReference ?? null,
       );
+      // QA (#375): the fee action must also advance the SoR machine — a case
+      // stuck on fee_invoiced keeps parent slot requests locked.
+      await advanceSorCaseStatus(db, context.userId, feeCase[0].case_id, "fee_paid");
+    }
     return { ok: true };
   });
 
@@ -442,8 +475,10 @@ export const feeWaive = createServerFn({ method: "POST" })
     const feeCase = await selectRows<{ case_id: string }>(db, "case_fees", "case_id", [
       { col: "id", op: "eq", value: data.feeId },
     ]);
-    if (feeCase[0])
+    if (feeCase[0]) {
       await insertAudit(db, feeCase[0].case_id, context.userId, null, "fee_waived", data.reason);
+      await advanceSorCaseStatus(db, context.userId, feeCase[0].case_id, "waived");
+    }
     return { ok: true };
   });
 
