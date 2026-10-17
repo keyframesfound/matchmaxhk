@@ -1805,7 +1805,10 @@
     "order_due": "Due {{date}}",
     "order_past_due": "Past due",
     "orders_to_fulfill": "Orders to fulfill",
-    "return_file_label": "Return file"
+    "return_file_label": "Return file",
+    "source_file_download": "Download buyer's file",
+    "source_file_waiting": "Waiting for the buyer to upload their file.",
+    "source_file_unavailable": "No source file attached."
   },
   "sen": {
     "filter_title": "SEN support",
@@ -1992,6 +1995,7 @@
     "admin_desk_tablist_label": "Order type",
     "admin_desk_reject_order": "Reject order",
     "admin_desk_view_screenshot": "View payment screenshot",
+    "admin_desk_view_source": "View source file",
     "admin_desk_completion_note": "Completion note",
     "admin_desk_marked_paid": "Marked paid — the fulfillment clock is running.",
     "admin_desk_refund_button": "Refund",

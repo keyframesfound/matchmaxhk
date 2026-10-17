@@ -396,3 +396,32 @@ export const listGhostStrikes = createServerFn({ method: "POST" })
       createdAt: row.created_at,
     }));
   });
+
+/** materials-originals is PRIVATE — the buyer's file_back source lives at
+ * gigs-orders/<orderId>/source.<pdf|docx> (written by uploadGigSourceFile). */
+const GIG_SOURCE_BUCKET = "materials-originals";
+
+/**
+ * #328 file_back: staff signed-URL read of the buyer's uploaded source
+ * document (grok re-review 2026-10-17: the desk could see that a source
+ * exists but could never open it). Admin-gated like every fn here; the
+ * URL is short-lived (10 min) and exposes no buyer identity.
+ */
+export const getGigOrderSourceUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ orderId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const db = await assertGigStaffDb(context.supabase, context.userId);
+    const { data: order, error } = await db
+      .from<{ buyer_source_path: string | null }>("material_orders")
+      .select("buyer_source_path")
+      .eq("id", data.orderId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!order?.buyer_source_path) throw new Error("No source file attached.");
+    const { data: signed, error: signError } = await db.storage
+      .from(GIG_SOURCE_BUCKET)
+      .createSignedUrl(order.buyer_source_path, 600);
+    if (signError || !signed) throw new Error(signError?.message || "Failed to sign URL");
+    return { signedUrl: signed.signedUrl };
+  });

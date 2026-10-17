@@ -44,6 +44,7 @@ import { getMyGigs, type MyGigRow } from "@/features/gigs/gig-drafts.functions";
 import {
   getMyGigOrders,
   deliverGigOrder,
+  getGigBuyerSourceUrl,
   type MyGigOrderRow,
 } from "@/features/gigs/gig-fulfillment.functions";
 import { fileToBase64 } from "@/features/gigs/gig-files";
@@ -770,6 +771,15 @@ function GigFulfillRow({ order }: { order: MyGigOrderRow }) {
   const isFileBack = order.deliveryType === "file_back";
   const fileTooLarge = file != null && file.size > MAX_GIG_FILE_BYTES;
 
+  // #328 file_back: the tutor must be able to READ the buyer's source
+  // before annotating it (grok re-review 2026-10-17: upload-only flow).
+  const sourceUrl = useMutation({
+    mutationFn: () => getGigBuyerSourceUrl({ data: { orderId: order.orderId } }),
+    onSuccess: (result) => window.open(result.signedUrl, "_blank", "noopener"),
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : t("account.source_file_unavailable")),
+  });
+
   const deliver = useMutation({
     mutationFn: async () => {
       const base64 = file ? await fileToBase64(file) : undefined;
@@ -822,6 +832,25 @@ function GigFulfillRow({ order }: { order: MyGigOrderRow }) {
       <div className="mt-3 space-y-2 border-t border-border pt-3">
         {isFileBack ? (
           <div className="space-y-1.5">
+            {order.hasSourceFile ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="font-semibold"
+                disabled={sourceUrl.isPending}
+                onClick={() => sourceUrl.mutate()}
+              >
+                {sourceUrl.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" aria-hidden />
+                )}
+                {t("account.source_file_download")}
+              </Button>
+            ) : (
+              <p className="text-xs text-muted-foreground">{t("account.source_file_waiting")}</p>
+            )}
             <Label htmlFor={`return-file-${order.orderId}`}>{t("account.return_file_label")}</Label>
             <Input
               id={`return-file-${order.orderId}`}

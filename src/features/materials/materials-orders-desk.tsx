@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Check, Eye, Loader2, Undo2, X } from "lucide-react";
+import { Check, Download, Eye, Loader2, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ import {
   type AdminOrderRow,
 } from "@/features/materials/orders-desk.functions";
 import {
+  getGigOrderSourceUrl,
   listGigDeskOrders,
   listGhostStrikes,
   markGigOrderPaid,
@@ -166,6 +167,15 @@ export function MaterialsOrdersDesk() {
     onSuccess: (result) => window.open(result.signedUrl, "_blank", "noopener"),
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : "No screenshot attached."),
+  });
+
+  // #328 file_back (grok re-review 2026-10-17): staff can open the buyer's
+  // uploaded source document, not just see that one exists.
+  const sourceMutation = useMutation({
+    mutationFn: (orderId: string) => getGigOrderSourceUrl({ data: { orderId } }),
+    onSuccess: (result) => window.open(result.signedUrl, "_blank", "noopener"),
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "No source file attached."),
   });
 
   // #328: staff confirm FPS on a gig order — awaiting_payment jumps to
@@ -445,6 +455,17 @@ export function MaterialsOrdersDesk() {
                         >
                           <Eye className="h-4 w-4" aria-hidden />
                         </Button>
+                        {order.gigDeliveryType === "file_back" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            aria-label={t("gigs.admin_desk_view_source")}
+                            disabled={!order.buyerSourcePath || sourceMutation.isPending}
+                            onClick={() => sourceMutation.mutate(order.id)}
+                          >
+                            <Download className="h-4 w-4" aria-hidden />
+                          </Button>
+                        )}
                         {order.status === "awaiting_payment" && (
                           <div className="flex items-center gap-1">
                             <Label htmlFor={`fps-${order.id}`} className="sr-only">

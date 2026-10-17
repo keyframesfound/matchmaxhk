@@ -1805,7 +1805,10 @@
     "order_due": "期限：{{date}}",
     "order_past_due": "已逾期",
     "orders_to_fulfill": "待完成訂單",
-    "return_file_label": "交付檔案"
+    "return_file_label": "交付檔案",
+    "source_file_download": "下載家長檔案",
+    "source_file_waiting": "待家長上傳檔案。",
+    "source_file_unavailable": "尚未附加原始檔案。"
   },
   "sen": {
     "filter_title": "SEN 支援",
@@ -1992,6 +1995,7 @@
     "admin_desk_tablist_label": "訂單類型",
     "admin_desk_reject_order": "拒絕訂單",
     "admin_desk_view_screenshot": "查看付款截圖",
+    "admin_desk_view_source": "查看原始檔案",
     "admin_desk_completion_note": "完成備註",
     "admin_desk_marked_paid": "已確認收款 — 交付時限已開始計算。",
     "admin_desk_refund_button": "退款",
