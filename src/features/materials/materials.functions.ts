@@ -531,6 +531,30 @@ export const updateMaterialAdmin = createServerFn({ method: "POST" })
     if (!isAdmin) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Grok review 2026-10-17 (soft #3, tightened): publishing from the admin
+    // materials page must clear the same gig integrity gate as the review
+    // queue — otherwise an integrity-missing document_review gig can be
+    // flipped to published from the desk, bypassing gigApprovalBlocker.
+    // Non-gig rows always pass (gigApprovalBlocker returns null for them).
+    if (data.isPublished === true) {
+      const db = asAdminDb(supabaseAdmin);
+      const { data: row } = await db
+        .from<{
+          material_type: string;
+          gig_category: string | null;
+          integrity_confirmed_at: string | null;
+        }>("digital_materials")
+        .select("material_type, gig_category, integrity_confirmed_at")
+        .eq("id", data.materialId)
+        .maybeSingle();
+      if (!row) throw new Error("Listing not found.");
+      const blocker = gigApprovalBlocker({
+        materialType: row.material_type,
+        gigCategory: row.gig_category,
+        integrityConfirmedAt: row.integrity_confirmed_at,
+      });
+      if (blocker) throw new Error(blocker);
+    }
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
     // is_published moved to the status machine (#203): admin publish/unpublish
     // and reject-with-reason both land here. Rejections store the reason the
