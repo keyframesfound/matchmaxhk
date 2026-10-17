@@ -1,0 +1,247 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { Bell, CalendarClock, Check, Loader2, Sparkles, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ConsolePanel } from "@/components/ui/console-panel";
+import {
+  cancelLessonTutor,
+  confirmLessonTutor,
+  declineLessonTutor,
+  getMyTutorCases,
+  getTutorPlusState,
+  markLessonDoneTutor,
+  registerTutorPlusInterest,
+  type TutorCaseItem,
+} from "@/features/cases/tutor.functions";
+import { lessonActionsFor } from "@/features/cases/tutor/week-model";
+import { canMarkDone } from "@/features/cases/sor";
+import { formatMoneyFromCents } from "@/lib/money";
+
+function feePillHkd(amount: number | null): string {
+  if (amount === null) return "";
+  // case_fees amounts are HKD numeric (not cents) — render directly.
+  return `HK$${Number(amount).toFixed(0)}`;
+}
+
+function LessonRow({
+  lesson,
+  t,
+}: {
+  lesson: TutorCaseItem["lessons"][number];
+  t: ReturnType<typeof useTranslation>["t"];
+}) {
+  const queryClient = useQueryClient();
+  const [note, setNote] = useState("");
+  const [showNote, setShowNote] = useState(false);
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
+
+  const confirm = useMutation({
+    mutationFn: () => confirmLessonTutor({ data: { lessonId: lesson.id } }),
+    onSuccess: () => {
+      toast.success(t("sor.tutor_confirmed"));
+      invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const decline = useMutation({
+    mutationFn: () => declineLessonTutor({ data: { lessonId: lesson.id } }),
+    onSuccess: () => {
+      toast.success(t("sor.tutor_declined"));
+      invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const done = useMutation({
+    mutationFn: () =>
+      markLessonDoneTutor({ data: { lessonId: lesson.id, privateNote: note || undefined } }),
+    onSuccess: () => {
+      toast.success(t("sor.tutor_marked_done"));
+      setShowNote(false);
+      setNote("");
+      invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const cancel = useMutation({
+    mutationFn: () => cancelLessonTutor({ data: { lessonId: lesson.id } }),
+    onSuccess: (res) => {
+      toast.success(
+        t(res.status === "late_cancel" ? "sor.tutor_late_cancelled" : "sor.tutor_cancelled"),
+      );
+      invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const actions = lessonActionsFor(lesson, new Date(), canMarkDone);
+  const busy = confirm.isPending || decline.isPending || done.isPending || cancel.isPending;
+  const startLabel = format(new Date(lesson.starts_at), "EEE d MMM, HH:mm");
+
+  return (
+    <li className="rounded-lg border border-[color:var(--ink)]/10 p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm font-medium text-[color:var(--ink)]">
+          {t("sor.tutor_lesson_n", { n: lesson.sequence })} · {startLabel}
+        </span>
+        <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-2 py-0.5 text-xs text-muted-foreground">
+          {t(`sor.tutor_lesson_status_${lesson.status}`)}
+        </span>
+        {(lesson.confirmed_by_parent_at !== null || lesson.confirmed_by_tutor_at !== null) && (
+          <span className="text-xs text-muted-foreground">
+            {lesson.confirmed_by_parent_at !== null ? t("sor.tutor_parent_confirmed") : null}
+            {lesson.confirmed_by_parent_at !== null && lesson.confirmed_by_tutor_at !== null
+              ? " · "
+              : null}
+            {lesson.confirmed_by_tutor_at !== null ? t("sor.tutor_you_confirmed") : null}
+          </span>
+        )}
+      </div>
+
+      {showNote && (
+        <Input
+          className="mt-2"
+          maxLength={500}
+          placeholder={t("sor.tutor_private_note_placeholder")}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      )}
+
+      {(actions.confirm || actions.decline || actions.done || actions.cancel) && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {actions.confirm && (
+            <Button size="sm" variant="outline" disabled={busy} onClick={() => confirm.mutate()}>
+              {confirm.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="h-4 w-4" />
+              )}
+              {t("sor.tutor_confirm")}
+            </Button>
+          )}
+          {actions.decline && (
+            <Button size="sm" variant="ghost" disabled={busy} onClick={() => decline.mutate()}>
+              <X className="h-4 w-4" />
+              {t("sor.tutor_decline")}
+            </Button>
+          )}
+          {actions.done && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={() =>
+                showNote && note ? done.mutate() : (setShowNote(true), done.mutate())
+              }
+            >
+              <Check className="h-4 w-4" />
+              {t("sor.tutor_mark_done")}
+            </Button>
+          )}
+          {actions.cancel && (
+            <Button size="sm" variant="ghost" disabled={busy} onClick={() => cancel.mutate()}>
+              {t("sor.tutor_cancel")}
+            </Button>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
+function TutorPlusBanner({ t }: { t: ReturnType<typeof useTranslation>["t"] }) {
+  const queryClient = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ["sor", "tutor-plus"],
+    queryFn: getTutorPlusState,
+  });
+  const interest = useMutation({
+    mutationFn: () => registerTutorPlusInterest(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sor", "tutor-plus"] }),
+    onError: (e) => toast.error(e.message),
+  });
+
+  if (!data?.showBanner) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[color:var(--ink)]/10 p-4">
+      <Sparkles className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+      <p className="flex-1 text-sm text-[color:var(--ink)]">
+        {t("sor.tutor_plus_banner", { count: data.activeStudents })}
+      </p>
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={interest.isPending}
+        onClick={() => interest.mutate()}
+      >
+        {interest.isPending ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Bell className="h-4 w-4" />
+        )}
+        {t("sor.tutor_plus_interested")}
+      </Button>
+    </div>
+  );
+}
+
+/** #201 tutor list + lesson actions + #204 Tutor Plus banner. No parent phone, no WhatsApp. */
+export function TutorCasesSection() {
+  const { t } = useTranslation();
+  const { data, isLoading } = useQuery({
+    queryKey: ["sor", "tutor-cases"],
+    queryFn: getMyTutorCases,
+  });
+
+  return (
+    <div className="space-y-4">
+      <ConsolePanel title={t("sor.tutor_cases_title")}>
+        {isLoading ? (
+          <p className="p-4 text-sm text-muted-foreground">{t("sor.loading")}</p>
+        ) : (data?.length ?? 0) === 0 ? (
+          <p className="p-4 text-sm text-muted-foreground">{t("sor.tutor_cases_empty")}</p>
+        ) : (
+          <ul className="space-y-4">
+            {data?.map((c) => (
+              <li key={c.id} className="rounded-xl border border-[color:var(--ink)]/10 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold text-[color:var(--ink)]">
+                      {c.case_code} · {c.student_first_name}
+                      {c.subject ? ` · ${c.subject}` : ""}
+                      {c.exam_system ? ` (${c.exam_system})` : ""}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {c.station ? `${t("sor.tutor_station")}: ${c.station} · ` : ""}
+                      {t("sor.tutor_status_label")}: {t(`sor.status_${c.sor_status}`)}
+                    </p>
+                  </div>
+                  {c.fee_status && (
+                    <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-3 py-1 text-xs text-muted-foreground">
+                      {t(`sor.fee_status_${c.fee_status}`)}
+                      {c.fee_amount_hkd !== null ? ` · ${feePillHkd(c.fee_amount_hkd)}` : ""}
+                    </span>
+                  )}
+                </div>
+                {c.lessons.length > 0 && (
+                  <ul className="mt-3 space-y-2">
+                    {c.lessons.map((l) => (
+                      <LessonRow key={l.id} lesson={l} t={t} />
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </ConsolePanel>
+      <TutorPlusBanner t={t} />
+    </div>
+  );
+}
