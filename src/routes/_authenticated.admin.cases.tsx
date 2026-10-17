@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { CaseDetailView } from "@/features/cases/admin/CaseDetailView";
+import { SorDeskTools } from "@/features/cases/admin/sor-desk";
 import {
   CASE_STATUSES,
   MODE_LABEL,
@@ -119,9 +120,14 @@ function AdminCases() {
   const { data: cases = [], isLoading } = useQuery({
     queryKey: ["admin", "cases"],
     queryFn: async () => {
+      // Explicit columns: the table grants authenticated a column-level SELECT
+      // (admin-only fields — internal_note, whatsapp_group_url, hourly_rate_hkd
+      // — are excluded DB-side), so select(*) would fail with permission denied.
       const { data, error } = await supabase
         .from("tutoring_cases")
-        .select("*")
+        .select(
+          "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, created_at, updated_at",
+        )
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
@@ -282,6 +288,9 @@ function AdminCases() {
             />
           ) : (
             <div className="space-y-8">
+              {/* SoR tools (#201): new case, CSV import, unpaid queue */}
+              <SorDeskTools />
+
               {/* Header Bar */}
               <div className="flex flex-col gap-4 border-b border-[color:var(--ink)]/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>

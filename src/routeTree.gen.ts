@@ -24,6 +24,7 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedJoinRouteImport } from './routes/_authenticated.join'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
 import { Route as BusinessSlugRouteImport } from './routes/business.$slug'
 import { Route as CoursesIndexRouteImport } from './routes/courses.index'
@@ -40,6 +41,7 @@ import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
+import { Route as AuthenticatedAccountCasesRouteImport } from './routes/_authenticated.account.cases'
 import { Route as AuthenticatedAccountClaimRouteImport } from './routes/_authenticated.account.claim'
 import { Route as AuthenticatedAccountPreviewRouteImport } from './routes/_authenticated.account.preview'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
@@ -62,6 +64,7 @@ import { Route as AuthenticatedBusinessTeamRouteImport } from './routes/_authent
 import { Route as AuthenticatedTutorRequestsIndexRouteImport } from './routes/_authenticated.tutor-requests.index'
 import { Route as AuthenticatedTutorRequestsCaseCodeRouteImport } from './routes/_authenticated.tutor-requests.$caseCode'
 import { Route as HelpCategorySlugRouteImport } from './routes/help.$category.$slug'
+import { Route as AuthenticatedAccountCasesCaseIdRouteImport } from './routes/_authenticated.account.cases.$caseId'
 import { Route as AuthenticatedAccountNotesNewRouteImport } from './routes/_authenticated.account.notes.new'
 import { Route as AuthenticatedAccountServicesNewRouteImport } from './routes/_authenticated.account.services.new'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -144,6 +147,12 @@ const AuthenticatedJoinRoute = AuthenticatedJoinRouteImport.update({
   path: '/join',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSavedPostsRoute = AuthenticatedSavedPostsRouteImport.update({
   id: '/saved-posts',
   path: '/saved-posts',
@@ -224,6 +233,12 @@ const TutorsTutorCodeRoute = TutorsTutorCodeRouteImport.update({
   path: '/tutors/$tutorCode',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountCasesRoute =
+  AuthenticatedAccountCasesRouteImport.update({
+    id: '/cases',
+    path: '/cases',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
 const AuthenticatedAccountClaimRoute =
   AuthenticatedAccountClaimRouteImport.update({
     id: '/claim',
@@ -351,6 +366,12 @@ const HelpCategorySlugRoute = HelpCategorySlugRouteImport.update({
   path: '/help/$category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountCasesCaseIdRoute =
+  AuthenticatedAccountCasesCaseIdRouteImport.update({
+    id: '/$caseId',
+    path: '/$caseId',
+    getParentRoute: () => AuthenticatedAccountCasesRoute,
+  } as any)
 const AuthenticatedAccountNotesNewRoute =
   AuthenticatedAccountNotesNewRouteImport.update({
     id: '/notes/new',
@@ -407,6 +428,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/join': typeof AuthenticatedJoinRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
@@ -423,6 +445,7 @@ export interface FileRoutesByFullPath {
   '/guide/': typeof GuideIndexRoute
   '/help/': typeof HelpIndexRoute
   '/tutors/': typeof TutorsIndexRoute
+  '/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/account/claim': typeof AuthenticatedAccountClaimRoute
   '/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -445,6 +468,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/business/': typeof AuthenticatedBusinessIndexRoute
   '/tutor-requests/': typeof AuthenticatedTutorRequestsIndexRoute
+  '/account/cases/$caseId': typeof AuthenticatedAccountCasesCaseIdRoute
   '/account/notes/new': typeof AuthenticatedAccountNotesNewRoute
   '/account/services/new': typeof AuthenticatedAccountServicesNewRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -467,6 +491,7 @@ export interface FileRoutesByTo {
   '/account': typeof AuthenticatedAccountRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/join': typeof AuthenticatedJoinRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
@@ -483,6 +508,7 @@ export interface FileRoutesByTo {
   '/guide': typeof GuideIndexRoute
   '/help': typeof HelpIndexRoute
   '/tutors': typeof TutorsIndexRoute
+  '/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/account/claim': typeof AuthenticatedAccountClaimRoute
   '/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -505,6 +531,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/business': typeof AuthenticatedBusinessIndexRoute
   '/tutor-requests': typeof AuthenticatedTutorRequestsIndexRoute
+  '/account/cases/$caseId': typeof AuthenticatedAccountCasesCaseIdRoute
   '/account/notes/new': typeof AuthenticatedAccountNotesNewRoute
   '/account/services/new': typeof AuthenticatedAccountServicesNewRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -530,6 +557,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/join': typeof AuthenticatedJoinRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
@@ -546,6 +574,7 @@ export interface FileRoutesById {
   '/guide/': typeof GuideIndexRoute
   '/help/': typeof HelpIndexRoute
   '/tutors/': typeof TutorsIndexRoute
+  '/_authenticated/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/_authenticated/account/claim': typeof AuthenticatedAccountClaimRoute
   '/_authenticated/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -568,6 +597,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/business/': typeof AuthenticatedBusinessIndexRoute
   '/_authenticated/tutor-requests/': typeof AuthenticatedTutorRequestsIndexRoute
+  '/_authenticated/account/cases/$caseId': typeof AuthenticatedAccountCasesCaseIdRoute
   '/_authenticated/account/notes/new': typeof AuthenticatedAccountNotesNewRoute
   '/_authenticated/account/services/new': typeof AuthenticatedAccountServicesNewRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -593,6 +623,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/join'
+    | '/notifications'
     | '/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
@@ -609,6 +640,7 @@ export interface FileRouteTypes {
     | '/guide/'
     | '/help/'
     | '/tutors/'
+    | '/account/cases'
     | '/account/claim'
     | '/account/preview'
     | '/admin/cases'
@@ -631,6 +663,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/business/'
     | '/tutor-requests/'
+    | '/account/cases/$caseId'
     | '/account/notes/new'
     | '/account/services/new'
     | '/lovable/email/auth/preview'
@@ -653,6 +686,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/dashboard'
     | '/join'
+    | '/notifications'
     | '/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
@@ -669,6 +703,7 @@ export interface FileRouteTypes {
     | '/guide'
     | '/help'
     | '/tutors'
+    | '/account/cases'
     | '/account/claim'
     | '/account/preview'
     | '/admin/cases'
@@ -691,6 +726,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/business'
     | '/tutor-requests'
+    | '/account/cases/$caseId'
     | '/account/notes/new'
     | '/account/services/new'
     | '/lovable/email/auth/preview'
@@ -715,6 +751,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/join'
+    | '/_authenticated/notifications'
     | '/_authenticated/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
@@ -731,6 +768,7 @@ export interface FileRouteTypes {
     | '/guide/'
     | '/help/'
     | '/tutors/'
+    | '/_authenticated/account/cases'
     | '/_authenticated/account/claim'
     | '/_authenticated/account/preview'
     | '/_authenticated/admin/cases'
@@ -753,6 +791,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/business/'
     | '/_authenticated/tutor-requests/'
+    | '/_authenticated/account/cases/$caseId'
     | '/_authenticated/account/notes/new'
     | '/_authenticated/account/services/new'
     | '/lovable/email/auth/preview'
@@ -902,6 +941,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJoinRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/saved-posts': {
       id: '/_authenticated/saved-posts'
       path: '/saved-posts'
@@ -1013,6 +1059,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/tutors/$tutorCode'
       preLoaderRoute: typeof TutorsTutorCodeRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/account/cases': {
+      id: '/_authenticated/account/cases'
+      path: '/cases'
+      fullPath: '/account/cases'
+      preLoaderRoute: typeof AuthenticatedAccountCasesRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
     }
     '/_authenticated/account/claim': {
       id: '/_authenticated/account/claim'
@@ -1168,6 +1221,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HelpCategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/account/cases/$caseId': {
+      id: '/_authenticated/account/cases/$caseId'
+      path: '/$caseId'
+      fullPath: '/account/cases/$caseId'
+      preLoaderRoute: typeof AuthenticatedAccountCasesCaseIdRouteImport
+      parentRoute: typeof AuthenticatedAccountCasesRoute
+    }
     '/_authenticated/account/notes/new': {
       id: '/_authenticated/account/notes/new'
       path: '/notes/new'
@@ -1220,7 +1280,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAccountCasesRouteChildren {
+  AuthenticatedAccountCasesCaseIdRoute: typeof AuthenticatedAccountCasesCaseIdRoute
+}
+
+const AuthenticatedAccountCasesRouteChildren: AuthenticatedAccountCasesRouteChildren =
+  {
+    AuthenticatedAccountCasesCaseIdRoute: AuthenticatedAccountCasesCaseIdRoute,
+  }
+
+const AuthenticatedAccountCasesRouteWithChildren =
+  AuthenticatedAccountCasesRoute._addFileChildren(
+    AuthenticatedAccountCasesRouteChildren,
+  )
+
 interface AuthenticatedAccountRouteChildren {
+  AuthenticatedAccountCasesRoute: typeof AuthenticatedAccountCasesRouteWithChildren
   AuthenticatedAccountClaimRoute: typeof AuthenticatedAccountClaimRoute
   AuthenticatedAccountPreviewRoute: typeof AuthenticatedAccountPreviewRoute
   AuthenticatedAccountNotesNewRoute: typeof AuthenticatedAccountNotesNewRoute
@@ -1230,6 +1305,7 @@ interface AuthenticatedAccountRouteChildren {
 }
 
 const AuthenticatedAccountRouteChildren: AuthenticatedAccountRouteChildren = {
+  AuthenticatedAccountCasesRoute: AuthenticatedAccountCasesRouteWithChildren,
   AuthenticatedAccountClaimRoute: AuthenticatedAccountClaimRoute,
   AuthenticatedAccountPreviewRoute: AuthenticatedAccountPreviewRoute,
   AuthenticatedAccountNotesNewRoute: AuthenticatedAccountNotesNewRoute,
@@ -1281,6 +1357,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedJoinRoute: typeof AuthenticatedJoinRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedSavedPostsRoute: typeof AuthenticatedSavedPostsRoute
   AuthenticatedBusinessCoursesRoute: typeof AuthenticatedBusinessCoursesRoute
   AuthenticatedBusinessJoinRoute: typeof AuthenticatedBusinessJoinRoute
@@ -1296,6 +1373,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedJoinRoute: AuthenticatedJoinRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedSavedPostsRoute: AuthenticatedSavedPostsRoute,
   AuthenticatedBusinessCoursesRoute: AuthenticatedBusinessCoursesRoute,
   AuthenticatedBusinessJoinRoute: AuthenticatedBusinessJoinRoute,
