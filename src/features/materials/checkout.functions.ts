@@ -513,13 +513,23 @@ export const markOrderPaid = createServerFn({ method: "POST" })
     // stops staff from clobbering delivered/refunded/stamping rows and
     // overwriting paid_at / fps_reference, mirroring releaseOrder's gate.
     const { data: order } = await db
-      .from<OrderRow>("material_orders")
-      .select("id, status")
+      .from<{
+        id: string;
+        status: string;
+        digital_materials: { material_type: string } | null;
+      }>("material_orders")
+      .select("id, status, digital_materials(material_type)")
       .eq("id", data.orderId)
       .maybeSingle();
     if (!order) throw new Error("Order not found.");
     if (!canMarkOrderPaid(order.status)) {
       throw new Error(`Order in status "${order.status}" cannot be marked paid.`);
+    }
+    // Grok review 2026-10-17 (soft): gig orders have their own fulfillment
+    // machine — a wrong-desk call here would park one at notes-only "paid"
+    // with no fulfillment_due_at. Send staff to markGigOrderPaid instead.
+    if (order.digital_materials?.material_type === "gig") {
+      throw new Error("This order is for a service listing — mark it paid from the Services desk.");
     }
 
     const { error } = await db

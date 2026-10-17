@@ -47,7 +47,11 @@ const isNoteCurriculum = (value: string): value is (typeof NOTE_CURRICULA)[numbe
 export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
   const { t } = useTranslation();
   const [title, setTitle] = useState(existing?.title ?? "");
-  const [description, setDescription] = useState("");
+  // Hydrate the stored description on edit (grok review 2026-10-17): the
+  // submit gate requires a non-empty description, so an always-"" textarea
+  // left Submit for review permanently disabled until the tutor retyped
+  // the whole text blind.
+  const [description, setDescription] = useState(existing?.description ?? "");
   const [price, setPrice] = useState<string>(existing ? String(existing.priceHkd ?? "") : "");
   const [category, setCategory] = useState<string>(existing?.category ?? "");
   const [deliveryType, setDeliveryType] = useState<string>(existing?.deliveryType ?? "");

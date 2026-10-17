@@ -80,9 +80,11 @@ export function GigCard({ gig, className }: { gig: PublicGig; className?: string
           </p>
         </div>
 
-        <p className="text-xs font-semibold text-muted-foreground">
-          {t("gigs.bought_count_suffix", { count: gig.boughtCount })}
-        </p>
+        {gig.boughtCount > 0 ? (
+          <p className="text-xs font-semibold text-muted-foreground">
+            {t("gigs.bought_count_suffix", { count: gig.boughtCount })}
+          </p>
+        ) : null}
 
         <div className="mt-auto pt-1">
           {/* Clicking the tutor opens the profile, not the gig (stopPropagation

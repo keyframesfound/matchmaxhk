@@ -680,12 +680,18 @@ export const reviewGigListing = createServerFn({ method: "POST" })
       .maybeSingle();
     if (fetchError) throw new Error(fetchError.message);
     if (!row) throw new Error("Listing not found.");
-    const blocker = gigApprovalBlocker({
-      materialType: row.material_type,
-      gigCategory: row.gig_category,
-      integrityConfirmedAt: row.integrity_confirmed_at,
-    });
-    if (blocker) throw new Error(blocker);
+    // The integrity blocker gates PUBLISHING only (grok review 2026-10-17):
+    // staff must always be able to REJECT an integrity-missing document_review
+    // gig with a written reason — that is the exact path the queue hint
+    // recommends — so the check runs on the approve branch alone.
+    if (data.approve) {
+      const blocker = gigApprovalBlocker({
+        materialType: row.material_type,
+        gigCategory: row.gig_category,
+        integrityConfirmedAt: row.integrity_confirmed_at,
+      });
+      if (blocker) throw new Error(blocker);
+    }
 
     const action = data.approve ? "approve" : "reject";
     const next = nextStatus(row.status as MaterialStatus, action);

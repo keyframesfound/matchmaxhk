@@ -243,7 +243,11 @@ export function MaterialsOrdersDesk() {
       </div>
 
       {/* Notes / Services split (#328): same table, two fulfilment worlds. */}
-      <div className="flex flex-wrap items-center gap-1" role="tablist" aria-label="Order type">
+      <div
+        className="flex flex-wrap items-center gap-1"
+        role="tablist"
+        aria-label={t("gigs.admin_desk_tablist_label")}
+      >
         {(Object.keys(TAB_LABEL_KEYS) as DeskTab[]).map((key) => (
           <button
             key={key}
@@ -302,7 +306,7 @@ export function MaterialsOrdersDesk() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          aria-label="View payment screenshot"
+                          aria-label={t("gigs.admin_desk_view_screenshot")}
                           disabled={!order.has_screenshot}
                           onClick={() => screenshotMutation.mutate(order.id)}
                         >
@@ -360,7 +364,7 @@ export function MaterialsOrdersDesk() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            aria-label="Reject order"
+                            aria-label={t("gigs.admin_desk_reject_order")}
                             onClick={() =>
                               rejectMutation.mutate({
                                 orderId: order.id,
@@ -435,7 +439,7 @@ export function MaterialsOrdersDesk() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          aria-label="View payment screenshot"
+                          aria-label={t("gigs.admin_desk_view_screenshot")}
                           disabled={!order.hasScreenshot}
                           onClick={() => screenshotMutation.mutate(order.id)}
                         >

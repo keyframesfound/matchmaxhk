@@ -243,7 +243,12 @@ function GigServicesSection() {
     queryFn: () => getPublicGigs(category || null, 24),
   });
 
-  if (!isLoading && gigs.length === 0) return null;
+  // Cold-start grace vs dead-end filter (grok review 2026-10-17): the ""
+  // query IS the full list, so an empty "" result means no published gigs
+  // at all and the section stays hidden. A category filter returning zero
+  // must NOT unmount the chips — the parent would lose the "All services"
+  // way back — so filtered empties render an inline empty state instead.
+  if (!isLoading && category === "" && gigs.length === 0) return null;
 
   const chips: { value: string; label: string }[] = [
     { value: "", label: t("gigs.filter_all") },
@@ -285,6 +290,8 @@ function GigServicesSection() {
             <Skeleton key={i} className="h-56 rounded-lg border border-border" />
           ))}
         </div>
+      ) : gigs.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("gigs.directory_empty")}</p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {gigs.map((gig) => (

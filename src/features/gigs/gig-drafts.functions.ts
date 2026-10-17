@@ -82,6 +82,7 @@ const GigMetaInput = z.object({
 export type MyGigRow = {
   id: string;
   title: string;
+  description: string | null;
   status: MaterialStatus;
   priceHkd: number;
   rejectionReason: string | null;
@@ -432,6 +433,7 @@ export const getMyGigs = createServerFn({ method: "POST" })
       .from<{
         id: string;
         title: string;
+        description: string | null;
         status: MaterialStatus;
         price_hkd: number;
         rejection_reason: string | null;
@@ -447,7 +449,7 @@ export const getMyGigs = createServerFn({ method: "POST" })
         updated_at: string;
       }>("digital_materials")
       .select(
-        "id, title, status, price_hkd, rejection_reason, gig_category, gig_delivery_type, turnaround_note, turnaround_hours, curriculum_tag, subject_tag, cover_image_path, integrity_confirmed_at, created_at, updated_at",
+        "id, title, description, status, price_hkd, rejection_reason, gig_category, gig_delivery_type, turnaround_note, turnaround_hours, curriculum_tag, subject_tag, cover_image_path, integrity_confirmed_at, created_at, updated_at",
       )
       .eq("tutor_id", tutor.id)
       .eq("material_type", "gig")
@@ -457,6 +459,7 @@ export const getMyGigs = createServerFn({ method: "POST" })
     return (data ?? []).map((row) => ({
       id: row.id,
       title: row.title || "Untitled service",
+      description: row.description ?? null,
       status: row.status ?? "draft",
       priceHkd: Number(row.price_hkd ?? 0),
       rejectionReason: row.rejection_reason ?? null,
