@@ -68,7 +68,14 @@ export function BellMenu() {
   const items = data?.items ?? [];
 
   return (
-    <DropdownMenu modal={false}>
+    <DropdownMenu
+      modal={false}
+      onOpenChange={(open) => {
+        // #292 contract: the red dot clears when the list is opened — mark all
+        // read on open (same mark-all the /notifications page runs on mount).
+        if (open && unread > 0) markRead.mutate([]);
+      }}
+    >
       <DropdownMenuTrigger asChild>
         <button
           type="button"

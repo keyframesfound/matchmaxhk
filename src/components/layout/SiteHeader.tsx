@@ -446,48 +446,51 @@ export function SiteHeader({
               <span className={brandLabelClassName}>MatchMax</span>
             </div>
           </Link>
-          <StaggeredMobileMenu
-            items={mobileItems}
-            renderFooter={(closeMenu) => (
-              <div className="flex flex-col gap-3">
-                {!user ? (
-                  <>
-                    <Link to="/auth" onClick={closeMenu}>
-                      <Button
-                        variant="outline"
-                        className="h-10 w-full rounded-full border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
-                      >
-                        {t("nav.sign_in")}
-                      </Button>
-                    </Link>
-                    <Link to="/auth" onClick={closeMenu}>
-                      <Button
-                        variant="solid"
-                        color="blue"
-                        className="h-10 w-full rounded-full text-sm font-semibold"
-                      >
-                        {t("nav.sign_up")}
-                      </Button>
-                    </Link>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void signOut();
-                      closeMenu();
-                    }}
-                    className="h-10 w-full rounded-full border border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
-                  >
-                    {t("nav.sign_out")}
-                  </button>
-                )}
-                <div className="flex items-center justify-start pt-2">
-                  <LanguageToggle />
+          <div className="flex shrink-0 items-center gap-1">
+            {user && <BellMenu />}
+            <StaggeredMobileMenu
+              items={mobileItems}
+              renderFooter={(closeMenu) => (
+                <div className="flex flex-col gap-3">
+                  {!user ? (
+                    <>
+                      <Link to="/auth" onClick={closeMenu}>
+                        <Button
+                          variant="outline"
+                          className="h-10 w-full rounded-full border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
+                        >
+                          {t("nav.sign_in")}
+                        </Button>
+                      </Link>
+                      <Link to="/auth" onClick={closeMenu}>
+                        <Button
+                          variant="solid"
+                          color="blue"
+                          className="h-10 w-full rounded-full text-sm font-semibold"
+                        >
+                          {t("nav.sign_up")}
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void signOut();
+                        closeMenu();
+                      }}
+                      className="h-10 w-full rounded-full border border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
+                    >
+                      {t("nav.sign_out")}
+                    </button>
+                  )}
+                  <div className="flex items-center justify-start pt-2">
+                    <LanguageToggle />
+                  </div>
                 </div>
-              </div>
-            )}
-          />
+              )}
+            />
+          </div>
         </div>
       </div>
       <MobileBottomNav />

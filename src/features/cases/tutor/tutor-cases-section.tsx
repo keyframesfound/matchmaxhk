@@ -218,9 +218,15 @@ function LessonRow({
               size="sm"
               variant="outline"
               disabled={busy}
-              onClick={() =>
-                showNote && note ? done.mutate() : (setShowNote(true), done.mutate())
-              }
+              onClick={() => {
+                if (!showNote) {
+                  // First click reveals the private-note field; the note is
+                  // optional — the second click submits with whatever is there.
+                  setShowNote(true);
+                  return;
+                }
+                done.mutate();
+              }}
             >
               <Check className="h-4 w-4" />
               {t("sor.tutor_mark_done")}
