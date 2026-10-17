@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { BellMenu } from "@/components/layout/bell-menu";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
@@ -254,6 +255,8 @@ export function SiteHeader({
             >
               {t("nav.become_tutor")}
             </Link>
+
+            {user && <BellMenu />}
 
             {user ? (
               <Link

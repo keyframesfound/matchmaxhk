@@ -83,14 +83,18 @@ export const DELIVERY_PLAN: Readonly<
     { channel: "email", role: "parent" },
   ],
   "review.published": [{ channel: "in_app", role: "tutor" }],
+  // Concierge unpaid-fee digest (#205). Generated at most once per 24h by the
+  // drain; not a bell item for parents/tutors.
+  "admin_fee.digest": [
+    { channel: "in_app", role: "concierge" },
+    { channel: "email", role: "concierge" },
+  ],
 };
 
 export type PlannedDelivery = { channel: BusChannel; role: BusRole };
 
 export type PlanResult =
-  | { kind: "deliver"; deliveries: PlannedDelivery[] }
-  | { kind: "skip" }
-  | { kind: "unknown" };
+  { kind: "deliver"; deliveries: PlannedDelivery[] } | { kind: "skip" } | { kind: "unknown" };
 
 /**
  * Pure classifier for one pending event. Unknown types are stored as failed,
@@ -105,10 +109,7 @@ export function planDeliveriesForEvent(eventType: string): PlanResult {
 }
 
 /** Deep links for bell items (#292: each item opens the related page). */
-export function bellLinkFor(
-  eventType: string,
-  payload: Record<string, unknown>,
-): string | null {
+export function bellLinkFor(eventType: string, payload: Record<string, unknown>): string | null {
   const caseId = typeof payload.case_id === "string" ? payload.case_id : null;
   switch (eventType) {
     case "note_order.delivered": {

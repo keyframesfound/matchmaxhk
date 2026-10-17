@@ -2050,5 +2050,20 @@
     "refund_requested_toast": "已要求退款。",
     "cancel": "取消",
     "completion_note_title": "導師備註"
+  },
+  "sor": {
+    "bell_aria": "通知，{{count}} 則未讀",
+    "bell_empty": "暫時沒有通知",
+    "bell_view_all": "查看所有通知",
+    "notifications_title": "通知",
+    "bell_note_sold": "筆記已售出",
+    "bell_order_delivered": "訂單已交付",
+    "bell_new_review": "你的卡片有新評價",
+    "bell_review_prompt": "課堂如何？留下評價",
+    "bell_lesson_tomorrow": "明天有課堂",
+    "bell_fee_due": "行政費到期",
+    "bell_fee_unpaid": "行政費尚未繳付",
+    "bell_unpaid_digest": "未繳費用摘要",
+    "bell_update": "最新動態"
   }
 }

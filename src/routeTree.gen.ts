@@ -24,6 +24,7 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedJoinRouteImport } from './routes/_authenticated.join'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
 import { Route as BusinessSlugRouteImport } from './routes/business.$slug'
 import { Route as CoursesIndexRouteImport } from './routes/courses.index'
@@ -144,6 +145,12 @@ const AuthenticatedJoinRoute = AuthenticatedJoinRouteImport.update({
   path: '/join',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSavedPostsRoute = AuthenticatedSavedPostsRouteImport.update({
   id: '/saved-posts',
   path: '/saved-posts',
@@ -407,6 +414,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/join': typeof AuthenticatedJoinRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
@@ -467,6 +475,7 @@ export interface FileRoutesByTo {
   '/account': typeof AuthenticatedAccountRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/join': typeof AuthenticatedJoinRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
@@ -530,6 +539,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/join': typeof AuthenticatedJoinRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
@@ -593,6 +603,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/join'
+    | '/notifications'
     | '/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
@@ -653,6 +664,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/dashboard'
     | '/join'
+    | '/notifications'
     | '/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
@@ -715,6 +727,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/join'
+    | '/_authenticated/notifications'
     | '/_authenticated/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
@@ -900,6 +913,13 @@ declare module '@tanstack/react-router' {
       path: '/join'
       fullPath: '/join'
       preLoaderRoute: typeof AuthenticatedJoinRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/saved-posts': {
@@ -1281,6 +1301,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedJoinRoute: typeof AuthenticatedJoinRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedSavedPostsRoute: typeof AuthenticatedSavedPostsRoute
   AuthenticatedBusinessCoursesRoute: typeof AuthenticatedBusinessCoursesRoute
   AuthenticatedBusinessJoinRoute: typeof AuthenticatedBusinessJoinRoute
@@ -1296,6 +1317,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedJoinRoute: AuthenticatedJoinRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedSavedPostsRoute: AuthenticatedSavedPostsRoute,
   AuthenticatedBusinessCoursesRoute: AuthenticatedBusinessCoursesRoute,
   AuthenticatedBusinessJoinRoute: AuthenticatedBusinessJoinRoute,

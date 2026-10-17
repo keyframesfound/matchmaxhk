@@ -2050,5 +2050,20 @@
     "refund_requested_toast": "Refund requested.",
     "cancel": "Cancel",
     "completion_note_title": "Tutor's note"
+  },
+  "sor": {
+    "bell_aria": "Notifications, {{count}} unread",
+    "bell_empty": "No notifications yet",
+    "bell_view_all": "View all notifications",
+    "notifications_title": "Notifications",
+    "bell_note_sold": "Note sold",
+    "bell_order_delivered": "Order delivered",
+    "bell_new_review": "New review on your card",
+    "bell_review_prompt": "How was the lesson? Leave a review",
+    "bell_lesson_tomorrow": "Lesson tomorrow",
+    "bell_fee_due": "Admin fee due",
+    "bell_fee_unpaid": "Admin fee still unpaid",
+    "bell_unpaid_digest": "Unpaid fees digest",
+    "bell_update": "Update"
   }
 }
