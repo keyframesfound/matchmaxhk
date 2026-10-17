@@ -1316,6 +1316,21 @@
     "back_home": "Back to home",
     "star_label_other": "{{count}} stars"
   },
+  "engagement": {
+    "badge": {
+      "one_slot_left": "Only 1 slot left",
+      "high_demand": "High demand",
+      "popular": "Popular"
+    },
+    "parent_favorite": "Parent Favorite",
+    "profile": {
+      "inquiries_7d": "{{count}} parents inquired in the last 7 days",
+      "saves": "Saved by {{count}} parents"
+    }
+  },
+  "home": {
+    "trending_title": "Most Requested Tutors This Week"
+  },
   "report": {
     "button_aria": "Report {{item}}",
     "inline_link": "Report {{item}}",

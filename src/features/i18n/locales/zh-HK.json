@@ -1316,6 +1316,21 @@
     "back_home": "返回主頁",
     "star_label_other": "{{count}} 星"
   },
+  "engagement": {
+    "badge": {
+      "one_slot_left": "只剩 1 個名額",
+      "high_demand": "反應熱烈",
+      "popular": "熱門"
+    },
+    "parent_favorite": "家長最愛",
+    "profile": {
+      "inquiries_7d": "過去 7 日有 {{count}} 位家長查詢",
+      "saves": "已獲 {{count}} 位家長儲存"
+    }
+  },
+  "home": {
+    "trending_title": "本週最多家長查詢的導師"
+  },
   "report": {
     "button_aria": "舉報{{item}}",
     "inline_link": "舉報{{item}}",
