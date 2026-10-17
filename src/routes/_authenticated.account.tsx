@@ -722,6 +722,20 @@ function AccountPage() {
                       {t("orders.preparing_badge")}
                     </span>
                   )}
+                  {row.action === "awaiting_delivery" && (
+                    <span className="rounded-md bg-accent px-2.5 py-1 text-xs font-bold text-accent-foreground">
+                      {t("account.order_awaiting_delivery")}
+                    </span>
+                  )}
+                  {row.action === "request_refund" && (
+                    <Link
+                      to="/orders/$orderId"
+                      params={{ orderId: row.orderId }}
+                      className="text-xs font-semibold text-rose-600 hover:underline"
+                    >
+                      {t("account.order_past_due")}
+                    </Link>
+                  )}
                   {row.action === "pay" && (
                     <Link
                       to="/orders/$orderId"

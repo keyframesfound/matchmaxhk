@@ -31,9 +31,16 @@ import { ReportMenuButton } from "@/features/reports/report-button";
  */
 
 export const Route = createFileRoute("/notes/$slug")({
-  head: ({ params }) => ({
+  head: ({ params, loaderData }) => ({
     meta: [
-      { title: "Notes | MatchMax" },
+      {
+        // #326: gigs ride the /notes/$slug rails but are services, not notes.
+        title:
+          (loaderData as { note?: { materialType?: string } | null } | undefined)?.note
+            ?.materialType === "gig"
+            ? "Service | MatchMax"
+            : "Notes | MatchMax",
+      },
       { property: "og:type", content: "product" },
       { property: "og:url", content: `https://matchmax.hk/notes/${params.slug}` },
       { name: "description", content: "Preview and buy study notes on MatchMax." },
