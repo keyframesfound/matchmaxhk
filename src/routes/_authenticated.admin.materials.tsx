@@ -2,7 +2,17 @@ import { useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { BookOpen, Download, FileUp, Loader2, Pencil, Star } from "lucide-react";
+import {
+  BookOpen,
+  Check,
+  Download,
+  FileUp,
+  Image as ImageIcon,
+  Loader2,
+  Pencil,
+  Star,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -29,13 +39,22 @@ import {
 import {
   getMaterialOriginalUrl,
   listAllMaterialsAdmin,
+  listPendingGigReviews,
+  reviewGigListing,
   updateMaterialAdmin,
   type AdminMaterialRow,
+  type PendingGigReviewRow,
 } from "@/features/materials/materials.functions";
 import {
   exportTutorPayoutCsv,
   parsePayoutMonthWindow,
 } from "@/features/materials/orders.functions";
+import {
+  DEFAULT_TURNAROUND_HOURS,
+  findIntegrityRedFlags,
+  gigCategoryLabelKey,
+  gigDeliveryLabelKey,
+} from "@/features/gigs/gig";
 
 import { MaterialsOrdersDesk } from "@/features/materials/materials-orders-desk";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
@@ -309,6 +328,13 @@ function AdminMaterials() {
           </Button>
         </div>
       </div>
+
+      {/* -----------------------------------------------------------------
+          Gig review queue (#326/#327): pending freestyle listings with the
+          cover, category, delivery type, turnaround and integrity state —
+          red-flag copy needs a human decision, never an auto-reject.
+      ------------------------------------------------------------------ */}
+      <GigReviewQueue />
 
       <ConsoleTable>
         <ConsoleTableHead>
@@ -702,6 +728,247 @@ function AdminMaterials() {
         }}
       />
     </div>
+  );
+}
+
+/** Rejection presets for gig listings (the value is stored in rejection_reason). */
+const GIG_REJECT_PRESETS: { labelKey: string; value: string }[] = [
+  {
+    labelKey: "gigs.admin_reject_preset_integrity",
+    value:
+      "Academic integrity: this listing offers to complete graded work for the student, which MatchMax does not allow.",
+  },
+  {
+    labelKey: "gigs.admin_reject_preset_scarcity",
+    value:
+      "Not allowed on MatchMax: seat-scarcity or tutor-recruiting copy must not appear in listings.",
+  },
+];
+
+/**
+ * #326/#327: the gig review queue. Pending freestyle listings with cover
+ * thumb, category, delivery type, turnaround, and — for document_review —
+ * the academic-integrity state (approving without the recorded confirmation
+ * is blocked server-side; the button mirrors that). Red-flag copy shows a
+ * human-review banner: a hint to staff, never an auto-reject. Gig approval
+ * requires no file stamping — gigs carry no original/preview pipeline.
+ */
+function GigReviewQueue() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [rejectTarget, setRejectTarget] = useState<PendingGigReviewRow | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [presetKey, setPresetKey] = useState("");
+
+  const reviewsQuery = useQuery({
+    queryKey: ["admin", "gig-reviews"],
+    queryFn: listPendingGigReviews,
+  });
+
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: ["admin", "gig-reviews"] });
+    void queryClient.invalidateQueries({ queryKey: ["admin", "materials"] });
+  };
+
+  const reviewMutation = useMutation({
+    mutationFn: (input: { materialId: string; approve: boolean; reason?: string }) =>
+      reviewGigListing({ data: input }),
+    onSuccess: () => {
+      toast.success(t("gigs.admin_review_decided"));
+      setRejectTarget(null);
+      setRejectReason("");
+      void invalidate();
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Review failed."),
+  });
+
+  const rows = reviewsQuery.data ?? [];
+  if (reviewsQuery.isLoading || rows.length === 0) return null;
+
+  return (
+    <section className="space-y-3 rounded-md border border-amber-500/40 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-base font-bold">{t("gigs.admin_review_title")}</h3>
+        <p className="text-sm text-[color:var(--ink)]/65">
+          {t("gigs.admin_review_count", { count: rows.length })}
+        </p>
+      </div>
+      <div className="space-y-3">
+        {rows.map((row) => {
+          const flags = findIntegrityRedFlags(`${row.title}\n${row.description ?? ""}`);
+          const integrityMissing =
+            row.gig_category === "document_review" && !row.integrity_confirmed_at;
+          const coverUrl = row.cover_image_path
+            ? (supabase.storage.from("materials-previews").getPublicUrl(row.cover_image_path).data
+                ?.publicUrl ?? "")
+            : "";
+          return (
+            <div key={row.id} className="space-y-2 rounded-md border border-border p-3">
+              <div className="flex flex-wrap items-start gap-3">
+                {coverUrl ? (
+                  <img
+                    src={coverUrl}
+                    alt={t("gigs.admin_cover_alt")}
+                    className="h-12 w-12 shrink-0 rounded-md border border-border object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground"
+                    aria-hidden
+                  >
+                    <ImageIcon className="h-5 w-5" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-[color:var(--ink)]">{row.title}</p>
+                  <p className="text-xs text-[color:var(--ink)]/55">
+                    {row.tutors?.display_name ?? "—"} ({row.tutors?.tutor_code ?? ""}) · HK$
+                    {Number(row.price_hkd).toFixed(0)}
+                  </p>
+                  {row.description && (
+                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-[color:var(--ink)]/65">
+                      {row.description}
+                    </p>
+                  )}
+                </div>
+                <div className="text-xs text-[color:var(--ink)]/65">
+                  <p>{t(gigCategoryLabelKey(row.gig_category ?? "other"))}</p>
+                  <p>{t(gigDeliveryLabelKey(row.gig_delivery_type ?? "file_back"))}</p>
+                  <p>
+                    {row.turnaround_note ||
+                      t("gigs.admin_turnaround_hours", {
+                        hours: row.turnaround_hours ?? DEFAULT_TURNAROUND_HOURS,
+                      })}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  {row.gig_category === "document_review" && (
+                    <span
+                      className={
+                        integrityMissing
+                          ? "rounded-md bg-rose-500/10 px-2 py-0.5 text-xs font-bold text-rose-700"
+                          : "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-700"
+                      }
+                    >
+                      {integrityMissing
+                        ? t("gigs.admin_review_integrity_missing")
+                        : t("gigs.admin_review_integrity_ok")}
+                    </span>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={integrityMissing || reviewMutation.isPending}
+                      onClick={() => reviewMutation.mutate({ materialId: row.id, approve: true })}
+                    >
+                      <Check className="mr-1 h-4 w-4" aria-hidden />
+                      {t("gigs.admin_review_approve")}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label={t("gigs.admin_review_reject")}
+                      onClick={() => {
+                        setRejectReason("");
+                        setPresetKey("");
+                        setRejectTarget(row);
+                      }}
+                    >
+                      <X className="h-4 w-4" aria-hidden />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              {flags.length > 0 && (
+                <div className="rounded-md border border-amber-500/50 bg-amber-500/10 p-2">
+                  <p className="text-xs font-bold text-amber-800">
+                    {t("gigs.admin_review_red_flag_banner")}
+                  </p>
+                  <p className="mt-1 break-all font-mono text-[10px] text-amber-700">
+                    {flags.join(" · ")}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Reject dialog: preset chips fill an editable reason that is stored
+          in rejection_reason (the tutor sees it in Account). */}
+      <Dialog
+        open={Boolean(rejectTarget)}
+        onOpenChange={(open) => {
+          if (!open) setRejectTarget(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("gigs.admin_review_reject_title")}</DialogTitle>
+            <DialogDescription>{rejectTarget?.title ?? ""}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="gig-reject-preset">{t("gigs.admin_reject_preset_label")}</Label>
+              <select
+                id="gig-reject-preset"
+                value={presetKey}
+                onChange={(event) => {
+                  setPresetKey(event.target.value);
+                  const preset = GIG_REJECT_PRESETS.find((p) => p.labelKey === event.target.value);
+                  if (preset) setRejectReason(preset.value);
+                }}
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+              >
+                <option value="">{t("gigs.admin_reject_preset_placeholder")}</option>
+                {GIG_REJECT_PRESETS.map((preset) => (
+                  <option key={preset.labelKey} value={preset.labelKey}>
+                    {t(preset.labelKey)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="gig-reject-reason">
+                {t("gigs.admin_review_reject_reason_label")}
+              </Label>
+              <textarea
+                id="gig-reject-reason"
+                rows={3}
+                maxLength={500}
+                value={rejectReason}
+                onChange={(event) => setRejectReason(event.target.value)}
+                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectTarget(null)}>
+              {t("gigs.admin_desk_cancel")}
+            </Button>
+            <Button
+              className="font-bold"
+              disabled={rejectReason.trim().length < 3 || reviewMutation.isPending}
+              onClick={() =>
+                rejectTarget &&
+                reviewMutation.mutate({
+                  materialId: rejectTarget.id,
+                  approve: false,
+                  reason: rejectReason.trim(),
+                })
+              }
+            >
+              {reviewMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+              ) : null}
+              {t("gigs.admin_review_reject_confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </section>
   );
 }
 
