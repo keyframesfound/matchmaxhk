@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { CaseDetailView } from "@/features/cases/admin/CaseDetailView";
+import { SorDeskTools } from "@/features/cases/admin/sor-desk";
 import {
   CASE_STATUSES,
   MODE_LABEL,
@@ -282,6 +283,9 @@ function AdminCases() {
             />
           ) : (
             <div className="space-y-8">
+              {/* SoR tools (#201): new case, CSV import, unpaid queue */}
+              <SorDeskTools />
+
               {/* Header Bar */}
               <div className="flex flex-col gap-4 border-b border-[color:var(--ink)]/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>

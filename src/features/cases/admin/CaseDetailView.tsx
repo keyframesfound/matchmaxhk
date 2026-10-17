@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
+import { SorCasePanel } from "@/features/cases/admin/sor-desk";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -261,6 +262,10 @@ export function CaseDetailView({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
+        {/* SoR panel (#201): status machine, lessons 1–2, admin fee, audit */}
+        <div className="space-y-6 lg:col-span-3">
+          <SorCasePanel caseId={caseRow.id} />
+        </div>
         {/* Left column: requirements + contact + notes */}
         <div className="space-y-6 lg:col-span-2">
           <ConsolePanel>
