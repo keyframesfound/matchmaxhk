@@ -5,14 +5,18 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { findContactViolations } from "@/lib/contact-filter";
 import { watermarkPdfPreview, PREVIEW_PAGE_LIMIT } from "@/features/materials/watermark";
+import { asAdminDb } from "@/features/materials/storage-helpers";
 import {
   isAllowedMaterialFile,
   legacyDocumentTypeToMaterialType,
   materialFileContentType,
   materialFileKind,
   MAX_APKG_BYTES,
+  nextStatus,
   validateNoteKindsForSubmit,
+  type MaterialStatus,
 } from "@/features/materials/lifecycle";
+import { gigApprovalBlocker } from "@/features/gigs/gig-staff.functions";
 
 /**
  * Issues #131/#132/#133: server-side upload pipeline for the study-materials
@@ -527,6 +531,30 @@ export const updateMaterialAdmin = createServerFn({ method: "POST" })
     if (!isAdmin) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Grok review 2026-10-17 (soft #3, tightened): publishing from the admin
+    // materials page must clear the same gig integrity gate as the review
+    // queue — otherwise an integrity-missing document_review gig can be
+    // flipped to published from the desk, bypassing gigApprovalBlocker.
+    // Non-gig rows always pass (gigApprovalBlocker returns null for them).
+    if (data.isPublished === true) {
+      const db = asAdminDb(supabaseAdmin);
+      const { data: row } = await db
+        .from<{
+          material_type: string;
+          gig_category: string | null;
+          integrity_confirmed_at: string | null;
+        }>("digital_materials")
+        .select("material_type, gig_category, integrity_confirmed_at")
+        .eq("id", data.materialId)
+        .maybeSingle();
+      if (!row) throw new Error("Listing not found.");
+      const blocker = gigApprovalBlocker({
+        materialType: row.material_type,
+        gigCategory: row.gig_category,
+        integrityConfirmedAt: row.integrity_confirmed_at,
+      });
+      if (blocker) throw new Error(blocker);
+    }
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
     // is_published moved to the status machine (#203): admin publish/unpublish
     // and reject-with-reason both land here. Rejections store the reason the
@@ -558,6 +586,160 @@ export const updateMaterialAdmin = createServerFn({ method: "POST" })
       .eq("id", data.materialId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+export type PendingGigReviewRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  price_hkd: number;
+  gig_category: string | null;
+  gig_delivery_type: string | null;
+  turnaround_note: string | null;
+  turnaround_hours: number | null;
+  cover_image_path: string | null;
+  integrity_confirmed_at: string | null;
+  created_at: string;
+  tutors: { display_name: string; tutor_code: string } | null;
+};
+
+/**
+ * #326/#327: the gig review queue — pending_review gig listings with the
+ * fields staff need to judge them (category, delivery type, turnaround,
+ * cover, and the document_review integrity timestamp). Oldest first so the
+ * queue drains in submission order.
+ */
+export const listPendingGigReviews = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<PendingGigReviewRow[]> => {
+    const client = context.supabase as unknown as {
+      rpc: (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error?: { message?: string } }>;
+    };
+    let isAdmin = false;
+    for (const role of ["admin", "super_admin"] as const) {
+      const { data: ok, error } = await client.rpc("has_role", {
+        _user_id: context.userId,
+        _role: role,
+      });
+      if (!error && ok === true) {
+        isAdmin = true;
+        break;
+      }
+    }
+    if (!isAdmin) throw new Error("Forbidden");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    const { data, error } = await db
+      .from<PendingGigReviewRow>("digital_materials")
+      .select(
+        "id, title, description, price_hkd, gig_category, gig_delivery_type, turnaround_note, turnaround_hours, cover_image_path, integrity_confirmed_at, created_at, tutors(display_name, tutor_code)",
+      )
+      .eq("status", "pending_review")
+      .eq("material_type", "gig")
+      .order("created_at", { ascending: true })
+      .limit(50);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+/**
+ * #326/#327 gig review decision: approve (pending_review -> published) or
+ * reject with a written reason (stored in rejection_reason like notes).
+ * Gig rules enforced server-side:
+ *   - a document_review gig WITHOUT integrity_confirmed_at can never be
+ *     approved (gigApprovalBlocker);
+ *   - gigs carry NO original file / watermarked preview, so approval —
+ *     unlike the notes stamp pipeline — requires no stamping at all.
+ */
+export const reviewGigListing = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        materialId: z.string().uuid(),
+        approve: z.boolean(),
+        reason: z.string().trim().min(3).max(500).optional(),
+      })
+      .refine((v) => v.approve || (v.reason ?? "").length >= 3, {
+        message: "A reject reason is required.",
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const client = context.supabase as unknown as {
+      rpc: (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error?: { message?: string } }>;
+    };
+    let isAdmin = false;
+    for (const role of ["admin", "super_admin"] as const) {
+      const { data: ok, error } = await client.rpc("has_role", {
+        _user_id: context.userId,
+        _role: role,
+      });
+      if (!error && ok === true) {
+        isAdmin = true;
+        break;
+      }
+    }
+    if (!isAdmin) throw new Error("Forbidden");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    const { data: row, error: fetchError } = await db
+      .from<{
+        id: string;
+        status: string;
+        material_type: string;
+        gig_category: string | null;
+        integrity_confirmed_at: string | null;
+      }>("digital_materials")
+      .select("id, status, material_type, gig_category, integrity_confirmed_at")
+      .eq("id", data.materialId)
+      .maybeSingle();
+    if (fetchError) throw new Error(fetchError.message);
+    if (!row) throw new Error("Listing not found.");
+    // The integrity blocker gates PUBLISHING only (grok review 2026-10-17):
+    // staff must always be able to REJECT an integrity-missing document_review
+    // gig with a written reason — that is the exact path the queue hint
+    // recommends — so the check runs on the approve branch alone.
+    if (data.approve) {
+      const blocker = gigApprovalBlocker({
+        materialType: row.material_type,
+        gigCategory: row.gig_category,
+        integrityConfirmedAt: row.integrity_confirmed_at,
+      });
+      if (blocker) throw new Error(blocker);
+    }
+
+    const action = data.approve ? "approve" : "reject";
+    const next = nextStatus(row.status as MaterialStatus, action);
+    if (!next) {
+      throw new Error(`Listing in status "${row.status}" cannot be ${action}d.`);
+    }
+
+    const patch: Record<string, unknown> = {
+      status: next,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: context.userId,
+    };
+    if (data.approve) {
+      patch.rejection_reason = null;
+      patch.edit_status = null;
+    } else {
+      patch.rejection_reason = data.reason;
+    }
+    const { error } = await db
+      .from<never>("digital_materials")
+      .update(patch)
+      .eq("id", data.materialId);
+    if (error) throw new Error(error.message);
+    return { ok: true, status: next };
   });
 
 export { bytesToBase64 };

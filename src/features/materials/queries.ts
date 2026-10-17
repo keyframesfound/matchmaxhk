@@ -76,34 +76,21 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
 }
 
 /** Minimal structural type for the untyped table access below. */
+type AfterFilter = {
+  eq: (col: string, value: string | boolean) => AfterFilter;
+  neq: (col: string, value: string) => AfterFilter;
+  order: (
+    col: string,
+    opts: { ascending: boolean },
+  ) => Promise<{
+    data: Record<string, unknown>[] | null;
+    error?: { code?: string; message?: string } | null;
+  }>;
+};
+
 type MaterialsQuery = {
   from: (table: string) => {
-    select: (cols: string) => {
-      eq: (
-        col: string,
-        value: string | boolean,
-      ) => {
-        eq: (
-          col: string,
-          value: string | boolean,
-        ) => {
-          order: (
-            col: string,
-            opts: { ascending: boolean },
-          ) => Promise<{
-            data: Record<string, unknown>[] | null;
-            error?: { code?: string; message?: string } | null;
-          }>;
-        };
-        order: (
-          col: string,
-          opts: { ascending: boolean },
-        ) => Promise<{
-          data: Record<string, unknown>[] | null;
-          error?: { code?: string; message?: string } | null;
-        }>;
-      };
-    };
+    select: (cols: string) => AfterFilter;
   };
 };
 
@@ -121,6 +108,10 @@ export async function fetchMaterialsForTutor(tutorId: string): Promise<StudyMate
     .select(MATERIAL_COLS)
     .eq("tutor_id", tutorId)
     .eq("status", "published")
+    // Freestyle gigs (material_type 'gig') are SERVICES, not notes — they
+    // render only in the Tutor services surfaces (grok review 2026-10-17),
+    // never inside the authored-notes block.
+    .neq("material_type", "gig")
     .order("created_at", { ascending: false });
   if (error) {
     if (isMissingRelation(error)) return [];
@@ -143,6 +134,11 @@ export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]
       `${MATERIAL_COLS}, tutors!inner(display_name, tutor_code, is_published, verification_tier)`,
     )
     .eq("status", "published")
+    // Gigs are services — excluded from the notes marketplace grid here;
+    // they render solely through get_public_gigs / GigServicesSection
+    // (grok review 2026-10-17: otherwise a gig shows as a note card AND
+    // a service chip).
+    .neq("material_type", "gig")
     .order("created_at", { ascending: false });
   if (error) {
     if (isMissingRelation(error)) return [];

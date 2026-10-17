@@ -278,6 +278,12 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     assertOwnedDeliveredOrder(order, context.userId);
 
+    // #328: a delivered gig order carries its file in delivered_file_path and
+    // has NO listing-level original (original_file_path is NULL on gig rows),
+    // so the original is only REQUIRED when there is no delivered copy.
+    const deliveredPath = (order as unknown as { delivered_file_path?: string | null })
+      ?.delivered_file_path;
+
     const { data: material, error: materialError } = await (
       supabaseAdmin as unknown as OrdersClient
     )
@@ -287,15 +293,17 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
       .maybeSingle();
     const originalPath = (material as unknown as { original_file_path?: string })
       ?.original_file_path;
-    if (materialError || !originalPath) throw new Error("Material not found");
+    if (materialError || (!originalPath && !deliveredPath)) {
+      throw new Error("Material not found");
+    }
 
     // #203: prefer the per-order STAMPED copy (order id + buyer footer) that
     // releaseOrder produced (stored in materials-originals under delivered/);
     // fall back to the raw original only if the stamped file is missing
-    // (e.g. #250-era delivered orders).
-    const deliveredPath = (order as unknown as { delivered_file_path?: string | null })
-      ?.delivered_file_path;
+    // (e.g. #250-era delivered orders). Gig file_back returns live only in
+    // delivered_file_path — the pathToSign fallback order covers them.
     const pathToSign = deliveredPath || originalPath;
+    if (!pathToSign) throw new Error("Material not found");
 
     const { data: signed, error: signError } = await supabaseAdmin.storage
       .from("materials-originals")

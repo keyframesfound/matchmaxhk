@@ -20,6 +20,7 @@ import {
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { HomeNotesRow } from "@/features/materials/home-notes-row";
+import { HomeGigsRow } from "@/features/gigs/home-gigs-row";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
 import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
 import { cn } from "@/lib/utils";
@@ -632,6 +633,11 @@ function Landing() {
               {/* Issue #312: approved notes under the search bar, above the
                   IB rail; renders nothing below three public notes. */}
               <HomeNotesRow />
+              {/* Issue #329: Tutor services row — ORDER IS SEMANTIC: the
+                  notes row (#312) stays first, gigs sit immediately below it.
+                  Same ≥3-listings guardrail; renders nothing when the gigs
+                  RPC is missing or fewer than three services are published. */}
+              <HomeGigsRow />
               {/* Issue #151 Option A: trending showcase; hidden entirely
                   (existing page) until 3+ tutors clear the guardrail. */}
               {trendingEntries.length > 0 ? (

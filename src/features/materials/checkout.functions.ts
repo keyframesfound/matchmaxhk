@@ -11,6 +11,8 @@ import {
   orderGrantsAccess,
   splitMaterialMoney,
 } from "@/features/materials/lifecycle";
+import { gigOrderBuyerAction } from "@/features/gigs/gig";
+import { sweepPastDueGigOrders } from "@/features/gigs/gig-buyer.functions";
 
 /**
  * Issues #203 + P13 (#293): the manual-cashier checkout server functions.
@@ -52,6 +54,13 @@ type OrderRow = {
   delivered_at: string | null;
   receipt_sent_at: string | null;
   created_at: string;
+  // #328 gig fulfillment columns (null on note orders).
+  in_fulfillment_at: string | null;
+  fulfillment_due_at: string | null;
+  past_due_at: string | null;
+  buyer_source_path: string | null;
+  completion_note: string | null;
+  refund_requested_at: string | null;
 };
 
 type PublicMaterialRow = {
@@ -64,6 +73,8 @@ type PublicMaterialRow = {
   material_type: string;
   page_count: number | null;
   tutor_id: string;
+  gig_category: string | null;
+  gig_delivery_type: string | null;
 };
 
 type OrderWithMaterial = OrderRow & { digital_materials: PublicMaterialRow | null };
@@ -165,14 +176,17 @@ export const startCheckout = createServerFn({ method: "POST" })
     const { data: material } = await db
       .from<PublicMaterialRow>("digital_materials")
       .select(
-        "id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id",
+        "id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id, gig_category, gig_delivery_type",
       )
       .eq("id", data.materialId)
       .maybeSingle();
     if (!material || material.status !== "published") {
       throw new Error("This note is not available right now.");
     }
-    if (!material.original_file_path) {
+    // #326: gigs have NO listing-level source file (file_back returns ride
+    // the ORDER after payment; session/package gigs carry no file at all),
+    // so the notes "original must exist" gate is notes-only.
+    if (material.material_type !== "gig" && !material.original_file_path) {
       throw new Error("This note is not available right now.");
     }
     // #314: HK$0 free packs ARE purchasable — they run the same manual
@@ -269,10 +283,19 @@ export type MyOrder = {
   hasScreenshot: boolean;
   createdAt: string;
   deliveredAt: string | null;
-  action: "download" | "refunded" | "preparing" | "pay";
+  action: "download" | "refunded" | "preparing" | "pay" | "awaiting_delivery" | "request_refund";
+  // --- Freestyle gig fields (#328): populated only for material_type 'gig'.
+  materialType: string;
+  gigCategory: string | null;
+  gigDeliveryType: string | null;
+  fulfillmentDueAt: string | null;
+  completionNote: string | null;
+  hasSourceFile: boolean;
+  hasDeliveredFile: boolean;
 };
 
-function orderAction(status: string): MyOrder["action"] {
+function orderAction(status: string, materialType?: string): MyOrder["action"] {
+  if (materialType === "gig") return gigOrderBuyerAction(status);
   if (status === "awaiting_payment" || status === "rejected") return "pay";
   return boughtListAction(status);
 }
@@ -285,10 +308,14 @@ export const getMyOrder = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
 
+    // #328 lazy sweep first: the buyer's read is the freshest chance to flip
+    // an over-due in_fulfillment gig to past_due (advisory, never throws).
+    await sweepPastDueGigOrders(db);
+
     const { data: order } = await db
       .from<OrderWithMaterial>("material_orders")
       .select(
-        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id)",
+        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, buyer_source_path, completion_note, fulfillment_due_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id, gig_category, gig_delivery_type)",
       )
       .eq("id", data.orderId)
       .eq("buyer_account_id", context.userId)
@@ -307,7 +334,14 @@ export const getMyOrder = createServerFn({ method: "POST" })
       hasScreenshot: Boolean(order.payment_screenshot_path),
       createdAt: order.created_at,
       deliveredAt: order.delivered_at,
-      action: orderAction(order.status),
+      action: orderAction(order.status, material?.material_type),
+      materialType: material?.material_type ?? "notes",
+      gigCategory: material?.gig_category ?? null,
+      gigDeliveryType: material?.gig_delivery_type ?? null,
+      fulfillmentDueAt: order.fulfillment_due_at ?? null,
+      completionNote: order.completion_note ?? null,
+      hasSourceFile: Boolean(order.buyer_source_path),
+      hasDeliveredFile: Boolean(order.delivered_file_path),
     } satisfies MyOrder;
   });
 
@@ -318,16 +352,21 @@ export const getBoughtMaterials = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
 
+    // #328 lazy sweep first (advisory) so the library shows fresh past_due.
+    await sweepPastDueGigOrders(db);
+
     const { data, error } = await db
       .from<OrderWithMaterial>("material_orders")
       .select(
-        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id)",
+        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id, gig_category, gig_delivery_type)",
       )
       .eq("buyer_account_id", context.userId)
       .in("status", [
         "awaiting_payment",
         "paid",
         "stamping",
+        "in_fulfillment",
+        "past_due",
         "delivered",
         "stamp_failed",
         "rejected",
@@ -345,9 +384,10 @@ export const getBoughtMaterials = createServerFn({ method: "POST" })
         grossHkd: Number(order.gross_hkd),
         status: order.status,
         isGrant: false,
+        materialType: material?.material_type ?? "notes",
         deliveredAt: order.delivered_at,
         createdAt: order.created_at,
-        action: orderAction(order.status),
+        action: orderAction(order.status, material?.material_type),
         grantsAccess: orderGrantsAccess(order.status),
       };
     });
@@ -473,13 +513,23 @@ export const markOrderPaid = createServerFn({ method: "POST" })
     // stops staff from clobbering delivered/refunded/stamping rows and
     // overwriting paid_at / fps_reference, mirroring releaseOrder's gate.
     const { data: order } = await db
-      .from<OrderRow>("material_orders")
-      .select("id, status")
+      .from<{
+        id: string;
+        status: string;
+        digital_materials: { material_type: string } | null;
+      }>("material_orders")
+      .select("id, status, digital_materials(material_type)")
       .eq("id", data.orderId)
       .maybeSingle();
     if (!order) throw new Error("Order not found.");
     if (!canMarkOrderPaid(order.status)) {
       throw new Error(`Order in status "${order.status}" cannot be marked paid.`);
+    }
+    // Grok review 2026-10-17 (soft): gig orders have their own fulfillment
+    // machine — a wrong-desk call here would park one at notes-only "paid"
+    // with no fulfillment_due_at. Send staff to markGigOrderPaid instead.
+    if (order.digital_materials?.material_type === "gig") {
+      throw new Error("This order is for a service listing — mark it paid from the Services desk.");
     }
 
     const { error } = await db

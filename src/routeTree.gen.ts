@@ -63,10 +63,12 @@ import { Route as AuthenticatedTutorRequestsIndexRouteImport } from './routes/_a
 import { Route as AuthenticatedTutorRequestsCaseCodeRouteImport } from './routes/_authenticated.tutor-requests.$caseCode'
 import { Route as HelpCategorySlugRouteImport } from './routes/help.$category.$slug'
 import { Route as AuthenticatedAccountNotesNewRouteImport } from './routes/_authenticated.account.notes.new'
+import { Route as AuthenticatedAccountServicesNewRouteImport } from './routes/_authenticated.account.services.new'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as AuthenticatedAccountNotesMaterialIdEditRouteImport } from './routes/_authenticated.account.notes.$materialId.edit'
+import { Route as AuthenticatedAccountServicesMaterialIdEditRouteImport } from './routes/_authenticated.account.services.$materialId.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -355,6 +357,12 @@ const AuthenticatedAccountNotesNewRoute =
     path: '/notes/new',
     getParentRoute: () => AuthenticatedAccountRoute,
   } as any)
+const AuthenticatedAccountServicesNewRoute =
+  AuthenticatedAccountServicesNewRouteImport.update({
+    id: '/services/new',
+    path: '/services/new',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   id: '/lovable/email/auth/preview',
   path: '/lovable/email/auth/preview',
@@ -375,6 +383,12 @@ const AuthenticatedAccountNotesMaterialIdEditRoute =
   AuthenticatedAccountNotesMaterialIdEditRouteImport.update({
     id: '/notes/$materialId/edit',
     path: '/notes/$materialId/edit',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
+const AuthenticatedAccountServicesMaterialIdEditRoute =
+  AuthenticatedAccountServicesMaterialIdEditRouteImport.update({
+    id: '/services/$materialId/edit',
+    path: '/services/$materialId/edit',
     getParentRoute: () => AuthenticatedAccountRoute,
   } as any)
 
@@ -432,10 +446,12 @@ export interface FileRoutesByFullPath {
   '/business/': typeof AuthenticatedBusinessIndexRoute
   '/tutor-requests/': typeof AuthenticatedTutorRequestsIndexRoute
   '/account/notes/new': typeof AuthenticatedAccountNotesNewRoute
+  '/account/services/new': typeof AuthenticatedAccountServicesNewRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/account/notes/$materialId/edit': typeof AuthenticatedAccountNotesMaterialIdEditRoute
+  '/account/services/$materialId/edit': typeof AuthenticatedAccountServicesMaterialIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -490,10 +506,12 @@ export interface FileRoutesByTo {
   '/business': typeof AuthenticatedBusinessIndexRoute
   '/tutor-requests': typeof AuthenticatedTutorRequestsIndexRoute
   '/account/notes/new': typeof AuthenticatedAccountNotesNewRoute
+  '/account/services/new': typeof AuthenticatedAccountServicesNewRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/account/notes/$materialId/edit': typeof AuthenticatedAccountNotesMaterialIdEditRoute
+  '/account/services/$materialId/edit': typeof AuthenticatedAccountServicesMaterialIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -551,10 +569,12 @@ export interface FileRoutesById {
   '/_authenticated/business/': typeof AuthenticatedBusinessIndexRoute
   '/_authenticated/tutor-requests/': typeof AuthenticatedTutorRequestsIndexRoute
   '/_authenticated/account/notes/new': typeof AuthenticatedAccountNotesNewRoute
+  '/_authenticated/account/services/new': typeof AuthenticatedAccountServicesNewRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/_authenticated/account/notes/$materialId/edit': typeof AuthenticatedAccountNotesMaterialIdEditRoute
+  '/_authenticated/account/services/$materialId/edit': typeof AuthenticatedAccountServicesMaterialIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -612,10 +632,12 @@ export interface FileRouteTypes {
     | '/business/'
     | '/tutor-requests/'
     | '/account/notes/new'
+    | '/account/services/new'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
     | '/account/notes/$materialId/edit'
+    | '/account/services/$materialId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -670,10 +692,12 @@ export interface FileRouteTypes {
     | '/business'
     | '/tutor-requests'
     | '/account/notes/new'
+    | '/account/services/new'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
     | '/account/notes/$materialId/edit'
+    | '/account/services/$materialId/edit'
   id:
     | '__root__'
     | '/'
@@ -730,10 +754,12 @@ export interface FileRouteTypes {
     | '/_authenticated/business/'
     | '/_authenticated/tutor-requests/'
     | '/_authenticated/account/notes/new'
+    | '/_authenticated/account/services/new'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
     | '/_authenticated/account/notes/$materialId/edit'
+    | '/_authenticated/account/services/$materialId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1149,6 +1175,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountNotesNewRouteImport
       parentRoute: typeof AuthenticatedAccountRoute
     }
+    '/_authenticated/account/services/new': {
+      id: '/_authenticated/account/services/new'
+      path: '/services/new'
+      fullPath: '/account/services/new'
+      preLoaderRoute: typeof AuthenticatedAccountServicesNewRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
     '/lovable/email/auth/preview': {
       id: '/lovable/email/auth/preview'
       path: '/lovable/email/auth/preview'
@@ -1177,6 +1210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountNotesMaterialIdEditRouteImport
       parentRoute: typeof AuthenticatedAccountRoute
     }
+    '/_authenticated/account/services/$materialId/edit': {
+      id: '/_authenticated/account/services/$materialId/edit'
+      path: '/services/$materialId/edit'
+      fullPath: '/account/services/$materialId/edit'
+      preLoaderRoute: typeof AuthenticatedAccountServicesMaterialIdEditRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
   }
 }
 
@@ -1184,15 +1224,20 @@ interface AuthenticatedAccountRouteChildren {
   AuthenticatedAccountClaimRoute: typeof AuthenticatedAccountClaimRoute
   AuthenticatedAccountPreviewRoute: typeof AuthenticatedAccountPreviewRoute
   AuthenticatedAccountNotesNewRoute: typeof AuthenticatedAccountNotesNewRoute
+  AuthenticatedAccountServicesNewRoute: typeof AuthenticatedAccountServicesNewRoute
   AuthenticatedAccountNotesMaterialIdEditRoute: typeof AuthenticatedAccountNotesMaterialIdEditRoute
+  AuthenticatedAccountServicesMaterialIdEditRoute: typeof AuthenticatedAccountServicesMaterialIdEditRoute
 }
 
 const AuthenticatedAccountRouteChildren: AuthenticatedAccountRouteChildren = {
   AuthenticatedAccountClaimRoute: AuthenticatedAccountClaimRoute,
   AuthenticatedAccountPreviewRoute: AuthenticatedAccountPreviewRoute,
   AuthenticatedAccountNotesNewRoute: AuthenticatedAccountNotesNewRoute,
+  AuthenticatedAccountServicesNewRoute: AuthenticatedAccountServicesNewRoute,
   AuthenticatedAccountNotesMaterialIdEditRoute:
     AuthenticatedAccountNotesMaterialIdEditRoute,
+  AuthenticatedAccountServicesMaterialIdEditRoute:
+    AuthenticatedAccountServicesMaterialIdEditRoute,
 }
 
 const AuthenticatedAccountRouteWithChildren =

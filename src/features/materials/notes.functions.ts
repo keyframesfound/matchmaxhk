@@ -14,7 +14,7 @@ import { buildBuyWhatsAppUrl, buildBookLessonsWhatsAppUrl } from "@/features/mat
  */
 
 export const PUBLIC_NOTE_COLUMNS =
-  "id, slug, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, word_count, preview_pages, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, view_count, sold_count, created_at, tutor_id";
+  "id, slug, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, word_count, preview_pages, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, view_count, sold_count, created_at, tutor_id, gig_category, gig_delivery_type, turnaround_note, turnaround_hours, cover_image_path";
 
 /**
  * Public readers run under the SERVICE ROLE (RLS does not apply), so the
@@ -22,7 +22,8 @@ export const PUBLIC_NOTE_COLUMNS =
  * (material status='published' AND tutors.is_published=true) is repeated
  * here explicitly on every public query.
  */
-const PUBLIC_NOTE_TUTOR_JOIN = "tutors!inner(display_name, tutor_code, user_id, is_published)";
+const PUBLIC_NOTE_TUTOR_JOIN =
+  "tutors!inner(display_name, tutor_code, user_id, is_published, verification_tier)";
 
 export type PublicNote = {
   id: string;
@@ -56,10 +57,24 @@ export type PublicNote = {
   tutorUserId: string;
   tutorName: string;
   tutorCode: string;
+  /** #314 honesty: the Verified badge renders for tier_2_verified only. */
+  tutorVerificationTier: string | null;
+  // --- Freestyle gig fields (#326): populated only when materialType ===
+  // 'gig'; note rows never carry them (the DB coherence CHECK forbids it).
+  gigCategory: string | null;
+  gigDeliveryType: string | null;
+  turnaroundNote: string | null;
+  turnaroundHours: number | null;
+  coverImagePath: string | null;
 };
 
 type NoteRow = Record<string, unknown> & {
-  tutors?: { display_name?: unknown; tutor_code?: unknown; user_id?: unknown } | null;
+  tutors?: {
+    display_name?: unknown;
+    tutor_code?: unknown;
+    user_id?: unknown;
+    verification_tier?: unknown;
+  } | null;
 };
 
 function mapPublicNote(row: NoteRow): PublicNote | null {
@@ -97,6 +112,13 @@ function mapPublicNote(row: NoteRow): PublicNote | null {
     tutorUserId: typeof tutor?.user_id === "string" ? tutor.user_id : "",
     tutorName: typeof tutor?.display_name === "string" ? tutor.display_name : "MatchMax Tutor",
     tutorCode,
+    tutorVerificationTier:
+      typeof tutor?.verification_tier === "string" ? tutor.verification_tier : null,
+    gigCategory: typeof row.gig_category === "string" ? row.gig_category : null,
+    gigDeliveryType: typeof row.gig_delivery_type === "string" ? row.gig_delivery_type : null,
+    turnaroundNote: typeof row.turnaround_note === "string" ? row.turnaround_note : null,
+    turnaroundHours: typeof row.turnaround_hours === "number" ? row.turnaround_hours : null,
+    coverImagePath: typeof row.cover_image_path === "string" ? row.cover_image_path : null,
   };
 }
 
