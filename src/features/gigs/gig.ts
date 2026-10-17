@@ -357,6 +357,30 @@ export function validateCompletionNote(note: string | null | undefined): string[
   return errors;
 }
 
+/**
+ * #328 gig timeline: awaiting_payment → in_fulfillment → delivered. Pure so
+ * the vitest suite can pin the shape; keys are FULL i18n keys (mixed
+ * orders.* / gigs.*) because the shared render prints t(step.key).
+ */
+export function gigTimelineSteps(
+  status: string,
+): { key: string; done: boolean; current: boolean }[] {
+  const closed = ["delivered", "refunded"].includes(status);
+  return [
+    {
+      key: "orders.step_awaiting_payment",
+      done: !["awaiting_payment", "rejected"].includes(status),
+      current: status === "awaiting_payment",
+    },
+    {
+      key: "gigs.step_in_fulfillment",
+      done: closed,
+      current: status === "in_fulfillment" || status === "past_due",
+    },
+    { key: "orders.step_delivered", done: status === "delivered", current: false },
+  ];
+}
+
 /** Money: identical 20% platform fee model as notes (#328). */
 export function splitGigMoney(grossHkd: number): {
   platformFeeHkd: number;

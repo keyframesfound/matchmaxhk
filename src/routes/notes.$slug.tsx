@@ -19,6 +19,7 @@ import { startCheckout } from "@/features/materials/checkout.functions";
 import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
 import { NotePreviewViewer } from "@/features/materials/note-preview-viewer";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
+import { GigDetailPage } from "@/features/gigs/gig-detail";
 import { ReportMenuButton } from "@/features/reports/report-button";
 
 /**
@@ -46,8 +47,20 @@ export const Route = createFileRoute("/notes/$slug")({
     if (!note) throw notFound();
     return { note };
   },
-  component: NotePage,
+  component: GigOrNotePage,
 });
+
+/**
+ * #326: one route, two products. Gigs ride the same slug/loader/404 rails as
+ * notes but render the service page (no watermark viewer, no preview, no
+ * view counter). Branching lives in sibling components so each keeps its own
+ * stable hook order.
+ */
+function GigOrNotePage() {
+  const { note } = Route.useLoaderData() as { note: PublicNote };
+  if (note.materialType === "gig") return <GigDetailPage note={note} />;
+  return <NotePage />;
+}
 
 function NotePage() {
   const { note } = Route.useLoaderData() as { note: PublicNote };
