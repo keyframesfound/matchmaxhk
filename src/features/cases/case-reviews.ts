@@ -56,7 +56,11 @@ export function validateReviewInput(
   }
   const trimmed = comment.trim();
   if (trimmed.length < REVIEW_COMMENT_MIN) {
-    return { ok: false, field: "comment", message: `comment must be at least ${REVIEW_COMMENT_MIN} characters` };
+    return {
+      ok: false,
+      field: "comment",
+      message: `comment must be at least ${REVIEW_COMMENT_MIN} characters`,
+    };
   }
   const max = reviewCommentMax(direction);
   if (trimmed.length > max) {

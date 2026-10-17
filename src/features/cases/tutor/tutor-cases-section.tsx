@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Bell, CalendarClock, Check, Loader2, Sparkles, X } from "lucide-react";
+import { Bell, CalendarClock, Check, Loader2, Sparkles, Star, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConsolePanel } from "@/components/ui/console-panel";
+import { cn } from "@/lib/utils";
 import {
   cancelLessonTutor,
   confirmLessonTutor,
@@ -16,9 +17,11 @@ import {
   getTutorPlusState,
   markLessonDoneTutor,
   registerTutorPlusInterest,
+  submitTutorReview,
   type TutorCaseItem,
 } from "@/features/cases/tutor.functions";
 import { lessonActionsFor } from "@/features/cases/tutor/week-model";
+import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
 import { canMarkDone } from "@/features/cases/sor";
 import { formatMoneyFromCents } from "@/lib/money";
 
@@ -26,6 +29,85 @@ function feePillHkd(amount: number | null): string {
   if (amount === null) return "";
   // case_fees amounts are HKD numeric (not cents) — render directly.
   return `HK$${Number(amount).toFixed(0)}`;
+}
+
+function TutorReviewParentForm({
+  caseId,
+  t,
+}: {
+  caseId: string;
+  t: ReturnType<typeof useTranslation>["t"];
+}) {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+
+  const submit = useMutation({
+    mutationFn: () => submitTutorReview({ data: { caseId, rating, comment } }),
+    onSuccess: (res) => {
+      toast.success(
+        t(res.status === "held" ? "sor.parent_review_held" : "sor.parent_review_thanks"),
+      );
+      setRating(0);
+      setComment("");
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const valid =
+    rating >= 1 &&
+    comment.trim().length >= REVIEW_COMMENT_MIN &&
+    comment.trim().length <= REVIEW_COMMENT_MAX_TUTOR;
+
+  if (!open) {
+    return (
+      <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
+        <Star className="h-4 w-4" />
+        {t("sor.parent_tutor_reviews_title")}
+      </Button>
+    );
+  }
+  return (
+    <div className="mt-2 rounded-lg border border-[color:var(--ink)]/10 p-3">
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((s) => (
+          <button key={s} type="button" aria-label={`${s}/5`} onClick={() => setRating(s)}>
+            <Star
+              className={cn(
+                "h-5 w-5",
+                s <= rating ? "fill-current text-amber-500" : "text-muted-foreground/40",
+              )}
+            />
+          </button>
+        ))}
+      </div>
+      <textarea
+        className="mt-2 w-full rounded-md border border-[color:var(--ink)]/15 bg-transparent p-2 text-sm"
+        rows={3}
+        maxLength={REVIEW_COMMENT_MAX_TUTOR}
+        placeholder={t("sor.parent_tutor_review_placeholder")}
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+      />
+      <div className="mt-2 flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">
+          {comment.trim().length}/{REVIEW_COMMENT_MAX_TUTOR}
+        </span>
+        <span className="flex gap-2">
+          <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+            {t("sor.admin_cancel")}
+          </Button>
+          <Button size="sm" disabled={!valid || submit.isPending} onClick={() => submit.mutate()}>
+            {submit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {t("sor.parent_tutor_review_submit")}
+          </Button>
+        </span>
+      </div>
+    </div>
+  );
 }
 
 function LessonRow({
@@ -236,6 +318,9 @@ export function TutorCasesSection() {
                     ))}
                   </ul>
                 )}
+                {c.lessons.some((l) => l.status === "done") &&
+                  c.sor_status !== "closed" &&
+                  c.sor_status !== "replaced" && <TutorReviewParentForm caseId={c.id} t={t} />}
               </li>
             ))}
           </ul>

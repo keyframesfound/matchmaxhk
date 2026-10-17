@@ -61,7 +61,11 @@ export function generateSlots(
       if (w.weekday !== weekday) continue;
       const windowStart = hktFromParts(dateKey, w.startMinute);
       const windowEnd = hktFromParts(dateKey, w.endMinute);
-      for (let t = windowStart.getTime(); t + durationMin * 60 * 1000 <= windowEnd.getTime(); t += durationMin * 60 * 1000) {
+      for (
+        let t = windowStart.getTime();
+        t + durationMin * 60 * 1000 <= windowEnd.getTime();
+        t += durationMin * 60 * 1000
+      ) {
         const startsAt = new Date(t);
         if (startsAt.getTime() <= now.getTime()) continue;
         if (lessonConflicts(startsAt, durationMin, existingLessons)) continue;
@@ -90,7 +94,8 @@ export function lessonConflicts(
     const eStart = Date.parse(l.starts_at);
     if (Number.isNaN(eStart)) return false;
     const eEnd = eStart + l.duration_min * 60 * 1000;
-    const buffered = candidateMode === "f2f" && l.mode !== "online" ? F2F_BUFFER_MIN * 60 * 1000 : 0;
+    const buffered =
+      candidateMode === "f2f" && l.mode !== "online" ? F2F_BUFFER_MIN * 60 * 1000 : 0;
     return cStart < eEnd + buffered && eStart < cEnd + buffered;
   });
 }

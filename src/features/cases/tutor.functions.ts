@@ -20,6 +20,8 @@ import {
   TUTOR_PLUS_THRESHOLD,
 } from "@/features/cases/sor";
 import { generateSlots, type GeneratedSlot } from "@/features/cases/slot";
+import { validateReviewInput } from "@/features/cases/case-reviews";
+import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
 import {
   countActiveStudents,
   firstNameOf,
@@ -632,6 +634,94 @@ export const registerTutorPlusInterest = createServerFn({ method: "POST" })
     // UNIQUE(account_id): a second click is a no-op, not an error (#204).
     if (error && !/duplicate|unique/i.test(error.message ?? "")) throw new Error(error.message);
     return { ok: true };
+  });
+
+// ---------------------------------------------------------------------------
+// P7 (#287): tutor reviews the parent. 20–400 chars; one visible per case;
+// display line is the tutor's code-side identity.
+// ---------------------------------------------------------------------------
+
+export const submitTutorReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        caseId: z.string().uuid(),
+        rating: z.number().int().min(1).max(5),
+        comment: z.string(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ context, data }): Promise<{ status: "visible" | "held" }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    const tutorId = await myTutorId(db, context.userId);
+
+    const rows = await selectRows<{ sor_status: SorStatus | null }>(
+      db,
+      "tutoring_cases",
+      "sor_status",
+      [
+        { col: "id", op: "eq", value: data.caseId },
+        { col: "matched_tutor_id", op: "eq", value: tutorId },
+      ],
+    );
+    if (rows.length === 0) throw new Error("CASE_NOT_FOUND");
+
+    const [lessons, mine] = await Promise.all([
+      selectRows<{ status: string }>(db, "case_lessons", "status", [
+        { col: "case_id", op: "eq", value: data.caseId },
+      ]),
+      selectRows<{ id: string; status: string; author_account_id: string }>(
+        db,
+        "case_reviews",
+        "id, status, author_account_id",
+        [{ col: "case_id", op: "eq", value: data.caseId }],
+      ),
+    ]);
+
+    // Same rules as the parent direction, mirrored: done lesson required,
+    // 20–400 bound (#287), holds on contact details, one visible per case.
+    if (!lessons.some((l) => l.status === "done")) throw new Error("NO_DONE_LESSON");
+    const validity = validateReviewInput("tutor_to_parent", data.rating, data.comment);
+    if (!validity.ok) throw new Error(validity.message);
+    const status: "visible" | "held" = validity.heldReasons.length > 0 ? "held" : "visible";
+    const heldReason =
+      validity.heldReasons.length > 0 ? `held: ${validity.heldReasons.join(", ")}` : null;
+
+    const myExisting = mine.filter((r) => r.author_account_id === context.userId);
+    const held = myExisting.find((r) => r.status === "held");
+    const visible = myExisting.find((r) => r.status === "visible");
+    if (visible) {
+      await db
+        .from<Row>("case_reviews")
+        .update({ status: "replaced", updated_at: new Date().toISOString() })
+        .eq("id", visible.id);
+    }
+
+    const row = {
+      case_id: data.caseId,
+      lesson_id: null as string | null,
+      direction: "tutor_to_parent" as const,
+      author_account_id: context.userId,
+      tutor_id: tutorId,
+      rating: data.rating,
+      comment: data.comment.trim(),
+      author_display_line: "Tutor",
+      status,
+      held_reason: heldReason,
+    };
+    if (held) {
+      const { error } = await db
+        .from<Row>("case_reviews")
+        .update({ ...row, updated_at: new Date().toISOString() })
+        .eq("id", held.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await db.from<Row>("case_reviews").insert(row).select("id").single();
+      if (error) throw new Error(error.message);
+    }
+    return { status };
   });
 
 /** Re-exported for the components (hktFromParts used in slot sanity display). */

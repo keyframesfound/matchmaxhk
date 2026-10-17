@@ -75,12 +75,7 @@ export type SorCaseRow = {
 };
 
 export type LessonStatus =
-  | "planned"
-  | "confirmed"
-  | "done"
-  | "no_show"
-  | "cancelled"
-  | "late_cancel";
+  "planned" | "confirmed" | "done" | "no_show" | "cancelled" | "late_cancel";
 
 export type CaseLessonRow = {
   id: string;

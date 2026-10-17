@@ -67,10 +67,7 @@ export const FEE_MULTIPLIER = 1.5;
 export const FEE_DUE_DAYS = 3;
 
 /** Fee amount is rate × multiplier at invoice time, in whole HKD cents. */
-export function computeFeeAmountHkd(
-  rateHkd: number,
-  multiplier: number = FEE_MULTIPLIER,
-): number {
+export function computeFeeAmountHkd(rateHkd: number, multiplier: number = FEE_MULTIPLIER): number {
   if (!Number.isFinite(rateHkd) || rateHkd < 0) return 0;
   if (!Number.isFinite(multiplier) || multiplier <= 0) return 0;
   return Math.round(rateHkd * multiplier * 100) / 100;
@@ -81,7 +78,9 @@ export function feeDueAtFrom(invoicedAt: Date): Date {
 }
 
 /** Only one fee per case may sit in an "open" state (matches the partial unique index). */
-export function isFeeOpen(status: "not_due" | "invoiced" | "paid" | "waived" | "refunded"): boolean {
+export function isFeeOpen(
+  status: "not_due" | "invoiced" | "paid" | "waived" | "refunded",
+): boolean {
   return status === "not_due" || status === "invoiced" || status === "paid";
 }
 
@@ -90,12 +89,7 @@ export function isFeeOpen(status: "not_due" | "invoiced" | "paid" | "waived" | "
 // ---------------------------------------------------------------------------
 
 export type LessonStatus =
-  | "planned"
-  | "confirmed"
-  | "done"
-  | "no_show"
-  | "cancelled"
-  | "late_cancel";
+  "planned" | "confirmed" | "done" | "no_show" | "cancelled" | "late_cancel";
 
 /** #204: mark done is available from 15 minutes before start until 7 days after. */
 export const MARK_DONE_EARLY_MIN = 15;
@@ -136,7 +130,12 @@ export function isRequestExpired(createdAt: Date, now: Date): boolean {
  * the hard overlap.
  */
 export function conflictsWithLesson(
-  candidate: { startsAt: Date; durationMin: number; mode: "f2f" | "online"; bufferExempt?: boolean },
+  candidate: {
+    startsAt: Date;
+    durationMin: number;
+    mode: "f2f" | "online";
+    bufferExempt?: boolean;
+  },
   existing: { startsAt: Date; durationMin: number; mode: "f2f" | "online" },
 ): boolean {
   const cStart = candidate.startsAt.getTime();
@@ -144,9 +143,10 @@ export function conflictsWithLesson(
   const eStart = existing.startsAt.getTime();
   const eEnd = eStart + existing.durationMin * 60 * 1000;
 
-  const bufferMs = candidate.bufferExempt || candidate.mode === "online" || existing.mode === "online"
-    ? 0
-    : F2F_BUFFER_MIN * 60 * 1000;
+  const bufferMs =
+    candidate.bufferExempt || candidate.mode === "online" || existing.mode === "online"
+      ? 0
+      : F2F_BUFFER_MIN * 60 * 1000;
   return cStart < eEnd + bufferMs && eStart < cEnd + bufferMs;
 }
 
@@ -161,7 +161,9 @@ export function isActiveStudentCase(
   const windowMs = ACTIVE_STUDENT_WINDOW_DAYS * 24 * 60 * 60 * 1000;
   return lessons.some((l) => {
     if (l.status === "done") {
-      return now.getTime() - l.startsAt.getTime() <= windowMs && l.startsAt.getTime() <= now.getTime();
+      return (
+        now.getTime() - l.startsAt.getTime() <= windowMs && l.startsAt.getTime() <= now.getTime()
+      );
     }
     if (l.status === "planned" || l.status === "confirmed") {
       return l.startsAt.getTime() >= now.getTime();

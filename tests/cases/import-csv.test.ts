@@ -8,7 +8,7 @@ describe("case import CSV (#201)", () => {
   it("parses a well-formed file", () => {
     const csv = [
       HEADER,
-      'Mrs. Chan,+852 9123 4567,MM-T005,Physics,500,2026-10-01;2026-10-08,yes',
+      "Mrs. Chan,+852 9123 4567,MM-T005,Physics,500,2026-10-01;2026-10-08,yes",
       "Mr. Lee,91234567,MM-T012,IB Math,650,2026/10/02 and 2026/10/09,no",
     ].join("\n");
     const res = parseCaseImportCsv(csv);
@@ -35,9 +35,7 @@ describe("case import CSV (#201)", () => {
   });
 
   it("strips currency noise from rate", () => {
-    const res = parseCaseImportCsv(
-      [HEADER, "P,9,x,Math,HK$500/hr,2026-10-01,yes"].join("\n"),
-    );
+    const res = parseCaseImportCsv([HEADER, "P,9,x,Math,HK$500/hr,2026-10-01,yes"].join("\n"));
     expect(res.rows[0].rateHkd).toBe(500);
   });
 
@@ -59,7 +57,9 @@ describe("case import CSV (#201)", () => {
   it("rejects unknown headers and missing required columns", () => {
     const res = parseCaseImportCsv("name,phone\na,b");
     expect(res.rows).toHaveLength(0);
-    expect(res.errors.some((e) => e.message.includes('missing required column "tutor"'))).toBe(true);
+    expect(res.errors.some((e) => e.message.includes('missing required column "tutor"'))).toBe(
+      true,
+    );
   });
 
   it("handles quoted cells with commas", () => {

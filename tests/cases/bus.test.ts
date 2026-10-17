@@ -20,10 +20,19 @@ describe("bus planning (#205/#292)", () => {
   });
 
   it("email only for fee-unpaid and order-delivered", () => {
-    for (const t of ["lesson.done", "lesson.reminder_due", "lesson.review_prompt", "review.published", "admin_fee.invoiced"]) {
+    for (const t of [
+      "lesson.done",
+      "lesson.reminder_due",
+      "lesson.review_prompt",
+      "review.published",
+      "admin_fee.invoiced",
+    ]) {
       const res = planDeliveriesForEvent(t);
       if (res.kind === "deliver") {
-        expect(res.deliveries.some((d) => d.channel === "email"), t).toBe(false);
+        expect(
+          res.deliveries.some((d) => d.channel === "email"),
+          t,
+        ).toBe(false);
       }
     }
     expect(planDeliveriesForEvent("note_order.delivered")).toMatchObject({ kind: "deliver" });

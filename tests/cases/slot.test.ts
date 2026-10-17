@@ -78,7 +78,11 @@ describe("lessonConflicts direct", () => {
   it("non-overlapping distant lessons do not", () => {
     expect(
       lessonConflicts(base, 60, [
-        { starts_at: hktFromParts("2026-10-19", 19 * 60).toISOString(), duration_min: 60, mode: "in_person" },
+        {
+          starts_at: hktFromParts("2026-10-19", 19 * 60).toISOString(),
+          duration_min: 60,
+          mode: "in_person",
+        },
       ]),
     ).toBe(false);
   });

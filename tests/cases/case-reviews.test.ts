@@ -66,7 +66,11 @@ describe("case review rules (#205 + #287)", () => {
       buildParentDisplayLine({ studentLevel: "G11", examSystem: "IB", subject: "Physics" }),
     ).toBe("Parent of G11 IB Physics");
     expect(
-      buildParentDisplayLine({ studentGradeCurrent: "Year 12", examSystem: "A-Level", subject: "Maths" }),
+      buildParentDisplayLine({
+        studentGradeCurrent: "Year 12",
+        examSystem: "A-Level",
+        subject: "Maths",
+      }),
     ).toBe("Parent of Year 12 A-Level Maths");
     expect(buildParentDisplayLine({})).toBe("Parent of a parent");
   });

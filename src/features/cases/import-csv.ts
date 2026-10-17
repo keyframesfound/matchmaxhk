@@ -30,7 +30,7 @@ export type ParseCaseImportResult = {
 const HEADER_ALIASES: Record<string, string> = {
   "parent name": "parentName",
   parent: "parentName",
-  "parent_name": "parentName",
+  parent_name: "parentName",
   phone: "phone",
   "phone number": "phone",
   "parent phone": "phone",
@@ -46,7 +46,7 @@ const HEADER_ALIASES: Record<string, string> = {
   "lesson dates (1 and 2)": "lessonDates",
   "fee paid": "feePaid",
   "fee paid?": "feePaid",
-  "fee": "feePaid",
+  fee: "feePaid",
 };
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -171,15 +171,28 @@ export function parseCaseImportCsv(csv: string): ParseCaseImportResult {
 
     const feePaid = parseFeePaid(rec.feePaid ?? "");
     if (feePaid === null) {
-      errors.push({ row: i, field: "feePaid", message: `fee paid must be yes/no, got "${rec.feePaid ?? ""}"` });
+      errors.push({
+        row: i,
+        field: "feePaid",
+        message: `fee paid must be yes/no, got "${rec.feePaid ?? ""}"`,
+      });
     }
 
-    if (!rec.parentName) errors.push({ row: i, field: "parentName", message: "missing parent name" });
+    if (!rec.parentName)
+      errors.push({ row: i, field: "parentName", message: "missing parent name" });
     if (!rec.phone) errors.push({ row: i, field: "phone", message: "missing phone" });
     if (!rec.tutor) errors.push({ row: i, field: "tutor", message: "missing tutor" });
     if (!rec.subject) errors.push({ row: i, field: "subject", message: "missing subject" });
 
-    if (rate !== null && dates.length > 0 && feePaid !== null && rec.parentName && rec.phone && rec.tutor && rec.subject) {
+    if (
+      rate !== null &&
+      dates.length > 0 &&
+      feePaid !== null &&
+      rec.parentName &&
+      rec.phone &&
+      rec.tutor &&
+      rec.subject
+    ) {
       rows.push({
         parentName: rec.parentName,
         phone: rec.phone,

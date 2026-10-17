@@ -107,9 +107,21 @@ describe("lesson timing rules (#201/#204)", () => {
   it("F2F pair inside 30 minutes conflicts; online does not", () => {
     const a = { startsAt: start, durationMin: 60, mode: "f2f" as const };
     // Blocked zone around a extends 30 min past its end: [0, 90].
-    const insideBuffer = { startsAt: new Date(start.getTime() + 45 * 60000), durationMin: 60, mode: "f2f" as const };
-    const backToBack = { startsAt: new Date(start.getTime() + 60 * 60000), durationMin: 60, mode: "f2f" as const };
-    const beyondBuffer = { startsAt: new Date(start.getTime() + 95 * 60000), durationMin: 60, mode: "f2f" as const };
+    const insideBuffer = {
+      startsAt: new Date(start.getTime() + 45 * 60000),
+      durationMin: 60,
+      mode: "f2f" as const,
+    };
+    const backToBack = {
+      startsAt: new Date(start.getTime() + 60 * 60000),
+      durationMin: 60,
+      mode: "f2f" as const,
+    };
+    const beyondBuffer = {
+      startsAt: new Date(start.getTime() + 95 * 60000),
+      durationMin: 60,
+      mode: "f2f" as const,
+    };
     const online = { ...backToBack, mode: "online" as const };
     expect(conflictsWithLesson(insideBuffer, a)).toBe(true);
     expect(conflictsWithLesson(backToBack, a)).toBe(true); // needs the 30-min gap
@@ -147,8 +159,14 @@ describe("lesson timing rules (#201/#204)", () => {
       startsAt: new Date(now.getTime() - (ACTIVE_STUDENT_WINDOW_DAYS + 1) * 86400000),
       status: "done" as const,
     };
-    const futureConfirmed = { startsAt: new Date(now.getTime() + 3 * 86400000), status: "confirmed" as const };
-    const cancelled = { startsAt: new Date(now.getTime() + 3 * 86400000), status: "cancelled" as const };
+    const futureConfirmed = {
+      startsAt: new Date(now.getTime() + 3 * 86400000),
+      status: "confirmed" as const,
+    };
+    const cancelled = {
+      startsAt: new Date(now.getTime() + 3 * 86400000),
+      status: "cancelled" as const,
+    };
     expect(isActiveStudentCase([recentDone], now)).toBe(true);
     expect(isActiveStudentCase([oldDone], now)).toBe(false);
     expect(isActiveStudentCase([futureConfirmed], now)).toBe(true);
