@@ -4,7 +4,12 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { contactFilterError } from "@/lib/contact-filter";
-import { mergeGigIntegrity, validateGigForSubmit, validateGigPartial } from "@/features/gigs/gig";
+import {
+  gigFreestylePrivilegePaused,
+  mergeGigIntegrity,
+  validateGigForSubmit,
+  validateGigPartial,
+} from "@/features/gigs/gig";
 import {
   buildMaterialSlug,
   isAllowedNoteSubject,
@@ -125,11 +130,36 @@ async function loadOwnedGig(db: AdminDb, gigId: string, tutorId: string): Promis
   return data;
 }
 
-function assertCleanGigCopy(fields: { title?: string; description?: string }) {
+function assertCleanGigCopy(fields: {
+  title?: string;
+  description?: string;
+  turnaroundNote?: string | null;
+}) {
   for (const text of Object.values(fields)) {
     if (!text) continue;
     const problem = contactFilterError(text);
     if (problem) throw new Error(problem);
+  }
+}
+
+/**
+ * #330: upheld contact-detail reports pause the freestyle privilege after the
+ * threshold (gig.ts) — no new gig drafts or submissions until staff clear the
+ * reports. Runs on create AND submit so a paused tutor cannot round-trip an
+ * existing draft through the submit gate either.
+ */
+async function assertFreestylePrivilege(db: AdminDb, tutorId: string) {
+  const { data, error } = await db
+    .from<{ id: string }>("reports")
+    .select("id")
+    .eq("tutor_id", tutorId)
+    .eq("reason", "contact_details")
+    .eq("status", "upheld");
+  if (error) throw new Error(error.message);
+  if (gigFreestylePrivilegePaused(data?.length ?? 0)) {
+    throw new Error(
+      "Your freestyle listing privilege is paused after repeated contact-detail reports. Contact MatchMax to restore it.",
+    );
   }
 }
 
@@ -167,6 +197,7 @@ export const createGigDraft = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutor = await myTutorRow(db, context.userId);
+    await assertFreestylePrivilege(db, tutor.id);
 
     const partialErrors = validateGigPartial({
       title: data.title,
@@ -178,7 +209,11 @@ export const createGigDraft = createServerFn({ method: "POST" })
       turnaroundHours: data.turnaroundHours ?? null,
     });
     if (partialErrors.length > 0) throw new Error(partialErrors.join(" "));
-    assertCleanGigCopy({ title: data.title, description: data.description });
+    assertCleanGigCopy({
+      title: data.title,
+      description: data.description,
+      turnaroundNote: data.turnaroundNote ?? null,
+    });
     assertGigSubjectAllowed(data.curriculumTag, data.subjectTag ?? null);
 
     const integrity = mergeGigIntegrity({
@@ -235,7 +270,11 @@ export const updateGigDraft = createServerFn({ method: "POST" })
       turnaroundHours: data.turnaroundHours ?? null,
     });
     if (partialErrors.length > 0) throw new Error(partialErrors.join(" "));
-    assertCleanGigCopy({ title: data.title, description: data.description });
+    assertCleanGigCopy({
+      title: data.title,
+      description: data.description,
+      turnaroundNote: data.turnaroundNote ?? null,
+    });
     assertGigSubjectAllowed(data.curriculumTag, data.subjectTag ?? null, existing.subject_tag);
 
     // Category/integrity transitions: confirming stamps the timestamp,
@@ -291,6 +330,7 @@ export const submitGig = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutor = await myTutorRow(db, context.userId);
+    await assertFreestylePrivilege(db, tutor.id);
     const existing = await loadOwnedGig(db, data.gigId, tutor.id);
 
     const integrity = mergeGigIntegrity(

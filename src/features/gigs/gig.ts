@@ -124,6 +124,10 @@ export function validateGigForSubmit(input: GigSubmitInput): string[] {
   if (turnaroundNote.length > GIG_TURNAROUND_NOTE_MAX_LEN) {
     errors.push(`Turnaround must be ${GIG_TURNAROUND_NOTE_MAX_LEN} characters or fewer.`);
   }
+  if (turnaroundNote) {
+    const noteProblem = contactFilterError(turnaroundNote);
+    if (noteProblem) errors.push(noteProblem);
+  }
 
   if (
     input.turnaroundHours != null &&
@@ -355,6 +359,19 @@ export function validateCompletionNote(note: string | null | undefined): string[
     if (contactProblem) errors.push(contactProblem);
   }
   return errors;
+}
+
+/**
+ * #330: repeat upheld contact-violation reports pause the freestyle listing
+ * privilege — the tutor can no longer create or submit gig listings (existing
+ * ones stay editable so reported copy can be fixed). Mirrors the #216 card
+ * pause without a new table: the reports rows ARE the state; staff lift it
+ * by correcting/removing the upheld report rows in the queue.
+ */
+export const UPHELD_CONTACT_REPORTS_TO_PAUSE_GIGS = 2;
+
+export function gigFreestylePrivilegePaused(upheldContactReports: number): boolean {
+  return upheldContactReports >= UPHELD_CONTACT_REPORTS_TO_PAUSE_GIGS;
 }
 
 /**
