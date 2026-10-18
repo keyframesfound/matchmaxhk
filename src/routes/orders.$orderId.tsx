@@ -20,6 +20,7 @@ import {
 import { getOwnedMaterialUrl } from "@/features/materials/orders.functions";
 import { gigTimelineSteps } from "@/features/gigs/gig";
 import { GigOrderPanels } from "@/features/gigs/gig-order-view";
+import { ReportMenuButton } from "@/features/reports/report-button";
 
 /**
  * #203 checkout + order status page. Manual cashier: the parent sees the
@@ -344,6 +345,29 @@ function OrderPage() {
               <p className="rounded-md bg-amber-500/10 px-3 py-2 text-center text-xs font-bold text-amber-700">
                 {t("orders.refunded_badge")}
               </p>
+            )}
+            {/* #330: post-delivery quality disputes go through the #216 report
+                hook, operator-reviewed — refunds stay self-serve for past_due
+                non-delivery only, never auto-clawed back after delivery. */}
+            {isGig && order.action === "download" && (
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t("gigs.dispute_title")}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{t("gigs.dispute_note")}</p>
+                <div className="mt-3 flex justify-end">
+                  <ReportMenuButton
+                    targets={[
+                      {
+                        targetType: "material",
+                        targetId: order.materialId,
+                        label: order.materialTitle,
+                      },
+                    ]}
+                    menuLabel={t("gigs.dispute_report_label")}
+                  />
+                </div>
+              </div>
             )}
             {order.action === "preparing" && (
               <p className="rounded-md bg-accent px-3 py-2 text-center text-xs font-bold text-accent-foreground">

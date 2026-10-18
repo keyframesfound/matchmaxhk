@@ -10,10 +10,12 @@ import {
   DEFAULT_TURNAROUND_HOURS,
   GIG_CATEGORIES,
   GIG_DELIVERY_TYPES,
+  UPHELD_CONTACT_REPORTS_TO_PAUSE_GIGS,
   canParentRequestRefund,
   countsTowardBoughtCount,
   findIntegrityRedFlags,
   gigFulfillmentDueAt,
+  gigFreestylePrivilegePaused,
   gigOrderBuyerAction,
   gigPastDueCutoff,
   mergeGigIntegrity,
@@ -76,6 +78,23 @@ describe("validateGigForSubmit", () => {
   it("requires a cover image before pending_review", () => {
     const errors = validateGigForSubmit({ ...CLEAN_SUBMIT, hasCover: false });
     expect(errors.some((e) => e.includes("cover image"))).toBe(true);
+  });
+
+  it("#330: rejects contact details in the buyer-visible turnaround note", () => {
+    const phone = validateGigForSubmit({
+      ...CLEAN_SUBMIT,
+      turnaroundNote: "Message me at 9123 4567 first",
+    });
+    expect(phone.some((e) => e.includes("No contact details"))).toBe(true);
+
+    const channel = validateGigForSubmit({
+      ...CLEAN_SUBMIT,
+      turnaroundNote: "WhatsApp me after payment",
+    });
+    expect(channel.some((e) => e.includes("No contact details"))).toBe(true);
+
+    expect(validateGigForSubmit({ ...CLEAN_SUBMIT, turnaroundNote: "48 hours" })).toEqual([]);
+    expect(validateGigForSubmit({ ...CLEAN_SUBMIT, turnaroundNote: null })).toEqual([]);
   });
 
   it("gates document_review behind the integrity checkbox only", () => {
@@ -270,5 +289,14 @@ describe("taxonomy constants", () => {
       "other",
     ]);
     expect(GIG_DELIVERY_TYPES).toEqual(["file_back", "session_confirm", "package_handoff"]);
+  });
+});
+
+describe("freestyle privilege pause (#330)", () => {
+  it("pauses only after the second upheld contact report", () => {
+    expect(gigFreestylePrivilegePaused(0)).toBe(false);
+    expect(gigFreestylePrivilegePaused(1)).toBe(false);
+    expect(gigFreestylePrivilegePaused(UPHELD_CONTACT_REPORTS_TO_PAUSE_GIGS)).toBe(true);
+    expect(gigFreestylePrivilegePaused(5)).toBe(true);
   });
 });
