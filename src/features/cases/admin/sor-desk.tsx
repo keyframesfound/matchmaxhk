@@ -286,7 +286,12 @@ function CaseFlagsSection({ caseId }: { caseId: string }) {
   const [flagReason, setFlagReason] = useState<string>("");
   const [flagNote, setFlagNote] = useState("");
 
-  const { data: flags = [] } = useQuery({
+  const {
+    data: flags = [],
+    isPending: flagsPending,
+    isError: flagsError,
+    error: flagsErr,
+  } = useQuery({
     queryKey: ["sor", "case-flags", caseId],
     queryFn: () => listCaseFlags({ data: { caseId } }),
   });
@@ -316,12 +321,19 @@ function CaseFlagsSection({ caseId }: { caseId: string }) {
             {f.note ? ` · ${f.note}` : ""}
           </li>
         ))}
-        {flags.length === 0 && (
+        {flagsPending && (
+          <li className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+            {t("sor.flags_title")}…
+          </li>
+        )}
+        {flagsError && <li className="text-xs text-destructive">{flagsErr.message}</li>}
+        {!flagsPending && !flagsError && flags.length === 0 && (
           <li className="text-xs text-muted-foreground">{t("sor.flags_empty")}</li>
         )}
       </ul>
       <div className="mt-3 grid gap-2">
-        <Select value={flagReason} onValueChange={setFlagReason}>
+        <Select value={flagReason || undefined} onValueChange={setFlagReason}>
           <SelectTrigger className="h-9 w-full text-sm" aria-label={t("sor.flags_reason_label")}>
             <SelectValue placeholder={t("sor.flags_reason_placeholder")} />
           </SelectTrigger>
@@ -337,6 +349,7 @@ function CaseFlagsSection({ caseId }: { caseId: string }) {
           value={flagNote}
           onChange={(e) => setFlagNote(e.target.value)}
           placeholder={t("sor.flags_note_placeholder")}
+          aria-label={t("sor.flags_note_placeholder")}
           className="min-h-[60px] text-sm"
           maxLength={500}
         />
