@@ -9,7 +9,10 @@ import {
   valueSnapshotToColumn,
   type CredentialSnapshotValue,
 } from "../../src/features/tutors/credential-edit.functions";
-import { toValueSnapshot } from "../../src/features/tutors/credential-edits";
+import {
+  toValueSnapshot,
+  credentialValueContactError,
+} from "../../src/features/tutors/credential-edits";
 
 describe("stableSnapshotJson", () => {
   it("is order-insensitive for object keys", () => {
@@ -181,5 +184,37 @@ describe("credentialEvidencePath", () => {
     const basename = path.split("/")[1] ?? "";
     expect(basename).not.toContain("..");
     expect(basename).toMatch(/^[0-9a-f-]{36}-\.[^/]*$/);
+  });
+});
+
+describe("credentialValueContactError (issue #367 approve gate)", () => {
+  it("flags a phone number in a text field value", () => {
+    expect(credentialValueContactError("qualifications_summary", "Reach me 9123 4567")).toMatch(
+      /contact details/i,
+    );
+  });
+
+  it("flags an email inside a jsonb payload leaf", () => {
+    expect(
+      credentialValueContactError("achievements", [
+        { title: "Debate captain", description: "Email me at me@example.com" },
+      ]),
+    ).toMatch(/email address/i);
+  });
+
+  it("flags a phone number inside a { text } jsonb snapshot (the real stored shape)", () => {
+    expect(
+      credentialValueContactError("qualifications_summary", { text: "Reach me 9123 4567" }),
+    ).toMatch(/contact details/i);
+  });
+
+  it("clears a boolean field and clean values", () => {
+    expect(credentialValueContactError("has_postgrad", true)).toBeNull();
+    expect(credentialValueContactError("qualifications_summary", "IBDP tutor, 5 years")).toBeNull();
+    expect(
+      credentialValueContactError("qualifications_summary", { text: "IBDP tutor, 5 years" }),
+    ).toBeNull();
+    expect(credentialValueContactError("exam_results", [{ system: "IBDP", score: 42 }])).toBeNull();
+    expect(credentialValueContactError("qualifications_summary", null)).toBeNull();
   });
 });

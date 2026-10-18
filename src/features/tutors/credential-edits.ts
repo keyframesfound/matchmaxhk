@@ -12,6 +12,8 @@
  * columns the owner-verified guard locks.
  */
 
+import { contactFilterError } from "@/lib/contact-filter";
+
 export const CREDENTIAL_EDIT_FIELDS = [
   "secondary_school",
   "highschool",
@@ -211,4 +213,45 @@ export function credentialFieldValue(
   field: CredentialEditField,
 ): unknown {
   return tutor[field] ?? null;
+}
+
+/**
+ * Issue #367: staff APPROVE swaps the new value into the public card through
+ * the service role, which bypasses both DB contact guards (the owner guard
+ * skips service-role callers; the insert guard is INSERT-only). Run the
+ * canonical filter over the approved value before the swap: text fields are
+ * scanned directly, jsonb payloads (exam_results, achievements) are scanned
+ * string-leaf by string-leaf. Returns the human error (the same copy the
+ * intake form shows) or null when clean.
+ */
+export function credentialValueContactError(
+  field: CredentialEditField,
+  value: unknown,
+): string | null {
+  if (isBooleanCredentialField(field)) return null;
+  if (isJsonbCredentialField(field)) return scanContactStrings(value);
+  if (value == null) return null;
+  // Text fields arrive as the stored jsonb snapshot ({ text: "..." }), not a
+  // bare string — String() on it yields "[object Object]" and the scan passes
+  // any contact detail. Unbox with the same helper the approve write uses.
+  return contactFilterError(valueSnapshotToText(value));
+}
+
+function scanContactStrings(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") return contactFilterError(value);
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = scanContactStrings(item);
+      if (found) return found;
+    }
+    return null;
+  }
+  if (typeof value === "object") {
+    for (const item of Object.values(value as Record<string, unknown>)) {
+      const found = scanContactStrings(item);
+      if (found) return found;
+    }
+  }
+  return null;
 }

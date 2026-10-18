@@ -318,6 +318,10 @@ export function MyTutorProfileSection() {
       // were already submitted through the evidence queue in handleSubmit.
       if (isVerified) {
         for (const field of CREDENTIAL_EDIT_FIELDS) delete payload[field];
+        // Issue #367: the headline is frozen read-only for verified tutors
+        // (tutors_owner_verified_guard freezes it) — never send it in the
+        // direct save either, or one stale form value fails the whole UPDATE.
+        delete payload.academic_headline;
       }
 
       const { error } = await supabase

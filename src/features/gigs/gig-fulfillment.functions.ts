@@ -9,6 +9,7 @@ import {
   transitionGigOrder,
   validateCompletionNote,
 } from "@/features/gigs/gig";
+import type { StatusGuardedOrderUpdate } from "@/features/gigs/gig";
 import { asAdminDb, base64ToBytes, type AdminDb } from "@/features/materials/storage-helpers";
 
 /**
@@ -223,18 +224,27 @@ export const deliverGigOrder = createServerFn({ method: "POST" })
       completionNote = data.completionNote.trim();
     }
 
-    const { error: deliverError } = await db
-      .from<never>("material_orders")
+    const { data: updatedRows, error: deliverError } = await (
+      db.from<never>("material_orders") as unknown as StatusGuardedOrderUpdate
+    )
       .update({
         status: next,
         delivered_at: new Date().toISOString(),
         ...(deliveredFilePath ? { delivered_file_path: deliveredFilePath } : {}),
         ...(completionNote ? { completion_note: completionNote } : {}),
       })
-      .eq("id", order.id);
+      .eq("id", order.id)
+      // #374: guard the status the transition was validated against — a
+      // concurrent deliver/refund must not double-increment sold_count.
+      .eq("status", order.status)
+      .select("id");
     if (deliverError) {
       if (deliveredFilePath) await db.storage.from(PRIVATE_BUCKET).remove([deliveredFilePath]);
       throw new Error(deliverError.message);
+    }
+    if (!updatedRows || updatedRows.length === 0) {
+      if (deliveredFilePath) await db.storage.from(PRIVATE_BUCKET).remove([deliveredFilePath]);
+      throw new Error("This order was just updated elsewhere — refresh and retry.");
     }
 
     // #329: bought counts count DELIVERED orders only — keep sold_count in

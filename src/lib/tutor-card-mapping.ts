@@ -112,6 +112,9 @@ export type TutorCardInsert = {
   photo_url: string | null;
   portfolio_images: string[];
   created_by: null;
+  sen_enabled: boolean;
+  sen_categories: string[];
+  sen_experience: string | null;
 };
 
 /**
@@ -179,6 +182,11 @@ export function buildTutorCardInsert(
     photo_url: photoUrl,
     portfolio_images: portfolioImages,
     created_by: null,
+    // Issue #358: intake SEN answers reach the card — the publish RPC carries
+    // the sen_* columns since the 2026-10-18 hardening migration.
+    sen_enabled: application.senEnabled === true,
+    sen_categories: application.senEnabled ? application.senCategories : [],
+    sen_experience: application.senEnabled ? application.senExperience?.trim() || null : null,
   };
 }
 

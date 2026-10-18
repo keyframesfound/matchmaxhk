@@ -704,6 +704,8 @@
     "sample_notes": "Referred by a friend. Flexible on weekday evenings and weekends.",
     "success_title": "Your tutor card is live",
     "success_message": "Your card was published the moment you submitted — parents can find it on MatchMax right now. One last step: activate via WhatsApp so the team can reach you about matching cases.",
+    "success_unpublished_title": "Application received",
+    "success_unpublished_message": "We matched this application to your existing tutor card, which is not currently live. Our team will review and republish it — we'll WhatsApp you as soon as it's back on MatchMax. One last step: activate via WhatsApp so the team can reach you about matching cases.",
     "back_home": "Back home",
     "browse_tutors": "Browse tutors",
     "academics": {
