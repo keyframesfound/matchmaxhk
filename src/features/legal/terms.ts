@@ -14,19 +14,26 @@
 
 export const TERMS_VERSION = "2026-10-16";
 
+/**
+ * Issue #253 (F2): the matching-fee agreement on the case-request form has
+ * its own version string, independent of the general ToS. Bump it when the
+ * fee rule changes; the checkbox label quotes it verbatim.
+ */
+export const FEE_TERMS_VERSION = "fee-2026-10";
+
 export const TERMS_SURFACES = [
   "signup",
   "note_upload",
   "checkout",
   "referral_signup",
+  // Issue #253 (F2): the parent case-request form's matching-fee checkbox.
+  "case_request",
 ] as const;
 
 export type TermsSurface = (typeof TERMS_SURFACES)[number];
 
 export function isTermsSurface(value: unknown): value is TermsSurface {
-  return (
-    typeof value === "string" && (TERMS_SURFACES as readonly string[]).includes(value)
-  );
+  return typeof value === "string" && (TERMS_SURFACES as readonly string[]).includes(value);
 }
 
 export type TermsAcceptanceInput = {

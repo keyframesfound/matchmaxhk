@@ -18,10 +18,13 @@ export async function recordTermsAcceptance(params: {
   surface: TermsSurface;
   /** Optional context row: application id, note draft id, or order id. */
   subjectId?: string | null;
+  /** Override the recorded version (e.g. the fee-2026-10 matching-fee terms). */
+  termsVersion?: string;
 }): Promise<void> {
   const row = buildTermsAcceptanceRow({
     userId: params.userId,
     surface: params.surface,
+    termsVersion: params.termsVersion,
     subjectId: params.subjectId ?? null,
   });
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
