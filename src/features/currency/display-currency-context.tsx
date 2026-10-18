@@ -85,7 +85,9 @@ export function DisplayCurrencyProvider({ children }: { children: ReactNode }) {
     [currency, rates],
   );
 
-  return <DisplayCurrencyContext.Provider value={value}>{children}</DisplayCurrencyContext.Provider>;
+  return (
+    <DisplayCurrencyContext.Provider value={value}>{children}</DisplayCurrencyContext.Provider>
+  );
 }
 
 /**

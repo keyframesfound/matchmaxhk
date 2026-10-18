@@ -189,20 +189,20 @@ function RootComponent() {
           <ProfileLocaleSync />
           <ReferralCapture />
           <DisplayCurrencyProvider>
-          <ThemeProvider>
-            <AccountStatusBanners />
-            <OnboardingGate>
-              <CommunityCommitmentGate>
-                <main id="main-content">
-                  <Outlet />
-                </main>
-                <BackToTopButton />
-                <WhatsAppFloatButton />
-                <CompareSelectionReset />
-              </CommunityCommitmentGate>
-            </OnboardingGate>
-            <Toaster />
-          </ThemeProvider>
+            <ThemeProvider>
+              <AccountStatusBanners />
+              <OnboardingGate>
+                <CommunityCommitmentGate>
+                  <main id="main-content">
+                    <Outlet />
+                  </main>
+                  <BackToTopButton />
+                  <WhatsAppFloatButton />
+                  <CompareSelectionReset />
+                </CommunityCommitmentGate>
+              </OnboardingGate>
+              <Toaster />
+            </ThemeProvider>
           </DisplayCurrencyProvider>
         </AuthProvider>
       </I18nProvider>

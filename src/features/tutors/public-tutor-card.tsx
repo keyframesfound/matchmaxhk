@@ -550,10 +550,7 @@ export function PublicTutorCard({
               convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) &&
               toCurrencyCode(tutor.currency) !== displayCurrency
                 ? t("currency.base_price_tooltip", {
-                    amount: formatMoney(
-                      tutor.hourly_rate,
-                      toCurrencyCode(tutor.currency),
-                    ),
+                    amount: formatMoney(tutor.hourly_rate, toCurrencyCode(tutor.currency)),
                   })
                 : undefined
             }

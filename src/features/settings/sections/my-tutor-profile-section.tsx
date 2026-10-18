@@ -1152,22 +1152,22 @@ export function MyTutorProfileSection() {
                     </option>
                   ))}
                 </select>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={form.subjects.length === 0 || suggestPending}
-                onClick={handleSuggestRate}
-              >
-                {suggestPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-                    {t("settings.my_tutor.suggest_a_rate")}
-                  </>
-                ) : (
-                  t("settings.my_tutor.suggest_a_rate")
-                )}
-              </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={form.subjects.length === 0 || suggestPending}
+                  onClick={handleSuggestRate}
+                >
+                  {suggestPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                      {t("settings.my_tutor.suggest_a_rate")}
+                    </>
+                  ) : (
+                    t("settings.my_tutor.suggest_a_rate")
+                  )}
+                </Button>
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">

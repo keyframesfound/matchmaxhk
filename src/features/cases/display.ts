@@ -123,10 +123,7 @@ export function caseBudgetForTutor(
     const converted = convertCurrency(value, DEFAULT_CURRENCY, tutorCurrency, rates);
     return Number.isFinite(converted) ? formatMoney(converted, tutorCurrency) : null;
   };
-  const parts = [
-    min === null ? "?" : convert(min),
-    max === null ? "?" : convert(max),
-  ];
+  const parts = [min === null ? "?" : convert(min), max === null ? "?" : convert(max)];
   if (parts.some((part) => part === null)) return { primary: null, original };
   return { primary: `${parts[0]}–${parts[1]}/hr`, original };
 }

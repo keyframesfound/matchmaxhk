@@ -22,10 +22,7 @@ export function CurrencyToggle({ className }: { className?: string }) {
   const { currency, setCurrency } = useDisplayCurrency();
 
   return (
-    <label
-      className={cnToggleLabel(className)}
-      aria-label={t("currency.switcher_label")}
-    >
+    <label className={cnToggleLabel(className)} aria-label={t("currency.switcher_label")}>
       <Banknote className="h-5 w-5 shrink-0" strokeWidth={2.5} aria-hidden="true" />
       <select
         value={currency}
@@ -82,4 +79,3 @@ export function CurrencyMenuSub() {
     </DropdownMenuSub>
   );
 }
-

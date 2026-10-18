@@ -181,11 +181,7 @@ function CaseDetailPage() {
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
                 {meta.map(({ icon: Icon, label, hint }) => (
-                  <span
-                    key={label}
-                    className="flex items-center gap-1.5"
-                    title={hint}
-                  >
+                  <span key={label} className="flex items-center gap-1.5" title={hint}>
                     <Icon className="h-4 w-4" aria-hidden="true" />
                     {label}
                   </span>

@@ -171,7 +171,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
   useEffect(() => {
     setForm((prev) =>
-      prev.budgetCurrency === DEFAULT_CURRENCY ? { ...prev, budgetCurrency: displayCurrency } : prev,
+      prev.budgetCurrency === DEFAULT_CURRENCY
+        ? { ...prev, budgetCurrency: displayCurrency }
+        : prev,
     );
   }, [displayCurrency]);
   const honeypot = useRef<HTMLInputElement>(null);
