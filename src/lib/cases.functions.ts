@@ -384,15 +384,32 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
 
     // Issue #253 (F2): record the matching-fee acceptance (account, version,
     // time) against the created case. Fail-closed — a submit without the
-    // checkbox never reaches this point (zod), and a failed insert throws so
-    // no case exists without its fee agreement on file.
+    // checkbox never reaches this point (zod), and the acceptance write is
+    // atomic with the case row via compensating delete: if the acceptance
+    // insert throws, the just-created case is removed before rethrowing, so
+    // no case ever exists without its fee agreement on file and a retry
+    // cannot strand an orphan (review blocker, 2026-10-18).
     const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
-    await recordTermsAcceptance({
-      userId: context.userId,
-      surface: "case_request",
-      termsVersion: FEE_TERMS_VERSION,
-      subjectId: row.id as string,
-    });
+    try {
+      await recordTermsAcceptance({
+        userId: context.userId,
+        surface: "case_request",
+        termsVersion: FEE_TERMS_VERSION,
+        subjectId: row.id as string,
+      });
+    } catch (acceptanceError) {
+      const { error: rollbackError } = await supabaseAdmin
+        .from("tutoring_cases")
+        .delete()
+        .eq("id", row.id as string);
+      if (rollbackError) {
+        console.error(
+          "[case-request] failed to roll back case after acceptance write failed:",
+          rollbackError.message,
+        );
+      }
+      throw acceptanceError;
+    }
 
     return { caseCode: row.case_code as string };
   });
