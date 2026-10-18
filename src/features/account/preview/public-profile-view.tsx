@@ -58,7 +58,11 @@ import {
 } from "@/features/tutors/tutor-display";
 import { shareOrCopy } from "@/lib/share";
 import { useDisplayCurrency } from "@/features/currency/display-currency-context";
-import { convertedTextFromHkd, nativeToDisplayText } from "@/features/currency/convert";
+import {
+  convertedTextFromHkd,
+  hasActiveConversion,
+  nativeToDisplayText,
+} from "@/features/currency/convert";
 import { DEFAULT_CURRENCY, formatMoney, toCurrencyCode } from "@/lib/money";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -680,7 +684,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                     </li>
                   ))}
                 </ul>
-                {displayCurrency !== DEFAULT_CURRENCY ? (
+                {hasActiveConversion(displayCurrency, fxRates) ? (
                   <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                     {translate("currency.profile_disclaimer", {
                       currency: displayCurrency,

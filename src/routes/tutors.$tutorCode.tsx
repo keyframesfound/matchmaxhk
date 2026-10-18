@@ -52,7 +52,11 @@ import {
 } from "@/features/tutors/queries";
 import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
 import { useDisplayCurrency } from "@/features/currency/display-currency-context";
-import { convertedTextFromHkd, nativeToDisplayText } from "@/features/currency/convert";
+import {
+  convertedTextFromHkd,
+  hasActiveConversion,
+  nativeToDisplayText,
+} from "@/features/currency/convert";
 import { DEFAULT_CURRENCY, formatMoney, toCurrencyCode } from "@/lib/money";
 import {
   formatAvailabilityDate,
@@ -995,7 +999,7 @@ function TutorDetail() {
                       </li>
                     ))}
                   </ul>
-                  {displayCurrency !== DEFAULT_CURRENCY ? (
+                  {hasActiveConversion(displayCurrency, fxRates) ? (
                     <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                       {translate("currency.profile_disclaimer", {
                         currency: displayCurrency,

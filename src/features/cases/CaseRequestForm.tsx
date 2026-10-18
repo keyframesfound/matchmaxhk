@@ -167,9 +167,15 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [result, setResult] = useState<{ caseCode: string } | null>(null);
   // Issue #114: pre-fill the budget currency from the visitor's active
-  // display currency (once, before they touch the field).
+  // display currency — but ONLY until the visitor (or a restored draft)
+  // has made their own choice. #380 review: re-syncing on every
+  // displayCurrency change clobbered an intentional HKD pick, so a
+  // touched flag freezes the field once the select is edited or a draft
+  // restores its own value.
   const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
+  const budgetCurrencyTouched = useRef(false);
   useEffect(() => {
+    if (budgetCurrencyTouched.current) return;
     setForm((prev) =>
       prev.budgetCurrency === DEFAULT_CURRENCY
         ? { ...prev, budgetCurrency: displayCurrency }
@@ -228,6 +234,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       : [];
     // Issue #311: drafts saved before tags existed have no tags array.
     const tags = Array.isArray(restored.tags) ? restored.tags : [];
+    // #380 review: a restored draft's budget currency (even an explicit
+    // HKD) is the visitor's own choice — never re-sync it afterwards.
+    budgetCurrencyTouched.current = true;
     setForm((prev) => ({ ...prev, ...restored, instructionLanguage: languages, tags }));
   }, [restored]);
 
@@ -1082,7 +1091,12 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                   aria-label="Budget currency"
                   className="h-10 shrink-0 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 text-sm font-semibold text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
                   value={form.budgetCurrency}
-                  onChange={(e) => update({ budgetCurrency: e.target.value })}
+                  onChange={(e) => {
+                    // #380 review: freeze the seed sync once the visitor
+                    // picks a currency themselves.
+                    budgetCurrencyTouched.current = true;
+                    update({ budgetCurrency: e.target.value });
+                  }}
                 >
                   {SUPPORTED_CURRENCIES.map((code) => (
                     <option key={code} value={code}>

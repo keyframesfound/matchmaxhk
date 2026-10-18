@@ -62,6 +62,18 @@ export function nativeToDisplayText(
 }
 
 /**
+ * True only when the display switcher is actually converting — display ≠ HKD
+ * AND a usable rate exists for it. Gates "viewing converted" chrome such as
+ * the profile FX disclaimer (#380 review): when rates fail to load every
+ * surface fail-softs back to HKD figures, and a disclaimer claiming prices
+ * are shown converted would be false.
+ */
+export function hasActiveConversion(display: CurrencyCode, rates: HkdRates): boolean {
+  if (display === DEFAULT_CURRENCY) return false;
+  return Number.isFinite(convertCurrency(1, DEFAULT_CURRENCY, display, rates));
+}
+
+/**
  * Live ≈HK$ baseline for native-currency inputs (#113/#114 forms):
  * "≈ HK$3,129" for a £400/hr input. Null when the input currency is HKD or
  * no rate is available — the note simply does not render.

@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   approxHkdText,
   convertedTextFromHkd,
+  hasActiveConversion,
   nativeToDisplayText,
   readStoredCurrency,
 } from "@/features/currency/convert";
@@ -39,6 +40,21 @@ describe("nativeToDisplayText", () => {
   it("converts a native rate into the display currency", () => {
     // 400 HKD → GBP at 0.1 → 40
     expect(nativeToDisplayText(400, "HKD", "GBP", RATES)).toBe("£40");
+  });
+});
+
+describe("hasActiveConversion (#380 review)", () => {
+  it("is false for HKD display — nothing is converting", () => {
+    expect(hasActiveConversion(DEFAULT_CURRENCY, RATES)).toBe(false);
+  });
+
+  it("is true when a usable rate exists for the display currency", () => {
+    expect(hasActiveConversion("GBP", RATES)).toBe(true);
+    expect(hasActiveConversion("USD", RATES)).toBe(true);
+  });
+
+  it("is false when rates failed to load — surfaces fail-soft to HKD", () => {
+    expect(hasActiveConversion("GBP", {})).toBe(false);
   });
 });
 
