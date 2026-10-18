@@ -1820,7 +1820,7 @@
     "fee_notice": "If both intro lessons happen, you pay MatchMax 1.5 times the pay for one lesson, by FPS. A HK$400 hour is a HK$600 fee. After that you pay the tutor. A request for 5 lessons or fewer is 20% of that package.",
     "fee_agree_pre": "I agree to the",
     "fee_agree_link": "matching fee terms",
-    "fee_agree_post": ", version fee-2026-10."
+    "fee_agree_post": ", version {{version}}."
   },
   "sen": {
     "filter_title": "SEN support",

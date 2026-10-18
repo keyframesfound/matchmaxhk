@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { useDisplayCurrency } from "@/features/currency/display-currency-context";
+import { FEE_TERMS_VERSION } from "@/features/legal/terms";
 import { approxHkdText } from "@/features/currency/convert";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES, toCurrencyCode } from "@/lib/money";
 
@@ -1332,7 +1333,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               >
                 {t("case_request.fee_agree_link")}
               </Link>
-              {t("case_request.fee_agree_post")}
+              {t("case_request.fee_agree_post", { version: FEE_TERMS_VERSION })}
               {errors.feeAgreed ? (
                 <span className="ml-2 align-middle text-xs font-medium text-destructive">
                   Required
