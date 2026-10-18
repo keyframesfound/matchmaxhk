@@ -57,6 +57,9 @@ import {
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { shareOrCopy } from "@/lib/share";
+import { useDisplayCurrency } from "@/features/currency/display-currency-context";
+import { convertedTextFromHkd, nativeToDisplayText } from "@/features/currency/convert";
+import { DEFAULT_CURRENCY, formatMoney, toCurrencyCode } from "@/lib/money";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -211,20 +214,29 @@ function AcademicQualification({ result }: { result: ExamResult }) {
   );
 }
 
-function RateValue({ rate }: { rate: number }) {
+function RateValue({ rate, nativeCurrency }: { rate: number; nativeCurrency: string | null }) {
   const { t } = useTranslation();
+  // Issue #114: same conversion treatment as the live profile page.
+  const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
+  const native = toCurrencyCode(nativeCurrency);
+  const converted = nativeToDisplayText(rate, native, displayCurrency, fxRates);
+  const nativeText = native === DEFAULT_CURRENCY ? `$${rate}` : formatMoney(rate, native);
   return (
     <span className="shrink-0 text-sm font-bold text-[color:var(--ink)]">
-      ${rate}
+      {converted ?? nativeText}
       <span className="ml-0.5 text-xs font-medium text-muted-foreground">
         {t("featured.per_hour")}
       </span>
+      {converted ? (
+        <span className="ml-1.5 text-xs font-medium text-muted-foreground">({nativeText})</span>
+      ) : null}
     </span>
   );
 }
 
 export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boolean }) {
   const { t: translate, i18n } = useTranslation();
+  const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
   const navigate = useNavigate();
 
   const { data: whatsappNumber } = useQuery({
@@ -431,7 +443,8 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
               <div className="flex items-center justify-start gap-1.5 sm:justify-end">
                 {price.baseRate > 0 ? (
                   <p className="text-3xl font-bold text-[color:var(--ink)]">
-                    ${price.baseRate}
+                    {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ??
+                      `$${price.baseRate}`}
                     <span className="ml-1 text-sm font-semibold text-muted-foreground">
                       {translate("tutor_card.price_up")}
                       {translate("featured.per_hour")}
@@ -639,7 +652,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                       <span className="text-sm font-semibold text-[color:var(--ink)]">
                         {translate("profile.rates_online")}
                       </span>
-                      <RateValue rate={tutor.online_rate} />
+                      <RateValue rate={tutor.online_rate} nativeCurrency={tutor.currency} />
                     </li>
                   ) : null}
                   {tutor.inperson_rate !== null ? (
@@ -648,7 +661,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                         <span className="text-sm font-semibold text-[color:var(--ink)]">
                           {translate("profile.rates_inperson")}
                         </span>
-                        <RateValue rate={tutor.inperson_rate} />
+                        <RateValue rate={tutor.inperson_rate} nativeCurrency={tutor.currency} />
                       </div>
                       {tutor.travel_note ? (
                         <p className="mt-1 text-xs text-muted-foreground">{tutor.travel_note}</p>
@@ -663,10 +676,17 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                       <span className="text-sm font-semibold text-[color:var(--ink)]">
                         {row.label}
                       </span>
-                      <RateValue rate={row.rate} />
+                      <RateValue rate={row.rate} nativeCurrency={tutor.currency} />
                     </li>
                   ))}
                 </ul>
+                {displayCurrency !== DEFAULT_CURRENCY ? (
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    {translate("currency.profile_disclaimer", {
+                      currency: displayCurrency,
+                    })}
+                  </p>
+                ) : null}
                 {tutor.rate_note ? (
                   <p className="mt-3 text-xs leading-relaxed text-muted-foreground sm:text-sm">
                     {tutor.rate_note}

@@ -16,6 +16,7 @@ import { OnboardingGate } from "@/features/auth/OnboardingGate";
 import { CommunityCommitmentGate } from "@/features/auth/CommunityCommitmentGate";
 import { AccountStatusBanners } from "@/features/auth/AccountStatusBanners";
 import { ThemeProvider } from "@/features/theme/ThemeProvider";
+import { DisplayCurrencyProvider } from "@/features/currency/display-currency-context";
 
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { ReferralCapture } from "@/components/layout/ReferralCapture";
@@ -187,6 +188,7 @@ function RootComponent() {
         <AuthProvider>
           <ProfileLocaleSync />
           <ReferralCapture />
+          <DisplayCurrencyProvider>
           <ThemeProvider>
             <AccountStatusBanners />
             <OnboardingGate>
@@ -201,6 +203,7 @@ function RootComponent() {
             </OnboardingGate>
             <Toaster />
           </ThemeProvider>
+          </DisplayCurrencyProvider>
         </AuthProvider>
       </I18nProvider>
     </QueryClientProvider>

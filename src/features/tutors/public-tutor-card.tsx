@@ -33,6 +33,9 @@ import { DemandBadge, ParentFavoriteBadge } from "@/features/tutors/engagement-b
 import { useFitText } from "@/hooks/use-fit-text";
 import { shareOrCopy } from "@/lib/share";
 import { cn } from "@/lib/utils";
+import { useDisplayCurrency } from "@/features/currency/display-currency-context";
+import { convertedTextFromHkd } from "@/features/currency/convert";
+import { DEFAULT_CURRENCY, formatMoney, toCurrencyCode } from "@/lib/money";
 
 function getTutorInitials(tutorCode?: string | null) {
   const normalized = (tutorCode ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
@@ -82,9 +85,11 @@ type FitTextProps = {
   contentKey: string | number;
   className?: string;
   children: ReactNode;
+  /** Native hover tooltip (#114): the tutor's own quoted figure. */
+  title?: string;
 };
 
-function FitText({ as, maxLines, contentKey, className, children }: FitTextProps) {
+function FitText({ as, maxLines, contentKey, className, children, title }: FitTextProps) {
   const ref = useFitText<HTMLParagraphElement & HTMLLIElement>({
     maxLines,
     contentKey,
@@ -92,14 +97,14 @@ function FitText({ as, maxLines, contentKey, className, children }: FitTextProps
 
   if (as === "li") {
     return (
-      <li ref={ref} className={className}>
+      <li ref={ref} className={className} title={title}>
         {children}
       </li>
     );
   }
 
   return (
-    <p ref={ref} className={className}>
+    <p ref={ref} className={className} title={title}>
       {children}
     </p>
   );
@@ -136,6 +141,9 @@ export function PublicTutorCard({
   engagement,
 }: PublicTutorCardProps) {
   const { t, i18n } = useTranslation();
+  // Issue #114: honor the visitor's display currency; the native-figure
+  // tooltip only appears when the tutor quotes in a different currency.
+  const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
   const interactive = typeof onOpen === "function";
   // Issue #309: the academic chips show APPROVED tutor_grades labels only.
   // Pending/rejected rows never reach the public card; the slip file itself is
@@ -537,10 +545,24 @@ export function PublicTutorCard({
             maxLines={1}
             contentKey={`${price.baseRate}-${priceSuffix}`}
             className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
+            title={
+              displayCurrency !== DEFAULT_CURRENCY &&
+              convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) &&
+              toCurrencyCode(tutor.currency) !== displayCurrency
+                ? t("currency.base_price_tooltip", {
+                    amount: formatMoney(
+                      tutor.hourly_rate,
+                      toCurrencyCode(tutor.currency),
+                    ),
+                  })
+                : undefined
+            }
           >
             {/* Issue #319: one "$X up/hr" figure — the base rate floor. Extra
-                rate rows never appear here, so they can never lower it. */}
-            ${price.baseRate}
+                rate rows never appear here, so they can never lower it.
+                #114: converted figure when the visitor picked a display
+                currency; tooltip shows the tutor's own quote when it differs. */}
+            {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ?? `$${price.baseRate}`}
             <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
               {t("tutor_card.price_up")}
               {priceSuffix}
