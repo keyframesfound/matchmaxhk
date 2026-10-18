@@ -1,4 +1,5 @@
 import { buildAcademicHeadline } from "@/lib/academic-headline";
+import { toCurrencyCode } from "@/lib/money";
 import { contactFilterError } from "@/lib/contact-filter";
 import {
   normalizeApplicationPricingTiers,
@@ -82,7 +83,8 @@ export type TutorCardInsert = {
   tutor_code: string;
   display_name: string;
   is_published: true;
-  currency: "HKD";
+  /** Issue #113: the tutor's native quoting currency (HKD fallback). */
+  currency: string;
   lesson_mode: TutorCardLessonMode;
   hourly_rate: number;
   online_rate: number | null;
@@ -145,7 +147,10 @@ export function buildTutorCardInsert(
     tutor_code: tutorCode,
     display_name: application.name,
     is_published: true,
-    currency: "HKD",
+    // Issue #113: honor the application's quoting currency — the publish RPC
+    // COALESCEs to HKD and casts to supported_currency, and the
+    // tutors_normalize_hkd trigger snapshots the HKD bounds.
+    currency: toCurrencyCode(application.currency),
     lesson_mode: mapApplicationFormatToLessonMode(application.format),
     hourly_rate: baseRates.length > 0 ? Math.min(...baseRates) : 0,
     online_rate: application.onlineRate,

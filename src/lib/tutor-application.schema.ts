@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
 import { contactFilterError } from "@/lib/contact-filter";
 import {
   MAX_RATE_ROWS,
@@ -232,6 +233,10 @@ export const tutorApplicationSchema = z
     hourlyRate: z.string().trim().max(20).optional().default(""),
     onlineRate: z.number().int().min(RATE_MIN).max(RATE_MAX).nullable().default(null),
     inpersonRate: z.number().int().min(RATE_MIN).max(RATE_MAX).nullable().default(null),
+    // Issue #113: the currency the tutor quotes ALL pricing fields in. The
+    // stored rates stay native; tutors_normalize_hkd snapshots the HKD
+    // equivalents on publish.
+    currency: z.enum(SUPPORTED_CURRENCIES).default(DEFAULT_CURRENCY),
     // Extra rate rows (profile-only): lenient shape here — the same shared
     // rules as the form run in superRefine, and functions.ts stores the
     // normalized output (half-filled/invalid rows never reach the row).

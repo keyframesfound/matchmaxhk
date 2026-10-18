@@ -16,6 +16,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
+import { CurrencyMenuSub, CurrencyToggle } from "@/components/brand/CurrencyToggle";
 import { Logo } from "@/components/brand/Logo";
 import { COLLAPSE_MIDPOINT, useSearchGroup } from "@/components/search/sticky-search-group";
 import {
@@ -361,6 +362,7 @@ export function SiteHeader({
                       {currentLang === "en" ? "EN" : "繁"}
                     </span>
                   </DropdownMenuItem>
+                  <CurrencyMenuSub />
                   <DropdownMenuItem
                     onSelect={() => setTheme(useDarkTheme ? "dark" : "light")}
                     className={menuLinkClassName}
@@ -484,8 +486,9 @@ export function SiteHeader({
                       {t("nav.sign_out")}
                     </button>
                   )}
-                  <div className="flex items-center justify-start pt-2">
+                  <div className="flex items-center justify-start gap-2 pt-2">
                     <LanguageToggle />
+                    <CurrencyToggle />
                   </div>
                 </div>
               )}

@@ -51,6 +51,13 @@ import {
   type Tutor,
 } from "@/features/tutors/queries";
 import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
+import { useDisplayCurrency } from "@/features/currency/display-currency-context";
+import {
+  convertedTextFromHkd,
+  hasActiveConversion,
+  nativeToDisplayText,
+} from "@/features/currency/convert";
+import { DEFAULT_CURRENCY, formatMoney, toCurrencyCode } from "@/lib/money";
 import {
   formatAvailabilityDate,
   getTutorAvailabilityReadiness,
@@ -236,14 +243,25 @@ function AcademicQualification({ result }: { result: ExamResult }) {
   );
 }
 
-function RateValue({ rate }: { rate: number }) {
+function RateValue({ rate, nativeCurrency }: { rate: number; nativeCurrency: string | null }) {
   const { t } = useTranslation();
+  // Issue #114: rates are stored in the tutor's native currency; when the
+  // visitor picked a display currency the row shows the converted figure with
+  // the stored one beside it. Without a conversion (display = HKD or no
+  // rates) the row renders exactly as before.
+  const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
+  const native = toCurrencyCode(nativeCurrency);
+  const converted = nativeToDisplayText(rate, native, displayCurrency, fxRates);
+  const nativeText = native === DEFAULT_CURRENCY ? `$${rate}` : formatMoney(rate, native);
   return (
     <span className="shrink-0 text-sm font-bold text-[color:var(--ink)]">
-      ${rate}
+      {converted ?? nativeText}
       <span className="ml-0.5 text-xs font-medium text-muted-foreground">
         {t("featured.per_hour")}
       </span>
+      {converted ? (
+        <span className="ml-1.5 text-xs font-medium text-muted-foreground">({nativeText})</span>
+      ) : null}
     </span>
   );
 }
@@ -408,6 +426,7 @@ function TutorDetail() {
   const { tutor } = Route.useLoaderData();
   const navigate = useNavigate();
   const { t: translate, i18n } = useTranslation();
+  const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
   const { user } = useAuth();
 
   const { data: whatsappNumber } = useQuery({
@@ -695,7 +714,8 @@ function TutorDetail() {
                       "$X up/hr" figure — the base-rate floor, never a range. */}
                   {price.baseRate > 0 ? (
                     <p className="text-3xl font-bold text-[color:var(--ink)]">
-                      ${price.baseRate}
+                      {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ??
+                        `$${price.baseRate}`}
                       <span className="ml-1 text-sm font-semibold text-muted-foreground">
                         {translate("tutor_card.price_up")}
                         {translate("featured.per_hour")}
@@ -951,7 +971,7 @@ function TutorDetail() {
                         <span className="text-sm font-semibold text-[color:var(--ink)]">
                           {translate("profile.rates_online")}
                         </span>
-                        <RateValue rate={t.online_rate} />
+                        <RateValue rate={t.online_rate} nativeCurrency={t.currency} />
                       </li>
                     ) : null}
                     {t.inperson_rate !== null ? (
@@ -960,7 +980,7 @@ function TutorDetail() {
                           <span className="text-sm font-semibold text-[color:var(--ink)]">
                             {translate("profile.rates_inperson")}
                           </span>
-                          <RateValue rate={t.inperson_rate} />
+                          <RateValue rate={t.inperson_rate} nativeCurrency={t.currency} />
                         </div>
                         {t.travel_note ? (
                           <p className="mt-1 text-xs text-muted-foreground">{t.travel_note}</p>
@@ -975,10 +995,17 @@ function TutorDetail() {
                         <span className="text-sm font-semibold text-[color:var(--ink)]">
                           {row.label}
                         </span>
-                        <RateValue rate={row.rate} />
+                        <RateValue rate={row.rate} nativeCurrency={t.currency} />
                       </li>
                     ))}
                   </ul>
+                  {hasActiveConversion(displayCurrency, fxRates) ? (
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      {translate("currency.profile_disclaimer", {
+                        currency: displayCurrency,
+                      })}
+                    </p>
+                  ) : null}
                   {t.rate_note ? (
                     <p className="mt-3 text-xs leading-relaxed text-muted-foreground sm:text-sm">
                       {t.rate_note}

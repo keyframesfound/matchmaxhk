@@ -291,8 +291,8 @@
       "display_name": "顯示名稱",
       "display_name_hint": "會喺你嘅公開導師卡上、導師編號旁邊顯示。",
       "rates_heading": "時薪",
-      "rates_online": "網上時薪（HK$）",
-      "rates_in_person": "面授時薪（HK$）",
+      "rates_online": "網上時薪（{{currency}}）",
+      "rates_in_person": "面授時薪（{{currency}}）",
       "suggest_a_rate": "建議時薪",
       "suggest_not_enough_data": "暫時未有足夠數據",
       "rate_rows_label": "其他收費（選填）",
@@ -348,7 +348,8 @@
       "reject_reason_unreadable": "睇唔清楚",
       "reject_reason_not_a_result_slip": "唔係成績證明",
       "reject_reason_looks_altered": "疑似被改動",
-      "reject_reason_wrong_document": "文件錯誤"
+      "reject_reason_wrong_document": "文件錯誤",
+      "rates_currency": "貨幣"
     },
     "grid": {
       "title": "每週補習時間表",
@@ -735,8 +736,8 @@
       "headline_hint": "系統根據上方課程及成績自動填寫——你可自行輸入修改；清空後點選其他欄位即會重新帶出建議。"
     },
     "rates": {
-      "online": "網上授課時薪（港幣）",
-      "in_person": "面授時薪（港幣）",
+      "online": "網上授課時薪（{{currency}}）",
+      "in_person": "面授時薪（{{currency}}）",
       "invalid": "請輸入 50 至 3000 之間的整數",
       "travel_note": "交通備註",
       "travel_note_hint": "會顯示在你的面授收費旁，例如「只到九龍及港島區上課」。",
@@ -745,8 +746,9 @@
       "rows_label": "額外收費項目",
       "rows_hint": "選填——最多 {{max}} 項，例如小組班或假期精讀班收費。兩個欄位都填寫才會儲存。",
       "row_label": "項目名稱",
-      "row_rate": "收費（港幣）",
-      "add_row": "新增收費項目"
+      "row_rate": "收費（{{currency}}）",
+      "add_row": "新增收費項目",
+      "currency_label": "報價貨幣"
     },
     "view_live_card": "查看你的上架導師卡",
     "manage_hint": "請保存 WhatsApp 訊息入面嘅申請編號，我哋團隊會用佢嚟對應你嘅申請。",
@@ -2215,5 +2217,10 @@
     "admin_unpaid_title": "未繳費用（最早優先）",
     "admin_whatsapp_open": "開啟 WhatsApp",
     "admin_import_errors_label": "行錯誤"
+  },
+  "currency": {
+    "switcher_label": "貨幣",
+    "base_price_tooltip": "導師定價：{{amount}}",
+    "profile_disclaimer": "以{{currency}}顯示的價格按現行市場匯率折算，僅供參考。實際收費及課堂結算以導師協定的基準價為準。"
   }
 }

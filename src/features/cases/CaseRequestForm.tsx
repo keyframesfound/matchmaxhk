@@ -1,9 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Hash, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+
+import { useDisplayCurrency } from "@/features/currency/display-currency-context";
+import { approxHkdText } from "@/features/currency/convert";
+import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES, toCurrencyCode } from "@/lib/money";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -98,6 +102,8 @@ type FormState = {
   district: string;
   budgetMin: string;
   budgetMax: string;
+  // Issue #114: the parent's native budget currency (HKD fallback).
+  budgetCurrency: string;
   tutorBackground: string;
   notes: string;
   // Issue #199: SEN support requirements (step 3).
@@ -134,6 +140,7 @@ const INITIAL_FORM: FormState = {
   district: "",
   budgetMin: "",
   budgetMax: "",
+  budgetCurrency: DEFAULT_CURRENCY,
   tutorBackground: "any",
   notes: "",
   senRequired: false,
@@ -159,8 +166,37 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [result, setResult] = useState<{ caseCode: string } | null>(null);
+  // Issue #114: pre-fill the budget currency from the visitor's active
+  // display currency — but ONLY until the visitor (or a restored draft)
+  // has made their own choice. #380 review: re-syncing on every
+  // displayCurrency change clobbered an intentional HKD pick, so a
+  // touched flag freezes the field once the select is edited or a draft
+  // restores its own value.
+  const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
+  const budgetCurrencyTouched = useRef(false);
+  useEffect(() => {
+    if (budgetCurrencyTouched.current) return;
+    setForm((prev) =>
+      prev.budgetCurrency === DEFAULT_CURRENCY
+        ? { ...prev, budgetCurrency: displayCurrency }
+        : prev,
+    );
+  }, [displayCurrency]);
   const honeypot = useRef<HTMLInputElement>(null);
   const startedAt = useRef(Date.now());
+  // Issue #114: "≈ HK$350 – HK$450 / hr" baseline under the budget inputs.
+  const budgetApproxNote = useMemo(() => {
+    const currency = toCurrencyCode(form.budgetCurrency);
+    const min = Number(form.budgetMin);
+    const max = Number(form.budgetMax);
+    if (!Number.isFinite(min) || !Number.isFinite(max) || (min <= 0 && max <= 0)) return null;
+    const parts = [
+      approxHkdText(min, currency, fxRates),
+      approxHkdText(max, currency, fxRates),
+    ].filter((part): part is string => part !== null);
+    if (parts.length === 0) return null;
+    return parts.join(" – ");
+  }, [form.budgetMin, form.budgetMax, form.budgetCurrency, fxRates]);
   const { restored, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v6");
   // Issue #186: deep link to the MatchMax hotline with a summary of the
   // request once the case code exists (enabled only after a successful
@@ -175,7 +211,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           ? `Subjects: ${[form.subject1, form.subject2].filter(Boolean).join(", ")}`
           : null,
         form.budgetMin || form.budgetMax
-          ? `Budget: ${form.budgetMin ? `$${form.budgetMin}` : ""}${form.budgetMax ? `-$${form.budgetMax}` : ""}`
+          ? `Budget: ${form.budgetMin ? `${form.budgetCurrency} ${form.budgetMin}` : ""}${form.budgetMax ? `–${form.budgetCurrency} ${form.budgetMax}` : ""}${budgetApproxNote ? ` (≈ ${budgetApproxNote}/hr)` : ""}`
           : null,
         form.district ? `District: ${form.district}` : null,
       ]
@@ -198,6 +234,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       : [];
     // Issue #311: drafts saved before tags existed have no tags array.
     const tags = Array.isArray(restored.tags) ? restored.tags : [];
+    // #380 review: a restored draft's budget currency (even an explicit
+    // HKD) is the visitor's own choice — never re-sync it afterwards.
+    budgetCurrencyTouched.current = true;
     setForm((prev) => ({ ...prev, ...restored, instructionLanguage: languages, tags }));
   }, [restored]);
 
@@ -371,6 +410,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           district: form.deliveryMode !== "online" ? form.district || null : null,
           budgetMin: form.budgetMin ? Number(form.budgetMin) : null,
           budgetMax: form.budgetMax ? Number(form.budgetMax) : null,
+          // Issue #114: the parent's native budget currency; the DB trigger
+          // snapshots the HKD-equivalent bounds server-side.
+          budgetCurrency: toCurrencyCode(form.budgetCurrency),
           tutorBackground: (form.tutorBackground || "any") as
             "uni_student" | "official_examiner" | "any",
           notes: form.notes.trim() || null,
@@ -1041,13 +1083,30 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             ) : null}
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-budget-max`}>
-                Hourly budget (HK$)
+                Hourly budget
                 {errors.budgetMax === "Required" ? <RequiredFlag /> : null}
               </label>
               <div className="flex items-center gap-2">
+                <select
+                  aria-label="Budget currency"
+                  className="h-10 shrink-0 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 text-sm font-semibold text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                  value={form.budgetCurrency}
+                  onChange={(e) => {
+                    // #380 review: freeze the seed sync once the visitor
+                    // picks a currency themselves.
+                    budgetCurrencyTouched.current = true;
+                    update({ budgetCurrency: e.target.value });
+                  }}
+                >
+                  {SUPPORTED_CURRENCIES.map((code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
+                </select>
                 <Input
                   id={`${idPrefix}-budget-min`}
-                  aria-label="Minimum hourly budget in HK$"
+                  aria-label={`Minimum hourly budget in ${form.budgetCurrency}`}
                   className={controlClassName}
                   placeholder="Min (optional)"
                   inputMode="numeric"
@@ -1065,6 +1124,13 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                   onChange={(e) => update({ budgetMax: e.target.value.replace(/[^\d]/g, "") })}
                 />
               </div>
+              {/* Issue #114: live HK$ baseline so parents see the equivalent
+                  concierge works from — hidden for HKD (no conversion). */}
+              {budgetApproxNote ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  &asymp; {budgetApproxNote} / hr
+                </p>
+              ) : null}
               {errors.budgetMax && errors.budgetMax !== "Required" ? (
                 <p className="mt-1 text-xs font-semibold text-destructive">{errors.budgetMax}</p>
               ) : null}

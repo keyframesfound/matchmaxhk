@@ -40,7 +40,9 @@ import {
   CaseCompareToggle,
   useCaseCompare,
 } from "@/features/cases/compare-cases";
-import { CASE_MODE_LABEL, formatCaseBudgetHkd, formatCaseSchedule } from "@/features/cases/display";
+import { CASE_MODE_LABEL, caseBudgetForTutor, formatCaseSchedule } from "@/features/cases/display";
+import { useDisplayCurrency } from "@/features/currency/display-currency-context";
+import { useTutorDisplayCurrency } from "@/features/currency/tutor-currency";
 import { normalizeProfileTag } from "@/features/tutors/profile-tags";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
@@ -162,6 +164,11 @@ function caseSectionLabel(section: string): string {
 
 function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
   const { pills, overflow } = casePillsForCard(item);
+  // Issue #113: tutors quoting in another currency see the converted budget
+  // first, with the HKD original right beside it.
+  const tutorCurrency = useTutorDisplayCurrency();
+  const { rates: fxRates } = useDisplayCurrency();
+  const budget = caseBudgetForTutor(item, tutorCurrency, fxRates);
   return (
     <li className="relative">
       {/* Row container is NOT a link (issue #311 review): the tag chips
@@ -193,7 +200,16 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
             </span>
             <span className="flex items-center gap-1">
               <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
-              {formatCaseBudgetHkd(item)}
+              {budget.primary ? (
+                <span className="font-semibold text-[color:var(--ink)]">
+                  {budget.primary}
+                  <span className="ml-1.5 font-normal text-muted-foreground">
+                    ({budget.original})
+                  </span>
+                </span>
+              ) : (
+                budget.original
+              )}
             </span>
           </div>
           {pills.length > 0 ? (
