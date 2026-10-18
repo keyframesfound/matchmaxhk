@@ -1319,6 +1319,11 @@ export function ApplicationForm() {
       if (base.country === "Other") required("countryOther", base.countryOther.trim());
       required("status", base.status);
       required("medium", base.medium);
+      // Issue #361: medium feeds the public languages column — run the same
+      // step-level contact filter here that the server schema applies at
+      // submit, so the tutor sees the error on the step that caused it.
+      const mediumError = contactFilterError(base.medium.join(", "));
+      if (mediumError && !next.medium) next.medium = mediumError;
       if (base.status === "Other") required("statusOther", base.statusOther.trim());
       if (!base.startImmediately) {
         required("startDate", base.startDate.trim());
@@ -1385,11 +1390,19 @@ export function ApplicationForm() {
         );
     }
     const taughtStep = professional ? 3 : 3;
-    if (step === taughtStep) required("subjectsTaught", selectedTeachingSubjects);
+    if (step === taughtStep) {
+      required("subjectsTaught", selectedTeachingSubjects);
+      // Issue #361: subjects feed the public card — filter them on-step too.
+      const taughtError = contactFilterError(selectedTeachingSubjects.join(", "));
+      if (taughtError && !next.subjectsTaught) next.subjectsTaught = taughtError;
+    }
     const lessonStep = professional ? 4 : 4;
     if (step === lessonStep) {
       required("format", base.format);
       if (base.format !== "Online") required("stations", base.stations);
+      // Issue #361: stations feed the public card — filter them on-step too.
+      const stationsError = contactFilterError(base.stations.join(", "));
+      if (stationsError && !next.stations) next.stations = stationsError;
     }
     const experienceStep = professional ? 5 : 5;
     if (step === experienceStep) {
@@ -1616,7 +1629,9 @@ export function ApplicationForm() {
         setApplicationRef(result?.applicationId ?? "");
         // Issue #310: the card is published at submit — keep its public path
         // so the success screen can link straight to the live card.
-        setLiveTutorCode(result?.tutorCode ?? "");
+        // Issue #358: a reused card that staff have since unpublished is not
+        // live — hide the "View live card" button (no published-success claim).
+        setLiveTutorCode(result?.published === false ? "" : (result?.tutorCode ?? ""));
         return result;
       });
       clearDraft();

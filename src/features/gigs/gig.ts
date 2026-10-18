@@ -393,3 +393,30 @@ export function splitGigMoney(grossHkd: number): {
 export function countsTowardBoughtCount(orderStatus: string): boolean {
   return orderStatus === "delivered";
 }
+
+/**
+ * #374: a racing writer must never clobber a status the reader didn't see.
+ * Every gig-order mutation chain updates WITH a status eq() guard and reads
+ * back the updated rows, so a lost race (0 rows) fails loudly instead of
+ * double-striking or double-counting a delivered order. Shape of the
+ * untyped material_orders update chain (update -> eq(id) -> eq(status) ->
+ * select) used by the staff desk and tutor fulfillment server fns.
+ */
+export type StatusGuardedOrderUpdate = {
+  update: (row: unknown) => {
+    eq: (
+      column: string,
+      value: unknown,
+    ) => {
+      eq: (
+        column: string,
+        value: unknown,
+      ) => {
+        select: (columns?: string) => Promise<{
+          data: { id: string }[] | null;
+          error: { message: string } | null;
+        }>;
+      };
+    };
+  };
+};

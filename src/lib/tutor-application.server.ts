@@ -24,7 +24,9 @@ import { getRuntimeEnv } from "./runtime-env";
 
 const RECIPIENT = "matchmaxedu@gmail.com";
 const FROM = "MatchMax <noreply@matchmax.hk>";
-const ADMIN_REVIEW_URL = "https://matchmax.hk/admin/join-requests";
+// Issue #358: cards go live at submit (#310), so the join-requests desk is a
+// read-only archive — the email points there, not at a "review queue".
+const ADMIN_ARCHIVE_URL = "https://matchmax.hk/admin/join-requests";
 const APPLICATION_FILE_PREFIX = "tutor-application-files/";
 
 export type StoredApplicationFile = {
@@ -222,22 +224,22 @@ async function sendTutorJoinNotification({
     email: data.email,
     phone: data.phone,
     attachmentCount: storedFiles.length,
-    reviewUrl: `${ADMIN_REVIEW_URL}?application=${applicationId}`,
+    archiveUrl: `${ADMIN_ARCHIVE_URL}?application=${applicationId}`,
   });
   const html = await render(element);
   const text = [
-    `New tutor join request — ${data.name}`,
+    `New tutor card is live — ${data.name}`,
     `Path: ${getApplicationPath(data)}`,
     `Email: ${data.email}`,
     `Phone: ${data.phone}`,
     `Attachments stored: ${storedFiles.length}`,
-    `Review: ${ADMIN_REVIEW_URL}?application=${applicationId}`,
+    `Archive: ${ADMIN_ARCHIVE_URL}?application=${applicationId}`,
   ].join("\n");
 
   const { error } = await new Resend(apiKey).emails.send({
     from: FROM,
     to: RECIPIENT,
-    subject: `New tutor join request — ${data.name}`,
+    subject: `New tutor card is live — ${data.name}`,
     html,
     text,
   });

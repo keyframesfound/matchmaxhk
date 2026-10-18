@@ -278,32 +278,22 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     assertOwnedDeliveredOrder(order, context.userId);
 
-    // #328: a delivered gig order carries its file in delivered_file_path and
-    // has NO listing-level original (original_file_path is NULL on gig rows),
-    // so the original is only REQUIRED when there is no delivered copy.
+    // Issue #374: buyer downloads sign ONLY the per-order DELIVERED copy —
+    // the stamped file staff released (delivered_file_path). No
+    // original_file_path fallback: after release the buyer must never read
+    // the unstamped original. Gig file_back returns also live in
+    // delivered_file_path, so both product kinds unlock through this gate.
+    // (Verified 2026-10-18: zero delivered orders existed on live, so no
+    // legacy #250-era buyer loses access.)
     const deliveredPath = (order as unknown as { delivered_file_path?: string | null })
       ?.delivered_file_path;
-
-    const { data: material, error: materialError } = await (
-      supabaseAdmin as unknown as OrdersClient
-    )
-      .from("digital_materials")
-      .select("original_file_path")
-      .eq("id", data.materialId)
-      .maybeSingle();
-    const originalPath = (material as unknown as { original_file_path?: string })
-      ?.original_file_path;
-    if (materialError || (!originalPath && !deliveredPath)) {
-      throw new Error("Material not found");
+    if (!deliveredPath) {
+      throw new Error(
+        "The stamped copy is not ready yet — the download unlocks once staff release the file.",
+      );
     }
 
-    // #203: prefer the per-order STAMPED copy (order id + buyer footer) that
-    // releaseOrder produced (stored in materials-originals under delivered/);
-    // fall back to the raw original only if the stamped file is missing
-    // (e.g. #250-era delivered orders). Gig file_back returns live only in
-    // delivered_file_path — the pathToSign fallback order covers them.
-    const pathToSign = deliveredPath || originalPath;
-    if (!pathToSign) throw new Error("Material not found");
+    const pathToSign = deliveredPath;
 
     const { data: signed, error: signError } = await supabaseAdmin.storage
       .from("materials-originals")

@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb, type AdminDb } from "@/features/materials/storage-helpers";
 import { isUniqueViolation } from "@/features/materials/orders.functions";
 import { GIG_ORDER_STATUSES, gigFulfillmentDueAt, transitionGigOrder } from "@/features/gigs/gig";
+import type { StatusGuardedOrderUpdate } from "@/features/gigs/gig";
 
 /**
  * Issues #326/#328/#329 — the STAFF side of freestyle gigs: the orders-desk
@@ -292,11 +293,19 @@ export const markGigOrderPaid = createServerFn({ method: "POST" })
       userId: context.userId,
       fpsReference: data.fpsReference,
     });
-    const { error: updateError } = await db
-      .from<never>("material_orders")
+    const { data: updatedRows, error: updateError } = await (
+      db.from<never>("material_orders") as unknown as StatusGuardedOrderUpdate
+    )
       .update(patch)
-      .eq("id", order.id);
+      .eq("id", order.id)
+      // #374: lose the race, not the state — a concurrent desk action that
+      // already moved the status makes this 0 rows and the call fails loudly.
+      .eq("status", order.status)
+      .select("id");
     if (updateError) throw new Error(updateError.message);
+    if (!updatedRows || updatedRows.length === 0) {
+      throw new Error("The order was just updated elsewhere — refresh the desk and retry.");
+    }
     return { ok: true, status: next, fulfillmentDueAt: patch.fulfillment_due_at };
   });
 
@@ -333,11 +342,19 @@ export const staffRefundGigOrder = createServerFn({ method: "POST" })
       throw new Error(`Order in status "${order.status}" cannot be refunded.`);
     }
 
-    const { error: updateError } = await db
-      .from<never>("material_orders")
+    const { data: updatedRows, error: updateError } = await (
+      db.from<never>("material_orders") as unknown as StatusGuardedOrderUpdate
+    )
       .update({ status: next })
-      .eq("id", order.id);
+      .eq("id", order.id)
+      // #374: status guard — a concurrent refund/deliver makes this 0 rows
+      // and the desk call fails loudly instead of silently re-refunding.
+      .eq("status", order.status)
+      .select("id");
     if (updateError) throw new Error(updateError.message);
+    if (!updatedRows || updatedRows.length === 0) {
+      throw new Error("The order was just updated elsewhere — refresh the desk and retry.");
+    }
 
     let struck = false;
     if (shouldStrikeOnStaffRefund(order.past_due_at)) {
@@ -412,13 +429,30 @@ export const getGigOrderSourceUrl = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ orderId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const db = await assertGigStaffDb(context.supabase, context.userId);
+    // #374: mirror the tutor gate's shape — the order must belong to a gig
+    // listing, the gig must be file_back, and the order must sit in an open
+    // fulfillment state before the buyer's source document is signed.
     const { data: order, error } = await db
-      .from<{ buyer_source_path: string | null }>("material_orders")
-      .select("buyer_source_path")
+      .from<{
+        buyer_source_path: string | null;
+        status: string;
+        digital_materials: { material_type: string; gig_delivery_type: string | null } | null;
+      }>("material_orders")
+      .select("buyer_source_path, status, digital_materials(material_type, gig_delivery_type)")
       .eq("id", data.orderId)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!order?.buyer_source_path) throw new Error("No source file attached.");
+    if (!order) throw new Error("Order not found.");
+    if (order.digital_materials?.material_type !== "gig") {
+      throw new Error("This order is not a service (gig) order.");
+    }
+    if (order.digital_materials.gig_delivery_type !== "file_back") {
+      throw new Error("This service does not use a source file.");
+    }
+    if (order.status !== "in_fulfillment" && order.status !== "past_due") {
+      throw new Error("This order is not open for fulfillment.");
+    }
+    if (!order.buyer_source_path) throw new Error("No source file attached.");
     const { data: signed, error: signError } = await db.storage
       .from(GIG_SOURCE_BUCKET)
       .createSignedUrl(order.buyer_source_path, 600);

@@ -8,6 +8,7 @@ import {
   applyCredentialDecision,
   booleanCredentialSnapshot,
   credentialFieldValue,
+  credentialValueContactError,
   isBooleanCredentialField,
   isCredentialEditField,
   isJsonbCredentialField,
@@ -389,6 +390,14 @@ export const reviewCredentialEdit = createServerFn({ method: "POST" })
     }
 
     if (data.decision === "approve") {
+      // Issue #367: the service-role swap bypasses both DB contact guards —
+      // run the canonical filter over the approved value first so contact
+      // details can never reach the public card through the queue. The edit
+      // stays pending so staff can reject it with a reason instead.
+      const contactError = credentialValueContactError(edit.field, edit.new_value);
+      if (contactError) {
+        throw new Error(`Approve blocked — ${contactError}`);
+      }
       // Swap the approved value in. Service role (auth.uid() IS NULL) passes
       // tutors_owner_verified_guard, so no guard change is needed.
       const columnValue = valueSnapshotToColumn(edit.field, edit.new_value);

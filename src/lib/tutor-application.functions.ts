@@ -23,6 +23,9 @@ const publishResultSchema = z.object({
   tutor_id: z.string().uuid(),
   tutor_code: z.string().min(1),
   reused: z.boolean(),
+  // Issue #358: false when the reused card has been unpublished by staff —
+  // the caller must not claim a live card or send the card-live email.
+  published: z.boolean(),
 });
 
 /**
@@ -35,9 +38,14 @@ const publishResultSchema = z.object({
  * transaction (status=accepted + linked_tutor_id). A second submit for the
  * same email reuses that card instead of publishing another one.
  */
-async function publishTutorCardFromApplication(
-  applicationId: string,
-): Promise<{ tutorId: string; tutorCode: string; email: string; name: string }> {
+async function publishTutorCardFromApplication(applicationId: string): Promise<{
+  tutorId: string;
+  tutorCode: string;
+  email: string;
+  name: string;
+  /** Issue #358: false when a reused card has been unpublished by staff. */
+  published: boolean;
+}> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const { data: row, error: rowError } = await supabaseAdmin
@@ -91,6 +99,8 @@ async function publishTutorCardFromApplication(
     tutorCode: parsed.data.tutor_code,
     email: applicationEmail || application.email,
     name: application.name ?? "",
+    // Issue #358: false when a reused card has been unpublished by staff.
+    published: parsed.data.published,
   };
 }
 
@@ -212,11 +222,15 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
     // fully valid application. publishTutorCardFromApplication scans the
     // mapped text again and publishes inside one transaction.
     const published = await publishTutorCardFromApplication(id);
-    await sendCardLiveEmail({
-      email: published.email,
-      name: published.name,
-      tutorCode: published.tutorCode,
-    });
+    // Issue #358: a reused card that staff have since unpublished is NOT
+    // live — skip the "your card is live" email and say so in the result.
+    if (published.published) {
+      await sendCardLiveEmail({
+        email: published.email,
+        name: published.name,
+        tutorCode: published.tutorCode,
+      });
+    }
 
     // Issue #189: the WhatsApp activation message names this reference so the
     // team can match the chat thread to the stored application row.
@@ -225,5 +239,6 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
       applicationId: id,
       tutorCode: published.tutorCode,
       tutorId: published.tutorId,
+      published: published.published,
     };
   });
