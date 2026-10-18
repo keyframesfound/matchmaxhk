@@ -231,7 +231,10 @@ export function credentialValueContactError(
   if (isBooleanCredentialField(field)) return null;
   if (isJsonbCredentialField(field)) return scanContactStrings(value);
   if (value == null) return null;
-  return contactFilterError(String(value));
+  // Text fields arrive as the stored jsonb snapshot ({ text: "..." }), not a
+  // bare string — String() on it yields "[object Object]" and the scan passes
+  // any contact detail. Unbox with the same helper the approve write uses.
+  return contactFilterError(valueSnapshotToText(value));
 }
 
 function scanContactStrings(value: unknown): string | null {

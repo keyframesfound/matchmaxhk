@@ -202,9 +202,18 @@ describe("credentialValueContactError (issue #367 approve gate)", () => {
     ).toMatch(/email address/i);
   });
 
+  it("flags a phone number inside a { text } jsonb snapshot (the real stored shape)", () => {
+    expect(
+      credentialValueContactError("qualifications_summary", { text: "Reach me 9123 4567" }),
+    ).toMatch(/contact details/i);
+  });
+
   it("clears a boolean field and clean values", () => {
     expect(credentialValueContactError("has_postgrad", true)).toBeNull();
     expect(credentialValueContactError("qualifications_summary", "IBDP tutor, 5 years")).toBeNull();
+    expect(
+      credentialValueContactError("qualifications_summary", { text: "IBDP tutor, 5 years" }),
+    ).toBeNull();
     expect(credentialValueContactError("exam_results", [{ system: "IBDP", score: 42 }])).toBeNull();
     expect(credentialValueContactError("qualifications_summary", null)).toBeNull();
   });

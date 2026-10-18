@@ -726,6 +726,8 @@
     "sample_notes": "經朋友轉介，平日晚上及週末時間較彈性。",
     "success_title": "你的導師卡已經上架",
     "success_message": "你一提交，導師卡已即時在 MatchMax 上架，家長而家就可以搵到你。最後一步：喺 WhatsApp 啟用，等我哋團隊可以就配對個案聯絡你。",
+    "success_unpublished_title": "已收到你的申請",
+    "success_unpublished_message": "我哋已將今次申請配對到你現有的導師卡，張卡目前未上架。團隊會審核並重新上架，一經處理就會透過 WhatsApp 通知你。最後一步：喺 WhatsApp 啟用，等我哋團隊可以就配對個案聯絡你。",
     "back_home": "返回首頁",
     "browse_tutors": "瀏覽導師",
     "academics": {

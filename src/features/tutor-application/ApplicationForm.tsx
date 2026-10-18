@@ -845,6 +845,9 @@ export function ApplicationForm() {
   // Issue #310: tutor code of the card published at submit (empty when the
   // server could not publish — the success screen hides the card link then).
   const [liveTutorCode, setLiveTutorCode] = useState("");
+  // Issue #358: true when submit reused a card that staff have since
+  // unpublished — the success screen must not claim the card is live.
+  const [unpublishedReuse, setUnpublishedReuse] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -1630,8 +1633,11 @@ export function ApplicationForm() {
         // Issue #310: the card is published at submit — keep its public path
         // so the success screen can link straight to the live card.
         // Issue #358: a reused card that staff have since unpublished is not
-        // live — hide the "View live card" button (no published-success claim).
-        setLiveTutorCode(result?.published === false ? "" : (result?.tutorCode ?? ""));
+        // live — hide the "View live card" button and swap the success copy
+        // to a received-not-live variant (no published-success claim).
+        const reusedUnpublished = result?.published === false;
+        setUnpublishedReuse(reusedUnpublished);
+        setLiveTutorCode(reusedUnpublished ? "" : (result?.tutorCode ?? ""));
         return result;
       });
       clearDraft();
@@ -1657,10 +1663,10 @@ export function ApplicationForm() {
             aria-hidden="true"
           />
           <h1 className="mt-4 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
-            {t("join.success_title")}
+            {unpublishedReuse ? t("join.success_unpublished_title") : t("join.success_title")}
           </h1>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
-            {t("join.success_message")}
+            {unpublishedReuse ? t("join.success_unpublished_message") : t("join.success_message")}
           </p>
           {liveTutorCode ? (
             <Button
