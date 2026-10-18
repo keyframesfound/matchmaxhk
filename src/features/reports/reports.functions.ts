@@ -349,10 +349,10 @@ export const listReportsAdmin = createServerFn({ method: "POST" })
  * the loser matches zero rows and reports already-resolved.
  *
  * Upheld reports hide the reported item until the tutor edits it (cards/
- * photos/introductions = the tutors row; notes = the material listing), and
+ * photos/introductions = the tutors row via is_published; notes/gigs = the
+ * material listing via the status machine's "hidden" state), and
  * the SECOND upheld report on the same tutor pauses the card (issue #216) —
- * both rules unpublish via is_published, so "pause" and "hide" share one
- * mechanism today; the count is surfaced in the queue. The tutor is NOT
+ * the count is surfaced in the queue. The tutor is NOT
  * emailed the reporter's name.
  */
 export const resolveReport = createServerFn({ method: "POST" })
@@ -422,11 +422,15 @@ export const resolveReport = createServerFn({ method: "POST" })
 
     if (data.action === "uphold") {
       // Hide the reported item until the tutor edits it (cards/photos/
-      // introductions = the tutors row; notes = the material listing).
+      // introductions = the tutors row; notes/gigs = the material listing).
+      // digital_materials has NO is_published column (that was dropped with
+      // the #203 status machine) — the real unpublish transition is
+      // status -> "hidden" (lifecycle "hide": published|hidden -> hidden,
+      // staff can unhide back to published).
       if (report.target_type === "material") {
         const { error } = (await admin
           .from("digital_materials")
-          .update({ is_published: false })
+          .update({ status: "hidden" })
           .eq("id", report.target_id)) as { error?: { message?: string } | null };
         if (error) throw new Error(error.message || "Failed to hide the note");
       } else if (report.tutor_id) {

@@ -77,8 +77,9 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
   const copyViolations = useMemo(() => {
     const titleV = findContactViolations(title);
     const descV = findContactViolations(description);
-    return { titleV, descV };
-  }, [title, description]);
+    const noteV = findContactViolations(turnaroundNote);
+    return { titleV, descV, noteV };
+  }, [title, description, turnaroundNote]);
 
   const done = () => {
     window.location.assign("/account");
@@ -148,7 +149,10 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
   }
 
   const coverTooLarge = coverFile != null && coverFile.size > MAX_GIG_COVER_BYTES;
-  const blockedByContact = copyViolations.titleV.length > 0 || copyViolations.descV.length > 0;
+  const blockedByContact =
+    copyViolations.titleV.length > 0 ||
+    copyViolations.descV.length > 0 ||
+    copyViolations.noteV.length > 0;
 
   const run = (kind: "draft" | "submit") => {
     if (coverTooLarge) return;
@@ -286,6 +290,7 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
             placeholder={t("gigs.form.turnaround_note_placeholder")}
             className="h-11"
           />
+          {violationNote(copyViolations.noteV)}
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="gig-curriculum">{t("gigs.form.field_curriculum")}</Label>

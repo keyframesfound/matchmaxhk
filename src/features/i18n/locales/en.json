@@ -2048,7 +2048,7 @@
     "past_due_body": "The tutor missed the delivery window (including the 24-hour grace). You can request a full refund.",
     "past_due_badge": "Past due",
     "dispute_title": "Not happy with the service?",
-    "dispute_note": "Refunds are automatic only when a delivery goes past due. After delivery, report the problem and the MatchMax team will review it with you.",
+    "dispute_note": "If a delivery goes past due, you can request a full refund yourself. After delivery, report the problem and the MatchMax team will review it with you.",
     "dispute_report_label": "Report a problem with this service",
     "request_refund": "Request refund",
     "refund_confirm_title": "Request a refund?",

@@ -2048,7 +2048,7 @@
     "past_due_body": "導師已超出交付時限（包括 24 小時寬限期），你可以要求全額退款。",
     "past_due_badge": "已逾期",
     "dispute_title": "服務未如理想？",
-    "dispute_note": "只有逾期未交付才會自動退款。交付後如有問題，請舉報，由 MatchMax 團隊為你跟進處理。",
+    "dispute_note": "逾期未交付時，你可以自行要求全額退款。交付後如有問題，請舉報，由 MatchMax 團隊為你跟進處理。",
     "dispute_report_label": "舉報此服務的問題",
     "request_refund": "要求退款",
     "refund_confirm_title": "要求退款？",
