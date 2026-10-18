@@ -44,6 +44,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { REFERRAL_CODE_PATTERN, readStoredReferralCode } from "@/lib/referral";
 import { contactFilterError } from "@/lib/contact-filter";
+import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES, toCurrencyCode } from "@/lib/money";
+import { approxHkdText } from "@/features/currency/convert";
+import { useExchangeRates } from "@/features/currency/display-currency-context";
 import {
   MAX_ACADEMIC_HEADLINE,
   academicHeadlineError,
@@ -790,6 +793,8 @@ type ApplicationBaseState = {
   // "Proposed Hourly Rate" input; rows/notes are profile-only extras.
   onlineRate: string;
   inpersonRate: string;
+  // Issue #113: the currency the tutor quotes every pricing field in.
+  currency: string;
   rateRows: { label: string; rate: string }[];
   travelNote: string;
   rateNote: string;
@@ -897,6 +902,7 @@ export function ApplicationForm() {
     senExperience: "",
     onlineRate: "",
     inpersonRate: "",
+    currency: DEFAULT_CURRENCY,
     rateRows: [] as { label: string; rate: string }[],
     travelNote: "",
     rateNote: "",
@@ -1252,6 +1258,19 @@ export function ApplicationForm() {
     setBase((previous) => ({ ...previous, [key]: value }));
     clearFieldError(key);
   }
+  // Issue #113: live ≈HK$ equivalents under each base-rate input (hidden for
+  // HKD quoting or before rates load — the note never blocks submission).
+  const fxRates = useExchangeRates();
+  const onlineRateApprox = approxHkdText(
+    Number(base.onlineRate),
+    toCurrencyCode(base.currency),
+    fxRates,
+  );
+  const inpersonRateApprox = approxHkdText(
+    Number(base.inpersonRate),
+    toCurrencyCode(base.currency),
+    fxRates,
+  );
   function clearFieldError(key: string) {
     setFieldErrors((current) => {
       if (!current[key]) return current;
@@ -1584,6 +1603,8 @@ export function ApplicationForm() {
           base.format !== "Online" && base.inpersonRate.trim() !== ""
             ? Number(base.inpersonRate)
             : null,
+        // Issue #113: the quoting currency travels with the stored rates.
+        currency: toCurrencyCode(base.currency),
         rateRows: base.rateRows
           .filter((row) => row.label.trim() !== "" && row.rate.trim() !== "")
           .map((row) => ({ label: row.label.trim(), rate: Number(row.rate) })),
@@ -3085,12 +3106,29 @@ export function ApplicationForm() {
               ) : null}
               {/* Issue #319: two base rates replace the single proposed rate.
                   Whole dollars only (step=1 blocks decimals at the input);
-                  which field is required follows the lesson format. */}
+                  which field is required follows the lesson format.
+                  Issue #113: the tutor picks the currency every rate is
+                  quoted in; labels + the ≈HK$ note follow it. */}
+              <Field label={t("join.rates.currency_label")}>
+                <select
+                  aria-label={t("join.rates.currency_label")}
+                  value={base.currency}
+                  onChange={(event) => setBaseField("currency", event.target.value)}
+                  className="h-10 w-full max-w-48 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-3 text-sm font-semibold text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                >
+                  {SUPPORTED_CURRENCIES.map((code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
+                </select>
+              </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
-                  label={t("join.rates.online")}
+                  label={t("join.rates.online", { currency: base.currency })}
                   required={base.format !== "Face to face"}
                   error={fieldErrors.onlineRate}
+                  hint={onlineRateApprox ? `≈ ${onlineRateApprox} / hr` : undefined}
                 >
                   <Input
                     type="number"
@@ -3104,9 +3142,10 @@ export function ApplicationForm() {
                   />
                 </Field>
                 <Field
-                  label={t("join.rates.in_person")}
+                  label={t("join.rates.in_person", { currency: base.currency })}
                   required={base.format !== "Online"}
                   error={fieldErrors.inpersonRate}
+                  hint={inpersonRateApprox ? `≈ ${inpersonRateApprox} / hr` : undefined}
                 >
                   <Input
                     type="number"
@@ -3202,11 +3241,11 @@ export function ApplicationForm() {
                           htmlFor={`rate-row-rate-${index}`}
                           className="text-xs font-semibold text-foreground"
                         >
-                          {t("join.rates.row_rate")}
+                          {t("join.rates.row_rate", { currency: base.currency })}
                         </Label>
                         <div className="relative">
                           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
-                            HK$
+                            {base.currency}
                           </span>
                           <Input
                             id={`rate-row-rate-${index}`}

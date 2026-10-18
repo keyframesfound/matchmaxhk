@@ -95,3 +95,19 @@ export function DisplayCurrencyProvider({ children }: { children: ReactNode }) {
 export function useDisplayCurrency(): DisplayCurrencyValue {
   return useContext(DisplayCurrencyContext);
 }
+
+/**
+ * The shared rate table for surfaces that need raw rates without the
+ * provider's currency state (e.g. the join form's ≈HK$ notes). Shares the
+ * provider's query key + cache entry.
+ */
+export function useExchangeRates(): HkdRates {
+  const { data } = useQuery({
+    queryKey: ["exchange-rates"],
+    queryFn: fetchHkdRates,
+    staleTime: 1000 * 60 * 60,
+    gcTime: 1000 * 60 * 60 * 24,
+    retry: false,
+  });
+  return data ?? {};
+}

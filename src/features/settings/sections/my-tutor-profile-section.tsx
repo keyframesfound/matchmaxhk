@@ -11,6 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { toCurrencyCode, SUPPORTED_CURRENCIES } from "@/lib/money";
+import { approxHkdText } from "@/features/currency/convert";
+import { useExchangeRates } from "@/features/currency/display-currency-context";
 import { MAX_ACADEMIC_HEADLINE, academicHeadlineError } from "@/lib/academic-headline";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -79,7 +82,7 @@ import {
 /** Columns the tutor-facing editor reads/writes. Mirrors SELECT_COLS minus
  * admin-managed identity (tutor_code, created_at, referral). */
 const MY_TUTOR_COLUMNS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, sen_enabled, sen_categories, sen_experience, deletion_requested_at";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, sen_enabled, sen_categories, sen_experience, deletion_requested_at";
 
 type MyTutorRow = Tutor & {
   user_id?: string | null;
@@ -98,6 +101,7 @@ function sortTiersForCompare(tiers: { curriculum: string; rate: number }[]) {
 type RateRowDraft = { label: string; rate: string };
 
 type RatesDraft = {
+  currency: string;
   onlineRate: string;
   inPersonRate: string;
   rows: RateRowDraft[];
@@ -107,6 +111,7 @@ type RatesDraft = {
 
 /** Validated rate columns written to the tutors row on save. */
 type SavedRateColumns = {
+  currency: string;
   online_rate: number | null;
   inperson_rate: number | null;
   rate_rows: { label: string; rate: number }[];
@@ -147,6 +152,7 @@ type TutorCredentialEditRow = {
 function ratesFromRow(row: MyTutorRow): RatesDraft {
   const savedRows = Array.isArray(row.rate_rows) ? row.rate_rows : [];
   return {
+    currency: toCurrencyCode(row.currency),
     onlineRate: typeof row.online_rate === "number" ? String(row.online_rate) : "",
     inPersonRate: typeof row.inperson_rate === "number" ? String(row.inperson_rate) : "",
     rows: savedRows
@@ -450,6 +456,17 @@ export function MyTutorProfileSection() {
     setRates((prev) => (prev ? { ...prev, ...patch } : prev));
   };
 
+  // Issue #113: live ≈HK$ equivalents under each rate input, following the
+  // selected quoting currency (hidden for HKD — no conversion to show).
+  const rateFxRates = useExchangeRates();
+  const ratesCurrency = rates ? toCurrencyCode(rates.currency) : "HKD";
+  const onlineApprox = rates
+    ? approxHkdText(Number(rates.onlineRate), ratesCurrency, rateFxRates)
+    : null;
+  const inPersonApprox = rates
+    ? approxHkdText(Number(rates.inPersonRate), ratesCurrency, rateFxRates)
+    : null;
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!form || !rates || !current) return;
@@ -652,6 +669,7 @@ export function MyTutorProfileSection() {
     save.mutate({
       data: workingForm,
       rates: {
+        currency: toCurrencyCode(rates.currency),
         online_rate: onlineValue === "invalid" ? null : onlineValue,
         inperson_rate: inPersonValue === "invalid" ? null : inPersonValue,
         rate_rows: rowsResult.rows,
@@ -1112,6 +1130,28 @@ export function MyTutorProfileSection() {
               <Label className="text-[color:var(--ink)]">
                 {t("settings.my_tutor.rates_heading")}
               </Label>
+              <div className="flex items-center gap-2">
+                {/* Issue #113: the currency every rate field is quoted in.
+                    Changing it re-snapshots the HKD bounds on save. */}
+                <Label
+                  htmlFor="myt-rate-currency"
+                  className="text-xs font-semibold text-[color:var(--ink)]/70"
+                >
+                  {t("settings.my_tutor.rates_currency")}
+                </Label>
+                <select
+                  id="myt-rate-currency"
+                  aria-label={t("settings.my_tutor.rates_currency")}
+                  value={rates.currency}
+                  onChange={(e) => handleRateField({ currency: e.target.value })}
+                  className="h-9 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-2 text-sm font-semibold text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                >
+                  {SUPPORTED_CURRENCIES.map((code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
+                </select>
               <Button
                 type="button"
                 variant="outline"
@@ -1128,11 +1168,12 @@ export function MyTutorProfileSection() {
                   t("settings.my_tutor.suggest_a_rate")
                 )}
               </Button>
+              </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="myt-rate-online" className="text-[color:var(--ink)]">
-                  {t("settings.my_tutor.rates_online")}
+                  {t("settings.my_tutor.rates_online", { currency: rates.currency })}
                 </Label>
                 <Input
                   id="myt-rate-online"
@@ -1150,13 +1191,16 @@ export function MyTutorProfileSection() {
                   aria-invalid={errors.online_rate ? true : undefined}
                   className="bg-[color:var(--surface)]"
                 />
+                {ratesCurrency !== "HKD" && onlineApprox ? (
+                  <p className="text-xs text-muted-foreground">&asymp; {onlineApprox} / hr</p>
+                ) : null}
                 {errors.online_rate ? (
                   <p className="text-xs font-medium text-destructive">{errors.online_rate}</p>
                 ) : null}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="myt-rate-inperson" className="text-[color:var(--ink)]">
-                  {t("settings.my_tutor.rates_in_person")}
+                  {t("settings.my_tutor.rates_in_person", { currency: rates.currency })}
                 </Label>
                 <Input
                   id="myt-rate-inperson"
@@ -1174,6 +1218,9 @@ export function MyTutorProfileSection() {
                   aria-invalid={errors.inperson_rate ? true : undefined}
                   className="bg-[color:var(--surface)]"
                 />
+                {ratesCurrency !== "HKD" && inPersonApprox ? (
+                  <p className="text-xs text-muted-foreground">&asymp; {inPersonApprox} / hr</p>
+                ) : null}
                 {errors.inperson_rate ? (
                   <p className="text-xs font-medium text-destructive">{errors.inperson_rate}</p>
                 ) : null}

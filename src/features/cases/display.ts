@@ -1,5 +1,13 @@
 // Dual-notation display labels: international schools use "Year X",
 // local schools use "S1–S6". Stored student_level values stay unchanged.
+import {
+  convertCurrency,
+  DEFAULT_CURRENCY,
+  formatMoney,
+  type CurrencyCode,
+  type HkdRates,
+} from "@/lib/money";
+
 const STUDENT_LEVEL_BOARD_LABELS: Record<string, string> = {
   "Junior secondary": "Year 7–9 / S1–S3",
   "Senior secondary": "Year 10–13 / S4–S6",
@@ -89,6 +97,38 @@ export function formatCaseBudgetHkd(item: {
 }): string {
   const { min, max } = caseBudgetHkdBounds(item);
   return formatCaseBudget(min, max);
+}
+
+/**
+ * Issue #113: an authenticated tutor's view of a case budget. Primary is the
+ * HKD-normalized bounds converted into the tutor's quoting currency (null
+ * when they quote HKD or rates are unavailable — callers keep the plain HKD
+ * rendering); `original` always carries the HKD figure so nothing is hidden.
+ */
+export function caseBudgetForTutor(
+  item: {
+    budgetMin: number | null;
+    budgetMax: number | null;
+    budgetMinHkd: number | null;
+    budgetMaxHkd: number | null;
+  },
+  tutorCurrency: CurrencyCode,
+  rates: HkdRates,
+): { primary: string | null; original: string } {
+  const { min, max } = caseBudgetHkdBounds(item);
+  const original = formatCaseBudget(min, max);
+  if (tutorCurrency === DEFAULT_CURRENCY) return { primary: null, original };
+  if (min === null && max === null) return { primary: null, original };
+  const convert = (value: number): string | null => {
+    const converted = convertCurrency(value, DEFAULT_CURRENCY, tutorCurrency, rates);
+    return Number.isFinite(converted) ? formatMoney(converted, tutorCurrency) : null;
+  };
+  const parts = [
+    min === null ? "?" : convert(min),
+    max === null ? "?" : convert(max),
+  ];
+  if (parts.some((part) => part === null)) return { primary: null, original };
+  return { primary: `${parts[0]}–${parts[1]}/hr`, original };
 }
 
 export function formatCaseSchedule(sessionsPerWeek: number, sessionLengthMinutes: number): string {

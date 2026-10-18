@@ -34,6 +34,9 @@ import { CasePillBadge, casePills } from "@/features/cases/case-pills";
 import type { CasePill, CasePillTone } from "@/features/cases/case-pills";
 import { getPublicCaseByCode, type PublicCaseBoardItem } from "@/lib/cases.functions";
 import { shareOrCopy } from "@/lib/share";
+import { caseBudgetForTutor } from "@/features/cases/display";
+import { useDisplayCurrency } from "@/features/currency/display-currency-context";
+import { useTutorDisplayCurrency } from "@/features/currency/tutor-currency";
 
 type CaseDetailData = { item: PublicCaseBoardItem; whatsappNumber: string };
 
@@ -83,6 +86,10 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 function CaseDetailPage() {
   const { item, whatsappNumber } = Route.useLoaderData() as CaseDetailData;
+  // Issue #113: convert the budget for tutors quoting in another currency.
+  const tutorCurrency = useTutorDisplayCurrency();
+  const { rates: tutorFxRates } = useDisplayCurrency();
+  const tutorBudget = caseBudgetForTutor(item, tutorCurrency, tutorFxRates);
   const applyUrl = buildCaseApplyWhatsAppUrl(whatsappNumber, item.caseCode);
   const title = formatCaseTitle(item.studentLevel, item.subjects) || item.title;
   const [isSharing, setIsSharing] = useState(false);
@@ -111,7 +118,9 @@ function CaseDetailPage() {
     },
     {
       icon: Wallet,
-      label: formatCaseBudgetHkd(item),
+      // Issue #113: tutor-quoting currencies get the converted figure first.
+      label: tutorBudget.primary ?? formatCaseBudgetHkd(item),
+      hint: tutorBudget.primary ? `Original: ${formatCaseBudgetHkd(item)}` : undefined,
     },
   ];
 
@@ -171,8 +180,12 @@ function CaseDetailPage() {
                 {title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
-                {meta.map(({ icon: Icon, label }) => (
-                  <span key={label} className="flex items-center gap-1.5">
+                {meta.map(({ icon: Icon, label, hint }) => (
+                  <span
+                    key={label}
+                    className="flex items-center gap-1.5"
+                    title={hint}
+                  >
                     <Icon className="h-4 w-4" aria-hidden="true" />
                     {label}
                   </span>

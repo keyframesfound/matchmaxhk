@@ -291,8 +291,8 @@
       "display_name": "Preferred name",
       "display_name_hint": "Shown on your public card next to your tutor code.",
       "rates_heading": "Hourly rates",
-      "rates_online": "Online hourly rate (HK$)",
-      "rates_in_person": "In-person hourly rate (HK$)",
+      "rates_online": "Online hourly rate ({{currency}})",
+      "rates_in_person": "In-person hourly rate ({{currency}})",
       "suggest_a_rate": "Suggest a rate",
       "suggest_not_enough_data": "Not enough data yet",
       "rate_rows_label": "Extra rates (optional)",
@@ -348,7 +348,8 @@
       "reject_reason_unreadable": "Unreadable",
       "reject_reason_not_a_result_slip": "Not a result slip",
       "reject_reason_looks_altered": "Looks altered",
-      "reject_reason_wrong_document": "Wrong document"
+      "reject_reason_wrong_document": "Wrong document",
+      "rates_currency": "Currency"
     },
     "grid": {
       "title": "Weekly availability grid",
@@ -713,8 +714,8 @@
       "headline_hint": "Auto-filled from your curricula and scores above — type to edit it yourself; clear it and click away to bring the suggestion back."
     },
     "rates": {
-      "online": "Online hourly rate (HKD)",
-      "in_person": "In-person hourly rate (HKD)",
+      "online": "Online hourly rate ({{currency}})",
+      "in_person": "In-person hourly rate ({{currency}})",
       "invalid": "Enter a whole number between 50 and 3000",
       "travel_note": "Travel note",
       "travel_note_hint": "Shown beside your in-person rate, e.g. \"Kowloon and Hong Kong Island only\".",
@@ -723,8 +724,9 @@
       "rows_label": "Extra rate rows",
       "rows_hint": "Optional — up to {{max}}, e.g. small-group or holiday intensive rates. A row saves only when both fields are filled.",
       "row_label": "Label",
-      "row_rate": "Rate (HKD)",
-      "add_row": "Add rate row"
+      "row_rate": "Rate ({{currency}})",
+      "add_row": "Add rate row",
+      "currency_label": "Currency you quote in"
     },
     "view_live_card": "View your live card",
     "manage_hint": "Keep your reference from the WhatsApp message — the MatchMax team uses it to match your chat to your application.",
@@ -2215,5 +2217,10 @@
     "admin_unpaid_title": "Unpaid fees (oldest first)",
     "admin_whatsapp_open": "Open WhatsApp",
     "admin_import_errors_label": "Row errors"
+  },
+  "currency": {
+    "switcher_label": "Currency",
+    "base_price_tooltip": "Base price set by tutor: {{amount}}",
+    "profile_disclaimer": "Prices shown in {{currency}} are approximations based on current market exchange rates. Final billing and lesson settlements follow the tutor's agreed baseline."
   }
 }
