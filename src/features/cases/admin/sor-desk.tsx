@@ -1,12 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarPlus, FileUp, Loader2, UserPlus } from "lucide-react";
+import { CalendarPlus, FileUp, Flag, Loader2, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ConsolePanel } from "@/components/ui/console-panel";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -14,13 +22,16 @@ import {
   feeInvoiceCustom,
   feeMarkPaid,
   feeWaive,
+  flagCase,
   getDeskCase,
   lessonAdminConfirm,
   lessonAdminLog,
   lessonAdminMark,
+  listCaseFlags,
   transitionCase,
   unpaidQueue,
 } from "@/features/cases/admin-desk.functions";
+import { CASE_FLAG_REASONS, type CaseFlagReason } from "@/features/cases/case-flags";
 import { importCases } from "@/features/cases/import.functions";
 import { parseCaseImportCsv } from "@/features/cases/import-csv";
 import { cn } from "@/lib/utils";
@@ -253,8 +264,115 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
             )}
           </ul>
         </div>
+
+        {/* Issue #254 (F3): staff case flags */}
+        <CaseFlagsSection caseId={caseId} />
       </div>
     </ConsolePanel>
+  );
+}
+
+const FLAG_REASON_LABEL_KEY: Record<CaseFlagReason, string> = {
+  intro_used: "sor.flag_reason_intro_used",
+  fee_unpaid: "sor.flag_reason_fee_unpaid",
+  parties_continued: "sor.flag_reason_parties_continued",
+  off_site_request: "sor.flag_reason_off_site_request",
+  tutor_shared_contact: "sor.flag_reason_tutor_shared_contact",
+};
+
+function CaseFlagsSection({ caseId }: { caseId: string }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [flagReason, setFlagReason] = useState<string>("");
+  const [flagNote, setFlagNote] = useState("");
+
+  const {
+    data: flags = [],
+    isPending: flagsPending,
+    isError: flagsError,
+    error: flagsErr,
+  } = useQuery({
+    queryKey: ["sor", "case-flags", caseId],
+    queryFn: () => listCaseFlags({ data: { caseId } }),
+  });
+
+  const addFlag = useMutation({
+    mutationFn: (input: { reason: CaseFlagReason; note: string | null }) =>
+      flagCase({ data: { caseId, reason: input.reason, note: input.note } }),
+    onSuccess: () => {
+      toast.success(t("sor.flags_added"));
+      setFlagReason("");
+      setFlagNote("");
+      queryClient.invalidateQueries({ queryKey: ["sor", "case-flags", caseId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="border-t border-[color:var(--ink)]/10 pt-4">
+      <p className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--ink)]">
+        <Flag className="h-3.5 w-3.5" aria-hidden />
+        {t("sor.flags_title")}
+      </p>
+      <ul className="mt-2 space-y-1">
+        {flags.map((f) => (
+          <li key={f.id} className="text-xs text-muted-foreground">
+            {format(new Date(f.created_at), "d MMM HH:mm")} — {t(FLAG_REASON_LABEL_KEY[f.reason])}
+            {f.note ? ` · ${f.note}` : ""}
+          </li>
+        ))}
+        {flagsPending && (
+          <li className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+            {t("sor.flags_title")}…
+          </li>
+        )}
+        {flagsError && <li className="text-xs text-destructive">{flagsErr.message}</li>}
+        {!flagsPending && !flagsError && flags.length === 0 && (
+          <li className="text-xs text-muted-foreground">{t("sor.flags_empty")}</li>
+        )}
+      </ul>
+      <div className="mt-3 grid gap-2">
+        <Select value={flagReason || undefined} onValueChange={setFlagReason}>
+          <SelectTrigger className="h-9 w-full text-sm" aria-label={t("sor.flags_reason_label")}>
+            <SelectValue placeholder={t("sor.flags_reason_placeholder")} />
+          </SelectTrigger>
+          <SelectContent>
+            {CASE_FLAG_REASONS.map((r) => (
+              <SelectItem key={r} value={r}>
+                {t(FLAG_REASON_LABEL_KEY[r])}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Textarea
+          value={flagNote}
+          onChange={(e) => setFlagNote(e.target.value)}
+          placeholder={t("sor.flags_note_placeholder")}
+          aria-label={t("sor.flags_note_placeholder")}
+          className="min-h-[60px] text-sm"
+          maxLength={500}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="justify-self-start"
+          disabled={!flagReason || addFlag.isPending}
+          onClick={() =>
+            addFlag.mutate({ reason: flagReason as CaseFlagReason, note: flagNote.trim() || null })
+          }
+        >
+          {addFlag.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+          ) : (
+            <Flag className="h-4 w-4" aria-hidden />
+          )}
+          {t("sor.flags_add")}
+        </Button>
+      </div>
+      <p className="mt-2 text-[11px] text-muted-foreground">{t("sor.flags_hint")}</p>
+    </div>
   );
 }
 

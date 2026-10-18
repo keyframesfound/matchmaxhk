@@ -21,6 +21,7 @@ import {
   hktFromParts,
   isLegalTransition,
 } from "@/features/cases/sor";
+import { buildCaseFlagRow, type CaseFlagReason } from "@/features/cases/case-flags";
 
 type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
@@ -736,4 +737,61 @@ export const createSorCase = createServerFn({ method: "POST" })
       { col: "id", op: "eq", value: id },
     ]);
     return { caseId: id, caseCode: rows[0]?.case_code ?? "" };
+  });
+
+// ---------------------------------------------------------------------------
+// Case flags (issue #254 / F3) — staff-only, service-role table
+// ---------------------------------------------------------------------------
+
+export type DeskCaseFlag = {
+  id: string;
+  actor_id: string | null;
+  actor_name: string | null;
+  reason: CaseFlagReason;
+  note: string | null;
+  created_at: string;
+};
+
+export const listCaseFlags = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ caseId: z.string().uuid() }).parse(input))
+  .handler(async ({ context, data }): Promise<DeskCaseFlag[]> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    await requireAdmin(db, context.userId);
+    return selectRows<DeskCaseFlag>(
+      db,
+      "case_flags",
+      "id, actor_id, actor_name, reason, note, created_at",
+      [{ col: "case_id", op: "eq", value: data.caseId }],
+      { col: "created_at", asc: false, limit: 50 },
+    );
+  });
+
+export const flagCase = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        caseId: z.string().uuid(),
+        reason: z.string(),
+        note: z.string().max(500).nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    await requireAdmin(db, context.userId);
+
+    const row = buildCaseFlagRow({
+      caseId: data.caseId,
+      actorId: context.userId,
+      actorName: null, // desk fns have no profile read here; the flag keeps the actor id
+      reason: data.reason,
+      note: data.note ?? null,
+    });
+    const { error } = await db.from<Row>("case_flags").insert(row);
+    if (error) throw new Error(error.message ?? "flag failed");
+    return { ok: true };
   });
