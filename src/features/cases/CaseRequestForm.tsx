@@ -115,6 +115,8 @@ type FormState = {
   // always keeps the derived tags regardless of how many presets are picked.
   tags: string[];
   termsAgreed: boolean;
+  // Issue #253 (F2): matching-fee agreement, version fee-2026-10.
+  feeAgreed: boolean;
 };
 
 const INITIAL_FORM: FormState = {
@@ -148,6 +150,7 @@ const INITIAL_FORM: FormState = {
   senDetails: "",
   tags: [],
   termsAgreed: false,
+  feeAgreed: false,
 };
 
 /** Issue #311: the preset tag seeds shown as one-tap chips on the case form
@@ -362,6 +365,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       if (form.deliveryMode !== "online" && !form.district) nextErrors.district = "Required";
       if (!form.budgetMax.trim()) nextErrors.budgetMax = "Required";
       if (!form.termsAgreed) nextErrors.termsAgreed = "Required";
+      if (!form.feeAgreed) nextErrors.feeAgreed = "Required";
     }
     return nextErrors;
   };
@@ -421,6 +425,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           senDetails: form.senRequired ? form.senDetails.trim() || null : null,
           tags: form.tags,
           termsAck: form.termsAgreed,
+          feeTermsAck: form.feeAgreed,
           website: honeypot.current?.value || null,
           elapsedMs: Date.now() - startedAt.current,
         },
@@ -1305,6 +1310,36 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
 
       {step === 3 ? (
         <div className="mt-6 grid gap-1.5">
+          {/* Issue #253 (F2): the fee rule, shown before the payer agrees. */}
+          <div className="rounded-sm border border-border bg-muted/50 p-4 text-sm">
+            <p className="font-semibold">{t("case_request.fee_notice_title")}</p>
+            <p className="mt-1 text-muted-foreground">{t("case_request.fee_notice")}</p>
+          </div>
+          <label className="flex gap-3 text-sm text-muted-foreground">
+            <Checkbox
+              checked={form.feeAgreed}
+              onCheckedChange={(checked) => update({ feeAgreed: checked === true })}
+              aria-invalid={errors.feeAgreed ? true : undefined}
+              className={errors.feeAgreed ? "border-destructive" : undefined}
+            />
+            <span>
+              {t("case_request.fee_agree_pre")}{" "}
+              <Link
+                className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+                to="/tos"
+                hash="tos-matching"
+                target="_blank"
+              >
+                {t("case_request.fee_agree_link")}
+              </Link>
+              {t("case_request.fee_agree_post")}
+              {errors.feeAgreed ? (
+                <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                  Required
+                </span>
+              ) : null}
+            </span>
+          </label>
           <label className="flex gap-3 text-sm text-muted-foreground">
             <Checkbox
               checked={form.termsAgreed}

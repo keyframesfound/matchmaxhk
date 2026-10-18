@@ -484,6 +484,14 @@ const SECTIONS: Section[] = [
       },
       {
         kind: "p",
+        text: "The admin fee is charged once per match and is owed by the Customer on the case — the parent, or the centre where an agreed partnership says so. It is a fee for MatchMax’s introduction; it is not a tutor placement commission, and the Tutor is never the payer. For example, a HK$400 hourly rate with a 60-minute lesson means a HK$600 admin fee. A short case — one the client has asked to run for 5 lessons or fewer — carries a fee of 20% of the scheduled package instead, which MatchMax’s team records and can audit.",
+      },
+      {
+        kind: "p",
+        text: "Using the introduction and then taking the first two lessons without paying the admin fee is a breach of these Terms. The remedy is the unpaid fee, closure of the case, and a bar on new requests through the Platform. No other penalty applies.",
+      },
+      {
+        kind: "p",
         text: "MatchMax manages the introduction and supports the first two lessons. Once those lessons are done, the schedule, format and other arrangements are agreed between the Customer and the Tutor.",
       },
       {

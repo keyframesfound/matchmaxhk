@@ -293,6 +293,23 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
       },
     ],
   },
+  {
+    title: "13. Matching cases and the admin fee",
+    blocks: [
+      {
+        kind: "p",
+        text: "When you submit a case request, we record the case details, the submitting account, and your matching-fee agreement (version, account, and time). If a match is made, the case also holds the payer name, the fee amount, the FPS payment reference, and the time the fee was marked paid.",
+      },
+      {
+        kind: "ul",
+        items: [
+          "The tutor on a case never sees the payer’s phone number. The payer does not see the tutor’s phone number until the introduction rules allow it (after the admin fee is settled).",
+          "Centre contact details and the student’s full name are visible to MatchMax staff only.",
+          "Fee records are kept for seven years.",
+        ],
+      },
+    ],
+  },
 ];
 
 function renderInline(text: string) {

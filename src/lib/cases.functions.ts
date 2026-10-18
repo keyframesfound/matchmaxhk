@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { mergeCaseTags } from "@/features/tutors/profile-tags";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
+import { FEE_TERMS_VERSION } from "@/features/legal/terms";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { TARGET_PATHWAY_LABELS, TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
@@ -60,6 +61,9 @@ const CaseRequestInput = z
     senDetails: z.string().trim().max(2000).optional().nullable(),
     notes: z.string().trim().max(2000).optional().nullable(),
     termsAck: z.literal(true),
+    // Issue #253 (F2): the matching-fee agreement (fee-2026-10) is a
+    // separate, mandatory checkbox; the version is recorded server-side.
+    feeTermsAck: z.literal(true),
     website: z.string().max(0).optional().nullable(),
     elapsedMs: z.number().int(),
   })
@@ -307,8 +311,11 @@ function buildCaseTags(data: CaseRequestPayload): string[] {
 const MAX_REQUESTS_PER_PHONE = 5;
 
 export const submitCaseRequest = createServerFn({ method: "POST" })
+  // Issue #253 (F2): the fee acceptance row records the submitting account,
+  // so the request form is a signed-in surface end to end.
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => CaseRequestInput.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     if (data.website && data.website.length > 0) {
       throw new Error("Submission could not be accepted.");
     }
@@ -371,9 +378,21 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
     const { data: row, error } = await supabaseAdmin
       .from("tutoring_cases")
       .insert(insertRow)
-      .select("case_code")
+      .select("id,case_code")
       .single();
     if (error) throw new Error(error.message);
+
+    // Issue #253 (F2): record the matching-fee acceptance (account, version,
+    // time) against the created case. Fail-closed — a submit without the
+    // checkbox never reaches this point (zod), and a failed insert throws so
+    // no case exists without its fee agreement on file.
+    const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
+    await recordTermsAcceptance({
+      userId: context.userId,
+      surface: "case_request",
+      termsVersion: FEE_TERMS_VERSION,
+      subjectId: row.id as string,
+    });
 
     return { caseCode: row.case_code as string };
   });

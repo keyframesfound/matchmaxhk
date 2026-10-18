@@ -1815,6 +1815,13 @@
     "source_file_waiting": "待家長上傳檔案。",
     "source_file_unavailable": "尚未附加原始檔案。"
   },
+  "case_request": {
+    "fee_notice_title": "配對費用",
+    "fee_notice": "如兩節介紹課後成功配對，您需以轉數快（FPS）向 MatchMax 支付一節課學費的 1.5 倍作配對費（每小時 HK$400 即 HK$600 費用）。之後學費直接支付給導師。若要求為 5 節或以內的短期個案，費用為該組合的 20%。",
+    "fee_agree_pre": "我同意",
+    "fee_agree_link": "配對費用條款",
+    "fee_agree_post": "（版本 fee-2026-10）。"
+  },
   "sen": {
     "filter_title": "SEN 支援",
     "filter_toggle": "僅顯示具 SEN 經驗的導師",

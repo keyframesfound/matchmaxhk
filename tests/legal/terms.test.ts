@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  FEE_TERMS_VERSION,
   TERMS_SURFACES,
   TERMS_VERSION,
   buildTermsAcceptanceRow,
@@ -10,9 +11,7 @@ import {
 
 describe("buildTermsAcceptanceRow", () => {
   it("builds a row at the current version with null subject", () => {
-    expect(
-      buildTermsAcceptanceRow({ userId: "u1", surface: "signup" }),
-    ).toEqual({
+    expect(buildTermsAcceptanceRow({ userId: "u1", surface: "signup" })).toEqual({
       user_id: "u1",
       surface: "signup",
       terms_version: TERMS_VERSION,
@@ -31,9 +30,9 @@ describe("buildTermsAcceptanceRow", () => {
   });
 
   it("throws on an anonymous user", () => {
-    expect(() =>
-      buildTermsAcceptanceRow({ userId: "", surface: "signup" }),
-    ).toThrow(/signed-in user/);
+    expect(() => buildTermsAcceptanceRow({ userId: "", surface: "signup" })).toThrow(
+      /signed-in user/,
+    );
   });
 
   it("throws on an unknown surface", () => {
@@ -42,15 +41,33 @@ describe("buildTermsAcceptanceRow", () => {
     ).toThrow(/unknown terms surface/);
   });
 
-  it("covers exactly the four gated surfaces", () => {
+  it("covers exactly the five gated surfaces", () => {
     expect([...TERMS_SURFACES]).toEqual([
       "signup",
       "note_upload",
       "checkout",
       "referral_signup",
+      // Issue #253 (F2): the case-request form's matching-fee checkbox.
+      "case_request",
     ]);
     expect(isTermsSurface("note_upload")).toBe(true);
     expect(isTermsSurface("NO_UPLOAD")).toBe(false);
+  });
+
+  it("records the matching-fee version independently of the ToS version (#253)", () => {
+    expect(FEE_TERMS_VERSION).not.toBe(TERMS_VERSION);
+    const row = buildTermsAcceptanceRow({
+      userId: "u1",
+      surface: "case_request",
+      termsVersion: FEE_TERMS_VERSION,
+      subjectId: "case-1",
+    });
+    expect(row).toEqual({
+      user_id: "u1",
+      surface: "case_request",
+      terms_version: "fee-2026-10",
+      subject_id: "case-1",
+    });
   });
 });
 
