@@ -40,6 +40,8 @@ function application(overrides: Record<string, unknown> = {}) {
     highSchool: "Queen's College",
     curriculum: "IBDP",
     curricula: ["IBDP"],
+    // Issue #190: canonical teaching levels are required on every application.
+    targetLevels: ["Secondary"],
     overallScore: "44/45",
     academicHeadline: "IBDP 44/45",
     subjectsConfident: "IB Maths HL, IB Physics HL",

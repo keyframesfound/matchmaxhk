@@ -67,6 +67,13 @@ import {
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
+import { normalizeUniversityCourses, normalizeUniversityYear } from "@/features/tutors/verticals";
+import { kindergartenTopicLabel, yearOfStudyLabel } from "@/features/tutors/verticals-labels";
+import {
+  courseGradeRows,
+  formatCourseGradeLine,
+  kindergartenTopicsInSubjects,
+} from "@/features/tutors/verticals-form";
 import { TrophyCabinet } from "@/features/tutors/trophy-cabinet";
 import { AvailabilityGrid } from "@/features/tutors/availability-grid";
 import { TutorReviews } from "@/features/tutors/tutor-reviews";
@@ -530,6 +537,23 @@ function TutorDetail() {
   const examResults = (t.exam_results ?? []).filter((result) =>
     result.subjects.some((entry) => entry.subject.trim()),
   );
+  // Issue #190 verticals: University block shows when any university field is
+  // set; Kindergarten block when the level is opted into OR K topics sit in
+  // subjects. Labels localize through verticals-labels.
+  const universityYear = normalizeUniversityYear(t.university_year_of_study);
+  const universityGpa = typeof t.university_gpa === "number" ? t.university_gpa : null;
+  const universityCourses = normalizeUniversityCourses(t.university_courses);
+  const courseGradeLines = courseGradeRows(t.course_specific_grades).filter(
+    (row) => row.course.trim() && row.grade.trim(),
+  );
+  const hasUniversityBlock =
+    Boolean(universityYear) ||
+    universityGpa !== null ||
+    universityCourses.length > 0 ||
+    courseGradeLines.length > 0;
+  const kindergartenTopics = kindergartenTopicsInSubjects(t.subjects ?? []);
+  const hasKindergartenBlock =
+    (t.target_students ?? []).includes("Kindergarten") || kindergartenTopics.length > 0;
   const profileBio = t.qualifications_summary?.trim() ?? "";
   const selfIntroduction = t.self_introduction?.trim() ?? "";
   const lessonLocation = (() => {
@@ -867,6 +891,90 @@ function TutorDetail() {
                   <div className="space-y-4">
                     {examResults.map((result, index) => (
                       <AcademicQualification key={`${result.system}-${index}`} result={result} />
+                    ))}
+                  </div>
+                </ProfileSection>
+              ) : null}
+
+              {/* Issue #190: University vertical block — extends the existing
+                  education lines (university + degree stay in the header);
+                  adds year of study, GPA, courses taught and course grades. */}
+              {hasUniversityBlock ? (
+                <ProfileSection
+                  icon={GraduationCap}
+                  title={translate("verticals.profile_university")}
+                >
+                  <div className="space-y-3 text-sm">
+                    {universityYear || universityGpa !== null ? (
+                      <div className="flex flex-wrap gap-x-6 gap-y-1">
+                        {universityYear ? (
+                          <p className="leading-relaxed">
+                            <span className="font-bold text-[color:var(--ink)]">
+                              {translate("verticals.profile_year_of_study")}:
+                            </span>{" "}
+                            <span className="text-muted-foreground">
+                              {yearOfStudyLabel(universityYear)}
+                            </span>
+                          </p>
+                        ) : null}
+                        {universityGpa !== null ? (
+                          <p className="leading-relaxed">
+                            <span className="font-bold text-[color:var(--ink)]">
+                              {translate("verticals.profile_gpa")}
+                            </span>{" "}
+                            <span className="text-muted-foreground">{universityGpa}</span>
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {universityCourses.length > 0 ? (
+                      <div className="space-y-1.5">
+                        <p className="font-bold text-[color:var(--ink)]">
+                          {translate("verticals.profile_courses")}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {universityCourses.map((course) => (
+                            <span
+                              key={course}
+                              className="inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)]"
+                            >
+                              {course}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                    {courseGradeLines.length > 0 ? (
+                      <div className="space-y-1.5">
+                        <p className="font-bold text-[color:var(--ink)]">
+                          {translate("verticals.profile_course_grades")}
+                        </p>
+                        <ul className="space-y-1">
+                          {courseGradeLines.map((row) => (
+                            <li key={row.course} className="leading-relaxed text-muted-foreground">
+                              {formatCourseGradeLine(row)}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </div>
+                </ProfileSection>
+              ) : null}
+
+              {/* Issue #190: Kindergarten block — translated topic tags from
+                  subjects (gated on the level opt-in OR topics present; no
+                  topics → no chips to list, so nothing renders). */}
+              {hasKindergartenBlock && kindergartenTopics.length > 0 ? (
+                <ProfileSection icon={School} title={translate("verticals.profile_kindergarten")}>
+                  <div className="flex flex-wrap gap-1.5">
+                    {kindergartenTopics.map((topic) => (
+                      <span
+                        key={topic}
+                        className="inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)]"
+                      >
+                        {kindergartenTopicLabel(topic)}
+                      </span>
                     ))}
                   </div>
                 </ProfileSection>
