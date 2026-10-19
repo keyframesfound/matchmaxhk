@@ -55,7 +55,8 @@
       "availability": "可開始日期",
       "my_tutor": "我的導師檔案",
       "materials": "學習材料",
-      "lessons": "課堂"
+      "lessons": "課堂",
+      "home": "主頁"
     },
     "referrals": {
       "title": "推薦朋友，賺 15% 獎賞",
@@ -2236,7 +2237,21 @@
     "admin_import_run": "匯入",
     "admin_unpaid_title": "未繳費用（最早優先）",
     "admin_whatsapp_open": "開啟 WhatsApp",
-    "admin_import_errors_label": "行錯誤"
+    "admin_import_errors_label": "行錯誤",
+    "tutor_home_empty_title": "尚未有課堂",
+    "tutor_home_empty_body": "當 MatchMax 為你配對個案後，下一課及待確認事項會顯示在這裡。",
+    "tutor_home_empty_cta": "瀏覽公開個案",
+    "tutor_home_next_title": "下一課",
+    "tutor_home_next_none": "暫時沒有已安排的課堂。",
+    "tutor_home_awaiting": "待你確認",
+    "tutor_home_fees_title": "行政費",
+    "tutor_home_fee_note": "這是家長繳付給 MatchMax 的行政費，並非你的收入。",
+    "tutor_home_notes_title": "學習材料",
+    "tutor_home_notes_month": "本月已交付：{{n}}",
+    "tutor_home_notes_net": "應付你的淨額：HK${{n}}",
+    "tutor_home_notes_note": "筆記淨額由 MatchMax 每月支付。上述行政費屬家長費用，絕不計入此總額。",
+    "tutor_home_notes_link": "查看你的商品",
+    "tutor_home_open_lessons": "前往課堂"
   },
   "currency": {
     "switcher_label": "貨幣",

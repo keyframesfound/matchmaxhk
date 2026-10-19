@@ -104,6 +104,7 @@ export type TutorCaseItem = {
   subject: string | null;
   exam_system: string | null;
   station: string | null;
+  lesson_mode: string | null;
   sor_status: SorStatus | null;
   fee_status: FeeStatus | null;
   fee_amount_hkd: number | null;
@@ -134,12 +135,13 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       subjects: string[] | null;
       exam_system: string | null;
       district: string | null;
+      lesson_mode: string | null;
       sor_status: SorStatus | null;
       created_at: string;
     }>(
       db,
       "tutoring_cases",
-      "id, case_code, title, subjects, exam_system, district, sor_status, created_at",
+      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, created_at",
       [{ col: "matched_tutor_id", op: "eq", value: tutorId }],
       { col: "created_at", asc: false, limit: 100 },
     );
@@ -195,7 +197,14 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
     const openFeeByCase = new Map<string, { status: FeeStatus; amount_hkd: number }>();
     for (const f of fees) {
       const existing = openFeeByCase.get(f.case_id);
-      const open = f.status === "not_due" || f.status === "invoiced" || f.status === "paid";
+      // #202: waived joins the visible set (invoiced, paid, waived) so the
+      // Tutor home fee card can show it; refunded stays hidden — it is always
+      // followed by a fresh invoice which ranks higher.
+      const open =
+        f.status === "not_due" ||
+        f.status === "invoiced" ||
+        f.status === "paid" ||
+        f.status === "waived";
       if (open && (!existing || rankFee(f.status) > rankFee(existing.status))) {
         openFeeByCase.set(f.case_id, { status: f.status, amount_hkd: f.amount_hkd });
       }
@@ -208,6 +217,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       subject: c.subjects?.[0] ?? null,
       exam_system: c.exam_system,
       station: c.district,
+      lesson_mode: c.lesson_mode,
       sor_status: c.sor_status,
       fee_status: openFeeByCase.get(c.id)?.status ?? null,
       fee_amount_hkd: openFeeByCase.get(c.id)?.amount_hkd ?? null,
@@ -227,8 +237,15 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
     }));
   });
 
-function rankFee(status: FeeStatus): number {
-  return status === "invoiced" ? 2 : status === "not_due" ? 1 : 0;
+/**
+ * #202: which fee row wins when several exist for a case. At most one OPEN
+ * fee (not_due/invoiced/paid) sits on a case (partial unique index), but a
+ * waived row may precede a later invoice — the live one must win. Waived now
+ * ranks last but is kept visible so the Tutor home can show it (#202 lists
+ * invoiced, paid AND waived).
+ */
+export function rankFee(status: FeeStatus): number {
+  return status === "invoiced" ? 3 : status === "not_due" ? 2 : status === "paid" ? 1 : 0;
 }
 
 // ---------------------------------------------------------------------------
