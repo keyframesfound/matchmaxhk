@@ -929,6 +929,12 @@ export type Database = {
           tutor_background: string | null;
           updated_at: string;
           urgency: Database["public"]["Enums"]["case_urgency"];
+          academic_tier: string | null;
+          uni_field: string | null;
+          uni_name: string | null;
+          uni_program: string | null;
+          uni_course_codes: string | null;
+          kindergarten_focus: Json;
         };
         Insert: {
           assigned_to?: string | null;
@@ -980,6 +986,12 @@ export type Database = {
           tutor_background?: string | null;
           updated_at?: string;
           urgency?: Database["public"]["Enums"]["case_urgency"];
+          academic_tier?: string | null;
+          uni_field?: string | null;
+          uni_name?: string | null;
+          uni_program?: string | null;
+          uni_course_codes?: string | null;
+          kindergarten_focus?: Json;
         };
         Update: {
           assigned_to?: string | null;
@@ -1031,6 +1043,12 @@ export type Database = {
           tutor_background?: string | null;
           updated_at?: string;
           urgency?: Database["public"]["Enums"]["case_urgency"];
+          academic_tier?: string | null;
+          uni_field?: string | null;
+          uni_name?: string | null;
+          uni_program?: string | null;
+          uni_course_codes?: string | null;
+          kindergarten_focus?: Json | null;
         };
         Relationships: [
           {
@@ -1120,6 +1138,10 @@ export type Database = {
           deletion_requested_at: string | null;
           portfolio_images: string[];
           approved_grade_labels: string[];
+          university_year_of_study: string | null;
+          university_gpa: number | null;
+          university_courses: Json;
+          course_specific_grades: Json;
         };
         Insert: {
           achievements?: Json;
@@ -1181,6 +1203,10 @@ export type Database = {
           deletion_requested_at?: string | null;
           portfolio_images?: string[];
           approved_grade_labels?: string[];
+          university_year_of_study?: string | null;
+          university_gpa?: number | null;
+          university_courses?: Json;
+          course_specific_grades?: Json;
         };
         Update: {
           achievements?: Json;
@@ -1245,6 +1271,10 @@ export type Database = {
           deletion_requested_at?: string | null;
           portfolio_images?: string[];
           approved_grade_labels?: string[];
+          university_year_of_study?: string | null;
+          university_gpa?: number | null;
+          university_courses?: Json | null;
+          course_specific_grades?: Json | null;
         };
         Relationships: [
           {
