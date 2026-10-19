@@ -67,7 +67,11 @@ import {
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
-import { normalizeUniversityCourses, normalizeUniversityYear } from "@/features/tutors/verticals";
+import {
+  normalizeUniversityCourses,
+  normalizeUniversityGpa,
+  normalizeUniversityYear,
+} from "@/features/tutors/verticals";
 import { kindergartenTopicLabel, yearOfStudyLabel } from "@/features/tutors/verticals-labels";
 import {
   courseGradeRows,
@@ -541,7 +545,8 @@ function TutorDetail() {
   // set; Kindergarten block when the level is opted into OR K topics sit in
   // subjects. Labels localize through verticals-labels.
   const universityYear = normalizeUniversityYear(t.university_year_of_study);
-  const universityGpa = typeof t.university_gpa === "number" ? t.university_gpa : null;
+  // Canonical normalizer: tolerant of string numerics (BE review soft).
+  const universityGpa = normalizeUniversityGpa(t.university_gpa);
   const universityCourses = normalizeUniversityCourses(t.university_courses);
   const courseGradeLines = courseGradeRows(t.course_specific_grades).filter(
     (row) => row.course.trim() && row.grade.trim(),

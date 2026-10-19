@@ -1619,6 +1619,11 @@ export function MyTutorProfileSection() {
                     ))}
                   </div>
                 ) : null}
+                {errors.university_courses ? (
+                  <p className="text-xs font-medium text-destructive">
+                    {errors.university_courses}
+                  </p>
+                ) : null}
               </div>
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">

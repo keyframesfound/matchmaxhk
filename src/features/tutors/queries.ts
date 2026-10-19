@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeSenCategories } from "./sen";
+import { normalizeUniversityGpa } from "./verticals";
 import { isTutorPubliclyListed } from "./tutor-display";
 import { normalizeExamResults, type ExamResult } from "./examSystems";
 import type { TutorReview } from "./tutor-reviews";
@@ -406,9 +407,11 @@ function normalize(
       typeof row.earliest_start_date === "string" ? row.earliest_start_date : null,
     target_students: targetStudents,
     // Issue #190: tolerant vertical reads (missing columns pre-migration).
+    // GPA goes through the canonical normalizer so a string numeral from a
+    // hand-rolled payload ("3.75") still renders instead of being dropped.
     university_year_of_study:
       typeof row.university_year_of_study === "string" ? row.university_year_of_study : null,
-    university_gpa: typeof row.university_gpa === "number" ? row.university_gpa : null,
+    university_gpa: normalizeUniversityGpa(row.university_gpa),
     university_courses: Array.isArray(row.university_courses)
       ? (row.university_courses as unknown[]).filter(
           (value): value is string => typeof value === "string" && value.trim().length > 0,

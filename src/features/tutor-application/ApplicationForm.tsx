@@ -1606,9 +1606,7 @@ export function ApplicationForm() {
         }
         // #190 review: the grade-map course keys also render on the public
         // card — the DB insert guard now scans them, so name the field here.
-        const gradeKeysError = contactFilterError(
-          courseGrades.map((row) => row.course).join(", "),
-        );
+        const gradeKeysError = contactFilterError(courseGrades.map((row) => row.course).join(", "));
         if (gradeKeysError && !next.courseGrades) {
           next.courseGrades = gradeKeysError;
         }
