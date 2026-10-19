@@ -55,7 +55,8 @@
       "availability": "Availability",
       "my_tutor": "My tutor profile",
       "materials": "Study Materials",
-      "lessons": "Lessons"
+      "lessons": "Lessons",
+      "home": "Home"
     },
     "referrals": {
       "title": "Refer & Earn 15%",
@@ -2236,7 +2237,21 @@
     "admin_import_run": "Import",
     "admin_unpaid_title": "Unpaid fees (oldest first)",
     "admin_whatsapp_open": "Open WhatsApp",
-    "admin_import_errors_label": "Row errors"
+    "admin_import_errors_label": "Row errors",
+    "tutor_home_empty_title": "No lessons yet",
+    "tutor_home_empty_body": "When MatchMax assigns you a case, your next lesson and confirmations will appear here.",
+    "tutor_home_empty_cta": "Browse open cases",
+    "tutor_home_next_title": "Next lesson",
+    "tutor_home_next_none": "No upcoming lessons scheduled.",
+    "tutor_home_awaiting": "Waiting for your confirm",
+    "tutor_home_fees_title": "Admin fee",
+    "tutor_home_fee_note": "This is the parent's fee to MatchMax — it is not your earnings.",
+    "tutor_home_notes_title": "Study materials",
+    "tutor_home_notes_month": "Delivered this month: {{n}}",
+    "tutor_home_notes_net": "Net owed to you: HK${{n}}",
+    "tutor_home_notes_note": "MatchMax pays notes net monthly. The admin fee above is the parent's fee and is never part of this total.",
+    "tutor_home_notes_link": "View your listings",
+    "tutor_home_open_lessons": "Open Lessons"
   },
   "currency": {
     "switcher_label": "Currency",

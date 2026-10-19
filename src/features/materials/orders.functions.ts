@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { hktDateKey } from "@/features/cases/sor";
 
 /**
  * Issue #250 groundwork (stacked on the #131–#134 marketplace MVP):
@@ -506,5 +507,104 @@ export const exportTutorPayoutCsv = createServerFn({ method: "POST" })
       csv,
       rowCount: rows.length,
       fileName: `tutor-payouts-${new Date().toISOString().slice(0, 10)}.csv`,
+    };
+  });
+
+// ---------------------------------------------------------------------------
+// #202 Tutor home: the tutor's own notes summary.
+// ---------------------------------------------------------------------------
+
+export type MyNotesSummary = {
+  /** Orders delivered in the CURRENT HKT calendar month. */
+  deliveredThisMonth: number;
+  /**
+   * Sum of tutor_net over delivered, non-grant orders with no payout ledger
+   * yet (the manual monthly payout has no paid marker — see the payout
+   * export's paid_out_at note). Grant rows are HK$0 by construction and are
+   * excluded anyway. The case admin fee is a PARENT fee and never enters
+   * this number (it lives in case_fees, a different table).
+   */
+  netOwedHkd: number;
+};
+
+/**
+ * #202 Tutor home notes block: delivered count this month (HKT) + net owed.
+ * Tutor-gated (tutors.user_id); returns zeros for accounts without a card
+ * instead of throwing — the block simply renders nothing.
+ */
+export const getMyNotesSummary = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<MyNotesSummary> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: tutorRow, error: tutorError } = await (
+      supabaseAdmin as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            eq: (
+              c: string,
+              v: string,
+            ) => Promise<{
+              data: { id: string } | null;
+              error: { message: string } | null;
+            }>;
+          };
+        };
+      }
+    )
+      .from("tutors")
+      .select("id")
+      .eq("user_id", context.userId);
+    if (tutorError) throw new Error(tutorError.message);
+    const tutorId = tutorRow?.id;
+    if (!tutorId) return { deliveredThisMonth: 0, netOwedHkd: 0 };
+
+    const { data: orders, error } = await (
+      supabaseAdmin as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            eq: (
+              c: string,
+              v: string,
+            ) => {
+              eq: (
+                c: string,
+                v: string,
+              ) => Promise<{
+                data: Array<{
+                  delivered_at: string;
+                  tutor_net_hkd: number;
+                  is_grant: boolean;
+                }> | null;
+                error: { message: string } | null;
+              }>;
+            };
+          };
+        };
+      }
+    )
+      .from("material_orders")
+      .select("delivered_at, tutor_net_hkd, is_grant")
+      .eq("tutor_id", tutorId)
+      .eq("status", "delivered");
+    if (error) throw new Error(error.message);
+
+    const rows = orders ?? [];
+    // Current HKT month window, reusing the payout export's month logic.
+    const monthKey = hktDateKey(new Date()).slice(0, 7);
+    const { fromIso, toIso } = parsePayoutMonthWindow(monthKey);
+    const from = new Date(fromIso).getTime();
+    const to = new Date(toIso).getTime();
+
+    let deliveredThisMonth = 0;
+    let netOwedHkd = 0;
+    for (const row of rows) {
+      if (!row.is_grant) netOwedHkd += Number(row.tutor_net_hkd) || 0;
+      const at = new Date(row.delivered_at).getTime();
+      if (at >= from && at < to) deliveredThisMonth += 1;
+    }
+    return {
+      deliveredThisMonth,
+      netOwedHkd: Math.round(netOwedHkd * 100) / 100,
     };
   });
