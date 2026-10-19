@@ -53,9 +53,7 @@ describe("tutorTierMembership (cold-start rule)", () => {
   });
 
   it("canonical Primary/Secondary levels land in Primary & Secondary", () => {
-    expect(tutorTierMembership(["Primary", "Secondary"])).toEqual(
-      new Set(["primary_secondary"]),
-    );
+    expect(tutorTierMembership(["Primary", "Secondary"])).toEqual(new Set(["primary_secondary"]));
   });
 
   it("an exclusively-University tutor stays out of Primary & Secondary", () => {
@@ -85,17 +83,18 @@ describe("tutorTierMembership (cold-start rule)", () => {
 
 describe("kindergarten topics", () => {
   it("normalizes to canonical tags only", () => {
-    expect(normalizeKindergartenTopics(["Kindergarten Phonics", "IBDP", "P1 Interview — General Knowledge"])).toEqual([
-      "Kindergarten Phonics",
-      "P1 Interview — General Knowledge",
-    ]);
+    expect(
+      normalizeKindergartenTopics([
+        "Kindergarten Phonics",
+        "IBDP",
+        "P1 Interview — General Knowledge",
+      ]),
+    ).toEqual(["Kindergarten Phonics", "P1 Interview — General Knowledge"]);
   });
 
   it("matches every active toggle (AND semantics)", () => {
     const subjects = [...KINDERGARTEN_TOPICS];
-    expect(
-      matchesKindergartenFilter(subjects, { phonics: true, interviewPrep: true }),
-    ).toBe(true);
+    expect(matchesKindergartenFilter(subjects, { phonics: true, interviewPrep: true })).toBe(true);
     expect(matchesKindergartenFilter(["Kindergarten Phonics"], { interviewPrep: true })).toBe(
       false,
     );
@@ -180,7 +179,9 @@ describe("universityCourseTexts (search haystack)", () => {
   });
 
   it("tolerates junk shapes", () => {
-    expect(universityCourseTexts({ university_courses: "ECON1210", course_specific_grades: [] })).toEqual([]);
+    expect(
+      universityCourseTexts({ university_courses: "ECON1210", course_specific_grades: [] }),
+    ).toEqual([]);
     expect(universityCourseTexts({})).toEqual([]);
   });
 });

@@ -74,9 +74,7 @@ describe("matchesKeywordHaystack (university course codes)", () => {
   });
 
   it("indexes extraTexts so 'ECON1210' finds course-tagged tutors", () => {
-    expect(matchesKeywordHaystack("ECON1210", ["Economics"], ["ECON1210", "ACCT1101"])).toBe(
-      true,
-    );
+    expect(matchesKeywordHaystack("ECON1210", ["Economics"], ["ECON1210", "ACCT1101"])).toBe(true);
     expect(matchesKeywordHaystack("ECON1210", ["Economics"], ["ACCT1101"])).toBe(false);
   });
 
@@ -103,10 +101,16 @@ describe("matchesFieldOfStudyFilter (text-contains over degrees)", () => {
 
   it("is case-insensitive and rejects non-matching degrees", () => {
     expect(
-      matchesFieldOfStudyFilter("law", { undergradDegree: "Bachelor of Laws", postgradDegree: null }),
+      matchesFieldOfStudyFilter("law", {
+        undergradDegree: "Bachelor of Laws",
+        postgradDegree: null,
+      }),
     ).toBe(true);
     expect(
-      matchesFieldOfStudyFilter("Medicine", { undergradDegree: "BA English", postgradDegree: null }),
+      matchesFieldOfStudyFilter("Medicine", {
+        undergradDegree: "BA English",
+        postgradDegree: null,
+      }),
     ).toBe(false);
     expect(
       matchesFieldOfStudyFilter("Medicine", { undergradDegree: null, postgradDegree: null }),
@@ -123,9 +127,11 @@ describe("matchesFieldOfStudyFilter (text-contains over degrees)", () => {
 
 describe("kindergarten toggle <-> param mapping", () => {
   it("reads the k_* params into the matchesKindergartenFilter shape", () => {
-    expect(
-      kindergartenActiveToggles({ k_phonics: "true", k_interview: true }),
-    ).toEqual({ phonics: true, mandarin: undefined, interviewPrep: true });
+    expect(kindergartenActiveToggles({ k_phonics: "true", k_interview: true })).toEqual({
+      phonics: true,
+      mandarin: undefined,
+      interviewPrep: true,
+    });
     expect(kindergartenActiveToggles({})).toEqual({
       phonics: undefined,
       mandarin: undefined,
@@ -153,9 +159,7 @@ describe("kindergarten toggle <-> param mapping", () => {
 
   it("round-trips param -> toggles -> param", () => {
     const toggles = kindergartenActiveToggles({ k_mandarin: "true" });
-    const keys = (
-      Object.entries(toggles) as Array<[keyof typeof toggles, boolean | undefined]>
-    )
+    const keys = (Object.entries(toggles) as Array<[keyof typeof toggles, boolean | undefined]>)
       .filter(([, active]) => active === true)
       .map(([key]) => key);
     expect(kindergartenParamPatch(keys)).toEqual({

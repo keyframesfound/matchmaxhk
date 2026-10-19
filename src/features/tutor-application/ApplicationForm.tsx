@@ -636,14 +636,22 @@ function CourseTagEditor({
           }}
           placeholder={placeholder}
         />
-        <Button type="button" variant="outline" onClick={add} disabled={entries.length >= MAX_UNIVERSITY_COURSES}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={add}
+          disabled={entries.length >= MAX_UNIVERSITY_COURSES}
+        >
           Add
         </Button>
       </div>
       {entries.length > 0 ? (
         <ul className="grid gap-1.5">
           {entries.map((entry, index) => (
-            <li key={`${entry}-${index}`} className="flex items-center justify-between gap-2 rounded-sm border border-border px-3 py-1.5 text-sm">
+            <li
+              key={`${entry}-${index}`}
+              className="flex items-center justify-between gap-2 rounded-sm border border-border px-3 py-1.5 text-sm"
+            >
               <span>{entry}</span>
               <button
                 type="button"
@@ -680,10 +688,7 @@ function CourseGradeEditor({
             onChange={(event) => update(index, { course: event.target.value.slice(0, 40) })}
             placeholder="Course code, e.g. ECON1210"
           />
-          <Select
-            value={row.grade}
-            onValueChange={(grade) => update(index, { grade })}
-          >
+          <Select value={row.grade} onValueChange={(grade) => update(index, { grade })}>
             <SelectTrigger className="h-11 w-28">
               <SelectValue placeholder="Grade" />
             </SelectTrigger>
@@ -1063,9 +1068,7 @@ export function ApplicationForm() {
   const [universityYear, setUniversityYear] = useState("");
   const [universityGpa, setUniversityGpa] = useState("");
   const [universityCourses, setUniversityCourses] = useState<string[]>([]);
-  const [courseGrades, setCourseGrades] = useState<
-    { course: string; grade: string }[]
-  >([]);
+  const [courseGrades, setCourseGrades] = useState<{ course: string; grade: string }[]>([]);
   const [kindergartenTopics, setKindergartenTopics] = useState<string[]>([]);
   const verticalOnlyUni =
     targetLevels.length > 0 && targetLevels.every((level) => level === "University");
@@ -1758,9 +1761,7 @@ export function ApplicationForm() {
         universityYearOfStudy: universityYear,
         universityGpa: universityGpa.trim(),
         universityCourses,
-        courseGrades: courseGrades.filter(
-          (row) => row.course.trim() !== "" && row.grade !== "",
-        ),
+        courseGrades: courseGrades.filter((row) => row.course.trim() !== "" && row.grade !== ""),
         kindergartenTopics: targetLevels.includes("Kindergarten") ? kindergartenTopics : [],
         subjectsConfident: verticalOnlyUni
           ? universityCourses.join(", ")

@@ -210,10 +210,7 @@ describe("buildTutorCardInsert (#310 publish-at-submit mapping)", () => {
         curriculum: "Kindergarten",
         curricula: ["Kindergarten"],
         subjectsConfident: "Kindergarten Phonics",
-        kindergartenTopics: [
-          "Kindergarten Phonics",
-          "P1 Interview — Storytelling & Role-play",
-        ],
+        kindergartenTopics: ["Kindergarten Phonics", "P1 Interview — Storytelling & Role-play"],
         subjectResults: "",
       }),
       "MM-T001",

@@ -415,8 +415,9 @@ function normalize(
         )
       : [],
     course_specific_grades:
-      row.course_specific_grades && typeof row.course_specific_grades === "object"
-      && !Array.isArray(row.course_specific_grades)
+      row.course_specific_grades &&
+      typeof row.course_specific_grades === "object" &&
+      !Array.isArray(row.course_specific_grades)
         ? Object.fromEntries(
             Object.entries(row.course_specific_grades as Record<string, unknown>)
               .filter(([key, value]) => key.trim() && typeof value === "string")

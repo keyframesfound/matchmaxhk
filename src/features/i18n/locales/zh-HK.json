@@ -1292,7 +1292,8 @@
     "high_school_island-school": "港島中學（ESF）",
     "high_school_hku-space-ccc-heung-yee-chung": "港大附屬學院／香島專科學校",
     "high_school_queen-elizabeth": "伊利沙伯中學（QES）",
-    "show_tutors_one": "顯示 {{count}} 位導師"
+    "show_tutors_one": "顯示 {{count}} 位導師",
+    "field_any": "任何領域"
   },
   "feedback": {
     "routing_title": "評價你嘅 MatchMax 體驗",
@@ -1821,7 +1822,34 @@
     "fee_notice": "如兩節介紹課後成功配對，您需以轉數快（FPS）向 MatchMax 支付一節課學費的 1.5 倍作配對費（每小時 HK$400 即 HK$600 費用）。之後學費直接支付給導師。若要求為 5 節或以內的短期個案，費用為該組合的 20%。",
     "fee_agree_pre": "我同意",
     "fee_agree_link": "配對費用條款",
-    "fee_agree_post": "（版本 {{version}}）。"
+    "fee_agree_post": "（版本 {{version}}）。",
+    "funnel_level_label": "你需要哪個學術程度的協助？",
+    "funnel_level_kindergarten": "幼稚園",
+    "funnel_level_primary": "小學",
+    "funnel_level_secondary": "中學",
+    "funnel_level_university": "大學",
+    "funnel_secondary_band_label": "就讀哪個中學階段？",
+    "funnel_band_junior": "初中（中一至中三／Year 7–9）",
+    "funnel_band_senior": "高中（中四至中六／Year 10–13）",
+    "k_focus_label": "幼稚園重點",
+    "k_focus_aria": "幼稚園重點範圍",
+    "k_focus_hint": "可選多項——例如需要英語沉浸、或小組遊戲較弱。",
+    "tier_label": "學術程度",
+    "tier_unspecified": "所有程度",
+    "uni_field_label": "學術領域",
+    "uni_field_placeholder": "例如：商科、工程、醫科",
+    "uni_name_label": "大學",
+    "uni_name_placeholder": "例如：HKU、中大、科大",
+    "uni_name_custom": "其他——請輸入你的大學",
+    "uni_program_label": "學位課程",
+    "uni_program_placeholder": "例如：BBA、BEng、MBBS",
+    "uni_courses_label": "課程編號／你的需要",
+    "uni_courses_placeholder": "ECON1210、功課輔助、論文指導——請盡量具體。",
+    "detail_k_focus": "幼稚園重點：{{value}}",
+    "detail_uni_field": "學術領域：{{value}}",
+    "detail_uni_name": "大學：{{value}}",
+    "detail_uni_program": "學位課程：{{value}}",
+    "detail_uni_courses": "大學課程／需要：{{value}}"
   },
   "sen": {
     "filter_title": "SEN 支援",
@@ -2257,5 +2285,74 @@
     "switcher_label": "貨幣",
     "base_price_tooltip": "導師定價：{{amount}}",
     "profile_disclaimer": "以{{currency}}顯示的價格按現行市場匯率折算，僅供參考。實際收費及課堂結算以導師協定的基準價為準。"
+  },
+  "tutors": {
+    "tier_aria": "學術程度",
+    "tier_kindergarten": "幼稚園",
+    "tier_primary_secondary": "中小學",
+    "tier_university": "大學",
+    "field_of_study": "領域",
+    "field_search_placeholder": "搜尋領域",
+    "k_filter_title": "幼稚園重點",
+    "k_filter_phonics": "自然拼讀",
+    "k_filter_mandarin": "普通話",
+    "k_filter_interview": "小一入學面試準備",
+    "k_filter_search": "搜尋",
+    "k_filter_clear": "清除"
+  },
+  "verticals": {
+    "editor_target_levels": "目標教學程度",
+    "editor_target_levels_hint": "決定你的檔案顯示於哪個搜尋分頁。",
+    "editor_university": "大學",
+    "editor_year_of_study": "就讀年級",
+    "editor_gpa": "累積 GPA",
+    "editor_gpa_invalid": "請輸入 0 至 4.3 之間的 GPA",
+    "editor_courses": "可執教的大學課程",
+    "editor_courses_hint": "學生會搜尋這些課程編號——例如 ECON1210。",
+    "editor_courses_placeholder": "輸入課程編號或名稱，例如 ECON1210",
+    "editor_course_grades": "課程成績",
+    "editor_course_placeholder": "課程編號，例如 ECON1210",
+    "editor_grade_placeholder": "成績",
+    "editor_add_course_grade": "新增課程成績",
+    "editor_remove_course_grade": "移除課程成績",
+    "editor_none": "未設定",
+    "editor_kindergarten": "你執教的幼稚園主題",
+    "editor_kindergarten_hint": "所選主題會併入你的科目，並用於幼稚園分頁篩選。",
+    "profile_university": "大學",
+    "profile_kindergarten": "幼稚園",
+    "profile_year_of_study": "就讀年級",
+    "profile_gpa": "GPA",
+    "profile_courses": "已修課程",
+    "profile_course_grades": "課程成績",
+    "level": {
+      "kindergarten": "幼稚園",
+      "primary": "小學",
+      "secondary": "中學",
+      "university": "大學"
+    },
+    "tier": {
+      "kindergarten": "幼稚園",
+      "primary_secondary": "中小學",
+      "university": "大學"
+    },
+    "topic": {
+      "phonics": "英文——自然拼讀",
+      "reading": "英文——閱讀",
+      "writing": "英文——寫作",
+      "mandarin": "普通話——沉浸／拼音",
+      "basic_maths": "基礎數學",
+      "p1_etiquette": "小一面試——溝通與禮儀",
+      "p1_group_play": "小一面試——小組遊戲觀察",
+      "p1_storytelling": "小一面試——講故事與角色扮演",
+      "p1_general": "小一面試——常識問答"
+    },
+    "year": {
+      "y1": "一年級",
+      "y2": "二年級",
+      "y3": "三年級",
+      "y4": "四年級",
+      "postgrad": "研究生",
+      "alumni": "校友／已畢業"
+    }
   }
 }
