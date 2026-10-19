@@ -7,6 +7,7 @@ import { useReducedMotion } from "motion/react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { Reveal } from "@/components/ui/reveal";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   CompactSearchPill,
@@ -690,37 +691,44 @@ function Landing() {
             <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
               {/* Issue #312: approved notes under the search bar, above the
                   IB rail; renders nothing below three public notes. */}
-              <HomeNotesRow />
+              <Reveal>
+                <HomeNotesRow />
+              </Reveal>
               {/* Issue #329: Tutor services row — ORDER IS SEMANTIC: the
                   notes row (#312) stays first, gigs sit immediately below it.
                   Same ≥3-listings guardrail; renders nothing when the gigs
                   RPC is missing or fewer than three services are published. */}
-              <HomeGigsRow />
+              <Reveal>
+                <HomeGigsRow />
+              </Reveal>
               {/* Issue #151 Option A: trending showcase; hidden entirely
                   (existing page) until 3+ tutors clear the guardrail. */}
               {trendingEntries.length > 0 ? (
-                <TrendingTutorsSection
-                  entries={trendingEntries}
-                  priceSuffix={t("featured.per_hour")}
-                  whatsappNumber={whatsappNumber}
-                  onOpen={openTutorDetail}
-                  compareSelectedIds={compareIds}
-                  onCompareToggle={toggleCompare}
-                />
+                <Reveal>
+                  <TrendingTutorsSection
+                    entries={trendingEntries}
+                    priceSuffix={t("featured.per_hour")}
+                    whatsappNumber={whatsappNumber}
+                    onOpen={openTutorDetail}
+                    compareSelectedIds={compareIds}
+                    onCompareToggle={toggleCompare}
+                  />
+                </Reveal>
               ) : null}
               {CURRICULUM_CATEGORIES.map(({ label, value }) => (
-                <CurriculumTutorSection
-                  key={value}
-                  label={label}
-                  category={value}
-                  tutors={tutorsForCategory(value)}
-                  loading={publishedTutorsLoading}
-                  priceSuffix={t("featured.per_hour")}
-                  whatsappNumber={whatsappNumber}
-                  onOpen={openTutorDetail}
-                  compareSelectedIds={compareIds}
-                  onCompareToggle={toggleCompare}
-                />
+                <Reveal key={value}>
+                  <CurriculumTutorSection
+                    label={label}
+                    category={value}
+                    tutors={tutorsForCategory(value)}
+                    loading={publishedTutorsLoading}
+                    priceSuffix={t("featured.per_hour")}
+                    whatsappNumber={whatsappNumber}
+                    onOpen={openTutorDetail}
+                    compareSelectedIds={compareIds}
+                    onCompareToggle={toggleCompare}
+                  />
+                </Reveal>
               ))}
             </div>
           </div>
