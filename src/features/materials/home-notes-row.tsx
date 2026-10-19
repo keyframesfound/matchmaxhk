@@ -200,6 +200,8 @@ export function HomeNotesRow() {
         <Button
           asChild
           variant="ghost"
+          refined
+          hoverArrow
           className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
         >
           <a href="/tutors?view=materials">
@@ -211,7 +213,7 @@ export function HomeNotesRow() {
       </div>
 
       {/* Mobile: one swipeable row — first page of notes, then the see-all tile */}
-      <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-1 pb-2 scroll-px-4 md:hidden">
+      <div className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-1 pb-2 scroll-px-4 md:hidden">
         {visible
           .slice(0, NOTES_PER_PAGE)
           .map((note) => renderNoteCard(note, "w-[min(70vw,300px)] shrink-0 snap-start"))}

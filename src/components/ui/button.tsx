@@ -74,6 +74,13 @@ export type ButtonProps = Omit<
     suffix?: ReactNode;
     /** Enables a deeper press scale for Safari force clicks. */
     forcePress?: boolean;
+    /**
+     * Opt-in tactile hover: 1px lift + 200ms icon transitions. Resting state
+     * is identical to a plain button; never used inside tutor cards.
+     */
+    refined?: boolean;
+    /** Opt-in: trailing icon nudges right on hover (arrow affordance). */
+    hoverArrow?: boolean;
     ref?: Ref<HTMLButtonElement>;
   };
 
@@ -101,6 +108,8 @@ function Button({
   asChild = false,
   loading = false,
   forcePress = false,
+  refined = false,
+  hoverArrow = false,
   prefix,
   suffix,
   disabled,
@@ -110,7 +119,17 @@ function Button({
 }: ButtonProps) {
   const shouldReduceMotion = useReducedMotion();
   const localRef = useRef<HTMLButtonElement>(null);
-  const classes = cn(buttonVariants({ className, color, shape, size, variant }));
+  const classes = cn(
+    buttonVariants({ className, color, shape, size, variant }),
+    // Opt-in tactile hover — NEVER used inside tutor cards (Ryan freeze): a
+    // 1px lift on hover plus 200ms icon transitions so trailing arrows can
+    // nudge. Transform-only, so it composes with the base 150ms colors.
+    refined &&
+      "hover:-translate-y-px motion-reduce:hover:translate-y-0 [&_svg]:transition-transform [&_svg]:duration-200 [&_svg]:ease-out motion-reduce:[&_svg]:transition-none",
+    // Opt-in arrow affordance: the trailing icon slides right on hover.
+    hoverArrow &&
+      "hover:[&_svg:last-child]:translate-x-0.5 motion-reduce:hover:[&_svg:last-child]:translate-x-0",
+  );
 
   useEffect(() => {
     const node = localRef.current;

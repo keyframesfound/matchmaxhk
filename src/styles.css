@@ -642,6 +642,45 @@ html {
       transform: translateX(0);
     }
   }
+
+  /*
+   * Horizontal rail scrollers (home tutor/notes/gigs rows, directory rows):
+   * hide the native scrollbar — the grey bar under the rails read as
+   * unpolished chrome — while keeping snap, touch momentum and wheel
+   * scrolling. Discoverability comes from the next card peeking past the
+   * rail edge, not from a scrollbar.
+   */
+  .rail-scroll {
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .rail-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /*
+   * One-time entrance for the announcement banner: a quiet 6px drop-in.
+   * Transform/opacity only, so the sticky header's layout height (and the
+   * search group's ResizeObserver measurements) never see it move.
+   */
+  @keyframes banner-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-banner-in {
+    animation: banner-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-banner-in {
+      animation: none;
+    }
+  }
 }
 
 @layer components {

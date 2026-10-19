@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { BookOpen, SearchX, Users } from "lucide-react";
+import { motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -320,7 +321,7 @@ export function DirectoryToggle({
     <div
       role="tablist"
       aria-label={t("materials.toggle_tutors")}
-      className="inline-flex rounded-full border border-border bg-card p-1"
+      className="relative inline-flex rounded-full border border-border bg-card p-1"
     >
       {options.map(({ key, label, icon: Icon }) => {
         const isActive = key === active;
@@ -332,14 +333,24 @@ export function DirectoryToggle({
             aria-selected={isActive}
             onClick={() => onChange(key)}
             className={cn(
-              "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+              "relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
               isActive
-                ? "bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
+                ? "text-[color:var(--surface-invert-fg)]"
                 : "text-[color:var(--ink)]/70 hover:text-[color:var(--ink)]",
             )}
           >
-            <Icon className="h-4 w-4" aria-hidden="true" />
-            {label}
+            {/* Sliding ink thumb: same resting look as the old per-button
+                fill, but the pill springs between tabs instead of swapping. */}
+            {isActive ? (
+              <motion.span
+                layoutId="directory-toggle-thumb"
+                aria-hidden="true"
+                className="absolute inset-0 rounded-full bg-[color:var(--ink)]"
+                transition={{ type: "spring", bounce: 0.15, duration: 0.45 }}
+              />
+            ) : null}
+            <Icon className="relative z-10 h-4 w-4" aria-hidden="true" />
+            <span className="relative z-10">{label}</span>
           </button>
         );
       })}

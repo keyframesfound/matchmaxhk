@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { motion } from "motion/react";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { Button } from "@/components/ui/button";
@@ -69,9 +70,17 @@ export function MobileBottomNav() {
                 : "text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]",
             )}
           >
-            {isActive("/tutors") ? (
-              <span className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-[color:var(--foreground)]" />
-            ) : null}
+            {/* Sliding active indicator: the top bar springs between tabs
+                instead of vanishing/reappearing on the active one. */}
+            <span aria-hidden="true" className="absolute inset-x-6 top-0 h-0.5">
+              {isActive("/tutors") ? (
+                <motion.span
+                  layoutId="mobile-bottom-nav-indicator"
+                  className="block h-0.5 rounded-full bg-[color:var(--foreground)]"
+                  transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
+                />
+              ) : null}
+            </span>
             <Compass className="h-5 w-5" aria-hidden="true" />
             {t("nav_mobile.explore")}
           </Link>
@@ -85,9 +94,16 @@ export function MobileBottomNav() {
                 : "text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]",
             )}
           >
-            {isActive("/saved-posts") ? (
-              <span className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-[color:var(--foreground)]" />
-            ) : null}
+            {/* Sliding active indicator (shared layoutId with Explore). */}
+            <span aria-hidden="true" className="absolute inset-x-6 top-0 h-0.5">
+              {isActive("/saved-posts") ? (
+                <motion.span
+                  layoutId="mobile-bottom-nav-indicator"
+                  className="block h-0.5 rounded-full bg-[color:var(--foreground)]"
+                  transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
+                />
+              ) : null}
+            </span>
             <Bookmark className="h-5 w-5" aria-hidden="true" />
             {t("nav_mobile.saved_posts")}
           </Link>
