@@ -33,6 +33,14 @@ export type CaseRow = {
   fee_amount_cents: number | null;
   tags: string[];
   source: string;
+  // Issue #190: vertical columns (absent on rows selected before the
+  // migration, hence optional).
+  academic_tier?: string | null;
+  uni_field?: string | null;
+  uni_name?: string | null;
+  uni_program?: string | null;
+  uni_course_codes?: string | null;
+  kindergarten_focus?: string[] | null;
   last_contacted_at: string | null;
   board_published_at: string | null;
   created_at: string;

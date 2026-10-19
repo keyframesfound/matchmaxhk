@@ -9,6 +9,7 @@ import {
 } from "@/features/tutors/subjects";
 
 export const LEVEL_OPTIONS = [
+  { value: "Kindergarten", label: "Kindergarten" },
   { value: "Primary", label: "Primary" },
   { value: "Junior secondary", label: "Junior secondary (Year 7–9 / S1–S3)" },
   { value: "Senior secondary", label: "Senior secondary (Year 10–13 / S4–S6)" },
@@ -56,6 +57,11 @@ export const CURRICULUM_OPTIONS = [
   { value: "IGCSE", label: "IGCSE" },
   { value: "Primary School", label: "Primary School" },
   { value: "Junior Secondary", label: "Junior Secondary" },
+  // Issue #190: the Kindergarten and University verticals as case-side
+  // curriculum entries so the board grouping and admin edit dialog can
+  // represent them without a parallel vocabulary.
+  { value: "Kindergarten", label: "Kindergarten" },
+  { value: "University", label: "University" },
   { value: ADMISSIONS_CURRICULUM, label: ADMISSIONS_CURRICULUM_LABEL },
 ];
 
