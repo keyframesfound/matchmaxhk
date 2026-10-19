@@ -833,7 +833,13 @@
     "empty_edu_title": "暫時沒有來自這個背景的導師",
     "empty_edu_desc": "我們暫時沒有符合這間學校或大學的導師——不過以下來自相近院校的高分導師同樣值得參考。",
     "empty_edu_clear": "顯示所有導師",
-    "popular_tags": "熱門標籤："
+    "popular_tags": "熱門標籤：",
+    "empty_kindergarten_title": "暫時還沒有幼稚園導師",
+    "empty_kindergarten_desc": "我們正在招募自然拼讀、普通話沉浸及小一面試準備的導師。歡迎在 WhatsApp 查詢，團隊會為你配對。",
+    "empty_university_title": "此篩選條件下暫時沒有大學導師",
+    "empty_university_desc": "試試其他領域、大學或課程編號——或在 WhatsApp 查詢，我們會為你找出合適的導師。",
+    "empty_primary_secondary_title": "沒有符合篩選條件的導師",
+    "empty_primary_secondary_desc": "放寬或清除篩選條件——或在 WhatsApp 查詢，團隊會為你配對。"
   },
   "profile": {
     "verified": "已核實",

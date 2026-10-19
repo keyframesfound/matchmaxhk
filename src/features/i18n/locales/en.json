@@ -811,7 +811,13 @@
     "empty_edu_title": "No tutor from this exact background yet",
     "empty_edu_desc": "We don't have a tutor matching this school or university right now — but these top-rated scholars from similar institutions are a great place to start.",
     "empty_edu_clear": "Show all tutors",
-    "popular_tags": "Popular tags:"
+    "popular_tags": "Popular tags:",
+    "empty_kindergarten_title": "No Kindergarten specialists yet",
+    "empty_kindergarten_desc": "We are onboarding tutors for phonics, Mandarin immersion and Primary 1 interview preparation. Ask on WhatsApp and the team will match you.",
+    "empty_university_title": "No university tutors listed for this filter yet",
+    "empty_university_desc": "Try a different field, university or course code — or ask on WhatsApp and we will find the right tutor.",
+    "empty_primary_secondary_title": "No tutors match these filters",
+    "empty_primary_secondary_desc": "Loosen a filter or clear them all — or ask on WhatsApp and the team will match you."
   },
   "profile": {
     "verified": "Verified",

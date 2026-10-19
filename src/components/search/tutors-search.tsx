@@ -953,7 +953,7 @@ export function TutorsSearchMobile({
 
   return (
     <div className={className}>
-      {onTierChange ? <TierToggleRow tier={tier} onChange={onTierChange} className="mb-4" /> : null}
+      {onTierChange ? <TierToggleRow tier={tier} onChange={onTierChange} className="mb-4 lg:hidden" /> : null}
       <MobileSearchTrigger
         label={t("search_ui.start_search")}
         onClick={() => setOverlayOpen(true)}
