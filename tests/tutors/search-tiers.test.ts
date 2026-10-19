@@ -26,12 +26,12 @@ describe("parseTierParam (JSON-decode gotcha)", () => {
   });
 
   it("rejects junk, casing variants and non-strings", () => {
-    expect(parseTierParam("University")).toBe(null);
-    expect(parseTierParam(" university ")).toBe(null);
-    expect(parseTierParam("ibdp")).toBe(null);
-    expect(parseTierParam(1)).toBe(null);
-    expect(parseTierParam(undefined)).toBe(null);
-    expect(parseTierParam(null)).toBe(null);
+    expect(parseTierParam("University")).toBeUndefined();
+    expect(parseTierParam(" university ")).toBeUndefined();
+    expect(parseTierParam("ibdp")).toBeUndefined();
+    expect(parseTierParam(1)).toBeUndefined();
+    expect(parseTierParam(undefined)).toBeUndefined();
+    expect(parseTierParam(null)).toBeUndefined();
   });
 });
 
@@ -42,10 +42,11 @@ describe("parseToggleParam (string 'true' and boolean true)", () => {
   });
 
   it("rejects everything else", () => {
-    expect(parseToggleParam("True")).toBe(false);
-    expect(parseToggleParam(1)).toBe(false);
-    expect(parseToggleParam("1")).toBe(false);
-    expect(parseToggleParam(undefined)).toBe(false);
+    expect(parseToggleParam("True")).toBeUndefined();
+    expect(parseToggleParam(1)).toBeUndefined();
+    expect(parseToggleParam("1")).toBeUndefined();
+    expect(parseToggleParam(undefined)).toBeUndefined();
+    expect(parseToggleParam(null)).toBeUndefined();
   });
 });
 

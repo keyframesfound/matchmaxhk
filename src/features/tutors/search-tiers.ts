@@ -21,17 +21,25 @@ import {
  * (?tier=university arrives as the string "university"; anything else —
  * junk, numbers, casing variants — falls back to null and the route default).
  */
-export function parseTierParam(raw: unknown): AcademicTier | null {
-  if (typeof raw !== "string") return null;
-  return (ACADEMIC_TIERS as readonly string[]).includes(raw) ? (raw as AcademicTier) : null;
+export function parseTierParam(raw: unknown): AcademicTier | undefined {
+  // undefined (NOT null) — the schema wraps this in z.enum(...).optional(),
+  // and a cold-load URL without ?tier arrives as null, which optional()
+  // rejects (cold-load 500 on /tutors).
+  if (typeof raw !== "string") return undefined;
+  return (ACADEMIC_TIERS as readonly string[]).includes(raw)
+    ? (raw as AcademicTier)
+    : undefined;
 }
 
 /**
  * Kindergarten toggle params persist as the string "true"; accept boolean
  * true too (the zod-preprocessed draft shape). Everything else is off.
  */
-export function parseToggleParam(raw: unknown): boolean {
-  return raw === true || raw === "true";
+export function parseToggleParam(raw: unknown): boolean | undefined {
+  // true only for explicit on values; undefined (NOT false) when absent —
+  // a false default makes the router rewrite the cold URL into
+  // ?k_phonics=false&… (a 307 on every directory visit).
+  return raw === true || raw === "true" ? true : undefined;
 }
 
 // --- Kindergarten toggles <-> URL params ---
