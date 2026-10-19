@@ -48,7 +48,7 @@ export function WhatsAppFloatButton() {
           ? { duration: 0 }
           : { delay: 0.6, duration: 0.3, ease: [0.22, 1, 0.36, 1] }
       }
-      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--brand-whatsapp)] text-white transition-[transform,background-color] duration-200 hover:scale-105 hover:bg-[color:var(--brand-whatsapp-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ink)] focus-visible:ring-offset-2 lg:bottom-6 lg:right-6"
+      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--brand-whatsapp)] text-white transition-[scale,background-color] duration-200 hover:scale-105 hover:bg-[color:var(--brand-whatsapp-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ink)] focus-visible:ring-offset-2 lg:bottom-6 lg:right-6"
     >
       <WhatsAppIcon className="h-7 w-7" aria-hidden="true" />
       <span className="sr-only">WhatsApp support</span>

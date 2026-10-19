@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,10 @@ export function MobileBottomNav() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
   const [accountOpen, setAccountOpen] = useState(false);
+  // OS Reduce Motion must silence the sliding indicators too (#398 review):
+  // layoutId springs are transform/layout animations, which motion plays
+  // regardless of the media query unless gated here.
+  const prefersReducedMotion = useReducedMotion();
 
   const accountName =
     user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
@@ -77,7 +81,11 @@ export function MobileBottomNav() {
                 <motion.span
                   layoutId="mobile-bottom-nav-indicator"
                   className="block h-0.5 rounded-full bg-[color:var(--foreground)]"
-                  transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
+                  transition={
+                    prefersReducedMotion
+                      ? { duration: 0 }
+                      : { type: "spring", bounce: 0.15, duration: 0.4 }
+                  }
                 />
               ) : null}
             </span>
@@ -100,7 +108,11 @@ export function MobileBottomNav() {
                 <motion.span
                   layoutId="mobile-bottom-nav-indicator"
                   className="block h-0.5 rounded-full bg-[color:var(--foreground)]"
-                  transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
+                  transition={
+                    prefersReducedMotion
+                      ? { duration: 0 }
+                      : { type: "spring", bounce: 0.15, duration: 0.4 }
+                  }
                 />
               ) : null}
             </span>

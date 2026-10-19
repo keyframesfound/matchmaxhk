@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { BookOpen, SearchX, Users } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -313,6 +313,7 @@ export function DirectoryToggle({
   onChange: (next: "tutors" | "materials") => void;
 }) {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const options = [
     { key: "tutors" as const, label: t("materials.toggle_tutors"), icon: Users },
     { key: "materials" as const, label: t("materials.toggle_materials"), icon: BookOpen },
@@ -346,7 +347,11 @@ export function DirectoryToggle({
                 layoutId="directory-toggle-thumb"
                 aria-hidden="true"
                 className="absolute inset-0 rounded-full bg-[color:var(--ink)]"
-                transition={{ type: "spring", bounce: 0.15, duration: 0.45 }}
+                transition={
+                  prefersReducedMotion
+                    ? { duration: 0 }
+                    : { type: "spring", bounce: 0.15, duration: 0.45 }
+                }
               />
             ) : null}
             <Icon className="relative z-10 h-4 w-4" aria-hidden="true" />

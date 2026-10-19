@@ -123,9 +123,11 @@ function Button({
     buttonVariants({ className, color, shape, size, variant }),
     // Opt-in tactile hover — NEVER used inside tutor cards (Ryan freeze): a
     // 1px lift on hover plus 200ms icon transitions so trailing arrows can
-    // nudge. Transform-only, so it composes with the base 150ms colors.
+    // nudge. The v4 lift animates the `translate` property, so the refined
+    // transition list extends the base one with translate (tailwind-merge
+    // keeps the last transition-property list).
     refined &&
-      "hover:-translate-y-px motion-reduce:hover:translate-y-0 [&_svg]:transition-transform [&_svg]:duration-200 [&_svg]:ease-out motion-reduce:[&_svg]:transition-none",
+      "transition-[translate,transform,background-color,border-color,color] hover:-translate-y-px motion-reduce:hover:translate-y-0 [&_svg]:transition-transform [&_svg]:duration-200 [&_svg]:ease-out motion-reduce:[&_svg]:transition-none",
     // Opt-in arrow affordance: the trailing icon slides right on hover.
     hoverArrow &&
       "hover:[&_svg:last-child]:translate-x-0.5 motion-reduce:hover:[&_svg:last-child]:translate-x-0",

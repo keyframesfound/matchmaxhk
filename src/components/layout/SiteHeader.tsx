@@ -111,7 +111,9 @@ function DesktopTab({
       <span
         className={cn(
           "absolute inset-x-3 bottom-0 h-[2px] origin-left rounded-full bg-[color:var(--foreground)] transition-transform duration-200 ease-out xl:inset-x-4 motion-reduce:transition-none",
-          active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100",
+          active
+            ? "scale-x-100"
+            : "scale-x-0 group-hover:scale-x-100 group-focus-visible:scale-x-100",
         )}
       />
     </Link>

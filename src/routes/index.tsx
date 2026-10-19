@@ -400,7 +400,10 @@ function TrendingTutorsSection({
         </div>
       </div>
 
-      <div className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pt-1 pb-2">
+      <div
+        ref={railRef}
+        className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pt-1 pb-2"
+      >
         {entries.map((entry) => {
           const { tutor } = entry;
           const inquiry = getTutorInquiryAction(tutor, whatsappNumber, i18n.language);
@@ -690,17 +693,15 @@ function Landing() {
           <div className="mx-auto max-w-[1440px] px-4 md:px-6">
             <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
               {/* Issue #312: approved notes under the search bar, above the
-                  IB rail; renders nothing below three public notes. */}
-              <Reveal>
-                <HomeNotesRow />
-              </Reveal>
+                  IB rail; renders nothing below three public notes. Reveal
+                  lives INSIDE the row (after its null guards) so a hidden
+                  row leaves no empty wrapper in the space-y stack. */}
+              <HomeNotesRow />
               {/* Issue #329: Tutor services row — ORDER IS SEMANTIC: the
                   notes row (#312) stays first, gigs sit immediately below it.
                   Same ≥3-listings guardrail; renders nothing when the gigs
                   RPC is missing or fewer than three services are published. */}
-              <Reveal>
-                <HomeGigsRow />
-              </Reveal>
+              <HomeGigsRow />
               {/* Issue #151 Option A: trending showcase; hidden entirely
                   (existing page) until 3+ tutors clear the guardrail. */}
               {trendingEntries.length > 0 ? (
