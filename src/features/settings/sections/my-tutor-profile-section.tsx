@@ -501,6 +501,17 @@ export function MyTutorProfileSection() {
         field: "self_introduction" as const,
         error: contactFilterError(form.self_introduction ?? ""),
       },
+      // Issue #190: course tags and graded course codes are public text —
+      // the DB owner guard scans them, mirror it here for inline UX.
+      {
+        field: "university_courses" as const,
+        error: contactFilterError(
+          [
+            ...(form.university_courses ?? []),
+            ...form.course_grade_rows.map((row) => row.course),
+          ].join(", "),
+        ),
+      },
     ].filter((entry) => Boolean(entry.error));
     if (contactErrors.length > 0) {
       setErrors((current) => {

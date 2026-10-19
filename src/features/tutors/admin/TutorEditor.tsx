@@ -1556,6 +1556,16 @@ export function TutorEditor({
     if (adminTravelNoteError) publishErrors.travel_note = adminTravelNoteError;
     const adminRateNoteError = contactFilterError((parsed.data.rate_note ?? "").trim());
     if (adminRateNoteError) publishErrors.rate_note = adminRateNoteError;
+    // #190 review: course tags and grade-map course keys render on the public
+    // card. Staff writes bypass tutors_owner_contact_guard, so this client
+    // check is the only guard on admin EDITS of those fields (admin INSERTS
+    // still hit tutors_insert_contact_guard).
+    const adminUniCoursesError = contactFilterError(parsed.data.university_courses.join(", "));
+    if (adminUniCoursesError) publishErrors.university_courses = adminUniCoursesError;
+    const adminGradeKeysError = contactFilterError(
+      parsed.data.course_grade_rows.map((row) => row.course).join(", "),
+    );
+    if (adminGradeKeysError) publishErrors.course_grade_rows = adminGradeKeysError;
     // Issue #190: GPA is a free decimal 0–4.3 (blank allowed); an out-of-band
     // value is named here instead of being silently dropped on save.
     const gpaText = (parsed.data.university_gpa ?? "").trim();
@@ -2486,6 +2496,7 @@ export function TutorEditor({
                   <FormField
                     label={t("verticals.editor_courses")}
                     hint={t("verticals.editor_courses_hint")}
+                    error={errors.university_courses}
                   >
                     <TagInput
                       value={form.university_courses}
@@ -2525,6 +2536,11 @@ export function TutorEditor({
                         {t("verticals.editor_add_course_grade")}
                       </Button>
                     </div>
+                    {errors.course_grade_rows ? (
+                      <p className="text-xs font-medium text-destructive">
+                        {errors.course_grade_rows}
+                      </p>
+                    ) : null}
                     {form.course_grade_rows.map((row, index) => (
                       <div
                         key={index}

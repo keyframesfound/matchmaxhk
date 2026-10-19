@@ -1604,6 +1604,14 @@ export function ApplicationForm() {
         if (verticalCoursesError && !next.universityCourses) {
           next.universityCourses = verticalCoursesError;
         }
+        // #190 review: the grade-map course keys also render on the public
+        // card — the DB insert guard now scans them, so name the field here.
+        const gradeKeysError = contactFilterError(
+          courseGrades.map((row) => row.course).join(", "),
+        );
+        if (gradeKeysError && !next.courseGrades) {
+          next.courseGrades = gradeKeysError;
+        }
         if (!verticalOnly)
           qualifications.forEach((qualification, index) => {
             required(`curriculum-${index}`, qualification.curriculum);
