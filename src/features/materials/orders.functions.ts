@@ -528,6 +528,40 @@ export type MyNotesSummary = {
 };
 
 /**
+ * Pure core of the #202 notes summary (extracted for tests): counts orders
+ * DELIVERED in the current HKT calendar month and sums tutor_net over ALL
+ * delivered non-grant rows (all-time — there is no paid_out_at ledger yet;
+ * see the payout export's follow-up note). Grant rows are HK$0 by
+ * construction: they count as deliveries but add nothing to net.
+ */
+export function summarizeMyNotesOrders(
+  rows: Array<{
+    delivered_at: string;
+    tutor_net_hkd: number | string;
+    is_grant: boolean;
+  }>,
+  now: Date,
+): MyNotesSummary {
+  // Current HKT month window, reusing the payout export's month logic.
+  const monthKey = hktDateKey(now).slice(0, 7);
+  const { fromIso, toIso } = parsePayoutMonthWindow(monthKey);
+  const from = new Date(fromIso).getTime();
+  const to = new Date(toIso).getTime();
+
+  let deliveredThisMonth = 0;
+  let netOwedHkd = 0;
+  for (const row of rows) {
+    if (!row.is_grant) netOwedHkd += Number(row.tutor_net_hkd) || 0;
+    const at = new Date(row.delivered_at).getTime();
+    if (at >= from && at < to) deliveredThisMonth += 1;
+  }
+  return {
+    deliveredThisMonth,
+    netOwedHkd: Math.round(netOwedHkd * 100) / 100,
+  };
+}
+
+/**
  * #202 Tutor home notes block: delivered count this month (HKT) + net owed.
  * Tutor-gated (tutors.user_id); returns zeros for accounts without a card
  * instead of throwing — the block simply renders nothing.
@@ -544,17 +578,24 @@ export const getMyNotesSummary = createServerFn({ method: "POST" })
             eq: (
               c: string,
               v: string,
-            ) => Promise<{
-              data: { id: string } | null;
-              error: { message: string } | null;
-            }>;
+            ) => {
+              maybeSingle: () => Promise<{
+                data: { id: string } | null;
+                error: { message: string } | null;
+              }>;
+            };
           };
         };
       }
     )
       .from("tutors")
       .select("id")
-      .eq("user_id", context.userId);
+      .eq("user_id", context.userId)
+      // Review blocker: without .maybeSingle() supabase-js resolves an ARRAY
+      // for this filter, so tutorRow?.id was always undefined and the whole
+      // summary silently returned zeros. maybeSingle() yields the one row
+      // (or null when the account has no card), matching the type above.
+      .maybeSingle();
     if (tutorError) throw new Error(tutorError.message);
     const tutorId = tutorRow?.id;
     if (!tutorId) return { deliveredThisMonth: 0, netOwedHkd: 0 };
@@ -589,22 +630,5 @@ export const getMyNotesSummary = createServerFn({ method: "POST" })
       .eq("status", "delivered");
     if (error) throw new Error(error.message);
 
-    const rows = orders ?? [];
-    // Current HKT month window, reusing the payout export's month logic.
-    const monthKey = hktDateKey(new Date()).slice(0, 7);
-    const { fromIso, toIso } = parsePayoutMonthWindow(monthKey);
-    const from = new Date(fromIso).getTime();
-    const to = new Date(toIso).getTime();
-
-    let deliveredThisMonth = 0;
-    let netOwedHkd = 0;
-    for (const row of rows) {
-      if (!row.is_grant) netOwedHkd += Number(row.tutor_net_hkd) || 0;
-      const at = new Date(row.delivered_at).getTime();
-      if (at >= from && at < to) deliveredThisMonth += 1;
-    }
-    return {
-      deliveredThisMonth,
-      netOwedHkd: Math.round(netOwedHkd * 100) / 100,
-    };
+    return summarizeMyNotesOrders(orders ?? [], new Date());
   });
