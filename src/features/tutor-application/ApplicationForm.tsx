@@ -56,6 +56,21 @@ import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
 import { submitTutorApplication } from "@/lib/tutor-application.functions";
+import {
+  COURSE_GRADE_OPTIONS,
+  KINDERGARTEN_TOPICS,
+  MAX_UNIVERSITY_COURSES,
+  TARGET_TEACHING_LEVELS,
+  UNIVERSITY_SUGGESTIONS,
+  YEARS_OF_STUDY,
+  normalizeCourseGrades,
+  normalizeKindergartenTopics,
+  normalizeTargetLevels,
+  normalizeUniversityCourses,
+  normalizeUniversityGpa,
+  normalizeUniversityYear,
+} from "@/features/tutors/verticals";
+import { useVerticalLabels } from "@/features/tutors/verticals-labels";
 import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
 import {
   ACCEPT_ATTRIBUTE,
@@ -590,6 +605,129 @@ function ProfilePhotoUpload({
   );
 }
 
+/** Issue #190: tag-list editor for university course codes/names (max 12). */
+function CourseTagEditor({
+  entries,
+  onChange,
+  placeholder,
+}: {
+  entries: string[];
+  onChange: (next: string[]) => void;
+  placeholder: string;
+}) {
+  const [draft, setDraft] = useState("");
+  const add = () => {
+    const value = draft.trim().slice(0, 40);
+    if (!value) return;
+    if (entries.some((entry) => entry.toLowerCase() === value.toLowerCase())) {
+      setDraft("");
+      return;
+    }
+    if (entries.length >= MAX_UNIVERSITY_COURSES) return;
+    onChange([...entries, value]);
+    setDraft("");
+  };
+  return (
+    <div className="grid gap-2">
+      <div className="flex gap-2">
+        <Input
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              add();
+            }
+          }}
+          placeholder={placeholder}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={add}
+          disabled={entries.length >= MAX_UNIVERSITY_COURSES}
+        >
+          Add
+        </Button>
+      </div>
+      {entries.length > 0 ? (
+        <ul className="grid gap-1.5">
+          {entries.map((entry, index) => (
+            <li
+              key={`${entry}-${index}`}
+              className="flex items-center justify-between gap-2 rounded-sm border border-border px-3 py-1.5 text-sm"
+            >
+              <span>{entry}</span>
+              <button
+                type="button"
+                onClick={() => onChange(entries.filter((_, i) => i !== index))}
+                className="text-muted-foreground hover:text-destructive"
+                aria-label={`Remove ${entry}`}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
+/** Issue #190: course + grade pair editor for course-specific grades. */
+function CourseGradeEditor({
+  rows,
+  onChange,
+}: {
+  rows: { course: string; grade: string }[];
+  onChange: (next: { course: string; grade: string }[]) => void;
+}) {
+  const update = (index: number, patch: Partial<{ course: string; grade: string }>) =>
+    onChange(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+  return (
+    <div className="grid gap-2">
+      {rows.map((row, index) => (
+        <div key={index} className="flex gap-2">
+          <Input
+            value={row.course}
+            onChange={(event) => update(index, { course: event.target.value.slice(0, 40) })}
+            placeholder="Course code, e.g. ECON1210"
+          />
+          <Select value={row.grade} onValueChange={(grade) => update(index, { grade })}>
+            <SelectTrigger className="h-11 w-28">
+              <SelectValue placeholder="Grade" />
+            </SelectTrigger>
+            <SelectContent>
+              {COURSE_GRADE_OPTIONS.map((grade) => (
+                <SelectItem key={grade} value={grade}>
+                  {grade}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <button
+            type="button"
+            onClick={() => onChange(rows.filter((_, i) => i !== index))}
+            className="text-muted-foreground hover:text-destructive"
+            aria-label="Remove course grade"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ))}
+      {rows.length < MAX_UNIVERSITY_COURSES ? (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => onChange([...rows, { course: "", grade: "" }])}
+        >
+          Add a course grade
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
 function blankQualification(curriculum = "IBDP"): Qualification {
   return {
     curriculum,
@@ -825,6 +963,13 @@ type ApplicationDraft = {
   // Issue #323: smart headline + whether the tutor has manually edited it.
   academicHeadline: string;
   headlineDirty: boolean;
+  // Issue #190: verticals survive the wizard (sanitized on restore).
+  targetLevels: string[];
+  universityYear: string;
+  universityGpa: string;
+  universityCourses: string[];
+  courseGrades: { course: string; grade: string }[];
+  kindergartenTopics: string[];
 };
 
 export function ApplicationForm() {
@@ -929,9 +1074,41 @@ export function ApplicationForm() {
   // clearing the field on blur unfreezes it (see the effect + input handlers).
   const [academicHeadline, setAcademicHeadline] = useState("");
   const [headlineDirty, setHeadlineDirty] = useState(false);
+  // Issue #190: target teaching levels route the verticals. University-only
+  // or Kindergarten-only tutors skip the school-exam qualification editor.
+  const [targetLevels, setTargetLevels] = useState<string[]>([]);
+  const [universityYear, setUniversityYear] = useState("");
+  const [universityGpa, setUniversityGpa] = useState("");
+  const [universityCourses, setUniversityCourses] = useState<string[]>([]);
+  const [courseGrades, setCourseGrades] = useState<{ course: string; grade: string }[]>([]);
+  const [kindergartenTopics, setKindergartenTopics] = useState<string[]>([]);
+  const verticalOnlyUni =
+    targetLevels.length > 0 && targetLevels.every((level) => level === "University");
+  const verticalOnlyKind =
+    targetLevels.length > 0 && targetLevels.every((level) => level === "Kindergarten");
+  const verticalOnly = verticalOnlyUni || verticalOnlyKind;
+  // Issue #190: vertical-only tutors skip the exam qualification editor —
+  // sync the hidden qualification row to the vertical so the existing
+  // payload logic (curricula, headline generator) keeps flowing unchanged.
+  useEffect(() => {
+    if (!verticalOnly) return;
+    const wanted = verticalOnlyUni ? "University" : "Kindergarten";
+    setQualifications((current) => {
+      if (
+        current.length === 1 &&
+        current[0].curriculum === wanted &&
+        current[0].scores.length === 0
+      ) {
+        return current;
+      }
+      const blank = blankQualification(wanted);
+      return [{ ...blank, scores: [] }];
+    });
+  }, [verticalOnly, verticalOnlyUni]);
   const professional = base.status === PROFESSIONAL_STATUS;
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
+  const verticalLabels = useVerticalLabels();
   // Hotline digits for the Step 2 activation link; fetched once the
   // application is submitted.
   const whatsappDigits = useWhatsAppNumber(done);
@@ -1011,6 +1188,23 @@ export function ApplicationForm() {
       setAcademicHeadline(restoredDraft.academicHeadline);
       setHeadlineDirty(Boolean(restoredDraft.headlineDirty));
     }
+    // Issue #190: vertical state survives a refresh; sanitize to canonical
+    // vocab like the case funnel does (junk/renamed entries drop silently).
+    const restoredLevels = normalizeTargetLevels(restoredDraft.targetLevels);
+    if (restoredLevels.length > 0) setTargetLevels(restoredLevels);
+    const restoredYear = normalizeUniversityYear(restoredDraft.universityYear);
+    if (restoredYear) setUniversityYear(restoredYear);
+    if (typeof restoredDraft.universityGpa === "string") {
+      setUniversityGpa(restoredDraft.universityGpa);
+    }
+    const restoredCourses = normalizeUniversityCourses(restoredDraft.universityCourses);
+    if (restoredCourses.length > 0) setUniversityCourses(restoredCourses);
+    const restoredGrades = Object.entries(normalizeCourseGrades(restoredDraft.courseGrades)).map(
+      ([course, grade]) => ({ course, grade }),
+    );
+    if (restoredGrades.length > 0) setCourseGrades(restoredGrades);
+    const restoredTopics = normalizeKindergartenTopics(restoredDraft.kindergartenTopics);
+    if (restoredTopics.length > 0) setKindergartenTopics(restoredTopics);
     if (
       typeof restoredDraft.step === "number" &&
       restoredDraft.step >= 1 &&
@@ -1035,6 +1229,13 @@ export function ApplicationForm() {
       qualifications,
       academicHeadline,
       headlineDirty,
+      // Issue #190: verticals survive the wizard.
+      targetLevels,
+      universityYear,
+      universityGpa,
+      universityCourses,
+      courseGrades,
+      kindergartenTopics,
     });
   }, [
     restoredDraft,
@@ -1047,6 +1248,12 @@ export function ApplicationForm() {
     qualifications,
     academicHeadline,
     headlineDirty,
+    targetLevels,
+    universityYear,
+    universityGpa,
+    universityCourses,
+    courseGrades,
+    kindergartenTopics,
   ]);
 
   // Issue #323: regenerate the smart headline whenever the qualifications
@@ -1368,6 +1575,8 @@ export function ApplicationForm() {
       }
     }
     if (step === 2) {
+      // Issue #190: teaching levels route the whole form.
+      required("targetLevels", targetLevels);
       if (professional) required("credentials", credentials);
       else {
         required("highSchool", base.highSchool.trim());
@@ -1379,12 +1588,35 @@ export function ApplicationForm() {
           required("postgradUniversity", base.postgradUniversity.trim());
           required("postgradDegree", base.postgradDegree.trim());
         }
-        qualifications.forEach((qualification, index) => {
-          required(`curriculum-${index}`, qualification.curriculum);
-          // Issue #323: overall score is optional — never block on a blank.
-          if (["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum))
-            required(`boards-${index}`, qualification.boards);
-        });
+        // Issue #190: vertical-only tutors skip the exam qualification editor;
+        // their capability signal is the course list / K topics instead.
+        if (verticalOnlyUni && universityCourses.length === 0) {
+          next.universityCourses =
+            "Add at least one university course you can tutor (course code or name).";
+        }
+        if (verticalOnlyKind && kindergartenTopics.length === 0) {
+          next.kindergartenTopics = "Select at least one Kindergarten topic you teach.";
+        }
+        if (universityGpa.trim() !== "" && normalizeUniversityGpa(universityGpa) === null) {
+          next.universityGpa = "Enter a GPA between 0 and 4.3";
+        }
+        const verticalCoursesError = contactFilterError(universityCourses.join(", "));
+        if (verticalCoursesError && !next.universityCourses) {
+          next.universityCourses = verticalCoursesError;
+        }
+        // #190 review: the grade-map course keys also render on the public
+        // card — the DB insert guard now scans them, so name the field here.
+        const gradeKeysError = contactFilterError(courseGrades.map((row) => row.course).join(", "));
+        if (gradeKeysError && !next.courseGrades) {
+          next.courseGrades = gradeKeysError;
+        }
+        if (!verticalOnly)
+          qualifications.forEach((qualification, index) => {
+            required(`curriculum-${index}`, qualification.curriculum);
+            // Issue #323: overall score is optional — never block on a blank.
+            if (["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum))
+              required(`boards-${index}`, qualification.boards);
+          });
       }
       // University / programme are on this step for both paths and are copied
       // onto the public card. Contact text fails here, before submit.
@@ -1413,9 +1645,19 @@ export function ApplicationForm() {
     }
     const taughtStep = professional ? 3 : 3;
     if (step === taughtStep) {
-      required("subjectsTaught", selectedTeachingSubjects);
+      // Issue #190: vertical-only tutors list courses / K topics instead of
+      // standard subjects at this step.
+      if (verticalOnlyUni) required("subjectsTaught", universityCourses);
+      else if (verticalOnlyKind) required("subjectsTaught", kindergartenTopics);
+      else required("subjectsTaught", selectedTeachingSubjects);
       // Issue #361: subjects feed the public card — filter them on-step too.
-      const taughtError = contactFilterError(selectedTeachingSubjects.join(", "));
+      const taughtError = contactFilterError(
+        verticalOnlyUni
+          ? universityCourses.join(", ")
+          : verticalOnlyKind
+            ? kindergartenTopics.join(", ")
+            : selectedTeachingSubjects.join(", "),
+      );
       if (taughtError && !next.subjectsTaught) next.subjectsTaught = taughtError;
     }
     const lessonStep = professional ? 4 : 4;
@@ -1562,10 +1804,28 @@ export function ApplicationForm() {
         curricula: qualifications.map((qualification) => qualification.curriculum),
         overallScore: professional ? "Not applicable - professional pathway" : primary.overall,
         academicHeadline: academicHeadline.trim(),
-        subjectsConfident: selectedTeachingSubjects.join(", "),
+        // Issue #190: vertical routing + self-reported vertical fields.
+        targetLevels,
+        universityYearOfStudy: universityYear,
+        universityGpa: universityGpa.trim(),
+        universityCourses,
+        courseGrades: courseGrades.filter((row) => row.course.trim() !== "" && row.grade !== ""),
+        kindergartenTopics: targetLevels.includes("Kindergarten") ? kindergartenTopics : [],
+        subjectsConfident: verticalOnlyUni
+          ? universityCourses.join(", ")
+          : verticalOnlyKind
+            ? kindergartenTopics.join(", ")
+            : selectedTeachingSubjects.join(", "),
         subjectResults: professional
           ? `Professional subjects: ${selectedTeachingSubjects.join(", ")}\n${base.achievements.map((achievement) => achievement.description).join("\n")}`
-          : subjectResults,
+          : verticalOnlyUni
+            ? courseGrades
+                .filter((row) => row.course.trim() && row.grade)
+                .map((row) => `${row.course.trim()} - ${row.grade}`)
+                .join("\n")
+            : verticalOnlyKind
+              ? `Kindergarten topics: ${kindergartenTopics.join(", ")}`
+              : subjectResults,
         awards: "",
         // Issue #309: achievements are TEXT answers only — no evidence files
         // at join time; slips upload per-grade from the profile editor.
@@ -2345,6 +2605,114 @@ export function ApplicationForm() {
                   professional ? "Higher Education & Teaching Credentials" : "Academic Background"
                 }
               />
+              {/* Issue #190: target teaching levels route the verticals. */}
+              <Field label="Target Teaching Level" required error={fieldErrors.targetLevels}>
+                <Choices
+                  options={TARGET_TEACHING_LEVELS}
+                  values={targetLevels}
+                  onToggle={(level) => {
+                    setTargetLevels((current) =>
+                      current.includes(level)
+                        ? current.filter((item) => item !== level)
+                        : [...current, level],
+                    );
+                    clearFieldError("targetLevels");
+                  }}
+                  invalid={Boolean(fieldErrors.targetLevels)}
+                />
+              </Field>
+              {targetLevels.includes("University") ? (
+                <div className="grid gap-4 rounded-sm border border-border p-4 sm:grid-cols-2">
+                  <Field label="Current Year of Study" error={fieldErrors.universityYear}>
+                    <Select
+                      value={universityYear}
+                      onValueChange={(value) => {
+                        setUniversityYear(value);
+                        clearFieldError("universityYear");
+                      }}
+                    >
+                      <SelectTrigger className={controlClassName}>
+                        <SelectValue placeholder="Select your year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {YEARS_OF_STUDY.map((year) => (
+                          <SelectItem key={year} value={year}>
+                            {verticalLabels.years[year]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label="Cumulative GPA" error={fieldErrors.universityGpa}>
+                    <Input
+                      value={universityGpa}
+                      onChange={(event) => {
+                        setUniversityGpa(event.target.value);
+                        clearFieldError("universityGpa");
+                      }}
+                      inputMode="decimal"
+                      placeholder="e.g. 3.85"
+                    />
+                    <Hint>Scale 0 – 4.3, optional.</Hint>
+                  </Field>
+                  <div className="sm:col-span-2">
+                    <Field
+                      label="University Courses You Can Tutor"
+                      required={verticalOnlyUni}
+                      error={fieldErrors.universityCourses}
+                    >
+                      <CourseTagEditor
+                        entries={universityCourses}
+                        onChange={(next) => {
+                          setUniversityCourses(next);
+                          clearFieldError("universityCourses");
+                        }}
+                        placeholder="Type a course code or name, e.g. ECON1210"
+                      />
+                      <Hint>
+                        Course codes are searchable — students looking for ECON1210 will find you.
+                      </Hint>
+                    </Field>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Field label="Course-Specific Grades" error={fieldErrors.courseGrades}>
+                      <CourseGradeEditor
+                        rows={courseGrades}
+                        onChange={(next) => {
+                          setCourseGrades(next);
+                          clearFieldError("courseGrades");
+                        }}
+                      />
+                      <Hint>
+                        Optional — grades you received in the courses you intend to tutor.
+                      </Hint>
+                    </Field>
+                  </div>
+                </div>
+              ) : null}
+              {targetLevels.includes("Kindergarten") ? (
+                <div className="rounded-sm border border-border p-4">
+                  <Field
+                    label="Kindergarten Topics You Teach"
+                    required={verticalOnlyKind}
+                    error={fieldErrors.kindergartenTopics}
+                  >
+                    <Choices
+                      options={[...KINDERGARTEN_TOPICS]}
+                      values={kindergartenTopics}
+                      onToggle={(topic) => {
+                        setKindergartenTopics((current) =>
+                          current.includes(topic)
+                            ? current.filter((item) => item !== topic)
+                            : [...current, topic],
+                        );
+                        clearFieldError("kindergartenTopics");
+                      }}
+                      invalid={Boolean(fieldErrors.kindergartenTopics)}
+                    />
+                  </Field>
+                </div>
+              ) : null}
               <div className="grid gap-4 sm:grid-cols-2">
                 {professional ? (
                   <Field label="Teaching Qualifications" required error={fieldErrors.credentials}>
@@ -2385,7 +2753,14 @@ export function ApplicationForm() {
                     value={base.university}
                     onChange={(event) => setBaseField("university", event.target.value)}
                     placeholder="HKUST"
+                    list="university-suggestions"
                   />
+                  {/* Issue #190: suggestions + free text — any university works. */}
+                  <datalist id="university-suggestions">
+                    {UNIVERSITY_SUGGESTIONS.map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                  </datalist>
                 </Field>
                 <Field label="Degree / Programme Major" required error={fieldErrors.programme}>
                   <Input
@@ -2439,7 +2814,7 @@ export function ApplicationForm() {
                     </Field>
                   </>
                 ) : null}
-                {!professional ? (
+                {!professional && !verticalOnly ? (
                   <div className="sm:col-span-2">
                     <Hint>
                       Parents and students actively seek alumni from their own secondary schools, or

@@ -41,6 +41,17 @@ import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { MAX_PROFILE_TAGS, PRESET_PROFILE_TAGS } from "@/features/tutors/profile-tags";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
+import {
+  FIELDS_OF_STUDY,
+  KINDERGARTEN_TOPICS,
+  UNIVERSITY_SUGGESTIONS,
+} from "@/features/tutors/verticals";
+import { kindergartenTopicLabel } from "@/features/tutors/verticals-labels";
+import {
+  FUNNEL_LEVELS,
+  SECONDARY_BANDS,
+  storedStudentLevel,
+} from "@/features/cases/case-verticals";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
@@ -82,6 +93,14 @@ type FormState = {
   parentName: string;
   contactPhone: string;
   supportType: string;
+  // Issue #190: the level-first funnel question (step 1) and its cascades.
+  academicLevel: string;
+  secondaryBand: string;
+  uniField: string;
+  uniName: string;
+  uniProgram: string;
+  uniCourseCodes: string;
+  kindergartenTopics: string[];
   // Page 2 — Path A: Subject tutoring
   curriculum: string;
   subject1: string;
@@ -125,6 +144,13 @@ const INITIAL_FORM: FormState = {
   parentName: "",
   contactPhone: "",
   supportType: "",
+  academicLevel: "",
+  secondaryBand: "",
+  uniField: "",
+  uniName: "",
+  uniProgram: "",
+  uniCourseCodes: "",
+  kindergartenTopics: [],
   curriculum: "",
   subject1: "",
   subject2: "",
@@ -238,10 +264,35 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       : [];
     // Issue #311: drafts saved before tags existed have no tags array.
     const tags = Array.isArray(restored.tags) ? restored.tags : [];
+    // Issue #190: sanitize pre-vertical drafts (or tampered localStorage) —
+    // only canonical funnel levels and K topics survive a restore.
+    const academicLevel = FUNNEL_LEVELS.includes(
+      restored.academicLevel as (typeof FUNNEL_LEVELS)[number],
+    )
+      ? restored.academicLevel
+      : "";
+    const secondaryBand = SECONDARY_BANDS.includes(
+      restored.secondaryBand as (typeof SECONDARY_BANDS)[number],
+    )
+      ? restored.secondaryBand
+      : "";
+    const kindergartenTopics = Array.isArray(restored.kindergartenTopics)
+      ? restored.kindergartenTopics.filter((topic) =>
+          (KINDERGARTEN_TOPICS as readonly string[]).includes(topic),
+        )
+      : [];
     // #380 review: a restored draft's budget currency (even an explicit
     // HKD) is the visitor's own choice — never re-sync it afterwards.
     budgetCurrencyTouched.current = true;
-    setForm((prev) => ({ ...prev, ...restored, instructionLanguage: languages, tags }));
+    setForm((prev) => ({
+      ...prev,
+      ...restored,
+      academicLevel,
+      secondaryBand,
+      kindergartenTopics,
+      instructionLanguage: languages,
+      tags,
+    }));
   }, [restored]);
 
   const isBlankDraft = (value: FormState) =>
@@ -331,6 +382,42 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     update(value === "online" ? { deliveryMode: value, district: "" } : { deliveryMode: value });
   };
 
+  // Issue #190: the level-first funnel. Picking a level reveals its
+  // slide-down region and resets the other verticals' fields; the stored
+  // student level (form.year) follows the funnel answer directly.
+  const handleAcademicLevelChange = (value: string) => {
+    const patch: Partial<FormState> = {
+      academicLevel: value,
+      secondaryBand: "",
+      uniField: "",
+      uniName: "",
+      uniProgram: "",
+      uniCourseCodes: "",
+      kindergartenTopics: [],
+    };
+    const level = storedStudentLevel(
+      FUNNEL_LEVELS.includes(value as (typeof FUNNEL_LEVELS)[number])
+        ? (value as (typeof FUNNEL_LEVELS)[number])
+        : null,
+    );
+    if (level) patch.year = level;
+    update(patch);
+  };
+
+  const handleSecondaryBandChange = (value: string) => {
+    update({ secondaryBand: value, year: value });
+  };
+
+  // Kindergarten focus multi-toggle: picking one topic never collapses the
+  // others (same anatomy as the SEN category multi-select).
+  const handleKindergartenTopicToggle = (topic: string, checked: boolean) => {
+    update({
+      kindergartenTopics: checked
+        ? [...form.kindergartenTopics, topic]
+        : form.kindergartenTopics.filter((item) => item !== topic),
+    });
+  };
+
   // Multi-select language chips. "No preference" is exclusive: picking it
   // clears the others; picking a real language deselects "No preference".
   const handleLanguageToggle = (values: string[]) => {
@@ -341,6 +428,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const validateStep = (target: number): Partial<Record<keyof FormState, string>> => {
     const nextErrors: Partial<Record<keyof FormState, string>> = {};
     if (target === 1) {
+      if (!form.academicLevel) nextErrors.academicLevel = "Required";
+      if (form.academicLevel === "Secondary" && !form.secondaryBand) {
+        nextErrors.secondaryBand = "Required";
+      }
       if (!form.requesterType) nextErrors.requesterType = "Required";
       if (!form.parentName.trim()) nextErrors.parentName = "Required";
       if (!form.contactPhone.trim()) {
@@ -397,6 +488,17 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           parentName: form.parentName,
           contactPhone: form.contactPhone,
           supportType: form.supportType as "subject_tutoring" | "admissions",
+          // Issue #190: the level-first funnel answer drives the vertical
+          // columns server-side (academic_tier + uni/K fields).
+          academicLevel: form.academicLevel as
+            "Kindergarten" | "Primary" | "Secondary" | "University",
+          secondaryBand: form.secondaryBand || null,
+          uniField: form.academicLevel === "University" ? form.uniField.trim() || null : null,
+          uniName: form.academicLevel === "University" ? form.uniName.trim() || null : null,
+          uniProgram: form.academicLevel === "University" ? form.uniProgram.trim() || null : null,
+          uniCourseCodes:
+            form.academicLevel === "University" ? form.uniCourseCodes.trim() || null : null,
+          kindergartenTopics: form.academicLevel === "Kindergarten" ? form.kindergartenTopics : [],
           curriculum: admissions ? form.curriculum || ADMISSIONS_CURRICULUM : form.curriculum,
           subjects,
           specificComponent:
@@ -591,6 +693,175 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       <div className="grid gap-4 sm:grid-cols-2">
         {step === 1 ? (
           <>
+            {/* Issue #190: the funnel is level-first — the academic level
+                question leads step 1 and its slide-down cascade sits
+                directly beneath the chosen option. */}
+            <div className="sm:col-span-2">
+              <span className={labelClassName}>
+                {t("case_request.funnel_level_label")}
+                {errors.academicLevel === "Required" ? <RequiredFlag /> : null}
+              </span>
+              <div
+                role="radiogroup"
+                aria-label={t("case_request.funnel_level_label")}
+                className="mt-2 flex flex-wrap gap-2"
+              >
+                {FUNNEL_LEVELS.map((level) => {
+                  const active = form.academicLevel === level;
+                  return (
+                    <button
+                      key={level}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => handleAcademicLevelChange(level)}
+                      className={cn(
+                        "inline-flex h-10 items-center rounded-full border px-5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+                        active
+                          ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 text-[color:var(--ink)]"
+                          : "border-border text-muted-foreground hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)]",
+                      )}
+                    >
+                      {t(
+                        level === "Kindergarten"
+                          ? "case_request.funnel_level_kindergarten"
+                          : level === "Primary"
+                            ? "case_request.funnel_level_primary"
+                            : level === "Secondary"
+                              ? "case_request.funnel_level_secondary"
+                              : "case_request.funnel_level_university",
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.academicLevel && errors.academicLevel !== "Required" ? (
+                <p className="mt-1 text-xs font-semibold text-destructive">
+                  {errors.academicLevel}
+                </p>
+              ) : null}
+            </div>
+
+            {/* Slide-down region beneath the chosen level. */}
+            {form.academicLevel === "Secondary" ? (
+              <div>
+                <label className={labelClassName} htmlFor={`${idPrefix}-secondary-band`}>
+                  {t("case_request.funnel_secondary_band_label")}
+                  {errors.secondaryBand === "Required" ? <RequiredFlag /> : null}
+                </label>
+                <SearchableSelect
+                  value={form.secondaryBand}
+                  onChange={handleSecondaryBandChange}
+                  options={SECONDARY_BANDS.map((band) => ({
+                    value: band,
+                    label: t(
+                      band === "Junior secondary"
+                        ? "case_request.funnel_band_junior"
+                        : "case_request.funnel_band_senior",
+                    ),
+                  }))}
+                  placeholder={t("case_request.funnel_secondary_band_label")}
+                  searchPlaceholder={t("case_request.funnel_secondary_band_label")}
+                  className={controlClassName}
+                  invalid={Boolean(errors.secondaryBand)}
+                />
+                {errors.secondaryBand && errors.secondaryBand !== "Required" ? (
+                  <p className="mt-1 text-xs font-semibold text-destructive">
+                    {errors.secondaryBand}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            {form.academicLevel === "University" ? (
+              <>
+                <div>
+                  <label className={labelClassName} htmlFor={`${idPrefix}-uni-field`}>
+                    {t("case_request.uni_field_label")}
+                  </label>
+                  <SearchableSelect
+                    value={form.uniField}
+                    onChange={(v) => update({ uniField: v })}
+                    options={FIELDS_OF_STUDY.map((field) => ({ value: field, label: field }))}
+                    placeholder={t("case_request.uni_field_placeholder")}
+                    searchPlaceholder={t("case_request.uni_field_placeholder")}
+                    className={controlClassName}
+                  />
+                </div>
+                <div>
+                  <label className={labelClassName} htmlFor={`${idPrefix}-uni-name`}>
+                    {t("case_request.uni_name_label")}
+                  </label>
+                  <SearchableSelect
+                    value={form.uniName}
+                    onChange={(v) => update({ uniName: v })}
+                    options={UNIVERSITY_SUGGESTIONS.map((name) => ({ value: name, label: name }))}
+                    allowCustom
+                    placeholder={t("case_request.uni_name_placeholder")}
+                    searchPlaceholder={t("case_request.uni_name_placeholder")}
+                    emptyText={t("case_request.uni_name_custom")}
+                    className={controlClassName}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={labelClassName} htmlFor={`${idPrefix}-uni-program`}>
+                    {t("case_request.uni_program_label")}
+                  </label>
+                  <Input
+                    id={`${idPrefix}-uni-program`}
+                    className={controlClassName}
+                    maxLength={120}
+                    placeholder={t("case_request.uni_program_placeholder")}
+                    value={form.uniProgram}
+                    onChange={(e) => update({ uniProgram: e.target.value })}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={labelClassName} htmlFor={`${idPrefix}-uni-courses`}>
+                    {t("case_request.uni_courses_label")}
+                  </label>
+                  <Textarea
+                    id={`${idPrefix}-uni-courses`}
+                    rows={4}
+                    maxLength={2000}
+                    className="w-full rounded-sm"
+                    placeholder={t("case_request.uni_courses_placeholder")}
+                    value={form.uniCourseCodes}
+                    onChange={(e) => update({ uniCourseCodes: e.target.value })}
+                  />
+                </div>
+              </>
+            ) : null}
+            {form.academicLevel === "Kindergarten" ? (
+              <div className="sm:col-span-2">
+                <span className={labelClassName}>{t("case_request.k_focus_label")}</span>
+                <div
+                  role="group"
+                  aria-label={t("case_request.k_focus_aria")}
+                  className="mt-2 space-y-1 rounded-sm border border-border p-3"
+                >
+                  {KINDERGARTEN_TOPICS.map((topic) => {
+                    const active = form.kindergartenTopics.includes(topic);
+                    return (
+                      <label
+                        key={topic}
+                        className="flex cursor-pointer items-center gap-3 rounded-sm px-2 py-1.5 text-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.04]"
+                      >
+                        <Checkbox
+                          checked={active}
+                          onCheckedChange={(checked) =>
+                            handleKindergartenTopicToggle(topic, checked === true)
+                          }
+                        />
+                        <span className="font-medium">{kindergartenTopicLabel(topic)}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {t("case_request.k_focus_hint")}
+                </p>
+              </div>
+            ) : null}
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-requester-type`}>
                 I am a{errors.requesterType === "Required" ? <RequiredFlag /> : null}
@@ -1416,6 +1687,13 @@ function isAdmissionsPath(supportType: string): boolean {
 
 function fieldStepOf(field: keyof FormState): number {
   if (
+    field === "academicLevel" ||
+    field === "secondaryBand" ||
+    field === "uniField" ||
+    field === "uniName" ||
+    field === "uniProgram" ||
+    field === "uniCourseCodes" ||
+    field === "kindergartenTopics" ||
     field === "requesterType" ||
     field === "parentName" ||
     field === "contactPhone" ||

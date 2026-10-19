@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeSenCategories } from "./sen";
+import { normalizeUniversityGpa } from "./verticals";
 import { isTutorPubliclyListed } from "./tutor-display";
 import { normalizeExamResults, type ExamResult } from "./examSystems";
 import type { TutorReview } from "./tutor-reviews";
@@ -128,6 +129,11 @@ export type Tutor = {
   postgrad_degree: string | null;
   secondary_school: string | null;
   target_students: string[];
+  /** Issue #190: university-vertical self-reported fields. */
+  university_year_of_study: string | null;
+  university_gpa: number | null;
+  university_courses: string[];
+  course_specific_grades: Record<string, string>;
   qualifications_summary: string | null;
   self_introduction: string | null;
   subjects: string[];
@@ -204,7 +210,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, approved_grade_labels";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, approved_grade_labels";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -400,6 +406,27 @@ function normalize(
     earliest_start_date:
       typeof row.earliest_start_date === "string" ? row.earliest_start_date : null,
     target_students: targetStudents,
+    // Issue #190: tolerant vertical reads (missing columns pre-migration).
+    // GPA goes through the canonical normalizer so a string numeral from a
+    // hand-rolled payload ("3.75") still renders instead of being dropped.
+    university_year_of_study:
+      typeof row.university_year_of_study === "string" ? row.university_year_of_study : null,
+    university_gpa: normalizeUniversityGpa(row.university_gpa),
+    university_courses: Array.isArray(row.university_courses)
+      ? (row.university_courses as unknown[]).filter(
+          (value): value is string => typeof value === "string" && value.trim().length > 0,
+        )
+      : [],
+    course_specific_grades:
+      row.course_specific_grades &&
+      typeof row.course_specific_grades === "object" &&
+      !Array.isArray(row.course_specific_grades)
+        ? Object.fromEntries(
+            Object.entries(row.course_specific_grades as Record<string, unknown>)
+              .filter(([key, value]) => key.trim() && typeof value === "string")
+              .map(([key, value]) => [key, String(value)]),
+          )
+        : {},
     stations,
     remaining_student_slots:
       typeof row.remaining_student_slots === "number"

@@ -1,6 +1,7 @@
 import {
   BookOpen,
   ClipboardList,
+  GraduationCap,
   HeartHandshake,
   School,
   Star,
@@ -10,6 +11,8 @@ import {
 import { TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
 import i18n from "@/features/i18n/config";
 import { senCategoryLabel } from "@/features/tutors/sen-labels";
+import { academicTierLabel, kindergartenTopicLabel } from "@/features/tutors/verticals-labels";
+import { caseAcademicTier } from "@/features/tutors/verticals";
 import type { PublicCaseBoardItem } from "@/lib/cases.functions";
 
 /**
@@ -63,6 +66,18 @@ function backgroundPill(item: PublicCaseBoardItem): CasePill | null {
 export function casePills(item: PublicCaseBoardItem): CasePill[] {
   const pills: CasePill[] = [];
 
+  // Issue #190: academic tier chip — stored tier first, legacy rows derive
+  // it from student_level (Kindergarten/University only).
+  const tier = caseAcademicTier(item.academicTier, item.studentLevel);
+  if (tier) {
+    pills.push({
+      key: "tier",
+      label: academicTierLabel(tier),
+      icon: GraduationCap,
+      tone: "background",
+    });
+  }
+
   if (item.examSystem && item.examSystem !== "Not sure yet") {
     pills.push({
       key: "curriculum",
@@ -87,6 +102,24 @@ export function casePills(item: PublicCaseBoardItem): CasePill[] {
       label: item.targetSchool,
       icon: School,
       tone: "background",
+    });
+  }
+
+  // Issue #190: University vertical details (stored values, no copy).
+  if (item.uniName) {
+    pills.push({ key: "uni_name", label: item.uniName, icon: GraduationCap, tone: "background" });
+  }
+  if (item.uniField) {
+    pills.push({ key: "uni_field", label: item.uniField, icon: BookOpen, tone: "curriculum" });
+  }
+
+  // Issue #190: Kindergarten focus topics with translated labels.
+  for (const topic of item.kindergartenFocus) {
+    pills.push({
+      key: `k_topic:${topic}`,
+      label: kindergartenTopicLabel(topic),
+      icon: BookOpen,
+      tone: "curriculum",
     });
   }
 

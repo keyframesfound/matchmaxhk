@@ -2,10 +2,14 @@ import { buildAcademicHeadline } from "@/lib/academic-headline";
 import { toCurrencyCode } from "@/lib/money";
 import { contactFilterError } from "@/lib/contact-filter";
 import {
+  normalizeCourseGrades,
+  normalizeUniversityCourses,
+  normalizeUniversityGpa,
+} from "@/features/tutors/verticals";
+import {
   normalizeApplicationPricingTiers,
   type TutorApplication,
 } from "@/lib/tutor-application.schema";
-
 /**
  * Issue #310 — go live on submit.
  *
@@ -111,6 +115,10 @@ export type TutorCardInsert = {
   postgrad_university: string | null;
   postgrad_degree: string | null;
   secondary_school: string | null;
+  university_year_of_study: string | null;
+  university_gpa: number | null;
+  university_courses: string[];
+  course_specific_grades: Record<string, string>;
   photo_url: string | null;
   portfolio_images: string[];
   created_by: null;
@@ -143,6 +151,15 @@ export function buildTutorCardInsert(
     .filter((file) => file.source === "portfolio_image" && typeof file.url === "string" && file.url)
     .map((file) => file.url as string);
 
+  // Issue #190: kindergarten topics join the public subjects[] (deduped,
+  // case-insensitive) so the K-tab toggles and keyword search see them.
+  const cardSubjects = splitApplicationList(application.subjectsConfident);
+  for (const topic of application.kindergartenTopics ?? []) {
+    if (!cardSubjects.some((subject) => subject.toLowerCase() === topic.toLowerCase())) {
+      cardSubjects.push(topic);
+    }
+  }
+
   return {
     tutor_code: tutorCode,
     display_name: application.name,
@@ -159,10 +176,11 @@ export function buildTutorCardInsert(
     travel_note: application.travelNote,
     rate_note: application.rateNote,
     pricing_tiers: normalizeApplicationPricingTiers(application),
-    subjects: splitApplicationList(application.subjectsConfident),
+    subjects: cardSubjects,
     languages: splitApplicationList(application.medium),
     stations: splitApplicationList(application.locations, 100),
-    target_students: [],
+    // Issue #190: canonical teaching levels reach the card (was []).
+    target_students: application.targetLevels ?? [],
     exam_results: [],
     tutor_status: mapApplicationStatusToTutorStatus(application.status),
     start_immediately: application.startImmediately,
@@ -184,6 +202,11 @@ export function buildTutorCardInsert(
     postgrad_degree: application.postgradDegree || null,
     // Professional-path applications store a literal placeholder here.
     secondary_school: application.highSchool === "Not provided" ? null : application.highSchool,
+    // Issue #190: university-vertical self-reported fields.
+    university_year_of_study: application.universityYearOfStudy || null,
+    university_gpa: normalizeUniversityGpa(application.universityGpa),
+    university_courses: normalizeUniversityCourses(application.universityCourses),
+    course_specific_grades: normalizeCourseGrades(application.courseGrades),
     photo_url: photoUrl,
     portfolio_images: portfolioImages,
     created_by: null,
@@ -220,6 +243,9 @@ export function mappedCardContactError(card: TutorCardInsert): string | null {
     card.postgrad_university ?? "",
     card.postgrad_degree ?? "",
     card.secondary_school ?? "",
+    // Issue #190: course codes/grades and vertical fields are free-ish text.
+    ...card.university_courses,
+    ...Object.keys(card.course_specific_grades),
   ];
   for (const text of texts) {
     const error = contactFilterError(text);

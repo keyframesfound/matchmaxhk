@@ -26,6 +26,20 @@ import { requestAccountDeletion } from "@/lib/account.functions";
 import { contactFilterError } from "@/lib/contact-filter";
 import { notifyTutorPriceChange } from "@/lib/tutor-pricing.functions";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
+import {
+  COURSE_GRADE_OPTIONS,
+  KINDERGARTEN_TOPICS,
+  MAX_UNIVERSITY_COURSES,
+  TARGET_TEACHING_LEVELS,
+  YEARS_OF_STUDY,
+  normalizeUniversityGpa,
+} from "@/features/tutors/verticals";
+import { useVerticalLabels } from "@/features/tutors/verticals-labels";
+import {
+  selectedTargetLevels,
+  toggleKindergartenTopic,
+  toggleTargetLevel,
+} from "@/features/tutors/verticals-form";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
@@ -82,7 +96,7 @@ import {
 /** Columns the tutor-facing editor reads/writes. Mirrors SELECT_COLS minus
  * admin-managed identity (tutor_code, created_at, referral). */
 const MY_TUTOR_COLUMNS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, sen_enabled, sen_categories, sen_experience, deletion_requested_at";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, sen_enabled, sen_categories, sen_experience, deletion_requested_at";
 
 type MyTutorRow = Tutor & {
   user_id?: string | null;
@@ -198,6 +212,7 @@ function suggestCurriculaFor(form: TutorFormData): string[] {
 export function MyTutorProfileSection() {
   const { t } = useTranslation();
   const senCategoryLabels = useSenCategoryLabels();
+  const verticalLabels = useVerticalLabels();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [form, setForm] = React.useState<TutorFormData | null>(null);
@@ -486,6 +501,17 @@ export function MyTutorProfileSection() {
         field: "self_introduction" as const,
         error: contactFilterError(form.self_introduction ?? ""),
       },
+      // Issue #190: course tags and graded course codes are public text —
+      // the DB owner guard scans them, mirror it here for inline UX.
+      {
+        field: "university_courses" as const,
+        error: contactFilterError(
+          [
+            ...(form.university_courses ?? []),
+            ...form.course_grade_rows.map((row) => row.course),
+          ].join(", "),
+        ),
+      },
     ].filter((entry) => Boolean(entry.error));
     if (contactErrors.length > 0) {
       setErrors((current) => {
@@ -572,6 +598,13 @@ export function MyTutorProfileSection() {
     } else {
       const rateNoteContactError = contactFilterError(rateNote);
       if (rateNoteContactError) nextErrors.rate_note = rateNoteContactError;
+    }
+
+    // Issue #190: GPA is a free decimal 0–4.3 (blank allowed); an out-of-band
+    // value is named here instead of being silently dropped on save.
+    const gpaText = form.university_gpa.trim();
+    if (gpaText && normalizeUniversityGpa(gpaText) === null) {
+      nextErrors.university_gpa = t("verticals.editor_gpa_invalid");
     }
 
     const parsed = tutorFormSchema.safeParse(form);
@@ -1449,6 +1482,263 @@ export function MyTutorProfileSection() {
               </div>
             ) : null}
           </div>
+
+          {/* Issue #190: canonical teaching levels tick into the same
+              target_students array; curriculum strings stay untouched. */}
+          <div className="space-y-2">
+            <Label className="text-[color:var(--ink)]">{t("verticals.editor_target_levels")}</Label>
+            <p className="text-xs text-[color:var(--ink)]/55">
+              {t("verticals.editor_target_levels_hint")}
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {TARGET_TEACHING_LEVELS.map((level) => {
+                const active = selectedTargetLevels(form.target_students).includes(level);
+                return (
+                  <label
+                    key={level}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
+                      active
+                        ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
+                        : "border-border bg-[color:var(--surface)] text-[color:var(--ink)] hover:bg-muted/40",
+                    )}
+                  >
+                    <Checkbox
+                      checked={active}
+                      onCheckedChange={(checked) =>
+                        setForm({
+                          ...form,
+                          target_students: toggleTargetLevel(
+                            form.target_students,
+                            level,
+                            checked === true,
+                          ),
+                        })
+                      }
+                    />
+                    <span>{verticalLabels.levels[level]}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Issue #190: University vertical — self-reported, owner-writable
+              plain fields (not part of credential verification). */}
+          {selectedTargetLevels(form.target_students).includes("University") ? (
+            <div className="space-y-4 rounded-xl border border-[color:var(--ink)]/10 p-4">
+              <Label className="text-[color:var(--ink)]">{t("verticals.editor_university")}</Label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="myt-uni-year"
+                    className="text-xs font-semibold text-[color:var(--ink)]/70"
+                  >
+                    {t("verticals.editor_year_of_study")}
+                  </Label>
+                  <SearchableSelect
+                    value={form.university_year_of_study}
+                    onChange={(v) => setForm({ ...form, university_year_of_study: v })}
+                    options={[
+                      { value: "", label: t("verticals.editor_none") },
+                      ...YEARS_OF_STUDY.map((year) => ({
+                        value: year,
+                        label: verticalLabels.years[year],
+                      })),
+                    ]}
+                    placeholder={t("verticals.editor_none")}
+                    className="bg-[color:var(--surface)]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="myt-uni-gpa"
+                    className="text-xs font-semibold text-[color:var(--ink)]/70"
+                  >
+                    {t("verticals.editor_gpa")}
+                  </Label>
+                  <Input
+                    id="myt-uni-gpa"
+                    value={form.university_gpa}
+                    inputMode="decimal"
+                    onChange={(e) => setForm({ ...form, university_gpa: e.target.value })}
+                    placeholder="e.g. 3.85"
+                    aria-invalid={errors.university_gpa ? true : undefined}
+                    className="bg-[color:var(--surface)]"
+                  />
+                  {errors.university_gpa ? (
+                    <p className="text-xs font-medium text-destructive">{errors.university_gpa}</p>
+                  ) : null}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[color:var(--ink)]">{t("verticals.editor_courses")}</Label>
+                <p className="text-xs text-[color:var(--ink)]/55">
+                  {t("verticals.editor_courses_hint")}
+                </p>
+                <SearchableSelect
+                  value=""
+                  onChange={(course) => {
+                    if (!course || form.university_courses.includes(course)) return;
+                    setForm({
+                      ...form,
+                      university_courses: [...form.university_courses, course].slice(
+                        0,
+                        MAX_UNIVERSITY_COURSES,
+                      ),
+                    });
+                  }}
+                  options={[]}
+                  allowCustom
+                  placeholder={t("verticals.editor_courses_placeholder")}
+                />
+                {form.university_courses.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {form.university_courses.map((course) => (
+                      <span
+                        key={course}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--ink)]/15 px-3 py-1 text-xs font-medium text-[color:var(--ink)]"
+                      >
+                        {course}
+                        <button
+                          type="button"
+                          aria-label={`${t("settings.my_tutor.remove_subject")} ${course}`}
+                          className="text-[color:var(--ink)]/50 hover:text-[color:var(--ink)]"
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              university_courses: form.university_courses.filter(
+                                (c) => c !== course,
+                              ),
+                            })
+                          }
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {errors.university_courses ? (
+                  <p className="text-xs font-medium text-destructive">
+                    {errors.university_courses}
+                  </p>
+                ) : null}
+              </div>
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Label className="text-[color:var(--ink)]">
+                    {t("verticals.editor_course_grades")}
+                  </Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={form.course_grade_rows.length >= MAX_UNIVERSITY_COURSES}
+                    onClick={() =>
+                      setForm({
+                        ...form,
+                        course_grade_rows: [...form.course_grade_rows, { course: "", grade: "" }],
+                      })
+                    }
+                  >
+                    <Plus className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                    {t("verticals.editor_add_course_grade")}
+                  </Button>
+                </div>
+                {form.course_grade_rows.map((row, index) => (
+                  <div key={index} className="flex flex-wrap gap-2">
+                    <Input
+                      value={row.course}
+                      maxLength={40}
+                      placeholder={t("verticals.editor_course_placeholder")}
+                      aria-label={t("verticals.editor_course_placeholder")}
+                      onChange={(e) => {
+                        const rows = [...form.course_grade_rows];
+                        rows[index] = { ...row, course: e.target.value };
+                        setForm({ ...form, course_grade_rows: rows });
+                      }}
+                      className="flex-1 bg-[color:var(--surface)]"
+                    />
+                    <SearchableSelect
+                      value={row.grade}
+                      onChange={(grade) => {
+                        const rows = [...form.course_grade_rows];
+                        rows[index] = { ...row, grade };
+                        setForm({ ...form, course_grade_rows: rows });
+                      }}
+                      options={COURSE_GRADE_OPTIONS.map((grade) => ({
+                        value: grade,
+                        label: grade,
+                      }))}
+                      placeholder={t("verticals.editor_grade_placeholder")}
+                      className="w-28 bg-[color:var(--surface)]"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      aria-label={t("verticals.editor_remove_course_grade")}
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          course_grade_rows: form.course_grade_rows.filter((_, i) => i !== index),
+                        })
+                      }
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Issue #190: Kindergarten topics are canonical tags inside
+              subjects[] — ticking edits the shared subjects list. */}
+          {selectedTargetLevels(form.target_students).includes("Kindergarten") ? (
+            <div className="space-y-3 rounded-xl border border-[color:var(--ink)]/10 p-4">
+              <Label className="text-[color:var(--ink)]">
+                {t("verticals.editor_kindergarten")}
+              </Label>
+              <p className="text-xs text-[color:var(--ink)]/55">
+                {t("verticals.editor_kindergarten_hint")}
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {KINDERGARTEN_TOPICS.map((topic) => {
+                  const active = form.subjects.some(
+                    (subject) => subject.trim().toLowerCase() === topic.toLowerCase(),
+                  );
+                  return (
+                    <label
+                      key={topic}
+                      className={cn(
+                        "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
+                        active
+                          ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
+                          : "border-border bg-[color:var(--surface)] text-[color:var(--ink)] hover:bg-muted/40",
+                      )}
+                    >
+                      <Checkbox
+                        checked={active}
+                        onCheckedChange={(checked) =>
+                          setForm({
+                            ...form,
+                            subjects: toggleKindergartenTopic(
+                              form.subjects,
+                              topic,
+                              checked === true,
+                            ),
+                          })
+                        }
+                      />
+                      <span>{verticalLabels.topics[topic]}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
 
           <Button type="submit" disabled={save.isPending || editsSubmitting} className="font-bold">
             {save.isPending || editsSubmitting ? (

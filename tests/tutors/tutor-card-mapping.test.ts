@@ -45,6 +45,8 @@ function baseApplication(overrides: Partial<StoredApplication> = {}): StoredAppl
     highSchool: "Queen's College",
     curriculum: "IBDP",
     curricula: ["IBDP"],
+    // Issue #190: canonical teaching levels ride every application now.
+    targetLevels: ["Secondary"],
     overallScore: "44/45",
     academicHeadline: "IBDP 44/45",
     subjectsConfident: "IB Maths HL, IB Physics HL, IB Chemistry SL",
@@ -170,9 +172,62 @@ describe("buildTutorCardInsert (#310 publish-at-submit mapping)", () => {
       "https://r2.example/trophy-1.jpg",
       "https://r2.example/trophy-2.jpg",
     ]);
-    // Genuinely ambiguous fields stay empty — nothing invented.
-    expect(payload.target_students).toEqual([]);
+    // Issue #190: canonical target levels reach the card (no longer empty).
+    expect(payload.target_students).toEqual(["Secondary"]);
+    // Vertical fields default empty for a school-path application.
+    expect(payload.university_year_of_study).toBeNull();
+    expect(payload.university_gpa).toBeNull();
+    expect(payload.university_courses).toEqual([]);
+    expect(payload.course_specific_grades).toEqual({});
     expect(payload.exam_results).toEqual([]);
+  });
+
+  it("maps the university-vertical fields onto the card (#190)", () => {
+    const payload = buildTutorCardInsert(
+      baseApplication({
+        targetLevels: ["University"],
+        curriculum: "University",
+        curricula: ["University"],
+        universityYearOfStudy: "Year 3",
+        universityGpa: "3.85",
+        universityCourses: ["ECON1210", " econ1210 ", "ACCT1101"],
+        courseGrades: [{ course: "ECON1210", grade: "A+" }],
+        subjectResults: "",
+      }),
+      "MM-T001",
+    );
+    expect(payload.target_students).toEqual(["University"]);
+    expect(payload.university_year_of_study).toBe("Year 3");
+    expect(payload.university_gpa).toBe(3.85);
+    expect(payload.university_courses).toEqual(["ECON1210", "ACCT1101"]);
+    expect(payload.course_specific_grades).toEqual({ ECON1210: "A+" });
+  });
+
+  it("merges kindergarten topics into subjects[] deduped (#190)", () => {
+    const payload = buildTutorCardInsert(
+      baseApplication({
+        targetLevels: ["Kindergarten"],
+        curriculum: "Kindergarten",
+        curricula: ["Kindergarten"],
+        subjectsConfident: "Kindergarten Phonics",
+        kindergartenTopics: ["Kindergarten Phonics", "P1 Interview — Storytelling & Role-play"],
+        subjectResults: "",
+      }),
+      "MM-T001",
+    );
+    expect(payload.subjects).toEqual([
+      "Kindergarten Phonics",
+      "P1 Interview — Storytelling & Role-play",
+    ]);
+    expect(payload.target_students).toEqual(["Kindergarten"]);
+  });
+
+  it("rejects an out-of-range GPA by nulling it (#190)", () => {
+    const payload = buildTutorCardInsert(
+      baseApplication({ universityGpa: "7.0", targetLevels: ["University"] }),
+      "MM-T001",
+    );
+    expect(payload.university_gpa).toBeNull();
   });
 
   it("hourly_rate is the floor of the two base rates", () => {

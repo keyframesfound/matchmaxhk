@@ -3,6 +3,12 @@ import { z } from "zod";
 
 import { mergeCaseTags } from "@/features/tutors/profile-tags";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
+import {
+  buildVerticalInsert,
+  normalizeFunnelLevel,
+  SECONDARY_BANDS,
+  storedStudentLevel,
+} from "@/features/cases/case-verticals";
 import { FEE_TERMS_VERSION } from "@/features/legal/terms";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
@@ -17,6 +23,15 @@ const CaseRequestInput = z
     parentName: z.string().trim().min(1, "Name is required.").max(80),
     contactPhone: z.string().trim().regex(phoneRegex, "Please enter a valid phone number."),
     supportType: z.enum(["subject_tutoring", "admissions"]),
+    // Issue #190: the level-first funnel. The academic level drives the
+    // vertical columns (academic_tier + uni/K fields) at save time.
+    academicLevel: z.enum(["Kindergarten", "Primary", "Secondary", "University"]),
+    secondaryBand: z.enum(SECONDARY_BANDS).optional().nullable(),
+    uniField: z.string().trim().max(80).optional().nullable(),
+    uniName: z.string().trim().max(120).optional().nullable(),
+    uniProgram: z.string().trim().max(120).optional().nullable(),
+    uniCourseCodes: z.string().trim().max(2000).optional().nullable(),
+    kindergartenTopics: z.array(z.string().trim().min(1).max(80)).max(20).optional().nullable(),
     // "Admissions" for the admissions path; the chosen curriculum otherwise.
     curriculum: z.string().trim().max(40).optional().nullable(),
     subjects: z.array(z.string().trim().min(1).max(120)).max(4),
@@ -125,6 +140,13 @@ export type PublicCaseBoardItem = {
   description: string | null;
   subjects: string[];
   studentLevel: string;
+  // Issue #190: vertical columns (safe subset — no contact data).
+  academicTier: string | null;
+  uniField: string | null;
+  uniName: string | null;
+  uniProgram: string | null;
+  uniCourseCodes: string | null;
+  kindergartenFocus: string[];
   examSystem: string | null;
   district: string | null;
   mode: "online" | "in_person" | "either";
@@ -149,7 +171,7 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, start_timing, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at";
+  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, start_timing, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 // sen_details is also withheld: the board is public and the free-text needs
@@ -162,6 +184,18 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
     description: (row.description as string | null) ?? null,
     subjects: (row.subjects as string[] | null) ?? [],
     studentLevel: row.student_level as string,
+    // Issue #190: tolerant reads — legacy rows have nulls here and derive
+    // the tier client-side via caseAcademicTier(studentLevel).
+    academicTier: (row.academic_tier as string | null) ?? null,
+    uniField: (row.uni_field as string | null) ?? null,
+    uniName: (row.uni_name as string | null) ?? null,
+    uniProgram: (row.uni_program as string | null) ?? null,
+    uniCourseCodes: (row.uni_course_codes as string | null) ?? null,
+    kindergartenFocus: Array.isArray(row.kindergarten_focus)
+      ? (row.kindergarten_focus as unknown[]).filter(
+          (value): value is string => typeof value === "string",
+        )
+      : [],
     examSystem: (row.exam_system as string | null) ?? null,
     district: (row.district as string | null) ?? null,
     mode: row.mode as "online" | "in_person" | "either",
@@ -342,7 +376,23 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       description: data.notes?.trim() ? data.notes.trim() : null,
       subjects: data.subjects,
       exam_system: data.curriculum || null,
-      student_level: data.year?.trim() || "Unspecified",
+      // Issue #190: the funnel answer is the source of truth for the stored
+      // level; the optional step-2 year select only fills legacy gaps.
+      student_level:
+        storedStudentLevel(normalizeFunnelLevel(data.academicLevel), data.secondaryBand ?? null) ??
+        data.year?.trim() ??
+        "Unspecified",
+      // Issue #190: academic tier + Kindergarten/University vertical fields
+      // (uni fields only survive on the university tier, K topics only on
+      // the kindergarten tier — see buildVerticalInsert).
+      ...buildVerticalInsert({
+        academicLevel: normalizeFunnelLevel(data.academicLevel),
+        uniField: data.uniField,
+        uniName: data.uniName,
+        uniProgram: data.uniProgram,
+        uniCourseCodes: data.uniCourseCodes,
+        kindergartenTopics: data.kindergartenTopics,
+      }),
       requester_type: data.requesterType,
       support_type: data.supportType,
       specific_component:

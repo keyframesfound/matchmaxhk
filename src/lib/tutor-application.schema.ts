@@ -13,6 +13,14 @@ import {
 } from "@/features/tutors/rates";
 import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
+import {
+  COURSE_GRADE_OPTIONS,
+  KINDERGARTEN_TOPICS,
+  MAX_UNIVERSITY_COURSES,
+  TARGET_TEACHING_LEVELS,
+  YEARS_OF_STUDY,
+  normalizeUniversityGpa,
+} from "@/features/tutors/verticals";
 
 /**
  * Issue #357 / #359 — every free-text answer that is copied onto the public
@@ -67,6 +75,11 @@ export const CURRICULUM_OPTIONS = [
   "UCAT(3600)",
   "UCAT(2700)",
   "Foundation / other",
+  // Issue #190: the new verticals — a University-only or Kindergarten-only
+  // tutor picks these instead of a school exam curriculum, so the exam-score
+  // fields can stay hidden for them.
+  "University",
+  "Kindergarten",
 ] as const;
 export const MATERIALS_OPTIONS = ["Yes", "No", "In progress"] as const;
 export const FORMAT_OPTIONS = ["Face to face", "Online", "Both"] as const;
@@ -174,7 +187,10 @@ export const tutorApplicationSchema = z
       }),
     // Issue #359: joined picker text is published as tutors.subjects.
     subjectsConfident: withContactFilter(z.string().trim().min(1, "Required").max(2000)),
-    subjectResults: z.string().trim().min(1, "Required").max(2000),
+    // Issue #190: required only for the school-exam path (Primary/Secondary);
+    // University-only tutors report course grades instead, Kindergarten-only
+    // tutors report their topics below.
+    subjectResults: z.string().trim().max(2000).optional().default(""),
     // Issue #357: awards is the qualifications_summary fallback when there
     // are no achievement blocks — both go live on the card, so both are
     // contact-filtered (issue #357/#359 leak fix preserved post-#309).
@@ -191,6 +207,37 @@ export const tutorApplicationSchema = z
     // Issue #309: join no longer collects evidence files — grade slips are
     // uploaded per-grade from the profile editor and reviewed by staff there.
     // Grade TEXT answers (curriculum/scores) stay plain text above.
+    // Issue #190: vertical routing + self-reported vertical fields.
+    targetLevels: z
+      .array(z.enum(TARGET_TEACHING_LEVELS))
+      .min(1, "Select at least one teaching level"),
+    universityYearOfStudy: z
+      .union([z.enum(YEARS_OF_STUDY), z.literal("")])
+      .optional()
+      .default(""),
+    universityGpa: z
+      .string()
+      .trim()
+      .max(10)
+      .optional()
+      .default("")
+      .refine((text) => text === "" || normalizeUniversityGpa(text) !== null, {
+        message: "Enter a GPA between 0 and 4.3",
+      }),
+    universityCourses: z
+      .array(withContactFilter(z.string().trim().min(1, "Required").max(40)))
+      .max(MAX_UNIVERSITY_COURSES)
+      .default([]),
+    courseGrades: z
+      .array(
+        z.object({
+          course: withContactFilter(z.string().trim().min(1, "Required").max(40)),
+          grade: z.enum(COURSE_GRADE_OPTIONS),
+        }),
+      )
+      .max(MAX_UNIVERSITY_COURSES)
+      .default([]),
+    kindergartenTopics: z.array(z.enum(KINDERGARTEN_TOPICS)).default([]),
     // Issue #97: optional Trophy Cabinet photos (public on the profile).
     portfolioImages: z.array(portfolioImageSchema).max(MAX_PORTFOLIO_FILES).default([]),
     // Consent required only when photos are actually uploaded (see superRefine).
@@ -453,6 +500,18 @@ export const tutorApplicationSchema = z
         message: "Select at least one SEN category",
       });
     }
+
+    // Issue #190: subject results stay required on the school-exam path only.
+    const verticalOnly =
+      data.targetLevels.length > 0 &&
+      data.targetLevels.every((level) => level === "University" || level === "Kindergarten");
+    if (!verticalOnly && !data.subjectResults) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["subjectResults"],
+        message: "Required",
+      });
+    }
   });
 
 export type TutorApplicationInput = z.input<typeof tutorApplicationSchema>;
@@ -509,6 +568,10 @@ export function getApplicationPath(data: Pick<TutorApplication, "status" | "curr
 export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
   return [
     { label: "Application path", value: getApplicationPath(data) },
+    {
+      label: "Target teaching levels",
+      value: (data.targetLevels ?? []).join(", ") || "—",
+    },
     { label: "Name", value: data.name },
     { label: "Preferred name", value: data.preferredName || "—" },
     { label: "Contact number / WhatsApp", value: data.phone },

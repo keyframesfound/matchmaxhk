@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   CalendarClock,
@@ -32,6 +33,8 @@ import { TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
 import { CasePillBadge, casePills } from "@/features/cases/case-pills";
 import type { CasePill, CasePillTone } from "@/features/cases/case-pills";
+import { caseAcademicTier } from "@/features/tutors/verticals";
+import { kindergartenTopicLabel } from "@/features/tutors/verticals-labels";
 import { getPublicCaseByCode, type PublicCaseBoardItem } from "@/lib/cases.functions";
 import { shareOrCopy } from "@/lib/share";
 import { caseBudgetForTutor } from "@/features/cases/display";
@@ -85,6 +88,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 }
 
 function CaseDetailPage() {
+  const { t } = useTranslation();
   const { item, whatsappNumber } = Route.useLoaderData() as CaseDetailData;
   // Issue #113: convert the budget for tutors quoting in another currency.
   const tutorCurrency = useTutorDisplayCurrency();
@@ -144,6 +148,31 @@ function CaseDetailPage() {
   const backgroundLabel = TUTOR_BACKGROUND_LABELS[item.tutorBackground ?? ""];
   if (item.tutorBackground && item.tutorBackground !== "any" && backgroundLabel) {
     preferences.push(`Tutor background: ${backgroundLabel}`);
+  }
+
+  // Issue #190: vertical details — uni block for the University tier,
+  // K focus topics for the Kindergarten tier (legacy rows derive the tier).
+  const tier = caseAcademicTier(item.academicTier, item.studentLevel);
+  if (tier === "university") {
+    if (item.uniField) {
+      preferences.push(t("case_request.detail_uni_field", { value: item.uniField }));
+    }
+    if (item.uniName) {
+      preferences.push(t("case_request.detail_uni_name", { value: item.uniName }));
+    }
+    if (item.uniProgram) {
+      preferences.push(t("case_request.detail_uni_program", { value: item.uniProgram }));
+    }
+    if (item.uniCourseCodes) {
+      preferences.push(t("case_request.detail_uni_courses", { value: item.uniCourseCodes }));
+    }
+  }
+  if (tier === "kindergarten" && item.kindergartenFocus.length > 0) {
+    preferences.push(
+      t("case_request.detail_k_focus", {
+        value: item.kindergartenFocus.map(kindergartenTopicLabel).join("、"),
+      }),
+    );
   }
 
   // Requirement pills grouped by category for the details view (issue #149).

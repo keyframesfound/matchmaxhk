@@ -811,7 +811,13 @@
     "empty_edu_title": "No tutor from this exact background yet",
     "empty_edu_desc": "We don't have a tutor matching this school or university right now — but these top-rated scholars from similar institutions are a great place to start.",
     "empty_edu_clear": "Show all tutors",
-    "popular_tags": "Popular tags:"
+    "popular_tags": "Popular tags:",
+    "empty_kindergarten_title": "No Kindergarten specialists yet",
+    "empty_kindergarten_desc": "We are onboarding tutors for phonics, Mandarin immersion and Primary 1 interview preparation. Ask on WhatsApp and the team will match you.",
+    "empty_university_title": "No university tutors listed for this filter yet",
+    "empty_university_desc": "Try a different field, university or course code — or ask on WhatsApp and we will find the right tutor.",
+    "empty_primary_secondary_title": "No tutors match these filters",
+    "empty_primary_secondary_desc": "Loosen a filter or clear them all — or ask on WhatsApp and the team will match you."
   },
   "profile": {
     "verified": "Verified",
@@ -1270,7 +1276,8 @@
     "high_school_west-island": "West Island School (ESF)",
     "high_school_island-school": "Island School (ESF)",
     "high_school_hku-space-ccc-heung-yee-chung": "HKU SPACE CC / Heung Yee Chung",
-    "high_school_queen-elizabeth": "Queen Elizabeth School (QES)"
+    "high_school_queen-elizabeth": "Queen Elizabeth School (QES)",
+    "field_any": "Any field"
   },
   "subjects": {
     "title": "Popular subjects",
@@ -1821,7 +1828,34 @@
     "fee_notice": "If both intro lessons happen, you pay MatchMax 1.5 times the pay for one lesson, by FPS. A HK$400 hour is a HK$600 fee. After that you pay the tutor. A request for 5 lessons or fewer is 20% of that package.",
     "fee_agree_pre": "I agree to the",
     "fee_agree_link": "matching fee terms",
-    "fee_agree_post": ", version {{version}}."
+    "fee_agree_post": ", version {{version}}.",
+    "funnel_level_label": "What academic level do you need help with?",
+    "funnel_level_kindergarten": "Kindergarten",
+    "funnel_level_primary": "Primary",
+    "funnel_level_secondary": "Secondary",
+    "funnel_level_university": "University",
+    "funnel_secondary_band_label": "Which secondary school band?",
+    "funnel_band_junior": "Junior secondary (S1–S3 / Year 7–9)",
+    "funnel_band_senior": "Senior secondary (S4–S6 / Year 10–13)",
+    "k_focus_label": "Kindergarten focus",
+    "k_focus_aria": "Kindergarten focus areas",
+    "k_focus_hint": "Select all that apply — e.g. needs English immersion or finds group play hard.",
+    "tier_label": "Academic tier",
+    "tier_unspecified": "All tiers",
+    "uni_field_label": "Field of study",
+    "uni_field_placeholder": "e.g. Business, Engineering, Medicine",
+    "uni_name_label": "University",
+    "uni_name_placeholder": "e.g. HKU, CUHK, HKUST",
+    "uni_name_custom": "Other — type your university",
+    "uni_program_label": "Programme / degree",
+    "uni_program_placeholder": "e.g. BBA, BEng, MBBS",
+    "uni_courses_label": "Course code / what you need",
+    "uni_courses_placeholder": "ECON1210, assignment help, thesis support — be as specific as you like.",
+    "detail_k_focus": "Kindergarten focus: {{value}}",
+    "detail_uni_field": "Field of study: {{value}}",
+    "detail_uni_name": "University: {{value}}",
+    "detail_uni_program": "Programme: {{value}}",
+    "detail_uni_courses": "University courses / need: {{value}}"
   },
   "sen": {
     "filter_title": "SEN support",
@@ -2257,5 +2291,74 @@
     "switcher_label": "Currency",
     "base_price_tooltip": "Base price set by tutor: {{amount}}",
     "profile_disclaimer": "Prices shown in {{currency}} are approximations based on current market exchange rates. Final billing and lesson settlements follow the tutor's agreed baseline."
+  },
+  "tutors": {
+    "tier_aria": "Academic tier",
+    "tier_kindergarten": "Kindergarten",
+    "tier_primary_secondary": "Primary & Secondary",
+    "tier_university": "University",
+    "field_of_study": "Field",
+    "field_search_placeholder": "Search field",
+    "k_filter_title": "Kindergarten focus",
+    "k_filter_phonics": "Phonics",
+    "k_filter_mandarin": "Mandarin",
+    "k_filter_interview": "P1 Interview Preparation",
+    "k_filter_search": "Search",
+    "k_filter_clear": "Clear"
+  },
+  "verticals": {
+    "editor_target_levels": "Target teaching levels",
+    "editor_target_levels_hint": "Routes your profile into the right search tabs.",
+    "editor_university": "University",
+    "editor_year_of_study": "Year of study",
+    "editor_gpa": "Cumulative GPA",
+    "editor_gpa_invalid": "Enter a GPA between 0 and 4.3",
+    "editor_courses": "University courses you can tutor",
+    "editor_courses_hint": "Students search these codes — e.g. ECON1210.",
+    "editor_courses_placeholder": "Type a course code or name, e.g. ECON1210",
+    "editor_course_grades": "Course-specific grades",
+    "editor_course_placeholder": "Course code, e.g. ECON1210",
+    "editor_grade_placeholder": "Grade",
+    "editor_add_course_grade": "Add a course grade",
+    "editor_remove_course_grade": "Remove course grade",
+    "editor_none": "Not set",
+    "editor_kindergarten": "Kindergarten topics you teach",
+    "editor_kindergarten_hint": "Selected topics join your subjects and the Kindergarten tab filters.",
+    "profile_university": "University",
+    "profile_kindergarten": "Kindergarten",
+    "profile_year_of_study": "Year of study",
+    "profile_gpa": "GPA",
+    "profile_courses": "Courses taught",
+    "profile_course_grades": "Course grades",
+    "level": {
+      "kindergarten": "Kindergarten",
+      "primary": "Primary",
+      "secondary": "Secondary",
+      "university": "University"
+    },
+    "tier": {
+      "kindergarten": "Kindergarten",
+      "primary_secondary": "Primary & Secondary",
+      "university": "University"
+    },
+    "topic": {
+      "phonics": "English — Phonics",
+      "reading": "English — Reading",
+      "writing": "English — Writing",
+      "mandarin": "Mandarin — Immersion / Pinyin",
+      "basic_maths": "Basic Mathematics",
+      "p1_etiquette": "P1 Interview — Communication & Etiquette",
+      "p1_group_play": "P1 Interview — Group Play Observation",
+      "p1_storytelling": "P1 Interview — Storytelling & Role-play",
+      "p1_general": "P1 Interview — General Knowledge"
+    },
+    "year": {
+      "y1": "Year 1",
+      "y2": "Year 2",
+      "y3": "Year 3",
+      "y4": "Year 4",
+      "postgrad": "Postgraduate",
+      "alumni": "Alumni / Graduate"
+    }
   }
 }

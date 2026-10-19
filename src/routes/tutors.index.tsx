@@ -49,9 +49,30 @@ import {
   matchesMajorFilter,
   isElitePedigree,
 } from "@/features/tutors/education-filters";
+import {
+  kindergartenActiveToggles,
+  matchesFieldOfStudyFilter,
+  matchesKeywordHaystack,
+  matchesTierFilter,
+  parseTierParam,
+  parseToggleParam,
+  tierSwitchPatch,
+} from "@/features/tutors/search-tiers";
+import {
+  matchesKindergartenFilter,
+  universityCourseTexts,
+  type AcademicTier,
+} from "@/features/tutors/verticals";
 import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({
+  // Issue #190: academic-tier tab (Kindergarten | Primary & Secondary |
+  // University). Only the exact canonical strings are accepted — TanStack
+  // delivers search params JSON-decoded (?tier=university is "university").
+  tier: z.preprocess(
+    parseTierParam,
+    z.enum(["kindergarten", "primary_secondary", "university"]).optional(),
+  ),
   category: z.string().optional(),
   subject: z.string().optional(),
   // Issue #187: extra subjects beyond the primary (comma-free, "||"-joined).
@@ -70,6 +91,13 @@ const searchSchema = z.object({
   university: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
   high_school: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
   major: z.string().optional(), // issue #23 exact major over the free-text degree fields
+  // Issue #190: university-tab field of study (text-contains over degrees).
+  field: z.string().optional(),
+  // Issue #190: kindergarten-tab toggles — persist as "true" strings; accept
+  // boolean true too (the JSON-decode gotcha).
+  k_phonics: z.preprocess(parseToggleParam, z.boolean().optional()),
+  k_mandarin: z.preprocess(parseToggleParam, z.boolean().optional()),
+  k_interview: z.preprocess(parseToggleParam, z.boolean().optional()),
   // Issue #199: SEN-experienced tutors only + required categories ("||"-joined).
   sen: z.preprocess(
     (value) =>
@@ -184,13 +212,27 @@ function TutorsDirectory() {
     .split("||")
     .map((value) => value.trim())
     .filter(Boolean);
+  // Issue #190: academic-tier tab (default Primary & Secondary) and its
+  // per-tier filter states.
+  const tier: AcademicTier = draft.tier ?? "primary_secondary";
+  const isKindergartenTier = tier === "kindergarten";
+  const isUniversityTier = tier === "university";
+  const isPrimarySecondaryTier = tier === "primary_secondary";
+  const fieldFilter = draft.field ?? "";
+  const kindergartenToggles = kindergartenActiveToggles(draft);
 
   const filtered = useMemo(() => {
     const query = (draft.q ?? "").trim().toLowerCase();
     const sort = draft.sort ?? "";
 
     const list = tutors.filter((tut) => {
+      // Issue #190: every tutor is gated to the active academic-tier tab
+      // (legacy tutors with no tier data sit in the default tab).
+      if (!matchesTierFilter(tier, tut.target_students)) return false;
+      // Curriculum/subject filters only exist on the Primary & Secondary tab;
+      // the vertical tabs replace those dropdowns with their own states.
       if (
+        isPrimarySecondaryTier &&
         categoryFilter &&
         !matchesCategoryFilter(categoryFilter, tut.subjects, [
           ...tut.target_students,
@@ -198,10 +240,15 @@ function TutorsDirectory() {
         ])
       )
         return false;
-      if (subjectFilter && !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter)))
+      if (
+        isPrimarySecondaryTier &&
+        subjectFilter &&
+        !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter))
+      )
         return false;
       // Issue #187: AND semantics — a tutor must teach every extra subject too.
       if (
+        isPrimarySecondaryTier &&
         extraSubjectFilters.length > 0 &&
         !extraSubjectFilters.every((extra) =>
           tut.subjects.some((s) => matchesSubjectQuery(s, extra)),
@@ -224,19 +271,40 @@ function TutorsDirectory() {
       // Issue #199: SEN support — enabled tutors only, and every picked
       // category must be on the tutor's profile (match-all).
       if (senOnly && !matchesSenFilter(senCategoryFilters, tut)) return false;
-      // Issue #130: institutional-pedigree filters over free-text education fields.
+      // Issue #130: institutional-pedigree filters over free-text education
+      // fields. The kindergarten tab replaces the education dropdowns, so the
+      // pedigree filters don't apply there.
       if (
+        !isKindergartenTier &&
         !matchesUniversityFilter(universityFilter, {
           undergradUniversity: tut.undergrad_university,
           postgradUniversity: tut.postgrad_university,
         })
       )
         return false;
-      if (!matchesHighSchoolFilter(highSchoolFilter, { secondarySchool: tut.secondary_school }))
+      if (
+        !isKindergartenTier &&
+        !matchesHighSchoolFilter(highSchoolFilter, { secondarySchool: tut.secondary_school })
+      )
         return false;
       // Issue #23: exact major over the free-text degree fields.
       if (
+        !isKindergartenTier &&
         !matchesMajorFilter(majorFilter, {
+          undergradDegree: tut.undergrad_degree,
+          postgradDegree: tut.postgrad_degree,
+        })
+      )
+        return false;
+      // Issue #190: kindergarten tab — the three topic toggles (AND via
+      // matchesKindergartenFilter).
+      if (isKindergartenTier && !matchesKindergartenFilter(tut.subjects, kindergartenToggles))
+        return false;
+      // Issue #190: university tab — field of study, text-contains over the
+      // degree fields.
+      if (
+        isUniversityTier &&
+        !matchesFieldOfStudyFilter(fieldFilter, {
           undergradDegree: tut.undergrad_degree,
           postgradDegree: tut.postgrad_degree,
         })
@@ -246,7 +314,14 @@ function TutorsDirectory() {
         query &&
         !(
           tut.tutor_code.toLowerCase().includes(query) ||
-          tut.subjects.some((s) => matchesSubjectQuery(s, query)) ||
+          // Issue #190: on the university tab the haystack also indexes the
+          // tutor's course tags (universityCourseTexts) so "ECON1210" finds
+          // course-tagged tutors.
+          matchesKeywordHaystack(
+            query,
+            tut.subjects,
+            isUniversityTier ? universityCourseTexts(tut) : [],
+          ) ||
           getTutorCardHighlights(tut).some((highlight) =>
             highlight.toLowerCase().includes(query),
           ) ||
@@ -276,6 +351,10 @@ function TutorsDirectory() {
     });
   }, [
     tutors,
+    tier,
+    isKindergartenTier,
+    isUniversityTier,
+    isPrimarySecondaryTier,
     categoryFilter,
     subjectFilter,
     extraSubjectFilters,
@@ -289,6 +368,8 @@ function TutorsDirectory() {
     universityFilter,
     highSchoolFilter,
     majorFilter,
+    fieldFilter,
+    kindergartenToggles,
     tagFilter,
     draft.q,
     draft.min_price,
@@ -331,9 +412,33 @@ function TutorsDirectory() {
     navigate({ search: {} as SearchState });
   };
 
+  // Issue #190: switching tier resets the vertical-specific filters (each tab
+  // renders its own) and navigates immediately; q/subject and the generic
+  // filters survive.
+  const setTier = (next: AcademicTier) => {
+    if (next === tier) return;
+    const patch = tierSwitchPatch(next);
+    setDraftParam(patch);
+    applySearch(patch);
+  };
+
   const openTutorDetail = (tutorCode: string) => {
     navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
   };
+
+  // Issue #190: per-tier empty-state copy for the generic SearchX block.
+  const tierEmptyTitleKey =
+    tier === "kindergarten"
+      ? "directory.empty_kindergarten_title"
+      : tier === "university"
+        ? "directory.empty_university_title"
+        : "directory.empty_primary_secondary_title";
+  const tierEmptyDescKey =
+    tier === "kindergarten"
+      ? "directory.empty_kindergarten_desc"
+      : tier === "university"
+        ? "directory.empty_university_desc"
+        : "directory.empty_primary_secondary_desc";
 
   const hotlineUrl = buildTutorWhatsAppUrl(whatsappNumber, "");
 
@@ -393,6 +498,8 @@ function TutorsDirectory() {
                   onDraftChange={setDraftParam}
                   onApply={applySearch}
                   onClear={clearAll}
+                  tier={tier}
+                  onTierChange={setTier}
                   allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
                   educationValues={educationValues}
                   defaultOverlayOpen={search.open === true}
@@ -409,6 +516,8 @@ function TutorsDirectory() {
                   onDraftChange={setDraftParam}
                   onApply={applySearch}
                   onClear={clearAll}
+                  tier={tier}
+                  onTierChange={setTier}
                   resultCount={filtered.length}
                   allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
                   educationValues={educationValues}
@@ -561,10 +670,10 @@ function TutorsDirectory() {
                       />
                     </div>
                     <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
-                      {t("directory.empty_title")}
+                      {t(tierEmptyTitleKey)}
                     </h2>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                      {t("directory.empty_desc")}
+                      {t(tierEmptyDescKey)}
                     </p>
                     <div className="mt-6 flex flex-wrap justify-center gap-3">
                       <Button variant="outline" onClick={clearAll}>
