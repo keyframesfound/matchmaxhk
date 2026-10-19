@@ -63,7 +63,12 @@ import {
   TARGET_TEACHING_LEVELS,
   UNIVERSITY_SUGGESTIONS,
   YEARS_OF_STUDY,
+  normalizeCourseGrades,
+  normalizeKindergartenTopics,
+  normalizeTargetLevels,
+  normalizeUniversityCourses,
   normalizeUniversityGpa,
+  normalizeUniversityYear,
 } from "@/features/tutors/verticals";
 import { useVerticalLabels } from "@/features/tutors/verticals-labels";
 import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
@@ -958,6 +963,13 @@ type ApplicationDraft = {
   // Issue #323: smart headline + whether the tutor has manually edited it.
   academicHeadline: string;
   headlineDirty: boolean;
+  // Issue #190: verticals survive the wizard (sanitized on restore).
+  targetLevels: string[];
+  universityYear: string;
+  universityGpa: string;
+  universityCourses: string[];
+  courseGrades: { course: string; grade: string }[];
+  kindergartenTopics: string[];
 };
 
 export function ApplicationForm() {
@@ -1176,6 +1188,23 @@ export function ApplicationForm() {
       setAcademicHeadline(restoredDraft.academicHeadline);
       setHeadlineDirty(Boolean(restoredDraft.headlineDirty));
     }
+    // Issue #190: vertical state survives a refresh; sanitize to canonical
+    // vocab like the case funnel does (junk/renamed entries drop silently).
+    const restoredLevels = normalizeTargetLevels(restoredDraft.targetLevels);
+    if (restoredLevels.length > 0) setTargetLevels(restoredLevels);
+    const restoredYear = normalizeUniversityYear(restoredDraft.universityYear);
+    if (restoredYear) setUniversityYear(restoredYear);
+    if (typeof restoredDraft.universityGpa === "string") {
+      setUniversityGpa(restoredDraft.universityGpa);
+    }
+    const restoredCourses = normalizeUniversityCourses(restoredDraft.universityCourses);
+    if (restoredCourses.length > 0) setUniversityCourses(restoredCourses);
+    const restoredGrades = Object.entries(normalizeCourseGrades(restoredDraft.courseGrades)).map(
+      ([course, grade]) => ({ course, grade }),
+    );
+    if (restoredGrades.length > 0) setCourseGrades(restoredGrades);
+    const restoredTopics = normalizeKindergartenTopics(restoredDraft.kindergartenTopics);
+    if (restoredTopics.length > 0) setKindergartenTopics(restoredTopics);
     if (
       typeof restoredDraft.step === "number" &&
       restoredDraft.step >= 1 &&
@@ -1200,6 +1229,13 @@ export function ApplicationForm() {
       qualifications,
       academicHeadline,
       headlineDirty,
+      // Issue #190: verticals survive the wizard.
+      targetLevels,
+      universityYear,
+      universityGpa,
+      universityCourses,
+      courseGrades,
+      kindergartenTopics,
     });
   }, [
     restoredDraft,
@@ -1212,6 +1248,12 @@ export function ApplicationForm() {
     qualifications,
     academicHeadline,
     headlineDirty,
+    targetLevels,
+    universityYear,
+    universityGpa,
+    universityCourses,
+    courseGrades,
+    kindergartenTopics,
   ]);
 
   // Issue #323: regenerate the smart headline whenever the qualifications
