@@ -43,9 +43,17 @@ import {
 import type { EducationValueSets } from "@/features/tutors/education-filters";
 import { SEN_CATEGORY_OPTIONS, type SenCategory } from "@/features/tutors/sen";
 import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
+import { kindergartenActiveToggles, kindergartenParamPatch } from "@/features/tutors/search-tiers";
+import {
+  FIELDS_OF_STUDY,
+  type AcademicTier,
+  type KindergartenFilterKey,
+} from "@/features/tutors/verticals";
 import { cn } from "@/lib/utils";
 
 export type TutorsSearchState = {
+  /** Issue #190: academic-tier tab; default primary_secondary at the route. */
+  tier?: AcademicTier;
   category?: string;
   subject?: string;
   /** Issue #187: extra subjects (comma-free, plain values) — AND-ed with `subject`. */
@@ -58,6 +66,12 @@ export type TutorsSearchState = {
   university?: string;
   high_school?: string;
   major?: string;
+  /** Issue #190: university-tab field of study (FIELDS_OF_STUDY value). */
+  field?: string;
+  /** Issue #190: kindergarten-tab topic toggles (URL "true" strings / booleans). */
+  k_phonics?: boolean;
+  k_mandarin?: boolean;
+  k_interview?: boolean;
   /** Issue #199: SEN-experienced tutors only (sen_enabled = true). */
   sen?: boolean;
   /** Issue #199: required SEN categories ("||"-joined); ALL must match. */
@@ -149,6 +163,75 @@ const tutorsModeDisplay = (draft: TutorsSearchState, t: (key: string) => string)
   }
   if (draft.mode === "online") return t("search_panel.mode_online");
   return t("search_ui.any_value");
+};
+
+// --- Issue #190: academic-tier toggle (Kindergarten | Primary & Secondary | University) ---
+
+const TIER_OPTIONS: AcademicTier[] = ["kindergarten", "primary_secondary", "university"];
+
+const tierLabel = (tier: AcademicTier, t: (key: string) => string) => {
+  if (tier === "kindergarten") return t("tutors.tier_kindergarten");
+  if (tier === "university") return t("tutors.tier_university");
+  return t("tutors.tier_primary_secondary");
+};
+
+/** Pill-toggle/tab row rendered above the search bar (mobile + desktop). */
+export function TierToggleRow({
+  tier,
+  onChange,
+  className,
+}: {
+  tier: AcademicTier;
+  onChange: (next: AcademicTier) => void;
+  className?: string;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div
+      role="tablist"
+      aria-label={t("tutors.tier_aria")}
+      className={cn(
+        "inline-flex max-w-full rounded-full border border-border bg-card p-1",
+        className,
+      )}
+    >
+      {TIER_OPTIONS.map((option) => {
+        const isActive = option === tier;
+        return (
+          <button
+            key={option}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onChange(option)}
+            className={cn(
+              "min-w-0 truncate rounded-full px-4 py-2 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+              isActive
+                ? "bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
+                : "text-[color:var(--ink)]/70 hover:text-[color:var(--ink)]",
+            )}
+          >
+            {tierLabel(option, t)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// --- Issue #190: kindergarten tab — the three topic toggles ---
+
+const KINDERGARTEN_TOGGLE_KEYS: KindergartenFilterKey[] = ["phonics", "mandarin", "interviewPrep"];
+
+const kindergartenToggleLabel = (key: KindergartenFilterKey, t: (key: string) => string) => {
+  if (key === "phonics") return t("tutors.k_filter_phonics");
+  if (key === "mandarin") return t("tutors.k_filter_mandarin");
+  return t("tutors.k_filter_interview");
+};
+
+const getSelectedKindergartenToggles = (draft: TutorsSearchState): KindergartenFilterKey[] => {
+  const toggles = kindergartenActiveToggles(draft);
+  return KINDERGARTEN_TOGGLE_KEYS.filter((key) => toggles[key] === true);
 };
 
 /** Quick-pick chips shared by the desktop filters dialog and the mobile overlay. */
@@ -260,6 +343,10 @@ export type TutorsSearchProps = {
   /** Apply the current draft (navigate). `override` merges values set in the same event. */
   onApply: (override?: Partial<TutorsSearchState>) => void;
   onClear: () => void;
+  /** Issue #190: active academic-tier tab (default primary_secondary). */
+  tier?: AcademicTier;
+  /** Issue #190: tier switch handler; when omitted the toggle row is hidden (homepage). */
+  onTierChange?: (next: AcademicTier) => void;
   /** Live count for the "Show N tutors" button; omit for a plain "Search tutors" label. */
   resultCount?: number;
   /** All published tutors' hourly rates — powers the price histogram. */
@@ -276,7 +363,13 @@ export type TutorsSearchProps = {
 export function useTutorsCompactSegments(draft: TutorsSearchState): CompactSegment[] {
   const { t } = useTranslation();
   const selectedSubjects = getSelectedSubjects(draft);
+  // Issue #190: show the tab on the compact pill when it isn't the default.
+  const tierSegment: CompactSegment[] =
+    draft.tier && draft.tier !== "primary_secondary"
+      ? [{ id: "tier", text: tierLabel(draft.tier, t) }]
+      : [];
   return [
+    ...tierSegment,
     {
       id: "keyword",
       text: draft.q?.trim() || t("search_ui.compact_any_keyword"),
@@ -309,6 +402,8 @@ export function TutorsSearchBar({
   onDraftChange,
   onApply,
   onClear,
+  tier: tierProp,
+  onTierChange,
   resultCount,
   allPrices,
   educationValues,
@@ -318,6 +413,13 @@ export function TutorsSearchBar({
   const { t } = useTranslation();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [pillOpenId, setPillOpenId] = useState<string | null>(null);
+
+  // Issue #190: effective tier — the route passes it explicitly; homepage
+  // callers (no onTierChange) stay on the default tab.
+  const tier: AcademicTier = tierProp ?? draft.tier ?? "primary_secondary";
+  const isKindergartenTier = tier === "kindergarten";
+  const isUniversityTier = tier === "university";
+  const selectedKToggles = getSelectedKindergartenToggles(draft);
 
   const subjectOptions = getSubjectOptionsForCategory(draft.category);
   const selectedSubjects = getSelectedSubjects(draft);
@@ -365,6 +467,9 @@ export function TutorsSearchBar({
     draft.university,
     draft.high_school,
     draft.major,
+    draft.field,
+    // Issue #190: each active kindergarten toggle counts as a filter.
+    ...selectedKToggles.map(() => "k_toggle"),
     draft.min_price !== undefined ? "price" : "",
     draft.max_price !== undefined ? "price" : "",
     draft.sort,
@@ -412,6 +517,90 @@ export function TutorsSearchBar({
 
   const quickPicks = tutorsQuickPicks(draft, onDraftChange, t);
 
+  // Issue #190: per-tier vertical segments — the kindergarten/university tabs
+  // replace the standard curriculum + subject dropdowns with their own states.
+  const toggleKindergartenToggle = (key: KindergartenFilterKey) => {
+    const next = selectedKToggles.includes(key)
+      ? selectedKToggles.filter((value) => value !== key)
+      : [...selectedKToggles, key];
+    onDraftChange(kindergartenParamPatch(next));
+  };
+
+  const verticalSegments: PillSegment[] =
+    tier === "kindergarten"
+      ? [
+          {
+            id: "k_toggle",
+            label: t("tutors.k_filter_title"),
+            display:
+              selectedKToggles.length > 0
+                ? selectedKToggles.map((key) => kindergartenToggleLabel(key, t)).join(" + ")
+                : t("search_ui.any_value"),
+            filled: selectedKToggles.length > 0,
+            content: (
+              <SubjectMultiSelect
+                options={KINDERGARTEN_TOGGLE_KEYS}
+                labelFor={(key: string) => kindergartenToggleLabel(key as KindergartenFilterKey, t)}
+                selected={selectedKToggles}
+                onToggle={(subject) => toggleKindergartenToggle(subject as KindergartenFilterKey)}
+                onClear={() => onDraftChange(kindergartenParamPatch([]))}
+                clearLabel={t("tutors.k_filter_clear")}
+                searchPlaceholder={t("tutors.k_filter_search")}
+                emptyText={t("search_panel.no_matches")}
+              />
+            ),
+          },
+        ]
+      : tier === "university"
+        ? [
+            {
+              id: "field",
+              label: t("tutors.field_of_study"),
+              display: draft.field ? draft.field : t("search_ui.any_value"),
+              filled: Boolean(draft.field),
+              options: FIELDS_OF_STUDY.map((field) => ({ value: field, label: field })),
+              currentValue: draft.field,
+              searchPlaceholder: t("tutors.field_search_placeholder"),
+              emptyText: t("search_panel.no_matches"),
+              onSelect: (value) => onDraftChange({ field: value || undefined }),
+            },
+          ]
+        : [
+            {
+              id: "category",
+              label: t("search_ui.segment_curriculum"),
+              display: draft.category
+                ? tutorsCategoryLabel(draft.category, t)
+                : t("search_ui.any_value"),
+              filled: Boolean(draft.category),
+              options: categoryOptions,
+              currentValue: draft.category,
+              searchPlaceholder: t("search_panel.search_category"),
+              emptyText: t("search_panel.no_matches"),
+              onSelect: handleCategorySelect,
+            },
+            {
+              id: "subject",
+              label: t("search_ui.segment_subject"),
+              display:
+                selectedSubjects.length > 0
+                  ? selectedSubjects.join(" + ")
+                  : t("search_ui.any_value"),
+              filled: selectedSubjects.length > 0,
+              content: (
+                <SubjectMultiSelect
+                  options={subjectOptions}
+                  selected={selectedSubjects}
+                  onToggle={toggleSubject}
+                  onClear={() => onDraftChange({ subject: undefined, subjects_extra: undefined })}
+                  clearLabel={t("search_ui.clear_subjects")}
+                  searchPlaceholder={t("search_panel.search_subject")}
+                  emptyText={t("search_panel.no_matches")}
+                />
+              ),
+            },
+          ];
+
   const segments: PillSegment[] = [
     {
       id: "keyword",
@@ -429,35 +618,7 @@ export function TutorsSearchBar({
         />
       ),
     },
-    {
-      id: "category",
-      label: t("search_ui.segment_curriculum"),
-      display: draft.category ? tutorsCategoryLabel(draft.category, t) : t("search_ui.any_value"),
-      filled: Boolean(draft.category),
-      options: categoryOptions,
-      currentValue: draft.category,
-      searchPlaceholder: t("search_panel.search_category"),
-      emptyText: t("search_panel.no_matches"),
-      onSelect: handleCategorySelect,
-    },
-    {
-      id: "subject",
-      label: t("search_ui.segment_subject"),
-      display:
-        selectedSubjects.length > 0 ? selectedSubjects.join(" + ") : t("search_ui.any_value"),
-      filled: selectedSubjects.length > 0,
-      content: (
-        <SubjectMultiSelect
-          options={subjectOptions}
-          selected={selectedSubjects}
-          onToggle={toggleSubject}
-          onClear={() => onDraftChange({ subject: undefined, subjects_extra: undefined })}
-          clearLabel={t("search_ui.clear_subjects")}
-          searchPlaceholder={t("search_panel.search_subject")}
-          emptyText={t("search_panel.no_matches")}
-        />
-      ),
-    },
+    ...verticalSegments,
     {
       id: "mode",
       label: t("search_ui.segment_mode"),
@@ -475,6 +636,11 @@ export function TutorsSearchBar({
 
   return (
     <div className={className}>
+      {onTierChange ? (
+        <div className="mb-3 hidden lg:flex">
+          <TierToggleRow tier={tier} onChange={onTierChange} />
+        </div>
+      ) : null}
       <div className="hidden items-stretch gap-2 lg:flex">
         <SearchPillBar
           segments={segments}
@@ -564,40 +730,65 @@ export function TutorsSearchBar({
         <FiltersSection id="sen" title={t("sen.filter_title")}>
           <SenFilterContent draft={draft} onDraftChange={onDraftChange} />
         </FiltersSection>
-        <FiltersSection id="university" title={t("search_ui.university_title")}>
-          <SearchableSelect
-            value={draft.university ?? ""}
-            onChange={(value) => onDraftChange({ university: value || undefined })}
-            options={universityOptions}
-            placeholder={t("search_ui.university_any")}
-            className="h-11 rounded-xl"
-          />
-        </FiltersSection>
-        <FiltersSection id="high_school" title={t("search_ui.high_school_title")}>
-          <SearchableSelect
-            value={draft.high_school ?? ""}
-            onChange={(value) => onDraftChange({ high_school: value || undefined })}
-            options={highSchoolOptions}
-            placeholder={t("search_ui.high_school_any")}
-            className="h-11 rounded-xl"
-          />
-        </FiltersSection>
-        <FiltersSection id="major" title={t("search_ui.major_title")}>
-          {/* Issue #23: open list — search or add any major (exact match). */}
-          <SearchableSelect
-            value={draft.major ?? ""}
-            onChange={(value) => onDraftChange({ major: value || undefined })}
-            options={[
-              { value: "", label: t("search_ui.major_any") },
-              ...(educationValues?.majors ?? []).map((major) => ({ value: major, label: major })),
-            ]}
-            placeholder={t("search_ui.major_any")}
-            searchPlaceholder={t("search_ui.major_search_placeholder")}
-            emptyText={t("search_ui.major_empty")}
-            allowCustom
-            className="h-11 rounded-xl"
-          />
-        </FiltersSection>
+        {/* Issue #190: education pedigree dropdowns don't apply on the
+            kindergarten tab (it has its own toggle state). */}
+        {!isKindergartenTier ? (
+          <>
+            <FiltersSection id="university" title={t("search_ui.university_title")}>
+              <SearchableSelect
+                value={draft.university ?? ""}
+                onChange={(value) => onDraftChange({ university: value || undefined })}
+                options={universityOptions}
+                placeholder={t("search_ui.university_any")}
+                className="h-11 rounded-xl"
+              />
+            </FiltersSection>
+            <FiltersSection id="high_school" title={t("search_ui.high_school_title")}>
+              <SearchableSelect
+                value={draft.high_school ?? ""}
+                onChange={(value) => onDraftChange({ high_school: value || undefined })}
+                options={highSchoolOptions}
+                placeholder={t("search_ui.high_school_any")}
+                className="h-11 rounded-xl"
+              />
+            </FiltersSection>
+            <FiltersSection id="major" title={t("search_ui.major_title")}>
+              {/* Issue #23: open list — search or add any major (exact match). */}
+              <SearchableSelect
+                value={draft.major ?? ""}
+                onChange={(value) => onDraftChange({ major: value || undefined })}
+                options={[
+                  { value: "", label: t("search_ui.major_any") },
+                  ...(educationValues?.majors ?? []).map((major) => ({
+                    value: major,
+                    label: major,
+                  })),
+                ]}
+                placeholder={t("search_ui.major_any")}
+                searchPlaceholder={t("search_ui.major_search_placeholder")}
+                emptyText={t("search_ui.major_empty")}
+                allowCustom
+                className="h-11 rounded-xl"
+              />
+            </FiltersSection>
+          </>
+        ) : null}
+        {/* Issue #190: university tab — field of study over FIELDS_OF_STUDY. */}
+        {isUniversityTier ? (
+          <FiltersSection id="field" title={t("tutors.field_of_study")}>
+            <SearchableSelect
+              value={draft.field ?? ""}
+              onChange={(value) => onDraftChange({ field: value || undefined })}
+              options={[
+                { value: "", label: t("search_ui.field_any") },
+                ...FIELDS_OF_STUDY.map((field) => ({ value: field, label: field })),
+              ]}
+              placeholder={t("search_ui.field_any")}
+              searchPlaceholder={t("tutors.field_search_placeholder")}
+              className="h-11 rounded-xl"
+            />
+          </FiltersSection>
+        ) : null}
         <FiltersSection id="sort" title={t("search_ui.sort_title")}>
           <SearchableSelect
             value={draft.sort ?? ""}
@@ -623,6 +814,8 @@ export function TutorsSearchMobile({
   onDraftChange,
   onApply,
   onClear,
+  tier: tierProp,
+  onTierChange,
   resultCount,
   allPrices,
   educationValues,
@@ -632,6 +825,20 @@ export function TutorsSearchMobile({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
+
+  // Issue #190: effective tier — the route passes it explicitly; homepage
+  // callers (no onTierChange) stay on the default tab.
+  const tier: AcademicTier = tierProp ?? draft.tier ?? "primary_secondary";
+  const isKindergartenTier = tier === "kindergarten";
+  const isUniversityTier = tier === "university";
+  const selectedKToggles = getSelectedKindergartenToggles(draft);
+
+  const toggleKindergartenToggle = (key: string) => {
+    const next = selectedKToggles.includes(key as KindergartenFilterKey)
+      ? selectedKToggles.filter((value) => value !== key)
+      : [...selectedKToggles, key as KindergartenFilterKey];
+    onDraftChange(kindergartenParamPatch(next as KindergartenFilterKey[]));
+  };
 
   const subjectOptions = getSubjectOptionsForCategory(draft.category);
   const selectedSubjects = getSelectedSubjects(draft);
@@ -746,6 +953,7 @@ export function TutorsSearchMobile({
 
   return (
     <div className={className}>
+      {onTierChange ? <TierToggleRow tier={tier} onChange={onTierChange} className="mb-4" /> : null}
       <MobileSearchTrigger
         label={t("search_ui.start_search")}
         onClick={() => setOverlayOpen(true)}
@@ -782,30 +990,69 @@ export function TutorsSearchMobile({
             <FilterQuickPicks options={quickPicks} />
           </div>
 
-          <div className="space-y-1.5">
-            <PanelLabel>{t("search_ui.segment_curriculum")}</PanelLabel>
-            <SearchableSelect
-              value={draft.category ?? ""}
-              onChange={handleCategorySelect}
-              options={[{ value: "", label: t("search_panel.any_category") }, ...categoryOptions]}
-              placeholder={t("search_panel.any_category")}
-              searchPlaceholder={t("search_panel.search_category")}
-              className="h-12 rounded-2xl"
-            />
-          </div>
+          {/* Issue #190: per-tier vertical filter sections — the
+              kindergarten/university tabs replace the standard curriculum +
+              subject dropdowns. */}
+          {isKindergartenTier ? (
+            <div className="space-y-1.5">
+              <PanelLabel>{t("tutors.k_filter_title")}</PanelLabel>
+              <SubjectMultiSelect
+                options={KINDERGARTEN_TOGGLE_KEYS}
+                labelFor={(key: string) => kindergartenToggleLabel(key as KindergartenFilterKey, t)}
+                selected={selectedKToggles}
+                onToggle={(subject) => toggleKindergartenToggle(subject as KindergartenFilterKey)}
+                onClear={() => onDraftChange(kindergartenParamPatch([]))}
+                clearLabel={t("tutors.k_filter_clear")}
+                searchPlaceholder={t("tutors.k_filter_search")}
+                emptyText={t("search_panel.no_matches")}
+              />
+            </div>
+          ) : isUniversityTier ? (
+            <div className="space-y-1.5">
+              <PanelLabel>{t("tutors.field_of_study")}</PanelLabel>
+              <SearchableSelect
+                value={draft.field ?? ""}
+                onChange={(value) => onDraftChange({ field: value || undefined })}
+                options={[
+                  { value: "", label: t("search_ui.field_any") },
+                  ...FIELDS_OF_STUDY.map((field) => ({ value: field, label: field })),
+                ]}
+                placeholder={t("search_ui.field_any")}
+                searchPlaceholder={t("tutors.field_search_placeholder")}
+                className="h-12 rounded-2xl"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="space-y-1.5">
+                <PanelLabel>{t("search_ui.segment_curriculum")}</PanelLabel>
+                <SearchableSelect
+                  value={draft.category ?? ""}
+                  onChange={handleCategorySelect}
+                  options={[
+                    { value: "", label: t("search_panel.any_category") },
+                    ...categoryOptions,
+                  ]}
+                  placeholder={t("search_panel.any_category")}
+                  searchPlaceholder={t("search_panel.search_category")}
+                  className="h-12 rounded-2xl"
+                />
+              </div>
 
-          <div className="space-y-1.5">
-            <PanelLabel>{t("search_ui.segment_subject")}</PanelLabel>
-            <SubjectMultiSelect
-              options={subjectOptions}
-              selected={selectedSubjects}
-              onToggle={toggleSubject}
-              onClear={() => onDraftChange({ subject: undefined, subjects_extra: undefined })}
-              clearLabel={t("search_ui.clear_subjects")}
-              searchPlaceholder={t("search_panel.search_subject")}
-              emptyText={t("search_panel.no_matches")}
-            />
-          </div>
+              <div className="space-y-1.5">
+                <PanelLabel>{t("search_ui.segment_subject")}</PanelLabel>
+                <SubjectMultiSelect
+                  options={subjectOptions}
+                  selected={selectedSubjects}
+                  onToggle={toggleSubject}
+                  onClear={() => onDraftChange({ subject: undefined, subjects_extra: undefined })}
+                  clearLabel={t("search_ui.clear_subjects")}
+                  searchPlaceholder={t("search_panel.search_subject")}
+                  emptyText={t("search_panel.no_matches")}
+                />
+              </div>
+            </>
+          )}
 
           <div className="space-y-2">
             <PanelLabel>{t("search_ui.segment_mode")}</PanelLabel>
@@ -857,45 +1104,54 @@ export function TutorsSearchMobile({
             <SenFilterContent draft={draft} onDraftChange={onDraftChange} />
           </div>
 
-          <div className="space-y-2">
-            <PanelLabel>{t("search_ui.university_title")}</PanelLabel>
-            <SearchableSelect
-              value={draft.university ?? ""}
-              onChange={(value) => onDraftChange({ university: value || undefined })}
-              options={universityOptions}
-              placeholder={t("search_ui.university_any")}
-              className="h-12 rounded-2xl"
-            />
-          </div>
+          {/* Issue #190: education pedigree dropdowns don't apply on the
+              kindergarten tab. */}
+          {!isKindergartenTier ? (
+            <>
+              <div className="space-y-2">
+                <PanelLabel>{t("search_ui.university_title")}</PanelLabel>
+                <SearchableSelect
+                  value={draft.university ?? ""}
+                  onChange={(value) => onDraftChange({ university: value || undefined })}
+                  options={universityOptions}
+                  placeholder={t("search_ui.university_any")}
+                  className="h-12 rounded-2xl"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <PanelLabel>{t("search_ui.high_school_title")}</PanelLabel>
-            <SearchableSelect
-              value={draft.high_school ?? ""}
-              onChange={(value) => onDraftChange({ high_school: value || undefined })}
-              options={highSchoolOptions}
-              placeholder={t("search_ui.high_school_any")}
-              className="h-12 rounded-2xl"
-            />
-          </div>
+              <div className="space-y-2">
+                <PanelLabel>{t("search_ui.high_school_title")}</PanelLabel>
+                <SearchableSelect
+                  value={draft.high_school ?? ""}
+                  onChange={(value) => onDraftChange({ high_school: value || undefined })}
+                  options={highSchoolOptions}
+                  placeholder={t("search_ui.high_school_any")}
+                  className="h-12 rounded-2xl"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <PanelLabel>{t("search_ui.major_title")}</PanelLabel>
-            {/* Issue #23: open list — search or add any major (exact match). */}
-            <SearchableSelect
-              value={draft.major ?? ""}
-              onChange={(value) => onDraftChange({ major: value || undefined })}
-              options={[
-                { value: "", label: t("search_ui.major_any") },
-                ...(educationValues?.majors ?? []).map((major) => ({ value: major, label: major })),
-              ]}
-              placeholder={t("search_ui.major_any")}
-              searchPlaceholder={t("search_ui.major_search_placeholder")}
-              emptyText={t("search_ui.major_empty")}
-              allowCustom
-              className="h-12 rounded-2xl"
-            />
-          </div>
+              <div className="space-y-2">
+                <PanelLabel>{t("search_ui.major_title")}</PanelLabel>
+                {/* Issue #23: open list — search or add any major (exact match). */}
+                <SearchableSelect
+                  value={draft.major ?? ""}
+                  onChange={(value) => onDraftChange({ major: value || undefined })}
+                  options={[
+                    { value: "", label: t("search_ui.major_any") },
+                    ...(educationValues?.majors ?? []).map((major) => ({
+                      value: major,
+                      label: major,
+                    })),
+                  ]}
+                  placeholder={t("search_ui.major_any")}
+                  searchPlaceholder={t("search_ui.major_search_placeholder")}
+                  emptyText={t("search_ui.major_empty")}
+                  allowCustom
+                  className="h-12 rounded-2xl"
+                />
+              </div>
+            </>
+          ) : null}
 
           <div className="space-y-2.5">
             <PanelLabel className="tabular-nums">
