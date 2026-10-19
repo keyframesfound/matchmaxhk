@@ -33,6 +33,7 @@ import { DemandBadge, ParentFavoriteBadge } from "@/features/tutors/engagement-b
 import { useFitText } from "@/hooks/use-fit-text";
 import { shareOrCopy } from "@/lib/share";
 import { cn } from "@/lib/utils";
+import { academicTierLabel } from "@/features/tutors/verticals-labels";
 import { useDisplayCurrency } from "@/features/currency/display-currency-context";
 import { convertedTextFromHkd } from "@/features/currency/convert";
 import { DEFAULT_CURRENCY, formatMoney, toCurrencyCode } from "@/lib/money";
@@ -195,6 +196,16 @@ export function PublicTutorCard({
   const educationLines = getTutorEducationLines(tutor).filter(
     (line) => removeEmoji(line.text) !== primaryCredential,
   );
+  // Issue #190: one compact chip per vertical the tutor opted into
+  // (Kindergarten / University). Canonical target_students markers only;
+  // legacy curriculum strings (IBDP…) never render here. No GPA on cards.
+  const verticalTierChips = useMemo(() => {
+    const levels = Array.isArray(tutor.target_students) ? tutor.target_students : [];
+    const chips: string[] = [];
+    if (levels.includes("Kindergarten")) chips.push(academicTierLabel("kindergarten"));
+    if (levels.includes("University")) chips.push(academicTierLabel("university"));
+    return chips;
+  }, [tutor.target_students]);
 
   useEffect(() => {
     setAreAcademicChipsExpanded(false);
@@ -421,6 +432,19 @@ export function PublicTutorCard({
       ) : null}
 
       <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
+        {/* Issue #190: compact vertical tier chips (Kindergarten / University). */}
+        {verticalTierChips.length > 0 ? (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {verticalTierChips.map((label) => (
+              <span
+                key={label}
+                className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold leading-tight text-[color:var(--ink)]"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        ) : null}
         {academicChips.length > 0 ? (
           <section className="border-b border-border pb-2.5 md:pb-3">
             <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)] @max-sm:text-xs">

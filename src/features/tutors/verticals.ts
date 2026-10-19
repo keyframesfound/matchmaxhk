@@ -139,17 +139,7 @@ export const YEARS_OF_STUDY = [
 
 export type YearOfStudy = (typeof YEARS_OF_STUDY)[number];
 
-export const COURSE_GRADE_OPTIONS = [
-  "A+",
-  "A",
-  "A-",
-  "B+",
-  "B",
-  "B-",
-  "C+",
-  "C",
-  "Pass",
-] as const;
+export const COURSE_GRADE_OPTIONS = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "Pass"] as const;
 
 export type CourseGrade = (typeof COURSE_GRADE_OPTIONS)[number];
 
@@ -159,9 +149,7 @@ export const MAX_UNIVERSITY_GPA = 4.3;
 export function normalizeUniversityYear(raw: unknown): YearOfStudy | null {
   if (typeof raw !== "string") return null;
   const value = raw.trim();
-  return (YEARS_OF_STUDY as readonly string[]).includes(value)
-    ? (value as YearOfStudy)
-    : null;
+  return (YEARS_OF_STUDY as readonly string[]).includes(value) ? (value as YearOfStudy) : null;
 }
 
 /** Free decimal 0–4.3, 2dp, else null. Blank / junk input → null. */
@@ -198,13 +186,27 @@ export type CourseGradeEntry = { course: string; grade: CourseGrade };
  * object map course -> grade.
  */
 export function normalizeCourseGrades(raw: unknown): Record<string, CourseGrade> {
-  if (!Array.isArray(raw)) return {};
+  // Accepts either the form shape (array of {course, grade} pairs) or the
+  // stored shape (a jsonb object map course -> grade).
+  let entries: unknown[];
+  if (Array.isArray(raw)) {
+    entries = raw;
+  } else if (raw && typeof raw === "object") {
+    entries = Object.entries(raw as Record<string, unknown>).map(([course, grade]) => ({
+      course,
+      grade,
+    }));
+  } else {
+    return {};
+  }
   const allowed = new Set<string>(COURSE_GRADE_OPTIONS);
   const out: Record<string, CourseGrade> = {};
   const seen = new Set<string>();
-  for (const entry of raw) {
+  for (const entry of entries) {
     if (!entry || typeof entry !== "object") continue;
-    const course = String((entry as { course?: unknown }).course ?? "").trim().slice(0, 40);
+    const course = String((entry as { course?: unknown }).course ?? "")
+      .trim()
+      .slice(0, 40);
     const grade = String((entry as { grade?: unknown }).grade ?? "").trim();
     if (!course || !allowed.has(grade)) continue;
     const key = course.toLowerCase();
@@ -227,9 +229,7 @@ export function universityCourseTexts(tutor: {
     : [];
   const graded = tutor.course_specific_grades as Record<string, unknown> | null | undefined;
   const gradeKeys =
-    graded && typeof graded === "object" && !Array.isArray(graded)
-      ? Object.keys(graded)
-      : [];
+    graded && typeof graded === "object" && !Array.isArray(graded) ? Object.keys(graded) : [];
   return [...courses, ...gradeKeys];
 }
 
@@ -242,9 +242,7 @@ export type AcademicTier = (typeof ACADEMIC_TIERS)[number];
 export function normalizeAcademicTier(raw: unknown): AcademicTier | null {
   if (typeof raw !== "string") return null;
   const value = raw.trim().toLowerCase();
-  return (ACADEMIC_TIERS as readonly string[]).includes(value)
-    ? (value as AcademicTier)
-    : null;
+  return (ACADEMIC_TIERS as readonly string[]).includes(value) ? (value as AcademicTier) : null;
 }
 
 /**
