@@ -83,6 +83,7 @@ import {
   MAX_UNIVERSITY_COURSES,
   TARGET_TEACHING_LEVELS,
   YEARS_OF_STUDY,
+  isInvalidUniversityGpaText,
   normalizeCourseGrades,
   normalizeUniversityCourses,
   normalizeUniversityGpa,
@@ -1566,10 +1567,12 @@ export function TutorEditor({
       parsed.data.course_grade_rows.map((row) => row.course).join(", "),
     );
     if (adminGradeKeysError) publishErrors.course_grade_rows = adminGradeKeysError;
-    // Issue #190: GPA is a free decimal 0–4.3 (blank allowed); an out-of-band
-    // value is named here instead of being silently dropped on save.
+    // Issue #190/#395: GPA is a free decimal 0–4.3 (blank allowed); an
+    // out-of-band value blocks the save with the same `editor_gpa_invalid`
+    // error the join/owner forms show, instead of being silently dropped to
+    // null by formDataToPayload.
     const gpaText = (parsed.data.university_gpa ?? "").trim();
-    if (gpaText && normalizeUniversityGpa(gpaText) === null) {
+    if (isInvalidUniversityGpaText(gpaText)) {
       publishErrors.university_gpa = t("verticals.editor_gpa_invalid");
     }
     if (parsed.data.is_published) {

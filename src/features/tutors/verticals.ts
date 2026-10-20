@@ -160,6 +160,16 @@ export function normalizeUniversityGpa(raw: unknown): number | null {
   return Math.round(value * 100) / 100;
 }
 
+/**
+ * Issue #395: editor-save guard shared with normalizeUniversityGpa — blank is
+ * allowed, but non-blank text outside 0–4.3 must BLOCK the save with
+ * `verticals.editor_gpa_invalid` (admin TutorEditor / owner profile / join),
+ * never silently normalize to null on the way to the DB.
+ */
+export function isInvalidUniversityGpaText(raw: string): boolean {
+  return raw.trim() !== "" && normalizeUniversityGpa(raw) === null;
+}
+
 /** Course-code/name tags: trimmed, ≤40 chars, deduped, capped. */
 export function normalizeUniversityCourses(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
