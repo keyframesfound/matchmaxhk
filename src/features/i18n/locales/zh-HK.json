@@ -658,8 +658,8 @@
       "parent_case_desc": "搵高分導師定官方考官？講明你嘅科目、預算同地區要求，我哋就會為你配對香港最好嘅教育工作者。",
       "parent_case_primary": "提出個案請求",
       "parent_case_secondary": "查看個案發佈貼士",
-      "parent_browse_headline": "探索我哋嘅已核實頂尖導師",
-      "parent_browse_desc": "主動出擊，瀏覽我哋嘅已核實高分導師同專業考官資料庫，搵出最符合你目標嘅學術配搭。",
+      "parent_browse_headline": "探索我哋嘅頂尖導師",
+      "parent_browse_desc": "主動出擊，瀏覽我哋嘅高分導師同專業考官資料庫，搵出最符合你目標嘅學術配搭。",
       "parent_browse_primary": "搜尋導師檔案",
       "parent_browse_secondary": "搵考官導師",
       "parent_guide_headline": "MatchMax 配對係點運作",
@@ -824,7 +824,7 @@
     "type_gig": "服務"
   },
   "directory": {
-    "subtitle": "每位導師均經成績表核實同團隊審批後先會上架。",
+    "subtitle": "金色「已驗證」導師嘅成績表經職員核實；其餘導師成績屬自行申報，第一堂前須出示證明。",
     "empty_title": "未搵到符合條件嘅導師",
     "empty_desc": "試下放寬價格範圍或者清除篩選，又或者等我哋團隊免費幫你配對。",
     "empty_clear": "清除所有篩選",
@@ -844,6 +844,8 @@
   "profile": {
     "verified": "已核實",
     "verified_detail": "成績表已核對",
+    "self_reported": "自行申報",
+    "self_reported_note": "家長應喺第一堂前要求導師出示成績表。",
     "education_postgraduate": "研究院",
     "education_undergraduate": "學士",
     "education_secondary": "中學",
@@ -987,10 +989,10 @@
         "detail": "MatchMax 每個成功配對只收 1.5 課費用，其餘收入全歸導師。"
       },
       "screening": {
-        "aspect": "核實",
+        "aspect": "雙層核實制度",
         "old": "任何人都可以註冊。",
-        "adv": "先核實成績表，先上架",
-        "detail": "導師卡上架之前，成績表會先經人工核對。"
+        "adv": "金色徽章成績表經人工核實",
+        "detail": "我哋會為金色「已驗證」導師人工核實成績表；其餘導師須喺第一堂前直接向家長出示證明。"
       },
       "fit": {
         "aspect": "配對契合",
@@ -1008,15 +1010,15 @@
     "flow_eyebrow": "02 / 配對流程",
     "flow_speed": "即時直接聯繫",
     "flow_title": "補習配對嘅新標準。",
-    "flow_body": "每位尖子導師同學校考官都由我哋親自人工核實，唔使你自己費心。喺全港最透明、最易用嘅平台，輕鬆搵到同比較頂尖導師。配對成功後，我哋嘅配對團隊會主動管理頭 2 課嘅溝通，之後家長同導師直接接手，安排往後嘅時間表。",
+    "flow_body": "我哋會為持有金色「已驗證」徽章嘅尖子導師人工核實成績，令你搵導師唔使估。喺全港最透明、最易用嘅平台，輕鬆搵到同比較頂尖導師。配對成功後，我哋嘅配對團隊會主動管理頭 2 課嘅溝通，之後家長同導師直接接手，安排往後嘅時間表。",
     "flow_oneliner": "MatchMax 負責介紹同頭兩堂。之後嘅時間表由家長同導師自行安排。",
     "parents_eyebrow": "俾家長同學生",
     "parents_audience": "俾家長",
-    "parents_title": "人工核實嘅尖子導師、透明嘅逐卷分數，完全唔使估。",
+    "parents_title": "金色「已驗證」嘅尖子導師、透明嘅逐卷分數，完全唔使估。",
     "parents_steps": {
       "s1": {
-        "title": "瀏覽優質、經核實嘅導師檔案",
-        "detail": "我哋設立極高嘅學術門檻。導師檔案清晰易讀，載有經人工核實嘅成績表、實際逐卷分數同中學背景。冇含糊聲稱——喺「Achievements and Experiences」只有經證明嘅成果。"
+        "title": "瀏覽優質導師檔案",
+        "detail": "我哋設立極高嘅學術門檻。導師檔案清晰易讀，載有實際逐卷分數同中學背景。金色「已驗證」檔案嘅成績表經職員核實——其餘導師，你可以喺第一堂前要求出示證明。"
       },
       "s2": {
         "title": "輕鬆比較、即刻提出配對",
@@ -1416,7 +1418,7 @@
     "index_verification_body": "每個層級我們核實什麼——以及核實不代表的東西。",
     "index_verification_link": "完整核實詳情",
     "match_parents_title": "給家長",
-    "match_parents_body": "瀏覽已核實導師卡或提交需求表。我們篩選，禮賓專員介紹，頭兩堂我們全程跟進。之後以 FPS 繳付 1.5 課行政費——再之後，你直接向導師付款。",
+    "match_parents_body": "瀏覽導師卡或提交需求表。我們篩選，禮賓專員介紹，頭兩堂我們全程跟進。之後以 FPS 繳付 1.5 課行政費——再之後，你直接向導師付款。",
     "match_parents_link": "閱讀家長指南",
     "match_tutors_title": "給導師",
     "match_tutors_body": "上傳你的學歷證明，我們人工核實，你的匿名導師卡便會上架。認領適合你通勤範圍的個案，在 1.5 課行政費之後，鐘費全歸你。",
@@ -1425,8 +1427,8 @@
       "eyebrow": "給家長",
       "intro": "家長需要知道的一切：配對如何進行、你要付什麼，以及 MatchMax 不做的事。",
       "steps_title": "配對流程",
-      "s1_title": "瀏覽已核實導師卡或提交需求",
-      "s1_body": "按科目、車站及預算搜尋已核實導師卡——或提交個案需求，由禮賓專員為你篩選。",
+      "s1_title": "瀏覽導師卡或提交需求",
+      "s1_body": "按科目、車站及預算搜尋導師卡——或提交個案需求，由禮賓專員為你篩選。",
       "s2_title": "我們介紹導師並全程跟進",
       "s2_body": "我們核實導師的文件、作出介紹，並在頭兩堂保持跟進。",
       "s3_title": "向 MatchMax 繳付 1.5 課行政費",
@@ -1449,7 +1451,7 @@
       "not_cut_body": "1.5 課行政費是 MatchMax 唯一收取的款項。之後每一堂都直接付款給導師。",
       "not_schedule_label": "我們不會管理你的時間表",
       "not_schedule_body": "改期及之後的時間表直接與導師安排。",
-      "cta_browse": "瀏覽已核實導師",
+      "cta_browse": "瀏覽導師檔案",
       "cta_request": "提交導師需求"
     },
     "tutors": {

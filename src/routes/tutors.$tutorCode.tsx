@@ -15,6 +15,7 @@ import {
   Globe,
   GraduationCap,
   Heart,
+  Info,
   Languages,
   Layers,
   LineChart,
@@ -891,6 +892,19 @@ function TutorDetail() {
         <section className="py-8 sm:py-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div>
+              {/* Issue #394 (TDO liability): non-Gold-Verified profiles must
+                  proactively flag their scores as self-reported — never render a
+                  generic "Verified" checkmark. Mirrors the card badge gate
+                  (public-tutor-card: badge only for staff-approved grades). */}
+              {t.verification_tier !== "tier_2_verified" ? (
+                <p className="mb-4 inline-flex w-full items-start gap-2 rounded-md border border-border bg-muted px-3 py-2 text-xs leading-snug text-muted-foreground sm:w-auto sm:max-w-xl">
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span>
+                    <span className="font-bold">{translate("profile.self_reported")}:</span>{" "}
+                    {translate("profile.self_reported_note")}
+                  </span>
+                </p>
+              ) : null}
               {examResults.length > 0 ? (
                 <ProfileSection icon={LineChart} title={translate("profile.section_academic")}>
                   <div className="space-y-4">

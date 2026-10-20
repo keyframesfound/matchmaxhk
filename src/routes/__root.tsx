@@ -90,19 +90,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "MatchMax | Verified Tutors in Hong Kong" },
+      { title: "MatchMax | Elite Tutors in Hong Kong" },
       {
         name: "description",
         content:
-          "MatchMax helps Hong Kong families find verified tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching.",
+          "MatchMax helps Hong Kong families find elite tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching.",
       },
       { name: "author", content: "MatchMax" },
       { property: "og:site_name", content: "MatchMax" },
-      { property: "og:title", content: "MatchMax | Verified Tutors in Hong Kong" },
+      { property: "og:title", content: "MatchMax | Elite Tutors in Hong Kong" },
       {
         property: "og:description",
         content:
-          "MatchMax helps Hong Kong families find verified tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching.",
+          "MatchMax helps Hong Kong families find elite tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://matchmax.hk" },

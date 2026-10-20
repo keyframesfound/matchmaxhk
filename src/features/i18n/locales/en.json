@@ -456,7 +456,7 @@
     "close_search": "Close search"
   },
   "footer": {
-    "tagline": "Master your exams through 1-on-1 tutoring with the experts who grade them and the elite alumni who aced them. Connect instantly with verified official examiners and proven top scorers.",
+    "tagline": "Master your exams through 1-on-1 tutoring with the experts who grade them and the elite alumni who aced them. Connect instantly with official examiners and proven top scorers.",
     "product": "Product",
     "company": "Company",
     "support": "Support",
@@ -636,8 +636,8 @@
       "parent_case_desc": "Looking for a high-scoring tutor or official examiner? Detail your subject, budget, and location requirements so we can match you with the best educators in Hong Kong.",
       "parent_case_primary": "Post a case request",
       "parent_case_secondary": "View case posting tips",
-      "parent_browse_headline": "Explore our verified top-tier tutors",
-      "parent_browse_desc": "Take the initiative and browse through our database of verified high-achievers and professional examiners to find the perfect academic fit for your goals.",
+      "parent_browse_headline": "Explore our top-tier tutors",
+      "parent_browse_desc": "Take the initiative and browse through our database of high-achievers and professional examiners to find the perfect academic fit for your goals.",
       "parent_browse_primary": "Search tutor profiles",
       "parent_browse_secondary": "Find examiner tutors",
       "parent_guide_headline": "How matching works on MatchMax",
@@ -802,7 +802,7 @@
     "type_gig": "Service"
   },
   "directory": {
-    "subtitle": "Every tutor is transcript-verified and team-approved before going live.",
+    "subtitle": "Gold Verified tutors have staff-checked transcripts — everyone else self-reports and shows proof before the first lesson.",
     "empty_title": "No tutors match these filters yet",
     "empty_desc": "Widen the price range or clear a filter to see more profiles — or let our team match one for you, free.",
     "empty_clear": "Clear all filters",
@@ -822,6 +822,8 @@
   "profile": {
     "verified": "Verified",
     "verified_detail": "Transcript checked",
+    "self_reported": "Self-Reported",
+    "self_reported_note": "Parents should request a transcript prior to the first lesson.",
     "education_postgraduate": "Postgraduate",
     "education_undergraduate": "Undergraduate",
     "education_secondary": "Secondary School",
@@ -965,10 +967,10 @@
         "detail": "MatchMax takes 1.5 lessons per successful match. The tutor keeps the rest."
       },
       "screening": {
-        "aspect": "Verify",
+        "aspect": "Two-Tier Verification",
         "old": "Anyone can sign up.",
-        "adv": "Transcripts checked first",
-        "detail": "Transcripts are checked before a card goes live."
+        "adv": "Gold Badge transcripts checked",
+        "detail": "We manually check transcripts for Gold Verified tutors. For all others, tutors must provide proof directly to parents before the first lesson."
       },
       "fit": {
         "aspect": "Fit",
@@ -986,15 +988,15 @@
     "flow_eyebrow": "02 / The matching flow",
     "flow_speed": "Instant direct connection",
     "flow_title": "The New Standard for Tutor Matching.",
-    "flow_body": "We manually verify every top scorer and school examiner so you don't have to. Experience Hong Kong's most transparent, easy-to-use platform for finding and comparing premium tutors. Once you are matched, our concierge team actively manages the communication for your first 2 lessons—then parents and tutors take over the ongoing schedule directly.",
+    "flow_body": "We manually verify top scorers with our Gold Badge, taking the guesswork out of hiring. Experience Hong Kong's most transparent, easy-to-use platform for finding and comparing premium tutors. Once you are matched, our concierge team actively manages the communication for your first 2 lessons—then parents and tutors take over the ongoing schedule directly.",
     "flow_oneliner": "MatchMax manages the introduction and the first two lessons. The ongoing schedule is between parent and tutor.",
     "parents_eyebrow": "For parents & students",
     "parents_audience": "For Parents",
-    "parents_title": "Manually verified top scorers, transparent paper scores, zero guesswork.",
+    "parents_title": "Gold Verified top scorers, transparent paper scores, zero guesswork.",
     "parents_steps": {
       "s1": {
-        "title": "Browse Premium, Verified Profiles",
-        "detail": "We enforce a strictly high academic bar. Browse clean, easy-to-read profiles featuring manually verified transcripts, exact paper scores, and secondary school backgrounds. No vague claims—just proven results under \"Achievements and Experiences\"."
+        "title": "Browse Premium Tutor Profiles",
+        "detail": "We enforce a strictly high academic bar. Browse clean, easy-to-read profiles featuring exact paper scores and secondary school backgrounds. Gold Verified profiles carry staff-checked transcripts — for everyone else, ask the tutor for proof before the first lesson."
       },
       "s2": {
         "title": "Compare & Request Seamlessly",
@@ -1416,7 +1418,7 @@
     "index_verification_body": "What we check at each tier — and what verification does not promise.",
     "index_verification_link": "Full verification details",
     "match_parents_title": "For parents",
-    "match_parents_body": "Browse the verified cards or send the request form. We shortlist, the concierge introduces, and the first two lessons run with us on call. Then you pay the 1.5-lesson admin fee by FPS — after that, you pay the tutor directly.",
+    "match_parents_body": "Browse the tutor cards or send the request form. We shortlist, the concierge introduces, and the first two lessons run with us on call. Then you pay the 1.5-lesson admin fee by FPS — after that, you pay the tutor directly.",
     "match_parents_link": "Read the parent guide",
     "match_tutors_title": "For tutors",
     "match_tutors_body": "Upload your credentials, we check them manually, and your anonymous card goes live. Claim open cases that fit your commute and keep the hourly fee after the 1.5-lesson admin fee.",
@@ -1425,8 +1427,8 @@
       "eyebrow": "For parents",
       "intro": "Everything a parent needs: how matching works, what you pay, and what MatchMax does not do.",
       "steps_title": "How matching works",
-      "s1_title": "Browse verified cards or send a request",
-      "s1_body": "Search the verified tutor cards by subject, station, and budget — or submit a case request and let the concierge shortlist for you.",
+      "s1_title": "Browse tutor cards or send a request",
+      "s1_body": "Search the curated tutor cards by subject, station, and budget — or submit a case request and let the concierge shortlist for you.",
       "s2_title": "We introduce a tutor and stay close",
       "s2_body": "We check the tutor's documents, make the introduction, and stay involved for the first two lessons.",
       "s3_title": "Pay MatchMax the 1.5-lesson admin fee",
@@ -1449,7 +1451,7 @@
       "not_cut_body": "The 1.5-lesson admin fee is the only money MatchMax keeps. Every later lesson is paid straight to the tutor.",
       "not_schedule_label": "We don't manage your schedule",
       "not_schedule_body": "Rescheduling and the ongoing timetable are arranged directly with the tutor.",
-      "cta_browse": "Browse verified tutors",
+      "cta_browse": "Browse tutor profiles",
       "cta_request": "Request a tutor"
     },
     "tutors": {

@@ -122,18 +122,18 @@ export const Route = createFileRoute("/tutors/")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
-      { title: "Find Verified Tutors in Hong Kong | MatchMax" },
+      { title: "Find Elite Tutors in Hong Kong | MatchMax" },
       {
         name: "description",
         content:
-          "Browse verified tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
+          "Browse elite tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
       },
       { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Find Verified Tutors in Hong Kong | MatchMax" },
+      { property: "og:title", content: "Find Elite Tutors in Hong Kong | MatchMax" },
       {
         property: "og:description",
         content:
-          "Browse verified tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
+          "Browse elite tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
       },
       { property: "og:url", content: "https://matchmax.hk/tutors" },
     ],
