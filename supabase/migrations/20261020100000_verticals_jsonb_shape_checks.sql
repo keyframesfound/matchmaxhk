@@ -10,11 +10,15 @@
 --     jsonb array of non-empty text tags, each <= 40 chars after trim
 --     (normalizeUniversityCourses: trim -> slice(0,40) -> drop blanks ->
 --     case-insensitive dedupe -> cap 12; the cap and dedupe stay
---     normalizer-only, NOT re-enforced here).
+--     normalizer-only, NOT re-enforced here). Untrimmed-but-nonblank
+--     tags (' CS') are rejected explicitly: no normalizer emits them.
 --   tutors.course_specific_grades
 --     jsonb object map: course tag (same text rules as above, keys <= 40
 --     chars) -> canonical grade string. Grade vocab mirrors
---     COURSE_GRADE_OPTIONS in verticals.ts.
+--     COURSE_GRADE_OPTIONS in verticals.ts. JSON-null values and
+--     untrimmed-but-nonblank keys are rejected explicitly: jsonb_each_text
+--     renders a JSON null as SQL NULL, which silently dodges a bare
+--     NOT IN (...) — hence the IS NULL guard.
 --   tutoring_cases.kindergarten_focus
 --     jsonb array of the 9 canonical kindergarten topic tags
 --     (KINDERGARTEN_TOPICS in verticals.ts).
@@ -30,6 +34,7 @@ ALTER TABLE public.tutors
       FROM jsonb_array_elements(university_courses) AS course(tag)
       WHERE jsonb_typeof(course.tag) <> 'string'
         OR btrim(course.tag #>> '{}') = ''
+        OR btrim(course.tag #>> '{}') <> (course.tag #>> '{}')
         OR length(course.tag #>> '{}') > 40
     )
   );
@@ -44,6 +49,8 @@ ALTER TABLE public.tutors
       FROM jsonb_each_text(course_specific_grades) AS grade(course_tag, grade_value)
       WHERE btrim(grade.course_tag) = ''
         OR length(grade.course_tag) > 40
+        OR grade.course_tag <> btrim(grade.course_tag)
+        OR grade.grade_value IS NULL
         OR grade.grade_value NOT IN (
           'A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'Pass'
         )
