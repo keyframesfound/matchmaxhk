@@ -12,6 +12,7 @@ import {
   type AcademicTier,
   type KindergartenTopic,
 } from "@/features/tutors/verticals";
+import { stripContactDetails } from "@/lib/contact-filter";
 
 // The four funnel options shown as the first question of step 1.
 // "Secondary" stays a UI-level choice: the stored student_level keeps the
@@ -62,11 +63,27 @@ export function tierForFunnelLevel(level: FunnelLevel | null | undefined): Acade
   return "primary_secondary";
 }
 
+/**
+ * Issue #396: the public-board uni free text (uni_field, uni_name,
+ * uni_program, uni_course_codes — all whitelisted in PUBLIC_CASE_COLUMNS)
+ * runs through the shared contact filter before storage. Matches are
+ * STRIPPED, not rejected: the parent submit path is effectively
+ * untrusted-input handling and must never 500 on a pasted phone number
+ * (precedent #334), and the admin case editor stays consistent with it.
+ * Trim, collapse the whitespace a strip leaves behind, cap, blank → null.
+ */
+export function sanitizeCaseUniText(raw: unknown, max: number): string | null {
+  if (typeof raw !== "string") return null;
+  const value = stripContactDetails(raw)
+    .replace(/\s{2,}/g, " ")
+    .trim()
+    .slice(0, max);
+  return value ? value : null;
+}
+
 /** Trim + cap a free-text vertical field; blank → null. */
 function boundedText(raw: unknown, max: number): string | null {
-  if (typeof raw !== "string") return null;
-  const value = raw.trim().slice(0, max);
-  return value ? value : null;
+  return sanitizeCaseUniText(raw, max);
 }
 
 export type CaseVerticalInput = {

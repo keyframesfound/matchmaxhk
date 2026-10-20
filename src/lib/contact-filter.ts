@@ -99,3 +99,33 @@ export function contactFilterError(text: string): string | null {
   const rest = violations.length > 3 ? ` (+${violations.length - 3} more)` : "";
   return `No contact details in public text — remove ${listed}${rest}. Parents reach you through MatchMax.`;
 }
+
+// Global variants of the single-match patterns above, for stripping.
+const URL_PATTERN_GLOBAL = new RegExp(URL_PATTERN.source, "gi");
+const EMAIL_PATTERN_GLOBAL = new RegExp(CONTACT_EMAIL_PATTERN.source, "g");
+const PHONE_PATTERN_GLOBAL = new RegExp(PHONE_PATTERN.source, "g");
+
+/**
+ * Issue #396 — case-side free text that reaches the public board
+ * (uni_course_codes and the other uni fields whitelisted in
+ * PUBLIC_CASE_COLUMNS) is written by paths that must never reject the
+ * submitter, so matches are STRIPPED instead of reported. Same rule set as
+ * findContactViolations above — no separate regex vocabulary. Emails are
+ * removed first (a bare address is the more specific match — the URL rule
+ * would otherwise eat just the domain and strand the local part), then
+ * URLs, phones and channel words; the pass repeats until stable so
+ * removing one match cannot stitch the surrounding text into a new one.
+ */
+export function stripContactDetails(text: string): string {
+  let out = text;
+  for (let pass = 0; pass < 3; pass++) {
+    const next = out
+      .replace(EMAIL_PATTERN_GLOBAL, " ")
+      .replace(URL_PATTERN_GLOBAL, " ")
+      .replace(PHONE_PATTERN_GLOBAL, " ")
+      .replace(CHANNEL_PATTERN, " ");
+    if (next === out) return next;
+    out = next;
+  }
+  return out;
+}
