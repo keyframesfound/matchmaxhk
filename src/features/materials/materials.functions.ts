@@ -437,7 +437,6 @@ export type AdminMaterialRow = {
   admin_marketing_summary: string | null;
   commission_rate: number;
   commission_status: string;
-  is_published: boolean;
   status: string;
   edit_status: string | null;
   submitted_at: string | null;
@@ -488,7 +487,7 @@ export const listAllMaterialsAdmin = createServerFn({ method: "POST" })
     )
       .from("digital_materials")
       .select(
-        "id, title, price_hkd, document_type, material_type, word_count, admin_star_rating, admin_marketing_summary, commission_rate, commission_status, is_published, status, edit_status, submitted_at, created_at, tutors(display_name, tutor_code)",
+        "id, title, price_hkd, document_type, material_type, word_count, admin_star_rating, admin_marketing_summary, commission_rate, commission_status, status, edit_status, submitted_at, created_at, tutors(display_name, tutor_code)",
       )
       .order("created_at", { ascending: false })
       .limit(200);

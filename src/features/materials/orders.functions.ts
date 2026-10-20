@@ -123,7 +123,7 @@ type MaterialsAdminClient = {
       ) => {
         eq: (
           col: string,
-          value: boolean,
+          value: string,
         ) => Promise<{
           data: Array<{ id: string; tutor_id: string }> | null;
           error?: { message: string } | null;
@@ -334,7 +334,7 @@ export const staffGrantMaterials = createServerFn({ method: "POST" })
       .from("digital_materials")
       .select("id, tutor_id")
       .in("id", data.materialIds)
-      .eq("is_published", true);
+      .eq("status", "published");
     if (error) throw new Error(error.message);
     const found = new Set((materials ?? []).map((m) => m.id));
     const missing = data.materialIds.filter((id) => !found.has(id));
