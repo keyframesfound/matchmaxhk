@@ -70,20 +70,23 @@ export function tierForFunnelLevel(level: FunnelLevel | null | undefined): Acade
  * STRIPPED, not rejected: the parent submit path is effectively
  * untrusted-input handling and must never 500 on a pasted phone number
  * (precedent #334), and the admin case editor stays consistent with it.
- * Trim, collapse the whitespace a strip leaves behind, cap, blank → null.
+ * Strip → whitespace-collapse → strip runs to a FIXPOINT (bounded): a
+ * single pass can reconstitute a number the first pass split — e.g.
+ * "9123 foo@bar.com 4567" strips to "9123   4567" and collapsing the
+ * whitespace stitches it into the canonical "9123 4567", so the collapse
+ * output must be re-filtered before storage. Trim, cap, blank → null.
  */
 export function sanitizeCaseUniText(raw: unknown, max: number): string | null {
-  if (typeof raw !== "string") return null;
-  const value = stripContactDetails(raw)
-    .replace(/\s{2,}/g, " ")
-    .trim()
-    .slice(0, max);
-  return value ? value : null;
-}
-
-/** Trim + cap a free-text vertical field; blank → null. */
-function boundedText(raw: unknown, max: number): string | null {
-  return sanitizeCaseUniText(raw, max);
+  let value = typeof raw === "string" ? raw : "";
+  for (let i = 0; i < 3; i++) {
+    const next = stripContactDetails(value)
+      .replace(/\s{2,}/g, " ")
+      .trim();
+    if (next === value) break;
+    value = next;
+  }
+  const capped = value.slice(0, max);
+  return capped ? capped : null;
 }
 
 export type CaseVerticalInput = {
@@ -115,10 +118,11 @@ export function buildVerticalInsert(input: CaseVerticalInput): CaseVerticalInser
   const tier = tierForFunnelLevel(input.academicLevel);
   return {
     academic_tier: normalizeAcademicTier(tier) ?? "primary_secondary",
-    uni_field: tier === "university" ? boundedText(input.uniField, 80) : null,
-    uni_name: tier === "university" ? boundedText(input.uniName, 120) : null,
-    uni_program: tier === "university" ? boundedText(input.uniProgram, 120) : null,
-    uni_course_codes: tier === "university" ? boundedText(input.uniCourseCodes, 2000) : null,
+    uni_field: tier === "university" ? sanitizeCaseUniText(input.uniField, 80) : null,
+    uni_name: tier === "university" ? sanitizeCaseUniText(input.uniName, 120) : null,
+    uni_program: tier === "university" ? sanitizeCaseUniText(input.uniProgram, 120) : null,
+    uni_course_codes:
+      tier === "university" ? sanitizeCaseUniText(input.uniCourseCodes, 2000) : null,
     kindergarten_focus:
       tier === "kindergarten" ? normalizeKindergartenTopics(input.kindergartenTopics) : [],
   };

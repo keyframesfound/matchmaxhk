@@ -30,6 +30,24 @@ describe("stripContactDetails", () => {
     expect(stripContactDetails(text)).toBe(text);
   });
 
+  it("leaves year/course-level ranges intact (strip-mode guards)", () => {
+    // GLM review round 1, finding 2: the loose detection pattern flags
+    // these, but silent stripping must not eat legitimate ranges.
+    const ranges = [
+      "ECON1210, MATH2010-2011 syllabus",
+      "need help with 3000-4000 level MATH courses",
+      "past papers 2015-2019",
+    ];
+    for (const text of ranges) expect(stripContactDetails(text)).toBe(text);
+  });
+
+  it("still strips real phone forms", () => {
+    expect(stripContactDetails("call 91234567 please")).toBe("call   please");
+    expect(stripContactDetails("call 9123-4567 please")).toBe("call   please");
+    expect(stripContactDetails("call 9123 4567 please")).toBe("call   please");
+    expect(stripContactDetails("call +852 9123 4567 please")).toBe("call   please");
+  });
+
   it("leaves no filter violation behind after stripping", () => {
     const dirty =
       "ECON1210 tutor needed, contact 9123 4567 or jane@example.com, www.tutor.hk, on WhatsApp";
@@ -83,6 +101,24 @@ describe("buildVerticalInsert contact filtering (submitCaseRequest path)", () =>
 describe("sanitizeCaseUniText (admin case editor save path)", () => {
   it("strips contact matches and collapses leftover whitespace", () => {
     expect(sanitizeCaseUniText("ECON  1210  call 9123-4567", 2000)).toBe("ECON 1210 call");
+  });
+
+  it("iterates to a fixpoint: cannot reconstitute a number split across a stripped token", () => {
+    // GLM review round 1, finding 1: "9123 foo@bar.com 4567" strips to
+    // "9123   4567"; the whitespace collapse alone would stitch it into
+    // the canonical "9123 4567" — so the collapsed output is re-stripped.
+    expect(sanitizeCaseUniText("9123 foo@bar.com 4567", 2000)).toBeNull();
+    expect(sanitizeCaseUniText("9123 whatsapp 4567", 2000)).toBeNull();
+  });
+
+  it("keeps year/course-level ranges in the stored text", () => {
+    expect(sanitizeCaseUniText("ECON1210, MATH2010-2011 syllabus", 2000)).toBe(
+      "ECON1210, MATH2010-2011 syllabus",
+    );
+    expect(sanitizeCaseUniText("need help with 3000-4000 level MATH courses", 2000)).toBe(
+      "need help with 3000-4000 level MATH courses",
+    );
+    expect(sanitizeCaseUniText("past papers 2015-2019", 2000)).toBe("past papers 2015-2019");
   });
 
   it("caps the stored value and maps blanks to null", () => {
