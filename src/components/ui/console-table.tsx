@@ -68,7 +68,13 @@ export function ConsoleTableBody({
   ...props
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
   return (
-    <tbody className={cn("divide-y divide-[color:var(--ink)]/[0.07]", className)} {...props} />
+    <tbody
+      className={cn(
+        "divide-y divide-[color:var(--ink)]/[0.07] [&_tr]:transition-colors [&_tr]:hover:bg-[color:var(--foreground)]/[0.03] motion-reduce:[&_tr]:transition-none",
+        className,
+      )}
+      {...props}
+    />
   );
 }
 

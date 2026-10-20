@@ -220,6 +220,18 @@ Flat by default, ambient lift on heroes. Light-theme separation is hairline bord
 ### Named Rules
 **The Hairline First Rule.** Reach for a 1px border before a shadow. Shadows are a response to state or prominence (hero, hover, overlay), never the resting look of ordinary cards.
 
+## Motion
+
+Engineered, not decorated: state-change motion over entrance motion, so the interface reads as responsive rather than performing.
+
+- **Vocabulary**: 150–300ms with `cubic-bezier(0.22, 1, 0.36, 1)` for CSS transitions; springs only on state changes at low bounce (`bounce: 0.08–0.15`, `duration: 0.4–0.5`) via motion (`motion/react`, already a dependency).
+- **Sliding indicators**: segmented controls and tab rows slide their active pill/underline between positions (DirectoryToggle thumb, MobileBottomNav indicator, desktop-nav underline sweep) — never an instant swap. `motion layoutId` shared elements or transform-based CSS.
+- **Tactile buttons**: opt-in `refined` (1px hover lift + 200ms icon transitions) and `hoverArrow` (trailing-icon nudge) props on `Button`. Resting state is identical to a plain button; NEVER used inside tutor cards (card visuals are frozen by product decision). Default buttons keep the base 150ms color transitions + `active:scale-[0.97]`.
+- **Rails**: horizontal scrollers use `.rail-scroll` (native scrollbar hidden; discovery comes from the next card peeking past the rail edge). Desktop rails get circular arrow buttons whose ends disable from live scroll state.
+- **Section entrances**: `Reveal` wraps whole sections — one-time 12px rise + fade on viewport entry, never per-card. The announcement banner (`.animate-banner-in`) and WhatsApp float get one-time quiet entrances. Rotation-style content (banner slides) crossfades asymmetrically (out 200ms, in 500ms after a 200ms delay) so two texts never read on top of each other.
+- **Banned (the "AI-built" tells)**: per-card staggered fade-ups, bouncy scale-ins, gradient blobs, shimmer sweeps, glow borders, particles, marquees for decoration.
+- Every animation pairs `motion-reduce:` / `prefers-reduced-motion` variants — the incumbent rule, unchanged.
+
 ## Shapes
 
 The radius scale derives from one generous base: `--radius: 1.3rem` (the theme's signature roundness), stepped by Tailwind (`sm = base−4px`, `md = base−2px`, `lg = base`, `xl = base+4px`, `2xl = base+8px`). Dedicated variables set controls at `--radius-control: 0.5rem` (inputs, compact buttons — the one tight corner in the system) and panels at `--radius-panel: 1rem`. Standard cards use `rounded-xl` (≈25px); the join-stepper shell uses 24px. Corners are always symmetric; pills (`rounded-full`) are reserved for shape="pill" buttons, avatars, step circles, and connector bars. Borders are 1px hairlines; dividers use `border-border` or ink at 10–15% alpha. Photographic and patterned backdrops (hero pattern, "paper" texture with azure radial + column rules + SVG noise) clip to their section, softened with gradient scrims rather than rounded frames.

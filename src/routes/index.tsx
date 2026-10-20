@@ -3,9 +3,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, ChevronLeft, ChevronRight, Flame } from "lucide-react";
+import { useReducedMotion } from "motion/react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { Reveal } from "@/components/ui/reveal";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   CompactSearchPill,
@@ -203,12 +205,15 @@ function CurriculumTutorSection({
       to="/tutors"
       search={{ category }}
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-[var(--radius-panel)] border border-dashed border-border bg-[color:var(--surface-subtle)]/40 text-center transition-colors hover:bg-[color:var(--surface-subtle)]",
+        "group flex flex-col items-center justify-center gap-3 rounded-[var(--radius-panel)] border border-dashed border-border bg-[color:var(--surface-subtle)]/40 text-center transition-colors hover:bg-[color:var(--surface-subtle)]",
         className,
       )}
     >
-      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card">
-        <ArrowRight className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
+      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors group-hover:bg-[color:var(--surface-subtle)]">
+        <ArrowRight
+          className="h-5 w-5 text-[color:var(--brand-link)] transition-transform duration-200 ease-out group-hover:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
+          aria-hidden="true"
+        />
       </span>
       <span className="text-sm font-bold text-[color:var(--ink)]">{t("featured.see_all")}</span>
     </Link>
@@ -223,6 +228,8 @@ function CurriculumTutorSection({
         <Button
           asChild
           variant="ghost"
+          refined
+          hoverArrow
           className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
         >
           <Link to="/tutors" search={{ category }}>
@@ -266,7 +273,7 @@ function CurriculumTutorSection({
       ) : tutors.length > 0 ? (
         <>
           {/* Mobile: one swipeable row — first page of tutors, then the see-all tile */}
-          <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-1 pb-2 scroll-px-4 md:hidden">
+          <div className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-1 pb-2 scroll-px-4 md:hidden">
             {tutors
               .slice(0, TUTORS_PER_PAGE)
               .map((tutor) => renderTutorCard(tutor, "w-[min(80vw,380px)] shrink-0 snap-start"))}
@@ -326,6 +333,38 @@ function TrendingTutorsSection({
   onCompareToggle: (tutor: Tutor) => void;
 }) {
   const { t, i18n } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
+  const railRef = useRef<HTMLDivElement>(null);
+  const [railCanPrev, setRailCanPrev] = useState(false);
+  const [railCanNext, setRailCanNext] = useState(false);
+
+  // Arrow states track the snap row's scroll position; the buttons hide on
+  // mobile where the swipe row is the affordance (same chrome as the
+  // curriculum rails' paged arrows).
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const update = () => {
+      setRailCanPrev(rail.scrollLeft > 4);
+      setRailCanNext(rail.scrollLeft < rail.scrollWidth - rail.clientWidth - 4);
+    };
+    update();
+    rail.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      rail.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [entries.length]);
+
+  const scrollRail = (direction: 1 | -1) => {
+    const rail = railRef.current;
+    if (!rail) return;
+    rail.scrollBy({
+      left: direction * rail.clientWidth * 0.85,
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    });
+  };
 
   return (
     <section className="mx-auto max-w-7xl">
@@ -339,9 +378,32 @@ function TrendingTutorsSection({
         <h2 className="min-w-0 truncate text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
           {t("home.trending_title")}
         </h2>
+        <div className="ml-auto hidden shrink-0 items-center gap-1.5 md:flex">
+          <button
+            type="button"
+            aria-label={t("featured.prev")}
+            disabled={!railCanPrev}
+            onClick={() => scrollRail(-1)}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)] disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            aria-label={t("featured.next")}
+            disabled={!railCanNext}
+            onClick={() => scrollRail(1)}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)] disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
+          >
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
       </div>
 
-      <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pt-1 pb-2">
+      <div
+        ref={railRef}
+        className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pt-1 pb-2"
+      >
         {entries.map((entry) => {
           const { tutor } = entry;
           const inquiry = getTutorInquiryAction(tutor, whatsappNumber, i18n.language);
@@ -631,7 +693,9 @@ function Landing() {
           <div className="mx-auto max-w-[1440px] px-4 md:px-6">
             <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
               {/* Issue #312: approved notes under the search bar, above the
-                  IB rail; renders nothing below three public notes. */}
+                  IB rail; renders nothing below three public notes. Reveal
+                  lives INSIDE the row (after its null guards) so a hidden
+                  row leaves no empty wrapper in the space-y stack. */}
               <HomeNotesRow />
               {/* Issue #329: Tutor services row — ORDER IS SEMANTIC: the
                   notes row (#312) stays first, gigs sit immediately below it.
@@ -641,28 +705,31 @@ function Landing() {
               {/* Issue #151 Option A: trending showcase; hidden entirely
                   (existing page) until 3+ tutors clear the guardrail. */}
               {trendingEntries.length > 0 ? (
-                <TrendingTutorsSection
-                  entries={trendingEntries}
-                  priceSuffix={t("featured.per_hour")}
-                  whatsappNumber={whatsappNumber}
-                  onOpen={openTutorDetail}
-                  compareSelectedIds={compareIds}
-                  onCompareToggle={toggleCompare}
-                />
+                <Reveal>
+                  <TrendingTutorsSection
+                    entries={trendingEntries}
+                    priceSuffix={t("featured.per_hour")}
+                    whatsappNumber={whatsappNumber}
+                    onOpen={openTutorDetail}
+                    compareSelectedIds={compareIds}
+                    onCompareToggle={toggleCompare}
+                  />
+                </Reveal>
               ) : null}
               {CURRICULUM_CATEGORIES.map(({ label, value }) => (
-                <CurriculumTutorSection
-                  key={value}
-                  label={label}
-                  category={value}
-                  tutors={tutorsForCategory(value)}
-                  loading={publishedTutorsLoading}
-                  priceSuffix={t("featured.per_hour")}
-                  whatsappNumber={whatsappNumber}
-                  onOpen={openTutorDetail}
-                  compareSelectedIds={compareIds}
-                  onCompareToggle={toggleCompare}
-                />
+                <Reveal key={value}>
+                  <CurriculumTutorSection
+                    label={label}
+                    category={value}
+                    tutors={tutorsForCategory(value)}
+                    loading={publishedTutorsLoading}
+                    priceSuffix={t("featured.per_hour")}
+                    whatsappNumber={whatsappNumber}
+                    onOpen={openTutorDetail}
+                    compareSelectedIds={compareIds}
+                    onCompareToggle={toggleCompare}
+                  />
+                </Reveal>
               ))}
             </div>
           </div>

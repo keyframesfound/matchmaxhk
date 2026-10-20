@@ -92,7 +92,7 @@ function DesktopTab({
       to={to}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-base font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-4",
+        "group relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-base font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-4",
         active
           ? "text-[color:var(--ink)]"
           : "text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]",
@@ -106,10 +106,14 @@ function DesktopTab({
         className="h-6 w-6 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
       />
       {children}
+      {/* Active underline + hover sweep: 2px ink bar that scales in from the
+          left (the DESIGN.md nav language), instead of a bare opacity flip. */}
       <span
         className={cn(
-          "absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-[color:var(--foreground)] transition-opacity duration-200 xl:inset-x-4",
-          active ? "opacity-100" : "opacity-0",
+          "absolute inset-x-3 bottom-0 h-[2px] origin-left rounded-full bg-[color:var(--foreground)] transition-transform duration-200 ease-out xl:inset-x-4 motion-reduce:transition-none",
+          active
+            ? "scale-x-100"
+            : "scale-x-0 group-hover:scale-x-100 group-focus-visible:scale-x-100",
         )}
       />
     </Link>
