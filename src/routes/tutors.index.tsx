@@ -479,7 +479,7 @@ function TutorsDirectory() {
                   <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
                     {directoryView === "materials"
                       ? t("materials.directory_title")
-                      : "Find verified tutors"}
+                      : "Find elite tutors"}
                   </h1>
                   <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
                     {directoryView === "materials"

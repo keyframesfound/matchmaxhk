@@ -887,7 +887,7 @@
     "rates_inperson": "In person"
   },
   "tutor_card": {
-    "verified_fallback": "Academic profile verified",
+    "verified_fallback": "Self-reported academic profile",
     "academic_achievements": "Academic achievements",
     "status_uni_student": "Uni Student",
     "status_full_part_time": "Full/Part-Time Tutor",

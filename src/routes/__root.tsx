@@ -129,7 +129,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           url: "https://matchmax.hk",
           logo: "https://matchmax.hk/matchmax-logo.png",
           description:
-            "Hong Kong tutoring marketplace matching parents and students with verified DSE, IB, IGCSE, and AP tutors.",
+            "Hong Kong tutoring marketplace matching parents and students with DSE, IB, IGCSE, and AP tutors.",
         }),
       },
       {

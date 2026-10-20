@@ -3,7 +3,7 @@ title: How MatchMax Works: From First Trial to Regular Lessons
 slug: how-matchmax-works
 category: parent-getting-started
 audience: parent
-summary: The full journey — browsing verified tutors, booking a trial, and locking in a regular weekly slot.
+summary: The full journey — browsing top tutors, booking a trial, and locking in a regular weekly slot.
 icon: compass
 tags: [matching, trial, booking, getting started]
 featured: true
