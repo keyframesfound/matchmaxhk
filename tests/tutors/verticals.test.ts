@@ -4,6 +4,7 @@ import {
   ACADEMIC_TIERS,
   KINDERGARTEN_TOPICS,
   caseAcademicTier,
+  isInvalidUniversityGpaText,
   matchesKindergartenFilter,
   normalizeAcademicTier,
   normalizeCourseGrades,
@@ -119,6 +120,21 @@ describe("university vertical normalization", () => {
 
   it("GPA rounds to 2dp", () => {
     expect(normalizeUniversityGpa(3.849)).toBe(3.85);
+  });
+
+  // Issue #395: the editor-save guard — non-blank out-of-band GPA text must
+  // BLOCK the save (surfaced as verticals.editor_gpa_invalid), never silently
+  // normalize to null on the way to tutors.university_gpa.
+  it("isInvalidUniversityGpaText: blank passes, out-of-band text blocks", () => {
+    expect(isInvalidUniversityGpaText("")).toBe(false);
+    expect(isInvalidUniversityGpaText("   ")).toBe(false);
+    expect(isInvalidUniversityGpaText("3.85")).toBe(false);
+    expect(isInvalidUniversityGpaText("0")).toBe(false);
+    expect(isInvalidUniversityGpaText("4.3")).toBe(false);
+    expect(isInvalidUniversityGpaText("4.31")).toBe(true);
+    expect(isInvalidUniversityGpaText("-1")).toBe(true);
+    expect(isInvalidUniversityGpaText("abc")).toBe(true);
+    expect(isInvalidUniversityGpaText(" 5 ")).toBe(true);
   });
 
   it("course tags: trim, dedupe case-insensitively, cap", () => {
