@@ -281,7 +281,7 @@ function GuideIndexPage() {
               </div>
             </div>
             <div>
-              <h2 className="max-w-3xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-5xl">
+              <h2 className="max-w-3xl text-4xl font-extrabold leading-[1.02] tracking-tight text-white sm:text-5xl">
                 {t("hiw.flow_title")}
               </h2>
               <p className="mt-5 max-w-xl text-base leading-7 text-white/70">
@@ -304,7 +304,7 @@ function GuideIndexPage() {
                 className="rounded-2xl border border-white/15 bg-white/[0.04] p-6 sm:p-8"
               >
                 <Icon className="h-6 w-6" aria-hidden="true" />
-                <h3 className="mt-4 text-xl font-bold tracking-tight">
+                <h3 className="mt-4 text-xl font-bold tracking-tight text-white">
                   {t(`guide.match_${key}_title`)}
                 </h3>
                 <p className="mt-3 text-sm leading-7 text-white/75">
