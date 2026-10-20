@@ -81,21 +81,21 @@ type TrendingEntry = { tutor: Tutor; engagement: RankedTrending };
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Find Verified IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
+      { title: "Find Elite IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
       {
         name: "description",
         content:
-          "Find verified IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly.",
+          "Find elite IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly.",
       },
       { name: "robots", content: "index, follow" },
       {
         property: "og:title",
-        content: "Find Verified IB, DSE & IGCSE Tutors in Hong Kong | MatchMax",
+        content: "Find Elite IB, DSE & IGCSE Tutors in Hong Kong | MatchMax",
       },
       {
         property: "og:description",
         content:
-          "Find verified IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly.",
+          "Find elite IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly.",
       },
       { property: "og:url", content: "https://matchmax.hk/" },
       { property: "og:type", content: "website" },
@@ -109,7 +109,7 @@ export const Route = createFileRoute("/")({
       {
         name: "twitter:description",
         content:
-          "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
+          "Find elite IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
       },
       { name: "twitter:image", content: OG_IMAGE },
     ],
@@ -610,7 +610,7 @@ function Landing() {
     name: "MatchMax",
     url: "https://matchmax.hk/",
     description:
-      "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
+      "Find elite IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
     areaServed: {
       "@type": "City",
       name: "Hong Kong",

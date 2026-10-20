@@ -122,18 +122,18 @@ export const Route = createFileRoute("/tutors/")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
-      { title: "Find Verified Tutors in Hong Kong | MatchMax" },
+      { title: "Find Elite Tutors in Hong Kong | MatchMax" },
       {
         name: "description",
         content:
-          "Browse verified tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
+          "Browse elite tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
       },
       { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Find Verified Tutors in Hong Kong | MatchMax" },
+      { property: "og:title", content: "Find Elite Tutors in Hong Kong | MatchMax" },
       {
         property: "og:description",
         content:
-          "Browse verified tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
+          "Browse elite tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
       },
       { property: "og:url", content: "https://matchmax.hk/tutors" },
     ],
@@ -479,7 +479,7 @@ function TutorsDirectory() {
                   <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
                     {directoryView === "materials"
                       ? t("materials.directory_title")
-                      : "Find verified tutors"}
+                      : "Find elite tutors"}
                   </h1>
                   <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
                     {directoryView === "materials"

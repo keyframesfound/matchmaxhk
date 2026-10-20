@@ -12,14 +12,14 @@ export const Route = createFileRoute("/guide/parents")({
       {
         name: "description",
         content:
-          "How parents use MatchMax: browse verified tutors or send a request, the concierge introduction, the 1.5-lesson admin fee, and what MatchMax does not do.",
+          "How parents use MatchMax: browse tutor profiles or send a request, the concierge introduction, the 1.5-lesson admin fee, and what MatchMax does not do.",
       },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Parent Guide | MatchMax" },
       {
         property: "og:description",
         content:
-          "How parents use MatchMax: browse verified tutors or send a request, the concierge introduction, the 1.5-lesson admin fee, and what MatchMax does not do.",
+          "How parents use MatchMax: browse tutor profiles or send a request, the concierge introduction, the 1.5-lesson admin fee, and what MatchMax does not do.",
       },
       { property: "og:url", content: "https://matchmax.hk/guide/parents" },
     ],
