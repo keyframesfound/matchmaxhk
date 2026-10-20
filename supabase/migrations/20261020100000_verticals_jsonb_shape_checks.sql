@@ -23,30 +23,37 @@
 --     jsonb array of the 9 canonical kindergarten topic tags
 --     (KINDERGARTEN_TOPICS in verticals.ts).
 -- Column defaults ('[]', '{}', '[]') satisfy every constraint below.
+--
+-- Postgres CHECK constraints cannot contain subqueries (0A000), so each
+-- NOT EXISTS predicate lives in an IMMUTABLE validator function and the
+-- constraint calls it. The predicates are identical to the probe queries
+-- run against live data before apply (0 violating rows).
 
-ALTER TABLE public.tutors
-  DROP CONSTRAINT IF EXISTS tutors_university_courses_shape_chk;
-ALTER TABLE public.tutors
-  ADD CONSTRAINT tutors_university_courses_shape_chk CHECK (
-    jsonb_typeof(university_courses) = 'array'
+CREATE OR REPLACE FUNCTION public.university_courses_shape_ok(p_courses jsonb)
+RETURNS boolean
+LANGUAGE sql
+IMMUTABLE
+AS $fn$
+  SELECT jsonb_typeof(p_courses) = 'array'
     AND NOT EXISTS (
       SELECT 1
-      FROM jsonb_array_elements(university_courses) AS course(tag)
+      FROM jsonb_array_elements(p_courses) AS course(tag)
       WHERE jsonb_typeof(course.tag) <> 'string'
         OR btrim(course.tag #>> '{}') = ''
         OR btrim(course.tag #>> '{}') <> (course.tag #>> '{}')
         OR length(course.tag #>> '{}') > 40
-    )
-  );
+    );
+$fn$;
 
-ALTER TABLE public.tutors
-  DROP CONSTRAINT IF EXISTS tutors_course_specific_grades_shape_chk;
-ALTER TABLE public.tutors
-  ADD CONSTRAINT tutors_course_specific_grades_shape_chk CHECK (
-    jsonb_typeof(course_specific_grades) = 'object'
+CREATE OR REPLACE FUNCTION public.course_specific_grades_shape_ok(p_grades jsonb)
+RETURNS boolean
+LANGUAGE sql
+IMMUTABLE
+AS $fn$
+  SELECT jsonb_typeof(p_grades) = 'object'
     AND NOT EXISTS (
       SELECT 1
-      FROM jsonb_each_text(course_specific_grades) AS grade(course_tag, grade_value)
+      FROM jsonb_each_text(p_grades) AS grade(course_tag, grade_value)
       WHERE btrim(grade.course_tag) = ''
         OR length(grade.course_tag) > 40
         OR grade.course_tag <> btrim(grade.course_tag)
@@ -54,17 +61,18 @@ ALTER TABLE public.tutors
         OR grade.grade_value NOT IN (
           'A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'Pass'
         )
-    )
-  );
+    );
+$fn$;
 
-ALTER TABLE public.tutoring_cases
-  DROP CONSTRAINT IF EXISTS tutoring_cases_kindergarten_focus_shape_chk;
-ALTER TABLE public.tutoring_cases
-  ADD CONSTRAINT tutoring_cases_kindergarten_focus_shape_chk CHECK (
-    jsonb_typeof(kindergarten_focus) = 'array'
+CREATE OR REPLACE FUNCTION public.kindergarten_focus_shape_ok(p_focus jsonb)
+RETURNS boolean
+LANGUAGE sql
+IMMUTABLE
+AS $fn$
+  SELECT jsonb_typeof(p_focus) = 'array'
     AND NOT EXISTS (
       SELECT 1
-      FROM jsonb_array_elements(kindergarten_focus) AS topic(tag)
+      FROM jsonb_array_elements(p_focus) AS topic(tag)
       WHERE jsonb_typeof(topic.tag) <> 'string'
         OR (topic.tag #>> '{}') <> ALL (ARRAY[
           'Kindergarten Phonics',
@@ -77,5 +85,23 @@ ALTER TABLE public.tutoring_cases
           'P1 Interview — Storytelling & Role-play',
           'P1 Interview — General Knowledge'
         ])
-    )
-  );
+    );
+$fn$;
+
+ALTER TABLE public.tutors
+  DROP CONSTRAINT IF EXISTS tutors_university_courses_shape_chk;
+ALTER TABLE public.tutors
+  ADD CONSTRAINT tutors_university_courses_shape_chk
+  CHECK (public.university_courses_shape_ok(university_courses));
+
+ALTER TABLE public.tutors
+  DROP CONSTRAINT IF EXISTS tutors_course_specific_grades_shape_chk;
+ALTER TABLE public.tutors
+  ADD CONSTRAINT tutors_course_specific_grades_shape_chk
+  CHECK (public.course_specific_grades_shape_ok(course_specific_grades));
+
+ALTER TABLE public.tutoring_cases
+  DROP CONSTRAINT IF EXISTS tutoring_cases_kindergarten_focus_shape_chk;
+ALTER TABLE public.tutoring_cases
+  ADD CONSTRAINT tutoring_cases_kindergarten_focus_shape_chk
+  CHECK (public.kindergarten_focus_shape_ok(kindergarten_focus));
