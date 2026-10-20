@@ -36,6 +36,7 @@ import {
   normalizeKindergartenTopics,
 } from "@/features/tutors/verticals";
 import { academicTierLabel, kindergartenTopicLabel } from "@/features/tutors/verticals-labels";
+import { sanitizeCaseUniText } from "@/features/cases/case-verticals";
 import type { CaseRow } from "./shared";
 
 const controlClassName = "h-10 w-full rounded-sm";
@@ -127,16 +128,18 @@ export function CaseEditDialog({
         // Issue #190: tier + vertical fields. Uni fields only survive on the
         // university tier, K topics only on the kindergarten tier; a blank
         // tier clears them (normalizeAcademicTier returns null for "").
+        // Issue #396: uni free text goes through the shared contact filter
+        // (strip, not reject) before it can reach the public board.
         academic_tier: normalizeAcademicTier(form.academicTier),
         uni_field:
-          form.academicTier === "university" ? form.uniField.trim().slice(0, 80) || null : null,
+          form.academicTier === "university" ? sanitizeCaseUniText(form.uniField, 80) : null,
         uni_name:
-          form.academicTier === "university" ? form.uniName.trim().slice(0, 120) || null : null,
+          form.academicTier === "university" ? sanitizeCaseUniText(form.uniName, 120) : null,
         uni_program:
-          form.academicTier === "university" ? form.uniProgram.trim().slice(0, 120) || null : null,
+          form.academicTier === "university" ? sanitizeCaseUniText(form.uniProgram, 120) : null,
         uni_course_codes:
           form.academicTier === "university"
-            ? form.uniCourseCodes.trim().slice(0, 2000) || null
+            ? sanitizeCaseUniText(form.uniCourseCodes, 2000)
             : null,
         kindergarten_focus:
           form.academicTier === "kindergarten"
