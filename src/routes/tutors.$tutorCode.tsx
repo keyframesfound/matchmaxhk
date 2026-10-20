@@ -898,8 +898,8 @@ function TutorDetail() {
                   (public-tutor-card: badge only for staff-approved grades) so a
                   tutor never shows a Verified card badge alongside a
                   Self-Reported pill here; the tier check stays belt-and-braces. */}
-              {t.verification_tier !== "tier_2_verified" ||
-              (t.approved_grade_labels?.length ?? 0) === 0 ? (
+              {(t.approved_grade_labels?.length ?? 0) === 0 &&
+              t.verification_tier !== "tier_2_verified" ? (
                 <p className="mb-4 inline-flex w-full items-start gap-2 rounded-md border border-border bg-muted px-3 py-2 text-xs leading-snug text-muted-foreground sm:w-auto sm:max-w-xl">
                   <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   <span>
