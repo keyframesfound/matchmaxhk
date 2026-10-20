@@ -1,0 +1,28 @@
+-- Issue #396 / GLM-5.3 review round 2 (BLOCKER disposition, 2026-10-20):
+-- the repo migration chain creates two permissive tutoring_cases policies
+-- at 20260723051246 that NO later migration drops:
+--   * cases_owner_insert        — FOR INSERT TO authenticated
+--                                 WITH CHECK (parent_id = auth.uid())
+--   * cases_public_read_approved — FOR SELECT TO authenticated
+--                                 (is_public AND status IN (approved, matched))
+-- Neither policy has EVER been applied to the live project: pg_policy on
+-- tutoring_cases lists only cases_admin_all (staff write path) and
+-- cases_owner_select, so the direct-PostgREST self-publish exploit the
+-- reviewer described (parent JWT INSERTs parent_id = auth.uid(),
+-- board_published_at = now(), raw contact text in the uni free-text
+-- columns, straight onto the public board read) does NOT exist in
+-- production today.
+-- The hazard is drift: any future `supabase db push` of this chain would
+-- create both policies and reopen that path, silently bypassing the
+-- server-fn contact strip this PR adds. These idempotent drops converge
+-- the chain to the live, safe state. No-op on every environment where the
+-- policies already do not exist. The legit flow (submitCaseRequest)
+-- writes via the service role, and no other tutoring_cases INSERT uses a
+-- user JWT, so nothing legitimate can depend on either policy.
+-- Issue #396's conditional ("extend DB-side guards if cases ever get
+-- owner-writable paths that bypass the server fn") is thereby closed at
+-- the root: after this migration NO such owner-writable INSERT path is
+-- creatable from the chain, so no BEFORE INSERT sanitizer trigger is
+-- needed. If a real owner-INSERT feature ever ships, revisit.
+DROP POLICY IF EXISTS cases_owner_insert ON public.tutoring_cases;
+DROP POLICY IF EXISTS cases_public_read_approved ON public.tutoring_cases;

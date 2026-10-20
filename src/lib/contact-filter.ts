@@ -111,10 +111,10 @@ const PHONE_PATTERN_GLOBAL = new RegExp(PHONE_PATTERN.source, "g");
  * text rather than a number:
  *  - it is glued to letters (MATH2010-2011) — the digits are part of a
  *    word-shaped token, not a standalone number;
- *  - it is a hyphenated 4-4 pair whose halves share two or more digit
- *    positions — the shape of year/course-level ranges (2010-2011,
- *    2015-2019, 3000-4000) rather than a dialling number (9123-4567
- *    shares none).
+ *  - it is a hyphenated or space-separated 4-4 pair whose halves share
+ *    two or more digit positions — the shape of year/course-level ranges
+ *    (2010-2011, 2010 2011, 2015-2019, 3000-4000) rather than a dialling
+ *    number (9123-4567 and 9123 4567 share none).
  * These guards apply ONLY to the strip variant; findContactViolations
  * keeps the loose detection vocabulary, so strip and detect can disagree
  * on range-like strings — intentional (detect stays conservative and
@@ -125,10 +125,10 @@ const PHONE_PATTERN_GLOBAL = new RegExp(PHONE_PATTERN.source, "g");
  */
 function isGuardedPhoneMatch(match: string, text: string, start: number): boolean {
   if (start > 0 && /[A-Za-z]/.test(text[start - 1] ?? "")) return true;
-  if (!/^\d{4}-\d{4}$/.test(match)) return false;
-  const [head, tail] = match.split("-");
+  const pair = /^(\d{4})[\s-](\d{4})$/.exec(match);
+  if (!pair) return false;
   let shared = 0;
-  for (let i = 0; i < 4; i++) if (head[i] === tail[i]) shared++;
+  for (let i = 0; i < 4; i++) if (pair[1][i] === pair[2][i]) shared++;
   return shared >= 2;
 }
 

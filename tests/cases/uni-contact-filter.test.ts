@@ -41,11 +41,26 @@ describe("stripContactDetails", () => {
     for (const text of ranges) expect(stripContactDetails(text)).toBe(text);
   });
 
+  it("leaves space-separated year pairs intact (GLM round 2, MINOR)", () => {
+    // Same guard rule extended to the space form: year halves share >=2
+    // digit positions, a dialling number (9123 4567) shares none.
+    expect(stripContactDetails("past papers 2010 2011")).toBe("past papers 2010 2011");
+    expect(stripContactDetails("papers 2010 2011 2012 2013")).toBe("papers 2010 2011 2012 2013");
+  });
+
   it("still strips real phone forms", () => {
     expect(stripContactDetails("call 91234567 please")).toBe("call   please");
     expect(stripContactDetails("call 9123-4567 please")).toBe("call   please");
     expect(stripContactDetails("call 9123 4567 please")).toBe("call   please");
     expect(stripContactDetails("call +852 9123 4567 please")).toBe("call   please");
+  });
+
+  it("still strips ambiguous 4+4 space pairs that are not year shapes (residual)", () => {
+    // "2100 2021" is a valid landline shape (2xxx xxxx) and its halves
+    // share only one digit position — same accepted residual as the
+    // hyphenated "2547-2549" escape documented in round 1. The strip is
+    // the safe side of an inherently ambiguous string.
+    expect(stripContactDetails("CSCI 2100 2021")).toBe("CSCI  ");
   });
 
   it("leaves no filter violation behind after stripping", () => {
