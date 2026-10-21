@@ -2362,5 +2362,12 @@
       "postgrad": "Postgraduate",
       "alumni": "Alumni / Graduate"
     }
+  },
+  "share": {
+    "copy_link": "Copy link",
+    "copied": "Copied!",
+    "share": "Share",
+    "share_tutor": "Share tutor profile",
+    "share_failed": "Couldn't share this link"
   }
 }

@@ -274,7 +274,9 @@ export function PublicTutorCard({
     event.stopPropagation();
     void shareOrCopy(
       {
-        title: `Tutor ${formatTutorCode(tutor.tutor_code)} | MatchMax`,
+        // Issue #417: share title is the tutor's display name; the URL is the
+        // canonical profile path resolved at click time (SSR-safe).
+        title: tutor.display_name,
         // Issue #125: a flagged pricing field strips the rate — omit it.
         // Issue #319: the shared figure is always the card floor ("$X up/hr"),
         // never a range and never max_hourly_rate_hkd.
@@ -284,7 +286,8 @@ export function PublicTutorCard({
             : `Check out tutor ${tutor.tutor_code} on MatchMax.`,
         url: `${window.location.origin}/tutors/${tutor.tutor_code}`,
       },
-      t("profile.link_copied"),
+      t("share.copied"),
+      t("share.share_failed"),
     );
   };
 
@@ -639,7 +642,8 @@ export function PublicTutorCard({
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    aria-label={t("tutor_card.share", { code: formatTutorCode(tutor.tutor_code) })}
+                    aria-label={t("share.share_tutor")}
+                    title={t("share.share_tutor")}
                     onClick={handleShare}
                     onKeyDown={(event) => event.stopPropagation()}
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8"
@@ -647,9 +651,7 @@ export function PublicTutorCard({
                     <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent side="top">
-                  {t("tutor_card.share", { code: formatTutorCode(tutor.tutor_code) })}
-                </TooltipContent>
+                <TooltipContent side="top">{t("share.share_tutor")}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           ) : null}

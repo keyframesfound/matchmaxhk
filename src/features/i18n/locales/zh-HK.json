@@ -2362,5 +2362,12 @@
       "postgrad": "研究生",
       "alumni": "校友／已畢業"
     }
+  },
+  "share": {
+    "copy_link": "複製連結",
+    "copied": "已複製！",
+    "share": "分享",
+    "share_tutor": "分享導師檔案",
+    "share_failed": "無法分享此連結"
   }
 }
