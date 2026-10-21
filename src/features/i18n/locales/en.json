@@ -1004,7 +1004,7 @@
       },
       "s3": {
         "title": "Meet & Settle",
-        "detail": "We guide you through your first 2 lessons. Once you're happy, settle the 1.5-lesson administrative fee directly with MatchMax via FPS, and enjoy direct learning!"
+        "detail": "We guide you through your first lessons. The admin fee is 1.5 lessons in total — 100% of the first lesson plus 50% of the second — paid to MatchMax by FPS, and you pay the remaining 50% of Lesson 2 directly to the tutor."
       },
       "s4": {
         "title": "Exclusive Study Materials",
@@ -1159,11 +1159,11 @@
     "billing_faq": {
       "pay": {
         "q": "How and when do I pay for the lessons?",
-        "a": "MatchMax charges one administrative matching fee, settled once by FPS after your first two lessons. Our concierge stays close for those first two lessons and makes sure the match is right; once you are happy, you pay the fee. For standard ongoing cases the fee equals the cost of 1.5 lessons; for short-term assignments (5 lessons or fewer) it is strictly 20% of the total scheduled package. After the fee is settled, you pay your tutor directly for every remaining lesson."
+        "a": "MatchMax charges one administrative matching fee for a standard match: 100% of the first lesson plus 50% of the second lesson — 1.5 lessons in total — paid to MatchMax by FPS. The tutor receives nothing for Lesson 1, and you pay the remaining 50% of Lesson 2 directly to the tutor. Our concierge stays close for those first lessons and makes sure the match is right. For short-term assignments (5 lessons or fewer) the fee is instead 20% of the total scheduled package. After the fee is settled, you pay your tutor directly for every remaining lesson."
       },
       "rematch": {
-        "q": "What if the tutor isn't a good fit after the first lesson?",
-        "a": "We offer a First-Lesson Free Rematch Guarantee. If you feel the tutor is not the perfect match for your child, simply compensate the tutor directly for that single hour of teaching, and MatchMax will immediately waive our administrative fee to personally hand-select a new, better-suited candidate for you at no additional platform cost."
+        "q": "What if the tutor stops or isn't a good fit?",
+        "a": "Our concierge team will help arrange a replacement. We support the introduction and the first lessons; after that, parents and tutors continue directly. You can leave a review after the first completed lesson."
       },
       "reschedule": {
         "q": "What happens if my child is sick or we need to reschedule?",
@@ -1418,7 +1418,7 @@
     "index_verification_body": "What we check at each tier — and what verification does not promise.",
     "index_verification_link": "Full verification details",
     "match_parents_title": "For parents",
-    "match_parents_body": "Browse the tutor cards or send the request form. We shortlist, the concierge introduces, and the first two lessons run with us on call. Then you pay the 1.5-lesson admin fee by FPS — after that, you pay the tutor directly.",
+    "match_parents_body": "Browse the tutor cards or send the request form. We shortlist, the concierge introduces, and the first lessons run with us on call. The admin fee is 1.5 lessons in total — 100% of Lesson 1 plus 50% of Lesson 2 — paid to MatchMax by FPS, and you pay the remaining 50% of Lesson 2 directly to the tutor.",
     "match_parents_link": "Read the parent guide",
     "match_tutors_title": "For tutors",
     "match_tutors_body": "Upload your credentials, we check them manually, and your anonymous card goes live. Claim open cases that fit your commute and keep the hourly fee after the 1.5-lesson admin fee.",
@@ -1432,7 +1432,7 @@
       "s2_title": "We introduce a tutor and stay close",
       "s2_body": "We check the tutor's documents, make the introduction, and stay involved for the first two lessons.",
       "s3_title": "Pay MatchMax the 1.5-lesson admin fee",
-      "s3_body": "After the first two lessons, pay the admin fee by FPS. It equals 1.5 lessons — that is the only fee MatchMax keeps.",
+      "s3_body": "The admin fee is 100% of Lesson 1 plus 50% of Lesson 2 — 1.5 lessons in total — paid to MatchMax by FPS. The tutor receives nothing for Lesson 1; you pay the remaining 50% of Lesson 2 directly to the tutor.",
       "s4_title": "Pay the tutor directly after that",
       "s4_body": "From the third lesson on, you settle the tutor's hourly rate directly. MatchMax steps out of the schedule.",
       "fact_rates_label": "Rates are the tutor's",
@@ -1827,7 +1827,7 @@
   },
   "case_request": {
     "fee_notice_title": "The matching fee",
-    "fee_notice": "If both intro lessons happen, you pay MatchMax 1.5 times the pay for one lesson, by FPS. A HK$400 hour is a HK$600 fee. After that you pay the tutor. A request for 5 lessons or fewer is 20% of that package.",
+    "fee_notice": "The admin fee is 1.5 lessons in total: 100% of Lesson 1 plus 50% of Lesson 2, paid to MatchMax by FPS. A HK$400 hour means HK$400 once Lesson 1 is completed and HK$200 for Lesson 2. The tutor receives nothing for Lesson 1; you pay the remaining 50% of Lesson 2 directly to the tutor. A request for 5 lessons or fewer is 20% of that package instead.",
     "fee_agree_pre": "I agree to the",
     "fee_agree_link": "matching fee terms",
     "fee_agree_post": ", version {{version}}.",

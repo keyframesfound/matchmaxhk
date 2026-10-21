@@ -480,15 +480,15 @@ const SECTIONS: Section[] = [
       },
       {
         kind: "p",
-        text: "The matching fee for a successful match is 1.5 lessons (the “admin fee”), payable by the Customer to MatchMax by FPS. It is the only money MatchMax keeps for matching. After the admin fee is paid, the Customer pays the Tutor directly for tuition, and MatchMax does not hold or process ongoing tuition payments.",
+        text: "The matching fee for a standard match equals 100% of the agreed tuition for Lesson 1 plus 50% of the agreed tuition for Lesson 2 — 1.5 lessons in total (the “admin fee”) — multiplied by the number of enrolled students on the case. It is the only money MatchMax keeps for matching. The Customer pays the admin fee to MatchMax by FPS; the Tutor receives nothing for Lesson 1, and the Customer is responsible for paying the Tutor the remaining 50% of Lesson 2 directly. After the admin fee is paid, the Customer pays the Tutor directly for further tuition, and MatchMax does not hold or process ongoing tuition payments.",
       },
       {
         kind: "p",
-        text: "The admin fee is charged once per match and is owed by the Customer on the case — the parent, or the centre where an agreed partnership says so. It is a fee for MatchMax’s introduction; it is not a tutor placement commission, and the Tutor is never the payer. For example, a HK$400 hourly rate with a 60-minute lesson means a HK$600 admin fee. A short case — one the client has asked to run for 5 lessons or fewer — carries a fee of 20% of the scheduled package instead, which MatchMax’s team records and can audit.",
+        text: "The admin fee is charged once per match and is owed by the Customer on the case — the parent, or the centre where an agreed partnership says so. It is a fee for MatchMax’s introduction; it is not a tutor placement commission, and the Tutor is never the payer. For example, at a HK$400 hourly rate with 60-minute lessons, the admin fee is HK$400 for Lesson 1 plus HK$200 for Lesson 2 — HK$600 in total. A short case — one the client has asked to run for 5 lessons or fewer — carries a fee of 20% of the scheduled package instead of the standard calculation above, which MatchMax’s team records and can audit.",
       },
       {
         kind: "p",
-        text: "Using the introduction and then taking the first two lessons without paying the admin fee is a breach of these Terms. The remedy is the unpaid fee, closure of the case, and a bar on new requests through the Platform. No other penalty applies.",
+        text: "Using the introduction and then taking lessons without paying the admin fee when it falls due is a breach of these Terms. The remedy is the unpaid fee, closure of the case, and a bar on new requests through the Platform. No other penalty applies.",
       },
       {
         kind: "p",
@@ -496,7 +496,7 @@ const SECTIONS: Section[] = [
       },
       {
         kind: "p",
-        text: "A no-show or cancellation before both of the first two lessons does not by itself make the admin fee payable. Offering a replacement Tutor starts a new case. If a first match fails, MatchMax does not charge a second admin fee for the replacement; where the admin fee for the first match was already collected, a replacement is treated as a new case.",
+        text: "A cancellation or no-show before Lesson 1 is completed results in no admin fee. Once Lesson 1 is completed, the Lesson 1 portion — 100% of the agreed tuition for Lesson 1 — is accrued and immediately payable to MatchMax, even if either party cancels or declines to proceed with Lesson 2. Replacement introductions are handled as a new case, to which the same fee terms apply.",
       },
       {
         kind: "p",
