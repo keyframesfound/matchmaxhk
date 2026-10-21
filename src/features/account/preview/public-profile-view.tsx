@@ -346,14 +346,16 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
     setIsSharing(true);
     void shareOrCopy(
       {
-        title: `Tutor ${tutor.tutor_code} | MatchMax`,
+        // Issue #417: share title is the tutor's display name.
+        title: tutor.display_name,
         text:
           price.baseRate > 0
             ? `Check out tutor ${tutor.tutor_code} on MatchMax — $${price.baseRate} up/hr.`
             : `Check out tutor ${tutor.tutor_code} on MatchMax.`,
         url: `${window.location.origin}/tutors/${tutor.tutor_code}`,
       },
-      translate("profile.link_copied"),
+      translate("share.copied"),
+      translate("share.share_failed"),
     ).finally(() => setIsSharing(false));
   };
 

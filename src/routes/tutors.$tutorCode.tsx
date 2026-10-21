@@ -589,7 +589,9 @@ function TutorDetail() {
     setIsSharing(true);
     void shareOrCopy(
       {
-        title: `Tutor ${t.tutor_code} | MatchMax`,
+        // Issue #417: share title is the tutor's display name; the URL is the
+        // canonical profile URL of the page the visitor is on.
+        title: t.display_name,
         // Issue #125: flagged pricing strips the rate — omit it from shares.
         // Issue #319: matches the card — "$X up/hr" (base-rate floor).
         text:
@@ -598,7 +600,8 @@ function TutorDetail() {
             : `Check out tutor ${t.tutor_code} on MatchMax.`,
         url: window.location.href,
       },
-      translate("profile.link_copied"),
+      translate("share.copied"),
+      translate("share.share_failed"),
     ).finally(() => setIsSharing(false));
   };
   const tutorStructuredData = {
@@ -780,7 +783,8 @@ function TutorDetail() {
                     variant="ghost"
                     size="icon"
                     className="h-9 w-9 shrink-0"
-                    aria-label="Share this tutor profile"
+                    aria-label={translate("share.share_tutor")}
+                    title={translate("share.share_tutor")}
                     disabled={isSharing}
                     onClick={() => void handleShare()}
                   >
