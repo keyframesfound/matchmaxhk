@@ -530,7 +530,13 @@ export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
       .eq("is_published", true)
       .maybeSingle(),
   );
-  return data ? normalize(data as Record<string, unknown>, defaults) : null;
+  // Issue #405: withTutorSelectFallback coerces a missing row's null data to
+  // [] (its list-query default). That array is truthy, so an unknown code used
+  // to surface as a Tutor-shaped object full of undefined fields — the route
+  // loader's `if (!tutor) throw notFound()` never fired and SSR shipped a 200
+  // soft-404. A row lookup must return null whenever there is no row.
+  if (!data || Array.isArray(data) || Object.keys(data).length === 0) return null;
+  return normalize(data, defaults);
 }
 
 /**
