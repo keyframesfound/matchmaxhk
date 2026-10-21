@@ -642,8 +642,7 @@ export function PublicTutorCard({
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    aria-label={t("share.share_tutor")}
-                    title={t("share.share_tutor")}
+                    aria-label={`${t("share.share_tutor")} (${formatTutorCode(tutor.tutor_code)})`}
                     onClick={handleShare}
                     onKeyDown={(event) => event.stopPropagation()}
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8"

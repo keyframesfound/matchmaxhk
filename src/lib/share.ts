@@ -21,10 +21,13 @@ async function copyText(text: string): Promise<boolean> {
       textarea.style.position = "fixed";
       textarea.style.opacity = "0";
       document.body.appendChild(textarea);
-      textarea.select();
-      const copied = document.execCommand("copy");
-      document.body.removeChild(textarea);
-      return copied;
+      try {
+        textarea.select();
+        return document.execCommand("copy");
+      } finally {
+        // Always detach the helper node, even if select()/execCommand throws.
+        document.body.removeChild(textarea);
+      }
     } catch {
       return false;
     }
