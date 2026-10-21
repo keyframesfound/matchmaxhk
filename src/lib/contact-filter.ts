@@ -158,7 +158,10 @@ function stripPhonesGuarded(text: string): string {
  */
 export function stripContactDetails(text: string): string {
   let out = text;
-  for (let pass = 0; pass < 3; pass++) {
+  // Bounded fixpoint, cap 5 (GLM round-2 nit: 3 passes could in theory
+  // strand a residual fragment on a deliberately layered input — 5 costs
+  // nothing on converging inputs and only tightens the strip).
+  for (let pass = 0; pass < 5; pass++) {
     const next = stripPhonesGuarded(
       out.replace(EMAIL_PATTERN_GLOBAL, " ").replace(URL_PATTERN_GLOBAL, " "),
     ).replace(CHANNEL_PATTERN, " ");
@@ -166,4 +169,32 @@ export function stripContactDetails(text: string): string {
     out = next;
   }
   return out;
+}
+
+/**
+ * Issue #410 — shared strip-never-reject sanitizer for parent-authored
+ * free-text case fields that reach the public board (description from
+ * data.notes, target_school from the admissions path — both whitelisted
+ * in PUBLIC_CASE_COLUMNS and stored verbatim until now). The #396 uni
+ * fields run the same pipeline through sanitizeCaseUniText.
+ * stripContactDetails -> whitespace collapse -> trim, run to a FIXPOINT
+ * (bounded): a single pass can reconstitute a number the first pass
+ * split — e.g. "9123 foo@bar.com 4567" strips to "9123   4567" and
+ * collapsing the whitespace stitches it back into the canonical
+ * "9123 4567", so the collapsed output is re-filtered. Then cap, and a
+ * blank result stores null. NEVER rejects: the parent submit path must
+ * not 500 on a pasted phone number (precedent #334).
+ */
+export function sanitizeCaseFreeText(raw: unknown, max: number): string | null {
+  let value = typeof raw === "string" ? raw : "";
+  // Cap 5 (GLM round-2 nit, mirrors stripContactDetails): converging
+  // inputs settle in 1-2 passes; the higher bound only tightens.
+  for (let i = 0; i < 5; i++) {
+    const next = stripContactDetails(value)
+      .replace(/\s{2,}/g, " ")
+      .trim();
+    if (next === value) break;
+    value = next;
+  }
+  return value.slice(0, max) || null;
 }

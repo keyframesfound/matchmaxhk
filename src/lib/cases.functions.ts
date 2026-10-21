@@ -14,6 +14,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { TARGET_PATHWAY_LABELS, TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
+import { sanitizeCaseFreeText } from "@/lib/contact-filter";
 
 const phoneRegex = /^[+(\d][\d\s()./+-]{4,19}\d$/;
 
@@ -371,9 +372,21 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       );
     }
 
+    // Issue #410 (GLM round-2 blocker): the stored title interpolates
+    // targetSchool verbatim on the admissions path and `title` is itself a
+    // PUBLIC_CASE_COLUMNS column, so the sanitized value feeds BOTH the
+    // title and the column. A null cleaned school falls through to the
+    // enum-validated interviewTest inside buildCaseTitle.
+    const cleanTargetSchool =
+      data.supportType === "admissions" ? sanitizeCaseFreeText(data.targetSchool, 120) : null;
+
     const insertRow = {
-      title: buildCaseTitle(data),
-      description: data.notes?.trim() ? data.notes.trim() : null,
+      title: buildCaseTitle({ ...data, targetSchool: cleanTargetSchool }),
+      // Issue #410: parent free text that reaches the public board runs
+      // through the shared contact filter (strip, never reject — #396
+      // precedent). Blank becomes null, so the old trim-then-null branch
+      // collapses into the helper.
+      description: sanitizeCaseFreeText(data.notes, 2000),
       subjects: data.subjects,
       exam_system: data.curriculum || null,
       // Issue #190: the funnel answer is the source of truth for the stored
@@ -398,7 +411,10 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       specific_component:
         data.supportType === "subject_tutoring" ? (data.specificComponent ?? null) : null,
       target_pathway: data.supportType === "admissions" ? (data.targetPathway ?? null) : null,
-      target_school: data.supportType === "admissions" ? data.targetSchool || null : null,
+      // Issue #410: target_school is parent free text on the public
+      // whitelist — contact-filter it like description. cleanTargetSchool
+      // is the same value the title was built from (GLM round-2 blocker).
+      target_school: cleanTargetSchool,
       interview_test: data.supportType === "admissions" ? (data.interviewTest ?? null) : null,
       school_type: data.supportType === "subject_tutoring" ? data.schoolType || null : null,
       tutor_background: data.tutorBackground,
