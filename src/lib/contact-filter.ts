@@ -158,7 +158,10 @@ function stripPhonesGuarded(text: string): string {
  */
 export function stripContactDetails(text: string): string {
   let out = text;
-  for (let pass = 0; pass < 3; pass++) {
+  // Bounded fixpoint, cap 5 (GLM round-2 nit: 3 passes could in theory
+  // strand a residual fragment on a deliberately layered input — 5 costs
+  // nothing on converging inputs and only tightens the strip).
+  for (let pass = 0; pass < 5; pass++) {
     const next = stripPhonesGuarded(
       out.replace(EMAIL_PATTERN_GLOBAL, " ").replace(URL_PATTERN_GLOBAL, " "),
     ).replace(CHANNEL_PATTERN, " ");
@@ -184,7 +187,9 @@ export function stripContactDetails(text: string): string {
  */
 export function sanitizeCaseFreeText(raw: unknown, max: number): string | null {
   let value = typeof raw === "string" ? raw : "";
-  for (let i = 0; i < 3; i++) {
+  // Cap 5 (GLM round-2 nit, mirrors stripContactDetails): converging
+  // inputs settle in 1-2 passes; the higher bound only tightens.
+  for (let i = 0; i < 5; i++) {
     const next = stripContactDetails(value)
       .replace(/\s{2,}/g, " ")
       .trim();

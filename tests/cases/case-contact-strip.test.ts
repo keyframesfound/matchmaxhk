@@ -81,8 +81,23 @@ describe("submitCaseRequest wiring (source assertion)", () => {
     expect(source).toMatch(/sanitizeCaseFreeText\(data\.targetSchool,\s*120\)/);
   });
 
+  it("builds the stored title from the sanitized target school, not the raw one", () => {
+    // GLM round-2 blocker: `title` interpolates targetSchool on the
+    // admissions path AND is itself a PUBLIC_CASE_COLUMNS column, so the
+    // raw string must never reach buildCaseTitle — the hoisted
+    // cleanTargetSchool feeds both the title and the column.
+    expect(source).toMatch(
+      /const cleanTargetSchool =[\s\S]*?sanitizeCaseFreeText\(data\.targetSchool,\s*120\)/,
+    );
+    expect(source).toMatch(
+      /title:\s*buildCaseTitle\(\{\s*\.\.\.data,\s*targetSchool:\s*cleanTargetSchool\s*\}\)/,
+    );
+    expect(source).toMatch(/target_school:\s*cleanTargetSchool/);
+  });
+
   it("no longer stores raw parent notes/target school verbatim", () => {
     expect(source).not.toMatch(/description:\s*data\.notes/);
     expect(source).not.toMatch(/target_school:\s*data\.targetSchool/);
+    expect(source).not.toMatch(/title:\s*buildCaseTitle\(data\)/);
   });
 });
