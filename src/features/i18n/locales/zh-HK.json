@@ -705,6 +705,7 @@
   "join": {
     "title": "申請成為 MatchMax 導師",
     "subtitle": "加入 MatchMax 香港導師網絡。填妥以下表格並上載成績單，我哋會逐一審閱每份申請。",
+    "new_to_market": "初次接觸私人補習？我們助你輕鬆起步——由 WhatsApp 專人團隊為你處理首兩堂的家長配對、時間協調及行政費結算，讓你全心專注教學。",
     "consent": "提交此表格即表示你同意 MatchMax 可以透過電郵或 WhatsApp 就補習機會聯絡你。",
     "sample_title": "示例導師檔案",
     "sample_summary": "唔肯定要寫幾詳細？展開呢個示例參考吓。",
@@ -1482,7 +1483,11 @@
       "not_schedule_body": "你與家長直接安排上課時間。我們不參與排程。",
       "cta_cases": "查看現有個案",
       "cta_apply": "申請成為導師",
-      "playbook_link": "閱讀導師手冊"
+      "playbook_link": "閱讀導師手冊",
+      "support_para": "無論你是剛畢業的公開試狀元，還是初次踏足補習界的新手導師，MatchMax 都能助你輕鬆接案、累積實戰教學經驗並傳承知識。在扣除極低廉的 1.5 堂行政費後，你將保留絕大部分課堂收入。",
+      "support_link_label": "詳見 導師 Playbook",
+      "support_link_suffix": "，內有家長溝通範本與首堂提示。",
+      "founder_line": "由學生創立，為導師而設 —— 堅持公平收費，與你一起培育下一代學子。"
     },
     "notes": {
       "eyebrow": "筆記市集",

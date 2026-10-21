@@ -683,6 +683,7 @@
   "join": {
     "title": "Apply to tutor with MatchMax",
     "subtitle": "Join the MatchMax tutor network in Hong Kong. Complete this short form and attach your transcript — our team reviews every application.",
+    "new_to_market": "New to the market? We help you start with real students — our WhatsApp concierge handles parent intros, scheduling, and fee collection for your first two lessons so you can focus on teaching.",
     "consent": "By submitting this form, you agree that MatchMax may contact you via email or WhatsApp about tutoring opportunities.",
     "sample_title": "Example tutor profile",
     "sample_summary": "Not sure what level of detail to include? Expand this example profile.",
@@ -1482,7 +1483,11 @@
       "not_schedule_body": "You and the parent arrange lesson times directly. We stay out of the scheduling.",
       "cta_cases": "See open cases",
       "cta_apply": "Apply as a tutor",
-      "playbook_link": "Read the tutor playbook"
+      "playbook_link": "Read the tutor playbook",
+      "support_para": "Whether you are a recent top scorer or new to tutoring, MatchMax gives you a straightforward way to take cases, build experience, and keep most of what you earn after the low 1.5-lesson admin charge.",
+      "support_link_label": "Read the Tutor Playbook",
+      "support_link_suffix": " for parent-communication templates and first-lesson tips.",
+      "founder_line": "Built by students, for educators — keeping fees fair while supporting the next cohort."
     },
     "notes": {
       "eyebrow": "Marketplace",
