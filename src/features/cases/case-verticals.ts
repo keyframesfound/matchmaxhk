@@ -12,7 +12,7 @@ import {
   type AcademicTier,
   type KindergartenTopic,
 } from "@/features/tutors/verticals";
-import { stripContactDetails } from "@/lib/contact-filter";
+import { sanitizeCaseFreeText } from "@/lib/contact-filter";
 
 // The four funnel options shown as the first question of step 1.
 // "Secondary" stays a UI-level choice: the stored student_level keeps the
@@ -75,18 +75,11 @@ export function tierForFunnelLevel(level: FunnelLevel | null | undefined): Acade
  * "9123 foo@bar.com 4567" strips to "9123   4567" and collapsing the
  * whitespace stitches it into the canonical "9123 4567", so the collapse
  * output must be re-filtered before storage. Trim, cap, blank → null.
+ * (Since #410 the implementation is the shared sanitizeCaseFreeText in
+ * contact-filter.ts — one pipeline for every public case free-text field.)
  */
 export function sanitizeCaseUniText(raw: unknown, max: number): string | null {
-  let value = typeof raw === "string" ? raw : "";
-  for (let i = 0; i < 3; i++) {
-    const next = stripContactDetails(value)
-      .replace(/\s{2,}/g, " ")
-      .trim();
-    if (next === value) break;
-    value = next;
-  }
-  const capped = value.slice(0, max);
-  return capped ? capped : null;
+  return sanitizeCaseFreeText(raw, max);
 }
 
 export type CaseVerticalInput = {
