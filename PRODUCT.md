@@ -44,6 +44,8 @@ Proof-first marketplace: every tutor is a verified top scorer with team-reviewed
 - Name: MatchMax.
 - Logo asset exists at `public/matchmax-logo.png`; favicon set and web manifest in place.
 - Bilingual (EN + zh-HK) identity is part of the brand.
+- **Core public claim (parents first):** Tutoring made convenient. Free for parents. Fair 1.5-lesson fee for tutors.
+- **Supporting tutor claim (secondary colour only):** Help tutors new to the market — clear start, concierge for the first two lessons, public profile, majority of fee kept after admin charge. Optional purpose colour: build teaching skill and support the next cohort (guide / playbook / Impact / ops — never homepage hero or custom tutor headlines). See GitHub #416.
 
 ## Evidence on Hand
 
@@ -59,3 +61,4 @@ Proof-first marketplace: every tutor is a verified top scorer with team-reviewed
 3. Trust the tutor's time: tutors teach; MatchMax handles finding students.
 4. Two languages, one product: every user-facing surface treats EN and zh-HK as equal citizens.
 5. Real numbers only: stats and claims on public pages must be backed by actual data.
+6. Tutor-support colour is secondary: purpose and “help new tutors” language reinforces loyalty on tutor surfaces; it must not displace fair-fee / speed / transparency as the lead.
