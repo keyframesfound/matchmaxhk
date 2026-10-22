@@ -20,7 +20,11 @@ import {
   submitParentReview,
   type ParentCaseDetail,
 } from "@/features/cases/parent.functions";
-import { REVIEW_COMMENT_MAX_PARENT, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
+import {
+  feeHoldKind,
+  REVIEW_COMMENT_MAX_PARENT,
+  REVIEW_COMMENT_MIN,
+} from "@/features/cases/case-reviews";
 
 export const Route = createFileRoute("/_authenticated/account/cases/$caseId")({
   ssr: false,
@@ -215,19 +219,33 @@ function ReviewSection({
   const { t } = useTranslation();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [editing, setEditing] = useState(false);
   const hasDoneLesson = detail.lessons.some((l) => l.status === "done");
+  const myReview = detail.myReview;
   const hasVisibleOrHeld =
-    detail.myReview !== null &&
-    (detail.myReview.status === "visible" || detail.myReview.status === "held");
+    myReview !== null && (myReview.status === "visible" || myReview.status === "held");
+  // #386: a review held ONLY for the fee settlement publishes automatically
+  // once the case admin fee settles; a contact-hold does not. A COMBINED
+  // reason (fee + contact filter) explains both halves in its own copy.
+  const holdKind = feeHoldKind(myReview?.held_reason);
 
   const submit = useMutation({
     mutationFn: () => submitParentReview({ data: { caseId, rating, comment } }),
     onSuccess: (res) => {
-      toast.success(
-        t(res.status === "held" ? "sor.parent_review_held" : "sor.parent_review_thanks"),
-      );
+      if (res.status === "visible") {
+        toast.success(t("sor.parent_review_thanks"));
+      } else if (feeHoldKind(res.heldReason) === "pure") {
+        // #386 confirmation copy for the fee-settlement hold.
+        toast.success(t("sor.parent_review_fee_hold"));
+      } else if (feeHoldKind(res.heldReason) === "combined") {
+        // #386: fee hold + contact filter — both halves must be explained.
+        toast.success(t("sor.parent_review_fee_hold_combined"));
+      } else {
+        toast.success(t("sor.parent_review_held"));
+      }
       setRating(0);
       setComment("");
+      setEditing(false);
       onChanged();
     },
     onError: (e) => toast.error(e.message),
@@ -235,7 +253,7 @@ function ReviewSection({
 
   const canSubmit =
     hasDoneLesson &&
-    !hasVisibleOrHeld &&
+    (!hasVisibleOrHeld || editing) &&
     rating >= 1 &&
     comment.trim().length >= REVIEW_COMMENT_MIN &&
     comment.trim().length <= REVIEW_COMMENT_MAX_PARENT;
@@ -250,13 +268,30 @@ function ReviewSection({
       <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
         {t("sor.parent_review_title")}
       </h2>
-      {detail.myReview &&
-      (detail.myReview.status === "visible" || detail.myReview.status === "held") ? (
-        <p className="text-sm text-muted-foreground">
-          {detail.myReview.status === "held"
-            ? t("sor.parent_review_pending_state")
-            : t("sor.parent_review_submitted_state", { rating: detail.myReview.rating })}
-        </p>
+      {myReview && hasVisibleOrHeld && !editing ? (
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            {myReview.status === "held"
+              ? holdKind === "pure"
+                ? t("sor.parent_review_fee_pending_state")
+                : holdKind === "combined"
+                  ? t("sor.parent_review_fee_pending_combined_state")
+                  : t("sor.parent_review_pending_state")
+              : t("sor.parent_review_submitted_state", { rating: myReview.rating })}
+          </p>
+          {/* #386: edits update the single case review (never a second one). */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              setRating(myReview.rating);
+              setComment(myReview.comment);
+              setEditing(true);
+            }}
+          >
+            {t("sor.parent_review_edit")}
+          </Button>
+        </div>
       ) : (
         <div className="rounded-xl border border-[color:var(--ink)]/10 p-4">
           <div className="flex items-center gap-1">
@@ -287,14 +322,30 @@ function ReviewSection({
               {comment.trim().length}/{REVIEW_COMMENT_MAX_PARENT} ·{" "}
               {t("sor.parent_review_hold_note")}
             </span>
-            <Button
-              size="sm"
-              disabled={!canSubmit || submit.isPending}
-              onClick={() => submit.mutate()}
-            >
-              {submit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {t("sor.parent_review_submit")}
-            </Button>
+            <div className="flex items-center gap-2">
+              {editing && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={submit.isPending}
+                  onClick={() => {
+                    setRating(myReview?.rating ?? 0);
+                    setComment(myReview?.comment ?? "");
+                    setEditing(false);
+                  }}
+                >
+                  {t("sor.parent_review_cancel")}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                disabled={!canSubmit || submit.isPending}
+                onClick={() => submit.mutate()}
+              >
+                {submit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {t("sor.parent_review_submit")}
+              </Button>
+            </div>
           </div>
         </div>
       )}

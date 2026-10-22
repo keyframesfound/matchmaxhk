@@ -5,6 +5,7 @@
 
 import {
   buildParentDisplayLine,
+  FEE_SETTLEMENT_HOLD_REASON,
   parentCanReviewCase,
   validateReviewInput,
   type ReviewDirection,
@@ -25,6 +26,9 @@ export type ReviewSubmitDecision =
 /**
  * Decide what a parent review submission does against existing rows:
  *  - no done lesson on the case -> reject (#205/#287 "no done lesson, no review")
+ *  - #386: while the case's admin fee is NOT settled the review is HELD under
+ *    pending_fee_settlement (plus any contact reasons); it publishes lazily
+ *    on read once the fee settles
  *  - an existing HELD review by the same parent is UPDATED (one row per
  *    case+direction per author as much as the unique allows)
  *  - an existing VISIBLE review by the same parent is REPLACED (old row stays
@@ -35,6 +39,8 @@ export function decideReviewSubmit(input: {
   rating: number;
   comment: string;
   existingMine: ExistingReview[];
+  /** #386: is the case's applicable admin fee already settled? */
+  feeSettled: boolean;
 }): ReviewSubmitDecision {
   if (!parentCanReviewCase(input.lessons)) {
     return { action: "reject", message: "NO_DONE_LESSON" };
@@ -42,9 +48,20 @@ export function decideReviewSubmit(input: {
   const validity = validateReviewInput("parent_to_tutor", input.rating, input.comment);
   if (!validity.ok) return { action: "reject", message: validity.message };
 
-  const heldReason =
+  const contactHeld =
     validity.heldReasons.length > 0 ? `held: ${validity.heldReasons.join(", ")}` : undefined;
-  const status: "visible" | "held" = validity.heldReasons.length > 0 ? "held" : "visible";
+  let status: "visible" | "held";
+  let heldReason: string | undefined;
+  if (!input.feeSettled) {
+    // #386: every parent→tutor review waits for the fee settlement.
+    status = "held";
+    heldReason = contactHeld
+      ? `${FEE_SETTLEMENT_HOLD_REASON} + ${contactHeld}`
+      : FEE_SETTLEMENT_HOLD_REASON;
+  } else {
+    status = contactHeld ? "held" : "visible";
+    heldReason = contactHeld;
+  }
 
   const held = input.existingMine.find((r) => r.status === "held");
   if (held) return { action: "update", reviewId: held.id, status, heldReason };

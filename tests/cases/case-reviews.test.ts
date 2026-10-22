@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildParentDisplayLine,
+  canPublishHeldReview,
+  feeHoldKind,
   findReviewHolds,
+  isCaseFeeSettled,
+  isCaseFeeSettledStatus,
   parentCanReviewCase,
   reviewCommentMax,
   validateReviewInput,
@@ -78,5 +82,47 @@ describe("case review rules (#205 + #287)", () => {
   it("review opens only after a done lesson (#287 acceptance)", () => {
     expect(parentCanReviewCase([{ status: "confirmed" }])).toBe(false);
     expect(parentCanReviewCase([{ status: "done" }, { status: "planned" }])).toBe(true);
+  });
+});
+
+describe("#386 fee-settlement publish gate", () => {
+  it("sor_status alone settles only through fee-reachable states", () => {
+    expect(isCaseFeeSettledStatus("fee_paid")).toBe(true);
+    expect(isCaseFeeSettledStatus("active")).toBe(true);
+    expect(isCaseFeeSettledStatus("replaced")).toBe(true);
+    expect(isCaseFeeSettledStatus("waived")).toBe(true);
+    // 'closed' is reachable from pre-fee states — status alone is not proof.
+    expect(isCaseFeeSettledStatus("closed")).toBe(false);
+    expect(isCaseFeeSettledStatus("lesson_1_done")).toBe(false);
+    expect(isCaseFeeSettledStatus(null)).toBe(false);
+  });
+
+  it("a paid/waived fee row proves settlement even on a closed case (GLM blocker fix)", () => {
+    // The review-loop blocker: closed cases kept reviews held forever because
+    // 'closed' is excluded from the status list. A settled fee row is proof.
+    expect(isCaseFeeSettled("closed", [{ status: "paid" }])).toBe(true);
+    expect(isCaseFeeSettled("closed", [{ status: "invoiced" }, { status: "waived" }])).toBe(true);
+    // A pre-fee closure has no settled fee row — stays unsettled.
+    expect(isCaseFeeSettled("closed", [])).toBe(false);
+    expect(isCaseFeeSettled("closed", [{ status: "invoiced" }])).toBe(false);
+    expect(isCaseFeeSettled("closed", [{ status: "not_due" }])).toBe(false);
+    // Status proof still works without any fee rows.
+    expect(isCaseFeeSettled("fee_paid", [])).toBe(true);
+    expect(isCaseFeeSettled(null, [{ status: "paid" }])).toBe(true);
+    expect(isCaseFeeSettled(null, [])).toBe(false);
+  });
+
+  it("feeHoldKind classifies pure / combined / none (combined copy fix)", () => {
+    expect(feeHoldKind("pending_fee_settlement")).toBe("pure");
+    expect(feeHoldKind("pending_fee_settlement + held: phone")).toBe("combined");
+    expect(feeHoldKind("held: phone")).toBe("none");
+    expect(feeHoldKind(null)).toBe("none");
+  });
+
+  it("only a PURE fee hold auto-publishes; combined stays held (#205)", () => {
+    expect(canPublishHeldReview("pending_fee_settlement")).toBe(true);
+    expect(canPublishHeldReview("pending_fee_settlement + held: phone")).toBe(false);
+    expect(canPublishHeldReview("held: phone")).toBe(false);
+    expect(canPublishHeldReview(null)).toBe(false);
   });
 });

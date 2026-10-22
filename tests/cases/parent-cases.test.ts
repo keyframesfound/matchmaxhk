@@ -5,27 +5,35 @@ import {
   decideReviewSubmit,
   parentDisplayLineFromCase,
 } from "../../src/features/cases/parent/review-flow";
+import {
+  canPublishHeldReview,
+  FEE_SETTLEMENT_HOLD_REASON,
+  isCaseFeeSettledStatus,
+} from "../../src/features/cases/case-reviews";
 
 const doneLesson = { status: "done" };
 const plannedLesson = { status: "planned" };
+const cleanComment = "Great tutor, very clear explanations.";
 
 describe("review submit state machine (#205/#287)", () => {
   it("rejects without a done lesson", () => {
     const res = decideReviewSubmit({
       lessons: [plannedLesson],
       rating: 5,
-      comment: "Great tutor, very clear explanations.",
+      comment: cleanComment,
       existingMine: [],
+      feeSettled: false,
     });
     expect(res).toEqual({ action: "reject", message: "NO_DONE_LESSON" });
   });
 
-  it("inserts visible when clean and no prior review", () => {
+  it("inserts visible when clean, no prior review, fee already settled", () => {
     const res = decideReviewSubmit({
       lessons: [doneLesson],
       rating: 5,
       comment: "Explained IB Physics paper 2 clearly.",
       existingMine: [],
+      feeSettled: true,
     });
     expect(res).toEqual({ action: "insert", status: "visible" });
   });
@@ -36,8 +44,13 @@ describe("review submit state machine (#205/#287)", () => {
       rating: 4,
       comment: "Reach me on 9123 4567 anytime.",
       existingMine: [],
+      feeSettled: true,
     });
-    expect(res).toMatchObject({ action: "insert", status: "held" });
+    expect(res).toEqual({
+      action: "insert",
+      status: "held",
+      heldReason: "held: phone",
+    });
   });
 
   it("replaces a visible review (old row stays)", () => {
@@ -46,6 +59,7 @@ describe("review submit state machine (#205/#287)", () => {
       rating: 3,
       comment: "Updated opinion after more lessons.",
       existingMine: [{ id: "r1", status: "visible", author_account_id: "p1" }],
+      feeSettled: true,
     });
     expect(res).toEqual({ action: "replace", oldReviewId: "r1", status: "visible" });
   });
@@ -56,12 +70,13 @@ describe("review submit state machine (#205/#287)", () => {
       rating: 5,
       comment: "Clean text this time.",
       existingMine: [{ id: "r2", status: "held", author_account_id: "p1" }],
+      feeSettled: true,
     });
     expect(res).toEqual({ action: "update", reviewId: "r2", status: "visible" });
   });
 
   it("rejects invalid ratings and comment bounds", () => {
-    const base = { lessons: [doneLesson], existingMine: [] as never[] };
+    const base = { lessons: [doneLesson], existingMine: [] as never[], feeSettled: true };
     expect(decideReviewSubmit({ ...base, rating: 6, comment: "x".repeat(50) }).action).toBe(
       "reject",
     );
@@ -69,6 +84,86 @@ describe("review submit state machine (#205/#287)", () => {
     expect(decideReviewSubmit({ ...base, rating: 5, comment: "x".repeat(601) }).action).toBe(
       "reject",
     );
+  });
+});
+
+describe("fee-settlement hold (#386)", () => {
+  it("holds a clean review under pending_fee_settlement while the fee is unsettled", () => {
+    const res = decideReviewSubmit({
+      lessons: [doneLesson],
+      rating: 5,
+      comment: cleanComment,
+      existingMine: [],
+      feeSettled: false,
+    });
+    expect(res).toEqual({
+      action: "insert",
+      status: "held",
+      heldReason: FEE_SETTLEMENT_HOLD_REASON,
+    });
+  });
+
+  it("combines the fee hold with contact holds (contact still blocks publish)", () => {
+    const res = decideReviewSubmit({
+      lessons: [doneLesson],
+      rating: 4,
+      comment: "Reach me on 9123 4567 anytime.",
+      existingMine: [],
+      feeSettled: false,
+    });
+    expect(res).toEqual({
+      action: "insert",
+      status: "held",
+      heldReason: `${FEE_SETTLEMENT_HOLD_REASON} + held: phone`,
+    });
+  });
+
+  it("updates the existing held row (never a second review) while fee-held", () => {
+    const res = decideReviewSubmit({
+      lessons: [doneLesson],
+      rating: 5,
+      comment: cleanComment,
+      existingMine: [{ id: "r3", status: "held", author_account_id: "p1" }],
+      feeSettled: false,
+    });
+    expect(res).toEqual({
+      action: "update",
+      reviewId: "r3",
+      status: "held",
+      heldReason: FEE_SETTLEMENT_HOLD_REASON,
+    });
+  });
+
+  it("replaces a visible review as fee-held when the fee is unsettled", () => {
+    const res = decideReviewSubmit({
+      lessons: [doneLesson],
+      rating: 5,
+      comment: cleanComment,
+      existingMine: [{ id: "r4", status: "visible", author_account_id: "p1" }],
+      feeSettled: false,
+    });
+    expect(res).toMatchObject({ action: "replace", oldReviewId: "r4", status: "held" });
+  });
+
+  it("settled-rule matrix: only fee-settlement SoR states count", () => {
+    expect(isCaseFeeSettledStatus("fee_paid")).toBe(true);
+    expect(isCaseFeeSettledStatus("active")).toBe(true);
+    expect(isCaseFeeSettledStatus("replaced")).toBe(true);
+    expect(isCaseFeeSettledStatus("waived")).toBe(true);
+    expect(isCaseFeeSettledStatus("lesson_1_done")).toBe(false);
+    expect(isCaseFeeSettledStatus("fee_invoiced")).toBe(false);
+    // closed is reachable from pre-fee states — not proof of settlement.
+    expect(isCaseFeeSettledStatus("closed")).toBe(false);
+    expect(isCaseFeeSettledStatus(null)).toBe(false);
+    expect(isCaseFeeSettledStatus(undefined)).toBe(false);
+  });
+
+  it("only a PURE fee-settlement hold is publishable", () => {
+    expect(canPublishHeldReview(FEE_SETTLEMENT_HOLD_REASON)).toBe(true);
+    expect(canPublishHeldReview(`${FEE_SETTLEMENT_HOLD_REASON} + held: phone`)).toBe(false);
+    expect(canPublishHeldReview("held: phone")).toBe(false);
+    expect(canPublishHeldReview(null)).toBe(false);
+    expect(canPublishHeldReview(undefined)).toBe(false);
   });
 });
 
