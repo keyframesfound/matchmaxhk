@@ -32,6 +32,12 @@ import {
   unpaidQueue,
 } from "@/features/cases/admin-desk.functions";
 import { CASE_FLAG_REASONS, type CaseFlagReason } from "@/features/cases/case-flags";
+import {
+  derivePaidState,
+  fullAdminFeeAmount,
+  lesson1Amount,
+  lesson2BalanceAmount,
+} from "@/features/cases/fee-breakdown";
 import { importCases } from "@/features/cases/import.functions";
 import { parseCaseImportCsv } from "@/features/cases/import-csv";
 import { cn } from "@/lib/utils";
@@ -128,6 +134,47 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
     data.lessons.find((l) => l.sequence === 1),
     data.lessons.find((l) => l.sequence === 2),
   ];
+
+  // #385 preset invoice paths: 100% Lesson 1 / 50% Lesson 2 balance / full 1.5×.
+  // Group scaling: tutoring_cases has no student_count column yet — every preset
+  // computes ×1 per case; × student_count scaling lands with issue #391.
+  const rateHkd = data.hourly_rate_hkd == null ? null : Number(data.hourly_rate_hkd);
+  const paidState = derivePaidState(data.fees, rateHkd);
+  // The 1.0× paid → 0.5× balance path can sit past fee_paid in the SoR machine
+  // (fee actions advance it), so "Lesson 2 done" reads the lesson row too.
+  const lesson2Done = data.sor_status === "lesson_2_done" || lesson2?.status === "done";
+  const hasBlockingFee = data.fees.some(
+    (f) => f.status === "not_due" || f.status === "invoiced" || f.status === "paid",
+  );
+  const presetReason = {
+    l1: "preset 1.0 × Lesson 1",
+    l2Balance: "preset 0.5 × Lesson 2 balance",
+    full: "preset full 1.5 lessons",
+  };
+  const presets = rateHkd
+    ? {
+        l1: {
+          amount: lesson1Amount(rateHkd),
+          enabled: data.sor_status === "lesson_1_done" && !hasBlockingFee && paidState === "none",
+          multiplier: 1.0,
+          reason: presetReason.l1,
+        },
+        l2Balance: {
+          amount: lesson2BalanceAmount(rateHkd),
+          enabled: lesson2Done && paidState === "partial_l1",
+          multiplier: 0.5,
+          reason: presetReason.l2Balance,
+        },
+        full: {
+          amount: fullAdminFeeAmount(rateHkd),
+          enabled: lesson2Done && !hasBlockingFee,
+          multiplier: 1.5,
+          reason: presetReason.full,
+        },
+      }
+    : null;
+  const invoicePreset = (p: { multiplier: number; reason: string }) =>
+    customInvoice.mutate({ multiplier: p.multiplier, reason: p.reason });
 
   return (
     <ConsolePanel title={t("sor.admin_panel_title")}>
@@ -238,6 +285,44 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
                 </span>
               )}
             </div>
+          )}
+          {presets ? (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs text-muted-foreground">{t("sor.admin_fee_breakdown")}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {paidState === "partial_l1" && (
+                  <span className="rounded-full border border-[color:var(--ink)]/15 px-2 py-0.5 text-xs text-muted-foreground">
+                    {t("sor.admin_paid_partial_chip")}
+                  </span>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!presets.l1.enabled || customInvoice.isPending}
+                  onClick={() => invoicePreset(presets.l1)}
+                >
+                  {t("sor.admin_preset_l1", { amount: presets.l1.amount })}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!presets.l2Balance.enabled || customInvoice.isPending}
+                  onClick={() => invoicePreset(presets.l2Balance)}
+                >
+                  {t("sor.admin_preset_l2_balance", { amount: presets.l2Balance.amount })}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!presets.full.enabled || customInvoice.isPending}
+                  onClick={() => invoicePreset(presets.full)}
+                >
+                  {t("sor.admin_preset_full", { amount: presets.full.amount })}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-muted-foreground">{t("sor.admin_no_rate_hint")}</p>
           )}
           {canCustomInvoice && (
             <CustomInvoiceBlock
