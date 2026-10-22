@@ -100,6 +100,15 @@ describe("buildCoreAcademicBreakdown (issue #411)", () => {
     expect(groups[0].grades[0].subject).toBe("SAT Math");
   });
 
+  it("never lifts prose that merely starts with the curriculum label", () => {
+    const groups = buildCoreAcademicBreakdown(
+      [{ system: "ap", subjects: [{ subject: "Statistics", grade: "Grade 5" }] }],
+      "AP Straight 5/5 Specialist",
+    );
+    expect(groups[0].curriculum).toBe("AP");
+    expect(groups[0].total).toBeNull();
+  });
+
   it("hides everything when no scores/grades exist (Examiner / pro tutors)", () => {
     expect(buildCoreAcademicBreakdown([], "Official IB Maths Examiner")).toEqual([]);
     expect(buildCoreAcademicBreakdown([], "IBDP Tutor")).toEqual([]);

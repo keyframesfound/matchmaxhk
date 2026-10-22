@@ -87,13 +87,19 @@ function headlineTotalFor(labels: string[], headline: string | null | undefined)
       const lower = segment.toLowerCase();
       if (!lower.startsWith(normalizedLabel)) continue;
       const rest = segment.slice(label.trim().length).trim();
-      // "<Curriculum> Tutor" is the no-score fallback, never a total.
+      // "<Curriculum> Tutor" is the no-score fallback, never a total; and the
+      // rest must be a SCORE token ("41/45", "9A*", "1520") — not free text
+      // like "Straight 5/5 Specialist" which merely starts with the label.
       if (!rest || rest.toLowerCase() === "tutor") continue;
+      if (!HEADLINE_SCORE_RE.test(rest)) continue;
       return rest;
     }
   }
   return null;
 }
+
+/** "41/45" | "9A*" | "1520" | "32" | "7.5" — a bare score, never prose. */
+const HEADLINE_SCORE_RE = /^\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?(?:[A-Za-z*]{1,4})?$/u;
 
 export function buildCoreAcademicBreakdown(
   examResults: ExamResult[],
