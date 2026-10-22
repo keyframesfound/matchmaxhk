@@ -21,7 +21,7 @@ import {
   decideReviewSubmit,
   parentDisplayLineFromCase,
 } from "@/features/cases/parent/review-flow";
-import { canPublishHeldReview, isCaseFeeSettledStatus } from "@/features/cases/case-reviews";
+import { canPublishHeldReview, isCaseFeeSettled } from "@/features/cases/case-reviews";
 
 type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
@@ -290,7 +290,9 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
     const mine = myReviews.find((r) => r.author_account_id === context.userId) ?? null;
     const openFee = fees.find((f) => f.status === "invoiced" || f.status === "paid") ?? null;
     let myReviewStatus = mine?.status ?? null;
-    if (isCaseFeeSettledStatus(c.sor_status)) {
+    // #386 settled rule includes the fee-row proof (paid/waived), so reviews on
+    // cases that closed AFTER settlement publish here too — see isCaseFeeSettled.
+    if (isCaseFeeSettled(c.sor_status, fees)) {
       const eligible = myReviews.filter(
         (r) =>
           r.direction === "parent_to_tutor" &&
@@ -540,7 +542,7 @@ export const submitParentReview = createServerFn({ method: "POST" })
       const c = await myCase(db, data.caseId, context.userId);
       if (!c.matched_tutor_id) throw new Error("NO_TUTOR");
 
-      const [lessons, headRows, mine] = await Promise.all([
+      const [lessons, headRows, mine, feeRows] = await Promise.all([
         selectRows<{ status: string }>(db, "case_lessons", "status", [
           { col: "case_id", op: "eq", value: c.id },
         ]),
@@ -558,13 +560,18 @@ export const submitParentReview = createServerFn({ method: "POST" })
           "id, status, author_account_id",
           [{ col: "case_id", op: "eq", value: c.id }],
         ),
+        // #386: a settled fee row (paid/waived) proves settlement even when the
+        // case has moved on to 'closed' — see isCaseFeeSettled in case-reviews.
+        selectRows<{ status: string }>(db, "case_fees", "status", [
+          { col: "case_id", op: "eq", value: c.id },
+        ]),
       ]);
 
       const decision = decideReviewSubmit({
         lessons,
         rating: data.rating,
         comment: data.comment,
-        feeSettled: isCaseFeeSettledStatus(c.sor_status),
+        feeSettled: isCaseFeeSettled(c.sor_status, feeRows),
         existingMine: mine
           .filter((r) => r.author_account_id === context.userId)
           .map((r) => ({

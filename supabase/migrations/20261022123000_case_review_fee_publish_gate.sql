@@ -13,10 +13,13 @@
 -- Settled rule (matches src/features/cases/case-reviews.ts, the single source):
 -- sor_status IN ('fee_paid','active','replaced','waived') — the states
 -- reachable ONLY through fee settlement (fee_paid → active is the sole path to
--- active; replaced only from active; waived = settled by waiver). 'closed' is
--- excluded: it is reachable from pre-fee states, so it is not proof of
--- settlement. The 1.0x (L1-terminated) vs 1.5x (L2-completed) refinement from
--- #385 is a documented future refinement, not built here.
+-- active; replaced only from active; waived = settled by waiver) — OR a
+-- case_fees row for the case with status 'paid'/'waived', which is direct
+-- proof the applicable admin fee was collected or waived. The fee-row clause
+-- covers 'closed' cases: closed is reachable from pre-fee states, so the
+-- status alone is not proof, but a case closed AFTER settlement keeps its
+-- paid/waived fee row. The 1.0x (L1-terminated) vs 1.5x (L2-completed)
+-- refinement from #385 is a documented future refinement, not built here.
 --
 -- Only rows held PURELY for the fee settlement flip; a contact-hold
 -- (phone/email/WhatsApp, reason 'held: …') never auto-publishes (#205).
@@ -38,7 +41,13 @@ BEGIN
     AND r.direction = 'parent_to_tutor'
     AND r.status = 'held'
     AND r.held_reason = 'pending_fee_settlement'
-    AND c.sor_status IN ('fee_paid', 'active', 'replaced', 'waived');
+    AND (
+      c.sor_status IN ('fee_paid', 'active', 'replaced', 'waived')
+      OR EXISTS (
+        SELECT 1 FROM public.case_fees f
+        WHERE f.case_id = c.id AND f.status IN ('paid', 'waived')
+      )
+    );
 
   RETURN (
     SELECT jsonb_build_object(
