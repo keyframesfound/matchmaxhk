@@ -21,6 +21,7 @@ import {
   decideReviewSubmit,
   parentDisplayLineFromCase,
 } from "@/features/cases/parent/review-flow";
+import { canPublishHeldReview, isCaseFeeSettledStatus } from "@/features/cases/case-reviews";
 
 type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
@@ -161,7 +162,13 @@ export type ParentCaseDetail = {
     confirmed_by_tutor_at: string | null;
     location_or_link: string | null;
   }[];
-  myReview: { id: string; status: string; rating: number; comment: string } | null;
+  myReview: {
+    id: string;
+    status: string;
+    rating: number;
+    comment: string;
+    held_reason: string | null;
+  } | null;
   canRequestSlot: boolean;
   slots: { startsAt: string; durationMin: number; station: string | null }[];
   slotDays: string[]; // HKT date keys for the picker
@@ -214,10 +221,15 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         status: string;
         rating: number;
         comment: string;
+        held_reason: string | null;
+        direction: string;
         author_account_id: string;
-      }>(db, "case_reviews", "id, status, rating, comment, author_account_id", [
-        { col: "case_id", op: "eq", value: c.id },
-      ]),
+      }>(
+        db,
+        "case_reviews",
+        "id, status, rating, comment, held_reason, direction, author_account_id",
+        [{ col: "case_id", op: "eq", value: c.id }],
+      ),
     ]);
     const head = full[0];
 
@@ -271,8 +283,31 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
     }
     const slotDays = [...new Set(slots.map((s) => s.startsAt.slice(0, 10)))];
 
+    // #386 lazy publish on read (lazy-cancel precedent): once the case's
+    // applicable admin fee is settled, held parent→tutor reviews that are
+    // held PURELY for the fee settlement flip to visible in this request.
+    // Contact-holds (phone/email/WhatsApp) never auto-publish.
     const mine = myReviews.find((r) => r.author_account_id === context.userId) ?? null;
     const openFee = fees.find((f) => f.status === "invoiced" || f.status === "paid") ?? null;
+    let myReviewStatus = mine?.status ?? null;
+    if (isCaseFeeSettledStatus(c.sor_status)) {
+      const eligible = myReviews.filter(
+        (r) =>
+          r.direction === "parent_to_tutor" &&
+          r.status === "held" &&
+          canPublishHeldReview(r.held_reason),
+      );
+      for (const r of eligible) {
+        const { error } = await db
+          .from<Row>("case_reviews")
+          .update({ status: "visible", updated_at: new Date().toISOString() })
+          .eq("id", r.id);
+        if (error) throw new Error(error.message);
+        r.status = "visible";
+      }
+      const mineId = mine?.id;
+      if (mineId != null && eligible.some((r) => r.id === mineId)) myReviewStatus = "visible";
+    }
 
     return {
       id: c.id,
@@ -295,7 +330,13 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         location_or_link: l.location_or_link,
       })),
       myReview: mine
-        ? { id: mine.id, status: mine.status, rating: mine.rating, comment: mine.comment }
+        ? {
+            id: mine.id,
+            status: myReviewStatus ?? mine.status,
+            rating: mine.rating,
+            comment: mine.comment,
+            held_reason: mine.held_reason,
+          }
         : null,
       canRequestSlot,
       slots,
@@ -489,79 +530,85 @@ export const submitParentReview = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ context, data }): Promise<{ status: "visible" | "held" }> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const db = asAdminDb(supabaseAdmin);
-    const c = await myCase(db, data.caseId, context.userId);
-    if (!c.matched_tutor_id) throw new Error("NO_TUTOR");
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{ status: "visible" | "held"; heldReason: string | null }> => {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const db = asAdminDb(supabaseAdmin);
+      const c = await myCase(db, data.caseId, context.userId);
+      if (!c.matched_tutor_id) throw new Error("NO_TUTOR");
 
-    const [lessons, headRows, mine] = await Promise.all([
-      selectRows<{ status: string }>(db, "case_lessons", "status", [
-        { col: "case_id", op: "eq", value: c.id },
-      ]),
-      selectRows<{
-        student_level: string | null;
-        student_grade_current: string | null;
-        exam_system: string | null;
-        subjects: string[] | null;
-      }>(db, "tutoring_cases", "student_level, student_grade_current, exam_system, subjects", [
-        { col: "id", op: "eq", value: c.id },
-      ]),
-      selectRows<{ id: string; status: string; author_account_id: string }>(
-        db,
-        "case_reviews",
-        "id, status, author_account_id",
-        [{ col: "case_id", op: "eq", value: c.id }],
-      ),
-    ]);
+      const [lessons, headRows, mine] = await Promise.all([
+        selectRows<{ status: string }>(db, "case_lessons", "status", [
+          { col: "case_id", op: "eq", value: c.id },
+        ]),
+        selectRows<{
+          student_level: string | null;
+          student_grade_current: string | null;
+          exam_system: string | null;
+          subjects: string[] | null;
+        }>(db, "tutoring_cases", "student_level, student_grade_current, exam_system, subjects", [
+          { col: "id", op: "eq", value: c.id },
+        ]),
+        selectRows<{ id: string; status: string; author_account_id: string }>(
+          db,
+          "case_reviews",
+          "id, status, author_account_id",
+          [{ col: "case_id", op: "eq", value: c.id }],
+        ),
+      ]);
 
-    const decision = decideReviewSubmit({
-      lessons,
-      rating: data.rating,
-      comment: data.comment,
-      existingMine: mine
-        .filter((r) => r.author_account_id === context.userId)
-        .map((r) => ({
-          id: r.id,
-          status: r.status as "visible" | "held" | "hidden" | "replaced",
-          author_account_id: r.author_account_id,
-        })),
-    });
-    if (decision.action === "reject") throw new Error(decision.message);
+      const decision = decideReviewSubmit({
+        lessons,
+        rating: data.rating,
+        comment: data.comment,
+        feeSettled: isCaseFeeSettledStatus(c.sor_status),
+        existingMine: mine
+          .filter((r) => r.author_account_id === context.userId)
+          .map((r) => ({
+            id: r.id,
+            status: r.status as "visible" | "held" | "hidden" | "replaced",
+            author_account_id: r.author_account_id,
+          })),
+      });
+      if (decision.action === "reject") throw new Error(decision.message);
 
-    if (decision.action === "replace") {
-      await db
-        .from<Row>("case_reviews")
-        .update({ status: "replaced", updated_at: new Date().toISOString() })
-        .eq("id", decision.oldReviewId);
-    }
+      if (decision.action === "replace") {
+        await db
+          .from<Row>("case_reviews")
+          .update({ status: "replaced", updated_at: new Date().toISOString() })
+          .eq("id", decision.oldReviewId);
+      }
 
-    const displayLine = parentDisplayLineFromCase(headRows[0] ?? {});
-    const row = {
-      case_id: c.id,
-      lesson_id: null as string | null,
-      direction: "parent_to_tutor" as const,
-      author_account_id: context.userId,
-      tutor_id: c.matched_tutor_id,
-      rating: data.rating,
-      comment: data.comment.trim(),
-      author_display_line: displayLine,
-      status: decision.status,
-      held_reason: decision.heldReason ?? null,
-    };
+      const displayLine = parentDisplayLineFromCase(headRows[0] ?? {});
+      const row = {
+        case_id: c.id,
+        lesson_id: null as string | null,
+        direction: "parent_to_tutor" as const,
+        author_account_id: context.userId,
+        tutor_id: c.matched_tutor_id,
+        rating: data.rating,
+        comment: data.comment.trim(),
+        author_display_line: displayLine,
+        status: decision.status,
+        held_reason: decision.heldReason ?? null,
+      };
 
-    if (decision.action === "update") {
-      const { error } = await db
-        .from<Row>("case_reviews")
-        .update({ ...row, updated_at: new Date().toISOString() })
-        .eq("id", decision.reviewId);
-      if (error) throw new Error(error.message);
-    } else {
-      const { error } = await db.from<Row>("case_reviews").insert(row).select("id").single();
-      if (error) throw new Error(error.message);
-    }
-    return { status: decision.status };
-  });
+      if (decision.action === "update") {
+        const { error } = await db
+          .from<Row>("case_reviews")
+          .update({ ...row, updated_at: new Date().toISOString() })
+          .eq("id", decision.reviewId);
+        if (error) throw new Error(error.message);
+      } else {
+        const { error } = await db.from<Row>("case_reviews").insert(row).select("id").single();
+        if (error) throw new Error(error.message);
+      }
+      return { status: decision.status, heldReason: decision.heldReason ?? null };
+    },
+  );
 
 /** Mark-done window gate reused by the UI (parent confirm hints). */
 export { canMarkDone };
