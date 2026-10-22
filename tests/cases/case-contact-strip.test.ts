@@ -90,7 +90,9 @@ describe("submitCaseRequest wiring (source assertion)", () => {
       /const cleanTargetSchool =[\s\S]*?sanitizeCaseFreeText\(data\.targetSchool,\s*120\)/,
     );
     expect(source).toMatch(
-      /title:\s*buildCaseTitle\(\{\s*\.\.\.data,\s*targetSchool:\s*cleanTargetSchool\s*\}\)/,
+      // #423 added the tier-consistency pass-through (subjects come from
+      // tierConsistent, dropped mismatched subjects never reach the title).
+      /title:\s*buildCaseTitle\(\{\s*\.\.\.data,\s*targetSchool:\s*cleanTargetSchool,\s*subjects:\s*tierConsistent\.subjects,?\s*\}\)/,
     );
     expect(source).toMatch(/target_school:\s*cleanTargetSchool/);
   });

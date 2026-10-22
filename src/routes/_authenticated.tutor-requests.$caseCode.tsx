@@ -100,9 +100,13 @@ function CaseDetailPage() {
 
   const handleShare = () => {
     setIsSharing(true);
+    // Issue #423: a both-blank budget has no rate text — never "HK$?".
+    const shareRate = tutorBudget.primary ?? formatCaseBudgetHkd(item);
     void shareOrCopy({
       title: `${title} — Case ${item.caseCode} | MatchMax`,
-      text: `Check out this tutoring request (Case ${item.caseCode}) on MatchMax — ${formatCaseBudgetHkd(item)}.`,
+      text: shareRate
+        ? `Check out this tutoring request (Case ${item.caseCode}) on MatchMax — ${shareRate}.`
+        : `Check out this tutoring request (Case ${item.caseCode}) on MatchMax.`,
       url: window.location.href,
     }).finally(() => setIsSharing(false));
   };
@@ -123,8 +127,13 @@ function CaseDetailPage() {
     {
       icon: Wallet,
       // Issue #113: tutor-quoting currencies get the converted figure first.
-      label: tutorBudget.primary ?? formatCaseBudgetHkd(item),
-      hint: tutorBudget.primary ? `Original: ${formatCaseBudgetHkd(item)}` : undefined,
+      // Issue #423: "Rate TBA" only on the detail page — the matrix omits
+      // the rate everywhere else, and "HK$?" never renders.
+      label: tutorBudget.primary ?? (formatCaseBudgetHkd(item) || t("case_request.rate_tba")),
+      hint:
+        tutorBudget.primary && formatCaseBudgetHkd(item)
+          ? `Original: ${formatCaseBudgetHkd(item)}`
+          : undefined,
     },
   ];
 

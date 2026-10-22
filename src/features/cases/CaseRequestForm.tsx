@@ -22,7 +22,6 @@ import {
   ADMISSIONS_CATEGORY_OPTIONS,
   ADMISSIONS_CURRICULUM,
   ADMISSIONS_CURRICULUM_LABEL,
-  CURRICULUM_OPTIONS,
   DELIVERY_MODE_OPTIONS,
   INSTRUCTION_LANGUAGE_OPTIONS,
   INTERVIEW_TEST_OPTIONS,
@@ -35,6 +34,7 @@ import {
   TUTOR_BACKGROUND_OPTIONS,
   COMPONENT_SENTINEL,
   getComponentOptionsForCurriculum,
+  getCurriculumOptionsForLevel,
   getSubjectOptionsForCurriculum,
 } from "@/features/cases/case-options";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
@@ -281,6 +281,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           (KINDERGARTEN_TOPICS as readonly string[]).includes(topic),
         )
       : [];
+    // Issue #423 bug 3: a stale draft can carry a curriculum outside the
+    // restored level's lock — drop it so step 2 re-asks coherently.
+    const allowedCurricula = getCurriculumOptionsForLevel(academicLevel).map((o) => o.value);
+    const curriculum = allowedCurricula.includes(restored.curriculum) ? restored.curriculum : "";
     // #380 review: a restored draft's budget currency (even an explicit
     // HKD) is the visitor's own choice — never re-sync it afterwards.
     budgetCurrencyTouched.current = true;
@@ -290,6 +294,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       academicLevel,
       secondaryBand,
       kindergartenTopics,
+      curriculum,
       instructionLanguage: languages,
       tags,
     }));
@@ -320,6 +325,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
 
   const isAdmissions = form.supportType === "admissions";
   const subjectOptions = getSubjectOptionsForCurriculum(form.curriculum);
+  // Issue #423 bug 3: curricula locked to the chosen academic tier — a
+  // Primary case can only pick "Primary School", never IBDP.
+  const curriculumOptions = getCurriculumOptionsForLevel(form.academicLevel);
   // Admissions sub-category ("Standardized Testing & Language" vs
   // "Application & Admissions Support") narrows the umbrella's subject pool.
   const admissionsSubjectOptions = form.admissionsCategory
@@ -385,6 +393,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   // Issue #190: the level-first funnel. Picking a level reveals its
   // slide-down region and resets the other verticals' fields; the stored
   // student level (form.year) follows the funnel answer directly.
+  // Issue #423 bug 3: the level also locks the curriculum — a Primary case
+  // can never carry the IB curriculum, so the step-2 selection (and its
+  // subjects) resets whenever the level changes; a level with exactly one
+  // coherent curriculum (Kindergarten/Primary/University) pre-selects it.
   const handleAcademicLevelChange = (value: string) => {
     const patch: Partial<FormState> = {
       academicLevel: value,
@@ -394,7 +406,15 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       uniProgram: "",
       uniCourseCodes: "",
       kindergartenTopics: [],
+      curriculum: "",
+      subject1: "",
+      subject2: "",
+      subject3: "",
+      subject4: "",
+      specificComponent: "",
     };
+    const levelOptions = getCurriculumOptionsForLevel(value);
+    if (levelOptions.length === 1) patch.curriculum = levelOptions[0].value;
     const level = storedStudentLevel(
       FUNNEL_LEVELS.includes(value as (typeof FUNNEL_LEVELS)[number])
         ? (value as (typeof FUNNEL_LEVELS)[number])
@@ -947,7 +967,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               <SearchableSelect
                 value={form.curriculum}
                 onChange={handleCurriculumChange}
-                options={CURRICULUM_OPTIONS}
+                options={curriculumOptions}
                 placeholder="Select curriculum"
                 searchPlaceholder="Search curriculum..."
                 className={controlClassName}

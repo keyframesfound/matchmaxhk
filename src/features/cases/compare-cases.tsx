@@ -229,7 +229,8 @@ function CaseCompareDialog({
       label: "Budget",
       render: (item) => (
         <p className="text-[13px] font-semibold text-[color:var(--ink)]">
-          {formatCaseBudgetHkd(item)}
+          {/* #423: both-blank budget renders an em-dash, never "HK$?". */}
+          {formatCaseBudgetHkd(item) || "\u2014"}
         </p>
       ),
     },
