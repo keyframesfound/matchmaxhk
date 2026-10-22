@@ -108,6 +108,9 @@ export type TutorCardInsert = {
   self_introduction: string;
   qualifications_summary: string;
   academic_headline: string;
+  /** Issue #411: custom headlines (trigger seeds EN from academic_headline). */
+  custom_headline_en: null;
+  custom_headline_zh: null;
   undergrad_university: string | null;
   undergrad_degree: string | null;
   undergrad_graduation_year: string | null;
@@ -194,6 +197,10 @@ export function buildTutorCardInsert(
       buildAcademicHeadline([
         { curriculum: application.curriculum, score: application.overallScore },
       ]),
+    // Issue #411: left NULL on insert — the BEFORE INSERT trigger seeds
+    // custom_headline_en from the academic headline; ZH stays tutor-authored.
+    custom_headline_en: null,
+    custom_headline_zh: null,
     undergrad_university: application.university || null,
     undergrad_degree: application.programme || null,
     undergrad_graduation_year: application.graduationYear || null,
@@ -231,6 +238,9 @@ export function mappedCardContactError(card: TutorCardInsert): string | null {
     card.qualifications_summary,
     card.self_introduction,
     card.academic_headline,
+    // Issue #411: the custom headlines are public text too.
+    card.custom_headline_en ?? "",
+    card.custom_headline_zh ?? "",
     card.travel_note,
     card.rate_note,
     ...card.subjects,

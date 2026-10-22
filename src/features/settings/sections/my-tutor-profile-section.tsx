@@ -15,6 +15,8 @@ import { toCurrencyCode, SUPPORTED_CURRENCIES } from "@/lib/money";
 import { approxHkdText } from "@/features/currency/convert";
 import { useExchangeRates } from "@/features/currency/display-currency-context";
 import { MAX_ACADEMIC_HEADLINE, academicHeadlineError } from "@/lib/academic-headline";
+import { MAX_CUSTOM_HEADLINE } from "@/features/tutors/custom-headline";
+import { draftChineseHeadline } from "@/features/tutors/headline-translate";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -96,7 +98,7 @@ import {
 /** Columns the tutor-facing editor reads/writes. Mirrors SELECT_COLS minus
  * admin-managed identity (tutor_code, created_at, referral). */
 const MY_TUTOR_COLUMNS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, sen_enabled, sen_categories, sen_experience, deletion_requested_at";
+  "id, display_name, headline, card_highlights, academic_headline, custom_headline_en, custom_headline_zh, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, photo_url, profile_tags, tutor_code, is_published, start_immediately, earliest_start_date, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, sen_enabled, sen_categories, sen_experience, deletion_requested_at";
 
 type MyTutorRow = Tutor & {
   user_id?: string | null;
@@ -471,6 +473,19 @@ export function MyTutorProfileSection() {
     setRates((prev) => (prev ? { ...prev, ...patch } : prev));
   };
 
+  // Issue #411: RULE-BASED Auto-Translate DRAFT (no AI/LLM service — AI
+  // features are parked in this repo). Fills the ZH input only so the tutor
+  // can edit; whatever is saved is exactly what renders (CEO lock).
+  const handleAutoTranslate = () => {
+    if (!form) return;
+    if (!form.custom_headline_en.trim()) {
+      toast.info(t("settings.my_tutor.auto_translate_empty"));
+      return;
+    }
+    setForm({ ...form, custom_headline_zh: draftChineseHeadline(form.custom_headline_en) });
+    toast.success(t("settings.my_tutor.auto_translate_done"));
+  };
+
   // Issue #113: live ≈HK$ equivalents under each rate input, following the
   // selected quoting currency (hidden for HKD — no conversion to show).
   const rateFxRates = useExchangeRates();
@@ -492,6 +507,16 @@ export function MyTutorProfileSection() {
       {
         field: "academic_headline" as const,
         error: contactFilterError(form.academic_headline ?? ""),
+      },
+      // Issue #411: the custom headlines are public text — mirror the DB
+      // owner contact guard so the tutor sees the reason inline.
+      {
+        field: "custom_headline_en" as const,
+        error: contactFilterError(form.custom_headline_en ?? ""),
+      },
+      {
+        field: "custom_headline_zh" as const,
+        error: contactFilterError(form.custom_headline_zh ?? ""),
       },
       {
         field: "qualifications_summary" as const,
@@ -933,6 +958,73 @@ export function MyTutorProfileSection() {
                 allowCustom
                 className="bg-[color:var(--surface)]"
               />
+            </div>
+          </div>
+
+          {/* Issue #411: dual-language custom headline — the card's bold Row 1.
+              60-char cap mirrors the DB CHECK; the live counter shows the room
+              left. Saved through the section's owner UPDATE (the tutors_owner_
+              contact_guard trigger and CHECK enforce the server side). */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="myt-headline-en" className="text-[color:var(--ink)]">
+                {t("settings.my_tutor.custom_headline_en")}
+              </Label>
+              <Input
+                id="myt-headline-en"
+                value={form.custom_headline_en}
+                maxLength={MAX_CUSTOM_HEADLINE}
+                onChange={(e) => setForm({ ...form, custom_headline_en: e.target.value })}
+                placeholder="e.g. IBDP 41/45 | Imperial Aero Eng"
+                className="bg-[color:var(--surface)]"
+              />
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-xs text-[color:var(--ink)]/55">
+                  {t("settings.my_tutor.custom_headline_hint")}
+                </p>
+                <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                  {form.custom_headline_en.length}/{MAX_CUSTOM_HEADLINE}
+                </span>
+              </div>
+              {errors.custom_headline_en ? (
+                <p className="text-xs font-medium text-destructive">{errors.custom_headline_en}</p>
+              ) : null}
+            </div>
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Label htmlFor="myt-headline-zh" className="text-[color:var(--ink)]">
+                  {t("settings.my_tutor.custom_headline_zh")}
+                </Label>
+                {/* Issue #411 CEO lock: DRAFT assist only — rule-based, no AI. */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAutoTranslate}
+                  className="shrink-0"
+                >
+                  {t("settings.my_tutor.auto_translate")}
+                </Button>
+              </div>
+              <Input
+                id="myt-headline-zh"
+                value={form.custom_headline_zh}
+                maxLength={MAX_CUSTOM_HEADLINE}
+                onChange={(e) => setForm({ ...form, custom_headline_zh: e.target.value })}
+                placeholder="例如：IBDP 41/45 | 帝國理工航空工程"
+                className="bg-[color:var(--surface)]"
+              />
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-xs text-[color:var(--ink)]/55">
+                  {t("settings.my_tutor.auto_translate_hint")}
+                </p>
+                <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                  {form.custom_headline_zh.length}/{MAX_CUSTOM_HEADLINE}
+                </span>
+              </div>
+              {errors.custom_headline_zh ? (
+                <p className="text-xs font-medium text-destructive">{errors.custom_headline_zh}</p>
+              ) : null}
             </div>
           </div>
 

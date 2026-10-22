@@ -235,6 +235,9 @@ export const tutorFormSchema = z.object({
     .max(MAX_ACADEMIC_HEADLINE, `Keep the headline to ${MAX_ACADEMIC_HEADLINE} characters or fewer`)
     .optional()
     .or(z.literal("")),
+  // Issue #411: dual-language custom headlines (DB CHECK <= 60 chars).
+  custom_headline_en: z.string().trim().max(60).default(""),
+  custom_headline_zh: z.string().trim().max(60).default(""),
   // Issue #107: undergraduate + optional postgraduate degree history.
   undergrad_university: z.string().trim().max(120).optional().or(z.literal("")),
   undergrad_degree: z.string().trim().max(120).optional().or(z.literal("")),
@@ -381,6 +384,8 @@ export const emptyTutorForm: TutorFormData = {
   subjects: [],
   target_students: [],
   academic_headline: "",
+  custom_headline_en: "",
+  custom_headline_zh: "",
   undergrad_university: "",
   undergrad_degree: "",
   undergrad_graduation_year: "",
@@ -437,6 +442,8 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     subjects: t.subjects ?? [],
     target_students: t.target_students ?? [],
     academic_headline: t.academic_headline ?? "",
+    custom_headline_en: t.custom_headline_en ?? "",
+    custom_headline_zh: t.custom_headline_zh ?? "",
     undergrad_university: t.undergrad_university ?? "",
     undergrad_degree: t.undergrad_degree ?? "",
     undergrad_graduation_year: t.undergrad_graduation_year ?? "",
@@ -555,6 +562,10 @@ export function formDataToPayload(v: TutorFormData) {
       .filter(Boolean)
       .slice(0, MAX_TUTOR_CARD_HIGHLIGHTS),
     academic_headline: v.academic_headline?.trim() || null,
+    // Issue #411: owner-editable dual-language custom headlines (<= 60 chars,
+    // DB CHECK + contact guard); the tutor sees exactly what they saved.
+    custom_headline_en: v.custom_headline_en?.trim() || null,
+    custom_headline_zh: v.custom_headline_zh?.trim() || null,
     undergrad_university: v.undergrad_university?.trim() || null,
     undergrad_degree: v.undergrad_degree?.trim() || null,
     undergrad_graduation_year: v.undergrad_graduation_year?.trim() || null,

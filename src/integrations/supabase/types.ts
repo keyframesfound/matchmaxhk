@@ -1078,6 +1078,8 @@ export type Database = {
         Row: {
           achievements: Json;
           academic_headline: string | null;
+          custom_headline_en: string | null;
+          custom_headline_zh: string | null;
           badge: string | null;
           card_hidden_by_ban: boolean;
           owner_account_status: string;
@@ -1146,6 +1148,8 @@ export type Database = {
         Insert: {
           achievements?: Json;
           academic_headline?: string | null;
+          custom_headline_en?: string | null;
+          custom_headline_zh?: string | null;
           badge?: string | null;
           card_hidden_by_ban?: boolean;
           owner_account_status?: string;
@@ -1211,6 +1215,8 @@ export type Database = {
         Update: {
           achievements?: Json;
           academic_headline?: string | null;
+          custom_headline_en?: string | null;
+          custom_headline_zh?: string | null;
           badge?: string | null;
           card_hidden_by_ban?: boolean;
           owner_account_status?: string;
