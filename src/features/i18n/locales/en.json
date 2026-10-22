@@ -1862,7 +1862,8 @@
     "detail_uni_field": "Field of study: {{value}}",
     "detail_uni_name": "University: {{value}}",
     "detail_uni_program": "Programme: {{value}}",
-    "detail_uni_courses": "University courses / need: {{value}}"
+    "detail_uni_courses": "University courses / need: {{value}}",
+    "rate_tba": "Rate TBA"
   },
   "sen": {
     "filter_title": "SEN support",

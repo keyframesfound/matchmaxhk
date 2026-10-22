@@ -65,9 +65,45 @@ export const CASE_START_LABEL: Record<string, string> = {
   flexible: "Flexible start",
 };
 
+/**
+ * Issue #423 rate formatter matrix — `HK$?` may NEVER render.
+ *
+ * | min    | max    | Render              |
+ * |--------|--------|---------------------|
+ * | set    | set    | `HK$300–500/hr`     |
+ * | blank  | set    | `Up to HK$500/hr`   |
+ * | set    | blank  | `From HK$300/hr`    |
+ * | blank  | blank  | `""` (caller omits) |
+ *
+ * tutoring_cases has no rate_unit column today (the form collects hourly
+ * budgets only), so callers get the `/hr` suffix by default; the unit
+ * parameter is forward-compatible with a future hr/lesson/month column.
+ */
+export type CaseRateUnit = "hr" | "lesson" | "month";
+
+const RATE_UNIT_SUFFIX: Record<CaseRateUnit, string> = {
+  hr: "/hr",
+  lesson: "/lesson",
+  month: "/month",
+};
+
+export function formatCaseRate(
+  min: number | null | undefined,
+  max: number | null | undefined,
+  unit: CaseRateUnit = "hr",
+): string {
+  const suffix = RATE_UNIT_SUFFIX[unit] ?? "/hr";
+  const hasMin = min !== null && min !== undefined;
+  const hasMax = max !== null && max !== undefined;
+  if (!hasMin && !hasMax) return "";
+  if (!hasMin) return `Up to HK$${max}${suffix}`;
+  if (!hasMax) return `From HK$${min}${suffix}`;
+  return `HK$${min}\u2013${max}${suffix}`;
+}
+
+/** formatCaseRate over the hourly budget bounds (the stored shape today). */
 export function formatCaseBudget(min: number | null, max: number | null): string {
-  if (min === null && max === null) return "Budget open";
-  return `HK$${min ?? "?"}–${max ?? "?"}/hr`;
+  return formatCaseRate(min, max);
 }
 
 /**
@@ -116,16 +152,27 @@ export function caseBudgetForTutor(
   rates: HkdRates,
 ): { primary: string | null; original: string } {
   const { min, max } = caseBudgetHkdBounds(item);
-  const original = formatCaseBudget(min, max);
+  const original = formatCaseRate(min, max);
+  if (!original) return { primary: null, original };
   if (tutorCurrency === DEFAULT_CURRENCY) return { primary: null, original };
-  if (min === null && max === null) return { primary: null, original };
-  const convert = (value: number): string | null => {
+  const convert = (value: number | null | undefined): string | null => {
+    if (value === null || value === undefined) return null;
     const converted = convertCurrency(value, DEFAULT_CURRENCY, tutorCurrency, rates);
     return Number.isFinite(converted) ? formatMoney(converted, tutorCurrency) : null;
   };
-  const parts = [min === null ? "?" : convert(min), max === null ? "?" : convert(max)];
-  if (parts.some((part) => part === null)) return { primary: null, original };
-  return { primary: `${parts[0]}–${parts[1]}/hr`, original };
+  // Same matrix as formatCaseRate, with each bound converted first (#423).
+  if (min === null) {
+    const to = convert(max);
+    return to ? { primary: `Up to ${to}/hr`, original } : { primary: null, original };
+  }
+  if (max === null) {
+    const from = convert(min);
+    return from ? { primary: `From ${from}/hr`, original } : { primary: null, original };
+  }
+  const from = convert(min);
+  const to = convert(max);
+  if (!from || !to) return { primary: null, original };
+  return { primary: `${from}\u2013${to}/hr`, original };
 }
 
 export function formatCaseSchedule(sessionsPerWeek: number, sessionLengthMinutes: number): string {

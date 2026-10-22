@@ -1862,7 +1862,8 @@
     "detail_uni_field": "學術領域：{{value}}",
     "detail_uni_name": "大學：{{value}}",
     "detail_uni_program": "學位課程：{{value}}",
-    "detail_uni_courses": "大學課程／需要：{{value}}"
+    "detail_uni_courses": "大學課程／需要：{{value}}",
+    "rate_tba": "學費待議"
   },
   "sen": {
     "filter_title": "SEN 支援",

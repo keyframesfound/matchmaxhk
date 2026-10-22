@@ -12,7 +12,11 @@ import {
 import { FEE_TERMS_VERSION } from "@/features/legal/terms";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
-import { TARGET_PATHWAY_LABELS, TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
+import {
+  TARGET_PATHWAY_LABELS,
+  TUTOR_BACKGROUND_LABELS,
+  enforceCaseTierConsistency,
+} from "@/features/cases/case-options";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
 import { sanitizeCaseFreeText } from "@/lib/contact-filter";
 
@@ -380,15 +384,30 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
     const cleanTargetSchool =
       data.supportType === "admissions" ? sanitizeCaseFreeText(data.targetSchool, 120) : null;
 
+    // Issue #423 bug 3: tier/curriculum consistency, enforced server-side so
+    // a tampered request can never store `Primary` + `IBDP Chemistry HL`
+    // (the "Primary: Chem HL" title bug). DROP-not-reject (#396 precedent) —
+    // inconsistent fields are discarded, never a 500.
+    const tierConsistent = enforceCaseTierConsistency({
+      supportType: data.supportType,
+      academicLevel: data.academicLevel,
+      curriculum: data.curriculum,
+      subjects: data.subjects,
+    });
+
     const insertRow = {
-      title: buildCaseTitle({ ...data, targetSchool: cleanTargetSchool }),
+      title: buildCaseTitle({
+        ...data,
+        targetSchool: cleanTargetSchool,
+        subjects: tierConsistent.subjects,
+      }),
       // Issue #410: parent free text that reaches the public board runs
       // through the shared contact filter (strip, never reject — #396
       // precedent). Blank becomes null, so the old trim-then-null branch
       // collapses into the helper.
       description: sanitizeCaseFreeText(data.notes, 2000),
-      subjects: data.subjects,
-      exam_system: data.curriculum || null,
+      subjects: tierConsistent.subjects,
+      exam_system: tierConsistent.curriculum,
       // Issue #190: the funnel answer is the source of truth for the stored
       // level; the optional step-2 year select only fills legacy gaps.
       student_level:
@@ -422,7 +441,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       // Issue #311: parent-picked preset tags first; derived requirement
       // tags always survive (mergeCaseTags keeps them in full up to
       // MAX_CASE_TAGS), so five parent picks never drop the subjects.
-      tags: mergeCaseTags(data.tags, buildCaseTags(data)),
+      tags: mergeCaseTags(data.tags, buildCaseTags({ ...data, subjects: tierConsistent.subjects })),
       // Issue #199: SEN requirements (categories only when required).
       sen_required: data.senRequired,
       sen_categories: data.senRequired ? data.senCategories : [],

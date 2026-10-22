@@ -187,3 +187,63 @@ export function getSubjectOptionsForCurriculum(curriculum: string): string[] {
   if (!curriculum) return [];
   return getSubjectOptionsForCategory(curriculum);
 }
+
+// --- Issue #423 bug 3: tier/curriculum lock -------------------------------
+
+/**
+ * Which curricula are coherent for each case-request funnel level. A
+ * `Primary` case must never carry an `IB` curriculum (the "Primary: Chem HL"
+ * auto-title bug), so the picker filters to this set and the submit handler
+ * drops inconsistent pairs server-side (DROP-not-reject — unauthenticated-
+ * adjacent path must never 500).
+ *
+ * Legacy stored curricula ("Local Primary", "Int'l Primary") stay readable
+ * through getSubjectOptionsForCurriculum but are no longer selectable.
+ */
+export const CURRICULA_FOR_ACADEMIC_LEVEL: Record<string, string[]> = {
+  Kindergarten: ["Kindergarten"],
+  Primary: ["Primary School"],
+  Secondary: ["IB", "DSE", "A-Level", "IGCSE", "Junior Secondary"],
+  University: ["University"],
+};
+
+/** Curriculum options narrowed to the chosen funnel level (all when unknown). */
+export function getCurriculumOptionsForLevel(
+  academicLevel: string | null | undefined,
+): { value: string; label: string }[] {
+  const allowed = academicLevel ? CURRICULA_FOR_ACADEMIC_LEVEL[academicLevel] : undefined;
+  if (!allowed) return CURRICULUM_OPTIONS;
+  return CURRICULUM_OPTIONS.filter((option) => allowed.includes(option.value));
+}
+
+/**
+ * Server-side tier consistency for a submitted case: returns the
+ * tier-coherent {curriculum, subjects} pair, DROPPING anything that
+ * contradicts the funnel level (never throws — #396 precedent).
+ *
+ * A curriculum outside the level's set is dropped together with the subjects
+ * drawn from its pool; free-text/custom subjects survive (the subject picker
+ * is allowCustom, so unknown strings are legitimate parent input).
+ */
+export function enforceCaseTierConsistency(payload: {
+  supportType: string;
+  academicLevel: string;
+  curriculum: string | null | undefined;
+  subjects: string[];
+}): { curriculum: string | null; subjects: string[] } {
+  const { supportType, academicLevel, subjects } = payload;
+  // Admissions auto-locks the curriculum umbrella — always coherent.
+  if (supportType === "admissions") {
+    return { curriculum: ADMISSIONS_CURRICULUM, subjects };
+  }
+  const curriculum = payload.curriculum?.trim() || null;
+  const allowed = CURRICULA_FOR_ACADEMIC_LEVEL[academicLevel];
+  if (!curriculum) return { curriculum: null, subjects };
+  if (!allowed || allowed.includes(curriculum)) return { curriculum, subjects };
+  // Mismatch: drop the curriculum and any subject that came from its pool.
+  const mismatchedPool = new Set(getSubjectOptionsForCurriculum(curriculum));
+  return {
+    curriculum: null,
+    subjects: subjects.filter((subject) => !mismatchedPool.has(subject)),
+  };
+}
