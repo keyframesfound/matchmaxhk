@@ -350,7 +350,14 @@
       "reject_reason_not_a_result_slip": "Not a result slip",
       "reject_reason_looks_altered": "Looks altered",
       "reject_reason_wrong_document": "Wrong document",
-      "rates_currency": "Currency"
+      "rates_currency": "Currency",
+      "custom_headline_en": "Custom headline — English",
+      "custom_headline_zh": "Custom headline — Chinese",
+      "custom_headline_hint": "The bold top line on your card and profile. Max 60 characters.",
+      "auto_translate": "Auto-Translate",
+      "auto_translate_hint": "Auto-Translate drafts a Chinese version from the English headline — review and edit before saving.",
+      "auto_translate_done": "Chinese draft filled in — please review and edit.",
+      "auto_translate_empty": "Enter an English headline first."
     },
     "grid": {
       "title": "Weekly availability grid",
@@ -909,7 +916,9 @@
     "available_from": "Available from {{date}}",
     "prebook_cta": "Pre-book for {{date}}",
     "verified_badge": "Verified",
-    "verified_disclaimer": "Staff checked the grades shown. Not confirmed with the exam board. Ask the tutor for the slip before lesson one."
+    "verified_disclaimer": "Staff checked the grades shown. Not confirmed with the exam board. Ask the tutor for the slip before lesson one.",
+    "view_all_grades": "View all {{count}} grades",
+    "show_fewer_grades": "Show fewer grades"
   },
   "help": {
     "title": "Hi, how can we help?",

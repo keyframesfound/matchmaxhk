@@ -7,6 +7,7 @@ import {
   Star,
   ArrowLeft,
   Award,
+  BadgeCheck,
   BookOpen,
   CalendarDays,
   Clock,
@@ -51,7 +52,13 @@ import {
   getTutorStationsText,
   type Tutor,
 } from "@/features/tutors/queries";
-import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
+import { type ExamResult } from "@/features/tutors/examSystems";
+import {
+  buildCoreAcademicBreakdown,
+  formatExamSystemLabel,
+  type CoreAcademicGroup,
+} from "@/features/tutors/core-academic-breakdown";
+import { getActiveCustomHeadline } from "@/features/tutors/custom-headline";
 import { useDisplayCurrency } from "@/features/currency/display-currency-context";
 import {
   convertedTextFromHkd,
@@ -173,27 +180,6 @@ function LessonDetailRow({
   );
 }
 
-function formatExamSystemLabel(system: string) {
-  const normalized = system.trim().toLowerCase();
-
-  if (normalized === "ib" || normalized === "ibdp") return "IBDP";
-  if (normalized === "dse" || normalized === "hkdse") return "HKDSE";
-  if (normalized === "alevel" || normalized === "a-level" || normalized === "gce a-level")
-    return "GCE A-Level";
-  if (normalized === "igcse" || normalized === "gcse") return "IGCSE / GCSE";
-  if (normalized === "ap") return "AP";
-  if (normalized === "sat") return "SAT";
-  if (normalized === "ielts") return "IELTS";
-  if (normalized === "isat") return "ISAT";
-  if (normalized === "ucat") return "UCAT";
-  if (normalized === "primary") return "Primary School";
-  if (normalized === "junior secondary") return "Junior Secondary";
-  if (normalized === "admissions") return "University Admissions & Test Prep";
-
-  const systemName = system.trim();
-  return (getSystem(normalized)?.label ?? systemName) || "Exam system";
-}
-
 function getExamSystemSubjectSummary(result: ExamResult) {
   const systemLabel = formatExamSystemLabel(result.system);
   const subjects = (result.subjects ?? []).map((entry) => entry.subject.trim()).filter(Boolean);
@@ -201,26 +187,40 @@ function getExamSystemSubjectSummary(result: ExamResult) {
   return { systemLabel, subjects };
 }
 
-function AcademicQualification({ result }: { result: ExamResult }) {
-  const label = formatExamSystemLabel(result.system);
-  const normalizedSystem = result.system.trim().toLowerCase();
+/** Issue #411: shared per-curriculum groups (totals as headers). */
+const academicBreakdown = (t: Tutor) =>
+  buildCoreAcademicBreakdown(t.exam_results ?? [], t.academic_headline);
+
+function CoreAcademicGroupBlock({
+  group,
+  isFirst,
+}: {
+  group: CoreAcademicGroup;
+  isFirst: boolean;
+}) {
+  const normalizedSystem = String(group.curriculum).trim().toLowerCase();
   const gradeNoun =
     normalizedSystem === "ielts"
       ? "Band"
       : normalizedSystem === "isat" || normalizedSystem === "ucat"
         ? "Score"
         : "Grade";
-  const subjects = result.subjects.filter((entry) => entry.subject.trim());
+  const subjects = group.grades.filter((entry) => entry.subject.trim());
 
-  if (subjects.length === 0) return null;
+  if (subjects.length === 0 && !group.total) return null;
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-[color:var(--ink)]">{label}</p>
-      <ul className="space-y-1.5">
-        {subjects.map((entry, subjectIndex) => {
-          const papers = (entry.papers ?? []).filter((p) => p.label.trim() && p.score.trim());
-          return (
+    <div
+      className={isFirst ? "space-y-2" : "mt-4 space-y-2 border-t border-dashed border-border pt-4"}
+    >
+      {/* Issue #411: the curriculum's total score IS the group header
+          ("IBDP: 41/45"); partial data shows the curriculum name only. */}
+      <p className="text-sm font-bold text-[color:var(--ink)]">
+        {group.total ? `${group.curriculum}: ${group.total}` : group.curriculum}
+      </p>
+      {subjects.length > 0 ? (
+        <ul className="space-y-1.5">
+          {subjects.map((entry, subjectIndex) => (
             <li
               key={`${entry.subject}-${subjectIndex}`}
               className="border-l-2 border-[color:var(--brand-link)] pl-3"
@@ -229,17 +229,13 @@ function AcademicQualification({ result }: { result: ExamResult }) {
                 <span className="text-sm font-bold text-[color:var(--ink)]">{entry.subject}</span>
                 {entry.grade.trim() ? (
                   <span className="text-sm font-bold text-[color:var(--brand-link)]">
-                    – {gradeNoun}{" "}
-                    {entry.grade
-                      // Issue #206: hide the intake-era "(legacy)" suffix.
-                      .replace(/\s*\(legacy\)\s*$/i, "")
-                      .replace(/^(grade|band)\s+/i, "")}
+                    – {gradeNoun} {entry.grade}
                   </span>
                 ) : null}
               </div>
-              {papers.length > 0 ? (
+              {entry.papers && entry.papers.length > 0 ? (
                 <p className="mt-0.5 text-xs font-semibold text-[color:var(--brand-link)]">
-                  {papers.map((paper, paperIndex) => (
+                  {entry.papers.map((paper, paperIndex) => (
                     <span key={`${paper.label}-${paperIndex}`}>
                       {paperIndex > 0 ? <strong> · </strong> : null}
                       {paper.label}: {paper.score}
@@ -248,9 +244,9 @@ function AcademicQualification({ result }: { result: ExamResult }) {
                 </p>
               ) : null}
             </li>
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }
@@ -523,6 +519,12 @@ function TutorDetail() {
   // Issue #116: self-serve weekly grid has at least one non-unavailable cell.
   const hasAvailabilityGrid = countAvailableCells(parseAvailabilityGrid(t.availability_grid)) > 0;
   const genderLabel = getTutorGenderLabel(t.gender);
+  // Issue #411: the active dual-language custom headline is the prominent
+  // main line (custom_headline_en/zh with strict fallback to academic_headline).
+  const activeHeadline = useMemo(
+    () => getActiveCustomHeadline(t, i18n.language),
+    [t, i18n.language],
+  );
   // Issues #77/#52: tutor status badge key (null when unset/unknown).
   const statusKey = getTutorStatusLabelKey(t.tutor_status);
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
@@ -539,9 +541,6 @@ function TutorDetail() {
       subjects: subjects.length > 0 ? subjects : [systemLabel],
     };
   });
-  const examResults = (t.exam_results ?? []).filter((result) =>
-    result.subjects.some((entry) => entry.subject.trim()),
-  );
   // Issue #190 verticals: University block shows when any university field is
   // set; Kindergarten block when the level is opted into OR K topics sit in
   // subjects. Labels localize through verticals-labels.
@@ -676,16 +675,33 @@ function TutorDetail() {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl font-bold text-[color:var(--ink)] sm:text-2xl">
-                    {t.tutor_code}
-                    {genderLabel ? (
-                      <>
-                        <strong> • </strong>
-                        {genderLabel}
-                      </>
-                    ) : null}
-                  </h1>
+                {/* Issue #411 header restructure — (1) code • gender + BLUE
+                    TICK as the small secondary line, (2) active custom
+                    headline as the prominent main bold line, (3) university,
+                    (4) secondary school. */}
+                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                  <span className="font-semibold">{t.tutor_code}</span>
+                  {genderLabel ? (
+                    <>
+                      <span aria-hidden="true">•</span>
+                      <span>{genderLabel}</span>
+                    </>
+                  ) : null}
+                  {/* Issue #411: minimalist BLUE TICK (MatchMax azure),
+                      same #309 approved-grade gate as the card. */}
+                  {(t.approved_grade_labels?.length ?? 0) > 0 ? (
+                    <span
+                      className="inline-flex items-center"
+                      title={translate("tutor_card.verified_disclaimer")}
+                    >
+                      <BadgeCheck
+                        className="h-4 w-4 fill-[#1d9bf0] text-white dark:text-[#0b2230]"
+                        strokeWidth={1.8}
+                        aria-hidden="true"
+                      />
+                      <span className="sr-only">{translate("tutor_card.verified_badge")}</span>
+                    </span>
+                  ) : null}
                   {/* Issues #77/#52: tutor status badge on the profile header. */}
                   {statusKey ? (
                     <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)]">
@@ -697,47 +713,43 @@ function TutorDetail() {
                     </span>
                   ) : null}
                 </div>
-                {t.academic_headline || t.undergrad_university || t.secondary_school ? (
-                  <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
-                    {t.academic_headline ? (
-                      <p className="break-words">{t.academic_headline}</p>
-                    ) : null}
-                    {t.has_postgrad && (t.postgrad_university || t.postgrad_degree) ? (
-                      <p className="flex items-start gap-1.5">
-                        <GraduationCap
-                          className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
-                          aria-hidden="true"
-                        />
-                        <span className="break-words">
-                          {translate("profile.education_postgraduate")}:{" "}
-                          {formatInstitutionDegree(t.postgrad_university, t.postgrad_degree)}
-                        </span>
-                      </p>
-                    ) : null}
-                    {t.undergrad_university || t.undergrad_degree ? (
-                      <p className="flex items-start gap-1.5">
-                        <GraduationCap
-                          className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
-                          aria-hidden="true"
-                        />
-                        <span className="break-words">
-                          {translate("profile.education_undergraduate")}:{" "}
-                          {formatInstitutionDegree(t.undergrad_university, t.undergrad_degree)}
-                        </span>
-                      </p>
-                    ) : null}
-                    {t.secondary_school ? (
-                      <p className="flex items-start gap-1.5">
-                        <School
-                          className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
-                          aria-hidden="true"
-                        />
-                        <span className="break-words">
-                          {translate("profile.education_secondary")}: {t.secondary_school}
-                        </span>
-                      </p>
-                    ) : null}
-                  </div>
+                <h1 className="mt-1 break-words text-xl font-bold leading-tight text-[color:var(--ink)] sm:text-2xl">
+                  {activeHeadline ?? t.tutor_code}
+                </h1>
+                {t.has_postgrad && (t.postgrad_university || t.postgrad_degree) ? (
+                  <p className="mt-2 flex items-start gap-1.5 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
+                    <GraduationCap
+                      className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                      aria-hidden="true"
+                    />
+                    <span className="break-words">
+                      {translate("profile.education_postgraduate")}:{" "}
+                      {formatInstitutionDegree(t.postgrad_university, t.postgrad_degree)}
+                    </span>
+                  </p>
+                ) : null}
+                {t.undergrad_university || t.undergrad_degree ? (
+                  <p className="mt-1 flex items-start gap-1.5 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
+                    <GraduationCap
+                      className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                      aria-hidden="true"
+                    />
+                    <span className="break-words">
+                      {translate("profile.education_undergraduate")}:{" "}
+                      {formatInstitutionDegree(t.undergrad_university, t.undergrad_degree)}
+                    </span>
+                  </p>
+                ) : null}
+                {t.secondary_school ? (
+                  <p className="mt-1 flex items-start gap-1.5 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
+                    <School
+                      className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                      aria-hidden="true"
+                    />
+                    <span className="break-words">
+                      {translate("profile.education_secondary")}: {t.secondary_school}
+                    </span>
+                  </p>
                 ) : null}
               </div>
               <div className="w-full sm:w-auto sm:text-right">
@@ -912,15 +924,27 @@ function TutorDetail() {
                   </span>
                 </p>
               ) : null}
-              {examResults.length > 0 ? (
-                <ProfileSection icon={LineChart} title={translate("profile.section_academic")}>
-                  <div className="space-y-4">
-                    {examResults.map((result, index) => (
-                      <AcademicQualification key={`${result.system}-${index}`} result={result} />
-                    ))}
-                  </div>
-                </ProfileSection>
-              ) : null}
+              {(() => {
+                // Issue #411: Core Academic Breakdown — per-curriculum groups
+                // with the total as the header and the existing vertical-bar
+                // grade rows underneath; hidden when there are no scores at
+                // all (Examiner / pro tutors).
+                const breakdown = academicBreakdown(t);
+                if (breakdown.length === 0) return null;
+                return (
+                  <ProfileSection icon={LineChart} title={translate("profile.section_academic")}>
+                    <div className="space-y-4">
+                      {breakdown.map((group, index) => (
+                        <CoreAcademicGroupBlock
+                          key={`${group.curriculum}-${index}`}
+                          group={group}
+                          isFirst={index === 0}
+                        />
+                      ))}
+                    </div>
+                  </ProfileSection>
+                );
+              })()}
 
               {/* Issue #190: University vertical block — extends the existing
                   education lines (university + degree stay in the header);

@@ -2,15 +2,15 @@ import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState }
 import { useTranslation } from "react-i18next";
 import {
   Award,
-  BookOpen,
+  BadgeCheck,
   CalendarDays,
   Check,
   Columns2,
   GraduationCap,
   Hash,
+  LineChart,
   School,
   Share2,
-  ShieldCheck,
   UserRound,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -34,6 +34,11 @@ import { useFitText } from "@/hooks/use-fit-text";
 import { shareOrCopy } from "@/lib/share";
 import { cn } from "@/lib/utils";
 import { academicTierLabel } from "@/features/tutors/verticals-labels";
+import { getActiveCustomHeadline } from "@/features/tutors/custom-headline";
+import {
+  buildCoreAcademicBreakdown,
+  countCoreAcademicGrades,
+} from "@/features/tutors/core-academic-breakdown";
 import { useDisplayCurrency } from "@/features/currency/display-currency-context";
 import { convertedTextFromHkd } from "@/features/currency/convert";
 import { DEFAULT_CURRENCY, formatMoney, toCurrencyCode } from "@/lib/money";
@@ -157,14 +162,25 @@ export function PublicTutorCard({
     () => approvedGradeLabels.map((label) => ({ subject: label, grade: null })),
     [approvedGradeLabels],
   );
-  // One Verified badge — derived from ">=1 approved grade".
+  // One Verified badge — derived from ">=1 approved grade" (#309), now the
+  // minimalist BLUE TICK in MatchMax azure (issue #411 branding).
   const verified = approvedGradeLabels.length > 0;
+  // Issue #411: Row 1 is the active dual-language custom headline
+  // (custom_headline_en/zh with strict fallback to the derived headline).
+  const activeHeadline = useMemo(
+    () => getActiveCustomHeadline(tutor, i18n.language),
+    [tutor, i18n.language],
+  );
   const cardHighlights = useMemo(() => getTutorCardHighlights(tutor), [tutor]);
   const price = useMemo(() => getTutorPriceDisplay(tutor), [tutor]);
   const availabilityReadiness = useMemo(() => getTutorAvailabilityReadiness(tutor), [tutor]);
   const academicChipsRef = useRef<HTMLDivElement | null>(null);
   const academicWidthRef = useRef<number | null>(null);
   const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
+  // Issue #411: Core Academic Breakdown "View all N grades" expand toggle —
+  // the card stretches to reveal every pill only when the tutor clicks.
+  const [isBreakdownExpanded, setIsBreakdownExpanded] = useState(false);
+  const visibleGradeCap = 6;
   const [visibleAcademicChipCount, setVisibleAcademicChipCount] = useState(academicChips.length);
   const [hasPhotoError, setHasPhotoError] = useState(false);
   useEffect(() => setHasPhotoError(false), [tutor.photo_url]);
@@ -186,11 +202,17 @@ export function PublicTutorCard({
   const showParentFavorite = engagement ? isParentFavorite(engagement) : false;
   const statusLabel = statusKey ? t(statusKey) : "";
   const primaryCredential = removeEmoji(
-    tutor.academic_headline ??
+    activeHeadline ??
       tutor.undergrad_university ??
       tutor.secondary_school ??
       t("tutor_card.verified_fallback"),
   );
+  // Issue #411: Core Academic Breakdown — per-curriculum totals + grade pills.
+  const breakdown = useMemo(
+    () => buildCoreAcademicBreakdown(tutor.exam_results ?? [], tutor.academic_headline),
+    [tutor.exam_results, tutor.academic_headline],
+  );
+  const breakdownGradeCount = useMemo(() => countCoreAcademicGrades(breakdown), [breakdown]);
   // Issue #107: degree line (postgrad • undergrad) + secondary school. Issue
   // #138: each school/uni line may wrap to two lines instead of truncating.
   const educationLines = getTutorEducationLines(tutor).filter(
@@ -263,6 +285,12 @@ export function PublicTutorCard({
   const toggleAcademicChips = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     setAreAcademicChipsExpanded((expanded) => !expanded);
+  };
+
+  // Issue #411: stretch the card to reveal every grade pill (and back).
+  const toggleBreakdownGrades = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setIsBreakdownExpanded((expanded) => !expanded);
   };
 
   const handleCompareToggle = (event: MouseEvent<HTMLButtonElement>) => {
@@ -357,15 +385,21 @@ export function PublicTutorCard({
                 SEN
               </span>
             ) : null}
-            {/* Issue #309: one Verified badge when >=1 approved grade. Azure
-                stays reserved for money CTAs, so this is a neutral badge. */}
+            {/* Issue #411: BLUE TICK verified badge (MatchMax azure) replacing
+                the #309 emerald pill. Icon-only, like the industry standard;
+                the #309 disclaimer line still renders under the header and the
+                Self-Reported pill is untouched. */}
             {verified ? (
               <span
-                className="inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border border-emerald-600/30 bg-emerald-500/10 px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-emerald-700 dark:text-emerald-400"
+                className="inline-flex max-w-full items-center justify-center"
                 title={t("tutor_card.verified_disclaimer")}
               >
-                <ShieldCheck className="h-3 w-3 shrink-0" aria-hidden="true" />
-                {t("tutor_card.verified_badge")}
+                <BadgeCheck
+                  className="h-5 w-5 fill-[#1d9bf0] text-white dark:text-[#0b2230]"
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
+                <span className="sr-only">{t("tutor_card.verified_badge")}</span>
               </span>
             ) : null}
             {/* Issues #102/#151: dynamic demand + Parent Favorite badges in
@@ -448,42 +482,101 @@ export function PublicTutorCard({
             ))}
           </div>
         ) : null}
-        {academicChips.length > 0 ? (
+        {breakdown.length > 0 || academicChips.length > 0 ? (
           <section className="border-b border-border pb-2.5 md:pb-3">
             <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)] @max-sm:text-xs">
-              <BookOpen
+              <LineChart
                 className="h-3.5 w-3.5 text-[color:var(--brand-link)] @max-sm:h-3 @max-sm:w-3"
                 strokeWidth={2.5}
                 aria-hidden="true"
               />
-              {t("tutor_card.academic_achievements")}
+              {/* Issue #411: the EXACT shared label (same key as the detail
+                  page — never a "Academic Breakdown" variant). */}
+              {t("profile.section_academic")}
             </h3>
-            <div className="relative mt-2">
-              <div
-                id={`academic-achievements-${tutor.tutor_code}`}
-                ref={academicChipsRef}
-                className="flex flex-wrap items-start gap-2 overflow-hidden"
+
+            {/* Issue #411: per-curriculum groups — the total score is the
+                group header ("IBDP: 45/45"), grade pills underneath, subtle
+                divider between curriculums. Hidden entirely when the tutor
+                has no exam scores at all (Examiner / pro tutors). */}
+            {breakdown.map((group, groupIndex) => {
+              const gradesShown = isBreakdownExpanded
+                ? group.grades
+                : (() => {
+                    let before = 0;
+                    for (let i = 0; i < groupIndex; i += 1) before += breakdown[i].grades.length;
+                    const room = Math.max(0, visibleGradeCap - before);
+                    return group.grades.slice(0, room);
+                  })();
+              if (!isBreakdownExpanded && gradesShown.length === 0) return null;
+              return (
+                <div
+                  key={`${group.curriculum}-${groupIndex}`}
+                  className={groupIndex > 0 ? "mt-2 border-t border-border pt-2" : "mt-2"}
+                >
+                  <p className="text-xs font-bold leading-snug text-[color:var(--ink)]">
+                    {group.total ? `${group.curriculum}: ${group.total}` : group.curriculum}
+                  </p>
+                  {gradesShown.length > 0 ? (
+                    <div className="mt-1 flex flex-wrap items-start gap-2">
+                      {gradesShown.map((grade, gradeIndex) => (
+                        <AcademicResultChip
+                          key={`${grade.subject}-${gradeIndex}`}
+                          chip={{ subject: grade.subject, grade: grade.grade || null }}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+
+            {/* Issue #411 extension system: pills beyond the cap collapse
+                behind a "View all N grades" toggle so the card stretches
+                only on click. */}
+            {breakdownGradeCount > visibleGradeCap ? (
+              <button
+                type="button"
+                aria-expanded={isBreakdownExpanded}
+                onClick={toggleBreakdownGrades}
+                onKeyDown={(event) => event.stopPropagation()}
+                className="mt-1.5 inline-flex items-center gap-0.5 rounded-sm text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:text-sm @max-sm:text-[11px]!"
               >
-                {academicChips
-                  .slice(0, areAcademicChipsExpanded ? undefined : visibleAcademicChipCount)
-                  .map((chip, index) => (
-                    <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
-                  ))}
-                {!areAcademicChipsExpanded && visibleAcademicChipCount < academicChips.length ? (
-                  <button
-                    data-academic-more
-                    type="button"
-                    aria-expanded={false}
-                    aria-controls={`academic-achievements-${tutor.tutor_code}`}
-                    onClick={toggleAcademicChips}
-                    onKeyDown={(event) => event.stopPropagation()}
-                    className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:py-1.5 md:text-sm @max-sm:text-[11px]!"
-                  >
-                    ... {t("tutor_card.more")}
-                  </button>
-                ) : null}
+                {isBreakdownExpanded
+                  ? t("tutor_card.show_fewer_grades")
+                  : t("tutor_card.view_all_grades", { count: breakdownGradeCount })}
+              </button>
+            ) : null}
+
+            {/* Issue #309: staff-APPROVED grade labels keep their chips row. */}
+            {academicChips.length > 0 ? (
+              <div className="relative mt-2">
+                <div
+                  id={`academic-achievements-${tutor.tutor_code}`}
+                  ref={academicChipsRef}
+                  className="flex flex-wrap items-start gap-2 overflow-hidden"
+                >
+                  {academicChips
+                    .slice(0, areAcademicChipsExpanded ? undefined : visibleAcademicChipCount)
+                    .map((chip, index) => (
+                      <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
+                    ))}
+                  {!areAcademicChipsExpanded && visibleAcademicChipCount < academicChips.length ? (
+                    <button
+                      data-academic-more
+                      type="button"
+                      aria-expanded={false}
+                      aria-controls={`academic-achievements-${tutor.tutor_code}`}
+                      onClick={toggleAcademicChips}
+                      onKeyDown={(event) => event.stopPropagation()}
+                      className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:py-1.5 md:text-sm @max-sm:text-[11px]!"
+                    >
+                      ... {t("tutor_card.more")}
+                    </button>
+                  ) : null}
+                </div>
               </div>
-            </div>
+            ) : null}
           </section>
         ) : null}
 

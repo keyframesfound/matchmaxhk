@@ -350,7 +350,14 @@
       "reject_reason_not_a_result_slip": "唔係成績證明",
       "reject_reason_looks_altered": "疑似被改動",
       "reject_reason_wrong_document": "文件錯誤",
-      "rates_currency": "貨幣"
+      "rates_currency": "貨幣",
+      "custom_headline_en": "自訂標題（英文）",
+      "custom_headline_zh": "自訂標題（中文）",
+      "custom_headline_hint": "導師卡同個人檔案頂部嘅粗體標題，最多 60 字元。",
+      "auto_translate": "自動翻譯",
+      "auto_translate_hint": "自動翻譯會根據英文標題生成中文草稿——儲存前請檢查修改。",
+      "auto_translate_done": "已填入中文草稿，請檢查修改後先儲存。",
+      "auto_translate_empty": "請先輸入英文標題。"
     },
     "grid": {
       "title": "每週補習時間表",
@@ -931,7 +938,9 @@
     "available_from": "{{date}}起可上課",
     "prebook_cta": "預約 {{date}} 起",
     "verified_badge": "已核實",
-    "verified_disclaimer": "Staff已查核卡片上顯示嘅成績，但未向考試局確認。第一堂之前，請直接向導師攞成績紙。"
+    "verified_disclaimer": "Staff已查核卡片上顯示嘅成績，但未向考試局確認。第一堂之前，請直接向導師攞成績紙。",
+    "view_all_grades": "查看全部 {{count}} 項成績",
+    "show_fewer_grades": "收起成績"
   },
   "help": {
     "title": "你好，有咩可以幫到你？",
