@@ -36,6 +36,7 @@ import {
   CaseLogisticsLine,
   CaseStudentsRow,
   caseLogisticsParts,
+  caseRateText,
   useCaseTitles,
 } from "@/features/cases/case-card";
 import { caseBudgetForTutor } from "@/features/cases/display";
@@ -156,6 +157,7 @@ function CaseCard({ item }: { item: PublicCaseBoardItem }) {
   const tutorCurrency = useTutorDisplayCurrency();
   const { rates: fxRates } = useDisplayCurrency();
   const budget = caseBudgetForTutor(item, tutorCurrency, fxRates, item.rateUnit);
+  const rateHkd = caseRateText(item);
   const logisticsParts = caseLogisticsParts(item);
   const postedAgo = formatDistanceToNow(new Date(item.boardPublishedAt ?? item.createdAt), {
     addSuffix: true,
@@ -189,8 +191,16 @@ function CaseCard({ item }: { item: PublicCaseBoardItem }) {
 
       {/* 1-line logistics row. */}
       <CaseLogisticsLine parts={logisticsParts} className="mt-2 [&>span]:w-full [&>span]:min-w-0" />
-      {budget.primary && budget.primary !== budget.original ? (
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">{budget.original}</p>
+      {/* Dedicated rate line (#113): converted figure bold + original HKD in
+          parens for non-HKD tutors; plain HKD rate otherwise. GLM round-2
+          blocker — the logistics line no longer carries the rate. */}
+      {budget.primary ? (
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+          <span className="font-semibold text-[color:var(--ink)]">{budget.primary}</span> (
+          {budget.original})
+        </p>
+      ) : rateHkd ? (
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">{rateHkd}</p>
       ) : null}
 
       <div className="mt-1">

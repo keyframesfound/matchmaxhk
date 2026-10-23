@@ -2425,6 +2425,7 @@
     "chip_examiner": "Official examiner",
     "badge_asap": "ASAP",
     "starts_asap": "Starts ASAP",
-    "share_case": "Share this case"
+    "share_case": "Share this case",
+    "chip_admissions": "University Admissions"
   }
 }

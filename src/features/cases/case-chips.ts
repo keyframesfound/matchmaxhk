@@ -37,6 +37,22 @@ export const CASE_CHIP_TKEYS: Record<string, string> = {
   "Official examiner": "case_board.chip_examiner",
 };
 
+/**
+ * Exam-system pills reuse the site's existing curriculum vocabulary keys
+ * (exact en/zh matches in other namespaces — same concept, no duplicate
+ * rows). Values without a zh variant (IB, DSE, A-Level, IGCSE, AP — the
+ * labels are identical in both locales) stay verbatim. GLM round-2 NIT.
+ */
+const CURRICULUM_CHIP_TKEYS: Record<string, string> = {
+  "Primary School": "search_panel.category_primary_school",
+  "Local Primary": "search_panel.category_primary_school",
+  "Int'l Primary": "search_panel.category_primary_school",
+  "Junior Secondary": "search_panel.category_junior_secondary",
+  Kindergarten: "tutors.tier_kindergarten",
+  University: "case_request.funnel_level_university",
+  Admissions: "case_board.chip_admissions",
+};
+
 /** CasePill tones are all soft (hard pills today are SEN/tests — still soft
  * preferences for Apply gating; only gender is a hard gate per #423). */
 export function caseChips(item: PublicCaseBoardItem): CaseChip[] {
@@ -70,12 +86,15 @@ export function caseChips(item: PublicCaseBoardItem): CaseChip[] {
   if (item.senRequired)
     push({ key: "sen", label: "SEN Friendly", tKey: "case_board.chip_sen", hard: false });
 
-  // #149 requirement pills surface as query chips.
+  // #149 requirement pills surface as query chips. Only the exam-system pill
+  // translates through the curriculum vocabulary — a school/uni/field value
+  // that merely EQUALS a curriculum word stays verbatim data.
   for (const pill of casePillLabels(item)) {
+    const curriculumTKey = pill === item.examSystem ? CURRICULUM_CHIP_TKEYS[pill] : undefined;
     push({
       key: `pill:${pill}`,
       label: pill,
-      tKey: CASE_CHIP_TKEYS[pill],
+      tKey: CASE_CHIP_TKEYS[pill] ?? curriculumTKey,
       hard: false,
       query: pill,
     });

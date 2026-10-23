@@ -217,6 +217,14 @@ describe("caseChips — the ONE chip system (#423)", () => {
     expect(byLabel.get("SEN Friendly")?.tKey).toBe("case_board.chip_sen");
     expect(byLabel.get("University student")?.tKey).toBe("case_board.chip_uni_student");
     expect(byLabel.get("University student")?.query).toBe("University student");
+    // Exam-system pills translate through the existing curriculum vocabulary.
+    const primary = caseChips(baseItem({ examSystem: "Primary School" }));
+    expect(primary.find((c) => c.label === "Primary School")?.tKey).toBe(
+      "search_panel.category_primary_school",
+    );
+    // IB/DSE/A-Level have identical labels in both locales — no tKey needed.
+    const ib = caseChips(baseItem({ examSystem: "IB" }));
+    expect(ib.find((c) => c.label === "IB")?.tKey).toBeUndefined();
     // Data-backed chips (school names, parent-typed tags) never localize.
     const tagged = caseChips(baseItem({ tags: ["ia review"] }));
     expect(tagged.find((c) => c.label === "ia review")?.tKey).toBeUndefined();
@@ -254,6 +262,11 @@ describe("caseLogisticsParts — one mode mention (#423)", () => {
     expect(parts[0]).toBe("📍 Online");
     expect(parts.filter((p) => p.includes("Online")).length).toBe(1);
     expect(parts.join(" · ")).not.toContain("Online · Online");
+  });
+
+  it("excludes the rate — the card renders it as its own converted line (#113)", () => {
+    const parts = caseLogisticsParts(baseItem({ budgetMinHkd: 300, budgetMaxHkd: 500 }));
+    expect(parts.join(" · ")).not.toContain("HK$");
   });
 
   it("keeps district + mode as separate parts for in-person cases", () => {

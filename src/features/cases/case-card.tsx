@@ -84,7 +84,12 @@ export function caseRateText(item: PublicCaseBoardItem): string {
   return formatCaseRate(min, max, item.rateUnit ?? "hr");
 }
 
-/** Logistics parts for the 1-line `📍 district · mode · cadence · rate` row. */
+/** Logistics parts for the 1-line `📍 district · mode · cadence` row.
+ *
+ * The RATE is deliberately NOT part of the line: the card renders it as its
+ * own dedicated line below (converted bold + original for non-HKD tutors,
+ * #113 — GLM round-2 blocker). Keeping it here printed the HKD string twice
+ * on every card and hid the converted figure entirely. */
 export function caseLogisticsParts(item: PublicCaseBoardItem): string[] {
   const modeLabel = CASE_MODE_LABEL[item.mode] ?? item.mode;
   // District-less cases (online) must not repeat the mode: the pin part IS
@@ -92,7 +97,6 @@ export function caseLogisticsParts(item: PublicCaseBoardItem): string[] {
   // dedupe `📍 Online` vs `Online`) — GLM review, 2026-10-23.
   const parts = item.district ? [`📍 ${item.district}`, modeLabel] : [`📍 ${modeLabel}`];
   parts.push(formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes));
-  parts.push(caseRateText(item));
   // Dedupe mode when it already leads the line for online-only cases.
   return [...new Set(parts.filter(Boolean))];
 }
@@ -131,11 +135,11 @@ export function CaseChipLink({ chip }: { chip: CaseChip }) {
 
 /**
  * The ONE chip row: clickable chips from the shared profile-tags vocabulary,
- * capped at MAX_CASE_TAGS, hard-cut to a single ellipsized line so grid
- * cards stay equal height.
+ * capped at MAX_CASE_TAGS inside caseChips(), hard-cut to a single ellipsized
+ * line so grid cards stay equal height.
  */
-export function CaseChipRow({ item, limit }: { item: PublicCaseBoardItem; limit?: number }) {
-  const chips: CaseChip[] = limit ? caseChips(item).slice(0, limit) : caseChips(item);
+export function CaseChipRow({ item }: { item: PublicCaseBoardItem }) {
+  const chips: CaseChip[] = caseChips(item);
   if (chips.length === 0) return null;
   return (
     <div className="flex flex-nowrap items-center gap-1.5 overflow-hidden">
