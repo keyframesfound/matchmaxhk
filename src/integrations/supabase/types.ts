@@ -881,6 +881,9 @@ export type Database = {
       tutoring_cases: {
         Row: {
           assigned_to: string | null;
+          package_type: string;
+          rate_unit: string;
+          student_count: number;
           board_published_at: string | null;
           budget_currency: Database["public"]["Enums"]["supported_currency"];
           budget_max: number | null;
@@ -938,6 +941,9 @@ export type Database = {
         };
         Insert: {
           assigned_to?: string | null;
+          package_type?: string;
+          rate_unit?: string;
+          student_count?: number;
           board_published_at?: string | null;
           budget_currency?: Database["public"]["Enums"]["supported_currency"];
           budget_max?: number | null;
@@ -995,6 +1001,9 @@ export type Database = {
         };
         Update: {
           assigned_to?: string | null;
+          package_type?: string;
+          rate_unit?: string;
+          student_count?: number;
           board_published_at?: string | null;
           budget_currency?: Database["public"]["Enums"]["supported_currency"];
           budget_max?: number | null;

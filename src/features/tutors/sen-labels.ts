@@ -1,7 +1,5 @@
 import { useTranslation } from "react-i18next";
 
-import i18n from "@/features/i18n/config";
-
 import { type SenCategory } from "./sen";
 
 /**
@@ -22,16 +20,8 @@ const SEN_CATEGORY_LABEL_KEYS: Record<SenCategory, string> = {
 };
 
 /**
- * Translated label for one stored category. Module-level (non-hook) variant
- * for pure helpers such as case-pills; reads the active language at call time.
- * Unknown values pass through unchanged.
+ * Component-side label map: stored category -> translated label.
  */
-export function senCategoryLabel(category: string): string {
-  const key = SEN_CATEGORY_LABEL_KEYS[category as SenCategory];
-  return key ? i18n.t(key) : category;
-}
-
-/** Component-side label map: stored category -> translated label. */
 export function useSenCategoryLabels(): Record<SenCategory, string> {
   const { t } = useTranslation();
   return {

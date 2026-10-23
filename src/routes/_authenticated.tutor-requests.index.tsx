@@ -2,24 +2,14 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import {
-  ArrowRight,
-  BadgeCheck,
-  CalendarClock,
-  Clock,
-  Hash,
-  Inbox,
-  MapPin,
-  SearchX,
-  Wallet,
-} from "lucide-react";
+import { formatPostedAgo } from "@/lib/relative-time";
+import { ArrowRight, BadgeCheck, CalendarClock, Hash, Inbox, SearchX, Share2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CaseRequestForm } from "@/features/cases/CaseRequestForm";
-import { CasePillBadge, casePillsForCard } from "@/features/cases/case-pills";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
 import {
   CasesSearchBar,
@@ -40,9 +30,19 @@ import {
   CaseCompareToggle,
   useCaseCompare,
 } from "@/features/cases/compare-cases";
-import { CASE_MODE_LABEL, caseBudgetForTutor, formatCaseSchedule } from "@/features/cases/display";
+import {
+  CaseChipRow,
+  CaseFeePill,
+  CaseLogisticsLine,
+  CaseStudentsRow,
+  caseLogisticsParts,
+  caseRateText,
+  useCaseTitles,
+} from "@/features/cases/case-card";
+import { caseBudgetForTutor } from "@/features/cases/display";
 import { useDisplayCurrency } from "@/features/currency/display-currency-context";
 import { useTutorDisplayCurrency } from "@/features/currency/tutor-currency";
+import { shareOrCopy } from "@/lib/share";
 import { normalizeProfileTag } from "@/features/tutors/profile-tags";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
@@ -103,31 +103,14 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
   component: TutorRequestsPage,
 });
 
-function rowTitle(item: PublicCaseBoardItem): string {
-  return item.subjects.filter(Boolean).slice(0, 2).join(", ") || item.title;
-}
-
 /**
- * Issue #423 bug 2: the grey `#` tag row (CaseRowTags, #311) is GONE —
- * the row renders exactly ONE chip system, the CasePillBadge pills (#149).
- * The board keeps its `?tag=` search param and the case-form tag chips;
- * a future redesign (issue #423 section 2) merges pills and tags.
+ * Issue #423 bug 2 + section 3: the board renders ONE chip system and a
+ * unified card (identity row → bilingual auto-title → 1-line logistics →
+ * students → chips → neutral CTAs → fee pill + posted ago). The grey `#`
+ * tag row is gone; #149 pills and #311 tags merge in case-chips.ts.
  */
 
-const CASE_SECTION_ORDER = [
-  "IB",
-  "DSE",
-  "IGCSE",
-  "AP",
-  "A-Level",
-  "Primary School",
-  "Junior Secondary",
-  "Admissions",
-  "Not sure yet",
-  "Other",
-];
-
-// Legacy primary curricula group under the merged "Primary School" section.
+// Legacy `?category=` filter key for a case's exam system.
 function caseSectionKey(examSystem: string | null): string {
   const value = examSystem?.trim();
   if (!value || value === "Other") return "Other";
@@ -135,107 +118,142 @@ function caseSectionKey(examSystem: string | null): string {
   return value;
 }
 
-function caseSectionLabel(section: string): string {
-  if (section === "IB") return "IBDP";
-  if (section === "Admissions") return "University Admissions & Test Prep";
-  return section;
+function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
+  const { t } = useTranslation();
+  const { primary } = useCaseTitles(item);
+  const [isSharing, setIsSharing] = useState(false);
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="h-10 w-8 shrink-0 rounded-sm border-0 bg-transparent p-0 text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
+      aria-label={t("case_board.share_case")}
+      title={t("case_board.share_case")}
+      disabled={isSharing}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsSharing(true);
+        void shareOrCopy({
+          title: `${primary} — Case ${item.caseCode} | MatchMax`,
+          text: `Check out this tutoring request (Case ${item.caseCode}) on MatchMax.`,
+          url: `${window.location.origin}/tutor-requests/${item.caseCode}`,
+        }).finally(() => setIsSharing(false));
+      }}
+      onKeyDown={(event) => event.stopPropagation()}
+    >
+      <Share2 className="h-5 w-5" strokeWidth={2.2} aria-hidden="true" />
+    </Button>
+  );
 }
 
-function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
-  const { pills, overflow } = casePillsForCard(item);
-  // Issue #113: tutors quoting in another currency see the converted budget
-  // first, with the HKD original right beside it. #423: an empty string
-  // (both bounds blank) omits the rate entirely — never "HK$?".
+function CaseCard({ item }: { item: PublicCaseBoardItem }) {
+  const { t, i18n } = useTranslation();
+  const { primary, secondary } = useCaseTitles(item);
+  // Issue #113/#423: tutors quoting in another currency see the converted
+  // rate first; an empty string (both bounds blank) omits the rate entirely
+  // — never "HK$?".
   const tutorCurrency = useTutorDisplayCurrency();
   const { rates: fxRates } = useDisplayCurrency();
-  const budget = caseBudgetForTutor(item, tutorCurrency, fxRates);
+  const budget = caseBudgetForTutor(item, tutorCurrency, fxRates, item.rateUnit);
+  const rateHkd = caseRateText(item);
+  const logisticsParts = caseLogisticsParts(item);
+  const postedAgo = formatPostedAgo(item.boardPublishedAt ?? item.createdAt, i18n.language);
   return (
-    <li className="relative">
+    <li className="relative flex flex-col rounded-xl border border-border bg-[color:var(--surface)] p-4 transition-colors hover:border-[color:var(--foreground)]/25">
+      {/* Identity row — trust pills ONLY with real data; there is NO parent
+          rating today, so nothing fabricated renders (precedent #151). */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="truncate text-xs font-medium text-muted-foreground">
+          {t("case_board.identity_parent")}
+        </span>
+        {item.startTiming === "asap" ? (
+          <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-bold text-[#a16207] dark:text-[color:var(--warning)]">
+            <CalendarClock className="h-3 w-3" aria-hidden="true" />
+            {t("case_board.badge_asap")}
+          </span>
+        ) : null}
+      </div>
+
+      {/* Bilingual structured auto-title (#411 pattern): locale-primary
+          line + the parallel line; legacy title is the fallback only. */}
       <Link
         to="/tutor-requests/$caseCode"
         params={{ caseCode: item.caseCode }}
-        className="group flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-muted/40"
+        className="mt-2 block min-w-0"
       >
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <span className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]">
-            <span className="min-w-0 truncate">{rowTitle(item)}</span>
-            {item.startTiming === "asap" ? (
-              <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-bold text-[#a16207] dark:text-[color:var(--warning)]">
-                <CalendarClock className="h-3 w-3" aria-hidden="true" />
-                ASAP
-              </span>
-            ) : null}
-          </span>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-              {item.district ?? CASE_MODE_LABEL[item.mode] ?? "Location flexible"}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-              {formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes)}
-            </span>
-            {budget.primary || budget.original ? (
-              <span className="flex items-center gap-1">
-                <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
-                {budget.primary ? (
-                  <span className="font-semibold text-[color:var(--ink)]">
-                    {budget.primary}
-                    <span className="ml-1.5 font-normal text-muted-foreground">
-                      ({budget.original})
-                    </span>
-                  </span>
-                ) : (
-                  budget.original
-                )}
-              </span>
-            ) : null}
-          </div>
-          {pills.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-1.5">
-              {pills.map((pill) => (
-                <CasePillBadge key={pill.key} pill={pill} />
-              ))}
-              {overflow > 0 ? (
-                <span className="text-xs font-medium text-muted-foreground">
-                  +{overflow} more requirement{overflow === 1 ? "" : "s"}
-                </span>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-        <span className="flex shrink-0 items-center gap-1 text-sm font-semibold text-[color:var(--ink)]">
-          <CaseCompareToggle caseId={item.id} />
-          <CaseSaveButton caseId={item.id} compact />
-          View details
-          <ArrowRight
-            className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-            aria-hidden="true"
-          />
-        </span>
+        <h3 className="truncate text-base font-bold text-[color:var(--ink)]">{primary}</h3>
+        {secondary ? <p className="truncate text-sm text-muted-foreground">{secondary}</p> : null}
       </Link>
+
+      {/* 1-line logistics row. */}
+      <CaseLogisticsLine parts={logisticsParts} className="mt-2 [&>span]:w-full [&>span]:min-w-0" />
+      {/* Dedicated rate line (#113): converted figure bold + original HKD in
+          parens for non-HKD tutors; plain HKD rate otherwise. GLM round-2
+          blocker — the logistics line no longer carries the rate. */}
+      {budget.primary ? (
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+          <span className="font-semibold text-[color:var(--ink)]">{budget.primary}</span> (
+          {budget.original})
+        </p>
+      ) : rateHkd ? (
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">{rateHkd}</p>
+      ) : null}
+
+      <div className="mt-1">
+        <CaseStudentsRow item={item} />
+      </div>
+
+      <div className="mt-2 min-h-[1.75rem]">
+        <CaseChipRow item={item} />
+      </div>
+
+      {/* Footer: neutral CTAs (tutor-card parity) + fee-rule pill + posted. */}
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
+        <div className="flex min-w-0 items-center gap-0.5">
+          <CaseCompareToggle caseId={item.id} />
+          <CaseShareButton item={item} />
+          <CaseSaveButton caseId={item.id} compact />
+          <Link
+            to="/tutor-requests/$caseCode"
+            params={{ caseCode: item.caseCode }}
+            className="group ml-1 flex shrink-0 items-center gap-1 text-sm font-semibold text-[color:var(--ink)] hover:underline"
+          >
+            {t("case_board.view_details")}
+            <ArrowRight
+              className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </Link>
+        </div>
+      </div>
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <CaseFeePill packageType={item.packageType} />
+        <span className="shrink-0 text-xs text-muted-foreground">
+          {t("case_board.posted_ago", { ago: postedAgo })}
+        </span>
+      </div>
     </li>
   );
 }
 
-function ListSkeleton({ rows }: { rows: number }) {
+function ListSkeleton({ cards }: { cards: number }) {
   return (
-    <div className="flex flex-col gap-3">
-      <Skeleton className="h-3 w-28" />
-      <div className="overflow-hidden rounded-xl border border-border">
-        <div className="flex flex-col divide-y divide-border">
-          {Array.from({ length: rows }).map((_, i) => (
-            <div key={i} className="flex items-center justify-between gap-4 px-4 py-4">
-              <div className="flex flex-col gap-2">
-                <Skeleton className="h-4 w-40" />
-                <Skeleton className="h-3 w-64 max-w-full" />
-              </div>
-              <Skeleton className="h-4 w-14" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {Array.from({ length: cards }).map((_, i) => (
+        <li key={i} className="flex flex-col gap-2 rounded-xl border border-border p-4">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-5 w-40 max-w-full" />
+          <Skeleton className="h-3 w-56 max-w-full" />
+          <Skeleton className="h-6 w-full" />
+          <div className="flex items-center justify-between gap-2 pt-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-3 w-14" />
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -363,25 +381,8 @@ function TutorRequestsPage() {
     setNoticeOpen(false);
   };
 
-  // Group the board by exam system, keeping the most common curricula first.
-  const groups = useMemo(() => {
-    const byExamSystem = new Map<string, PublicCaseBoardItem[]>();
-    for (const item of filteredCases) {
-      const section = caseSectionKey(item.examSystem);
-      const list = byExamSystem.get(section) ?? [];
-      list.push(item);
-      byExamSystem.set(section, list);
-    }
-    const known = CASE_SECTION_ORDER.filter((section) => byExamSystem.has(section));
-    const extra = [...byExamSystem.keys()]
-      .filter((section) => !known.includes(section))
-      .sort((a, b) => a.localeCompare(b));
-    return [...known, ...extra].map((section) => ({
-      section,
-      items: byExamSystem.get(section)!,
-    }));
-  }, [filteredCases]);
-
+  // Issue #423: the board is one flat card grid (wireframe) — the exam-system
+  // sections are gone; `?category=` still filters by curriculum.
   const hasActiveFilters = Boolean(search.q || search.category || search.district || search.tag);
 
   const compactSegments = useCasesCompactSegments(draft);
@@ -547,10 +548,7 @@ function TutorRequestsPage() {
 
               <div className="p-0 sm:p-2">
                 {isLoading ? (
-                  <div className="flex flex-col gap-8">
-                    <ListSkeleton rows={3} />
-                    <ListSkeleton rows={2} />
-                  </div>
+                  <ListSkeleton cards={6} />
                 ) : cases.length === 0 ? (
                   <div className="p-8 text-center sm:p-12">
                     <div className="mx-auto flex h-12 w-12 items-center justify-center">
@@ -599,25 +597,11 @@ function TutorRequestsPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-8">
-                    {groups.map((group) => (
-                      <div key={group.section} className="flex flex-col gap-3">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-xs font-semibold text-muted-foreground">
-                            {caseSectionLabel(group.section)}
-                          </h3>
-                          <span className="text-xs tabular-nums text-muted-foreground">
-                            {group.items.length}
-                          </span>
-                        </div>
-                        <ul className="flex flex-col overflow-hidden rounded-xl border border-border divide-y divide-border">
-                          {group.items.map((item) => (
-                            <CaseListRow key={item.id} item={item} />
-                          ))}
-                        </ul>
-                      </div>
+                  <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {filteredCases.map((item) => (
+                      <CaseCard key={item.id} item={item} />
                     ))}
-                  </div>
+                  </ul>
                 )}
 
                 <p className="mt-8 text-center text-xs text-muted-foreground sm:text-sm">
