@@ -130,7 +130,7 @@ export const logTutorSession = createServerFn({ method: "POST" })
     ]);
     const c = caseRows[0];
     if (!c || c.matched_tutor_id !== tutorId) throw new Error("CASE_NOT_FOUND");
-    if (c.sor_status === "replaced") throw new Error("CASE_CLOSED");
+    if (c.sor_status === "replaced" || c.sor_status === "closed") throw new Error("CASE_CLOSED");
 
     const [fees, logs] = await Promise.all([
       selectRows<{ status: string }>(db, "case_fees", "status", [
@@ -202,15 +202,23 @@ export const disputeSession = createServerFn({ method: "POST" })
     }
     if (log.status !== "pending") throw new Error("NOT_PENDING");
 
-    const { error } = await db
+    const { error, count } = await db
       .from<Row>("tutor_session_logs")
-      .update({
-        status: "disputed",
-        disputed_at: new Date().toISOString(),
-        dispute_reason: data.reason?.trim() || null,
-      })
-      .eq("id", log.id);
+      .update(
+        {
+          status: "disputed",
+          disputed_at: new Date().toISOString(),
+          dispute_reason: data.reason?.trim() || null,
+        },
+        { count: "exact" },
+      )
+      // GLM review e13804c: predicate+rowCount race guard — read-then-write
+      // must not overwrite a revoke that landed between the list read and
+      // this write.
+      .eq("id", log.id)
+      .eq("status", "pending");
     if (error) throw new Error(error.message);
+    if ((count ?? 0) === 0) throw new Error("NOT_PENDING");
     // Operator-review breadcrumb: the disputed log (and its reason) shows on
     // the SoR desk's Experience logs section; two disputes lock the case.
     await insertAudit(

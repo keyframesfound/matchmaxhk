@@ -23,14 +23,26 @@ export type Rows<T> = {
   single: () => Promise<{ data: T; error: DbError }>;
 } & PromiseLike<{ data: T[] | null; error: DbError }>;
 
+/**
+ * supabase-js update builder subset: chained filters return the builder
+ * (which is also thenable AND has .catch — bus.functions relies on it);
+ * awaiting resolves {error, count} (count populated only when requested —
+ * #387 review: the predicate+rowCount race guard).
+ */
+export type AdminUpdateChain = {
+  eq: (col: string, value: unknown) => AdminUpdateChain;
+} & PromiseLike<{ error: DbError; count: number | null }> & {
+    catch: (
+      onrejected?: ((reason: unknown) => unknown) | null | undefined,
+    ) => Promise<{ error: DbError; count: number | null }>;
+  };
+
 export type AdminTable<T> = {
   select: (cols: string) => Rows<T>;
   insert: (row: unknown) => {
     select: (cols: string) => { single: () => Promise<{ data: T; error: DbError }> };
   } & PromiseLike<{ data: T | null; error: DbError }>;
-  update: (row: unknown) => {
-    eq: (col: string, value: unknown) => Promise<{ error: DbError }>;
-  };
+  update: (row: unknown, opts?: { count?: "exact" | "planned" | "estimated" }) => AdminUpdateChain;
 };
 
 /** The service-role client, typed just enough for the marketplace fns. */
