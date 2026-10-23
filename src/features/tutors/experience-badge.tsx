@@ -29,13 +29,20 @@ function useTutorExperience(tutorId: string | undefined): TutorExperience | null
     if (!tutorId) return;
     let cancelled = false;
     (async () => {
-      const rpc = supabase.rpc as unknown as (
-        fn: string,
-        args: Record<string, unknown>,
-      ) => Promise<{ data: unknown; error: { message: string } | null }>;
-      const { data, error } = await rpc("get_tutor_experience", { p_tutor: tutorId });
+      // Keep the rpc call BOUND to the client — extracting the method loses
+      // `this` and supabase-js throws reading `this.rest`.
+      const client = supabase as unknown as {
+        rpc: (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ data: unknown; error: { message: string } | null }>;
+      };
+      const { data, error } = await client.rpc("get_tutor_experience", { p_tutor: tutorId });
       if (cancelled || error || !data) return;
-      setExp(data as TutorExperience);
+      // PostgREST wraps RETURNS TABLE in an array — take the single row.
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) return;
+      setExp(row as TutorExperience);
     })();
     return () => {
       cancelled = true;
