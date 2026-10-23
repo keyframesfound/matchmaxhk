@@ -19,14 +19,6 @@ export function formatStudentLevel(level: string | null | undefined): string {
   return STUDENT_LEVEL_BOARD_LABELS[value] ?? value;
 }
 
-export function formatCaseTitle(studentLevel: string, subjects: string[]): string {
-  const levelLabel = formatStudentLevel(studentLevel) || studentLevel;
-  const subjectPart = subjects.filter(Boolean).slice(0, 2).join(", ");
-  const extra =
-    subjects.filter(Boolean).length > 2 ? ` +${subjects.filter(Boolean).length - 2} more` : "";
-  return subjectPart ? `${levelLabel}: ${subjectPart}${extra}` : levelLabel;
-}
-
 export function buildCaseApplyWhatsAppUrl(whatsappNumber: string, caseCode: string): string {
   const digits = whatsappNumber.replace(/[^\d]/g, "");
   const message = `Hi MatchMax! I'd like to apply for case ${caseCode}.`;

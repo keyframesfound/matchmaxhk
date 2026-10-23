@@ -2417,6 +2417,14 @@
     "chips_hard": "Hard requirement",
     "chips_soft": "Preference",
     "gender_mismatch_warning": "This parent only accepts a tutor of the specified gender — you may not be matched.",
-    "payout_title": "Fee & payout"
+    "payout_title": "Fee & payout",
+    "chip_sen": "SEN Friendly",
+    "chip_female_only": "Female Only",
+    "chip_male_only": "Male Only",
+    "chip_uni_student": "University student",
+    "chip_examiner": "Official examiner",
+    "badge_asap": "ASAP",
+    "starts_asap": "Starts ASAP",
+    "share_case": "Share this case"
   }
 }

@@ -39,7 +39,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicCaseByCode, type PublicCaseBoardItem } from "@/lib/cases.functions";
 import { shareOrCopy } from "@/lib/share";
-import { buildCaseTitle } from "@/features/cases/case-title";
+import { buildCaseTitle, caseTitleFieldsFromBoard } from "@/features/cases/case-title";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
 import { caseAcademicTier } from "@/features/tutors/verticals";
 import { kindergartenTopicLabel } from "@/features/tutors/verticals-labels";
@@ -56,8 +56,10 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/$caseCode")
   },
   head: ({ match }) => {
     const data = (match.loaderData ?? null) as CaseDetailData | null;
+    // Map at the boundary: the raw item has examSystem/studentLevel, not
+    // curriculum/grade — an unmapped pass titles subject-only (GLM blocker).
     const title = data
-      ? `${buildCaseTitle(data.item, "en") || data.item.title} — Case ${data.item.caseCode} | MatchMax`
+      ? `${buildCaseTitle(caseTitleFieldsFromBoard(data.item), "en") || data.item.title} — Case ${data.item.caseCode} | MatchMax`
       : "Tutor request | MatchMax";
     const description = (
       data?.item.description ??
@@ -298,7 +300,7 @@ function CaseDetailPage() {
                 {item.startTiming === "asap" ? (
                   <span className="flex items-center gap-1 text-amber-700 dark:text-amber-400">
                     <CalendarClock className="h-4 w-4" aria-hidden="true" />
-                    Starts ASAP
+                    {t("case_board.starts_asap")}
                   </span>
                 ) : null}
               </div>
@@ -337,8 +339,8 @@ function CaseDetailPage() {
                 variant="ghost"
                 size="icon"
                 className="h-9 w-9 shrink-0"
-                aria-label="Share this case profile"
-                title="Share this case"
+                aria-label={t("case_board.share_case")}
+                title={t("case_board.share_case")}
                 disabled={isSharing}
                 onClick={handleShare}
               >

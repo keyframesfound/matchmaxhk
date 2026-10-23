@@ -23,6 +23,27 @@ export type CaseTitleFields = {
   grade?: string | null;
 };
 
+/**
+ * #423 board-item → title-fields boundary mapping. `PublicCaseBoardItem`
+ * stores the exam system in `examSystem` and the level in `studentLevel`
+ * (NOT `curriculum`/`grade`) — the mapping is explicit here so no surface
+ * can pass the raw item and silently title subject-only (GLM review, 2026-
+ * 10-23). Structural param: case-title stays decoupled from cases.functions.
+ */
+export type CaseBoardTitleSource = {
+  examSystem: string | null;
+  subjects: string[];
+  studentLevel: string;
+};
+
+export function caseTitleFieldsFromBoard(item: CaseBoardTitleSource): CaseTitleFields {
+  return {
+    curriculum: item.examSystem,
+    subjects: item.subjects,
+    grade: item.studentLevel,
+  };
+}
+
 // --- Curriculum labels ------------------------------------------------------
 
 const CURRICULUM_LABELS: Record<string, Record<CaseTitleLocale, string>> = {

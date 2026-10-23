@@ -2417,6 +2417,14 @@
     "chips_hard": "硬性要求",
     "chips_soft": "偏好",
     "gender_mismatch_warning": "此家長只接受指定性別的導師——你未必會獲安排配對。",
-    "payout_title": "費用與收益"
+    "payout_title": "費用與收益",
+    "chip_sen": "SEN 支援",
+    "chip_female_only": "只限女導師",
+    "chip_male_only": "只限男導師",
+    "chip_uni_student": "大學生",
+    "chip_examiner": "官方考官",
+    "badge_asap": "盡快開始",
+    "starts_asap": "盡快開始",
+    "share_case": "分享此個案"
   }
 }

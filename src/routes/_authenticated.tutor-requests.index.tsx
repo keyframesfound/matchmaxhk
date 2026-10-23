@@ -118,6 +118,7 @@ function caseSectionKey(examSystem: string | null): string {
 }
 
 function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
+  const { t } = useTranslation();
   const { primary } = useCaseTitles(item);
   const [isSharing, setIsSharing] = useState(false);
   return (
@@ -126,8 +127,8 @@ function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
       variant="ghost"
       size="icon"
       className="h-10 w-8 shrink-0 rounded-sm border-0 bg-transparent p-0 text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
-      aria-label="Share this case"
-      title="Share this case"
+      aria-label={t("case_board.share_case")}
+      title={t("case_board.share_case")}
       disabled={isSharing}
       onClick={(event) => {
         event.preventDefault();
@@ -170,7 +171,7 @@ function CaseCard({ item }: { item: PublicCaseBoardItem }) {
         {item.startTiming === "asap" ? (
           <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-bold text-[#a16207] dark:text-[color:var(--warning)]">
             <CalendarClock className="h-3 w-3" aria-hidden="true" />
-            ASAP
+            {t("case_board.badge_asap")}
           </span>
         ) : null}
       </div>

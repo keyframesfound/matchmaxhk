@@ -16,7 +16,11 @@ import {
   formatCaseSchedule,
   formatStudentLevel,
 } from "@/features/cases/display";
-import { buildCaseTitle, type CaseTitleLocale } from "@/features/cases/case-title";
+import {
+  buildCaseTitle,
+  caseTitleFieldsFromBoard,
+  type CaseTitleLocale,
+} from "@/features/cases/case-title";
 import { caseChips, type CaseChip } from "@/features/cases/case-chips";
 import type { PublicCaseBoardItem } from "@/lib/cases.functions";
 
@@ -31,8 +35,12 @@ export function useCaseTitles(item: PublicCaseBoardItem): {
   const { i18n } = useTranslation();
   const primaryLocale: CaseTitleLocale = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
   const secondaryLocale: CaseTitleLocale = primaryLocale === "en" ? "zh-HK" : "en";
-  const primary = buildCaseTitle(item, primaryLocale) || item.title;
-  const secondaryRaw = buildCaseTitle(item, secondaryLocale);
+  // Map the board item at the boundary — the raw item has examSystem/
+  // studentLevel, and an unmapped pass titles subject-only while shadowing
+  // the stored title (GLM blocker, 2026-10-23).
+  const titleFields = caseTitleFieldsFromBoard(item);
+  const primary = buildCaseTitle(titleFields, primaryLocale) || item.title;
+  const secondaryRaw = buildCaseTitle(titleFields, secondaryLocale);
   return {
     primary,
     // Never render the same string twice (legacy fallback / untranslated
@@ -79,18 +87,19 @@ export function caseRateText(item: PublicCaseBoardItem): string {
 /** Logistics parts for the 1-line `📍 district · mode · cadence · rate` row. */
 export function caseLogisticsParts(item: PublicCaseBoardItem): string[] {
   const modeLabel = CASE_MODE_LABEL[item.mode] ?? item.mode;
-  const parts = [
-    item.district ? `📍 ${item.district}` : `📍 ${modeLabel}`,
-    modeLabel,
-    formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes),
-    caseRateText(item),
-  ];
+  // District-less cases (online) must not repeat the mode: the pin part IS
+  // the mode there, so drop the bare label instead of Set-dedupe (which can't
+  // dedupe `📍 Online` vs `Online`) — GLM review, 2026-10-23.
+  const parts = item.district ? [`📍 ${item.district}`, modeLabel] : [`📍 ${modeLabel}`];
+  parts.push(formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes));
+  parts.push(caseRateText(item));
   // Dedupe mode when it already leads the line for online-only cases.
   return [...new Set(parts.filter(Boolean))];
 }
 
 /** One clickable chip — shared by the card row and the detail grouping. */
 export function CaseChipLink({ chip }: { chip: CaseChip }) {
+  const { t } = useTranslation();
   const inner = (
     <span
       className={`inline-flex shrink-0 items-center truncate rounded-full border px-2.5 py-0.5 text-[11px] font-medium leading-tight transition-colors ${
@@ -100,7 +109,7 @@ export function CaseChipLink({ chip }: { chip: CaseChip }) {
       }`}
     >
       {chip.hard ? "⚠️ " : ""}
-      {chip.label}
+      {chip.tKey ? t(chip.tKey) : chip.label}
     </span>
   );
   if (chip.tag) {

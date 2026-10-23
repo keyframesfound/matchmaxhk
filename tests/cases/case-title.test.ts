@@ -5,7 +5,9 @@
 import { describe, expect, it } from "vitest";
 
 import { buildCaseTitle } from "../../src/features/cases/case-title";
+import { caseTitleFieldsFromBoard } from "../../src/features/cases/case-title";
 import { caseChips } from "../../src/features/cases/case-chips";
+import { caseLogisticsParts } from "../../src/features/cases/case-card";
 import { enforceCaseTierConsistency } from "../../src/features/cases/case-options";
 import type { PublicCaseBoardItem } from "../../src/lib/cases.functions";
 
@@ -204,5 +206,68 @@ describe("caseChips — the ONE chip system (#423)", () => {
       }),
     );
     expect(chips.length).toBe(8);
+  });
+
+  it("carries tKey on fixed-vocabulary chips; raw label stays the filter identity", () => {
+    const chips = caseChips(
+      baseItem({ preferredGender: "female", senRequired: true, tutorBackground: "uni_student" }),
+    );
+    const byLabel = new Map(chips.map((c) => [c.label, c]));
+    expect(byLabel.get("Female Only")?.tKey).toBe("case_board.chip_female_only");
+    expect(byLabel.get("SEN Friendly")?.tKey).toBe("case_board.chip_sen");
+    expect(byLabel.get("University student")?.tKey).toBe("case_board.chip_uni_student");
+    expect(byLabel.get("University student")?.query).toBe("University student");
+    // Data-backed chips (school names, parent-typed tags) never localize.
+    const tagged = caseChips(baseItem({ tags: ["ia review"] }));
+    expect(tagged.find((c) => c.label === "ia review")?.tKey).toBeUndefined();
+  });
+});
+
+describe("caseTitleFieldsFromBoard — the item→fields boundary (#423)", () => {
+  it("maps examSystem→curriculum and studentLevel→grade so the title is never subject-only", () => {
+    // The GLM-review blocker: the raw board item shadows the stored title
+    // with a bare subject string because CaseTitleFields props are optional
+    // and structural typing stays silent. The boundary mapper must produce
+    // the full "IBDP Chemistry HL — Senior secondary" from a REAL board item.
+    const item = baseItem({ title: "IBDP Chemistry HL — Y12" });
+    expect(buildCaseTitle(caseTitleFieldsFromBoard(item), "en")).toBe(
+      "IBDP Chemistry HL — Senior secondary",
+    );
+    expect(buildCaseTitle(caseTitleFieldsFromBoard(item), "zh-HK")).toBe("IBDP 化學 HL — 高中");
+    // The mapped value is non-empty, so useCaseTitles' `|| item.title`
+    // fallback only triggers for rows the helper can't express.
+  });
+});
+
+describe("caseLogisticsParts — one mode mention (#423)", () => {
+  it("drops the bare mode label on district-less (online) cases", () => {
+    const parts = caseLogisticsParts(
+      baseItem({
+        district: null,
+        mode: "online",
+        budgetMin: null,
+        budgetMax: null,
+        budgetMinHkd: 300,
+        budgetMaxHkd: null,
+      }),
+    );
+    expect(parts[0]).toBe("📍 Online");
+    expect(parts.filter((p) => p.includes("Online")).length).toBe(1);
+    expect(parts.join(" · ")).not.toContain("Online · Online");
+  });
+
+  it("keeps district + mode as separate parts for in-person cases", () => {
+    const parts = caseLogisticsParts(
+      baseItem({
+        district: "Yuen Long",
+        mode: "in_person",
+        budgetMin: null,
+        budgetMax: null,
+        budgetMinHkd: 300,
+        budgetMaxHkd: null,
+      }),
+    );
+    expect(parts[0]).toBe("📍 Yuen Long");
+    expect(parts[1]).toBe("In-person");
   });
 });

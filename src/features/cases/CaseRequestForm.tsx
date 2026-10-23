@@ -309,6 +309,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     // #380 review: a restored draft's budget currency (even an explicit
     // HKD) is the visitor's own choice — never re-sync it afterwards.
     budgetCurrencyTouched.current = true;
+    // GLM review 2026-10-23: drafts saved under the old 2000-char cap restore
+    // over-length notes — maxLength only blocks NEW typing, and the server
+    // zod .max(500) would reject submit. Truncate to the live cap here.
+    const notes = typeof restored.notes === "string" ? restored.notes.slice(0, 500) : "";
     setForm((prev) => ({
       ...prev,
       ...restored,
@@ -319,6 +323,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       packageType,
       studentCount,
       rateUnit,
+      notes,
       instructionLanguage: languages,
       tags,
     }));
