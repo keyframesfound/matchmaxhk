@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from "react-i18next";
 import { CalendarClock, Check, Columns2, ListChecks } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
+
+import { formatPostedAgo } from "@/lib/relative-time";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -207,6 +209,7 @@ function CaseCompareDialog({
   onOpenChange: (open: boolean) => void;
   cases: PublicCaseBoardItem[];
 }) {
+  const { i18n } = useTranslation();
   const columns = `minmax(7.5rem, 0.9fr) repeat(${cases.length}, minmax(10.5rem, 1.4fr))`;
   const rows: { label: string; render: (item: PublicCaseBoardItem) => React.ReactNode }[] = [
     {
@@ -279,7 +282,7 @@ function CaseCompareDialog({
       label: "Posted",
       render: (item) => (
         <p className="text-[13px] font-semibold text-[color:var(--ink)]">
-          {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
+          {formatPostedAgo(item.createdAt, i18n.language)}
         </p>
       ),
     },

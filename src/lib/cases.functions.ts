@@ -19,6 +19,7 @@ import {
 } from "@/features/cases/case-options";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
 import { sanitizeCaseFreeText } from "@/lib/contact-filter";
+import { buildCaseTitle as buildStructuredTitle } from "@/features/cases/case-title";
 
 const phoneRegex = /^[+(\d][\d\s()./+-]{4,19}\d$/;
 
@@ -79,7 +80,15 @@ const CaseRequestInput = z
       .max(SEN_CATEGORY_OPTIONS.length)
       .default([]),
     senDetails: z.string().trim().max(2000).optional().nullable(),
-    notes: z.string().trim().max(2000).optional().nullable(),
+    // Issue #423 (sections 2+3): structured package fields — hard dropdowns
+    // on the form, rendered on the board card (fee pill / students / rate
+    // unit suffix). Defaults match the DB column defaults.
+    packageType: z.enum(["ongoing_1_5", "short_20", "pro_bono"]).default("ongoing_1_5"),
+    studentCount: z.number().int().min(1).max(5).default(1),
+    rateUnit: z.enum(["hr", "lesson", "month"]).default("hr"),
+    // Issue #423: the public client note is capped at 500 chars and piped
+    // through stripContactDetails (sanitizeCaseFreeText) at save time.
+    notes: z.string().trim().max(500).optional().nullable(),
     termsAck: z.literal(true),
     // Issue #253 (F2): the matching-fee agreement (fee-2026-10) is a
     // separate, mandatory checkbox; the version is recorded server-side.
@@ -166,6 +175,11 @@ export type PublicCaseBoardItem = {
   senCategories: string[];
   preferredGender: "any" | "male" | "female";
   startTiming: string | null;
+  // Issue #423 (sections 2+3): structured package fields — display only,
+  // never contact data.
+  packageType: "ongoing_1_5" | "short_20" | "pro_bono";
+  studentCount: number;
+  rateUnit: "hr" | "lesson" | "month";
   budgetCurrency: string;
   budgetMin: number | null;
   budgetMax: number | null;
@@ -176,7 +190,7 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, start_timing, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at";
+  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, start_timing, package_type, student_count, rate_unit, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 // sen_details is also withheld: the board is public and the free-text needs
@@ -219,6 +233,19 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
       : [],
     preferredGender: (row.preferred_gender as "any" | "male" | "female") ?? "any",
     startTiming: (row.start_timing as string | null) ?? null,
+    // Issue #423: tolerant reads — every legacy row predating the migration
+    // carries the same defaults the DB columns were added with.
+    packageType:
+      row.package_type === "short_20" || row.package_type === "pro_bono"
+        ? row.package_type
+        : "ongoing_1_5",
+    studentCount:
+      typeof row.student_count === "number" &&
+      Number.isInteger(row.student_count) &&
+      row.student_count >= 1
+        ? row.student_count
+        : 1,
+    rateUnit: row.rate_unit === "lesson" || row.rate_unit === "month" ? row.rate_unit : "hr",
     budgetCurrency: (row.budget_currency as string) ?? "HKD",
     budgetMin: (row.budget_min as number | null) ?? null,
     budgetMax: (row.budget_max as number | null) ?? null,
@@ -395,12 +422,35 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       subjects: data.subjects,
     });
 
-    const insertRow = {
-      title: buildCaseTitle({
-        ...data,
-        targetSchool: cleanTargetSchool,
+    // Issue #423 (sections 2+3): the stored title IS the structured EN
+    // auto-title now — the display rule renders the structured bilingual
+    // title from the fields and only falls back to this column for legacy
+    // rows, so new rows store the coherent locked-fields title.
+    const storedTitle = buildStructuredTitle(
+      {
+        curriculum: tierConsistent.curriculum,
         subjects: tierConsistent.subjects,
-      }),
+        grade:
+          storedStudentLevel(
+            normalizeFunnelLevel(data.academicLevel),
+            data.secondaryBand ?? null,
+          ) ??
+          data.year?.trim() ??
+          null,
+      },
+      "en",
+    );
+
+    const insertRow = {
+      // Issue #423 (sections 2+3): structured auto-title when the structured
+      // fields suffice; the legacy builder only covers rows it can't express.
+      title:
+        storedTitle ||
+        buildCaseTitle({
+          ...data,
+          targetSchool: cleanTargetSchool,
+          subjects: tierConsistent.subjects,
+        }),
       // Issue #410: parent free text that reaches the public board runs
       // through the shared contact filter (strip, never reject — #396
       // precedent). Blank becomes null, so the old trim-then-null branch
@@ -453,6 +503,10 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       preferred_gender: "any" as const,
       budget_min: data.budgetMin ?? null,
       budget_max: data.budgetMax ?? null,
+      // Issue #423 (sections 2+3): the structured package fields.
+      package_type: data.packageType,
+      student_count: data.studentCount,
+      rate_unit: data.rateUnit,
       budget_currency: data.budgetCurrency ?? DEFAULT_CURRENCY,
       contact_name: data.parentName,
       contact_phone: data.contactPhone,

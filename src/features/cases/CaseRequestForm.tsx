@@ -33,6 +33,9 @@ import {
   TARGET_SCHOOL_OPTIONS,
   TUTOR_BACKGROUND_OPTIONS,
   COMPONENT_SENTINEL,
+  PACKAGE_TYPE_OPTIONS,
+  RATE_UNIT_OPTIONS,
+  STUDENT_COUNT_OPTIONS,
   getComponentOptionsForCurriculum,
   getCurriculumOptionsForLevel,
   getSubjectOptionsForCurriculum,
@@ -54,6 +57,7 @@ import {
 } from "@/features/cases/case-verticals";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
+import { buildCaseTitle } from "@/features/cases/case-title";
 import { cn } from "@/lib/utils";
 
 const PHONE_REGEX = /^[+(\d][\d\s()./+-]{4,19}\d$/;
@@ -122,6 +126,10 @@ type FormState = {
   district: string;
   budgetMin: string;
   budgetMax: string;
+  // Issue #423 (sections 2+3): structured package fields (hard dropdowns).
+  packageType: string;
+  studentCount: string;
+  rateUnit: string;
   // Issue #114: the parent's native budget currency (HKD fallback).
   budgetCurrency: string;
   tutorBackground: string;
@@ -169,6 +177,9 @@ const INITIAL_FORM: FormState = {
   district: "",
   budgetMin: "",
   budgetMax: "",
+  packageType: "ongoing_1_5",
+  studentCount: "1",
+  rateUnit: "hr",
   budgetCurrency: DEFAULT_CURRENCY,
   tutorBackground: "any",
   notes: "",
@@ -285,9 +296,23 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     // restored level's lock — drop it so step 2 re-asks coherently.
     const allowedCurricula = getCurriculumOptionsForLevel(academicLevel).map((o) => o.value);
     const curriculum = allowedCurricula.includes(restored.curriculum) ? restored.curriculum : "";
+    // Issue #423: sanitize the package dropdowns against tampered drafts.
+    const packageType = PACKAGE_TYPE_OPTIONS.some((o) => o.value === restored.packageType)
+      ? restored.packageType
+      : "ongoing_1_5";
+    const studentCount = STUDENT_COUNT_OPTIONS.some((o) => o.value === restored.studentCount)
+      ? restored.studentCount
+      : "1";
+    const rateUnit = RATE_UNIT_OPTIONS.some((o) => o.value === restored.rateUnit)
+      ? restored.rateUnit
+      : "hr";
     // #380 review: a restored draft's budget currency (even an explicit
     // HKD) is the visitor's own choice — never re-sync it afterwards.
     budgetCurrencyTouched.current = true;
+    // GLM review 2026-10-23: drafts saved under the old 2000-char cap restore
+    // over-length notes — maxLength only blocks NEW typing, and the server
+    // zod .max(500) would reject submit. Truncate to the live cap here.
+    const notes = typeof restored.notes === "string" ? restored.notes.slice(0, 500) : "";
     setForm((prev) => ({
       ...prev,
       ...restored,
@@ -295,6 +320,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       secondaryBand,
       kindergartenTopics,
       curriculum,
+      packageType,
+      studentCount,
+      rateUnit,
+      notes,
       instructionLanguage: languages,
       tags,
     }));
@@ -306,7 +335,11 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         v === "" ||
         (Array.isArray(v) && v.length === 0) ||
         (typeof v === "boolean" && !v) ||
-        (key === "tutorBackground" && v === "any"),
+        (key === "tutorBackground" && v === "any") ||
+        // Issue #423: the package defaults are the blank state.
+        (key === "packageType" && v === "ongoing_1_5") ||
+        (key === "studentCount" && v === "1") ||
+        (key === "rateUnit" && v === "hr"),
     );
 
   const update = (patch: Partial<FormState>) => {
@@ -324,6 +357,28 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   };
 
   const isAdmissions = form.supportType === "admissions";
+  // Issue #423 (sections 2+3): the title is no longer typed — it is this
+  // live preview, generated from the structured fields in the #411
+  // dual-language pattern. Parents never type a title for new cases.
+  const titlePreview = useMemo(() => {
+    const subjects = [form.subject1, form.subject2].map((s) => s.trim()).filter(Boolean);
+    const fields = {
+      curriculum: form.curriculum || null,
+      subjects,
+      grade: form.secondaryBand || form.year || form.academicLevel || null,
+    };
+    return {
+      en: buildCaseTitle(fields, "en"),
+      zh: buildCaseTitle(fields, "zh-HK"),
+    };
+  }, [
+    form.curriculum,
+    form.subject1,
+    form.subject2,
+    form.secondaryBand,
+    form.year,
+    form.academicLevel,
+  ]);
   const subjectOptions = getSubjectOptionsForCurriculum(form.curriculum);
   // Issue #423 bug 3: curricula locked to the chosen academic tier — a
   // Primary case can only pick "Primary School", never IBDP.
@@ -537,6 +592,11 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           district: form.deliveryMode !== "online" ? form.district || null : null,
           budgetMin: form.budgetMin ? Number(form.budgetMin) : null,
           budgetMax: form.budgetMax ? Number(form.budgetMax) : null,
+          // Issue #423 (sections 2+3): the structured package fields.
+          packageType: (form.packageType || "ongoing_1_5") as
+            "ongoing_1_5" | "short_20" | "pro_bono",
+          studentCount: Number(form.studentCount) || 1,
+          rateUnit: (form.rateUnit || "hr") as "hr" | "lesson" | "month",
           // Issue #114: the parent's native budget currency; the DB trigger
           // snapshots the HKD-equivalent bounds server-side.
           budgetCurrency: toCurrencyCode(form.budgetCurrency),
@@ -709,6 +769,22 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           );
         })}
       </ol>
+
+      {/* Issue #423: live auto-title preview — replaces manual title typing.
+          Shown from step 2 on, once the structured fields exist. */}
+      {step >= 2 ? (
+        <div className="mb-8 rounded-sm border border-border bg-muted/40 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t("case_board.title_preview")}
+          </p>
+          <p className="mt-1.5 text-lg font-bold tracking-tight text-[color:var(--ink)]">
+            {titlePreview.en || t("case_board.title_preview_empty")}
+          </p>
+          {titlePreview.zh && titlePreview.zh !== titlePreview.en ? (
+            <p className="mt-0.5 text-sm text-muted-foreground">{titlePreview.zh}</p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {step === 1 ? (
@@ -1432,6 +1508,48 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 <p className="mt-1 text-xs font-semibold text-destructive">{errors.budgetMax}</p>
               ) : null}
             </div>
+            {/* Issue #423 (sections 2+3): structured package dropdowns —
+                no random input; these feed the card's fee pill, students
+                row and rate suffix. */}
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-package-type`}>
+                {t("case_board.form_package_type")}
+              </label>
+              <SearchableSelect
+                value={form.packageType}
+                onChange={(v) => update({ packageType: v || "ongoing_1_5" })}
+                options={PACKAGE_TYPE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+                placeholder={t("case_board.form_package_type")}
+                searchPlaceholder={t("case_board.form_package_type")}
+                className={controlClassName}
+              />
+            </div>
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-student-count`}>
+                {t("case_board.form_student_count")}
+              </label>
+              <SearchableSelect
+                value={form.studentCount}
+                onChange={(v) => update({ studentCount: v || "1" })}
+                options={STUDENT_COUNT_OPTIONS}
+                placeholder={t("case_board.form_student_count")}
+                searchPlaceholder={t("case_board.form_student_count")}
+                className={controlClassName}
+              />
+            </div>
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-rate-unit`}>
+                {t("case_board.form_rate_unit")}
+              </label>
+              <SearchableSelect
+                value={form.rateUnit}
+                onChange={(v) => update({ rateUnit: v || "hr" })}
+                options={RATE_UNIT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+                placeholder={t("case_board.form_rate_unit")}
+                searchPlaceholder={t("case_board.form_rate_unit")}
+                className={controlClassName}
+              />
+            </div>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-tutor-background`}>
                 Tutor background (Optional)
@@ -1536,11 +1654,15 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               <Textarea
                 id={`${idPrefix}-notes`}
                 rows={4}
+                maxLength={500}
                 className="w-full rounded-sm"
-                placeholder="Target grades, availability, trial lesson preference, anything else we should know…"
+                placeholder={t("case_board.notes_placeholder")}
                 value={form.notes}
                 onChange={(e) => update({ notes: e.target.value })}
               />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("case_board.notes_counter", { count: form.notes.length })}
+              </p>
             </div>
             {/* Issue #311: preset tags as chips — one tap adds it, one tap on
                 a saved chip removes it. Optional; typing stays on the notes
