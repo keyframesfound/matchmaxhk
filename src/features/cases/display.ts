@@ -150,9 +150,11 @@ export function caseBudgetForTutor(
   },
   tutorCurrency: CurrencyCode,
   rates: HkdRates,
+  unit: CaseRateUnit = "hr",
 ): { primary: string | null; original: string } {
   const { min, max } = caseBudgetHkdBounds(item);
-  const original = formatCaseRate(min, max);
+  const suffix = RATE_UNIT_SUFFIX[unit] ?? "/hr";
+  const original = formatCaseRate(min, max, unit);
   if (!original) return { primary: null, original };
   if (tutorCurrency === DEFAULT_CURRENCY) return { primary: null, original };
   const convert = (value: number | null | undefined): string | null => {
@@ -163,16 +165,16 @@ export function caseBudgetForTutor(
   // Same matrix as formatCaseRate, with each bound converted first (#423).
   if (min === null) {
     const to = convert(max);
-    return to ? { primary: `Up to ${to}/hr`, original } : { primary: null, original };
+    return to ? { primary: `Up to ${to}${suffix}`, original } : { primary: null, original };
   }
   if (max === null) {
     const from = convert(min);
-    return from ? { primary: `From ${from}/hr`, original } : { primary: null, original };
+    return from ? { primary: `From ${from}${suffix}`, original } : { primary: null, original };
   }
   const from = convert(min);
   const to = convert(max);
   if (!from || !to) return { primary: null, original };
-  return { primary: `${from}\u2013${to}/hr`, original };
+  return { primary: `${from}\u2013${to}${suffix}`, original };
 }
 
 export function formatCaseSchedule(sessionsPerWeek: number, sessionLengthMinutes: number): string {

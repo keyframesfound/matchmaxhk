@@ -175,6 +175,28 @@ export const SCHOOL_TYPE_OPTIONS = [
   { value: "Other", label: "Other" },
 ];
 
+// --- Issue #423 (sections 2+3): structured package fields -------------------
+
+/** Fee-rule packages — the card footer pill renders the same vocabulary. */
+export const PACKAGE_TYPE_OPTIONS = [
+  { value: "ongoing_1_5", label: "Ongoing (>5 lessons)" },
+  { value: "short_20", label: "Short package (≤5 lessons)" },
+  { value: "pro_bono", label: "Pro-bono / CSR" },
+] as const;
+
+/** Rate suffix the #426 rate formatter applies (/hr | /lesson | /month). */
+export const RATE_UNIT_OPTIONS = [
+  { value: "hr", label: "Per hour" },
+  { value: "lesson", label: "Per lesson" },
+  { value: "month", label: "Per month" },
+] as const;
+
+/** Hard student-count dropdown — card shows "👥 N students" when > 1. */
+export const STUDENT_COUNT_OPTIONS = [1, 2, 3, 4, 5].map((count) => ({
+  value: String(count),
+  label: count === 1 ? "1 student" : `${count} students`,
+}));
+
 export function getComponentOptionsForCurriculum(curriculum: string): string[] {
   return [COMPONENT_SENTINEL, ...(CURRICULUM_COMPONENTS[curriculum] ?? [])];
 }

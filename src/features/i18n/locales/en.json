@@ -2396,5 +2396,27 @@
     "share": "Share",
     "share_tutor": "Share tutor profile",
     "share_failed": "Couldn't share this link"
+  },
+  "case_board": {
+    "identity_parent": "Parent",
+    "students_count": "{{count}} students",
+    "fee_pill_ongoing": "1.5-Lesson",
+    "fee_pill_short": "20% Short",
+    "fee_pill_pro_bono": "Pro-Bono $0",
+    "posted_ago": "Posted {{ago}}",
+    "view_details": "View details",
+    "title_preview": "Card title preview",
+    "title_preview_empty": "Pick a curriculum and subject to see the title",
+    "form_package_type": "Package type",
+    "form_student_count": "Students",
+    "form_rate_unit": "Rate unit",
+    "notes_placeholder": "Target grades, availability, trial lesson preference, anything else we should know…",
+    "notes_counter": "{{count}}/500 characters",
+    "notes_title": "Parent's note",
+    "chips_title": "Tutor requirements & lesson scope",
+    "chips_hard": "Hard requirement",
+    "chips_soft": "Preference",
+    "gender_mismatch_warning": "This parent only accepts a tutor of the specified gender — you may not be matched.",
+    "payout_title": "Fee & payout"
   }
 }

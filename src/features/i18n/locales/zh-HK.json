@@ -2396,5 +2396,27 @@
     "share": "分享",
     "share_tutor": "分享導師檔案",
     "share_failed": "無法分享此連結"
+  },
+  "case_board": {
+    "identity_parent": "家長",
+    "students_count": "{{count}} 名學生",
+    "fee_pill_ongoing": "1.5 課收費",
+    "fee_pill_short": "短期 20%",
+    "fee_pill_pro_bono": "義教 $0",
+    "posted_ago": "{{ago}}張貼",
+    "view_details": "查看詳情",
+    "title_preview": "卡片標題預覽",
+    "title_preview_empty": "選擇課程及科目以顯示標題",
+    "form_package_type": "計劃類別",
+    "form_student_count": "學生人數",
+    "form_rate_unit": "收費單位",
+    "notes_placeholder": "目標成績、可上課時間、是否需要試堂，或其他我們需要知道的資料……",
+    "notes_counter": "{{count}}/500 字",
+    "notes_title": "家長備註",
+    "chips_title": "導師要求及課堂範圍",
+    "chips_hard": "硬性要求",
+    "chips_soft": "偏好",
+    "gender_mismatch_warning": "此家長只接受指定性別的導師——你未必會獲安排配對。",
+    "payout_title": "費用與收益"
   }
 }

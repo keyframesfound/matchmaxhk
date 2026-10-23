@@ -1,14 +1,14 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  AlertTriangle,
   ArrowLeft,
   CalendarClock,
   Check,
   Clock,
   GraduationCap,
-  Hash,
   MapPin,
   Share2,
   Wallet,
@@ -24,20 +24,25 @@ import {
   CASE_MODE_LABEL,
   CASE_START_LABEL,
   buildCaseApplyWhatsAppUrl,
-  formatCaseBudgetHkd,
-  formatCaseSchedule,
-  formatCaseTitle,
-  formatStudentLevel,
+  caseBudgetForTutor,
+  caseBudgetHkdBounds,
+  formatCaseRate,
 } from "@/features/cases/display";
-import { TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
-import { CaseSaveButton } from "@/features/cases/saved-cases";
-import { CasePillBadge, casePills } from "@/features/cases/case-pills";
-import type { CasePill, CasePillTone } from "@/features/cases/case-pills";
-import { caseAcademicTier } from "@/features/tutors/verticals";
-import { kindergartenTopicLabel } from "@/features/tutors/verticals-labels";
+import {
+  CaseChipLink,
+  CaseFeePill,
+  caseGradeLabel,
+  useCaseTitles,
+} from "@/features/cases/case-card";
+import { caseChips } from "@/features/cases/case-chips";
+import { useAuth } from "@/features/auth/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { getPublicCaseByCode, type PublicCaseBoardItem } from "@/lib/cases.functions";
 import { shareOrCopy } from "@/lib/share";
-import { caseBudgetForTutor } from "@/features/cases/display";
+import { buildCaseTitle } from "@/features/cases/case-title";
+import { CaseSaveButton } from "@/features/cases/saved-cases";
+import { caseAcademicTier } from "@/features/tutors/verticals";
+import { kindergartenTopicLabel } from "@/features/tutors/verticals-labels";
 import { useDisplayCurrency } from "@/features/currency/display-currency-context";
 import { useTutorDisplayCurrency } from "@/features/currency/tutor-currency";
 
@@ -52,7 +57,7 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/$caseCode")
   head: ({ match }) => {
     const data = (match.loaderData ?? null) as CaseDetailData | null;
     const title = data
-      ? `${formatCaseTitle(data.item.studentLevel, data.item.subjects) || data.item.title} — Case ${data.item.caseCode} | MatchMax`
+      ? `${buildCaseTitle(data.item, "en") || data.item.title} — Case ${data.item.caseCode} | MatchMax`
       : "Tutor request | MatchMax";
     const description = (
       data?.item.description ??
@@ -93,15 +98,48 @@ function CaseDetailPage() {
   // Issue #113: convert the budget for tutors quoting in another currency.
   const tutorCurrency = useTutorDisplayCurrency();
   const { rates: tutorFxRates } = useDisplayCurrency();
-  const tutorBudget = caseBudgetForTutor(item, tutorCurrency, tutorFxRates);
+  const tutorBudget = caseBudgetForTutor(item, tutorCurrency, tutorFxRates, item.rateUnit);
   const applyUrl = buildCaseApplyWhatsAppUrl(whatsappNumber, item.caseCode);
-  const title = formatCaseTitle(item.studentLevel, item.subjects) || item.title;
+  const { primary: title, secondary: titleSecondary } = useCaseTitles(item);
   const [isSharing, setIsSharing] = useState(false);
+
+  // Issue #423: the gender Female/Male Only chip is a HARD preference —
+  // when the viewing tutor's own profile gender contradicts it, Apply dims
+  // and shows ⚠️ (a warning, not a block). Guests and genderless tutors
+  // never see a mismatch.
+  const { user } = useAuth();
+  const [viewerGender, setViewerGender] = useState<string | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    void supabase
+      .from("tutors")
+      .select("gender")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const gender = (data?.gender as string | null)?.toLowerCase() ?? null;
+        setViewerGender(gender);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+  const genderMismatch =
+    (item.preferredGender === "female" && viewerGender === "male") ||
+    (item.preferredGender === "male" && viewerGender === "female");
+
+  // Issue #423: "Rate TBA" is allowed ONLY on the detail page — the matrix
+  // omits the rate everywhere else, and "HK$?" never renders.
+  const { min: rateMin, max: rateMax } = caseBudgetHkdBounds(item);
+  const rateHkd = formatCaseRate(rateMin, rateMax, item.rateUnit);
+  const rateLabel = tutorBudget.primary ?? (rateHkd || t("case_request.rate_tba"));
 
   const handleShare = () => {
     setIsSharing(true);
     // Issue #423: a both-blank budget has no rate text — never "HK$?".
-    const shareRate = tutorBudget.primary ?? formatCaseBudgetHkd(item);
+    const shareRate = tutorBudget.primary ?? rateHkd;
     void shareOrCopy({
       title: `${title} — Case ${item.caseCode} | MatchMax`,
       text: shareRate
@@ -114,7 +152,7 @@ function CaseDetailPage() {
   const meta = [
     {
       icon: GraduationCap,
-      label: formatStudentLevel(item.studentLevel) || item.studentLevel,
+      label: caseGradeLabel(item),
     },
     {
       icon: MapPin,
@@ -122,20 +160,49 @@ function CaseDetailPage() {
     },
     {
       icon: Clock,
-      label: formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes),
+      label: `${item.sessionsPerWeek}×/week · ${item.sessionLengthMinutes} min`,
     },
     {
       icon: Wallet,
       // Issue #113: tutor-quoting currencies get the converted figure first.
-      // Issue #423: "Rate TBA" only on the detail page — the matrix omits
-      // the rate everywhere else, and "HK$?" never renders.
-      label: tutorBudget.primary ?? (formatCaseBudgetHkd(item) || t("case_request.rate_tba")),
-      hint:
-        tutorBudget.primary && formatCaseBudgetHkd(item)
-          ? `Original: ${formatCaseBudgetHkd(item)}`
-          : undefined,
+      label: rateLabel,
+      hint: tutorBudget.primary && rateHkd ? `Original: ${rateHkd}` : undefined,
     },
   ];
+
+  // Issue #423: one chip system, grouped soft vs hard for the detail skim.
+  const chips = caseChips(item);
+  const hardChips = chips.filter((chip) => chip.hard);
+  const softChips = chips.filter((chip) => !chip.hard);
+
+  // Issue #423 section 3 / #385 rules: the net payout block swaps by
+  // package_type. Per-lesson math only — short packages store no lesson
+  // count, so no package total is invented.
+  const agreedRate =
+    item.budgetMaxHkd ?? item.budgetMax ?? item.budgetMinHkd ?? item.budgetMin ?? null;
+  const rateUnitSuffix =
+    item.rateUnit === "lesson" ? "lesson" : item.rateUnit === "month" ? "month" : "hr";
+  const payout =
+    item.packageType === "pro_bono"
+      ? [
+          "Agreed tuition: HK$0 (Pro-Bono / CSR)",
+          "MatchMax admin fee: HK$0",
+          "Tutor net: HK$0 · impact hours logged per #400 where applicable",
+        ]
+      : item.packageType === "short_20"
+        ? [
+            `Agreed tuition: ${agreedRate !== null ? `HK$${agreedRate}` : "rate TBA"} per ${rateUnitSuffix}`,
+            "MatchMax admin fee: 20% of the package tuition (settled after Lesson 1)",
+            "Tutor net: remaining 80%, paid directly by the client",
+          ]
+        : agreedRate !== null
+          ? [
+              `Agreed lesson tuition: HK$${agreedRate}/${rateUnitSuffix} × 1.5 = HK$${Math.round(agreedRate * 1.5)} admin fee`,
+              "Lesson 1 (100% → MatchMax): HK$0 to tutor (client FPS → MatchMax)",
+              `Lesson 2 (50% → tutor): HK$${Math.round(agreedRate * 0.5)} paid directly by the client`,
+              `Lesson 3 onwards (100%): HK$${agreedRate} per ${rateUnitSuffix} · 0% ongoing commission`,
+            ]
+          : null;
 
   const lessons = [
     `Subjects: ${item.subjects.filter(Boolean).join(", ") || "Not specified"}`,
@@ -154,9 +221,13 @@ function CaseDetailPage() {
   if (item.languageOfInstruction && languageLabel && item.languageOfInstruction !== "either") {
     preferences.splice(1, 0, `Instruction language: ${languageLabel}`);
   }
-  const backgroundLabel = TUTOR_BACKGROUND_LABELS[item.tutorBackground ?? ""];
-  if (item.tutorBackground && item.tutorBackground !== "any" && backgroundLabel) {
-    preferences.push(`Tutor background: ${backgroundLabel}`);
+  if (item.studentCount > 1) {
+    preferences.push(`Students: ${item.studentCount} (group case)`);
+  }
+  if (item.packageType === "short_20") {
+    preferences.push("Short package: up to 5 lessons · 20% admin fee");
+  } else if (item.packageType === "pro_bono") {
+    preferences.push("Pro-bono case: HK$0 tuition · HK$0 admin fee");
   }
 
   // Issue #190: vertical details — uni block for the University tier,
@@ -184,19 +255,6 @@ function CaseDetailPage() {
     );
   }
 
-  // Requirement pills grouped by category for the details view (issue #149).
-  const GROUP_TITLES: Record<CasePillTone, string> = {
-    hard: "Requirements",
-    background: "Background & schools",
-    curriculum: "Curriculum & coursework",
-  };
-  const pillGroups = (["hard", "background", "curriculum"] as CasePillTone[])
-    .map((tone) => ({
-      title: GROUP_TITLES[tone],
-      pills: casePills(item).filter((pill: CasePill) => pill.tone === tone),
-    }))
-    .filter((group) => group.pills.length > 0);
-
   return (
     <PublicPage>
       <section className="flex w-full justify-center px-4 py-10 sm:px-6 sm:py-14">
@@ -211,12 +269,25 @@ function CaseDetailPage() {
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex min-w-0 flex-col gap-3">
-              <span className="w-fit rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-semibold text-muted-foreground">
-                {item.caseCode}
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="w-fit rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-semibold text-muted-foreground">
+                  {item.caseCode}
+                </span>
+                <CaseFeePill packageType={item.packageType} />
+                <span className="text-xs text-muted-foreground">
+                  {t("case_board.posted_ago", {
+                    ago: formatDistanceToNow(new Date(item.createdAt), { addSuffix: true }),
+                  })}
+                </span>
+              </div>
+              {/* Bilingual auto-title block (#411 pattern): locale-primary
+                  headline, parallel locale line beneath. */}
               <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                 {title}
               </h1>
+              {titleSecondary ? (
+                <p className="text-lg text-muted-foreground">{titleSecondary}</p>
+              ) : null}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
                 {meta.map(({ icon: Icon, label, hint }) => (
                   <span key={label} className="flex items-center gap-1.5" title={hint}>
@@ -231,42 +302,34 @@ function CaseDetailPage() {
                   </span>
                 ) : null}
               </div>
-              {pillGroups.length > 0 ? (
+              {/* One chip system, grouped soft vs hard (#423 section 3). */}
+              {chips.length > 0 ? (
                 <div className="flex flex-col gap-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Parent&apos;s special requirements
+                    {t("case_board.chips_title")}
                   </p>
-                  {pillGroups.map((group) => (
-                    <div key={group.title} className="flex flex-wrap items-center gap-1.5">
+                  {hardChips.length > 0 ? (
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <span className="mr-1 text-xs font-medium text-muted-foreground">
-                        {group.title}:
+                        {t("case_board.chips_hard")}:
                       </span>
-                      {group.pills.map((pill) => (
-                        <CasePillBadge key={pill.key} pill={pill} />
+                      {hardChips.map((chip) => (
+                        <CaseChipLink key={chip.key} chip={chip} />
                       ))}
                     </div>
-                  ))}
+                  ) : null}
+                  {softChips.length > 0 ? (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="mr-1 text-xs font-medium text-muted-foreground">
+                        {t("case_board.chips_soft")}:
+                      </span>
+                      {softChips.map((chip) => (
+                        <CaseChipLink key={chip.key} chip={chip} />
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
-              {item.tags.length > 0 ? (
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="mr-1 text-xs font-medium text-muted-foreground">Tags:</span>
-                  {item.tags.map((tag) => (
-                    <Link
-                      key={tag}
-                      to="/tutor-requests"
-                      search={{ tag }}
-                      className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
-                    >
-                      <Hash className="h-3 w-3 shrink-0" aria-hidden="true" />
-                      {tag}
-                    </Link>
-                  ))}
-                </div>
-              ) : null}
-              <p className="text-xs text-muted-foreground">
-                Posted {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
-              </p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
               <Button
@@ -282,8 +345,27 @@ function CaseDetailPage() {
                 <Share2 className="h-4 w-4" aria-hidden="true" />
               </Button>
               <CaseSaveButton caseId={item.id} />
-              <Button asChild size="lg" variant="solid" color="blue">
-                <a href={applyUrl} target="_blank" rel="noreferrer">
+              {genderMismatch ? (
+                <span
+                  className="inline-flex h-9 w-9 items-center justify-center text-[#a16207] dark:text-[color:var(--warning)]"
+                  title={t("case_board.gender_mismatch_warning")}
+                >
+                  <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+                </span>
+              ) : null}
+              <Button
+                asChild
+                size="lg"
+                variant="solid"
+                color="blue"
+                className={genderMismatch ? "opacity-50" : undefined}
+              >
+                <a
+                  href={applyUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={genderMismatch ? t("case_board.gender_mismatch_warning") : undefined}
+                >
                   <WhatsAppIcon aria-hidden="true" />
                   Apply now
                 </a>
@@ -294,13 +376,14 @@ function CaseDetailPage() {
           <Separator className="my-8" />
 
           <div className="flex flex-col gap-8 text-[15px] leading-relaxed text-foreground/80">
-            <div className="flex flex-col gap-3">
-              <SectionHeading>About this request</SectionHeading>
-              <p>
-                {item.description ||
-                  "The parent didn't add extra notes for this request. Apply via WhatsApp and the MatchMax team will share the full details."}
-              </p>
-            </div>
+            {/* Issue #423: an empty note HIDES the quote block entirely —
+                never a "parent didn't add notes" placeholder. */}
+            {item.description?.trim() ? (
+              <div className="flex flex-col gap-3">
+                <SectionHeading>{t("case_board.notes_title")}</SectionHeading>
+                <p>{item.description}</p>
+              </div>
+            ) : null}
 
             <div className="flex flex-col gap-3">
               <SectionHeading>What the lessons look like</SectionHeading>
@@ -319,6 +402,20 @@ function CaseDetailPage() {
                 ))}
               </ul>
             </div>
+
+            {payout ? (
+              <div className="flex flex-col gap-3">
+                <SectionHeading>{t("case_board.payout_title")}</SectionHeading>
+                <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-4 text-sm">
+                  <CaseFeePill packageType={item.packageType} className="w-fit" />
+                  <ul className="flex flex-col gap-1.5">
+                    {payout.map((line) => (
+                      <CheckItem key={line}>{line}</CheckItem>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <Separator className="my-8" />
@@ -331,8 +428,19 @@ function CaseDetailPage() {
                 tutors, and we reply within one business day.
               </p>
             </div>
-            <Button asChild variant="solid" color="blue" className="shrink-0">
-              <a href={applyUrl} target="_blank" rel="noreferrer">
+            <Button
+              asChild
+              variant="solid"
+              color="blue"
+              className={`shrink-0 ${genderMismatch ? "opacity-50" : undefined}`}
+            >
+              <a
+                href={applyUrl}
+                target="_blank"
+                rel="noreferrer"
+                title={genderMismatch ? t("case_board.gender_mismatch_warning") : undefined}
+              >
+                {genderMismatch ? <AlertTriangle aria-hidden="true" /> : null}
                 <WhatsAppIcon aria-hidden="true" />
                 Apply now
               </a>

@@ -90,9 +90,14 @@ describe("submitCaseRequest wiring (source assertion)", () => {
       /const cleanTargetSchool =[\s\S]*?sanitizeCaseFreeText\(data\.targetSchool,\s*120\)/,
     );
     expect(source).toMatch(
-      // #423 added the tier-consistency pass-through (subjects come from
-      // tierConsistent, dropped mismatched subjects never reach the title).
-      /title:\s*buildCaseTitle\(\{\s*\.\.\.data,\s*targetSchool:\s*cleanTargetSchool,\s*subjects:\s*tierConsistent\.subjects,?\s*\}\)/,
+      // #423 sections 2+3: the stored title IS the structured EN auto-title
+      // (buildStructuredTitle over the tier-consistent fields); the legacy
+      // builder remains only as the fallback for rows the structured fields
+      // can't express — still fed cleanTargetSchool, never the raw string.
+      /title:\s*\n?\s*storedTitle \|\|\s*\n?\s*buildCaseTitle\(\{\s*\.\.\.data,\s*targetSchool:\s*cleanTargetSchool,\s*subjects:\s*tierConsistent\.subjects,?\s*\}\)/,
+    );
+    expect(source).toMatch(
+      /const storedTitle = buildStructuredTitle\(\s*\{[\s\S]*?curriculum:\s*tierConsistent\.curriculum,[\s\S]*?subjects:\s*tierConsistent\.subjects,/,
     );
     expect(source).toMatch(/target_school:\s*cleanTargetSchool/);
   });
