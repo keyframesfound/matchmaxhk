@@ -57,6 +57,40 @@ export const CASE_START_LABEL: Record<string, string> = {
   flexible: "Flexible start",
 };
 
+// zh-HK variants feeding the public case-detail localized lines (#430 GLM
+// round-3 minor): the English maps above stay the canonical labels for the
+// board card logistics line and admin surfaces; these translate the value
+// slot inside the detail page's preference/lesson sentences. Unknown tokens
+// fall through to the caller's raw-value rendering.
+export const CASE_MODE_LABEL_ZH: Record<string, string> = {
+  online: "網上",
+  in_person: "面對面",
+  either: "網上或面對面",
+};
+
+export const CASE_GENDER_LABEL_ZH: Record<string, string> = {
+  any: "不限",
+  female: "女導師",
+  male: "男導師",
+};
+
+export const CASE_LANGUAGE_LABEL_ZH: Record<string, string> = {
+  en: "英文",
+  "zh-HK": "廣東話",
+  either: "不限",
+  english_only: "英文",
+  cantonese: "廣東話",
+  mandarin: "普通話",
+  bilingual: "雙語",
+  any: "不限",
+};
+
+export const CASE_START_LABEL_ZH: Record<string, string> = {
+  asap: "盡快開始",
+  two_weeks: "兩星期內",
+  flexible: "時間靈活",
+};
+
 /**
  * Issue #423 rate formatter matrix — `HK$?` may NEVER render.
  *

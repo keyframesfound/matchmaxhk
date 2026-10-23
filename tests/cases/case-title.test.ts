@@ -24,13 +24,29 @@ describe("buildCaseTitle EN (#423)", () => {
     );
   });
 
-  it("maps known stored levels", () => {
+  it("drops a grade segment that restates the curriculum band (GLM r3 minor)", () => {
     expect(
       buildCaseTitle(
         { curriculum: "Primary School", subjects: ["Mathematics"], grade: "Primary" },
         "en",
       ),
-    ).toBe("Primary School Mathematics — Primary");
+    ).toBe("Primary School Mathematics");
+    // Prefix-dedup: the Admissions band already contains "University".
+    expect(
+      buildCaseTitle(
+        { curriculum: "Admissions", subjects: ["Mathematics"], grade: "University" },
+        "en",
+      ),
+    ).toBe("University Admissions Mathematics");
+    // A distinct grade band still renders — AP's label is NOT a prefix of
+    // "Primary", so nothing may be dropped here.
+    expect(
+      buildCaseTitle({ curriculum: "AP", subjects: ["Mathematics"], grade: "Primary" }, "en"),
+    ).toBe("AP Mathematics — Primary");
+    // No curriculum → the grade is the only band info; keep it.
+    expect(
+      buildCaseTitle({ curriculum: null, subjects: ["Mathematics"], grade: "Primary" }, "en"),
+    ).toBe("Mathematics — Primary");
   });
 
   it("collapses extra subjects to +N", () => {
@@ -72,13 +88,13 @@ describe("buildCaseTitle zh-HK (#423)", () => {
     ).toBe("A-Level 延伸數學");
   });
 
-  it("translates curricula with zh labels", () => {
+  it("drops the redundant zh band segment too (小學 英文 — 小學 → 小學 英文)", () => {
     expect(
       buildCaseTitle(
         { curriculum: "Primary School", subjects: ["English"], grade: "Primary" },
         "zh-HK",
       ),
-    ).toBe("小學 英文 — 小學");
+    ).toBe("小學 英文");
   });
 });
 

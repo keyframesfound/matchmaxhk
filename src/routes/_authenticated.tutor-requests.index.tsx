@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { formatDistanceToNow } from "date-fns";
+import { formatPostedAgo } from "@/lib/relative-time";
 import { ArrowRight, BadgeCheck, CalendarClock, Hash, Inbox, SearchX, Share2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -149,7 +149,7 @@ function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
 }
 
 function CaseCard({ item }: { item: PublicCaseBoardItem }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { primary, secondary } = useCaseTitles(item);
   // Issue #113/#423: tutors quoting in another currency see the converted
   // rate first; an empty string (both bounds blank) omits the rate entirely
@@ -159,9 +159,7 @@ function CaseCard({ item }: { item: PublicCaseBoardItem }) {
   const budget = caseBudgetForTutor(item, tutorCurrency, fxRates, item.rateUnit);
   const rateHkd = caseRateText(item);
   const logisticsParts = caseLogisticsParts(item);
-  const postedAgo = formatDistanceToNow(new Date(item.boardPublishedAt ?? item.createdAt), {
-    addSuffix: true,
-  });
+  const postedAgo = formatPostedAgo(item.boardPublishedAt ?? item.createdAt, i18n.language);
   return (
     <li className="relative flex flex-col rounded-xl border border-border bg-[color:var(--surface)] p-4 transition-colors hover:border-[color:var(--foreground)]/25">
       {/* Identity row — trust pills ONLY with real data; there is NO parent

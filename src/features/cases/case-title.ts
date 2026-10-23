@@ -192,7 +192,23 @@ export function buildCaseTitle(fields: CaseTitleFields, locale: CaseTitleLocale 
   const grade = gradeRaw ? (GRADE_LABELS[gradeRaw]?.[locale] ?? gradeRaw) : "";
 
   const lead = [curriculum, subjectText].filter(Boolean).join(" ") + subjectExtra;
-  const parts = [lead || curriculum || subjectText, grade].filter(Boolean);
+  // GLM round-3 minor on #430: a grade whose localized label restates the
+  // curriculum band reads broken ("Primary School Mathematics — Primary",
+  // "小學 英文 — 小學"). The grade tables only contain band-level labels, so
+  // drop the grade when it EQUALS the curriculum label or the curriculum
+  // label starts with it ("Primary School" ⊃ "Primary", "University
+  // Admissions" ⊃ "University"). Prefix matching (not substring) keeps
+  // distinct pairs like AP + Primary intact. Other bands ("高中" vs "初中",
+  // "Y12" vs "IBDP") still render.
+  const gradeRedundant =
+    grade !== "" &&
+    curriculum !== "" &&
+    (() => {
+      const g = grade.trim().toLowerCase();
+      const c = curriculum.trim().toLowerCase();
+      return g === c || c.startsWith(g);
+    })();
+  const parts = [lead, gradeRedundant ? "" : grade].filter(Boolean);
   if (!parts[0]) return "";
   return parts.join(" — ");
 }

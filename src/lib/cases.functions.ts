@@ -84,7 +84,7 @@ const CaseRequestInput = z
     // on the form, rendered on the board card (fee pill / students / rate
     // unit suffix). Defaults match the DB column defaults.
     packageType: z.enum(["ongoing_1_5", "short_20", "pro_bono"]).default("ongoing_1_5"),
-    studentCount: z.number().int().min(1).max(10).default(1),
+    studentCount: z.number().int().min(1).max(5).default(1),
     rateUnit: z.enum(["hr", "lesson", "month"]).default("hr"),
     // Issue #423: the public client note is capped at 500 chars and piped
     // through stripContactDetails (sanitizeCaseFreeText) at save time.

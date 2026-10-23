@@ -1,7 +1,10 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { formatDistanceToNow } from "date-fns";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+// Locale-aware relative times (zh-HK, GLM round-3 minor on #430). The
+// share/WhatsApp message templates below stay English on purpose — they are
+// outbound message copy, not on-page UI.
+import { formatPostedAgo } from "@/lib/relative-time";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -20,9 +23,13 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   CASE_GENDER_LABEL,
+  CASE_GENDER_LABEL_ZH,
   CASE_LANGUAGE_LABEL,
+  CASE_LANGUAGE_LABEL_ZH,
   CASE_MODE_LABEL,
+  CASE_MODE_LABEL_ZH,
   CASE_START_LABEL,
+  CASE_START_LABEL_ZH,
   buildCaseApplyWhatsAppUrl,
   caseBudgetForTutor,
   caseBudgetHkdBounds,
@@ -95,7 +102,13 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 }
 
 function CaseDetailPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  // GLM round-3 minor on #430: this page's sentence lines previously rendered
+  // hardcoded English inside t()-keyed headings — zh-HK visitors got a
+  // mixed-language page. Every visible string now routes through the
+  // case_board.* keys; the structured value slots use the zh label maps in
+  // display.ts when the active locale is zh-HK.
+  const zh = i18n.language === "zh-HK";
   const { item, whatsappNumber } = Route.useLoaderData() as CaseDetailData;
   // Issue #113: convert the budget for tutors quoting in another currency.
   const tutorCurrency = useTutorDisplayCurrency();
@@ -151,6 +164,27 @@ function CaseDetailPage() {
     }).finally(() => setIsSharing(false));
   };
 
+  // Locale-aware value labels for the meta row and the lessons/preferences
+  // sentences (GLM round-3 minor on #430): known tokens use the EN maps (or
+  // the zh maps above when zh-HK is active), unknown tokens pass through.
+  const modeText = item.mode
+    ? ((zh ? CASE_MODE_LABEL_ZH[item.mode] : CASE_MODE_LABEL[item.mode]) ?? item.mode)
+    : null;
+  const genderText = item.preferredGender
+    ? ((zh
+        ? CASE_GENDER_LABEL_ZH[item.preferredGender]
+        : CASE_GENDER_LABEL[item.preferredGender]) ?? item.preferredGender)
+    : null;
+  const startText = item.startTiming
+    ? ((zh ? CASE_START_LABEL_ZH[item.startTiming] : CASE_START_LABEL[item.startTiming]) ??
+      item.startTiming)
+    : null;
+  const languageText = item.languageOfInstruction
+    ? ((zh
+        ? CASE_LANGUAGE_LABEL_ZH[item.languageOfInstruction]
+        : CASE_LANGUAGE_LABEL[item.languageOfInstruction]) ?? item.languageOfInstruction)
+    : null;
+
   const meta = [
     {
       icon: GraduationCap,
@@ -158,17 +192,23 @@ function CaseDetailPage() {
     },
     {
       icon: MapPin,
-      label: item.district ?? CASE_MODE_LABEL[item.mode] ?? "Location flexible",
+      label: item.district ?? modeText ?? t("case_board.location_flexible"),
     },
     {
       icon: Clock,
-      label: `${item.sessionsPerWeek}×/week · ${item.sessionLengthMinutes} min`,
+      label: t("case_board.meta_schedule", {
+        per_week: item.sessionsPerWeek,
+        minutes: item.sessionLengthMinutes,
+      }),
     },
     {
       icon: Wallet,
       // Issue #113: tutor-quoting currencies get the converted figure first.
       label: rateLabel,
-      hint: tutorBudget.primary && rateHkd ? `Original: ${rateHkd}` : undefined,
+      hint:
+        tutorBudget.primary && rateHkd
+          ? t("case_board.meta_original", { rate: rateHkd })
+          : undefined,
     },
   ];
 
@@ -184,52 +224,92 @@ function CaseDetailPage() {
     item.budgetMaxHkd ?? item.budgetMax ?? item.budgetMinHkd ?? item.budgetMin ?? null;
   const rateUnitSuffix =
     item.rateUnit === "lesson" ? "lesson" : item.rateUnit === "month" ? "month" : "hr";
+  // Localized unit word for prose ("per hr" / 每小時); money strings keep the
+  // repo-wide "HK$300/hr" convention on both locales.
+  const unitLabel = t(
+    item.rateUnit === "lesson"
+      ? "case_board.unit_lesson"
+      : item.rateUnit === "month"
+        ? "case_board.unit_month"
+        : "case_board.unit_hr",
+  );
   const payout =
     item.packageType === "pro_bono"
       ? [
-          "Agreed tuition: HK$0 (Pro-Bono / CSR)",
-          "MatchMax admin fee: HK$0",
-          "Tutor net: HK$0 · impact hours logged per #400 where applicable",
+          t("case_board.payout_probono_tuition"),
+          t("case_board.payout_probono_admin"),
+          t("case_board.payout_probono_net"),
         ]
       : item.packageType === "short_20"
         ? [
-            `Agreed tuition: ${agreedRate !== null ? `HK$${agreedRate}` : "rate TBA"} per ${rateUnitSuffix}`,
-            "MatchMax admin fee: 20% of the package tuition (settled after Lesson 1)",
-            "Tutor net: remaining 80%, paid directly by the client",
+            t("case_board.payout_short_tuition", {
+              rate: agreedRate !== null ? `HK$${agreedRate}` : t("case_request.rate_tba"),
+              unit: unitLabel,
+            }),
+            t("case_board.payout_short_admin"),
+            t("case_board.payout_short_net"),
           ]
         : agreedRate !== null
           ? [
-              `Agreed lesson tuition: HK$${agreedRate}/${rateUnitSuffix} × 1.5 = HK$${Math.round(agreedRate * 1.5)} admin fee`,
-              "Lesson 1 (100% → MatchMax): HK$0 to tutor (client FPS → MatchMax)",
-              `Lesson 2 (50% → tutor): HK$${Math.round(agreedRate * 0.5)} paid directly by the client`,
-              `Lesson 3 onwards (100%): HK$${agreedRate} per ${rateUnitSuffix} · 0% ongoing commission`,
+              t("case_board.payout_ongoing_tuition", {
+                rate: `HK$${agreedRate}/${rateUnitSuffix}`,
+                fee: `HK$${Math.round(agreedRate * 1.5)}`,
+              }),
+              t("case_board.payout_ongoing_l1"),
+              t("case_board.payout_ongoing_l2", {
+                rate: `HK$${Math.round(agreedRate * 0.5)}`,
+              }),
+              t("case_board.payout_ongoing_l3", {
+                rate: `HK$${agreedRate}`,
+                unit: unitLabel,
+              }),
             ]
           : null;
 
   const lessons = [
-    `Subjects: ${item.subjects.filter(Boolean).join(", ") || "Not specified"}`,
-    `${item.sessionsPerWeek} lesson${item.sessionsPerWeek === 1 ? "" : "s"} per week, ${item.sessionLengthMinutes} minutes each`,
-    `${CASE_MODE_LABEL[item.mode] ?? item.mode} lessons${item.district ? ` · ${item.district}` : ""}`,
+    t("case_board.detail_subjects", {
+      list:
+        item.subjects.filter(Boolean).join(zh ? "、" : ", ") ||
+        t("case_board.detail_subjects_none"),
+    }),
+    t("case_board.detail_cadence", {
+      per_week: item.sessionsPerWeek,
+      minutes: item.sessionLengthMinutes,
+    }),
+    `${t("case_board.detail_lessons_mode", { mode: modeText ?? "" })}${
+      item.district ? ` · ${item.district}` : ""
+    }`,
   ];
 
   const curriculum =
-    item.examSystem && item.examSystem !== "Not sure yet" ? item.examSystem : "flexible";
+    item.examSystem && item.examSystem !== "Not sure yet"
+      ? item.examSystem
+      : t("case_board.detail_flexible");
   const preferences = [
-    `Curriculum: ${curriculum}`,
-    `Tutor gender: ${CASE_GENDER_LABEL[item.preferredGender] ?? "No preference"}`,
-    `Start: ${CASE_START_LABEL[item.startTiming ?? ""] ?? "flexible"}`,
+    t("case_board.detail_pref_curriculum", { value: curriculum }),
+    t("case_board.detail_pref_gender", {
+      value: genderText ?? t("case_board.detail_no_preference"),
+    }),
+    t("case_board.detail_pref_start", {
+      value: startText ?? t("case_board.detail_flexible"),
+    }),
   ];
-  const languageLabel = CASE_LANGUAGE_LABEL[item.languageOfInstruction ?? ""];
-  if (item.languageOfInstruction && languageLabel && item.languageOfInstruction !== "either") {
-    preferences.splice(1, 0, `Instruction language: ${languageLabel}`);
+  if (item.languageOfInstruction && item.languageOfInstruction !== "either") {
+    preferences.splice(
+      1,
+      0,
+      t("case_board.detail_pref_language", {
+        value: languageText ?? item.languageOfInstruction,
+      }),
+    );
   }
   if (item.studentCount > 1) {
-    preferences.push(`Students: ${item.studentCount} (group case)`);
+    preferences.push(t("case_board.detail_pref_students", { students: item.studentCount }));
   }
   if (item.packageType === "short_20") {
-    preferences.push("Short package: up to 5 lessons · 20% admin fee");
+    preferences.push(t("case_board.detail_pref_short"));
   } else if (item.packageType === "pro_bono") {
-    preferences.push("Pro-bono case: HK$0 tuition · HK$0 admin fee");
+    preferences.push(t("case_board.detail_pref_probono"));
   }
 
   // Issue #190: vertical details — uni block for the University tier,
@@ -266,7 +346,7 @@ function CaseDetailPage() {
             className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            All open requests
+            {t("case_board.all_open_requests")}
           </Link>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -278,7 +358,7 @@ function CaseDetailPage() {
                 <CaseFeePill packageType={item.packageType} />
                 <span className="text-xs text-muted-foreground">
                   {t("case_board.posted_ago", {
-                    ago: formatDistanceToNow(new Date(item.createdAt), { addSuffix: true }),
+                    ago: formatPostedAgo(item.createdAt, i18n.language),
                   })}
                 </span>
               </div>
@@ -369,7 +449,7 @@ function CaseDetailPage() {
                   title={genderMismatch ? t("case_board.gender_mismatch_warning") : undefined}
                 >
                   <WhatsAppIcon aria-hidden="true" />
-                  Apply now
+                  {t("case_board.apply_now")}
                 </a>
               </Button>
             </div>
@@ -388,7 +468,7 @@ function CaseDetailPage() {
             ) : null}
 
             <div className="flex flex-col gap-3">
-              <SectionHeading>What the lessons look like</SectionHeading>
+              <SectionHeading>{t("case_board.detail_lessons_title")}</SectionHeading>
               <ul className="flex flex-col gap-2.5">
                 {lessons.map((lesson) => (
                   <CheckItem key={lesson}>{lesson}</CheckItem>
@@ -397,7 +477,7 @@ function CaseDetailPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <SectionHeading>Tutor preferences</SectionHeading>
+              <SectionHeading>{t("case_board.detail_preferences_title")}</SectionHeading>
               <ul className="flex flex-col gap-2.5">
                 {preferences.map((preference) => (
                   <CheckItem key={preference}>{preference}</CheckItem>
@@ -424,11 +504,10 @@ function CaseDetailPage() {
 
           <div className="flex flex-col gap-4 rounded-xl border border-border bg-muted/30 p-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-1">
-              <p className="text-sm font-bold text-[color:var(--ink)]">Ready to apply?</p>
-              <p className="text-sm text-muted-foreground">
-                Apply via WhatsApp and the MatchMax team will connect you with the parent — free for
-                tutors, and we reply within one business day.
+              <p className="text-sm font-bold text-[color:var(--ink)]">
+                {t("case_board.ready_title")}
               </p>
+              <p className="text-sm text-muted-foreground">{t("case_board.ready_body")}</p>
             </div>
             <Button
               asChild
@@ -444,7 +523,7 @@ function CaseDetailPage() {
               >
                 {genderMismatch ? <AlertTriangle aria-hidden="true" /> : null}
                 <WhatsAppIcon aria-hidden="true" />
-                Apply now
+                {t("case_board.apply_now")}
               </a>
             </Button>
           </div>
