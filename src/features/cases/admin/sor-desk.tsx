@@ -32,6 +32,7 @@ import {
   unpaidQueue,
 } from "@/features/cases/admin-desk.functions";
 import { CASE_FLAG_REASONS, type CaseFlagReason } from "@/features/cases/case-flags";
+import { listCaseSessionLogs, revokeSession } from "@/features/cases/experience.functions";
 import {
   derivePaidState,
   fullAdminFeeAmount,
@@ -352,8 +353,92 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
 
         {/* Issue #254 (F3): staff case flags */}
         <CaseFlagsSection caseId={caseId} />
+
+        {/* Issue #387: verified-experience session logs + operator revoke */}
+        <ExperienceLogsSection caseId={caseId} />
       </div>
     </ConsolePanel>
+  );
+}
+
+/**
+ * #387 — every logged session on the case with its status and dispute
+ * reason; pending/verified rows can be revoked (public totals recalculate
+ * instantly because get_tutor_experience counts verified rows only).
+ */
+function ExperienceLogsSection({ caseId }: { caseId: string }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  const {
+    data: logs = [],
+    isPending,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["sor", "session-logs", caseId],
+    queryFn: () => listCaseSessionLogs({ data: { caseId } }),
+  });
+
+  const revoke = useMutation({
+    mutationFn: (logId: string) => revokeSession({ data: { logId } }),
+    onSuccess: () => {
+      toast.success(t("experience.desk_revoked_ok"));
+      queryClient.invalidateQueries({ queryKey: ["sor", "session-logs", caseId] });
+    },
+    onError: (e: Error) =>
+      toast.error(t(`experience.err_${e.message}`, { defaultValue: e.message })),
+  });
+
+  const timeLabel = (min: number) =>
+    `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+
+  return (
+    <div className="border-t border-[color:var(--ink)]/10 pt-4">
+      <p className="text-sm font-medium text-[color:var(--ink)]">{t("experience.desk_title")}</p>
+      <ul className="mt-2 space-y-1">
+        {logs.map((l) => (
+          <li
+            key={l.id}
+            className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
+          >
+            <span className="font-medium text-[color:var(--ink)]">
+              {format(new Date(`${l.log_date}T00:00:00Z`), "d MMM yyyy")} ·{" "}
+              {timeLabel(l.start_minute)} ·{" "}
+              {t("experience.duration_hours", { hours: l.duration_min / 60 })}
+            </span>
+            <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-2 py-0.5">
+              {t(`experience.log_status_${l.status}`)}
+            </span>
+            {l.dispute_reason ? <span>“{l.dispute_reason}”</span> : null}
+            {(l.status === "pending" || l.status === "verified" || l.status === "disputed") && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="ml-auto h-7 px-2 text-xs"
+                disabled={revoke.isPending}
+                onClick={() => revoke.mutate(l.id)}
+              >
+                {revoke.isPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                ) : null}
+                {t("experience.desk_revoke")}
+              </Button>
+            )}
+          </li>
+        ))}
+        {isPending && (
+          <li className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+            {t("experience.desk_title")}…
+          </li>
+        )}
+        {isError && <li className="text-xs text-destructive">{error.message}</li>}
+        {!isPending && !isError && logs.length === 0 && (
+          <li className="text-xs text-muted-foreground">{t("experience.desk_empty")}</li>
+        )}
+      </ul>
+    </div>
   );
 }
 

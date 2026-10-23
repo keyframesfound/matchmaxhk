@@ -39,6 +39,7 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   "admin_fee.unpaid",
   "lesson.reminder_due",
   "lesson.review_prompt",
+  "experience.session_logged",
 ];
 
 /**
@@ -83,6 +84,10 @@ export const DELIVERY_PLAN: Readonly<
     { channel: "email", role: "parent" },
   ],
   "review.published": [{ channel: "in_app", role: "tutor" }],
+  // #387 notification leg: the parent learns a session was logged (bell only
+  // — lightweight by issue design; the Dispute button lives on the linked
+  // case page). No email: fee/order classes are the email set.
+  "experience.session_logged": [{ channel: "in_app", role: "parent" }],
   // Concierge unpaid-fee digest (#205). Generated at most once per 24h by the
   // drain; not a bell item for parents/tutors.
   "admin_fee.digest": [
@@ -142,6 +147,7 @@ export function bellLinkFor(
       return caseId ? `/account/cases/${caseId}` : "/account";
     case "admin_fee.invoiced":
     case "admin_fee.unpaid":
+    case "experience.session_logged":
       return caseId ? `/account/cases/${caseId}` : "/account";
     default:
       return null;

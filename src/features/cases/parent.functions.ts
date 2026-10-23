@@ -22,6 +22,7 @@ import {
   parentDisplayLineFromCase,
 } from "@/features/cases/parent/review-flow";
 import { canPublishHeldReview, isCaseFeeSettled } from "@/features/cases/case-reviews";
+import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
 
 type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
@@ -169,6 +170,8 @@ export type ParentCaseDetail = {
     comment: string;
     held_reason: string | null;
   } | null;
+  /** #387 tutor-logged sessions for this case (any status). */
+  session_logs: SessionLogRowT[];
   canRequestSlot: boolean;
   slots: { startsAt: string; durationMin: number; station: string | null }[];
   slotDays: string[]; // HKT date keys for the picker
@@ -181,6 +184,8 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const c = await myCase(db, data.caseId, context.userId);
+    // #387 lazy 72h auto-verify sweep so pending logs flip before display.
+    await sweepDueSessionLogs(db);
 
     const [full, lessons, fees, myReviews] = await Promise.all([
       selectRows<{
@@ -340,6 +345,13 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
             held_reason: mine.held_reason,
           }
         : null,
+      session_logs: await selectRows<SessionLogRowT>(
+        db,
+        "tutor_session_logs",
+        "id, case_id, log_date, start_minute, duration_min, status, dispute_reason, created_at",
+        [{ col: "case_id", op: "eq", value: c.id }],
+        { col: "log_date", asc: false },
+      ),
       canRequestSlot,
       slots,
       slotDays,

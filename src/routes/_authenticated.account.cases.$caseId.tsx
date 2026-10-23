@@ -20,6 +20,8 @@ import {
   submitParentReview,
   type ParentCaseDetail,
 } from "@/features/cases/parent.functions";
+import { disputeSession } from "@/features/cases/experience.functions";
+import { disputeHoursLeft } from "@/features/tutors/experience";
 import {
   feeHoldKind,
   REVIEW_COMMENT_MAX_PARENT,
@@ -199,11 +201,117 @@ function ParentCaseDetailPage() {
             )}
 
             <ReviewSection caseId={caseId} detail={data} onChanged={invalidate} />
+
+            {/* #387: tutor-logged sessions — one-click dispute + 72h hint */}
+            <SessionLogsSection logs={data.session_logs} onChanged={invalidate} />
           </div>
         )}
       </PageContainer>
       <SiteFooter />
     </div>
+  );
+}
+
+/**
+ * #387 — tutor-logged sessions on the parent's case surface. A pending row
+ * shows the 72h auto-verify countdown and a one-click "Dispute / Did not
+ * happen"; a disputed row stays visible with 0 hours counted.
+ */
+function SessionLogsSection({
+  logs,
+  onChanged,
+}: {
+  logs: ParentCaseDetail["session_logs"];
+  onChanged: () => void;
+}) {
+  const { t } = useTranslation();
+  const [disputingId, setDisputingId] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
+
+  const dispute = useMutation({
+    mutationFn: (logId: string) =>
+      disputeSession({ data: { logId, reason: reason.trim() || undefined } }),
+    onSuccess: () => {
+      toast.success(t("experience.parent_disputed_done"));
+      setDisputingId(null);
+      setReason("");
+      onChanged();
+    },
+    onError: (e) => toast.error(t(`experience.err_${e.message}`, { defaultValue: e.message })),
+  });
+
+  if (logs.length === 0) return null;
+  const now = new Date();
+
+  const timeLabel = (min: number) =>
+    `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+
+  return (
+    <section className="space-y-2">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        {t("experience.parent_title")}
+      </h2>
+      <ul className="space-y-2">
+        {logs.map((l) => (
+          <li key={l.id} className="rounded-lg border border-[color:var(--ink)]/10 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-[color:var(--ink)]">
+                {format(new Date(`${l.log_date}T00:00:00Z`), "EEE d MMM")} ·{" "}
+                {timeLabel(l.start_minute)} ·{" "}
+                {t("experience.duration_hours", { hours: l.duration_min / 60 })}
+              </span>
+              <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-2 py-0.5 text-xs text-muted-foreground">
+                {t(`experience.log_status_${l.status}`)}
+              </span>
+              {l.status === "pending" && (
+                <span className="ml-auto flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {t("experience.parent_pending_hint", {
+                      hours: disputeHoursLeft(new Date(l.created_at), now),
+                    })}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={dispute.isPending}
+                    onClick={() => setDisputingId(disputingId === l.id ? null : l.id)}
+                  >
+                    <X className="h-4 w-4" />
+                    {t("experience.parent_dispute")}
+                  </Button>
+                </span>
+              )}
+            </div>
+            {l.status === "pending" && disputingId === l.id && (
+              <div className="mt-2 space-y-2">
+                <textarea
+                  className="w-full rounded-md border border-[color:var(--ink)]/15 bg-transparent p-2 text-sm"
+                  rows={2}
+                  maxLength={500}
+                  placeholder={t("experience.parent_dispute_reason")}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button size="sm" variant="ghost" onClick={() => setDisputingId(null)}>
+                    {t("sor.parent_review_cancel")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    disabled={dispute.isPending}
+                    onClick={() => dispute.mutate(l.id)}
+                  >
+                    {dispute.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    {t("experience.parent_dispute")}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

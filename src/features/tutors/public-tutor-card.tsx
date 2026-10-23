@@ -30,6 +30,7 @@ import {
   type EngagementSummary,
 } from "@/features/tutors/engagement";
 import { DemandBadge, ParentFavoriteBadge } from "@/features/tutors/engagement-badges";
+import { ExperiencePill } from "@/features/tutors/experience-badge";
 import { useFitText } from "@/hooks/use-fit-text";
 import { shareOrCopy } from "@/lib/share";
 import { cn } from "@/lib/utils";
@@ -441,6 +442,10 @@ export function PublicTutorCard({
                 <span className="min-w-0 break-words line-clamp-2">{removeEmoji(line.text)}</span>
               </p>
             ))}
+            {/* Issue #387: verified experience pill — self-fetching, hides
+                completely at 0 verified lessons (Ryan-frozen card: this is the
+                ONLY visual addition; nothing else on the card changes). */}
+            <ExperiencePill tutorId={tutor.id} className="mt-1.5" />
           </div>
 
           {genderLabel ? (

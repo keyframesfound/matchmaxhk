@@ -20,10 +20,19 @@ import {
   submitTutorReview,
   type TutorCaseItem,
 } from "@/features/cases/tutor.functions";
+import { logTutorSession } from "@/features/cases/experience.functions";
 import { lessonActionsFor } from "@/features/cases/tutor/week-model";
 import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
-import { canMarkDone } from "@/features/cases/sor";
+import { canMarkDone, hktDateKey } from "@/features/cases/sor";
+import {
+  formatExperienceHours,
+  validateSessionLogInput,
+  type ExperienceGuardReason,
+} from "@/features/tutors/experience";
 import { formatMoneyFromCents } from "@/lib/money";
+
+/** #387: 0.5h–4.0h in 0.5h steps. */
+const LOG_DURATION_CHOICES_MIN = [30, 60, 90, 120, 150, 180, 210, 240];
 
 function feePillHkd(amount: number | null): string {
   if (amount === null) return "";
@@ -243,6 +252,135 @@ function LessonRow({
   );
 }
 
+/**
+ * #387 — log a completed ongoing session (Date / Start / Duration in 0.5h
+ * steps). Guardrails validated inline client-side AND server-side; pending
+ * rows auto-verify 72h after logging unless the parent disputes.
+ */
+function SessionLogForm({ item }: { item: TutorCaseItem }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
+
+  const today = hktDateKey(new Date());
+  const [open, setOpen] = useState(false);
+  const [logDate, setLogDate] = useState(today);
+  const [start, setStart] = useState("18:00");
+  const [durationMin, setDurationMin] = useState(60);
+
+  const timeMatch = /^(\d{1,2}):(\d{2})$/.exec(start);
+  const startMinute = timeMatch ? Number(timeMatch[1]) * 60 + Number(timeMatch[2]) : -1;
+  const guard: ExperienceGuardReason | null = validateSessionLogInput(
+    { logDate, startMinute, durationMin },
+    today,
+  );
+
+  const log = useMutation({
+    mutationFn: () =>
+      logTutorSession({ data: { caseId: item.id, logDate, startMinute, durationMin } }),
+    onSuccess: () => {
+      toast.success(t("experience.log_success"));
+      setOpen(false);
+      invalidate();
+    },
+    onError: (e) => toast.error(t(`experience.err_${e.message}`, { defaultValue: e.message })),
+  });
+
+  const minutesLabel = (min: number) =>
+    t("experience.duration_hours", { hours: formatExperienceHours(min / 60) });
+  const timeLabel = (min: number) =>
+    `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+
+  if (!item.can_log_session && item.session_logs.length === 0) return null;
+
+  return (
+    <div className="mt-3 border-t border-[color:var(--ink)]/10 pt-3">
+      {item.session_logs.length > 0 && (
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {t("experience.log_sessions_title")}
+        </p>
+      )}
+      <ul className="mt-1 space-y-1">
+        {item.session_logs.map((l) => (
+          <li
+            key={l.id}
+            className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
+          >
+            <span className="font-medium text-[color:var(--ink)]">
+              {format(new Date(`${l.log_date}T00:00:00Z`), "d MMM")} · {timeLabel(l.start_minute)}
+            </span>
+            <span>{minutesLabel(l.duration_min)}</span>
+            <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-2 py-0.5">
+              {t(`experience.log_status_${l.status}`)}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      {item.can_log_session &&
+        (open ? (
+          <div className="mt-2 rounded-lg border border-[color:var(--ink)]/10 p-3">
+            <div className="grid gap-2 sm:grid-cols-3">
+              <label className="grid gap-1 text-xs text-muted-foreground">
+                {t("experience.log_date")}
+                <Input
+                  type="date"
+                  max={today}
+                  min={`${new Date(Date.parse(`${today}T00:00:00Z`) - 7 * 86400000)
+                    .toISOString()
+                    .slice(0, 10)}`}
+                  value={logDate}
+                  onChange={(e) => setLogDate(e.target.value)}
+                />
+              </label>
+              <label className="grid gap-1 text-xs text-muted-foreground">
+                {t("experience.log_start")}
+                <Input type="time" value={start} onChange={(e) => setStart(e.target.value)} />
+              </label>
+              <label className="grid gap-1 text-xs text-muted-foreground">
+                {t("experience.log_duration")}
+                <select
+                  className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
+                  value={durationMin}
+                  onChange={(e) => setDurationMin(Number(e.target.value))}
+                >
+                  {LOG_DURATION_CHOICES_MIN.map((min) => (
+                    <option key={min} value={min}>
+                      {minutesLabel(min)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {guard ? (
+              <p className="mt-2 text-xs text-destructive">{t(`experience.err_${guard}`)}</p>
+            ) : (
+              <p className="mt-2 text-xs text-muted-foreground">{t("experience.log_hint")}</p>
+            )}
+            <div className="mt-2 flex justify-end gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+                {t("sor.admin_cancel")}
+              </Button>
+              <Button
+                size="sm"
+                disabled={Boolean(guard) || log.isPending}
+                onClick={() => log.mutate()}
+              >
+                {log.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {t("experience.log_submit")}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button size="sm" variant="outline" className="mt-2" onClick={() => setOpen(true)}>
+            <CalendarClock className="h-4 w-4" />
+            {t("experience.log_open")}
+          </Button>
+        ))}
+    </div>
+  );
+}
+
 function TutorPlusBanner({ t }: { t: ReturnType<typeof useTranslation>["t"] }) {
   const queryClient = useQueryClient();
   const { data } = useQuery({
@@ -327,6 +465,8 @@ export function TutorCasesSection() {
                 {c.lessons.some((l) => l.status === "done") &&
                   c.sor_status !== "closed" &&
                   c.sor_status !== "replaced" && <TutorReviewParentForm caseId={c.id} t={t} />}
+                {/* #387: logged sessions + logging form (fee-paid cases). */}
+                <SessionLogForm item={c} />
               </li>
             ))}
           </ul>

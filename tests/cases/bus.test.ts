@@ -50,6 +50,17 @@ describe("bus planning (#205/#292)", () => {
     expect(planDeliveriesForEvent("lesson.done")).toEqual({ kind: "skip" });
   });
 
+  it("#387 notification leg: a logged session reaches the parent in-app only", () => {
+    const res = planDeliveriesForEvent("experience.session_logged");
+    expect(res.kind).toBe("deliver");
+    if (res.kind === "deliver") {
+      expect(res.deliveries).toEqual([{ channel: "in_app", role: "parent" }]);
+    }
+    // The bell item deep-links to the case page — the Dispute button lives there.
+    expect(bellLinkFor("experience.session_logged", { case_id: "c1" })).toBe("/account/cases/c1");
+    expect(bellLinkFor("experience.session_logged", {})).toBe("/account");
+  });
+
   it("unknown types are unknown (stored failed, not dropped)", () => {
     expect(planDeliveriesForEvent("marketing.blast")).toEqual({ kind: "unknown" });
     expect(planDeliveriesForEvent("discord.invite")).toEqual({ kind: "unknown" });

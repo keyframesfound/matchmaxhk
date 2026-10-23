@@ -75,6 +75,7 @@ import {
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
+import { ExperienceLine } from "@/features/tutors/experience-badge";
 import {
   normalizeUniversityCourses,
   normalizeUniversityGpa,
@@ -716,6 +717,9 @@ function TutorDetail() {
                 <h1 className="mt-1 break-words text-xl font-bold leading-tight text-[color:var(--ink)] sm:text-2xl">
                   {activeHeadline ?? t.tutor_code}
                 </h1>
+                {/* Issue #387: verified lessons · hours · tenure, verified
+                    sessions only; hides completely at zero. */}
+                <ExperienceLine tutorId={t.id} className="mt-1" />
                 {t.has_postgrad && (t.postgrad_university || t.postgrad_degree) ? (
                   <p className="mt-2 flex items-start gap-1.5 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
                     <GraduationCap
