@@ -22,6 +22,7 @@ import {
 } from "@/features/cases/sor";
 import { generateSlots, type GeneratedSlot } from "@/features/cases/slot";
 import { validateReviewInput } from "@/features/cases/case-reviews";
+import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
 import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
 import {
   countActiveStudents,
@@ -119,6 +120,10 @@ export type TutorCaseItem = {
     confirmed_by_tutor_at: string | null;
     location_or_link: string | null;
   }[];
+  /** #387 experience-log rows for this case (any status). */
+  session_logs: SessionLogRowT[];
+  /** #387: fee paid + dispute lock not hit → the log form may render. */
+  can_log_session: boolean;
 };
 
 export const getMyTutorCases = createServerFn({ method: "POST" })
@@ -127,6 +132,9 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutorId = await myTutorId(db, context.userId);
+
+    // #387 lazy 72h auto-verify sweep: statuses are fresh before any read.
+    await sweepDueSessionLogs(db);
 
     const cases = await selectRows<{
       id: string;
@@ -149,7 +157,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
     if (mine.length === 0) return [];
 
     const caseIds = mine.map((c) => c.id);
-    const [lessons, fees] = await Promise.all([
+    const [lessons, fees, sessionLogs] = await Promise.all([
       selectRows<{
         id: string;
         case_id: string;
@@ -173,6 +181,13 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         "case_fees",
         "case_id, amount_hkd, status",
         [{ col: "case_id", op: "in", value: caseIds }],
+      ),
+      selectRows<SessionLogRowT>(
+        db,
+        "tutor_session_logs",
+        "id, case_id, log_date, start_minute, duration_min, status, dispute_reason, created_at",
+        [{ col: "case_id", op: "in", value: caseIds }],
+        { col: "log_date", asc: false },
       ),
     ]);
 
@@ -234,6 +249,14 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
           confirmed_by_tutor_at: l.confirmed_by_tutor_at,
           location_or_link: l.location_or_link,
         })),
+      // #387 experience log: list rows for every case; the FORM only opens
+      // when the 1.5-lesson admin fee is paid and the dispute lock is not hit.
+      session_logs: sessionLogs.filter((l) => l.case_id === c.id),
+      can_log_session:
+        openFeeByCase.get(c.id)?.status === "paid" &&
+        sessionLogs.filter((l) => l.case_id === c.id && l.status === "disputed").length < 2 &&
+        c.sor_status !== "replaced" &&
+        c.sor_status !== "closed",
     }));
   });
 
