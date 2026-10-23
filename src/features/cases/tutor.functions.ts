@@ -250,10 +250,12 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
           location_or_link: l.location_or_link,
         })),
       // #387 experience log: list rows for every case; the FORM only opens
-      // when the 1.5-lesson admin fee is paid and the dispute lock is not hit.
+      // when the 1.5-lesson admin fee is settled (paid OR waived — #425
+      // precedent, matching canLogOnCase) and the dispute lock is not hit.
       session_logs: sessionLogs.filter((l) => l.case_id === c.id),
       can_log_session:
-        openFeeByCase.get(c.id)?.status === "paid" &&
+        (openFeeByCase.get(c.id)?.status === "paid" ||
+          openFeeByCase.get(c.id)?.status === "waived") &&
         sessionLogs.filter((l) => l.case_id === c.id && l.status === "disputed").length < 2 &&
         c.sor_status !== "replaced" &&
         c.sor_status !== "closed",

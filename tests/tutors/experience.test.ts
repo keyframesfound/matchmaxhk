@@ -77,14 +77,21 @@ describe("validateSessionLogInput — anti-abuse guardrails", () => {
 });
 
 describe("canLogOnCase — fee gate + 2-dispute lock", () => {
-  it("requires the admin fee to be paid", () => {
-    expect(canLogOnCase({ feePaid: false, disputedCount: 0 })).toBe("FEE_NOT_PAID");
+  it("requires the admin fee to be settled (paid OR waived, #425 precedent)", () => {
+    expect(canLogOnCase({ feeStatuses: [], disputedCount: 0 })).toBe("FEE_NOT_PAID");
+    expect(canLogOnCase({ feeStatuses: ["not_due", "invoiced"], disputedCount: 0 })).toBe(
+      "FEE_NOT_PAID",
+    );
+    expect(canLogOnCase({ feeStatuses: ["paid"], disputedCount: 0 })).toBeNull();
+    // A waived fee is an obligation met — the case stays loggable.
+    expect(canLogOnCase({ feeStatuses: ["waived"], disputedCount: 0 })).toBeNull();
+    expect(canLogOnCase({ feeStatuses: ["invoiced", "waived"], disputedCount: 0 })).toBeNull();
   });
 
   it("locks logging after 2 disputed logs on the case", () => {
-    expect(canLogOnCase({ feePaid: true, disputedCount: 1 })).toBeNull();
-    expect(canLogOnCase({ feePaid: true, disputedCount: 2 })).toBe("DISPUTE_LOCK");
-    expect(canLogOnCase({ feePaid: true, disputedCount: 5 })).toBe("DISPUTE_LOCK");
+    expect(canLogOnCase({ feeStatuses: ["paid"], disputedCount: 1 })).toBeNull();
+    expect(canLogOnCase({ feeStatuses: ["paid"], disputedCount: 2 })).toBe("DISPUTE_LOCK");
+    expect(canLogOnCase({ feeStatuses: ["paid"], disputedCount: 5 })).toBe("DISPUTE_LOCK");
   });
 });
 

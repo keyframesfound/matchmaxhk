@@ -17,6 +17,7 @@ function bellIcon(eventType: string) {
   if (eventType === "note_order.delivered") return Package;
   if (eventType === "review.published" || eventType === "lesson.review_prompt") return Star;
   if (eventType === "lesson.reminder_due") return CalendarClock;
+  if (eventType === "experience.session_logged") return GraduationCap;
   if (eventType.startsWith("admin_fee")) return Wallet;
   return Bell;
 }
@@ -31,6 +32,8 @@ function bellLabelKey(item: BellItem): string {
       return "sor.bell_review_prompt";
     case "lesson.reminder_due":
       return "sor.bell_lesson_tomorrow";
+    case "experience.session_logged":
+      return "sor.bell_session_logged";
     case "admin_fee.invoiced":
       return "sor.bell_fee_due";
     case "admin_fee.unpaid":

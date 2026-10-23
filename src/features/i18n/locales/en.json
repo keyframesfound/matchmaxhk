@@ -2314,7 +2314,8 @@
     "tutor_home_notes_net": "Net owed to you: HK${{n}}",
     "tutor_home_notes_note": "MatchMax pays notes net monthly. The admin fee above is the parent's fee and is never part of this total.",
     "tutor_home_notes_link": "View your listings",
-    "tutor_home_open_lessons": "Open Lessons"
+    "tutor_home_open_lessons": "Open Lessons",
+    "bell_session_logged": "New session logged by your tutor"
   },
   "currency": {
     "switcher_label": "Currency",

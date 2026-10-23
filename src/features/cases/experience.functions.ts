@@ -125,7 +125,8 @@ export const logTutorSession = createServerFn({ method: "POST" })
       id: string;
       matched_tutor_id: string | null;
       sor_status: SorStatus | null;
-    }>(db, "tutoring_cases", "id, matched_tutor_id, sor_status", [
+      parent_id: string | null;
+    }>(db, "tutoring_cases", "id, matched_tutor_id, sor_status, parent_id", [
       { col: "id", op: "eq", value: data.caseId },
     ]);
     const c = caseRows[0];
@@ -142,8 +143,9 @@ export const logTutorSession = createServerFn({ method: "POST" })
     ]);
 
     const gate = canLogOnCase({
-      // #387: ongoing-session logging only on cases whose admin fee is paid.
-      feePaid: fees.some((f) => f.status === "paid"),
+      // #387: ongoing-session logging only on cases whose admin fee is
+      // settled — paid OR waived (#425 precedent; Ryan-approved 2026-10-23).
+      feeStatuses: fees.map((f) => f.status),
       disputedCount: logs.filter((l) => l.status === "disputed").length,
     });
     if (gate) throw new Error(gate);
@@ -159,9 +161,14 @@ export const logTutorSession = createServerFn({ method: "POST" })
       duration_min: data.durationMin,
       status: "pending",
     });
-    const { error } = await (
+    const { data: inserted, error } = await (
       insert as unknown as {
-        select: () => { single: () => Promise<{ error: { message: string } | null }> };
+        select: () => {
+          single: () => Promise<{
+            data: { id: string } | null;
+            error: { message: string } | null;
+          }>;
+        };
       }
     )
       .select()
@@ -172,6 +179,28 @@ export const logTutorSession = createServerFn({ method: "POST" })
       throw new Error(error.message);
     }
     await insertAudit(db, c.id, context.userId, "experience_log_pending", null);
+
+    // #387 notification leg (GLM round-1 MAJOR): the parent must LEARN that a
+    // session was logged — without this, a parent who never visits the case
+    // page has no dispute window at all. One case_events row through the
+    // #205 bus; the lazy drain turns it into a parent bell item linking to
+    // the case page (where the Dispute button lives). The bus is
+    // service-role-insertable here; the drain itself runs on bell reads.
+    if (c.parent_id) {
+      const { error: eventError } = await db
+        .from<Row>("case_events")
+        .insert({
+          event_type: "experience.session_logged",
+          payload: { case_id: c.id, log_id: inserted?.id ?? null, log_date: data.logDate },
+          source_table: "tutor_session_logs",
+          source_id: inserted?.id ?? null,
+        })
+        .select("id")
+        .single();
+      if (eventError && !/duplicate|unique/i.test(eventError.message ?? "")) {
+        throw new Error(`insert event experience.session_logged: ${eventError.message}`);
+      }
+    }
     return { ok: true };
   });
 

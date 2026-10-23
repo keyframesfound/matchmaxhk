@@ -411,7 +411,7 @@ function ExperienceLogsSection({ caseId }: { caseId: string }) {
               {t(`experience.log_status_${l.status}`)}
             </span>
             {l.dispute_reason ? <span>“{l.dispute_reason}”</span> : null}
-            {(l.status === "pending" || l.status === "verified") && (
+            {(l.status === "pending" || l.status === "verified" || l.status === "disputed") && (
               <Button
                 size="sm"
                 variant="ghost"

@@ -662,6 +662,10 @@ export const getMyBell = createServerFn({ method: "POST" })
         roleHint = eventType === "admin_fee.digest" ? "concierge" : "parent";
       } else if (eventType === "review.published" || eventType === "lesson.review_prompt") {
         roleHint = eventType === "review.published" ? "tutor" : "parent";
+      } else if (eventType === "experience.session_logged") {
+        // The log is parent-facing by design (#387): only the parent gets the
+        // delivery, so the hint is statically theirs.
+        roleHint = "parent";
       } else if (eventType === "lesson.reminder_due") {
         const caseId = typeof payload.case_id === "string" ? payload.case_id : null;
         roleHint =

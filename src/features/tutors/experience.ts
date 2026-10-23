@@ -90,12 +90,18 @@ export function validateSessionLogInput(
   return null;
 }
 
-/** Case-level gate: the 1.5-lesson admin fee must be paid; 2 disputes lock. */
+/**
+ * Case-level gate: the 1.5-lesson admin fee must be SETTLED — paid OR
+ * admin-waived (the #425 review-fee precedent: a waived fee is an
+ * obligation met, so a waived case stays loggable — Ryan-approved
+ * 2026-10-23); 2 disputes lock.
+ */
 export function canLogOnCase(input: {
-  feePaid: boolean;
+  feeStatuses: readonly string[];
   disputedCount: number;
 }): ExperienceGuardReason | null {
-  if (!input.feePaid) return "FEE_NOT_PAID";
+  const settled = input.feeStatuses.some((s) => s === "paid" || s === "waived");
+  if (!settled) return "FEE_NOT_PAID";
   if (input.disputedCount >= EXPERIENCE.maxDisputesPerCase) return "DISPUTE_LOCK";
   return null;
 }

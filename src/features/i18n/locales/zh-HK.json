@@ -2314,7 +2314,8 @@
     "tutor_home_notes_net": "應付你的淨額：HK${{n}}",
     "tutor_home_notes_note": "筆記淨額由 MatchMax 每月支付。上述行政費屬家長費用，絕不計入此總額。",
     "tutor_home_notes_link": "查看你的商品",
-    "tutor_home_open_lessons": "前往課堂"
+    "tutor_home_open_lessons": "前往課堂",
+    "bell_session_logged": "導師已記錄新的補習課堂"
   },
   "currency": {
     "switcher_label": "貨幣",
