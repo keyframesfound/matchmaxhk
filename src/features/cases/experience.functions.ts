@@ -247,7 +247,17 @@ export const revokeSession = createServerFn({ method: "POST" })
 
     const { error } = await db
       .from<Row>("tutor_session_logs")
-      .update({ status: "revoked", revoked_by: context.userId })
+      // GLM review 2026-10-23: revoking a DISPUTED row must clear the dispute
+      // fields — tutor_session_logs_dispute_coherent requires
+      // (status='disputed') = (disputed_at IS NOT NULL), and a race between a
+      // parent dispute and the admin's revoke otherwise violates the CHECK
+      // and surfaces a raw PG error.
+      .update({
+        status: "revoked",
+        revoked_by: context.userId,
+        disputed_at: null,
+        dispute_reason: null,
+      })
       .eq("id", log.id);
     if (error) throw new Error(error.message);
     await insertAudit(db, log.case_id, context.userId, "experience_log_revoked", null);
