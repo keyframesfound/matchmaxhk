@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useGateOverlayPending } from "@/features/auth/gate-overlay";
 import "driver.js/dist/driver.css";
 import {
   TOUR_STORAGE_KEYS,
@@ -15,13 +16,18 @@ import {
  * — the issue's trigger is "first interaction with the main search bar OR
  * first view of a tutor card", so `ready` (results on screen) starts it after
  * a beat. Missing targets (e.g. no results, no shop tab) skip their step.
+ *
+ * Holds off while a blocking gate dialog (onboarding/TOS) is up, so it
+ * never stacks on those dialogs.
  */
 export function ParentCoachTour({ ready }: { ready: boolean }) {
   const { t } = useTranslation();
+  const gatePending = useGateOverlayPending();
   const startedRef = useRef(false);
 
   useEffect(() => {
-    if (!ready || startedRef.current || hasSeenTour(TOUR_STORAGE_KEYS.parent)) return;
+    if (!ready || gatePending || startedRef.current || hasSeenTour(TOUR_STORAGE_KEYS.parent))
+      return;
     startedRef.current = true;
 
     const timer = window.setTimeout(() => {
@@ -49,7 +55,7 @@ export function ParentCoachTour({ ready }: { ready: boolean }) {
     }, 800);
 
     return () => window.clearTimeout(timer);
-  }, [ready, t]);
+  }, [ready, gatePending, t]);
 
   return null;
 }

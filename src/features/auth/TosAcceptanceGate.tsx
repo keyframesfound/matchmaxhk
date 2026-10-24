@@ -1,6 +1,7 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useContext, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/features/auth/useAuth";
 import { AcceptTermsDialog, TOS_VERSION } from "@/features/auth/AcceptTermsGate";
+import { GateOverlayContext } from "@/features/auth/gate-overlay";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -43,18 +44,20 @@ export function TosAcceptanceGate({ children }: { children: ReactNode }) {
     };
   }, [user, acceptedFor]);
 
-  if (loading || !user || checking || acceptedFor === user.id) {
-    return <>{children}</>;
-  }
+  const inheritedPending = useContext(GateOverlayContext);
+  const pending = loading || Boolean(user && (checking || acceptedFor !== user.id));
+  const showDialog = Boolean(user && !loading && !checking && acceptedFor !== user.id);
 
   return (
-    <>
+    <GateOverlayContext.Provider value={inheritedPending || pending}>
       {children}
-      <AcceptTermsDialog
-        userId={user.id}
-        onAccepted={() => setAcceptedFor(user.id)}
-        onDecline={() => void signOut()}
-      />
-    </>
+      {showDialog && user && (
+        <AcceptTermsDialog
+          userId={user.id}
+          onAccepted={() => setAcceptedFor(user.id)}
+          onDecline={() => void signOut()}
+        />
+      )}
+    </GateOverlayContext.Provider>
   );
 }

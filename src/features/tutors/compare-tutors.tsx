@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { ListChecks } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { InitialAvatar } from "@/components/ui/initial-avatar";
 import {
   Dialog,
   DialogContent,
@@ -249,9 +250,12 @@ function CompareDialog({
                     className="mx-auto h-12 w-12 rounded-full border border-border object-cover"
                   />
                 ) : (
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold text-[color:var(--ink)]">
-                    {formatTutorCode(t.tutor_code).slice(0, 2)}
-                  </div>
+                  // Issue #437: branded deterministic initial avatar.
+                  <InitialAvatar
+                    stableId={t.user_id ?? t.tutor_code}
+                    name={t.display_name}
+                    className="mx-auto h-12 w-12 text-sm"
+                  />
                 )}
                 <p className="mt-1.5 text-sm font-semibold text-[color:var(--ink)]">
                   {formatTutorCode(t.tutor_code)}

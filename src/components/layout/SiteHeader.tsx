@@ -1,8 +1,9 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Bookmark,
   Building2,
   CircleHelp,
+  Compass,
   Globe,
   Menu,
   Moon,
@@ -28,10 +29,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { BellMenu } from "@/components/layout/bell-menu";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
+import { requestTour, TOUR_STORAGE_KEYS } from "@/features/tours/tour-requests";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 
@@ -139,7 +142,8 @@ export function SiteHeader({
   centerSlot?: React.ReactNode;
 }) {
   const { t, i18n } = useTranslation();
-  const { user, signOut, hasAnyRole } = useAuth();
+  const { user, signOut, hasAnyRole, hasRole } = useAuth();
+  const navigate = useNavigate();
   const { membership } = useMyOrganization();
   const hasOrg = !!membership;
   const { theme, setTheme } = useTheme();
@@ -162,7 +166,6 @@ export function SiteHeader({
   const pillOpacity = useTransform(collapseProgress, [0.45, 0.7], [0, 1]);
   const accountName =
     user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
-  const accountInitial = accountName.charAt(0).toUpperCase();
   const useDarkTheme = theme !== "dark";
   const currentLang = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
   const nextLang = currentLang === "en" ? "zh-HK" : "en";
@@ -271,9 +274,13 @@ export function SiteHeader({
                 aria-label={t("nav.profile")}
                 className={headerCircleClassName}
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--foreground)] text-sm font-bold text-[color:var(--background)]">
-                  {accountInitial}
-                </span>
+                {/* Issue #437: client accounts are locked to the generated
+                    branded initial avatar (no photo upload in V1). */}
+                <InitialAvatar
+                  stableId={user.id}
+                  name={accountName}
+                  className="h-8 w-8 border-0 text-sm"
+                />
               </Link>
             ) : (
               <Link to="/auth" aria-label={t("nav.sign_in")} className={headerCircleClassName}>
@@ -335,6 +342,21 @@ export function SiteHeader({
                         {t("nav.settings")}
                       </Link>
                     </DropdownMenuItem>
+                    {/* Launch/replay the tutor dashboard tour from any page. */}
+                    {hasRole("tutor") && (
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          requestTour(TOUR_STORAGE_KEYS.tutor);
+                          void navigate({ to: "/dashboard", hash: "my-tutor" });
+                        }}
+                        className={menuLinkClassName}
+                      >
+                        <MenuIcon>
+                          <Compass className="size-5" />
+                        </MenuIcon>
+                        {t("nav.dashboard_tour")}
+                      </DropdownMenuItem>
+                    )}
                     {isAdmin && (
                       <DropdownMenuItem asChild className={menuLinkClassName}>
                         <Link to="/admin">

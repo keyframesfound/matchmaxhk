@@ -18,6 +18,9 @@ export type CaseRow = {
   schedule_note: string | null;
   start_timing: string | null;
   preferred_gender: "any" | "male" | "female";
+  // Issue #437: case-level demographics (absent on pre-migration rows).
+  who_for?: "my_child" | "myself" | "someone_else" | null;
+  student_gender?: "female" | "male" | "prefer_not_to_say" | null;
   language_of_instruction: string;
   urgency: "low" | "normal" | "high";
   budget_min: number | null;
@@ -103,6 +106,19 @@ export const GENDER_LABEL: Record<string, string> = {
   any: "No preference",
   female: "Female tutor",
   male: "Male tutor",
+};
+
+/** Issue #437: readable labels for the case-level demographics fields. */
+export const WHO_FOR_LABEL: Record<string, string> = {
+  my_child: "My child",
+  myself: "Myself",
+  someone_else: "Someone else",
+};
+
+export const STUDENT_GENDER_LABEL: Record<string, string> = {
+  female: "Female",
+  male: "Male",
+  prefer_not_to_say: "Prefer not to say",
 };
 
 export function whatsappUrl(phone: string): string {

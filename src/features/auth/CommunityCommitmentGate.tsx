@@ -1,7 +1,8 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useContext, useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/features/auth/useAuth";
 import { committedToCurrentVersion } from "@/features/auth/commitment-version";
+import { GateOverlayContext } from "@/features/auth/gate-overlay";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -51,19 +52,23 @@ export function CommunityCommitmentGate({ children }: { children: ReactNode }) {
     };
   }, [user, agreedFor]);
 
-  if (loading || !user || checking || agreedFor === user.id) {
-    return <>{children}</>;
-  }
+  // Report the dialog state so page popups (coach tours) hold off
+  // instead of stacking on this one, same as the onboarding/TOS gates.
+  const inheritedPending = useContext(GateOverlayContext);
+  const pending = loading || Boolean(user && (checking || agreedFor !== user.id));
+  const showDialog = Boolean(user && !loading && !checking && agreedFor !== user.id);
 
   return (
-    <>
+    <GateOverlayContext.Provider value={inheritedPending || pending}>
       {children}
-      <CommunityCommitmentDialog
-        userId={user.id}
-        onAgreed={() => setAgreedFor(user.id)}
-        onDecline={() => void signOut()}
-      />
-    </>
+      {showDialog && user && (
+        <CommunityCommitmentDialog
+          userId={user.id}
+          onAgreed={() => setAgreedFor(user.id)}
+          onDecline={() => void signOut()}
+        />
+      )}
+    </GateOverlayContext.Provider>
   );
 }
 

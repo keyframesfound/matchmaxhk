@@ -4,6 +4,7 @@ import { Check, GraduationCap, Search, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/useAuth";
 import { TosAcceptanceGate } from "@/features/auth/TosAcceptanceGate";
+import { GateOverlayContext } from "@/features/auth/gate-overlay";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -50,21 +51,28 @@ export function OnboardingGate({ children }: { children: ReactNode }) {
     };
   }, [user, onboardedFor]);
 
-  if (
-    loading ||
-    !user ||
-    checking ||
-    onboardedFor === user.id ||
-    hasAnyRole(["admin", "staff", "super_admin"])
-  ) {
-    return <TosAcceptanceGate>{children}</TosAcceptanceGate>;
-  }
+  // Report the blocking-dialog state so page popups (coach tours) can
+  // hold off. Internal roles skip onboarding entirely, hence the !isInternal.
+  const isInternal = hasAnyRole(["admin", "staff", "super_admin"]);
+  const onboardingPending =
+    loading || Boolean(user && !isInternal && (checking || onboardedFor !== user.id));
+  const showOnboarding = Boolean(
+    user && !loading && !checking && !isInternal && onboardedFor !== user.id,
+  );
 
   return (
-    <>
-      {children}
-      <OnboardingRoleDialog displayName={displayName} onDone={() => setOnboardedFor(user.id)} />
-    </>
+    <GateOverlayContext.Provider value={onboardingPending}>
+      {user && showOnboarding ? (
+        // Onboarding first: keep the TOS gate unmounted so the two dialogs
+        // stay strictly sequential instead of stacking.
+        <>
+          {children}
+          <OnboardingRoleDialog displayName={displayName} onDone={() => setOnboardedFor(user.id)} />
+        </>
+      ) : (
+        <TosAcceptanceGate>{children}</TosAcceptanceGate>
+      )}
+    </GateOverlayContext.Provider>
   );
 }
 

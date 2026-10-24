@@ -20,6 +20,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
@@ -51,7 +52,6 @@ export function MobileBottomNav() {
 
   const accountName =
     user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
-  const accountInitial = accountName.charAt(0).toUpperCase();
   const useDarkTheme = theme !== "dark";
 
   const itemRowClass =
@@ -145,9 +145,13 @@ export function MobileBottomNav() {
             {user ? (
               <>
                 <div className="flex items-center gap-3 px-3 pt-1 pb-4">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[color:var(--foreground)] text-base font-bold text-[color:var(--background)]">
-                    {accountInitial}
-                  </span>
+                  {/* Issue #437: client accounts use the branded initial
+                      avatar — no photo upload in V1. */}
+                  <InitialAvatar
+                    stableId={user.id}
+                    name={accountName}
+                    className="h-11 w-11 border-0 text-base"
+                  />
                   <span className="min-w-0">
                     <span className="block truncate text-[15px] font-bold text-[color:var(--ink)]">
                       {accountName}
