@@ -86,45 +86,6 @@ export const ADMISSIONS_CATEGORY_OPTIONS = [
 // component like IA/EE/TOK; it is stripped before persisting.
 export const COMPONENT_SENTINEL = "Subject Tutoring";
 
-// --- Issue #423 tier locking -----------------------------------------------
-// A `Primary` case must never select `IBDP Chemistry HL`: the curriculum
-// picker is locked to the student's academic tier so the auto-title can never
-// read "Primary: Chem HL". University/Other/unset tiers keep the full list.
-const CURRICULA_FOR_LEVEL: Record<string, string[]> = {
-  Primary: ["Primary School"],
-  "Junior secondary": ["Junior Secondary", "IGCSE"],
-  "Senior secondary": ["IB", "DSE", "A-Level", "IGCSE"],
-};
-
-const LEVELS_FOR_CURRICULUM: Record<string, string[]> = {
-  "Primary School": ["Primary"],
-  "Junior Secondary": ["Junior secondary"],
-  IGCSE: ["Junior secondary", "Senior secondary"],
-  IB: ["Senior secondary"],
-  DSE: ["Senior secondary"],
-  "A-Level": ["Senior secondary"],
-};
-
-export function curriculumOptionsForLevel(level: string) {
-  const allowed = CURRICULA_FOR_LEVEL[level];
-  if (!allowed) return CURRICULUM_OPTIONS;
-  return CURRICULUM_OPTIONS.filter((option) => allowed.includes(option.value));
-}
-
-export function levelOptionsForCurriculum(curriculum: string) {
-  const allowed = LEVELS_FOR_CURRICULUM[curriculum];
-  if (!allowed) return LEVEL_OPTIONS;
-  return LEVEL_OPTIONS.filter((option) => allowed.includes(option.value));
-}
-
-/** True when the level/curriculum pair can coexist (used to auto-reset). */
-export function tierPairAllowed(level: string, curriculum: string): boolean {
-  if (!level || !curriculum) return true;
-  const curricula = CURRICULA_FOR_LEVEL[level];
-  if (!curricula) return true;
-  return curricula.includes(curriculum);
-}
-
 export const CURRICULUM_COMPONENTS: Record<string, string[]> = {
   IB: ["IA", "EE", "TOK"],
   "Primary School": ["Phonics"],

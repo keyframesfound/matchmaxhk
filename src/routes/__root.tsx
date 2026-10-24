@@ -116,43 +116,43 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:image", content: "https://matchmax.hk/matchmax-logo.png" },
       ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
-      { rel: "shortcut icon", href: "/favicon.ico" },
-      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
-      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
-      { rel: "manifest", href: "/site.webmanifest" },
-    ],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "MatchMax",
-          url: "https://matchmax.hk",
-          logo: "https://matchmax.hk/matchmax-logo.png",
-          description:
-            "Hong Kong tutoring marketplace matching parents and students with DSE, IB, IGCSE, and AP tutors.",
-        }),
-      },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          name: "MatchMax",
-          url: "https://matchmax.hk",
-          potentialAction: {
-            "@type": "SearchAction",
-            target: "https://matchmax.hk/tutors?q={search_term_string}",
-            "query-input": "required name=search_term_string",
-          },
-        }),
-      },
-    ],
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+        { rel: "shortcut icon", href: "/favicon.ico" },
+        { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+        { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+        { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+        { rel: "manifest", href: "/site.webmanifest" },
+      ],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "MatchMax",
+            url: "https://matchmax.hk",
+            logo: "https://matchmax.hk/matchmax-logo.png",
+            description:
+              "Hong Kong tutoring marketplace matching parents and students with DSE, IB, IGCSE, and AP tutors.",
+          }),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "MatchMax",
+            url: "https://matchmax.hk",
+            potentialAction: {
+              "@type": "SearchAction",
+              target: "https://matchmax.hk/tutors?q={search_term_string}",
+              "query-input": "required name=search_term_string",
+            },
+          }),
+        },
+      ],
     };
   },
 
