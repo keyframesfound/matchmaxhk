@@ -1,5 +1,5 @@
 /**
- * Issue #55 — staff search finds a case by tutor code.
+ * Issue #55, staff search finds a case by tutor code.
  *
  * The desk list filters case columns only; staff often know the TUTOR code
  * (off a WhatsApp intro, the unpaid queue, a tutor's message). This fn
@@ -8,7 +8,7 @@
  * matched tutor attached as a `matchedTutor` side field so the route can
  * union the hits into its displayed list without reshaping anything.
  *
- * Staff-gated (admin/super_admin/staff — the desk route's role set),
+ * Staff-gated (admin/super_admin/staff, the desk route's role set),
  * service-role reads only.
  */
 
@@ -32,7 +32,7 @@ async function requireDeskAccess(db: Db, userId: string): Promise<void> {
 
 /**
  * Wire type of one hit: the desk row shape with the matched tutor attached.
- * Concrete property types only — TanStack Start validates server-fn returns
+ * Concrete property types only, TanStack Start validates server-fn returns
  * for serializability, so the loose `Record<string, unknown>` fields of
  * CaseRow are narrowed here (compliance_triage answers are flat JSON
  * primitives in practice); the route casts back to its CaseRow view.

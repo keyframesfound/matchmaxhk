@@ -28,7 +28,7 @@ export const Route = createFileRoute("/guide/parents")({
   component: GuideParentsPage,
 });
 
-/** Issue #210: the parent guide — steps, money, and what MatchMax does not do. */
+/** Issue #210: the parent guide, steps, money, and what MatchMax does not do. */
 function GuideParentsPage() {
   const { t } = useTranslation();
 
@@ -60,10 +60,7 @@ function GuideParentsPage() {
       />
       <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
         <div className="max-w-3xl">
-          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-            {t("guide.parents.eyebrow")}
-          </p>
-          <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
             {t("guide.tab_parents")}
           </h1>
           <p className="mt-4 text-lg leading-8 text-[color:var(--ink)]/65">
@@ -86,7 +83,7 @@ function GuideParentsPage() {
                 key={label}
                 className="rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6"
               >
-                <h3 className="flex items-start gap-2 text-base font-bold tracking-tight">
+                <h3 className="flex items-start gap-2 text-base font-medium tracking-tight">
                   <UserRoundCheck
                     className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
                     aria-hidden="true"
@@ -107,7 +104,7 @@ function GuideParentsPage() {
                 key={label}
                 className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--surface-subtle)] p-5 sm:p-6"
               >
-                <h3 className="text-base font-bold tracking-tight">{label}</h3>
+                <h3 className="text-base font-medium tracking-tight">{label}</h3>
                 <p className="mt-2 text-sm leading-6 text-[color:var(--ink)]/70">{body}</p>
               </div>
             ))}

@@ -5,7 +5,7 @@
  * The tutors table stores education as free text (intake form). Filter
  * dropdowns are built from the distinct values that actually appear on tutor
  * profiles (collected at render time), and matching is an exact, case- and
- * whitespace-collapsed equality — the same semantics the major filter has
+ * whitespace-collapsed equality, the same semantics the major filter has
  * always used (issue #23).
  */
 
@@ -99,7 +99,7 @@ export function matchesMajorFilter(
 
 /**
  * Issue #130 (tutor editor): canonical suggestion lists for the education
- * fields. These are suggestions, not restrictions — the editors render them
+ * fields. These are suggestions, not restrictions, the editors render them
  * in a searchable dropdown with `allowCustom`, so admins and tutors can pick
  * from the list or type any other institution. Free text stored in the DB
  * keeps working with the exact filter matching above.
@@ -152,7 +152,7 @@ export const MAJOR_SUGGESTIONS = [
 /**
  * Options for an education editor dropdown: the current value first (so edits
  * never fight the list), then values already in use on tutor profiles, then
- * the canonical suggestions — deduped case-insensitively.
+ * the canonical suggestions, deduped case-insensitively.
  */
 export function educationEditorOptions(
   currentValue: string | null | undefined,
@@ -202,7 +202,7 @@ export function majorEditorOptions(
  * Issue #130: when the pedigree filters alone zero out the results, the
  * directory shows a fallback list of elite-pedigree tutors. Elite means an
  * overseas/ONG institution, or HKU / CUHK / HKUST. This is a display
- * heuristic only — it is not exposed as a filter option.
+ * heuristic only, it is not exposed as a filter option.
  */
 
 /** Matching substrings (lowercased) per listed HK university. */

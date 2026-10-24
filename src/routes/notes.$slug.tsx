@@ -25,7 +25,7 @@ import { CourseDetailPage } from "@/features/courses/course-detail";
 import { ReportMenuButton } from "@/features/reports/report-button";
 
 /**
- * #203 + P8/P14: the public note page — the marketplace's Clastify-style
+ * #203 + P8/P14: the public note page, the marketplace's Clastify-style
  * listing. Left: watermarked preview, first 3 pages crisp, the rest blurred
  * under a lock panel. Right: sticky buy card (price, tutor badge, Add to
  * cart, request-this-tutor WhatsApp, owner stats, report). Below: contents
@@ -35,7 +35,7 @@ import { ReportMenuButton } from "@/features/reports/report-button";
 export const Route = createFileRoute("/notes/$slug")({
   head: ({ params, loaderData }) => {
     // #326/#392: gigs/folders/courses ride the /notes/$slug rails but are
-    // not notes — give each family its own document title.
+    // not notes, give each family its own document title.
     const materialType = (loaderData as { note?: { materialType?: string } | null } | undefined)
       ?.note?.materialType;
     const title =
@@ -59,7 +59,7 @@ export const Route = createFileRoute("/notes/$slug")({
   loader: async ({ params }) => {
     const note = await getPublicNote({ data: { slug: params.slug } });
     // Render the 404 page (matches tutors.$tutorCode / tutor-requests.$caseCode)
-    // — a bare Error would surface as HTTP 500 on prod for any bogus slug.
+    //, a bare Error would surface as HTTP 500 on prod for any bogus slug.
     if (!note) throw notFound();
     return { note };
   },
@@ -89,14 +89,14 @@ function NotePage() {
   const router = useRouter();
   const navigate = router.navigate.bind(router);
   const [gateOpen, setGateOpen] = useState(false);
-  // Issue #214: the checkout terms gate — the buy click doubles as the
+  // Issue #214: the checkout terms gate, the buy click doubles as the
   // notes-terms acceptance click. Client gate here (button refuses to place
   // the order unchecked); startCheckout re-validates server-side and records
   // the terms_acceptances row (surface checkout, subject_id = order id).
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsGateInvalid, setTermsGateInvalid] = useState(false);
   // Owner check uses the tutor's AUTH id (tutors.user_id), not the tutors
-  // row id — review fix: note.tutorId is the FK, user.id is an auth uid.
+  // row id, review fix: note.tutorId is the FK, user.id is an auth uid.
   const isOwner = Boolean(user && note.tutorUserId && user.id === note.tutorUserId);
 
   // #203: signed-in, non-owner views count once per account per day.
@@ -136,7 +136,7 @@ function NotePage() {
 
   const iaLabel = ["ia", "ee", "tok_essay"].includes(note.documentType);
   const isExemplar = note.materialType === "exemplar" || iaLabel;
-  // #314: an .apkg deck has no watermarked preview — the page shows a
+  // #314: an .apkg deck has no watermarked preview, the page shows a
   // download panel instead of the in-browser viewer (no Anki player).
   const isApkgDeck = note.materialType === "flashcards" && !note.previewUrl;
 
@@ -149,26 +149,26 @@ function NotePage() {
           <section className="min-w-0 space-y-6">
             <header className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-md bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">
+                <span className="rounded-md bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
                   {formatMaterialTypeLabel(note.materialType, t)}
                 </span>
                 {isExemplar && note.gradeAchieved ? (
-                  <span className="rounded-md border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/5 px-2.5 py-0.5 text-xs font-bold text-[color:var(--brand-link)]">
+                  <span className="rounded-md border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/5 px-2.5 py-0.5 text-xs font-medium text-[color:var(--brand-link)]">
                     {t("notes.field_grade")}: {note.gradeAchieved}
                   </span>
                 ) : null}
                 {note.curriculumTag && (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-foreground/80">
                     {note.curriculumTag}
                   </span>
                 )}
                 {note.subjectTag && (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-foreground/80">
                     {note.subjectTag}
                   </span>
                 )}
               </div>
-              <h1 className="text-2xl font-bold leading-tight tracking-normal sm:text-3xl">
+              <h1 className="text-2xl font-medium leading-tight tracking-normal sm:text-3xl">
                 {note.title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -211,7 +211,7 @@ function NotePage() {
                   <FileText className="h-5 w-5 text-accent-foreground" aria-hidden />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm font-bold">{t("notes.apkg_panel_title")}</p>
+                  <p className="text-sm font-medium">{t("notes.apkg_panel_title")}</p>
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                     {t("notes.apkg_panel_body")}
                   </p>
@@ -229,7 +229,7 @@ function NotePage() {
 
             {note.description && (
               <section className="space-y-2">
-                <h2 className="text-lg font-bold">{t("notes.contents_title")}</h2>
+                <h2 className="text-lg font-medium">{t("notes.contents_title")}</h2>
                 <p className="whitespace-pre-line text-[0.95rem] leading-relaxed text-foreground/90">
                   {note.description}
                 </p>
@@ -237,36 +237,36 @@ function NotePage() {
             )}
 
             <section className="space-y-3">
-              <h2 className="text-lg font-bold">{t("notes.details_title")}</h2>
+              <h2 className="text-lg font-medium">{t("notes.details_title")}</h2>
               <dl className="grid grid-cols-1 gap-x-8 gap-y-2 rounded-xl border border-border bg-card p-5 text-sm sm:grid-cols-2">
                 {note.curriculumTag && (
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-muted-foreground">{t("notes.field_curriculum")}</dt>
-                    <dd className="font-semibold">{note.curriculumTag}</dd>
+                    <dd className="font-medium">{note.curriculumTag}</dd>
                   </div>
                 )}
                 {note.subjectTag && (
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-muted-foreground">{t("notes.field_subject")}</dt>
-                    <dd className="font-semibold">{note.subjectTag}</dd>
+                    <dd className="font-medium">{note.subjectTag}</dd>
                   </div>
                 )}
                 {note.topic && (
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-muted-foreground">{t("notes.field_topic")}</dt>
-                    <dd className="font-semibold">{note.topic}</dd>
+                    <dd className="font-medium">{note.topic}</dd>
                   </div>
                 )}
                 {note.yearTag && (
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-muted-foreground">{t("notes.field_year")}</dt>
-                    <dd className="font-semibold">{note.yearTag}</dd>
+                    <dd className="font-medium">{note.yearTag}</dd>
                   </div>
                 )}
                 {note.pageCount != null && (
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-muted-foreground">{t("notes.field_pages")}</dt>
-                    <dd className="font-semibold">
+                    <dd className="font-medium">
                       {t("notes.page_count", { count: note.pageCount })}
                     </dd>
                   </div>
@@ -274,14 +274,14 @@ function NotePage() {
                 {note.wordCount != null && (
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-muted-foreground">{t("notes.field_word_count")}</dt>
-                    <dd className="font-semibold">
+                    <dd className="font-medium">
                       {t("notes.card.word_count", { count: note.wordCount })}
                     </dd>
                   </div>
                 )}
                 <div className="flex justify-between gap-4 sm:block">
                   <dt className="text-muted-foreground">{t("notes.field_format")}</dt>
-                  <dd className="font-semibold">{isApkgDeck ? t("notes.format_apkg") : "PDF"}</dd>
+                  <dd className="font-medium">{isApkgDeck ? t("notes.format_apkg") : "PDF"}</dd>
                 </div>
               </dl>
               {isExemplar && (
@@ -293,7 +293,7 @@ function NotePage() {
           {/* Buy rail */}
           <aside className="lg:sticky lg:top-24 lg:self-start" id="buy">
             <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
-              <p className="text-3xl font-bold tracking-normal">
+              <p className="text-3xl font-medium tracking-normal">
                 {note.priceHkd === 0
                   ? t("notes.card.free")
                   : t("notes.price", { amount: note.priceHkd })}
@@ -320,7 +320,7 @@ function NotePage() {
               <Button
                 variant="solid"
                 color="accent"
-                className="w-full font-bold"
+                className="w-full font-medium"
                 disabled={checkoutMutation.isPending || isOwner}
                 onClick={() => {
                   if (!user) {
@@ -344,7 +344,7 @@ function NotePage() {
                   href={whatsappQuery.data.requestUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-9 w-full items-center justify-center rounded-md border border-[#25D366]/40 text-sm font-semibold text-[#1EA457] transition-colors hover:bg-[#25D366]/10"
+                  className="flex h-9 w-full items-center justify-center rounded-md border border-[#25D366]/40 text-sm font-medium text-success transition-colors hover:bg-[#25D366]/10"
                 >
                   <MessageCircle className="mr-2 h-4 w-4" aria-hidden />
                   {t("notes.request_tutor")}
@@ -371,7 +371,7 @@ function NotePage() {
 
         {othersQuery.data && othersQuery.data.length > 0 && (
           <section className="mt-14 space-y-4">
-            <h2 className="text-lg font-bold">{t("notes.more_from_tutor")}</h2>
+            <h2 className="text-lg font-medium">{t("notes.more_from_tutor")}</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {othersQuery.data.map((other) => (
                 <a
@@ -379,7 +379,7 @@ function NotePage() {
                   href={`/notes/${other.slug ?? other.id}`}
                   className="group rounded-xl border border-border bg-card p-5 transition-colors hover:border-foreground/25"
                 >
-                  <p className="font-semibold group-hover:underline">{other.title}</p>
+                  <p className="font-medium group-hover:underline">{other.title}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {other.priceHkd === 0
                       ? t("notes.card.free")

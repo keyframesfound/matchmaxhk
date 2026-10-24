@@ -1,5 +1,5 @@
 /**
- * Issues #201 + #204 + #205 — parent-side server fns: my cases, case detail
+ * Issues #201 + #204 + #205, parent-side server fns: my cases, case detail
  * with lesson timeline + fee + review state, lesson confirm/cancel, slot
  * requests on fee_paid|active cases, and parent review submission.
  *
@@ -296,7 +296,7 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
     const openFee = fees.find((f) => f.status === "invoiced" || f.status === "paid") ?? null;
     let myReviewStatus = mine?.status ?? null;
     // #386 settled rule includes the fee-row proof (paid/waived), so reviews on
-    // cases that closed AFTER settlement publish here too — see isCaseFeeSettled.
+    // cases that closed AFTER settlement publish here too, see isCaseFeeSettled.
     if (isCaseFeeSettled(c.sor_status, fees)) {
       const eligible = myReviews.filter(
         (r) =>
@@ -573,7 +573,7 @@ export const submitParentReview = createServerFn({ method: "POST" })
           [{ col: "case_id", op: "eq", value: c.id }],
         ),
         // #386: a settled fee row (paid/waived) proves settlement even when the
-        // case has moved on to 'closed' — see isCaseFeeSettled in case-reviews.
+        // case has moved on to 'closed', see isCaseFeeSettled in case-reviews.
         selectRows<{ status: string }>(db, "case_fees", "status", [
           { col: "case_id", op: "eq", value: c.id },
         ]),

@@ -1,5 +1,5 @@
 /**
- * Issues #201 + #204 — tutor-side pure helpers (week view grouping, window
+ * Issues #201 + #204, tutor-side pure helpers (week view grouping, window
  * validation, student-name privacy rule). No DB access; vitest-covered.
  */
 
@@ -74,7 +74,7 @@ export type WeekDayGroup = {
 /**
  * #204 week view: booked lessons + open slots grouped by HKT calendar day.
  * Slots overlapping (or within the buffer of) booked lessons never reach the
- * model — generateSlots already excludes them.
+ * model, generateSlots already excludes them.
  */
 export function groupWeekByDay(
   lessons: WeekLesson[],
@@ -125,7 +125,7 @@ export function lessonActionsFor(
 ): { confirm: boolean; decline: boolean; done: boolean; cancel: boolean } {
   const planned = lesson.status === "planned";
   const live = lesson.status === "planned" || lesson.status === "confirmed";
-  // #204: a slot request unconfirmed for 12h has expired — hide the confirm/
+  // #204: a slot request unconfirmed for 12h has expired, hide the confirm/
   // decline affordances (the server fns refuse expired confirms regardless).
   const requestExpired =
     planned &&

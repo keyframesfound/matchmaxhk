@@ -4,7 +4,7 @@ import { ConsolePanel } from "@/components/ui/console-panel";
 import { cn } from "@/lib/utils";
 
 /**
- * Card with a fixed header band — the shared chrome for every settings
+ * Card with a fixed header band, the shared chrome for every settings
  * section card (title + description header, content below the divider).
  */
 export function SettingsCard({
@@ -21,7 +21,7 @@ export function SettingsCard({
   return (
     <ConsolePanel padding="none" className={className}>
       <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
-        <h2 className="text-lg font-bold text-[color:var(--ink)]">{title}</h2>
+        <h2 className="text-lg font-medium text-[color:var(--ink)]">{title}</h2>
         {description ? (
           <p className="mt-1 text-sm text-[color:var(--ink)]/65">{description}</p>
         ) : null}
@@ -34,7 +34,7 @@ export function SettingsCard({
 /**
  * Claude-style selectable option card: a bordered tile with a preview area
  * (icon, mockup, anything) plus label and description. Selection is a ring
- * border and ink wash — flat, no shadow.
+ * border and ink wash, flat, no shadow.
  */
 export function OptionCard({
   selected,
@@ -71,7 +71,7 @@ export function OptionCard({
       )}
     >
       {preview}
-      <span className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]">
+      <span className="flex items-center gap-2 text-sm font-medium text-[color:var(--ink)]">
         {label}
         {badge}
       </span>

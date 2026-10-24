@@ -4,12 +4,12 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /**
- * Issue #412 F — the 1-page Engagement Summary, confirmed once per
+ * Issue #412 F, the 1-page Engagement Summary, confirmed once per
  * engagement by both parties before contact details / lesson commencement
  * are finalised. Rows live in engagement_summaries (RLS-deny, service-role
  * only, mirroring the #201 SoR tables); every access goes through these fns.
  * MatchMax is NOT a party to the resulting Contract for Services (ToS §§3,5)
- * — the summary records arrangements, it does not join them.
+ *, the summary records arrangements, it does not join them.
  */
 
 export type EngagementSummaryPayload = {
@@ -37,7 +37,7 @@ const FEE_LINES: Record<string, string> = {
   ongoing_1_5:
     "1.5-lesson admin fee (100% of Lesson 1 + 50% of Lesson 2), charged to the self-employed tutor after the first two introductions; 0% commission from Lesson 3 onwards.",
   short_20: "20% of the short-package tuition (5 lessons or fewer), settled after Lesson 1.",
-  pro_bono: "HK$0 — pro-bono engagement, no admin fee.",
+  pro_bono: "HK$0, pro-bono engagement, no admin fee.",
 };
 
 /** The static fee summary agreed on the org/parent forms (CEO lock: the
@@ -107,7 +107,7 @@ async function buildPayload(c: CaseRow): Promise<EngagementSummaryPayload> {
       .eq("id", c.matched_tutor_id)
       .maybeSingle();
     const t = tutor as { tutor_code: string; display_name: string } | null;
-    // Tutor real names never reach parents (#96 anonymity model) — the
+    // Tutor real names never reach parents (#96 anonymity model), the
     // summary shows the public display name + tutor code.
     if (t) educatorName = `${t.display_name} (${t.tutor_code})`;
   }
@@ -116,7 +116,7 @@ async function buildPayload(c: CaseRow): Promise<EngagementSummaryPayload> {
   const centreScope = typeof triage.scopeDescription === "string" ? triage.scopeDescription : null;
   const scopeParts = [c.title, ...(c.subjects ?? [])];
   if (centreScope) scopeParts.push(centreScope);
-  // The non-integration note is the point of the summary — always present.
+  // The non-integration note is the point of the summary, always present.
   scopeParts.push("No administrative, reception, or general staff duties.");
 
   const unitSuffix =
@@ -224,7 +224,7 @@ export async function ensureEngagementSummaryRow(caseId: string): Promise<{ vers
       payload,
     } as never);
     if (error) {
-      // A concurrent ensure lost the race to the UNIQUE(case_id) — fine.
+      // A concurrent ensure lost the race to the UNIQUE(case_id), fine.
       if (!`${error.message}`.includes("duplicate")) throw new Error(error.message);
     }
     return { version: 1 };
@@ -343,7 +343,7 @@ export const confirmEngagementSummary = createServerFn({ method: "POST" })
 /**
  * "Report Material Change" (#412 F): either party logs a change to duties,
  * hours, or contracting structure. The report lands unresolved and the case
- * goes back into compliance_hold so staff re-screen — matching, circulation,
+ * goes back into compliance_hold so staff re-screen, matching, circulation,
  * and contact release stay locked until they clear it.
  */
 export const reportEngagementChange = createServerFn({ method: "POST" })

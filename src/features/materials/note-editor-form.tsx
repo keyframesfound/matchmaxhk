@@ -34,7 +34,7 @@ import {
  * sees which sentence failed before the server rejects it, gates exemplars
  * on the written-permission checkbox, allows HK$0 (free pack), and takes an
  * OPTIONAL approximate word count (positive integer when present). A
- * flashcards file may be a PDF or an .apkg deck (max 20MB — the repo upload
+ * flashcards file may be a PDF or an .apkg deck (max 20MB, the repo upload
  * cap wins over the issue's 40MB); decks get no in-browser preview.
  */
 
@@ -76,7 +76,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   );
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
-  // Issue #214: the notes-terms gate — required for SUBMIT (drafts save
+  // Issue #214: the notes-terms gate, required for SUBMIT (drafts save
   // without it); the server fn re-validates and records the acceptance row.
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -164,8 +164,8 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   // Issue #214: submit (not draft) is also the notes-terms acceptance click.
   if (!termsAccepted) missing.push(t("terms.gate.missing"));
 
-  // #136: the approximate word count is OPTIONAL — empty never blocks
-  // publish — but a present value must be a positive whole number.
+  // #136: the approximate word count is OPTIONAL, empty never blocks
+  // publish, but a present value must be a positive whole number.
   const wordCountError = validateWordCount(wordCount.trim() === "" ? null : Number(wordCount));
   // A present-but-invalid file is also a hard block (#314): only PDFs and,
   // for flashcards, .apkg decks are accepted, and the repo upload cap is
@@ -187,7 +187,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
 
   const violationNote = (violations: { match: string }[]) =>
     violations.length > 0 ? (
-      <p className="text-xs text-[#B42318]">
+      <p className="text-xs text-destructive">
         {t("notes.form.contact_block", {
           match: violations
             .map((v) => v.match)
@@ -227,7 +227,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           onChange={(e) => setDescription(e.target.value)}
           rows={5}
           placeholder={t("notes.form.contents_placeholder")}
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
         />
         {violationNote(copyViolations.descV)}
       </div>
@@ -349,7 +349,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           />
           <p className="text-xs text-muted-foreground">{t("notes.form.word_count_hint")}</p>
           {wordCountError ? (
-            <p className="text-xs text-[#B42318]">{t("notes.form.word_count_invalid")}</p>
+            <p className="text-xs text-destructive">{t("notes.form.word_count_invalid")}</p>
           ) : null}
         </div>
         <div className="space-y-1.5">
@@ -408,7 +408,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
         {fileTooLarge ? (
-          <p className="text-xs text-[#B42318]">{t("notes.form.file_too_large")}</p>
+          <p className="text-xs text-destructive">{t("notes.form.file_too_large")}</p>
         ) : materialType === "flashcards" ? (
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
             <Lock className="h-3 w-3" aria-hidden />
@@ -422,7 +422,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         )}
       </div>
 
-      {/* Issue #214: the notes-terms gate — required to submit for review;
+      {/* Issue #214: the notes-terms gate, required to submit for review;
           drafts save without it. Links the notes section of the ToS. */}
       <TermsGateCheckbox
         section="notes"
@@ -446,7 +446,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           type="submit"
           variant="solid"
           color="accent"
-          className="font-bold"
+          className="font-medium"
           disabled={
             saving ||
             blockedByContact ||

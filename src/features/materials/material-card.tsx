@@ -33,7 +33,7 @@ import { getPublicListing } from "@/features/materials/listings.functions";
  * working "Details ▾" accordion with the full description, tag chips, the
  * kind's "What's included" line (course → lesson count; folder → itemised
  * children each with its own single-item buy link), the sample preview and
- * the buy CTA. No shadows anywhere — border-delineated, flat surfaces.
+ * the buy CTA. No shadows anywhere, border-delineated, flat surfaces.
  */
 
 /** Covers live in the PUBLIC materials-previews bucket (gig precedent). */
@@ -54,7 +54,7 @@ const SHOP_KIND_FALLBACKS: Record<string, string> = {
   general_course: "General Course",
 };
 
-/** Kind pill label — scratch i18n under `shop.kind_*`, humanized fallback. */
+/** Kind pill label, scratch i18n under `shop.kind_*`, humanized fallback. */
 export function shopKindLabel(type: string, t: TFunction): string {
   const label = t(`shop.kind_${type}`, { defaultValue: "" });
   if (label && label !== `shop.kind_${type}`) return label;
@@ -65,7 +65,7 @@ export function MaterialStars({ rating }: { rating: number | null }) {
   const { t } = useTranslation();
   if (rating === null || Number.isNaN(rating)) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs font-semibold text-[color:var(--ink)]">
+      <span className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs font-medium text-[color:var(--ink)]">
         {t("materials.new_listing_badge")}
       </span>
     );
@@ -81,12 +81,12 @@ export function MaterialStars({ rating }: { rating: number | null }) {
           key={star}
           className={cn(
             "h-4 w-4",
-            star <= rounded ? "fill-amber-400 text-amber-500" : "text-muted-foreground/40",
+            star <= rounded ? "fill-amber-400 text-amber-500" : "text-muted-foreground",
           )}
           aria-hidden
         />
       ))}
-      <span className="ml-1 text-xs font-bold text-[color:var(--ink)]">{rating.toFixed(1)}</span>
+      <span className="ml-1 text-xs font-medium text-[color:var(--ink)]">{rating.toFixed(1)}</span>
     </span>
   );
 }
@@ -94,7 +94,7 @@ export function MaterialStars({ rating }: { rating: number | null }) {
 export function RetentionBadge() {
   const { t } = useTranslation();
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
+    <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">
       <Gift className="h-3.5 w-3.5" aria-hidden />
       {t("materials.retention_badge")}
     </span>
@@ -124,7 +124,7 @@ export function MaterialPreviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[85vh] w-full max-w-3xl flex-col gap-0 p-0 sm:max-w-3xl">
         <DialogHeader className="border-b border-border px-5 py-4">
-          <DialogTitle className="text-base font-bold text-[color:var(--ink)]">
+          <DialogTitle className="text-base font-medium text-[color:var(--ink)]">
             {material.title}
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
@@ -190,10 +190,10 @@ export function StudyMaterialCard({
    * card's buy CTA links to the listing's own detail page. */
   actions?: MaterialCardAction;
   showTutorLink?: boolean;
-  /** #314: the tutor holds the Verified badge — the line never implies an
+  /** #314: the tutor holds the Verified badge, the line never implies an
    * examiner wrote the file, only that MatchMax verified the tutor. */
   verifiedTutor?: boolean;
-  /** #392: the listing's detail page (/notes/<slug>) — cover, title and the
+  /** #392: the listing's detail page (/notes/<slug>), cover, title and the
    * buy CTA all route there in the unified directory. */
   detailHref?: string;
   /** #392: folder children / course lessons for the Details accordion. */
@@ -241,14 +241,14 @@ export function StudyMaterialCard({
       : [];
 
   // A child's "Buy single" routes to the child's own detail page, where the
-  // real checkout flow (terms gate, proration) lives — cards never embed
+  // real checkout flow (terms gate, proration) lives, cards never embed
   // checkout themselves.
   const buySingleHref = (childSlug: string | null, childId: string) =>
     `/notes/${childSlug ?? childId}`;
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-[color:var(--surface)]">
-      {/* Big cover — 4:3, object-cover; flat bordered placeholder with the
+      {/* Big cover, 4:3, object-cover; flat bordered placeholder with the
           kind pill when the listing has no image (never a shadow). */}
       {href ? (
         <a href={href} className="group block" aria-label={material.title}>
@@ -273,23 +273,23 @@ export function StudyMaterialCard({
           <div className="min-w-0">
             {href ? (
               <a href={href} className="group/title block">
-                <h3 className="truncate text-base font-bold leading-snug text-[color:var(--ink)] group-hover/title:underline">
+                <h3 className="truncate text-base font-medium leading-snug text-[color:var(--ink)] group-hover/title:underline">
                   {material.title.length > 80
                     ? `${material.title.slice(0, 80).trimEnd()}…`
                     : material.title}
                 </h3>
               </a>
             ) : (
-              <h3 className="truncate text-base font-bold leading-snug text-[color:var(--ink)]">
+              <h3 className="truncate text-base font-medium leading-snug text-[color:var(--ink)]">
                 {material.title.length > 80
                   ? `${material.title.slice(0, 80).trimEnd()}…`
                   : material.title}
               </h3>
             )}
-            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-semibold text-muted-foreground">
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-medium text-muted-foreground">
               {tutorCode ? <span>{tutorCode}</span> : null}
               {verifiedTutor ? (
-                <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-400">
+                <span className="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400">
                   <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
                   {t("notes.card.verified_tutor")}
                 </span>
@@ -299,7 +299,7 @@ export function StudyMaterialCard({
               ) : null}
             </p>
           </div>
-          <p className="shrink-0 text-lg font-bold text-[color:var(--ink)]">{price}</p>
+          <p className="shrink-0 text-lg font-medium text-[color:var(--ink)]">{price}</p>
         </div>
 
         {material.admin_marketing_summary || material.description ? (
@@ -313,14 +313,14 @@ export function StudyMaterialCard({
             {t("materials.by_tutor")}{" "}
             <a
               href={`/tutors/${tutorCode}`}
-              className="font-bold text-[color:var(--brand-link)] hover:underline"
+              className="font-medium text-[color:var(--brand-link)] hover:underline"
             >
               {tutorName}
             </a>
           </p>
         ) : null}
 
-        {/* Details ▾ — Radix accordion (border-separated, no shadows). */}
+        {/* Details ▾, Radix accordion (border-separated, no shadows). */}
         <Accordion
           type="single"
           collapsible
@@ -329,7 +329,7 @@ export function StudyMaterialCard({
           onValueChange={(value) => setDetailsOpen(value === "details")}
         >
           <AccordionItem value="details" className="border-b-0">
-            <AccordionTrigger className="py-3 text-sm font-bold text-[color:var(--ink)] hover:no-underline">
+            <AccordionTrigger className="py-3 text-sm font-medium text-[color:var(--ink)] hover:no-underline">
               {t("shop.card.details_toggle")}
             </AccordionTrigger>
             <AccordionContent className="space-y-4 pt-0">
@@ -351,7 +351,7 @@ export function StudyMaterialCard({
               {/* What's included, per kind. */}
               {isCourse && liveIncludes?.lessons ? (
                 <div className="space-y-1.5">
-                  <p className="flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink)]">
+                  <p className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--ink)]">
                     <ListVideo className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
                     {t("shop.card.lessons_included", { count: liveIncludes.lessons.length })}
                   </p>
@@ -366,7 +366,7 @@ export function StudyMaterialCard({
               ) : null}
               {isFolder && liveIncludes?.children ? (
                 <div className="space-y-1.5">
-                  <p className="flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink)]">
+                  <p className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--ink)]">
                     <Layers className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
                     {t("shop.card.items_included", { count: liveIncludes.children.length })}
                   </p>
@@ -378,18 +378,18 @@ export function StudyMaterialCard({
                       >
                         <a
                           href={buySingleHref(child.slug, child.id)}
-                          className="min-w-0 flex-1 truncate text-xs font-semibold text-[color:var(--ink)] hover:text-[color:var(--brand-link)] hover:underline"
+                          className="min-w-0 flex-1 truncate text-xs font-medium text-[color:var(--ink)] hover:text-[color:var(--brand-link)] hover:underline"
                         >
                           {child.title}
                         </a>
-                        <span className="shrink-0 text-xs font-bold text-[color:var(--ink)]">
+                        <span className="shrink-0 text-xs font-medium text-[color:var(--ink)]">
                           {Number(child.priceHkd) === 0
                             ? t("notes.card.free")
                             : formatMoney(Number(child.priceHkd))}
                         </span>
                         <a
                           href={buySingleHref(child.slug, child.id)}
-                          className="shrink-0 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-bold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)]"
+                          className="shrink-0 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)]"
                         >
                           {t("shop.card.buy_single")}
                         </a>
@@ -403,7 +403,7 @@ export function StudyMaterialCard({
                 <Button
                   type="button"
                   variant="ghost"
-                  className="h-8 px-0 text-sm font-bold text-[color:var(--brand-link)] underline underline-offset-4"
+                  className="h-8 px-0 text-sm font-medium text-[color:var(--brand-link)] underline underline-offset-4"
                   onClick={() => setPreviewOpen(true)}
                 >
                   {t("materials.read_preview")}
@@ -425,14 +425,14 @@ export function StudyMaterialCard({
                   asChild
                   variant="solid"
                   color="blue"
-                  className="h-10 flex-1 text-sm font-bold"
+                  className="h-10 flex-1 text-sm font-medium"
                 >
                   <a href={actions.buyHref} target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="mr-2 h-4 w-4" aria-hidden />
                     {t("materials.buy_now")}
                   </a>
                 </Button>
-                <Button asChild variant="outline" className="h-10 flex-1 text-sm font-bold">
+                <Button asChild variant="outline" className="h-10 flex-1 text-sm font-medium">
                   <a href={actions.bookHref}>
                     <BookOpen className="mr-2 h-4 w-4" aria-hidden />
                     {t("materials.book_lessons")}
@@ -445,7 +445,7 @@ export function StudyMaterialCard({
               asChild
               variant="solid"
               color="accent"
-              className="h-10 w-full text-sm font-bold"
+              className="h-10 w-full text-sm font-medium"
             >
               <a href={href}>{t("shop.card.view_and_buy")}</a>
             </Button>
@@ -466,7 +466,7 @@ export function StudyMaterialCard({
 
 function Chip({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+    <span className="inline-flex items-center rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs font-medium text-muted-foreground">
       {children}
     </span>
   );
@@ -499,16 +499,16 @@ function CoverBlock({
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center" aria-hidden>
-          <span className="select-none px-4 text-center text-sm font-bold uppercase tracking-wide text-muted-foreground/60">
+          <span className="select-none px-4 text-center text-sm font-medium text-muted-foreground">
             {title}
           </span>
         </div>
       )}
-      <span className="absolute left-3 top-3 inline-flex items-center rounded-md border border-border bg-card px-2 py-0.5 text-xs font-bold text-[color:var(--ink)]">
+      <span className="absolute left-3 top-3 inline-flex items-center rounded-md border border-border bg-card px-2 py-0.5 text-xs font-medium text-[color:var(--ink)]">
         {kindLabel}
       </span>
       {savingsBadge ? (
-        <span className="absolute right-3 top-3 inline-flex items-center rounded-md border border-emerald-600/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+        <span className="absolute right-3 top-3 inline-flex items-center rounded-md border border-emerald-600/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
           {savingsBadge}
         </span>
       ) : null}

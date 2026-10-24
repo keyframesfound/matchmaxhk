@@ -1,13 +1,13 @@
 import type { Tutor } from "@/features/tutors/queries";
 
 /**
- * Issue #104: guided "Preview as parent" sandbox. Pure helpers only — the
+ * Issue #104: guided "Preview as parent" sandbox. Pure helpers only, the
  * preview route + tests use these; server-side data stays behind the same
  * public query fns the public profile uses.
  *
  * Leak rule: the preview must never surface anything a parent cannot see, so
  * the owner read below selects ONLY card-publication fields (code, published
- * flag, owner link — all already on the public tutors shape) and the rendered
+ * flag, owner link, all already on the public tutors shape) and the rendered
  * preview is built exclusively from `fetchTutorByCode`'s public `Tutor`.
  */
 

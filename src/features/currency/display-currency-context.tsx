@@ -1,9 +1,9 @@
-// Issue #114 — global display-currency context. One provider at the app root
+// Issue #114, global display-currency context. One provider at the app root
 // holds the parent's chosen display currency (persisted in localStorage) plus
 // the shared HKD→X rate table (fetched once from the FX server fn and cached
 // by React Query). Consumers read it through useDisplayCurrency(); surfaces
 // outside the provider (SSR pass, isolated trees) get the null-safe default
-// — HKD with no rates — which makes every conversion helper a no-op, so no
+//, HKD with no rates, which makes every conversion helper a no-op, so no
 // caller needs its own guard.
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
@@ -60,7 +60,7 @@ export function DisplayCurrencyProvider({ children }: { children: ReactNode }) {
     retry: false,
   });
 
-  // Hydrate the persisted choice after mount — SSR always renders HKD so the
+  // Hydrate the persisted choice after mount, SSR always renders HKD so the
   // server HTML matches the default and hydration never disagrees.
   useEffect(() => {
     setCurrencyState(readStoredCurrency(window.localStorage));
@@ -76,7 +76,7 @@ export function DisplayCurrencyProvider({ children }: { children: ReactNode }) {
     try {
       window.localStorage.setItem(DISPLAY_CURRENCY_STORAGE_KEY, next);
     } catch {
-      // Private mode / storage disabled — the in-memory choice still works.
+      // Private mode / storage disabled, the in-memory choice still works.
     }
   };
 

@@ -34,7 +34,7 @@ import { ReportMenuButton } from "@/features/reports/report-button";
 /**
  * #203 checkout + order status page. Manual cashier: the parent sees the
  * order reference and MatchMax FPS instructions, attaches an optional
- * screenshot, and taps the purchase button — which opens WhatsApp with a
+ * screenshot, and taps the purchase button, which opens WhatsApp with a
  * prefilled message stating what they are buying (Ryan, 2026-10-11). Staff
  * mark the payment; the status timeline flips to delivered and Download
  * appears (10-minute signed link, delivered orders only).
@@ -145,7 +145,7 @@ function OrderPage() {
   // shared reference card + FPS pay block below stay identical.
   const isGig = order.materialType === "gig";
   // #392: course and folder purchases open on the product page (lesson
-  // embeds / child unlocks) — there is no per-order file to download.
+  // embeds / child unlocks), there is no per-order file to download.
   const isShopProduct =
     order.materialType === "video_course" ||
     order.materialType === "general_course" ||
@@ -176,10 +176,7 @@ function OrderPage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
       <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6">
-        <p className="text-sm text-muted-foreground">
-          {isGig ? t("gigs.order_eyebrow") : t("orders.eyebrow")}
-        </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-normal">
+        <h1 className="text-2xl font-medium tracking-normal">
           {order.status === "delivered"
             ? isGig
               ? t("gigs.delivered_title")
@@ -201,13 +198,13 @@ function OrderPage() {
                   <p className="text-xs font-medium text-muted-foreground">
                     {t("orders.reference_label")}
                   </p>
-                  <p className="font-mono text-xl font-bold tracking-wide">{order.reference}</p>
+                  <p className="font-mono text-xl font-medium tracking-wide">{order.reference}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs font-medium text-muted-foreground">
                     {t("orders.amount_label")}
                   </p>
-                  <p className="text-xl font-bold">
+                  <p className="text-xl font-medium">
                     {t("notes.price", { amount: order.grossHkd })}
                   </p>
                 </div>
@@ -222,7 +219,7 @@ function OrderPage() {
             {/* FPS instructions */}
             {order.action === "pay" && (
               <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
-                <h2 className="flex items-center gap-2 text-base font-bold">
+                <h2 className="flex items-center gap-2 text-base font-medium">
                   <Receipt className="h-4 w-4" aria-hidden />
                   {t("orders.fps_title")}
                 </h2>
@@ -259,7 +256,7 @@ function OrderPage() {
                     </p>
                   )}
                   {order.hasScreenshot && !uploading && (
-                    <p className="flex items-center gap-1.5 text-xs font-medium text-[#00875A]">
+                    <p className="flex items-center gap-1.5 text-xs font-medium text-success">
                       <Check className="h-3.5 w-3.5" aria-hidden />
                       {t("orders.screenshot_attached")}
                     </p>
@@ -270,7 +267,7 @@ function OrderPage() {
                   href={buyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-10 w-full items-center justify-center rounded-md bg-[#25D366] text-sm font-bold text-white transition-colors hover:bg-[#1EBE57]"
+                  className="flex h-10 w-full items-center justify-center rounded-md bg-[#25D366] text-sm font-medium text-white transition-colors hover:bg-[#1EBE57]"
                 >
                   <MessageCircle className="mr-2 h-4 w-4" aria-hidden />
                   {t("orders.pay_whatsapp_button")}
@@ -281,20 +278,20 @@ function OrderPage() {
 
             {order.status === "rejected" && (
               <div className="flex items-start gap-3 rounded-2xl border border-[#F4212E]/30 bg-[#F4212E]/5 p-5 text-sm">
-                <X className="mt-0.5 h-4 w-4 shrink-0 text-[#F4212E]" aria-hidden />
+                <X className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden />
                 <p>{t("orders.rejected_note")}</p>
               </div>
             )}
 
             {/* Timeline */}
             <div className="rounded-2xl border border-border bg-card p-6">
-              <h2 className="text-base font-bold">{t("orders.timeline_title")}</h2>
+              <h2 className="text-base font-medium">{t("orders.timeline_title")}</h2>
               <ol className="mt-4 space-y-3">
                 {steps.map((step) => (
                   <li key={step.key} className="flex items-center gap-3 text-sm">
                     {step.done ? (
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#17BF63]/15">
-                        <Check className="h-3.5 w-3.5 text-[#00875A]" aria-hidden />
+                        <Check className="h-3.5 w-3.5 text-success" aria-hidden />
                       </span>
                     ) : step.current ? (
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent">
@@ -305,7 +302,7 @@ function OrderPage() {
                     )}
                     <span
                       className={
-                        step.done || step.current ? "font-semibold" : "text-muted-foreground"
+                        step.done || step.current ? "font-medium" : "text-muted-foreground"
                       }
                     >
                       {t(step.key)}
@@ -324,19 +321,19 @@ function OrderPage() {
                 <Link
                   to="/notes/$slug"
                   params={{ slug: order.materialSlug }}
-                  className="mt-1 block font-semibold text-[color:var(--brand-link)] hover:underline"
+                  className="mt-1 block font-medium text-[color:var(--brand-link)] hover:underline"
                 >
                   {order.materialTitle}
                 </Link>
               ) : (
-                <p className="mt-1 font-semibold">{order.materialTitle}</p>
+                <p className="mt-1 font-medium">{order.materialTitle}</p>
               )}
               <p className="mt-3 border-t border-border pt-3 text-sm text-muted-foreground">
                 {t("orders.licence_note")}
               </p>
             </div>
             {order.action === "download" && isShopProduct && order.materialSlug ? (
-              <Button asChild variant="solid" color="accent" className="w-full font-bold">
+              <Button asChild variant="solid" color="accent" className="w-full font-medium">
                 <a href={`/notes/${order.materialSlug}`}>
                   <PlayCircle className="mr-2 h-4 w-4" aria-hidden />
                   {t("orders.open_course_button")}
@@ -349,7 +346,7 @@ function OrderPage() {
                 <Button
                   variant="solid"
                   color="accent"
-                  className="w-full font-bold"
+                  className="w-full font-medium"
                   disabled={downloadMutation.isPending}
                   onClick={() => downloadMutation.mutate()}
                 >
@@ -362,17 +359,17 @@ function OrderPage() {
                 </Button>
               )}
             {order.action === "request_refund" && (
-              <p className="rounded-md bg-[#F4212E]/10 px-3 py-2 text-center text-xs font-bold text-[#F4212E]">
+              <p className="rounded-md bg-[#F4212E]/10 px-3 py-2 text-center text-xs font-medium text-destructive">
                 {t("gigs.past_due_badge")}
               </p>
             )}
             {order.action === "refunded" && (
-              <p className="rounded-md bg-amber-500/10 px-3 py-2 text-center text-xs font-bold text-amber-700">
+              <p className="rounded-md bg-amber-500/10 px-3 py-2 text-center text-xs font-medium text-amber-700">
                 {t("orders.refunded_badge")}
               </p>
             )}
             {/* #330: post-delivery quality disputes go through the #216 report
-                hook, operator-reviewed — refunds stay self-serve for past_due
+                hook, operator-reviewed, refunds stay self-serve for past_due
                 non-delivery only, never auto-clawed back after delivery. */}
             {isGig && order.action === "download" && (
               <div className="rounded-2xl border border-border bg-card p-5">
@@ -395,7 +392,7 @@ function OrderPage() {
               </div>
             )}
             {order.action === "preparing" && (
-              <p className="rounded-md bg-accent px-3 py-2 text-center text-xs font-bold text-accent-foreground">
+              <p className="rounded-md bg-accent px-3 py-2 text-center text-xs font-medium text-accent-foreground">
                 {t("orders.preparing_badge")}
               </p>
             )}

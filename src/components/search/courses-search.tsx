@@ -46,7 +46,7 @@ const coursesModeLabel = (value: string, t: (key: string) => string) => {
   return t("search_ui.mode_open");
 };
 
-/** Segments for the compact nav pill — Airbnb "Anywhere | Anytime" style. */
+/** Segments for the compact nav pill, Airbnb "Anywhere | Anytime" style. */
 export function useCoursesCompactSegments(draft: CoursesSearchState): CompactSegment[] {
   const { t } = useTranslation();
   return [
@@ -164,7 +164,9 @@ export function CoursesSearchBar({
       filled: Boolean(draft.mode),
       content: (
         <div className="space-y-3">
-          <p className="text-sm font-bold text-[color:var(--ink)]">{t("search_ui.segment_mode")}</p>
+          <p className="text-sm font-medium text-[color:var(--ink)]">
+            {t("search_ui.segment_mode")}
+          </p>
           <Segmented
             aria-label={t("search_ui.segment_mode")}
             value={draft.mode ?? ""}
@@ -310,7 +312,7 @@ export function CoursesSearchMobile({
       >
         <div className="space-y-6">
           <div>
-            <p className="mb-2 text-xl font-bold tracking-tight text-[color:var(--ink)]">
+            <p className="mb-2 text-xl font-medium tracking-tight text-[color:var(--ink)]">
               {t("search_ui.panel_keyword_title")}
             </p>
             <SearchBigInput

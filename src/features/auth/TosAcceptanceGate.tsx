@@ -35,7 +35,7 @@ export function TosAcceptanceGate({ children }: { children: ReactNode }) {
         // Missing row or error counts as not accepted (fail closed); accepting
         // upserts the profile row, which repairs a missing profile too.
         // #412: an accepted row only satisfies the gate at the CURRENT
-        // TOS_VERSION — bumping the constant re-prompts everyone once.
+        // TOS_VERSION, bumping the constant re-prompts everyone once.
         setAcceptedFor(data?.tos_accepted_at && data?.tos_version === TOS_VERSION ? user.id : null);
         setChecking(false);
       });

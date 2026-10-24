@@ -38,7 +38,7 @@ import { fileToBase64 } from "@/features/gigs/gig-files";
  * the note-editor-form anatomy: any subset saves as a draft; submit
  * enforces title/description/price/category/delivery type/cover and (for
  * document review) the academic-integrity checkbox. The cover rides a
- * separate upload fn — the draft is saved first so the image has an owner.
+ * separate upload fn, the draft is saved first so the image has an owner.
  */
 
 const isNoteCurriculum = (value: string): value is (typeof NOTE_CURRICULA)[number] =>
@@ -163,7 +163,7 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
 
   const violationNote = (violations: { match: string }[]) =>
     violations.length > 0 ? (
-      <p className="text-xs text-[#B42318]">
+      <p className="text-xs text-destructive">
         {t("gigs.form.contact_block", {
           match: violations
             .map((v) => v.match)
@@ -205,7 +205,7 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
           onChange={(e) => setDescription(e.target.value)}
           rows={5}
           placeholder={t("gigs.form.description_placeholder")}
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
         />
         {violationNote(copyViolations.descV)}
       </div>
@@ -385,7 +385,7 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
           />
         ) : null}
         {coverTooLarge ? (
-          <p className="text-xs text-[#B42318]">{t("gigs.form.cover_too_large")}</p>
+          <p className="text-xs text-destructive">{t("gigs.form.cover_too_large")}</p>
         ) : (
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
             <Lock className="h-3 w-3" aria-hidden />
@@ -410,7 +410,7 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
           type="submit"
           variant="solid"
           color="accent"
-          className="font-bold"
+          className="font-medium"
           disabled={saving || blockedByContact || missing.length > 0 || coverTooLarge}
         >
           {saving && submitMutation.isPending ? (

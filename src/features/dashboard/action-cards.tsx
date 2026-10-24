@@ -139,7 +139,7 @@ export function SuggestedActionsSection({ isTutor }: { isTutor: boolean }) {
     <section aria-labelledby="suggested-actions-title" className="space-y-4">
       <h2
         id="suggested-actions-title"
-        className="text-lg font-bold tracking-tight text-[color:var(--ink)]"
+        className="text-lg font-medium tracking-tight text-[color:var(--ink)]"
       >
         {t("dashboard.actions.title")}
       </h2>

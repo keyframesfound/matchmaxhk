@@ -69,7 +69,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({
   // Issue #190: academic-tier tab (Kindergarten | Primary & Secondary |
-  // University). Only the exact canonical strings are accepted — TanStack
+  // University). Only the exact canonical strings are accepted, TanStack
   // delivers search params JSON-decoded (?tier=university is "university").
   tier: z.preprocess(
     parseTierParam,
@@ -78,7 +78,7 @@ const searchSchema = z.object({
   category: z.string().optional(),
   subject: z.string().optional(),
   // Issue #187: extra subjects beyond the primary (comma-free, "||"-joined).
-  // AND-ed with `subject` — a tutor must teach every selected subject.
+  // AND-ed with `subject`, a tutor must teach every selected subject.
   subjects_extra: z.string().optional(),
   station: z.string().optional(), // nearest MTR station to the student
   mode: z.string().optional(), // online | in_person | either
@@ -95,7 +95,7 @@ const searchSchema = z.object({
   major: z.string().optional(), // issue #23 exact major over the free-text degree fields
   // Issue #190: university-tab field of study (text-contains over degrees).
   field: z.string().optional(),
-  // Issue #190: kindergarten-tab toggles — persist as "true" strings; accept
+  // Issue #190: kindergarten-tab toggles, persist as "true" strings; accept
   // boolean true too (the JSON-decode gotcha).
   k_phonics: z.preprocess(parseToggleParam, z.boolean().optional()),
   k_mandarin: z.preprocess(parseToggleParam, z.boolean().optional()),
@@ -211,7 +211,7 @@ function TutorsDirectory() {
   const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
   // Issue #217: profile-tag filter (the tag chips on the cards link here).
   const tagFilter = normalizeProfileTag(draft.tag ?? "");
-  // Issue #199: SEN capability filter — sen_enabled AND every picked category.
+  // Issue #199: SEN capability filter, sen_enabled AND every picked category.
   const senOnly = draft.sen === true;
   const senCategoryFilters = (draft.sen_categories ?? "")
     .split("||")
@@ -251,7 +251,7 @@ function TutorsDirectory() {
         !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter))
       )
         return false;
-      // Issue #187: AND semantics — a tutor must teach every extra subject too.
+      // Issue #187: AND semantics, a tutor must teach every extra subject too.
       if (
         isPrimarySecondaryTier &&
         extraSubjectFilters.length > 0 &&
@@ -271,9 +271,9 @@ function TutorsDirectory() {
       if (statusFilter && (tut.tutor_status ?? "") !== statusFilter) return false;
       // Issue #217: exact match on one of the tutor's profile tags.
       if (tagFilter && !(tut.profile_tags ?? []).includes(tagFilter)) return false;
-      // Issue #142: Verified Tutors Only — hide everything below tier_2_verified.
+      // Issue #142: Verified Tutors Only, hide everything below tier_2_verified.
       if (verifiedOnly && tut.verification_tier !== "tier_2_verified") return false;
-      // Issue #199: SEN support — enabled tutors only, and every picked
+      // Issue #199: SEN support, enabled tutors only, and every picked
       // category must be on the tutor's profile (match-all).
       if (senOnly && !matchesSenFilter(senCategoryFilters, tut)) return false;
       // Issue #130: institutional-pedigree filters over free-text education
@@ -301,11 +301,11 @@ function TutorsDirectory() {
         })
       )
         return false;
-      // Issue #190: kindergarten tab — the three topic toggles (AND via
+      // Issue #190: kindergarten tab, the three topic toggles (AND via
       // matchesKindergartenFilter).
       if (isKindergartenTier && !matchesKindergartenFilter(tut.subjects, kindergartenToggles))
         return false;
-      // Issue #190: university tab — field of study, text-contains over the
+      // Issue #190: university tab, field of study, text-contains over the
       // degree fields.
       if (
         isUniversityTier &&
@@ -401,7 +401,7 @@ function TutorsDirectory() {
   }, [educationFiltered, filtered.length, tutors]);
 
   // Issue #102: batched engagement summaries for every rendered card (main
-  // grid + pedigree fallback) — one RPC call; the card renders demand /
+  // grid + pedigree fallback), one RPC call; the card renders demand /
   // parent-favorite badges only above the #102/#151 thresholds.
   const engagementTutorIds = useMemo(
     () => [...filtered.map((tut) => tut.id), ...fallbackTutors.map((tut) => tut.id)],
@@ -483,7 +483,7 @@ function TutorsDirectory() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
+                  <h1 className="text-4xl font-medium tracking-tight text-[color:var(--ink)] sm:text-5xl">
                     {directoryView === "materials"
                       ? t("materials.directory_title")
                       : "Find elite tutors"}
@@ -545,7 +545,7 @@ function TutorsDirectory() {
                     <Skeleton className="h-4 w-28" />
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      <span className="font-bold text-foreground">{filtered.length}</span>{" "}
+                      <span className="font-medium text-foreground">{filtered.length}</span>{" "}
                       {filtered.length === 1 ? "tutor" : "tutors"} found
                     </p>
                   )}
@@ -555,7 +555,7 @@ function TutorsDirectory() {
                     <button
                       type="button"
                       onClick={() => setDraftParam({ tag: "" })}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                     >
                       <Hash className="h-3 w-3" aria-hidden="true" />
                       {tagFilter}
@@ -577,7 +577,7 @@ function TutorsDirectory() {
                             setDraftParam({ tag: item.tag });
                             applySearch({ tag: item.tag });
                           }}
-                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                         >
                           <Hash className="h-3 w-3" aria-hidden="true" />
                           {item.tag}
@@ -599,13 +599,12 @@ function TutorsDirectory() {
 
                 {!isLoading && filtered.length === 0 && educationFiltered && (
                   <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
-                      <GraduationCap
-                        className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                    <GraduationCap
+                      className="mx-auto mb-4 h-6 w-6 text-[color:var(--muted-foreground)]"
+                      strokeWidth={1.75}
+                      aria-hidden="true"
+                    />
+                    <h2 className="mt-4 text-xl font-medium tracking-tight text-[color:var(--ink)] sm:text-2xl">
                       {t("directory.empty_edu_title")}
                     </h2>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -636,13 +635,13 @@ function TutorsDirectory() {
                                   <>
                                     <TutorSaveButton tutorId={tut.id} compact />
                                     {inquiry.kind === "status" ? (
-                                      <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
+                                      <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-medium text-[color:var(--ink)]">
                                         {inquiry.label}
                                       </span>
                                     ) : (
                                       <Button
                                         asChild
-                                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-medium text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                                       >
                                         <a
                                           href={inquiry.href}
@@ -672,13 +671,12 @@ function TutorsDirectory() {
 
                 {!isLoading && filtered.length === 0 && !educationFiltered && (
                   <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
-                      <SearchX
-                        className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                    <SearchX
+                      className="mx-auto mb-4 h-6 w-6 text-[color:var(--muted-foreground)]"
+                      strokeWidth={1.75}
+                      aria-hidden="true"
+                    />
+                    <h2 className="mt-4 text-xl font-medium tracking-tight text-[color:var(--ink)] sm:text-2xl">
                       {t(tierEmptyTitleKey)}
                     </h2>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -699,7 +697,7 @@ function TutorsDirectory() {
                           </a>
                         </Button>
                       ) : null}
-                      <Button asChild variant="solid" color="blue" className="font-bold">
+                      <Button asChild variant="solid" color="blue" className="font-medium">
                         <Link to="/tutor-requests" search={{ post: true }}>
                           {t("directory.empty_case")}
                         </Link>
@@ -736,7 +734,7 @@ function TutorsDirectory() {
                               />
                               <Button
                                 asChild
-                                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-medium text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                               >
                                 <a
                                   href={inquiry.href}

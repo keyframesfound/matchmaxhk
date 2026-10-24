@@ -1,7 +1,7 @@
 import { contactFilterError } from "@/lib/contact-filter";
 
 /**
- * Issue #309 — approved-grade verification.
+ * Issue #309, approved-grade verification.
  *
  * One badge, derived from staff-approved rows in `tutor_grades`. The public
  * card shows APPROVED grade labels only (never the slip file, never a URL);
@@ -90,7 +90,7 @@ export function hasVerifiedBadge(grades: readonly { status: TutorGradeStatus }[]
 }
 
 /**
- * HKID detector — identity cards must never be uploaded as grade slips
+ * HKID detector, identity cards must never be uploaded as grade slips
  * (client-side message AND server-side rejection in the upload fn). Matches
  * the HKID shape: 1-2 letters + 6 digits + a check digit in parentheses or
  * not, tolerant of spaces. Runs on the file name and any text we control.
@@ -107,7 +107,7 @@ export function looksLikeHkid(text: string): boolean {
 /**
  * Edit-after-approval state machine (server-enforced in updateTutorGradeLabel):
  * changing the TEXT of an approved grade sends it back to pending so the badge
- * drops until staff re-approve. Every other status keeps its value — in
+ * drops until staff re-approve. Every other status keeps its value, in
  * particular editing a rejected label does not fake a re-review without a new
  * upload.
  */

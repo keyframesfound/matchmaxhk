@@ -81,7 +81,7 @@ export type GigSubmitInput = {
  * #326 submit gate: title ≤80, description ≤2000, whole-HKD price ≥ floor,
  * category + delivery type required, cover required before pending_review,
  * and the document_review integrity checkbox is mandatory. Returns
- * human-readable problems — empty array means clean.
+ * human-readable problems, empty array means clean.
  */
 export function validateGigForSubmit(input: GigSubmitInput): string[] {
   const errors: string[] = [];
@@ -345,7 +345,7 @@ export function gigOrderBuyerAction(
 
 /**
  * #328: completion notes (session_confirm / package_handoff) are capped at
- * 300 chars AND always run the contact filter — a note that fails stays
+ * 300 chars AND always run the contact filter, a note that fails stays
  * rejected and the order remains in_fulfillment.
  */
 export function validateCompletionNote(note: string | null | undefined): string[] {
@@ -363,7 +363,7 @@ export function validateCompletionNote(note: string | null | undefined): string[
 
 /**
  * #330: repeat upheld contact-violation reports pause the freestyle listing
- * privilege — the tutor can no longer create or submit gig listings (existing
+ * privilege, the tutor can no longer create or submit gig listings (existing
  * ones stay editable so reported copy can be fixed). Mirrors the #216 card
  * pause without a new table: the reports rows ARE the state; staff lift it
  * by correcting/removing the upheld report rows in the queue.

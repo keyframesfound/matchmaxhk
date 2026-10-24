@@ -21,7 +21,7 @@ import { ReportMenuButton } from "@/features/reports/report-button";
 /**
  * Issues #326/#329: the public GIG page, rendered by /notes/$slug whenever
  * the listing's material_type is 'gig'. A service has NO watermarked
- * preview, NO page count and NO view counter — the left column is the cover
+ * preview, NO page count and NO view counter, the left column is the cover
  * image plus the plain-language description; the right column is the same
  * sticky buy card as notes (price, ONE azure Buy Now, terms gate, report).
  * Turnaround shows the tutor's note, falling back to the machine clock
@@ -50,7 +50,7 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
   });
 
   // #329: delivered-orders-only bought figure, computed in the database
-  // (material_orders is not public). Best-effort — hides on failure.
+  // (material_orders is not public). Best-effort, hides on failure.
   const boughtQuery = useQuery({
     queryKey: ["gig-bought", note.id],
     queryFn: () => getGigBoughtCount({ data: { materialId: note.id } }),
@@ -73,31 +73,31 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
           <section className="min-w-0 space-y-6">
             <header className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-md bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">
+                <span className="rounded-md bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
                   {formatMaterialTypeLabel(note.materialType, t)}
                 </span>
                 {note.gigCategory && (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                     {t(gigCategoryLabelKey(note.gigCategory))}
                   </span>
                 )}
                 {note.gigDeliveryType && (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                     {t(gigDeliveryLabelKey(note.gigDeliveryType))}
                   </span>
                 )}
                 {note.curriculumTag && (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                     {note.curriculumTag}
                   </span>
                 )}
                 {note.subjectTag && (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                     {note.subjectTag}
                   </span>
                 )}
               </div>
-              <h1 className="text-2xl font-bold leading-tight tracking-normal sm:text-3xl">
+              <h1 className="text-2xl font-medium leading-tight tracking-normal sm:text-3xl">
                 {note.title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -109,9 +109,9 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
                   {note.tutorName}
                 </a>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="font-semibold text-foreground/70">{note.tutorCode}</span>
+                  <span className="font-medium text-muted-foreground">{note.tutorCode}</span>
                   {note.tutorVerificationTier === "tier_2_verified" && (
-                    <span className="inline-flex items-center gap-1 font-semibold text-[color:var(--brand-link)]">
+                    <span className="inline-flex items-center gap-1 font-medium text-[color:var(--brand-link)]">
                       <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
                       {t("gigs.verified")}
                     </span>
@@ -145,42 +145,40 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
 
             {note.description && (
               <section className="space-y-2">
-                <h2 className="text-lg font-bold">{t("gigs.about_title")}</h2>
-                <p className="whitespace-pre-line text-[0.95rem] leading-relaxed text-foreground/90">
+                <h2 className="text-lg font-medium">{t("gigs.about_title")}</h2>
+                <p className="whitespace-pre-line text-[0.95rem] leading-relaxed text-muted-foreground">
                   {note.description}
                 </p>
               </section>
             )}
 
             <section className="space-y-3">
-              <h2 className="text-lg font-bold">{t("gigs.details_title")}</h2>
+              <h2 className="text-lg font-medium">{t("gigs.details_title")}</h2>
               <dl className="grid grid-cols-1 gap-x-8 gap-y-2 rounded-xl border border-border bg-card p-5 text-sm sm:grid-cols-2">
                 {note.gigCategory && (
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-muted-foreground">{t("gigs.field_category")}</dt>
-                    <dd className="font-semibold">{t(gigCategoryLabelKey(note.gigCategory))}</dd>
+                    <dd className="font-medium">{t(gigCategoryLabelKey(note.gigCategory))}</dd>
                   </div>
                 )}
                 {note.gigDeliveryType && (
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-muted-foreground">{t("gigs.field_delivery")}</dt>
-                    <dd className="font-semibold">
-                      {t(gigDeliveryLabelKey(note.gigDeliveryType))}
-                    </dd>
+                    <dd className="font-medium">{t(gigDeliveryLabelKey(note.gigDeliveryType))}</dd>
                   </div>
                 )}
                 <div className="flex justify-between gap-4 sm:block">
                   <dt className="text-muted-foreground">{t("gigs.field_turnaround")}</dt>
-                  <dd className="font-semibold">{turnaroundText}</dd>
+                  <dd className="font-medium">{turnaroundText}</dd>
                 </div>
                 {isFileBack && (
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-muted-foreground">{t("gigs.field_source_format")}</dt>
-                    <dd className="font-semibold">{t("gigs.source_format_value")}</dd>
+                    <dd className="font-medium">{t("gigs.source_format_value")}</dd>
                   </div>
                 )}
               </dl>
-              {/* #316 honesty lines — mandatory copy, never marketing. */}
+              {/* #316 honesty lines, mandatory copy, never marketing. */}
               {isDocumentReview && (
                 <p className="text-xs text-muted-foreground">{t("gigs.integrity_line")}</p>
               )}
@@ -193,7 +191,7 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
           {/* Buy rail */}
           <aside className="lg:sticky lg:top-24 lg:self-start" id="buy">
             <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
-              <p className="text-3xl font-bold tracking-normal">
+              <p className="text-3xl font-medium tracking-normal">
                 {t("notes.price", { amount: note.priceHkd })}
               </p>
               <a
@@ -217,7 +215,7 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
               <Button
                 variant="solid"
                 color="accent"
-                className="w-full font-bold"
+                className="w-full font-medium"
                 disabled={checkoutMutation.isPending || isOwner}
                 onClick={() => {
                   if (!user) {

@@ -37,7 +37,7 @@ interface TutorPriceChangeEmailProps {
 }
 
 /**
- * Issue #110 — admin safety-guardrail notification sent after a tutor saves
+ * Issue #110, admin safety-guardrail notification sent after a tutor saves
  * new rates from their dashboard ("tutor_price_updated"). Mirrors the style
  * of the tutor-join-notification email.
  */
@@ -52,13 +52,13 @@ export const TutorPriceChangeEmail = ({
 }: TutorPriceChangeEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Tutor pricing updated — {displayName}</Preview>
+    <Preview>Tutor pricing updated, {displayName}</Preview>
     <Body style={main}>
       <Container style={container}>
         <Heading style={h1}>Tutor pricing updated</Heading>
         <Text style={intro}>
           {displayName} ({tutorCode}) just saved new rates from their dashboard. This email is only
-          a notification — the change is already live on their public profile.
+          a notification, the change is already live on their public profile.
         </Text>
         <Hr style={hr} />
         <Info label="Tutor" value={`${displayName} (${tutorCode})`} />
@@ -71,7 +71,7 @@ export const TutorPriceChangeEmail = ({
           Open tutor admin
         </Button>
         <Text style={footer}>
-          Watch for unreasonable rate hikes — tutors can change prices freely, this email is the
+          Watch for unreasonable rate hikes, tutors can change prices freely, this email is the
           quality-control trail.
         </Text>
       </Container>

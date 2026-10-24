@@ -98,7 +98,7 @@ export function AutofillDialog({
           </DialogTitle>
           <DialogDescription>
             Paste the tutor&apos;s raw information (or load the join application), then generate a
-            draft profile in MatchMax house style. Review every field before saving — the AI never
+            draft profile in MatchMax house style. Review every field before saving, the AI never
             invents credentials, and nothing is applied without your confirmation.
           </DialogDescription>
         </DialogHeader>
@@ -106,7 +106,7 @@ export function AutofillDialog({
         <div className="space-y-4">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-[color:var(--ink)]">
+              <span className="text-xs font-medium text-[color:var(--ink)]">
                 Source information
               </span>
               {applicationId ? (
@@ -138,8 +138,8 @@ export function AutofillDialog({
 
           {result ? (
             <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] p-3.5 space-y-2">
-              <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                Draft generated — will fill: {filledSummary.join(", ") || "no fields"}
+              <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300">
+                Draft generated, will fill: {filledSummary.join(", ") || "no fields"}
               </p>
               {result.notes.length > 0 ? (
                 <ul className="list-inside list-disc space-y-0.5 text-[11px] text-amber-700 dark:text-amber-300">
@@ -171,7 +171,7 @@ export function AutofillDialog({
                 Cancel
               </Button>
               {result ? (
-                <Button type="button" size="sm" onClick={apply} className="h-8 text-xs font-bold">
+                <Button type="button" size="sm" onClick={apply} className="h-8 text-xs font-medium">
                   Apply to form
                 </Button>
               ) : (
@@ -180,7 +180,7 @@ export function AutofillDialog({
                   size="sm"
                   disabled={generate.isPending || source.trim().length < 30}
                   onClick={() => generate.mutate()}
-                  className="h-8 text-xs font-bold"
+                  className="h-8 text-xs font-medium"
                 >
                   {generate.isPending ? (
                     <>

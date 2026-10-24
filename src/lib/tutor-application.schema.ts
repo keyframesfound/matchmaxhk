@@ -23,7 +23,7 @@ import {
 } from "@/features/tutors/verticals";
 
 /**
- * Issue #357 / #359 — every free-text answer that is copied onto the public
+ * Issue #357 / #359, every free-text answer that is copied onto the public
  * card must fail intake before the row is stored. `superRefine` runs on the
  * schema output (after trim / default), so empty optional fields pass.
  */
@@ -39,7 +39,7 @@ export const MAX_FILES = 5;
 export const MAX_ACHIEVEMENT_FILE_BYTES = 5 * 1024 * 1024;
 export const MAX_FILE_BYTES = MAX_ACHIEVEMENT_FILE_BYTES;
 export const MAX_TOTAL_BYTES = MAX_FILES * MAX_ACHIEVEMENT_FILE_BYTES;
-// Issue #97: Trophy Cabinet — up to 6 public portfolio photos (JPG/PNG/WebP,
+// Issue #97: Trophy Cabinet, up to 6 public portfolio photos (JPG/PNG/WebP,
 // 5MB each), uploaded at intake and shown on the public profile.
 export const MAX_PORTFOLIO_FILES = 6;
 export const MAX_PORTFOLIO_TOTAL_BYTES = MAX_PORTFOLIO_FILES * MAX_ACHIEVEMENT_FILE_BYTES;
@@ -75,7 +75,7 @@ export const CURRICULUM_OPTIONS = [
   "UCAT(3600)",
   "UCAT(2700)",
   "Foundation / other",
-  // Issue #190: the new verticals — a University-only or Kindergarten-only
+  // Issue #190: the new verticals, a University-only or Kindergarten-only
   // tutor picks these instead of a school exam curriculum, so the exam-score
   // fields can stay hidden for them.
   "University",
@@ -168,7 +168,7 @@ export const tutorApplicationSchema = z
     highSchool: withContactFilter(z.string().trim().min(1, "Required").max(200)),
     curriculum: z.enum(CURRICULUM_OPTIONS),
     curricula: z.array(z.enum(CURRICULUM_OPTIONS)).min(1, "Select at least one curriculum"),
-    // Issue #323: overall score is strictly OPTIONAL — tutors select a
+    // Issue #323: overall score is strictly OPTIONAL, tutors select a
     // curriculum and may leave the score blank ("spiky" specialists).
     overallScore: z.string().trim().max(200).optional().default(""),
     // Issue #323: required smart headline (<= 40 chars, contact-filtered),
@@ -192,7 +192,7 @@ export const tutorApplicationSchema = z
     // tutors report their topics below.
     subjectResults: z.string().trim().max(2000).optional().default(""),
     // Issue #357: awards is the qualifications_summary fallback when there
-    // are no achievement blocks — both go live on the card, so both are
+    // are no achievement blocks, both go live on the card, so both are
     // contact-filtered (issue #357/#359 leak fix preserved post-#309).
     awards: withContactFilter(z.string().trim().max(2000).optional().default("")),
     achievements: z
@@ -204,7 +204,7 @@ export const tutorApplicationSchema = z
       )
       .max(MAX_FILES)
       .default([]),
-    // Issue #309: join no longer collects evidence files — grade slips are
+    // Issue #309: join no longer collects evidence files, grade slips are
     // uploaded per-grade from the profile editor and reviewed by staff there.
     // Grade TEXT answers (curriculum/scores) stay plain text above.
     // Issue #190: vertical routing + self-reported vertical fields.
@@ -274,7 +274,7 @@ export const tutorApplicationSchema = z
       }),
     // Issue #319: the single "Proposed Hourly Rate" input is replaced by two
     // base rates (whole HK dollars, 50-3000). Which one is required follows
-    // the lesson format — see the superRefine below. The legacy hourlyRate is
+    // the lesson format, see the superRefine below. The legacy hourlyRate is
     // no longer collected; tutor-application.functions.ts derives it as the
     // Math.min of the two base rates before the application row is stored.
     hourlyRate: z.string().trim().max(20).optional().default(""),
@@ -284,7 +284,7 @@ export const tutorApplicationSchema = z
     // stored rates stay native; tutors_normalize_hkd snapshots the HKD
     // equivalents on publish.
     currency: z.enum(SUPPORTED_CURRENCIES).default(DEFAULT_CURRENCY),
-    // Extra rate rows (profile-only): lenient shape here — the same shared
+    // Extra rate rows (profile-only): lenient shape here, the same shared
     // rules as the form run in superRefine, and functions.ts stores the
     // normalized output (half-filled/invalid rows never reach the row).
     // Issue #359: labels are contact-filtered inside normalizeTutorRateRows
@@ -322,7 +322,7 @@ export const tutorApplicationSchema = z
       }),
     // Issue #108: per-curriculum pricing tiers. standardize=true means one flat
     // rate across all curricula; false = explicit {curriculum, rate} rows (the
-    // schema only enforces shape — blank rates are backfilled to the lowest
+    // schema only enforces shape, blank rates are backfilled to the lowest
     // entered price in normalizeApplicationPricingTiers before insert).
     pricingStandardized: z.boolean().default(true),
     pricingTiers: z
@@ -342,7 +342,7 @@ export const tutorApplicationSchema = z
       z
         .string()
         .trim()
-        .max(2000, "Too many teaching locations selected — please narrow your station selection.")
+        .max(2000, "Too many teaching locations selected, please narrow your station selection.")
         .optional()
         .default(""),
     ),
@@ -518,7 +518,7 @@ export type TutorApplicationInput = z.input<typeof tutorApplicationSchema>;
 export type TutorApplication = z.output<typeof tutorApplicationSchema>;
 
 /**
- * Issue #108 — normalize the application's per-curriculum pricing into the
+ * Issue #108, normalize the application's per-curriculum pricing into the
  * tutors.pricing_tiers shape ({curriculum, rate}[]). Unchecking "Standardize"
  * but leaving a tier blank falls back to the lowest entered price (the
  * acceptance-criteria rule); standardized applications produce an empty array
@@ -629,7 +629,7 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     // Issue #199: SEN capability captured at intake.
     {
       label: "SEN experience",
-      value: data.senEnabled ? `Yes — ${data.senCategories.join(", ")}` : "No",
+      value: data.senEnabled ? `Yes, ${data.senCategories.join(", ")}` : "No",
     },
     {
       label: "SEN experience & qualifications",

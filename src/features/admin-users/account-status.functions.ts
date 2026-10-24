@@ -21,7 +21,7 @@ import {
  *  - The reason text stored on the profile never names a reporter; the
  *    email contains only the status + community-commitment line.
  *  - Email is best-effort: a missing RESEND_API_KEY or a Resend failure is
- *    logged and skipped — the status change itself must never fail because
+ *    logged and skipped, the status change itself must never fail because
  *    of the notification.
  */
 
@@ -75,7 +75,7 @@ function buildReasonLine(reason: string, note: string | null | undefined): strin
   };
   const trimmedNote = note?.trim();
   const label = labels[reason] ?? reason;
-  return trimmedNote ? `${label} — ${trimmedNote}` : label;
+  return trimmedNote ? `${label}, ${trimmedNote}` : label;
 }
 
 async function sendStatusChangeEmail(email: string, action: StatusAction) {
@@ -189,7 +189,7 @@ export const setAccountStatus = createServerFn({ method: "POST" })
 
     if (data.action === "restore") {
       // Restore removes the block list entries (issue decision) and
-      // republishes exactly the cards this flow had unpublished — never a
+      // republishes exactly the cards this flow had unpublished, never a
       // card the tutor hid themselves before the ban.
       if (profile.email) {
         await supabaseAdmin.from("account_blocklist").delete().ilike("email", profile.email);
@@ -239,7 +239,7 @@ export const addAccountBlocklistEntry = createServerFn({ method: "POST" })
       .ilike("email", data.email)
       .limit(1);
     if (existing && existing.length > 0) {
-      throw new Error("An account with this email exists — ban the account instead.");
+      throw new Error("An account with this email exists, ban the account instead.");
     }
 
     const { error } = await supabaseAdmin.from("account_blocklist").insert({

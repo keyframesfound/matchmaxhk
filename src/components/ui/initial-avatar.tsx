@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Issue #437 — branded initial-avatar fallback. Grey silhouette placeholders
+ * Issue #437, branded initial-avatar fallback. Grey silhouette placeholders
  * are forbidden: every missing photo renders a solid circle from the fixed
  * two-colour brand palette with the first initial in white.
  *
- * The colour is deterministic — hash(stableId) % 2 — so the same identity
+ * The colour is deterministic, hash(stableId) % 2, so the same identity
  * always lands on the same colour across feed, cards, detail and staff desk
  * (no random re-roll per render). Pass a stable id (auth user id, tutor
  * code); callers without a stable id fall back to hashing the display name.
@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 const AVATAR_PALETTE = ["#1D9BF0", "#8ECDF8"] as const; // MatchMax Azure | Sky
 
-/** FNV-1a 32-bit — tiny, stable across renders and sessions. */
+/** FNV-1a 32-bit, tiny, stable across renders and sessions. */
 function hashStableId(stableId: string): number {
   let hash = 0x811c9dc5;
   for (let i = 0; i < stableId.length; i += 1) {
@@ -46,7 +46,7 @@ export function InitialAvatar({ stableId, name, className }: InitialAvatarProps)
     <span
       aria-hidden="true"
       className={cn(
-        "flex shrink-0 select-none items-center justify-center rounded-full border border-border font-bold text-white",
+        "flex shrink-0 select-none items-center justify-center rounded-full border border-border font-medium text-white",
         className,
       )}
       style={{ backgroundColor: avatarColorFor(stableId) }}

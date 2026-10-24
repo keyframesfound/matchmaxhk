@@ -1,10 +1,10 @@
 /**
- * Issue #387 — Tutor Verified Experience Log server fns.
+ * Issue #387, Tutor Verified Experience Log server fns.
  *
- *  * logTutorSession   — tutor logs a completed session (guardrailed),
- *  * disputeSession    — parent rejects a pending log ("did not happen"),
- *  * revokeSession     — staff/admin revokes any log (instant recalculation),
- *  * listCaseSessionLogs — admin desk list for one case.
+ *  * logTutorSession  , tutor logs a completed session (guardrailed),
+ *  * disputeSession   , parent rejects a pending log ("did not happen"),
+ *  * revokeSession    , staff/admin revokes any log (instant recalculation),
+ *  * listCaseSessionLogs, admin desk list for one case.
  *
  * All rows live in tutor_session_logs (RLS-deny, service-role writes). The
  * pure guardrails live in features/tutors/experience.ts and run BEFORE any
@@ -77,14 +77,14 @@ async function resolveTutorId(db: Db, userId: string): Promise<string> {
 
 /**
  * Lazy 72h auto-verify sweep (the sweep_past_due_gig_orders pattern): flip
- * pending logs older than 72h to verified on reads. Tolerant — a missing
+ * pending logs older than 72h to verified on reads. Tolerant, a missing
  * RPC (pre-migration deploys) never fails the read.
  */
 export async function sweepDueSessionLogs(db: Db): Promise<void> {
   try {
     await db.rpc("sweep_due_tutor_session_logs", {});
   } catch {
-    // 42P01/PGRST202 — migration not applied yet; hide, never fail the read.
+    // 42P01/PGRST202, migration not applied yet; hide, never fail the read.
   }
 }
 
@@ -144,7 +144,7 @@ export const logTutorSession = createServerFn({ method: "POST" })
 
     const gate = canLogOnCase({
       // #387: ongoing-session logging only on cases whose admin fee is
-      // settled — paid OR waived (#425 precedent; Ryan-approved 2026-10-23).
+      // settled, paid OR waived (#425 precedent; Ryan-approved 2026-10-23).
       feeStatuses: fees.map((f) => f.status),
       disputedCount: logs.filter((l) => l.status === "disputed").length,
     });
@@ -181,7 +181,7 @@ export const logTutorSession = createServerFn({ method: "POST" })
     await insertAudit(db, c.id, context.userId, "experience_log_pending", null);
 
     // #387 notification leg (GLM round-1 MAJOR): the parent must LEARN that a
-    // session was logged — without this, a parent who never visits the case
+    // session was logged, without this, a parent who never visits the case
     // page has no dispute window at all. One case_events row through the
     // #205 bus; the lazy drain turns it into a parent bell item linking to
     // the case page (where the Dispute button lives). The bus is
@@ -241,7 +241,7 @@ export const disputeSession = createServerFn({ method: "POST" })
         },
         { count: "exact" },
       )
-      // GLM review e13804c: predicate+rowCount race guard — read-then-write
+      // GLM review e13804c: predicate+rowCount race guard, read-then-write
       // must not overwrite a revoke that landed between the list read and
       // this write.
       .eq("id", log.id)
@@ -261,7 +261,7 @@ export const disputeSession = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// Staff/admin: revoke any log — public totals recalculate instantly
+// Staff/admin: revoke any log, public totals recalculate instantly
 // ---------------------------------------------------------------------------
 
 export const revokeSession = createServerFn({ method: "POST" })
@@ -285,7 +285,7 @@ export const revokeSession = createServerFn({ method: "POST" })
     const { error } = await db
       .from<Row>("tutor_session_logs")
       // GLM review 2026-10-23: revoking a DISPUTED row must clear the dispute
-      // fields — tutor_session_logs_dispute_coherent requires
+      // fields, tutor_session_logs_dispute_coherent requires
       // (status='disputed') = (disputed_at IS NOT NULL), and a race between a
       // parent dispute and the admin's revoke otherwise violates the CHECK
       // and surfaces a raw PG error.

@@ -1,12 +1,12 @@
 /**
- * Issues #55 + #81 — internal ops webhook.
+ * Issues #55 + #81, internal ops webhook.
  *
  * One fire-and-forget notifier for events that need a human nudge beyond the
  * in-app desk: a new website case request (#55), a new 1-click tutor
  * application (#81) and a new tutor join application.
  *
  * The webhook URL lives in app_settings under the key `ops_webhook_url`
- * (set directly in Supabase — deliberately no admin UI). When the key is
+ * (set directly in Supabase, deliberately no admin UI). When the key is
  * absent or empty this is a silent no-op, so dev environments and unset
  * production keys cost nothing.
  *

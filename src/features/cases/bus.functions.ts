@@ -1,9 +1,9 @@
 /**
- * Issues #205 + #292 — notification bus drain + bell.
+ * Issues #205 + #292, notification bus drain + bell.
  *
  * This repo has no cron (Workers Builds only), so the bus is drained lazily:
  * every bell fetch (getMyBell) and any authed /notifications load runs the
- * drain first. All steps are individually guarded — a failing email or a
+ * drain first. All steps are individually guarded, a failing email or a
  * transient query error must never crash the page that triggered the drain.
  *
  * Idempotence: deliveries are unique on (event_id, channel, recipient); event
@@ -75,7 +75,7 @@ async function insertEvent(
 }
 
 // ---------------------------------------------------------------------------
-// Event generation (lazy — replaces the cron this repo does not have)
+// Event generation (lazy, replaces the cron this repo does not have)
 // ---------------------------------------------------------------------------
 
 async function generateReminderEvents(db: Db, now: Date): Promise<void> {
@@ -204,7 +204,7 @@ async function generateFeeEvents(db: Db, now: Date): Promise<void> {
     const totalHkd = pastDue.reduce((sum, f) => sum + Number(f.amount_hkd ?? 0), 0);
     if (shouldCreateConciergeDigest(pastDue.length, lastDigestAt, now)) {
       // The digest email mirrors the admin unpaid queue (#201/#205): parent,
-      // tutor, amount, and the admin-only WhatsApp link — oldest first.
+      // tutor, amount, and the admin-only WhatsApp link, oldest first.
       const caseIds = [...new Set(pastDue.map((f) => f.case_id))];
       const cases = await selectRows<{
         id: string;
@@ -429,7 +429,7 @@ async function deliverOne(
       .insert({ event_id: eventId, channel, recipient_account_id: accountId, status: "pending" })
       .select("id")
       .single();
-    if (error) return; // unique race or FK issue — another drain owns it
+    if (error) return; // unique race or FK issue, another drain owns it
     const inserted = data as { id: string } | null;
     deliveryId = inserted?.id;
     if (!deliveryId) return;
@@ -600,7 +600,7 @@ export type BellItem = {
   created_at: string;
   read: boolean;
   link: string | null;
-  /** Which side of the event the recipient is on — drives the label (#292). */
+  /** Which side of the event the recipient is on, drives the label (#292). */
   role_hint: "tutor" | "parent" | "concierge" | "unknown";
 };
 

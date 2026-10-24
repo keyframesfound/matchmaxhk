@@ -33,7 +33,7 @@ import { watermarkFullPdf } from "@/features/materials/watermark";
  * document_type 'course') with 1–10 lessons in course_lessons. Videos are
  * UNLISTED YouTube / Vimeo links validated by validateCourseVideoUrl (no
  * video file upload path exists); general-course lessons may carry a
- * watermarked PDF (watermarkFullPdf — full document). The clean original is
+ * watermarked PDF (watermarkFullPdf, full document). The clean original is
  * kept privately next to the watermarked copy under a `.orig.pdf` twin.
  * Lesson writes are service-role (course_lessons is RLS-deny for clients).
  */
@@ -165,7 +165,7 @@ async function generateUniqueCourseSlug(
 
 const LessonInput = z.object({
   title: z.string().trim().max(COURSE_LESSON_TITLE_MAX_LEN),
-  /** The raw pasted unlisted link — parsed/validated server-side. */
+  /** The raw pasted unlisted link, parsed/validated server-side. */
   videoUrl: z.string().trim().max(500).nullish(),
 });
 
@@ -182,7 +182,7 @@ const SaveCourseInput = z.object({
  * Create or update the signed-in tutor's course draft, lessons included.
  * Lessons upsert on (material_id, position) so a re-save never clobbers an
  * uploaded PDF on an untouched lesson; dropped positions are deleted. Video
- * URLs must parse as YouTube/Vimeo embeds — anything else (Drive, Loom, a
+ * URLs must parse as YouTube/Vimeo embeds, anything else (Drive, Loom, a
  * bare MP4) is rejected here.
  */
 export const saveCourseDraft = createServerFn({ method: "POST" })

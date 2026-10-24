@@ -21,7 +21,7 @@ const LEVEL_BADGE_CLASSES: Record<string, string> = {
 };
 
 const DEFAULT_BADGE_CLASS =
-  "bg-gray-50 text-gray-700 ring-gray-700/10 dark:bg-gray-500/10 dark:text-[color:var(--muted-foreground)] dark:ring-gray-400/20";
+  "bg-gray-50 text-muted-foreground ring-gray-700/10 dark:bg-gray-500/10 dark:text-[color:var(--muted-foreground)] dark:ring-gray-400/20";
 
 export function CourseLevelBadge({ level }: { level: string | null }) {
   if (!level) return null;
@@ -77,7 +77,7 @@ export function CourseCard({ course }: CourseCardProps) {
             </span>
           ) : null}
         </div>
-        <h3 className="mt-2 text-base font-semibold text-[color:var(--ink)] group-hover:text-[color:var(--brand-link)] sm:text-lg">
+        <h3 className="mt-2 text-base font-medium text-[color:var(--ink)] group-hover:text-[color:var(--brand-link)] sm:text-lg">
           {course.title}
         </h3>
         {course.summary ? (
@@ -101,11 +101,11 @@ export function CourseCard({ course }: CourseCardProps) {
       <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border pt-4 sm:min-w-28 sm:flex-col sm:items-end sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
         <CourseSaveButton courseId={course.id} compact />
         {price ? (
-          <span className="text-lg font-bold text-[color:var(--ink)]">{price}</span>
+          <span className="text-lg font-medium text-[color:var(--ink)]">{price}</span>
         ) : (
-          <span className="text-sm font-semibold text-muted-foreground">Enquire</span>
+          <span className="text-sm font-medium text-muted-foreground">Enquire</span>
         )}
-        <span className="inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand-link)] group-hover:text-[color:var(--ink)]">
+        <span className="inline-flex items-center gap-1 text-sm font-medium text-[color:var(--brand-link)] group-hover:text-[color:var(--ink)]">
           View course
           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
         </span>

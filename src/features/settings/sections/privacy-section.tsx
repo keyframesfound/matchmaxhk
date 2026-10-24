@@ -88,7 +88,7 @@ export function PrivacySection({ user, profile }: SettingsSectionProps) {
           variant="outline"
           onClick={() => void exportData()}
           disabled={exporting}
-          className="border-[color:var(--ink)]/15 font-bold text-[color:var(--ink)] hover:bg-[color:var(--ink)]/5"
+          className="border-[color:var(--ink)]/15 font-medium text-[color:var(--ink)] hover:bg-[color:var(--ink)]/5"
         >
           {exporting ? t("settings.privacy.exporting") : t("settings.privacy.export_button")}
         </Button>
@@ -103,7 +103,7 @@ export function PrivacySection({ user, profile }: SettingsSectionProps) {
           variant="outline"
           onClick={clearLocalData}
           disabled={clearing}
-          className="border-[color:var(--ink)]/15 font-bold text-[color:var(--ink)] hover:bg-[color:var(--ink)]/5"
+          className="border-[color:var(--ink)]/15 font-medium text-[color:var(--ink)] hover:bg-[color:var(--ink)]/5"
         >
           {t("settings.privacy.local_button")}
         </Button>
@@ -112,7 +112,7 @@ export function PrivacySection({ user, profile }: SettingsSectionProps) {
       <p className="text-sm">
         <Link
           to="/privacy-policy"
-          className="font-semibold text-[color:var(--ink)] underline underline-offset-2"
+          className="font-medium text-[color:var(--ink)] underline underline-offset-2"
         >
           {t("settings.privacy.policy_link")}
         </Link>

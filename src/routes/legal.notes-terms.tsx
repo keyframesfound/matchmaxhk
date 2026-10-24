@@ -24,14 +24,14 @@ export const Route = createFileRoute("/legal/notes-terms")({
 /**
  * Issue #212: a short terms page for notes. The tutor upload links here and
  * accepting them is required before submitting. Buyer checkout is still the
- * concierge WhatsApp flow — no in-app purchase UI links here yet; that
+ * concierge WhatsApp flow, no in-app purchase UI links here yet; that
  * surface arrives with the manual cashier (issue #250 family).
  */
 
 function Clause({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="border-t border-[color:var(--ink)]/10 py-7">
-      <h2 className="text-xl font-bold tracking-tight">{title}</h2>
+      <h2 className="text-xl font-medium tracking-tight">{title}</h2>
       <div className="mt-3 space-y-3 text-sm leading-7 text-[color:var(--ink)]/75">{children}</div>
     </section>
   );
@@ -52,10 +52,7 @@ function NotesTermsPage() {
           <div className="lg:hidden">
             <PageBackButton />
           </div>
-          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-            {t("legal.notes_terms.eyebrow")}
-          </p>
-          <h1 className="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-medium tracking-tight sm:text-5xl">
             {t("legal.notes_terms.title")}
           </h1>
           <p className="mt-3 text-sm text-[color:var(--ink)]/55">
@@ -95,7 +92,7 @@ function NotesTermsPage() {
           </div>
 
           <p className="mt-10 border-t border-[color:var(--ink)]/10 pt-6 text-sm">
-            <Link to="/guide/notes" className="font-bold underline underline-offset-4">
+            <Link to="/guide/notes" className="font-medium underline underline-offset-4">
               {t("legal.notes_terms.back_to_guide")}
             </Link>
           </p>

@@ -9,7 +9,7 @@ interface TutorCardLiveEmailProps {
 }
 
 /**
- * Issue #310 — "Your card is live" email sent when a /join submission
+ * Issue #310, "Your card is live" email sent when a /join submission
  * publishes the tutor card. One email per submission, no review language.
  */
 export const TutorCardLiveEmail = ({ tutorName, tutorCode, cardUrl }: TutorCardLiveEmailProps) => (
@@ -27,7 +27,7 @@ export const TutorCardLiveEmail = ({ tutorName, tutorCode, cardUrl }: TutorCardL
         </Text>
         <Hr style={hr} />
         <Text style={footer}>
-          Questions? Contact the MatchMax team — we're happy to help. Remember to activate your
+          Questions? Contact the MatchMax team, we're happy to help. Remember to activate your
           application on WhatsApp so we can reach you about matching cases.
         </Text>
       </Container>

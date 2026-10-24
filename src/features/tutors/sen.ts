@@ -1,10 +1,10 @@
 /**
- * Issue #199 — SEN (Special Educational Needs) capability vocabulary and
+ * Issue #199, SEN (Special Educational Needs) capability vocabulary and
  * matching helpers, shared by the tutor application form, the tutor profile
  * editors, the case request form, tutor search and the tutor card badge.
  *
  * The category strings are the stored vocabulary (tutors.sen_categories and
- * tutoring_cases.sen_categories text[] values) — renaming an entry here
+ * tutoring_cases.sen_categories text[] values), renaming an entry here
  * without a data migration would orphan the stored rows.
  */
 export const SEN_CATEGORY_OPTIONS = [
@@ -30,7 +30,7 @@ export function normalizeSenCategories(raw: unknown): SenCategory[] {
 
 /**
  * Issue #199 filter semantics: the tutor must have SEN experience enabled AND
- * carry EVERY selected filter category (match-all — a parent picking two
+ * carry EVERY selected filter category (match-all, a parent picking two
  * categories wants tutors tagged with both). An empty selection matches any
  * SEN-enabled tutor. Tutors with sen_enabled but no categories still satisfy
  * the plain "SEN experience" toggle but never a specific category pick.

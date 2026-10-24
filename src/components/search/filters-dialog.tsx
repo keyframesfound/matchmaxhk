@@ -34,14 +34,14 @@ export function FiltersPillButton({
       variant="outline"
       onClick={onClick}
       className={cn(
-        "h-auto shrink-0 gap-2 self-stretch rounded-full border-border bg-card px-5 text-sm font-bold text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]",
+        "h-auto shrink-0 gap-2 self-stretch rounded-full border-border bg-card px-5 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]",
         className,
       )}
     >
       <SlidersHorizontal className="h-4 w-4 shrink-0" aria-hidden="true" />
       <span className="truncate">{label}</span>
       {count ? (
-        <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--brand-link)] px-1.5 text-[11px] font-bold text-white">
+        <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--brand-link)] px-1.5 text-[11px] font-medium text-white">
           {count}
         </span>
       ) : null}
@@ -136,7 +136,7 @@ export function FiltersDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90dvh] gap-0 overflow-hidden rounded-3xl border-border p-0">
         <div className="border-b border-border py-4 text-center">
-          <DialogTitle className="text-base font-bold text-[color:var(--ink)]">
+          <DialogTitle className="text-base font-medium text-[color:var(--ink)]">
             {title ?? t("search_ui.filters")}
           </DialogTitle>
         </div>
@@ -149,7 +149,7 @@ export function FiltersDialog({
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t("search_ui.search_all_filters")}
               aria-label={t("search_ui.search_all_filters")}
-              className="h-11 w-full rounded-full border border-transparent bg-[color:var(--surface-subtle)] pl-4 pr-10 text-sm font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40"
+              className="h-11 w-full rounded-full border border-transparent bg-[color:var(--surface-subtle)] pl-4 pr-10 text-sm font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring"
             />
             {query ? (
               <button
@@ -169,7 +169,7 @@ export function FiltersDialog({
                   key={section.id}
                   type="button"
                   onClick={() => jumpTo(section.id)}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05]"
+                  className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05]"
                 >
                   {section.title}
                   <SlidersHorizontal
@@ -193,7 +193,7 @@ export function FiltersDialog({
             type="button"
             variant="ghost"
             onClick={onClear}
-            className="h-10 shrink-0 px-2 text-sm font-semibold text-[color:var(--ink)] underline underline-offset-4 hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
+            className="h-10 shrink-0 px-2 text-sm font-medium text-[color:var(--ink)] underline underline-offset-4 hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
           >
             {clearLabel}
           </Button>
@@ -206,7 +206,7 @@ export function FiltersDialog({
               onApply();
               onOpenChange(false);
             }}
-            className="h-11 rounded-xl px-6 text-sm font-bold"
+            className="h-11 rounded-xl px-6 text-sm font-medium"
           >
             {applyLabel}
           </Button>
@@ -241,7 +241,7 @@ export function FiltersSection({
     <section ref={ref} data-filter-section={id} className="scroll-mt-2">
       <h3
         className={cn(
-          "rounded-lg text-base font-bold text-[color:var(--ink)] transition-colors",
+          "rounded-lg text-base font-medium text-[color:var(--ink)] transition-colors",
           context?.focusId === id && "-mx-2 bg-[color:var(--brand-royal)]/[0.12] px-2 py-1",
         )}
       >
@@ -286,7 +286,7 @@ export function FilterQuickPicks({
             aria-pressed={option.active}
             onClick={option.onToggle}
             className={cn(
-              "flex w-28 shrink-0 flex-col items-center justify-center gap-2.5 rounded-2xl border px-2 py-3.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+              "flex w-28 shrink-0 flex-col items-center justify-center gap-2.5 rounded-2xl border px-2 py-3.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               option.active
                 ? "border-[1.5px] border-[color:var(--foreground)] bg-card"
                 : "border-border bg-card hover:bg-[color:var(--surface-subtle)]",
@@ -303,7 +303,7 @@ export function FilterQuickPicks({
               className={cn(
                 "w-full truncate text-center text-xs whitespace-nowrap leading-tight",
                 option.active
-                  ? "font-bold text-[color:var(--ink)]"
+                  ? "font-medium text-[color:var(--ink)]"
                   : "font-medium text-[color:var(--ink)]/75",
               )}
             >

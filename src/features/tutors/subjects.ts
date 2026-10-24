@@ -87,8 +87,8 @@ export const ADMISSIONS_SUBCATEGORY_OPTIONS = [
 export const ADMISSIONS_CURRICULUM_LABEL = "University Admissions & Test Prep";
 
 // Canonical teachable-subject pool across every curriculum. Exam systems
-// contribute their subject lists (qualification-only systems — IELTS, ISAT,
-// UCAT, SAT — are excluded: their "subjects" are score entries, and those
+// contribute their subject lists (qualification-only systems, IELTS, ISAT,
+// UCAT, SAT, are excluded: their "subjects" are score entries, and those
 // tests enter the pool via ADMISSIONS_TEST_SUBJECTS instead). The curated
 // pools above cover primary, junior-secondary and admissions.
 export const DEFAULT_SUBJECT_OPTIONS: string[] = (() => {
@@ -170,7 +170,7 @@ export function getSubjectOptionsForCategory(category: string | undefined): stri
 }
 
 export type TeachingCurriculum = {
-  /** Stored value — reuses the legacy case exam_system vocabulary. */
+  /** Stored value, reuses the legacy case exam_system vocabulary. */
   value: string;
   label: string;
   subjects: string[];
@@ -221,7 +221,7 @@ export function matchesCategoryFilter(
     });
     if (matched) return true;
     // Free-text tags can name the curriculum itself ("IB Biology",
-    // "University admissions prep") — keep the plain text fallback.
+    // "University admissions prep"), keep the plain text fallback.
     if (subjects.some((s) => s.toLowerCase().includes(normalized))) return true;
     return extraText.some((text) => text.toLowerCase().includes(normalized));
   }

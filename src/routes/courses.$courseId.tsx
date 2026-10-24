@@ -55,7 +55,7 @@ export const Route = createFileRoute("/courses/$courseId")({
     const orgName = course.organization?.name ?? "a Hong Kong learning centre";
     const description = (
       course.summary?.trim() ||
-      `${course.title} — ${price ?? "enquire for pricing"} · ${mode} course at ${orgName} in Hong Kong. Enquire via MatchMax.`
+      `${course.title}, ${price ?? "enquire for pricing"} · ${mode} course at ${orgName} in Hong Kong. Enquire via MatchMax.`
     ).slice(0, 200);
     const title = `${course.title} | MatchMax`;
     return {
@@ -112,7 +112,7 @@ function BusinessProfileCard({
           </span>
         )}
         <div className="flex flex-col items-center gap-1">
-          <h3 className="flex items-center gap-1.5 text-base font-bold tracking-tight text-[color:var(--ink)]">
+          <h3 className="flex items-center gap-1.5 text-base font-medium tracking-tight text-[color:var(--ink)]">
             <span className="max-w-[220px] truncate">{organization.name}</span>
             <BadgeCheck
               className="h-4.5 w-4.5 shrink-0 text-[color:var(--muted-foreground)]"
@@ -138,19 +138,19 @@ function BusinessProfileCard({
 
       <div className="mt-4 grid grid-cols-3 divide-x divide-border border-y border-border">
         <div className="flex flex-col items-center gap-0.5 py-3">
-          <span className="text-sm font-semibold tabular-nums text-[color:var(--ink)]">
+          <span className="text-sm font-medium tabular-nums text-[color:var(--ink)]">
             {countLoading ? "…" : courseCount}
           </span>
           <span className="text-xs text-muted-foreground">Courses</span>
         </div>
         <div className="flex flex-col items-center gap-0.5 px-2 py-3">
-          <span className="max-w-full truncate text-sm font-semibold text-[color:var(--ink)]">
+          <span className="max-w-full truncate text-sm font-medium text-[color:var(--ink)]">
             {organization.district || "—"}
           </span>
           <span className="text-xs text-muted-foreground">District</span>
         </div>
         <div className="flex flex-col items-center gap-0.5 py-3">
-          <span className="text-sm font-semibold tabular-nums text-[color:var(--ink)]">
+          <span className="text-sm font-medium tabular-nums text-[color:var(--ink)]">
             {memberSince}
           </span>
           <span className="text-xs text-muted-foreground">Member since</span>
@@ -158,7 +158,7 @@ function BusinessProfileCard({
       </div>
 
       <div className="mt-4 flex items-center gap-2">
-        <Button asChild className="flex-1 font-bold">
+        <Button asChild className="flex-1 font-medium">
           <a href={`/business/${organization.slug}`}>
             View profile
             <ArrowUpRight className="ml-1 h-4 w-4" aria-hidden />
@@ -189,10 +189,10 @@ function MoreFromCentre({ orgId, currentCourseId }: { orgId: string; currentCour
   return (
     <section className="mt-10 border-t border-border pt-8">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-bold text-[color:var(--ink)]">More from this centre</h2>
+        <h2 className="text-lg font-medium text-[color:var(--ink)]">More from this centre</h2>
         <a
           href={`/courses`}
-          className="text-sm font-semibold text-[color:var(--brand-link)] hover:underline"
+          className="text-sm font-medium text-[color:var(--brand-link)] hover:underline"
         >
           View all
         </a>
@@ -215,14 +215,14 @@ function MoreFromCentre({ orgId, currentCourseId }: { orgId: string; currentCour
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                   />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center text-muted-foreground/40">
+                  <span className="flex h-full w-full items-center justify-center text-muted-foreground">
                     <BookOpen className="h-8 w-8" />
                   </span>
                 )}
               </div>
               <div className="p-3">
                 {coursePrice ? (
-                  <p className="text-sm font-bold text-[color:var(--ink)]">{coursePrice}</p>
+                  <p className="text-sm font-medium text-[color:var(--ink)]">{coursePrice}</p>
                 ) : (
                   <p className="text-xs font-medium text-muted-foreground">Enquire for pricing</p>
                 )}
@@ -273,7 +273,7 @@ function CourseDetail() {
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <Link
               to="/courses"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--brand-link)]"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[color:var(--brand-link)]"
             >
               <ArrowLeft className="h-4 w-4" />
               All courses
@@ -289,7 +289,7 @@ function CourseDetail() {
 
             {isError || (course === null && !isLoading) ? (
               <div className="mt-6 rounded-sm border border-dashed border-border bg-card p-12 text-center">
-                <p className="text-lg font-bold text-[color:var(--ink)]">Course not available</p>
+                <p className="text-lg font-medium text-[color:var(--ink)]">Course not available</p>
                 <p className="mt-2 text-sm text-muted-foreground">
                   This course may have been removed or is not currently published.
                 </p>
@@ -310,7 +310,7 @@ function CourseDetail() {
                     </span>
                   ) : null}
                 </div>
-                <h1 className="mt-3 text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
+                <h1 className="mt-3 text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl">
                   {course.title}
                 </h1>
                 {course.summary ? (
@@ -338,7 +338,7 @@ function CourseDetail() {
                   />
                 ) : null}
 
-                <h2 className="text-xl font-bold text-[color:var(--ink)]">About this course</h2>
+                <h2 className="text-xl font-medium text-[color:var(--ink)]">About this course</h2>
                 <div className="mt-4 max-w-3xl space-y-4 text-[15px] leading-relaxed text-muted-foreground">
                   {course.description ? (
                     course.description
@@ -355,7 +355,7 @@ function CourseDetail() {
                       <Clock className="h-4 w-4" />
                       Lesson mode
                     </dt>
-                    <dd className="mt-1.5 text-sm font-semibold text-[color:var(--ink)]">
+                    <dd className="mt-1.5 text-sm font-medium text-[color:var(--ink)]">
                       {courseModeLabel(course.mode)}
                     </dd>
                   </div>
@@ -365,7 +365,7 @@ function CourseDetail() {
                         <CalendarDays className="h-4 w-4" />
                         Schedule
                       </dt>
-                      <dd className="mt-1.5 text-sm font-semibold text-[color:var(--ink)]">
+                      <dd className="mt-1.5 text-sm font-medium text-[color:var(--ink)]">
                         {course.schedule_text}
                       </dd>
                     </div>
@@ -376,7 +376,7 @@ function CourseDetail() {
                         <MapPin className="h-4 w-4" />
                         Location
                       </dt>
-                      <dd className="mt-1.5 text-sm font-semibold text-[color:var(--ink)]">
+                      <dd className="mt-1.5 text-sm font-medium text-[color:var(--ink)]">
                         {course.district}
                       </dd>
                     </div>
@@ -387,7 +387,7 @@ function CourseDetail() {
                         <GraduationCap className="h-4 w-4" />
                         Subject
                       </dt>
-                      <dd className="mt-1.5 text-sm font-semibold text-[color:var(--ink)]">
+                      <dd className="mt-1.5 text-sm font-medium text-[color:var(--ink)]">
                         {course.subject}
                       </dd>
                     </div>
@@ -408,7 +408,7 @@ function CourseDetail() {
 
                   <div className="rounded-lg border border-border bg-card p-6">
                     {price ? (
-                      <p className="text-2xl font-bold text-[color:var(--ink)]">{price}</p>
+                      <p className="text-2xl font-medium text-[color:var(--ink)]">{price}</p>
                     ) : null}
 
                     <div className={price ? "mt-5 flex flex-col gap-3" : "flex flex-col gap-3"}>
@@ -418,7 +418,7 @@ function CourseDetail() {
                           prefix={<MessageCircle />}
                           variant="solid"
                           color="blue"
-                          className="h-11 font-bold"
+                          className="h-11 font-medium"
                         >
                           <a href={whatsappUrl} target="_blank" rel="noreferrer">
                             Chat on WhatsApp

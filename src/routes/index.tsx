@@ -8,7 +8,6 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
 import { Button } from "@/components/ui/button";
-import { Reveal } from "@/components/ui/reveal";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   CompactSearchPill,
@@ -72,7 +71,7 @@ const MAX_HOME_TUTORS = 6;
 // get_trending_tutors RPC, get re-ranked here with the quality multipliers
 // and are capped at 8 rendered cards. Cold-start guardrail: below three
 // tutors with ANY real engagement we keep the previous page (no near-empty
-// trending row — the empty-restaurant problem).
+// trending row, the empty-restaurant problem).
 const TRENDING_CANDIDATE_LIMIT = 24;
 const TRENDING_TUTOR_LIMIT = 8;
 const TRENDING_MIN_ELIGIBLE = 3;
@@ -184,13 +183,13 @@ function CurriculumTutorSection({
             <>
               <TutorSaveButton tutorId={tutor.id} compact />
               {inquiry.kind === "status" ? (
-                <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs">
+                <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-medium text-[color:var(--ink)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs">
                   {inquiry.label}
                 </span>
               ) : (
                 <Button
                   asChild
-                  className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
+                  className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-medium text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
                 >
                   <a
                     href={inquiry.href}
@@ -218,20 +217,19 @@ function CurriculumTutorSection({
         className,
       )}
     >
-      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors group-hover:bg-[color:var(--surface-subtle)]">
-        <ArrowRight
-          className="h-5 w-5 text-[color:var(--brand-link)] transition-transform duration-200 ease-out group-hover:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
-          aria-hidden="true"
-        />
-      </span>
-      <span className="text-sm font-bold text-[color:var(--ink)]">{t("featured.see_all")}</span>
+      <ArrowRight
+        className="h-6 w-6 text-[color:var(--brand-link)] transition-transform duration-200 ease-out group-hover:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
+      <span className="text-sm font-medium text-[color:var(--ink)]">{t("featured.see_all")}</span>
     </Link>
   );
 
   return (
     <section className="mx-auto max-w-7xl">
       <div className="mb-4 flex items-center gap-2 sm:gap-3">
-        <h2 className="min-w-0 truncate text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
+        <h2 className="min-w-0 truncate text-xl font-medium tracking-tight text-[color:var(--ink)] md:text-2xl">
           {label} tutors
         </h2>
         <Button
@@ -239,7 +237,7 @@ function CurriculumTutorSection({
           variant="ghost"
           refined
           hoverArrow
-          className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
+          className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-medium text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
         >
           <Link to="/tutors" search={{ category }}>
             {t("featured.view_all")}
@@ -281,7 +279,7 @@ function CurriculumTutorSection({
         </div>
       ) : tutors.length > 0 ? (
         <>
-          {/* Mobile: one swipeable row — first page of tutors, then the see-all tile */}
+          {/* Mobile: one swipeable row, first page of tutors, then the see-all tile */}
           <div className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-1 pb-2 scroll-px-4 md:hidden">
             {tutors
               .slice(0, TUTORS_PER_PAGE)
@@ -378,13 +376,12 @@ function TrendingTutorsSection({
   return (
     <section className="mx-auto max-w-7xl">
       <div className="mb-4 flex items-center gap-2 sm:gap-3">
-        <span
+        <Flame
+          className="h-5 w-5 shrink-0 text-[color:var(--brand-link)] sm:h-6 sm:w-6"
+          strokeWidth={1.75}
           aria-hidden="true"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--surface-subtle)] sm:h-9 sm:w-9"
-        >
-          <Flame className="h-5 w-5 text-[color:var(--brand-link)]" />
-        </span>
-        <h2 className="min-w-0 truncate text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
+        />
+        <h2 className="min-w-0 truncate text-xl font-medium tracking-tight text-[color:var(--ink)] md:text-2xl">
           {t("home.trending_title")}
         </h2>
         <div className="ml-auto hidden shrink-0 items-center gap-1.5 md:flex">
@@ -429,7 +426,7 @@ function TrendingTutorsSection({
                   <>
                     <TutorSaveButton tutorId={tutor.id} compact />
                     {inquiry.kind === "status" ? (
-                      <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs">
+                      <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-medium text-[color:var(--ink)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs">
                         {inquiry.label}
                       </span>
                     ) : (
@@ -439,7 +436,7 @@ function TrendingTutorsSection({
                       >
                         <Button
                           asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
+                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-medium text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
                         >
                           <a
                             href={inquiry.href}
@@ -524,7 +521,7 @@ function Landing() {
   // (#142; tier_2_verified = transcripts + HKID passed manual review) and
   // top-scorer detection runs over APPROVED grade labels only. Cold-start
   // guardrail: fewer than three candidates with popularity_score > 0 means
-  // the page renders exactly as before — no near-empty trending row.
+  // the page renders exactly as before, no near-empty trending row.
   const trendingEntries = useMemo<TrendingEntry[]>(() => {
     if (publishedTutors.length === 0 || trendingCandidates.length === 0) return [];
     const tutorById = new Map(publishedTutors.map((tutor) => [tutor.id, tutor]));
@@ -702,11 +699,11 @@ function Landing() {
           <div className="mx-auto max-w-[1440px] px-4 md:px-6">
             <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
               {/* Issue #312: approved notes under the search bar, above the
-                  IB rail; renders nothing below three public notes. Reveal
-                  lives INSIDE the row (after its null guards) so a hidden
-                  row leaves no empty wrapper in the space-y stack. */}
+                  IB rail; renders nothing below three public notes. The
+                  null guards live INSIDE the row so a hidden row leaves no
+                  empty wrapper in the space-y stack. */}
               <HomeNotesRow />
-              {/* Issue #329: Tutor services row — ORDER IS SEMANTIC: the
+              {/* Issue #329: Tutor services row, ORDER IS SEMANTIC: the
                   notes row (#312) stays first, gigs sit immediately below it.
                   Same ≥3-listings guardrail; renders nothing when the gigs
                   RPC is missing or fewer than three services are published. */}
@@ -714,31 +711,27 @@ function Landing() {
               {/* Issue #151 Option A: trending showcase; hidden entirely
                   (existing page) until 3+ tutors clear the guardrail. */}
               {trendingEntries.length > 0 ? (
-                <Reveal>
-                  <TrendingTutorsSection
-                    entries={trendingEntries}
-                    priceSuffix={t("featured.per_hour")}
-                    whatsappNumber={whatsappNumber}
-                    onOpen={openTutorDetail}
-                    compareSelectedIds={compareIds}
-                    onCompareToggle={toggleCompare}
-                  />
-                </Reveal>
+                <TrendingTutorsSection
+                  entries={trendingEntries}
+                  priceSuffix={t("featured.per_hour")}
+                  whatsappNumber={whatsappNumber}
+                  onOpen={openTutorDetail}
+                  compareSelectedIds={compareIds}
+                  onCompareToggle={toggleCompare}
+                />
               ) : null}
               {CURRICULUM_CATEGORIES.map(({ label, value }) => (
-                <Reveal key={value}>
-                  <CurriculumTutorSection
-                    label={label}
-                    category={value}
-                    tutors={tutorsForCategory(value)}
-                    loading={publishedTutorsLoading}
-                    priceSuffix={t("featured.per_hour")}
-                    whatsappNumber={whatsappNumber}
-                    onOpen={openTutorDetail}
-                    compareSelectedIds={compareIds}
-                    onCompareToggle={toggleCompare}
-                  />
-                </Reveal>
+                <CurriculumTutorSection
+                  label={label}
+                  category={value}
+                  tutors={tutorsForCategory(value)}
+                  loading={publishedTutorsLoading}
+                  priceSuffix={t("featured.per_hour")}
+                  whatsappNumber={whatsappNumber}
+                  onOpen={openTutorDetail}
+                  compareSelectedIds={compareIds}
+                  onCompareToggle={toggleCompare}
+                />
               ))}
             </div>
           </div>

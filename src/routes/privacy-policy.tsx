@@ -289,7 +289,7 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
       },
       {
         kind: "p",
-        text: "The commercial terms for notes — licences, refunds, and takedowns — are set out in the Notes Terms (/legal/notes-terms).",
+        text: "The commercial terms for notes, licences, refunds, and takedowns, are set out in the Notes Terms (/legal/notes-terms).",
       },
     ],
   },
@@ -315,7 +315,7 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
 function renderInline(text: string) {
   return text.split(/\*\*(.+?)\*\*/g).map((part, index) =>
     index % 2 === 1 ? (
-      <strong key={index} className="font-semibold text-foreground">
+      <strong key={index} className="font-medium text-foreground">
         {part}
       </strong>
     ) : (
@@ -329,7 +329,6 @@ function PrivacyPolicyPage() {
     <PublicPage>
       <PageIntro
         description="Your privacy matters to us. This policy explains how MatchMax collects and handles your personal data."
-        eyebrow="Legal"
         meta="Current as of 15 September 2026"
         title="Privacy Policy"
       />
@@ -346,7 +345,9 @@ function PrivacyPolicyPage() {
                 key={section.title}
                 className="border-b border-border pb-12 last:border-b-0 last:pb-0"
               >
-                <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{section.title}</h2>
+                <h2 className="text-2xl font-medium text-foreground sm:text-3xl">
+                  {section.title}
+                </h2>
                 <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">
                   {section.blocks.map((block, index) =>
                     block.kind === "ul" ? (
@@ -371,14 +372,14 @@ function PrivacyPolicyPage() {
             ))}
 
             <article className="border-t border-border pt-12">
-              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
+              <h2 className="text-2xl font-medium text-foreground sm:text-3xl">
                 Questions About Privacy?
               </h2>
               <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
                 For questions about how we handle your data, or to submit a data access or
                 correction request, contact us at{" "}
                 <a
-                  className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+                  className="font-medium text-[color:var(--brand-link)] underline underline-offset-4"
                   href="mailto:contact@matchmax.hk"
                 >
                   contact@matchmax.hk

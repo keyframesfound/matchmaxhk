@@ -1,11 +1,11 @@
-// Issue #387 — Verified Experience display on PUBLIC surfaces.
+// Issue #387, Verified Experience display on PUBLIC surfaces.
 //
 // Reads the anon-executable SECURITY DEFINER aggregate RPC
 // get_tutor_experience (migration 20261023080000) straight from the client —
 // the same tolerant pattern as review-summary-block: any error (42P01 /
 // PGRST202 on a pre-migration deploy) hides the component, never breaks the
 // page. Zero-state rule: 0 verified lessons → render NOTHING (never
-// "0 lessons · 0 hours"). No shadows (repo rule) — border + tint only.
+// "0 lessons · 0 hours"). No shadows (repo rule), border + tint only.
 
 import { format } from "date-fns";
 import { zhHK } from "date-fns/locale";
@@ -29,7 +29,7 @@ function useTutorExperience(tutorId: string | undefined): TutorExperience | null
     if (!tutorId) return;
     let cancelled = false;
     (async () => {
-      // Keep the rpc call BOUND to the client — extracting the method loses
+      // Keep the rpc call BOUND to the client, extracting the method loses
       // `this` and supabase-js throws reading `this.rest`.
       const client = supabase as unknown as {
         rpc: (
@@ -39,7 +39,7 @@ function useTutorExperience(tutorId: string | undefined): TutorExperience | null
       };
       const { data, error } = await client.rpc("get_tutor_experience", { p_tutor: tutorId });
       if (cancelled || error || !data) return;
-      // PostgREST wraps RETURNS TABLE in an array — take the single row.
+      // PostgREST wraps RETURNS TABLE in an array, take the single row.
       const row = Array.isArray(data) ? data[0] : data;
       if (!row) return;
       setExp(row as TutorExperience);
@@ -96,7 +96,7 @@ export function ExperiencePill({ tutorId, className }: { tutorId: string; classN
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-[color:var(--ink)]",
+        "inline-flex max-w-full items-center whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight text-[color:var(--ink)]",
         className,
       )}
       title={data.title}

@@ -115,7 +115,7 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
     onError: (e) => toast.error(e.message),
   });
 
-  if (isError) return null; // board case without SoR data — panel stays hidden
+  if (isError) return null; // board case without SoR data, panel stays hidden
   if (isLoading) {
     return (
       <ConsolePanel title={t("sor.admin_panel_title")}>
@@ -181,7 +181,7 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
         {/* Status machine */}
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-3 py-1 text-xs font-semibold text-[color:var(--ink)]">
+            <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-3 py-1 text-xs font-medium text-[color:var(--ink)]">
               {data.sor_status ? t(`sor.status_${data.sor_status}`) : t("sor.admin_not_sor")}
             </span>
             {data.tutor_code && (
@@ -345,7 +345,7 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
           <ul className="mt-2 space-y-1">
             {data.audit.map((a) => (
               <li key={a.id} className="text-xs text-muted-foreground">
-                {format(new Date(a.created_at), "d MMM HH:mm")} — {a.to_status}
+                {format(new Date(a.created_at), "d MMM HH:mm")}, {a.to_status}
                 {a.reason ? ` · ${a.reason}` : ""}
               </li>
             ))}
@@ -366,7 +366,7 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
 }
 
 /**
- * #387 — every logged session on the case with its status and dispute
+ * #387, every logged session on the case with its status and dispute
  * reason; pending/verified rows can be revoked (public totals recalculate
  * instantly because get_tutor_experience counts verified rows only).
  */
@@ -491,7 +491,7 @@ function CaseFlagsSection({ caseId }: { caseId: string }) {
       <ul className="mt-2 space-y-1">
         {flags.map((f) => (
           <li key={f.id} className="text-xs text-muted-foreground">
-            {format(new Date(f.created_at), "d MMM HH:mm")} — {t(FLAG_REASON_LABEL_KEY[f.reason])}
+            {format(new Date(f.created_at), "d MMM HH:mm")}, {t(FLAG_REASON_LABEL_KEY[f.reason])}
             {f.note ? ` · ${f.note}` : ""}
           </li>
         ))}

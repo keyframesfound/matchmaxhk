@@ -37,7 +37,7 @@ const LOG_DURATION_CHOICES_MIN = [30, 60, 90, 120, 150, 180, 210, 240];
 
 function feePillHkd(amount: number | null): string {
   if (amount === null) return "";
-  // case_fees amounts are HKD numeric (not cents) — render directly.
+  // case_fees amounts are HKD numeric (not cents), render directly.
   return `HK$${Number(amount).toFixed(0)}`;
 }
 
@@ -88,7 +88,7 @@ function TutorReviewParentForm({
             <Star
               className={cn(
                 "h-5 w-5",
-                s <= rating ? "fill-current text-amber-500" : "text-muted-foreground/40",
+                s <= rating ? "fill-current text-amber-500" : "text-muted-foreground",
               )}
             />
           </button>
@@ -231,7 +231,7 @@ function LessonRow({
               onClick={() => {
                 if (!showNote) {
                   // First click reveals the private-note field; the note is
-                  // optional — the second click submits with whatever is there.
+                  // optional, the second click submits with whatever is there.
                   setShowNote(true);
                   return;
                 }
@@ -254,7 +254,7 @@ function LessonRow({
 }
 
 /**
- * #387 — log a completed ongoing session (Date / Start / Duration in 0.5h
+ * #387, log a completed ongoing session (Date / Start / Duration in 0.5h
  * steps). Guardrails validated inline client-side AND server-side; pending
  * rows auto-verify 72h after logging unless the parent disputes.
  */
@@ -297,7 +297,7 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
   return (
     <div className="mt-3 border-t border-[color:var(--ink)]/10 pt-3">
       {item.session_logs.length > 0 && (
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="text-xs font-medium text-muted-foreground">
           {t("experience.log_sessions_title")}
         </p>
       )}
@@ -439,7 +439,7 @@ export function TutorCasesSection() {
               <li key={c.id} className="rounded-xl border border-[color:var(--ink)]/10 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p className="text-sm font-semibold text-[color:var(--ink)]">
+                    <p className="text-sm font-medium text-[color:var(--ink)]">
                       {c.case_code} · {c.student_first_name}
                       {c.subject ? ` · ${c.subject}` : ""}
                       {c.exam_system ? ` (${c.exam_system})` : ""}
@@ -468,7 +468,7 @@ export function TutorCasesSection() {
                   c.sor_status !== "replaced" && <TutorReviewParentForm caseId={c.id} t={t} />}
                 {/* #387: logged sessions + logging form (fee-paid cases). */}
                 <SessionLogForm item={c} />
-                {/* Issue #412 F: engagement summary — the tutor confirms the
+                {/* Issue #412 F: engagement summary, the tutor confirms the
                     agreed arrangements before contact/lessons finalise. */}
                 <EngagementSummaryCard caseId={c.id} party="tutor" />
               </li>

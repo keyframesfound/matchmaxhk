@@ -173,7 +173,7 @@ export function MtrStationPickerContent({
     cn(
       "flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium text-[color:var(--ink)] transition-colors",
       isHighlighted ? "bg-[color:var(--ring)]/[0.08]" : "hover:bg-[color:var(--surface-subtle)]",
-      isSelected && "font-semibold",
+      isSelected && "font-medium",
     );
 
   const renderRow = (
@@ -231,7 +231,7 @@ export function MtrStationPickerContent({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleInputKeyDown}
-            className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-base font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40 sm:text-sm"
+            className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-base font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
           />
           {query && (
             <button
@@ -252,7 +252,7 @@ export function MtrStationPickerContent({
               "nearby",
               renderIndex++,
               <span className="flex min-w-0 flex-col pr-2">
-                <span className="truncate font-semibold">{t("search_panel.nearby")}</span>
+                <span className="truncate font-medium">{t("search_panel.nearby")}</span>
                 <span className="truncate text-xs font-normal text-muted-foreground">
                   {nearby.hint}
                 </span>
@@ -327,7 +327,7 @@ export function MtrStationSelect({
           aria-expanded={open}
           aria-invalid={invalid || undefined}
           className={cn(
-            "group flex h-11 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3.5 py-2 text-left text-sm font-medium text-[color:var(--ink)] transition-[border-color,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50",
+            "group flex h-11 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3.5 py-2 text-left text-sm font-medium text-[color:var(--ink)] transition-[border-color,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
             invalid &&
               "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30",
             !value && "text-[color:var(--ink)]/50",
@@ -417,7 +417,7 @@ export function MtrStationMultiSelect({
           disabled={disabled}
           aria-expanded={open}
           className={cn(
-            "group flex h-10 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3 py-2 text-left text-xs font-medium text-[color:var(--ink)] transition-[border-color] duration-150 hover:border-[color:var(--ink)]/30 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50",
+            "group flex h-10 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3 py-2 text-left text-xs font-medium text-[color:var(--ink)] transition-[border-color] duration-150 hover:border-[color:var(--ink)]/30 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
             value.length === 0 && "text-[color:var(--ink)]/50",
             className,
           )}
@@ -447,7 +447,7 @@ export function MtrStationMultiSelect({
               placeholder="Search MTR stations…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="h-8 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-3 text-xs font-medium text-[color:var(--ink)] placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/40"
+              className="h-8 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-3 text-xs font-medium text-[color:var(--ink)] placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
         </div>
@@ -462,10 +462,10 @@ export function MtrStationMultiSelect({
                   onClick={() => toggleLine(group.stations)}
                   className="flex w-full items-center justify-between rounded-md px-2.5 pb-1 pt-2 text-left"
                 >
-                  <span className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                  <span className="text-[11px] font-medium text-muted-foreground">
                     {group.label}
                   </span>
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+                  <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
                     {selectedCount > 0 ? `${selectedCount} selected` : "Select all"}
                     {allSelected ? (
                       <Check className="h-3 w-3 text-[color:var(--ring)]" strokeWidth={2.5} />
@@ -479,7 +479,7 @@ export function MtrStationMultiSelect({
                     onClick={() => toggleStation(station)}
                     className={cn(
                       "flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-1.5 text-left text-[13px] font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)]",
-                      selected.has(station) && "font-semibold",
+                      selected.has(station) && "font-medium",
                     )}
                   >
                     <span className="truncate pr-2">{station}</span>

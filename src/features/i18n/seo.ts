@@ -6,7 +6,7 @@
  * chain the i18n detector uses (?hl → localStorage → cookie) and falls back
  * to `navigator` soft-defaulting, with English as the source of truth.
  *
- * CEO lock 2026-10-21: hybrid architecture — no locale subpaths or hreflang
+ * CEO lock 2026-10-21: hybrid architecture, no locale subpaths or hreflang
  * yet (deferred until zh-HK copy is stable); zh-CN UI strings are deferred,
  * so mainland browsers stay on English for now.
  */
@@ -53,7 +53,7 @@ export function navigatorLocale(): SeoLocale {
 /**
  * The explicit-choice chain: ?hl= soft override for shareable links, then
  * localStorage (device choice), then cookie (survives cleared storage).
- * Returns null when the visitor hasn't chosen — callers then soft-default.
+ * Returns null when the visitor hasn't chosen, callers then soft-default.
  */
 export function readPreferredLocale(): SeoLocale | null {
   if (typeof window === "undefined") return null;
@@ -61,13 +61,13 @@ export function readPreferredLocale(): SeoLocale | null {
     const hl = new URLSearchParams(window.location.search).get("hl");
     if (isSupportedLocale(hl)) return hl;
   } catch {
-    // URLSearchParams unavailable — skip the override.
+    // URLSearchParams unavailable, skip the override.
   }
   try {
     const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
     if (isSupportedLocale(stored)) return stored;
   } catch {
-    // Storage unavailable — fall through to the cookie.
+    // Storage unavailable, fall through to the cookie.
   }
   const cookie = readLocaleCookie();
   return isSupportedLocale(cookie) ? cookie : null;

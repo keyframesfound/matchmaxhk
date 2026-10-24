@@ -17,11 +17,11 @@ import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — MatchMax admin" },
+      { title: "Settings, MatchMax admin" },
       {
         name: "description",
         content:
-          "Manage MatchMax site-wide settings — brand info, WhatsApp contact, featured tutor, subject options, and landing stats.",
+          "Manage MatchMax site-wide settings, brand info, WhatsApp contact, featured tutor, subject options, and landing stats.",
       },
       { property: "og:url", content: "https://matchmax.hk/admin/settings" },
       { name: "robots", content: "noindex" },
@@ -127,7 +127,7 @@ function AdminSettings() {
     () =>
       tutors.map((tut) => ({
         value: tut.tutor_code,
-        label: `${tut.display_name} — ${tut.tutor_code}`,
+        label: `${tut.display_name}, ${tut.tutor_code}`,
       })),
     [tutors],
   );
@@ -169,7 +169,7 @@ function AdminSettings() {
     <div>
       <main className="flex-1">
         <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-          <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
+          <h1 className="text-4xl font-medium tracking-tight text-[color:var(--ink)] sm:text-5xl">
             {t("admin.settings_title")}
           </h1>
           <p className="mt-2 text-muted-foreground">{t("admin.settings_subtitle")}</p>
@@ -245,7 +245,7 @@ function AdminSettings() {
                   {form.hero_tutor_code && (
                     <button
                       type="button"
-                      className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
+                      className="text-xs font-medium text-[color:var(--brand-link)] hover:underline"
                       onClick={() => setForm({ ...form, hero_tutor_code: "" })}
                     >
                       Clear
@@ -266,7 +266,7 @@ function AdminSettings() {
                     {form.subject_options.map((s) => (
                       <span
                         key={s}
-                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--foreground)]/[0.04] px-3 py-1 text-xs font-semibold text-[color:var(--ink)]"
+                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--foreground)]/[0.04] px-3 py-1 text-xs font-medium text-[color:var(--ink)]"
                       >
                         {s}
                         <button
@@ -318,14 +318,14 @@ function AdminSettings() {
                 <div className="flex gap-3 pt-1">
                   <button
                     type="button"
-                    className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
+                    className="text-xs font-medium text-[color:var(--brand-link)] hover:underline"
                     onClick={() => setForm({ ...form, subject_options: DEFAULT_SUBJECT_OPTIONS })}
                   >
                     Reset to defaults
                   </button>
                   <button
                     type="button"
-                    className="text-xs font-semibold text-muted-foreground hover:underline"
+                    className="text-xs font-medium text-muted-foreground hover:underline"
                     onClick={() => setForm({ ...form, subject_options: [] })}
                   >
                     Clear all
@@ -344,7 +344,7 @@ function AdminSettings() {
                     {form.popular_subjects.map((s) => (
                       <span
                         key={s}
-                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--ink)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)]"
+                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--ink)]/10 px-3 py-1 text-xs font-medium text-[color:var(--ink)]"
                       >
                         {s}
                         <button
@@ -387,14 +387,14 @@ function AdminSettings() {
                 <div className="flex gap-3 pt-1">
                   <button
                     type="button"
-                    className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
+                    className="text-xs font-medium text-[color:var(--brand-link)] hover:underline"
                     onClick={() => setForm({ ...form, popular_subjects: DEFAULT_POPULAR_SUBJECTS })}
                   >
                     Reset to defaults
                   </button>
                   <button
                     type="button"
-                    className="text-xs font-semibold text-muted-foreground hover:underline"
+                    className="text-xs font-medium text-muted-foreground hover:underline"
                     onClick={() => setForm({ ...form, popular_subjects: [] })}
                   >
                     Clear all
@@ -402,7 +402,7 @@ function AdminSettings() {
                 </div>
               </div>
 
-              <Button type="submit" loading={save.isPending} className="font-bold">
+              <Button type="submit" loading={save.isPending} className="font-medium">
                 {t("admin.save")}
               </Button>
             </form>

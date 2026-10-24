@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Epic #280 P2: tutor card claims that need staff review — card already linked
+ * Epic #280 P2: tutor card claims that need staff review, card already linked
  * to another account, or the Google email doesn't match the application email.
  * Approve links the card to the requester (resolve_tutor_claim RPC).
  */
@@ -54,7 +54,7 @@ export function TutorClaimsQueue() {
       return data as string;
     },
     onSuccess: (result) => {
-      toast.success(result === "approved" ? "Claim approved — card linked." : "Claim rejected.");
+      toast.success(result === "approved" ? "Claim approved, card linked." : "Claim rejected.");
       void queryClient.invalidateQueries({ queryKey: ["admin", "tutor-claim-requests"] });
     },
     onError: (error) =>
@@ -68,7 +68,7 @@ export function TutorClaimsQueue() {
   return (
     <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.06] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-bold text-[color:var(--ink)]">
+        <h3 className="text-sm font-medium text-[color:var(--ink)]">
           Tutor card claims awaiting review ({claims.length})
         </h3>
         <RefreshButton onRefresh={() => void claimsQuery.refetch()} />
@@ -80,8 +80,8 @@ export function TutorClaimsQueue() {
             className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-border/70 bg-card p-3"
           >
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
-                {claim.tutor?.tutor_code ?? claim.tutor_id} — {claim.tutor?.display_name ?? "—"}
+              <p className="truncate text-sm font-medium text-[color:var(--ink)]">
+                {claim.tutor?.tutor_code ?? claim.tutor_id}, {claim.tutor?.display_name ?? "—"}
               </p>
               <p className="truncate text-xs text-muted-foreground">
                 {claim.email ?? "no email"} · {claim.note ?? "unmatched claim"} ·{" "}
@@ -92,7 +92,7 @@ export function TutorClaimsQueue() {
               <Button
                 size="sm"
                 variant="outline"
-                className="h-8 font-bold"
+                className="h-8 font-medium"
                 disabled={resolve.isPending && busyId === claim.id}
                 onClick={() => {
                   setBusyId(claim.id);
@@ -104,7 +104,7 @@ export function TutorClaimsQueue() {
               </Button>
               <Button
                 size="sm"
-                className="h-8 font-bold"
+                className="h-8 font-medium"
                 disabled={resolve.isPending && busyId === claim.id}
                 onClick={() => {
                   setBusyId(claim.id);
@@ -124,7 +124,7 @@ export function TutorClaimsQueue() {
 
 function RefreshButton({ onRefresh }: { onRefresh: () => void }) {
   return (
-    <Button variant="ghost" size="sm" className="h-8 text-xs font-bold" onClick={onRefresh}>
+    <Button variant="ghost" size="sm" className="h-8 text-xs font-medium" onClick={onRefresh}>
       Refresh
     </Button>
   );

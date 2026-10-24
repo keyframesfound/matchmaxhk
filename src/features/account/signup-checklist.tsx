@@ -82,7 +82,7 @@ export function SignupChecklistCard() {
   return (
     <section className="mt-6 rounded-2xl border border-border bg-card p-5">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="text-lg font-bold text-[color:var(--ink)]">{t(KEYS.title)}</h2>
+        <h2 className="text-lg font-medium text-[color:var(--ink)]">{t(KEYS.title)}</h2>
         <Button
           variant="ghost"
           size="sm"
@@ -108,7 +108,7 @@ export function SignupChecklistCard() {
             ) : (
               <a
                 href={STEP_HREF[step.id]}
-                className="font-semibold text-[color:var(--ink)] hover:underline"
+                className="font-medium text-[color:var(--ink)] hover:underline"
               >
                 {t(STEP_KEYS[step.id])}
               </a>

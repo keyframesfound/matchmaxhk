@@ -40,8 +40,8 @@ function formatDate(value: string | null, locale: string) {
 function OverviewRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-      <span className="text-sm font-semibold text-[color:var(--ink)]/70">{label}</span>
-      <span className="text-sm font-bold text-[color:var(--ink)]">{value}</span>
+      <span className="text-sm font-medium text-[color:var(--ink)]/70">{label}</span>
+      <span className="text-sm font-medium text-[color:var(--ink)]">{value}</span>
     </div>
   );
 }
@@ -141,7 +141,7 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
                 <Link
                   to="/business"
                   search={{ tab: undefined }}
-                  className="font-semibold text-[color:var(--brand-link)] underline underline-offset-2"
+                  className="font-medium text-[color:var(--brand-link)] underline underline-offset-2"
                 >
                   {t("settings.account.business_link")}
                 </Link>
@@ -186,7 +186,7 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
               {t("settings.account.email_change_hint")}
             </p>
           </div>
-          <Button type="submit" disabled={changingEmail} className="font-bold">
+          <Button type="submit" disabled={changingEmail} className="font-medium">
             {changingEmail
               ? t("settings.account.email_changing")
               : t("settings.account.email_change")}
@@ -236,7 +236,7 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
               type="button"
               onClick={saveAccountType}
               disabled={!roleDirty || savingRole}
-              className="font-bold"
+              className="font-medium"
             >
               {savingRole ? t("settings.account.type_saving") : t("settings.account.type_update")}
             </Button>

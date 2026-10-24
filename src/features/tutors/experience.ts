@@ -1,7 +1,7 @@
-// Issue #387 — Tutor Verified Experience Log: pure rules.
+// Issue #387, Tutor Verified Experience Log: pure rules.
 //
 // The public numbers ("18 lessons · 27 hours · Sep 2026 – Present") are
-// computed STRICTLY from verified sessions — tutors can never type a total:
+// computed STRICTLY from verified sessions, tutors can never type a total:
 //  * intro lessons = case_lessons sequence 1/2 with status 'done'
 //    (scheduled duration), and
 //  * ongoing sessions = tutor_session_logs rows with status 'verified'.
@@ -10,7 +10,7 @@
 // formatting half that the server fns and UI call.
 //
 // Group sessions count ONCE by construction: one row per SESSION, never per
-// student. Callers pass one ExperienceSession per session — there is no
+// student. Callers pass one ExperienceSession per session, there is no
 // student-count parameter anywhere in the pipeline.
 
 import { hktDateKey } from "@/features/cases/sor";
@@ -91,9 +91,9 @@ export function validateSessionLogInput(
 }
 
 /**
- * Case-level gate: the 1.5-lesson admin fee must be SETTLED — paid OR
+ * Case-level gate: the 1.5-lesson admin fee must be SETTLED, paid OR
  * admin-waived (the #425 review-fee precedent: a waived fee is an
- * obligation met, so a waived case stays loggable — Ryan-approved
+ * obligation met, so a waived case stays loggable, Ryan-approved
  * 2026-10-23); 2 disputes lock.
  */
 export function canLogOnCase(input: {
@@ -136,7 +136,7 @@ export type ExperienceTotals = {
 };
 
 /**
- * Count sessions for the public line. Each row counts ONCE — a group session
+ * Count sessions for the public line. Each row counts ONCE, a group session
  * of five students is a single row and adds exactly 1 lesson + its elapsed
  * hours (never multiplied by the student count).
  */
@@ -181,7 +181,7 @@ export function experienceRange(totals: ExperienceTotals, now: Date): Experience
   };
 }
 
-/** "27" / "27.5" — never "27.0" and never a 1-dp float artifact. */
+/** "27" / "27.5", never "27.0" and never a 1-dp float artifact. */
 export function formatExperienceHours(hours: number): string {
   const rounded = Math.round(hours * 10) / 10;
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);

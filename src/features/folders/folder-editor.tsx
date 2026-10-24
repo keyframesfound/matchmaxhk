@@ -198,7 +198,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
 
   const violationNote = (violations: { match: string }[]) =>
     violations.length > 0 ? (
-      <p className="text-xs text-[#B42318]">
+      <p className="text-xs text-destructive">
         {t("notes.form.contact_block", {
           match: violations
             .map((v) => v.match)
@@ -217,7 +217,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
       }}
     >
       {editorQuery.data?.folder?.rejectionReason ? (
-        <p className="rounded-md border border-[#B42318]/30 bg-[#B42318]/5 px-3 py-2 text-xs leading-relaxed text-[#B42318]">
+        <p className="rounded-md border border-[#B42318]/30 bg-[#B42318]/5 px-3 py-2 text-xs leading-relaxed text-destructive">
           {editorQuery.data.folder.rejectionReason}
         </p>
       ) : null}
@@ -244,7 +244,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
           onChange={(e) => setDescription(e.target.value)}
           rows={4}
           placeholder={t("shop.form.description_placeholder")}
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
         />
         {violationNote(copyViolations.descV)}
       </div>
@@ -264,7 +264,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
           />
           <p className="text-xs text-muted-foreground">{t("shop.form.price_folder_hint")}</p>
           {savings.savingsHkd > 0 && !priceInvalid ? (
-            <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+            <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
               {t("shop.form.savings_line", {
                 amount: formatMoney(savings.savingsHkd),
                 percent: savings.percent,
@@ -283,7 +283,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
           />
           <p className="text-xs text-muted-foreground">{t("shop.form.cover_hint")}</p>
           {cover != null && cover.size > MAX_MATERIAL_COVER_BYTES ? (
-            <p className="text-xs text-[#B42318]">{t("shop.form.cover_too_large")}</p>
+            <p className="text-xs text-destructive">{t("shop.form.cover_too_large")}</p>
           ) : null}
         </div>
       </div>
@@ -295,8 +295,8 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
           <span
             className={
               childrenInvalid
-                ? "text-xs font-bold text-[#B42318]"
-                : "text-xs font-bold text-emerald-700 dark:text-emerald-400"
+                ? "text-xs font-medium text-destructive"
+                : "text-xs font-medium text-emerald-700 dark:text-emerald-400"
             }
           >
             {t("shop.form.items_count", { count: selectedIds.length })}
@@ -331,13 +331,13 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
                       }}
                       className="h-4 w-4 shrink-0"
                     />
-                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[color:var(--ink)]">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-[color:var(--ink)]">
                       {row.title}
                     </span>
-                    <span className="shrink-0 text-xs font-semibold text-muted-foreground">
+                    <span className="shrink-0 text-xs font-medium text-muted-foreground">
                       {shopKindLabel(row.materialType, t)}
                     </span>
-                    <span className="shrink-0 text-sm font-bold text-[color:var(--ink)]">
+                    <span className="shrink-0 text-sm font-medium text-[color:var(--ink)]">
                       {row.priceHkd === 0 ? t("notes.card.free") : formatMoney(row.priceHkd)}
                     </span>
                   </label>
@@ -347,7 +347,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
           </ul>
         )}
         {childMessages.length > 0 ? (
-          <p className="text-xs text-[#B42318]">{childMessages.join(" ")}</p>
+          <p className="text-xs text-destructive">{childMessages.join(" ")}</p>
         ) : null}
         <p className="text-xs text-muted-foreground">{t("shop.form.items_hint")}</p>
       </div>
@@ -363,29 +363,29 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
               <span className="min-w-0 flex-1 truncate text-sm">
                 {index + 1}. {row.title}
               </span>
-              <span className="shrink-0 text-sm font-bold">
+              <span className="shrink-0 text-sm font-medium">
                 {row.priceHkd === 0 ? t("notes.card.free") : formatMoney(row.priceHkd)}
               </span>
               <button
                 type="button"
                 aria-label={t("shop.form.remove_item")}
                 onClick={() => setSelectedIds((prev) => prev.filter((id) => id !== row.id))}
-                className="rounded-md border border-border p-1 text-muted-foreground hover:text-[#B42318]"
+                className="rounded-md border border-border p-1 text-muted-foreground hover:text-destructive"
               >
                 <X className="h-3.5 w-3.5" aria-hidden />
               </button>
             </li>
           ))}
           <li className="flex items-center justify-between gap-2 px-3 pt-1 text-sm">
-            <span className="font-semibold">{t("shop.form.items_sum_label")}</span>
-            <span className="font-bold">{formatMoney(sumHkd)}</span>
+            <span className="font-medium">{t("shop.form.items_sum_label")}</span>
+            <span className="font-medium">{formatMoney(sumHkd)}</span>
           </li>
           <li className="flex items-center justify-between gap-2 px-3">
-            <span className="flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-400">
+            <span className="flex items-center gap-1.5 font-medium text-emerald-700 dark:text-emerald-400">
               <Check className="h-4 w-4" aria-hidden />
               {t("shop.form.bulk_label")}
             </span>
-            <span className="font-bold text-emerald-700 dark:text-emerald-400">
+            <span className="font-medium text-emerald-700 dark:text-emerald-400">
               {price.trim() === "" ? "—" : formatMoney(Number(price))}
             </span>
           </li>
@@ -403,7 +403,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
           type="submit"
           variant="solid"
           color="accent"
-          className="font-bold"
+          className="font-medium"
           disabled={saving || blockedByContact || missing.length > 0 || childErrors.length > 0}
         >
           {saving && submitMutation.isPending ? (

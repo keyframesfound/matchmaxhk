@@ -87,7 +87,7 @@ export function CapacityEditorFields({
               aria-checked={status === option.value}
               onClick={() => setStatus(option.value)}
               className={cn(
-                "min-h-10 rounded-full border px-4 text-sm font-bold transition-colors",
+                "min-h-10 rounded-full border px-4 text-sm font-medium transition-colors",
                 status === option.value
                   ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface)]"
                   : "border-[color:var(--ink)]/20 bg-transparent text-[color:var(--ink)] hover:bg-[color:var(--ink)]/[0.05]",
@@ -117,7 +117,7 @@ export function CapacityEditorFields({
             aria-label={t("settings.capacity.slots_decrease")}
             disabled={status !== "taking" || openSlots <= 1}
             onClick={() => onChange({ ...value, openSlots: Math.max(1, openSlots - 1) })}
-            className="h-10 w-10 shrink-0 p-0 text-base font-bold"
+            className="h-10 w-10 shrink-0 p-0 text-base font-medium"
           >
             −
           </Button>
@@ -134,7 +134,7 @@ export function CapacityEditorFields({
               if (!Number.isFinite(raw)) return;
               onChange({ ...value, openSlots: Math.min(99, Math.max(1, Math.round(raw))) });
             }}
-            className="h-10 w-20 bg-[color:var(--surface)] text-center font-bold tabular-nums"
+            className="h-10 w-20 bg-[color:var(--surface)] text-center font-medium tabular-nums"
           />
           <Button
             type="button"
@@ -142,7 +142,7 @@ export function CapacityEditorFields({
             aria-label={t("settings.capacity.slots_increase")}
             disabled={status !== "taking" || openSlots >= 99}
             onClick={() => onChange({ ...value, openSlots: Math.min(99, openSlots + 1) })}
-            className="h-10 w-10 shrink-0 p-0 text-base font-bold"
+            className="h-10 w-10 shrink-0 p-0 text-base font-medium"
           >
             +
           </Button>
@@ -187,7 +187,7 @@ export function CapacityEditorFields({
 }
 
 /**
- * Issue #116 weekly availability grid, editable variant — tap a cell to cycle
+ * Issue #116 weekly availability grid, editable variant, tap a cell to cycle
  * available → partial → unavailable. Shared by the tutor's grid editor and the
  * admin TutorEditor; the read-only public display lives in availability-grid.tsx.
  */
@@ -236,7 +236,7 @@ export function EditableAvailabilityGrid({
                 <th
                   key={day}
                   scope="col"
-                  className="pb-1 text-xs font-bold text-[color:var(--ink)] sm:text-sm"
+                  className="pb-1 text-xs font-medium text-[color:var(--ink)] sm:text-sm"
                 >
                   {t(`profile.grid_day_${day}`)}
                 </th>

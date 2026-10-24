@@ -9,14 +9,14 @@ const Switch = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SwitchPrimitives.Root
     className={cn(
-      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border border-[color:var(--ink)]/15 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-transparent data-[state=checked]:bg-primary data-[state=unchecked]:bg-input motion-reduce:transition-none",
+      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border border-[color:var(--ink)]/15 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-transparent data-[state=checked]:bg-primary data-[state=unchecked]:bg-input motion-reduce:transition-none",
       className,
     )}
     {...props}
     ref={ref}
   >
     {/*
-     * Thumb fill uses explicit surface tokens — the raw `bg-background`
+     * Thumb fill uses explicit surface tokens, the raw `bg-background`
      * utility is forced transparent by styles.css, which rendered the knob
      * invisible. Press feedback stretches the knob (scale-x) the way a
      * physical switch gives before it commits.

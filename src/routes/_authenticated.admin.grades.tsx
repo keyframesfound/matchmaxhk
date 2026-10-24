@@ -33,7 +33,7 @@ import { GRADE_REJECTION_REASONS, type GradeRejectionReason } from "@/features/t
 export const Route = createFileRoute("/_authenticated/admin/grades")({
   head: () => ({
     meta: [
-      { title: "Grade review queue — MatchMax Admin" },
+      { title: "Grade review queue, MatchMax Admin" },
       {
         name: "description",
         content:
@@ -118,8 +118,8 @@ function AdminGrades() {
     onSuccess: async (_result, variables) => {
       toast.success(
         variables.decision === "approve"
-          ? "Grade approved — the Verified badge updates on the tutor's card."
-          : "Grade rejected — the tutor has been notified in app.",
+          ? "Grade approved, the Verified badge updates on the tutor's card."
+          : "Grade rejected, the tutor has been notified in app.",
       );
       setRejections((previous) => {
         const next = { ...previous };
@@ -159,8 +159,8 @@ function AdminGrades() {
     onSuccess: async (_result, variables) => {
       toast.success(
         variables.decision === "approve"
-          ? "Credential approved — the card now shows the new value."
-          : "Credential rejected — the old value stays public and the tutor has been notified in app.",
+          ? "Credential approved, the card now shows the new value."
+          : "Credential rejected, the old value stays public and the tutor has been notified in app.",
       );
       setCredReasons((previous) => {
         const next = { ...previous };
@@ -193,7 +193,7 @@ function AdminGrades() {
     <div className="mx-auto w-full max-w-5xl space-y-4 p-4 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-lg font-bold text-[color:var(--ink)]">
+          <h1 className="flex items-center gap-2 text-lg font-medium text-[color:var(--ink)]">
             <ShieldCheck className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
             Grade review queue
           </h1>
@@ -227,7 +227,7 @@ function AdminGrades() {
       ) : (
         <div className="overflow-hidden rounded-xl border border-border">
           <table className="w-full text-sm">
-            <thead className="bg-[color:var(--surface-subtle)] text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            <thead className="bg-[color:var(--surface-subtle)] text-left text-xs font-medium text-muted-foreground">
               <tr>
                 <th className="px-3 py-2.5">Tutor code</th>
                 <th className="px-3 py-2.5">Grade text</th>
@@ -241,7 +241,7 @@ function AdminGrades() {
                 const rejection = rejections[row.id] ?? { reason: "" as const, note: "" };
                 return (
                   <tr key={row.id} className="border-t border-border align-top">
-                    <td className="px-3 py-3 font-semibold text-[color:var(--ink)]">
+                    <td className="px-3 py-3 font-medium text-[color:var(--ink)]">
                       {row.tutor_code ? (
                         <a
                           href={`/tutors/${row.tutor_code}`}
@@ -355,7 +355,7 @@ function AdminGrades() {
       {/* Issue #284: document-backed credential changes from verified tutors. */}
       <div className="space-y-3">
         <div>
-          <h2 className="text-sm font-bold text-[color:var(--ink)]">Credential edits</h2>
+          <h2 className="text-sm font-medium text-[color:var(--ink)]">Credential edits</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Verified tutors request credential changes with a supporting document. The old value
             stays public until you approve; rejecting requires a reason and keeps it.
@@ -370,7 +370,7 @@ function AdminGrades() {
         ) : (
           <div className="overflow-hidden rounded-xl border border-border">
             <table className="w-full text-sm">
-              <thead className="bg-[color:var(--surface-subtle)] text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              <thead className="bg-[color:var(--surface-subtle)] text-left text-xs font-medium text-muted-foreground">
                 <tr>
                   <th className="px-3 py-2.5">Tutor</th>
                   <th className="px-3 py-2.5">Field</th>
@@ -389,7 +389,7 @@ function AdminGrades() {
                   const reason = credReasons[row.id] ?? "";
                   return (
                     <tr key={row.id} className="border-t border-border align-top">
-                      <td className="px-3 py-3 font-semibold text-[color:var(--ink)]">
+                      <td className="px-3 py-3 font-medium text-[color:var(--ink)]">
                         {row.tutor_code ? (
                           <a
                             href={`/tutors/${row.tutor_code}`}
@@ -476,7 +476,7 @@ function AdminGrades() {
 
       <p className="text-[11px] leading-5 text-muted-foreground">
         Queue sorts by submitted time, oldest first. Reject requires a reason from the fixed list;
-        the tutor gets one in-app notice either way — no WhatsApp, no email. Approving or rejecting
+        the tutor gets one in-app notice either way, no WhatsApp, no email. Approving or rejecting
         one grade never changes any other approved grade. Credential edits are free-text rejected
         with a required reason; approving one swaps that field only.
       </p>

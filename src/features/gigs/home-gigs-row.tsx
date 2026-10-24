@@ -5,20 +5,19 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
-import { Reveal } from "@/components/ui/reveal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { gigCategoryLabelKey } from "@/features/gigs/gig";
 import { getPublicGigs, publicCoverUrl, type PublicGig } from "@/features/gigs/gigs.queries";
 
 /**
- * Issues #326/#329: the "Tutor services" row on the home page — the gig
+ * Issues #326/#329: the "Tutor services" row on the home page, the gig
  * sibling of HomeNotesRow (#312), identical carousel anatomy (heading, View
  * all, arrows, mobile swipe + md paged track, flat border-defined cards, no
  * shadows). Data comes from the get_public_gigs SECURITY DEFINER RPC; when
  * it is missing the query degrades to [] and the row renders nothing (it
  * also needs >= 3 published gigs, same cold-start guardrail as the notes
- * row). Azure is never spent here — it stays on money CTAs only.
+ * row). Azure is never spent here, it stays on money CTAs only.
  */
 
 const HOME_GIGS_LIMIT = 8;
@@ -68,21 +67,21 @@ export function GigCard({ gig, className }: { gig: PublicGig; className?: string
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-5 pt-0">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-muted-foreground">
+            <p className="text-xs font-medium text-muted-foreground">
               {t(gigCategoryLabelKey(gig.gigCategory))}
               {gig.subjectTag ? ` · ${gig.subjectTag}` : ""}
             </p>
-            <h3 className="mt-1 text-base font-bold leading-snug text-[color:var(--ink)]">
+            <h3 className="mt-1 text-base font-medium leading-snug text-[color:var(--ink)]">
               {gig.title}
             </h3>
           </div>
-          <p className="shrink-0 text-lg font-bold text-[color:var(--ink)]">
+          <p className="shrink-0 text-lg font-medium text-[color:var(--ink)]">
             HK${Number(gig.priceHkd).toFixed(0)}
           </p>
         </div>
 
         {gig.boughtCount > 0 ? (
-          <p className="text-xs font-semibold text-muted-foreground">
+          <p className="text-xs font-medium text-muted-foreground">
             {t("gigs.bought_count_suffix", { count: gig.boughtCount })}
           </p>
         ) : null}
@@ -95,12 +94,14 @@ export function GigCard({ gig, className }: { gig: PublicGig; className?: string
             onClick={(event) => event.stopPropagation()}
             className="text-xs text-muted-foreground hover:underline"
           >
-            <span className="font-bold text-[color:var(--brand-link)]">{gig.tutorDisplayName}</span>
+            <span className="font-medium text-[color:var(--brand-link)]">
+              {gig.tutorDisplayName}
+            </span>
             {" · "}
             {gig.tutorCode}
             {/* #314 honesty: the Verified tag shows for tier_2_verified only. */}
             {gig.verificationTier === "tier_2_verified" ? (
-              <span className="ml-1.5 font-semibold text-[color:var(--brand-link)]">
+              <span className="ml-1.5 font-medium text-[color:var(--brand-link)]">
                 · {t("gigs.verified")}
               </span>
             ) : null}
@@ -128,10 +129,12 @@ function SeeAllTile({ className }: { className?: string }) {
         className,
       )}
     >
-      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card">
-        <ArrowRight className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
-      </span>
-      <span className="text-sm font-bold text-[color:var(--ink)]">{t("gigs.view_all")}</span>
+      <ArrowRight
+        className="h-6 w-6 text-[color:var(--brand-link)]"
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
+      <span className="text-sm font-medium text-[color:var(--ink)]">{t("gigs.view_all")}</span>
     </a>
   );
 }
@@ -208,62 +211,58 @@ export function HomeGigsRow() {
 
   if (visible.length < MIN_HOME_GIGS) return null;
 
-  // Reveal sits after the null guards so a hidden row leaves no empty
-  // wrapper behind (empty divs still eat space-y margins — #398 review).
   return (
-    <Reveal>
-      <section className="mx-auto max-w-7xl">
-        <div className="mb-4 flex items-center gap-2 sm:gap-3">
-          <h2 className="min-w-0 truncate text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
-            {t("gigs.home_row_title")}
-          </h2>
-          <Button
-            asChild
-            variant="ghost"
-            refined
-            hoverArrow
-            className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
-          >
-            <a href="/tutors?view=materials#services">
-              {t("gigs.view_all")}
-              <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
-            </a>
-          </Button>
-          <GigsCarouselArrows pages={pages.length} currentPage={currentPage} goToPage={goToPage} />
-        </div>
+    <section className="mx-auto max-w-7xl">
+      <div className="mb-4 flex items-center gap-2 sm:gap-3">
+        <h2 className="min-w-0 truncate text-xl font-medium tracking-tight text-[color:var(--ink)] md:text-2xl">
+          {t("gigs.home_row_title")}
+        </h2>
+        <Button
+          asChild
+          variant="ghost"
+          refined
+          hoverArrow
+          className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-medium text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
+        >
+          <a href="/tutors?view=materials#services">
+            {t("gigs.view_all")}
+            <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
+          </a>
+        </Button>
+        <GigsCarouselArrows pages={pages.length} currentPage={currentPage} goToPage={goToPage} />
+      </div>
 
-        {/* Mobile: one swipeable row — first page of gigs, then the see-all tile */}
-        <div className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-1 pb-2 scroll-px-4 md:hidden">
-          {visible
-            .slice(0, GIGS_PER_PAGE)
-            .map((gig) => renderGigCard(gig, "w-[min(70vw,300px)] shrink-0 snap-start"))}
-          <SeeAllTile className="min-h-56 w-[min(70vw,300px)] shrink-0 snap-start" />
-        </div>
+      {/* Mobile: one swipeable row, first page of gigs, then the see-all tile */}
+      <div className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-1 pb-2 scroll-px-4 md:hidden">
+        {visible
+          .slice(0, GIGS_PER_PAGE)
+          .map((gig) => renderGigCard(gig, "w-[min(70vw,300px)] shrink-0 snap-start"))}
+        <SeeAllTile className="min-h-56 w-[min(70vw,300px)] shrink-0 snap-start" />
+      </div>
 
-        {/* md+: paged sliding track, 4 cards per page */}
-        <div className="hidden overflow-hidden pt-1 md:block">
-          <div
-            className="flex items-stretch transition-transform duration-300 ease-out motion-reduce:transition-none"
-            style={{ transform: `translateX(-${currentPage * 100}%)` }}
-          >
-            {pages.map((pageGigs, pageIndex) => {
-              const isCurrentPage = pageIndex === currentPage;
-              const withSeeAllTile = pages.length > 1 && pageIndex === pages.length - 1;
-              return (
-                <div
-                  key={pageIndex}
-                  inert={!isCurrentPage}
-                  aria-hidden={!isCurrentPage}
-                  className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-4"
-                >
-                  {pageGigs.map((gig) => renderGigCard(gig))}
-                  {withSeeAllTile ? <SeeAllTile className="min-h-56" /> : null}
-                </div>
-              );
-            })}
-          </div>
+      {/* md+: paged sliding track, 4 cards per page */}
+      <div className="hidden overflow-hidden pt-1 md:block">
+        <div
+          className="flex items-stretch transition-transform duration-300 ease-out motion-reduce:transition-none"
+          style={{ transform: `translateX(-${currentPage * 100}%)` }}
+        >
+          {pages.map((pageGigs, pageIndex) => {
+            const isCurrentPage = pageIndex === currentPage;
+            const withSeeAllTile = pages.length > 1 && pageIndex === pages.length - 1;
+            return (
+              <div
+                key={pageIndex}
+                inert={!isCurrentPage}
+                aria-hidden={!isCurrentPage}
+                className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-4"
+              >
+                {pageGigs.map((gig) => renderGigCard(gig))}
+                {withSeeAllTile ? <SeeAllTile className="min-h-56" /> : null}
+              </div>
+            );
+          })}
         </div>
-      </section>
-    </Reveal>
+      </div>
+    </section>
   );
 }

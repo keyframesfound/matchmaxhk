@@ -1,15 +1,15 @@
-// Issue #423 (sections 2+3) — bilingual structured auto-title.
+// Issue #423 (sections 2+3), bilingual structured auto-title.
 //
 // Kills the free-text title: a case title is generated from the strict
 // structured fields in the #411 dual-language pattern:
-//   EN:    `[Curriculum] [Subject] — [Grade]`  e.g. "IBDP Chemistry HL — Y12"
-//   zh-HK: the parallel structured string       e.g. "IBDP 化學 HL — 中六"
+//   EN:    `[Curriculum] [Subject], [Grade]`  e.g. "IBDP Chemistry HL, Y12"
+//   zh-HK: the parallel structured string       e.g. "IBDP 化學 HL, 中六"
 //
-// Rule-based only (the repo has NO AI features — CEO lock, see
+// Rule-based only (the repo has NO AI features, CEO lock, see
 // headline-translate.ts): known subjects/curricula/grades translate through
 // the dictionaries below; unknown tokens pass through verbatim so a custom
 // parent-typed subject never breaks the title. The stored `title` column is
-// kept for legacy rows — display surfaces use the structured title when the
+// kept for legacy rows, display surfaces use the structured title when the
 // structured fields suffice and fall back to the stored title only for rows
 // the helper can't express.
 
@@ -26,7 +26,7 @@ export type CaseTitleFields = {
 /**
  * #423 board-item → title-fields boundary mapping. `PublicCaseBoardItem`
  * stores the exam system in `examSystem` and the level in `studentLevel`
- * (NOT `curriculum`/`grade`) — the mapping is explicit here so no surface
+ * (NOT `curriculum`/`grade`), the mapping is explicit here so no surface
  * can pass the raw item and silently title subject-only (GLM review, 2026-
  * 10-23). Structural param: case-title stays decoupled from cases.functions.
  */
@@ -61,7 +61,7 @@ const CURRICULUM_LABELS: Record<string, Record<CaseTitleLocale, string>> = {
   Admissions: { en: "University Admissions", "zh-HK": "大學入學" },
 };
 
-// Curricula that are meaningless as a title lead — skip them.
+// Curricula that are meaningless as a title lead, skip them.
 const CURRICULUM_SKIP = new Set(["Not sure yet", "Other"]);
 
 // --- Grade labels -----------------------------------------------------------
@@ -172,7 +172,7 @@ function firstPart(list: readonly string[]): { text: string; extra: number } {
 
 /**
  * The structured bilingual case title. Returns "" when the structured
- * fields don't suffice (no curriculum, subject, or grade) — the caller
+ * fields don't suffice (no curriculum, subject, or grade), the caller
  * then falls back to the stored legacy title.
  */
 export function buildCaseTitle(fields: CaseTitleFields, locale: CaseTitleLocale = "en"): string {
@@ -193,8 +193,8 @@ export function buildCaseTitle(fields: CaseTitleFields, locale: CaseTitleLocale 
 
   const lead = [curriculum, subjectText].filter(Boolean).join(" ") + subjectExtra;
   // GLM round-3 minor on #430: a grade whose localized label restates the
-  // curriculum band reads broken ("Primary School Mathematics — Primary",
-  // "小學 英文 — 小學"). The grade tables only contain band-level labels, so
+  // curriculum band reads broken ("Primary School Mathematics, Primary",
+  // "小學 英文, 小學"). The grade tables only contain band-level labels, so
   // drop the grade when it EQUALS the curriculum label or the curriculum
   // label starts with it ("Primary School" ⊃ "Primary", "University
   // Admissions" ⊃ "University"). Prefix matching (not substring) keeps
@@ -210,5 +210,5 @@ export function buildCaseTitle(fields: CaseTitleFields, locale: CaseTitleLocale 
     })();
   const parts = [lead, gradeRedundant ? "" : grade].filter(Boolean);
   if (!parts[0]) return "";
-  return parts.join(" — ");
+  return parts.join(", ");
 }

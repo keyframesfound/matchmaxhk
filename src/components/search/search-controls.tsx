@@ -12,7 +12,7 @@ export type OptionRow = {
 
 /**
  * Airbnb-style "Type of place" segmented control: hairline track, outlined
- * bold thumb for the active option — elevation from borders, not fills.
+ * bold thumb for the active option, elevation from borders, not fills.
  */
 export function Segmented<T extends string>({
   value,
@@ -46,10 +46,10 @@ export function Segmented<T extends string>({
             aria-checked={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              "flex h-10 min-w-0 items-center justify-center gap-1 border-0 px-2 text-[13px] whitespace-nowrap transition-[background-color,border-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40 sm:px-4",
+              "flex h-10 min-w-0 items-center justify-center gap-1 border-0 px-2 text-[13px] whitespace-nowrap transition-[background-color,border-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-4",
               index > 0 && !active && "border-l border-border",
               active
-                ? "rounded-lg border-[1.5px] border-[color:var(--foreground)] font-bold text-[color:var(--ink)]"
+                ? "rounded-lg border-[1.5px] border-[color:var(--foreground)] font-medium text-[color:var(--ink)]"
                 : "font-medium text-[color:var(--ink)]/60 hover:bg-[color:var(--foreground)]/[0.04] hover:text-[color:var(--ink)]",
             )}
           >
@@ -105,7 +105,7 @@ export function SearchBigInput({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         aria-label={ariaLabel ?? placeholder}
-        className="h-13 w-full rounded-2xl border border-[color:var(--ink)]/20 bg-transparent pl-11 pr-10 text-base font-medium text-[color:var(--ink)] placeholder:font-normal placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40"
+        className="h-13 w-full rounded-2xl border border-[color:var(--ink)]/20 bg-transparent pl-11 pr-10 text-base font-medium text-[color:var(--ink)] placeholder:font-normal placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring"
       />
       {value ? (
         <button
@@ -154,7 +154,7 @@ export function OptionRowsList({
             className={cn(
               "flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[color:var(--foreground)]/[0.05]",
               option.indent && "pl-8",
-              selected && "font-semibold",
+              selected && "font-medium",
             )}
           >
             <span className="min-w-0">
@@ -183,7 +183,7 @@ export function OptionRowsList({
 
 /** Panel section heading, Airbnb "Suggested destinations" style. */
 export function PanelLabel({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cn("text-sm font-bold text-[color:var(--ink)]", className)}>{children}</p>;
+  return <p className={cn("text-sm font-medium text-[color:var(--ink)]", className)}>{children}</p>;
 }
 
 /** Options panel with an optional search field, shared by pill segments. */
@@ -232,7 +232,7 @@ export function SearchableOptionsPanel({
             onChange={(event) => setQuery(event.target.value)}
             placeholder={searchPlaceholder}
             aria-label={searchPlaceholder}
-            className="h-11 w-full rounded-2xl border border-[color:var(--ink)]/15 bg-[color:var(--surface-subtle)] pl-10 pr-3 text-sm font-medium text-[color:var(--ink)] placeholder:font-normal placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40"
+            className="h-11 w-full rounded-2xl border border-[color:var(--ink)]/15 bg-[color:var(--surface-subtle)] pl-10 pr-3 text-sm font-medium text-[color:var(--ink)] placeholder:font-normal placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       ) : null}

@@ -15,12 +15,12 @@ import { sanitizeCaseFreeText } from "@/lib/contact-filter";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
 
 /**
- * Issue #412 E — the centre (B2B) case-request path with 4-part Cap.57-safe
+ * Issue #412 E, the centre (B2B) case-request path with 4-part Cap.57-safe
  * triage. Partner Organisations engage independent educators only: category
  * B (employment/staff recruitment) is hard-blocked, third-party/unsure and
  * the two Part-3 gates drop the request into `compliance_hold` for manual
  * staff re-screening before it can ever reach the tutor board. Everything
- * writes through the service-role client — org membership is verified
+ * writes through the service-role client, org membership is verified
  * server-side, never trusted from the payload.
  */
 
@@ -44,7 +44,7 @@ export const CENTRE_BLOCK_MESSAGE =
 
 const CentreTriageInput = z.object({
   // "employment" is accepted by the parser purely so the hard block can
-  // return the sanctioned modal message — it never becomes a case.
+  // return the sanctioned modal message, it never becomes a case.
   engagementCategory: z.enum(["independent_services", "employment", "third_party", "unsure"]),
   contractingEntity: z.enum(["organisation_self", "third_party"]),
   feeStructure: z.enum(["hourly", "per_session", "revenue_split"]),
@@ -82,7 +82,7 @@ const CentreCaseInput = z.object({
 });
 
 /**
- * #412 E routing. Exported for the vitest suite — the pure decision table is:
+ * #412 E routing. Exported for the vitest suite, the pure decision table is:
  *   employment category      → hard block (never reaches this fn as a case;
  *                              the client shows the modal and the server
  *                              rejects the literal)
@@ -98,7 +98,7 @@ export function centreTriageStatus(triage: {
   adminDutiesRequired: CentreTriage["adminDutiesRequired"];
   replacesVacancy: CentreTriage["replacesVacancy"];
 }): "new" | "compliance_hold" {
-  // "employment" is defensive — the handler blocks it before this runs.
+  // "employment" is defensive, the handler blocks it before this runs.
   if (triage.engagementCategory !== "independent_services") return "compliance_hold";
   if (triage.contractingEntity === "third_party") return "compliance_hold";
   if (triage.adminDutiesRequired !== "no") return "compliance_hold";
@@ -141,7 +141,7 @@ export const submitCentreCaseRequest = createServerFn({ method: "POST" })
     const org = await requireOrgMembership(context.userId, data.orgId);
 
     // #412 Part 1 hard gate: staff/employee recruitment is rejected outright
-    // with the sanctioned copy — no case row is created for it.
+    // with the sanctioned copy, no case row is created for it.
     if (data.triage.engagementCategory === "employment") {
       throw new Error(CENTRE_BLOCK_MESSAGE);
     }
@@ -228,7 +228,7 @@ export const submitCentreCaseRequest = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     // Same fail-closed pattern as the parent path: the fee agreement rides
-    // on the case row (payer is still the self-employed tutor — 1.5-lesson
+    // on the case row (payer is still the self-employed tutor, 1.5-lesson
     // admin fee, #412 CEO lock).
     const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
     try {

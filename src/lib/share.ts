@@ -7,7 +7,7 @@ export type SharePayload = {
 };
 
 // navigator.clipboard only exists in secure contexts and can still reject
-// (permission denied, headless browsers) — fall back to the legacy
+// (permission denied, headless browsers), fall back to the legacy
 // document.execCommand("copy") path through a temporary textarea.
 async function copyText(text: string): Promise<boolean> {
   try {
@@ -35,7 +35,7 @@ async function copyText(text: string): Promise<boolean> {
 }
 
 // Native share sheet when available, clipboard fallback otherwise (issue
-// #417: the fallback copies title + URL — never a WhatsApp deep link or a
+// #417: the fallback copies title + URL, never a WhatsApp deep link or a
 // pre-filled request intent; that path stays on the Request CTA).
 // User-cancelled shares (AbortError) are silently ignored.
 export async function shareOrCopy(

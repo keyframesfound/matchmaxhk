@@ -1,7 +1,7 @@
 import { getSystem, type ExamResult, type ExamPaperScore } from "@/features/tutors/examSystems";
 
 /**
- * Issue #411 — Core Academic Breakdown.
+ * Issue #411, Core Academic Breakdown.
  *
  * One pure builder shared by the tutor card (grade pills) and the detail page
  * (vertical-bar grade rows): groups the tutor's public exam results per
@@ -10,7 +10,7 @@ import { getSystem, type ExamResult, type ExamPaperScore } from "@/features/tuto
  *   1. a headline segment like "IBDP 41/45" whose leading curriculum token
  *      matches this system (the old academic_headline format),
  *   2. a score entry whose subject is a total/overall ("SAT Total",
- *      "IELTS Overall") — that entry is then excluded from the grade rows.
+ *      "IELTS Overall"), that entry is then excluded from the grade rows.
  *
  * Edge cases (issue #411):
  * - subjects but no total -> the group header is the curriculum name only;
@@ -88,7 +88,7 @@ function headlineTotalFor(labels: string[], headline: string | null | undefined)
       if (!lower.startsWith(normalizedLabel)) continue;
       const rest = segment.slice(label.trim().length).trim();
       // "<Curriculum> Tutor" is the no-score fallback, never a total; and the
-      // rest must be a SCORE token ("41/45", "9A*", "1520") — not free text
+      // rest must be a SCORE token ("41/45", "9A*", "1520"), not free text
       // like "Straight 5/5 Specialist" which merely starts with the label.
       if (!rest || rest.toLowerCase() === "tutor") continue;
       if (!HEADLINE_SCORE_RE.test(rest)) continue;
@@ -98,7 +98,7 @@ function headlineTotalFor(labels: string[], headline: string | null | undefined)
   return null;
 }
 
-/** "41/45" | "9A*" | "1520" | "32" | "7.5" — a bare score, never prose. */
+/** "41/45" | "9A*" | "1520" | "32" | "7.5", a bare score, never prose. */
 const HEADLINE_SCORE_RE = /^\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?(?:[A-Za-z*]{1,4})?$/u;
 
 export function buildCoreAcademicBreakdown(
@@ -120,7 +120,7 @@ export function buildCoreAcademicBreakdown(
       if (!subject) continue;
       const grade = cleanGradeForDisplay(entry.grade ?? "");
       if (TOTAL_SUBJECT_RE.test(subject) && grade) {
-        // "SAT Total" / "IELTS Overall": the entry IS the total — lift it
+        // "SAT Total" / "IELTS Overall": the entry IS the total, lift it
         // into the header instead of listing it as a row.
         total = total ?? grade;
         continue;
@@ -140,7 +140,7 @@ export function buildCoreAcademicBreakdown(
   return groups;
 }
 
-/** Total grade rows across every group — drives the "View all N grades" toggle. */
+/** Total grade rows across every group, drives the "View all N grades" toggle. */
 export function countCoreAcademicGrades(groups: CoreAcademicGroup[]): number {
   return groups.reduce((sum, group) => sum + group.grades.length, 0);
 }

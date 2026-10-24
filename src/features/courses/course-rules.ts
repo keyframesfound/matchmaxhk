@@ -6,7 +6,7 @@
  * A course is a normal digital_materials row (material_type
  * 'video_course' | 'general_course', document_type 'course') with 1–10
  * lessons in course_lessons. Videos are UNLISTED YouTube / Vimeo links
- * parsed app-side (validateCourseVideoUrl is the single validator) — there
+ * parsed app-side (validateCourseVideoUrl is the single validator), there
  * is NO video file upload path. General courses may attach a per-lesson
  * watermarked PDF instead of (or alongside) a video.
  */
@@ -34,7 +34,7 @@ export type CourseLessonInput = {
  * Lesson repeater gate. video_course: EVERY lesson needs a video (that is
  * what the kind means). general_course: at least one lesson overall and
  * each lesson carries a video or a PDF (or both). Titles are required,
- * ≤120 chars. Returns human-readable problems — empty array means clean.
+ * ≤120 chars. Returns human-readable problems, empty array means clean.
  */
 export function validateCourseLessons(kind: CourseKind, lessons: CourseLessonInput[]): string[] {
   const errors: string[] = [];
@@ -76,7 +76,7 @@ export type CourseSubmitInput = {
 /**
  * Submit gate: kind membership, title/description caps, whole-HKD price
  * (HK$0 free course allowed, matching notes), cover REQUIRED, then the
- * per-kind lesson rules. Returns human-readable problems — empty array
+ * per-kind lesson rules. Returns human-readable problems, empty array
  * means clean.
  */
 export function validateCourseForSubmit(input: CourseSubmitInput): string[] {
@@ -105,7 +105,7 @@ export function validateCourseForSubmit(input: CourseSubmitInput): string[] {
 
   if (!input.hasCover) errors.push("A cover image is required for courses.");
 
-  // Lesson rules run even when the kind itself is unknown — the looser
+  // Lesson rules run even when the kind itself is unknown, the looser
   // general-course rules apply so an empty/invalid lesson list still fails.
   const lessonKind: CourseKind = kind === "video_course" ? "video_course" : "general_course";
   errors.push(...validateCourseLessons(lessonKind, input.lessons));

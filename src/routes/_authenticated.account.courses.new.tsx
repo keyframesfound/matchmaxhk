@@ -7,7 +7,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { CourseEditorForm } from "@/features/courses/course-editor";
 
 /**
- * #392: new Video / General Course — everything is optional until submit;
+ * #392: new Video / General Course, everything is optional until submit;
  * a draft with only a title survives the day (mirrors /account/notes/new).
  */
 
@@ -27,7 +27,7 @@ function NewCoursePage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
       <SiteHeader />
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:px-6">
-        <h1 className="text-2xl font-bold tracking-normal">{t("shop.form.course_new_title")}</h1>
+        <h1 className="text-2xl font-medium tracking-normal">{t("shop.form.course_new_title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("shop.form.course_new_subtitle")}</p>
         <div className="mt-8 rounded-2xl border border-border bg-card p-6 sm:p-8">
           {loading || !user ? (

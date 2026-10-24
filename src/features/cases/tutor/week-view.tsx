@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * #204 tutor week view: the next 14 days of booked lessons (status pills) and
- * open derived slots (muted), grouped by HKT calendar day. Read-only — lesson
+ * open derived slots (muted), grouped by HKT calendar day. Read-only, lesson
  * actions live in the cases block.
  */
 export function TutorWeekView() {
@@ -36,7 +36,7 @@ export function TutorWeekView() {
             .filter((d) => d.lessons.length > 0 || d.openSlots.length > 0)
             .map((day) => (
               <li key={day.dateKey} className="px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-medium text-muted-foreground">
                   {format(new Date(`${day.dateKey}T00:00:00Z`), "EEE d MMM")}
                 </p>
                 <ul className="mt-2 space-y-1">
@@ -70,7 +70,7 @@ export function TutorWeekView() {
                   {day.openSlots.map((s) => (
                     <li
                       key={s.startsAt.toISOString()}
-                      className="flex items-center gap-2 text-sm text-muted-foreground/70"
+                      className="flex items-center gap-2 text-sm text-muted-foreground"
                     >
                       <CalendarClock className="h-4 w-4 shrink-0" aria-hidden="true" />
                       <span>{format(s.startsAt, "HH:mm")}</span>

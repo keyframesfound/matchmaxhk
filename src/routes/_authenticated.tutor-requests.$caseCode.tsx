@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 // Locale-aware relative times (zh-HK, GLM round-3 minor on #430). The
-// share/WhatsApp message templates below stay English on purpose — they are
+// share/WhatsApp message templates below stay English on purpose, they are
 // outbound message copy, not on-page UI.
 import { formatPostedAgo } from "@/lib/relative-time";
 import {
@@ -83,13 +83,13 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/$caseCode")
   head: ({ match }) => {
     const data = (match.loaderData ?? null) as CaseDetailData | null;
     // Map at the boundary: the raw item has examSystem/studentLevel, not
-    // curriculum/grade — an unmapped pass titles subject-only (GLM blocker).
+    // curriculum/grade, an unmapped pass titles subject-only (GLM blocker).
     const title = data
-      ? `${buildCaseTitle(caseTitleFieldsFromBoard(data.item), "en") || data.item.title} — Case ${data.item.caseCode} | MatchMax`
+      ? `${buildCaseTitle(caseTitleFieldsFromBoard(data.item), "en") || data.item.title}, Case ${data.item.caseCode} | MatchMax`
       : "Tutor request | MatchMax";
     const description = (
       data?.item.description ??
-      "Open tutoring request from a Hong Kong parent on MatchMax. Apply via WhatsApp — free for tutors."
+      "Open tutoring request from a Hong Kong parent on MatchMax. Apply via WhatsApp, free for tutors."
     ).slice(0, 200);
     return {
       meta: [
@@ -117,7 +117,7 @@ function CheckItem({ children }: { children: React.ReactNode }) {
 }
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-lg font-bold tracking-tight text-[color:var(--ink)]">{children}</h2>;
+  return <h2 className="text-lg font-medium tracking-tight text-[color:var(--ink)]">{children}</h2>;
 }
 
 /** #81: stable block reasons from canApplyToCase → i18n copy. */
@@ -130,7 +130,7 @@ const APPLY_BLOCK_COPY: Record<ApplicationBlockReason, string> = {
 };
 
 /**
- * #81: the in-app 1-click Apply control — primary CTA next to the WhatsApp
+ * #81: the in-app 1-click Apply control, primary CTA next to the WhatsApp
  * "Apply now" (which stays as the concierge-intro secondary action). States:
  * applied → disabled pill; no tutor card → link to /join; gender mismatch →
  * dimmed with the #423 warning, blocked on click; centre screening → gated
@@ -164,7 +164,7 @@ function CaseApplyControl({
   if (alreadyApplied) {
     return (
       <span
-        className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 text-sm font-bold text-emerald-700 dark:text-emerald-400"
+        className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 text-sm font-medium text-emerald-700 dark:text-emerald-400"
         title={t("caseApplications.applied_title", {
           defaultValue: "You have applied for this case",
         })}
@@ -174,7 +174,7 @@ function CaseApplyControl({
       </span>
     );
   }
-  // No tutor card: apply is meaningless — send the user to the join flow.
+  // No tutor card: apply is meaningless, send the user to the join flow.
   if (tutorExists === false) {
     return (
       <Button asChild size="lg" variant="solid" color="blue" className="shrink-0">
@@ -200,7 +200,7 @@ function CaseApplyControl({
         }
         // Re-run the shared eligibility gate before the round trip so the
         // tutor sees the reason immediately (the server re-checks anyway).
-        // status: "new" — board items are open by construction, the board
+        // status: "new", board items are open by construction, the board
         // query filters matched/closed/rejected/held rows out server-side.
         // tutorExists is `true | null` here (false early-returned above):
         // null = the card lookup is still loading, so pass through and let
@@ -233,7 +233,7 @@ function CaseApplyControl({
 function CaseDetailPage() {
   const { t, i18n } = useTranslation();
   // GLM round-3 minor on #430: this page's sentence lines previously rendered
-  // hardcoded English inside t()-keyed headings — zh-HK visitors got a
+  // hardcoded English inside t()-keyed headings, zh-HK visitors got a
   // mixed-language page. Every visible string now routes through the
   // case_board.* keys; the structured value slots use the zh label maps in
   // display.ts when the active locale is zh-HK.
@@ -283,7 +283,7 @@ function CaseDetailPage() {
   const genderMismatch = caseGenderMismatch(item.preferredGender, viewerGender);
 
   // Issue #412 E: centre cases show the screening summary and require one
-  // radio before Apply — confirm enables the WhatsApp link; clarify posts
+  // radio before Apply, confirm enables the WhatsApp link; clarify posts
   // the concern to the desk and re-holds the case instead.
   const [screeningChoice, setScreeningChoice] = useState<"confirm" | "clarify" | null>(null);
   const [clarifyNote, setClarifyNote] = useState("");
@@ -299,7 +299,7 @@ function CaseDetailPage() {
   const screeningLocked = Boolean(item.centre) && screeningChoice !== "confirm";
   const applyDisabled = screeningLocked || (Boolean(item.centre) && screeningChoice === "clarify");
 
-  // Issue #81: 1-click in-app Apply. One application per (case, tutor) — the
+  // Issue #81: 1-click in-app Apply. One application per (case, tutor), the
   // DB unique index makes a re-apply a no-op surfaced as alreadyApplied.
   const queryClient = useQueryClient();
   const appliedQuery = useQuery({
@@ -314,7 +314,7 @@ function CaseDetailPage() {
       if (result.applied) {
         toast.success(
           t("caseApplications.apply_success", {
-            defaultValue: "Application sent — the MatchMax team will follow up.",
+            defaultValue: "Application sent, the MatchMax team will follow up.",
           }),
         );
       } else {
@@ -336,7 +336,7 @@ function CaseDetailPage() {
     applyMutation.mutate();
   };
 
-  // Issue #423: "Rate TBA" is allowed ONLY on the detail page — the matrix
+  // Issue #423: "Rate TBA" is allowed ONLY on the detail page, the matrix
   // omits the rate everywhere else, and "HK$?" never renders.
   const { min: rateMin, max: rateMax } = caseBudgetHkdBounds(item);
   const rateHkd = formatCaseRate(rateMin, rateMax, item.rateUnit);
@@ -344,12 +344,12 @@ function CaseDetailPage() {
 
   const handleShare = () => {
     setIsSharing(true);
-    // Issue #423: a both-blank budget has no rate text — never "HK$?".
+    // Issue #423: a both-blank budget has no rate text, never "HK$?".
     const shareRate = tutorBudget.primary ?? rateHkd;
     void shareOrCopy({
-      title: `${title} — Case ${item.caseCode} | MatchMax`,
+      title: `${title}, Case ${item.caseCode} | MatchMax`,
       text: shareRate
-        ? `Check out this tutoring request (Case ${item.caseCode}) on MatchMax — ${shareRate}.`
+        ? `Check out this tutoring request (Case ${item.caseCode}) on MatchMax, ${shareRate}.`
         : `Check out this tutoring request (Case ${item.caseCode}) on MatchMax.`,
       url: window.location.href,
     }).finally(() => setIsSharing(false));
@@ -409,7 +409,7 @@ function CaseDetailPage() {
   const softChips = chips.filter((chip) => !chip.hard);
 
   // Issue #423 section 3 / #385 rules: the net payout block swaps by
-  // package_type. Per-lesson math only — short packages store no lesson
+  // package_type. Per-lesson math only, short packages store no lesson
   // count, so no package total is invented.
   const agreedRate =
     item.budgetMaxHkd ?? item.budgetMax ?? item.budgetMinHkd ?? item.budgetMin ?? null;
@@ -503,7 +503,7 @@ function CaseDetailPage() {
     preferences.push(t("case_board.detail_pref_probono"));
   }
 
-  // Issue #190: vertical details — uni block for the University tier,
+  // Issue #190: vertical details, uni block for the University tier,
   // K focus topics for the Kindergarten tier (legacy rows derive the tier).
   const tier = caseAcademicTier(item.academicTier, item.studentLevel);
   if (tier === "university") {
@@ -543,7 +543,7 @@ function CaseDetailPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex min-w-0 flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="w-fit rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-semibold text-muted-foreground">
+                <span className="w-fit rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-medium text-muted-foreground">
                   {item.caseCode}
                 </span>
                 <CaseFeePill packageType={item.packageType} />
@@ -555,7 +555,7 @@ function CaseDetailPage() {
               </div>
               {/* Bilingual auto-title block (#411 pattern): locale-primary
                   headline, parallel locale line beneath. */}
-              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+              <h1 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">
                 {title}
               </h1>
               {titleSecondary ? (
@@ -578,7 +578,7 @@ function CaseDetailPage() {
               {/* One chip system, grouped soft vs hard (#423 section 3). */}
               {chips.length > 0 ? (
                 <div className="flex flex-col gap-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {t("case_board.chips_title")}
                   </p>
                   {hardChips.length > 0 ? (
@@ -726,9 +726,7 @@ function CaseDetailPage() {
                       className="h-4 w-4 text-[color:var(--brand-link)]"
                       aria-hidden="true"
                     />
-                    <span className="font-semibold text-[color:var(--ink)]">
-                      {item.centre.name}
-                    </span>
+                    <span className="font-medium text-[color:var(--ink)]">{item.centre.name}</span>
                     {item.centre.verified ? (
                       <Badge
                         variant="outline"
@@ -749,7 +747,7 @@ function CaseDetailPage() {
                     <Link
                       to="/business/$slug"
                       params={{ slug: item.centre.slug }}
-                      className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
+                      className="text-xs font-medium text-[color:var(--brand-link)] hover:underline"
                     >
                       {t("case_board.centre_view_profile")}
                     </Link>
@@ -827,7 +825,7 @@ function CaseDetailPage() {
                   ) : null}
                   {/* Confirm / clarify gate before Apply. */}
                   <div className="space-y-2 border-t border-border pt-3">
-                    <p className="text-xs font-semibold text-[color:var(--ink)]">
+                    <p className="text-xs font-medium text-[color:var(--ink)]">
                       {t("case_board.screening_confirm_title")}
                     </p>
                     {(
@@ -896,7 +894,7 @@ function CaseDetailPage() {
 
           <div className="flex flex-col gap-4 rounded-xl border border-border bg-muted/30 p-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-1">
-              <p className="text-sm font-bold text-[color:var(--ink)]">
+              <p className="text-sm font-medium text-[color:var(--ink)]">
                 {t("case_board.ready_title")}
               </p>
               <p className="text-sm text-muted-foreground">{t("case_board.ready_body")}</p>

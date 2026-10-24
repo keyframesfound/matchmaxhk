@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/business/cases/new")({
   component: CentreCaseRequestPage,
 });
 
-// Issue #412 E — the 4-part Cap.57-safe triage. MatchMax facilitates only
+// Issue #412 E, the 4-part Cap.57-safe triage. MatchMax facilitates only
 // Contracts for Services with independent educators; employment/staff
 // recruitment is hard-blocked, and third-party/unsure answers drop the
 // request into compliance_hold for manual staff review before matching.
@@ -66,19 +66,19 @@ function CentreCaseRequestPage() {
     studentCount: "1",
     rateUnit: "hr",
     notes: "",
-    // Part 1 — engagement category (hard gate)
+    // Part 1: engagement category (hard gate)
     engagementCategory: "",
-    // Part 2 — contracting, payment & financial arrangements
+    // Part 2: contracting, payment & financial arrangements
     contractingEntity: "organisation_self",
     feeStructure: "hourly",
     feeAmount: "",
     feeOpenToCounter: false,
     premisesProvider: "organisation",
-    // Part 3 — scope of services & non-integration
+    // Part 3: scope of services & non-integration
     scopeDescription: "",
     adminDutiesRequired: "",
     replacesVacancy: "",
-    // Part 4 — educator autonomy & genuine choice
+    // Part 4: educator autonomy & genuine choice
     methodologyOwner: "educator",
     otherClientsAllowed: "yes",
     substitutionAllowed: "open",
@@ -91,7 +91,7 @@ function CentreCaseRequestPage() {
   const subjectOptions = getSubjectOptionsForCurriculum(form.curriculum);
 
   const handleCategoryChange = (value: string) => {
-    // Part 1 hard gate: the employment option never submits — the modal
+    // Part 1 hard gate: the employment option never submits, the modal
     // explains the marketplace boundary instead.
     if (value === "employment") {
       setBlocked(true);
@@ -155,7 +155,7 @@ function CentreCaseRequestPage() {
       });
       toast.success(
         result.status === "compliance_hold"
-          ? "Request submitted — placed on compliance hold for a quick review before it can go to educators."
+          ? "Request submitted, placed on compliance hold for a quick review before it can go to educators."
           : `Request ${result.caseCode} submitted to the matching desk.`,
       );
       navigate({ to: "/business", search: { tab: "cases" } });
@@ -210,15 +210,15 @@ function CentreCaseRequestPage() {
       <main className="flex-1 py-12">
         <div className="mx-auto max-w-2xl px-4 sm:px-6">
           <div className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+            <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
               <Building2 className="h-3.5 w-3.5" /> Education Partner
             </span>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+            <h1 className="mt-4 text-3xl font-medium tracking-tight text-[color:var(--ink)]">
               New case request
             </h1>
             <p className="mt-3 text-sm text-muted-foreground sm:text-base">
               Engage an independent educator for a course module, exam clinic, or class series.
-              MatchMax does not provide staff or employment recruitment — every request is screened
+              MatchMax does not provide staff or employment recruitment, every request is screened
               before it can reach educators.
             </p>
           </div>
@@ -231,7 +231,7 @@ function CentreCaseRequestPage() {
           >
             {/* Case basics */}
             <div className="space-y-4">
-              <p className="text-sm font-semibold text-[color:var(--ink)]">What do you need?</p>
+              <p className="text-sm font-medium text-[color:var(--ink)]">What do you need?</p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label>Request type</Label>
@@ -345,7 +345,7 @@ function CentreCaseRequestPage() {
                   <div className="flex items-center gap-2">
                     <select
                       aria-label="Budget currency"
-                      className="h-10 shrink-0 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 text-sm font-semibold text-[color:var(--ink)] outline-none"
+                      className="h-10 shrink-0 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 text-sm font-medium text-[color:var(--ink)] outline-none"
                       value={form.budgetCurrency}
                       onChange={(e) => setField({ budgetCurrency: e.target.value })}
                     >
@@ -364,7 +364,7 @@ function CentreCaseRequestPage() {
                         setField({ budgetMin: e.target.value.replace(/[^\d]/g, "") })
                       }
                     />
-                    <span className="text-sm font-bold text-muted-foreground">&ndash;</span>
+                    <span className="text-sm font-medium text-muted-foreground">&ndash;</span>
                     <Input
                       aria-label="Maximum budget"
                       placeholder="Max"
@@ -398,10 +398,10 @@ function CentreCaseRequestPage() {
               </div>
             </div>
 
-            {/* Part 1 — engagement category (hard gate) */}
+            {/* Part 1: engagement category (hard gate) */}
             <div className="space-y-3 rounded-lg border border-border p-4">
-              <p className="text-sm font-semibold text-[color:var(--ink)]">
-                Part 1 — Nature of this request *
+              <p className="text-sm font-medium text-[color:var(--ink)]">
+                Part 1: Nature of this request *
               </p>
               <div className="space-y-2">
                 {[
@@ -447,10 +447,10 @@ function CentreCaseRequestPage() {
               </p>
             </div>
 
-            {/* Part 2 — contracting, payment & financial arrangements */}
+            {/* Part 2: contracting, payment & financial arrangements */}
             <div className="space-y-4 rounded-lg border border-border p-4">
-              <p className="text-sm font-semibold text-[color:var(--ink)]">
-                Part 2 — Contracting &amp; payment
+              <p className="text-sm font-medium text-[color:var(--ink)]">
+                Part 2: Contracting &amp; payment
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
@@ -525,15 +525,15 @@ function CentreCaseRequestPage() {
               </label>
             </div>
 
-            {/* Part 3 — scope of services, deliverables & non-integration */}
+            {/* Part 3: scope of services, deliverables & non-integration */}
             <div className="space-y-4 rounded-lg border border-border p-4">
-              <p className="text-sm font-semibold text-[color:var(--ink)]">
-                Part 3 — Scope of services
+              <p className="text-sm font-medium text-[color:var(--ink)]">
+                Part 3: Scope of services
               </p>
               <div className="space-y-1.5">
                 <Label>
                   Course module / subject / curriculum &amp; target duration * (e.g. “IBDP Physics
-                  HL — 4-week intensive clinic”)
+                  HL, 4-week intensive clinic”)
                 </Label>
                 <Textarea
                   rows={2}
@@ -587,10 +587,10 @@ function CentreCaseRequestPage() {
               </div>
             </div>
 
-            {/* Part 4 — educator autonomy & genuine choice */}
+            {/* Part 4: educator autonomy & genuine choice */}
             <div className="space-y-4 rounded-lg border border-border p-4">
-              <p className="text-sm font-semibold text-[color:var(--ink)]">
-                Part 4 — Educator autonomy
+              <p className="text-sm font-medium text-[color:var(--ink)]">
+                Part 4: Educator autonomy
               </p>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-1.5">
@@ -643,13 +643,13 @@ function CentreCaseRequestPage() {
               </div>
             </div>
 
-            {/* Fee notice — MatchMax's charge stays the 1.5-lesson admin fee,
+            {/* Fee notice, MatchMax's charge stays the 1.5-lesson admin fee,
                 paid by the self-employed tutor (CEO lock, #412). */}
             <div className="rounded-sm border border-border bg-muted/50 p-4 text-sm">
-              <p className="font-semibold">MatchMax fee</p>
+              <p className="font-medium">MatchMax fee</p>
               <p className="mt-1 text-muted-foreground">
-                The MatchMax matching admin fee is the standard 1.5-lesson fee — 100% of Lesson 1
-                plus 50% of Lesson 2 — charged to the self-employed educator after the first two
+                The MatchMax matching admin fee is the standard 1.5-lesson fee, 100% of Lesson 1
+                plus 50% of Lesson 2, charged to the self-employed educator after the first two
                 introductions. Short packages of five lessons or fewer use 20% of the package, and
                 pro-bono engagements are free. Your organisation never pays MatchMax a matching fee.
                 Fee Agreement version {FEE_TERMS_VERSION}.
@@ -671,7 +671,7 @@ function CentreCaseRequestPage() {
               disabled={submitting || incomplete}
               variant="solid"
               color="blue"
-              className="h-11 w-full font-bold"
+              className="h-11 w-full font-medium"
             >
               {submitting ? "Submitting…" : "Submit case request"}
             </Button>
@@ -689,7 +689,7 @@ function CentreCaseRequestPage() {
       {blocked ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-lg border border-border bg-card p-6">
-            <p className="flex items-center gap-2 text-lg font-bold text-[color:var(--ink)]">
+            <p className="flex items-center gap-2 text-lg font-medium text-[color:var(--ink)]">
               <ShieldAlert className="h-5 w-5 text-purple-600" /> Out of scope
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -699,7 +699,7 @@ function CentreCaseRequestPage() {
             </p>
             <Button
               variant="solid"
-              className="mt-4 w-full font-bold"
+              className="mt-4 w-full font-medium"
               onClick={() => setBlocked(false)}
             >
               Back to the request form

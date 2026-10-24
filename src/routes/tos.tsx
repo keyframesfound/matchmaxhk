@@ -12,7 +12,7 @@ export const Route = createFileRoute("/tos")({
       {
         name: "description",
         content:
-          "The MatchMax Terms and Conditions — the terms that govern your use of MatchMax.hk and MatchMax's tutoring services.",
+          "The MatchMax Terms and Conditions, the terms that govern your use of MatchMax.hk and MatchMax's tutoring services.",
       },
       { name: "robots", content: "index, follow" },
     ],
@@ -57,7 +57,7 @@ const SECTIONS: Section[] = [
       },
       {
         kind: "p",
-        text: "A Partner Organisation is a Customer that is an organisation (for example a tutorial centre, day school, or NGO) contracting for educational services — a course module, exam clinic, or class series — delivered personally by an independent Tutor under a Contract for Services. MatchMax facilitates only genuine independent-contractor engagements of this kind. MatchMax is not an employment agency, does not hold an Employment Agency licence, and does not provide staff or employee recruitment or placement services. Requests to recruit employees or staff are outside the Platform’s scope: every engagement request is screened before matching, and a request that would place a Tutor under administrative, reception, or other non-teaching staff duties, engage a Tutor through a third party on whose behalf MatchMax cannot screen, or otherwise resemble an employment engagement may be placed on compliance hold and declined or removed.",
+        text: "A Partner Organisation is a Customer that is an organisation (for example a tutorial centre, day school, or NGO) contracting for educational services, a course module, exam clinic, or class series, delivered personally by an independent Tutor under a Contract for Services. MatchMax facilitates only genuine independent-contractor engagements of this kind. MatchMax is not an employment agency, does not hold an Employment Agency licence, and does not provide staff or employee recruitment or placement services. Requests to recruit employees or staff are outside the Platform’s scope: every engagement request is screened before matching, and a request that would place a Tutor under administrative, reception, or other non-teaching staff duties, engage a Tutor through a third party on whose behalf MatchMax cannot screen, or otherwise resemble an employment engagement may be placed on compliance hold and declined or removed.",
       },
       {
         kind: "p",
@@ -484,11 +484,11 @@ const SECTIONS: Section[] = [
       },
       {
         kind: "p",
-        text: "The matching fee for a standard match equals 100% of the agreed tuition for Lesson 1 plus 50% of the agreed tuition for Lesson 2 — 1.5 lessons in total (the “admin fee”) — multiplied by the number of enrolled students on the case. It is the only money MatchMax keeps for matching. The Customer pays the admin fee to MatchMax by FPS; the Tutor receives nothing for Lesson 1, and the Customer is responsible for paying the Tutor the remaining 50% of Lesson 2 directly. After the admin fee is paid, the Customer pays the Tutor directly for further tuition, and MatchMax does not hold or process ongoing tuition payments.",
+        text: "The matching fee for a standard match equals 100% of the agreed tuition for Lesson 1 plus 50% of the agreed tuition for Lesson 2, 1.5 lessons in total (the “admin fee”), multiplied by the number of enrolled students on the case. It is the only money MatchMax keeps for matching. The Customer pays the admin fee to MatchMax by FPS; the Tutor receives nothing for Lesson 1, and the Customer is responsible for paying the Tutor the remaining 50% of Lesson 2 directly. After the admin fee is paid, the Customer pays the Tutor directly for further tuition, and MatchMax does not hold or process ongoing tuition payments.",
       },
       {
         kind: "p",
-        text: "The admin fee is charged once per match and is owed by the Customer on the case — the parent, or the centre where an agreed partnership says so. It is a fee for MatchMax’s introduction; it is not a tutor placement commission, and the Tutor is never the payer. For example, at a HK$400 hourly rate with 60-minute lessons, the admin fee is HK$400 for Lesson 1 plus HK$200 for Lesson 2 — HK$600 in total. A short case — one the client has asked to run for 5 lessons or fewer — carries a fee of 20% of the scheduled package instead of the standard calculation above, which MatchMax’s team records and can audit.",
+        text: "The admin fee is charged once per match and is owed by the Customer on the case, the parent, or the centre where an agreed partnership says so. It is a fee for MatchMax’s introduction; it is not a tutor placement commission, and the Tutor is never the payer. For example, at a HK$400 hourly rate with 60-minute lessons, the admin fee is HK$400 for Lesson 1 plus HK$200 for Lesson 2, HK$600 in total. A short case, one the client has asked to run for 5 lessons or fewer, carries a fee of 20% of the scheduled package instead of the standard calculation above, which MatchMax’s team records and can audit.",
       },
       {
         kind: "p",
@@ -500,7 +500,7 @@ const SECTIONS: Section[] = [
       },
       {
         kind: "p",
-        text: "A cancellation or no-show before Lesson 1 is completed results in no admin fee. Once Lesson 1 is completed, the Lesson 1 portion — 100% of the agreed tuition for Lesson 1 — is accrued and immediately payable to MatchMax, even if either party cancels or declines to proceed with Lesson 2. Replacement introductions are handled as a new case, to which the same fee terms apply.",
+        text: "A cancellation or no-show before Lesson 1 is completed results in no admin fee. Once Lesson 1 is completed, the Lesson 1 portion, 100% of the agreed tuition for Lesson 1, is accrued and immediately payable to MatchMax, even if either party cancels or declines to proceed with Lesson 2. Replacement introductions are handled as a new case, to which the same fee terms apply.",
       },
       {
         kind: "p",
@@ -620,7 +620,7 @@ const SECTIONS: Section[] = [
 
 /**
  * Issue #306: the community commitment as a standalone, always-public
- * section — this is the text every account agrees to in the signup dialog
+ * section, this is the text every account agrees to in the signup dialog
  * (versioned; see features/auth/commitment-version.ts). Linked from the
  * footer ("Community commitment"). Rendered THROUGH THE SAME i18n KEYS as
  * the dialog (auth.commitment_intro / auth.commitment_pledge), so the
@@ -636,7 +636,7 @@ const COMMUNITY_COMMITMENT_I18N_KEYS = {
 function renderInline(text: string) {
   return text.split(/\*\*(.+?)\*\*/g).map((part, index) =>
     index % 2 === 1 ? (
-      <strong key={index} className="font-semibold text-foreground">
+      <strong key={index} className="font-medium text-foreground">
         {part}
       </strong>
     ) : (
@@ -650,8 +650,7 @@ function TermsOfUsePage() {
   return (
     <PublicPage>
       <PageIntro
-        description="The ground rules for using MatchMax — what you can expect from us and what we expect from you."
-        eyebrow="Legal"
+        description="The ground rules for using MatchMax, what you can expect from us and what we expect from you."
         meta="Effective 16 October 2026"
         title="Terms and Conditions"
       />
@@ -671,7 +670,9 @@ function TermsOfUsePage() {
                   section.id ? " scroll-mt-24" : ""
                 }`}
               >
-                <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{section.title}</h2>
+                <h2 className="text-2xl font-medium text-foreground sm:text-3xl">
+                  {section.title}
+                </h2>
                 <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">
                   {section.blocks.map((block, index) =>
                     block.kind === "ul" ? (
@@ -699,7 +700,7 @@ function TermsOfUsePage() {
               id="community-commitment"
               className="scroll-mt-24 border-b border-border pb-12 last:border-b-0 last:pb-0"
             >
-              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
+              <h2 className="text-2xl font-medium text-foreground sm:text-3xl">
                 {t(COMMUNITY_COMMITMENT_I18N_KEYS.title)}
               </h2>
               <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">

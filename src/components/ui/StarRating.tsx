@@ -28,7 +28,7 @@ export function StarRating({ value, onChange, size = 20, readOnly = false, class
               className={cn(
                 filled
                   ? "fill-[color:var(--foreground)] text-[color:var(--muted-foreground)]"
-                  : "text-muted-foreground/40",
+                  : "text-muted-foreground",
               )}
             />
           </Btn>

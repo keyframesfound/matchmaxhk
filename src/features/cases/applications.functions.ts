@@ -1,12 +1,12 @@
 /**
- * Issue #81 — case-applications server fns: 1-click Apply-to-staff, my
+ * Issue #81, case-applications server fns: 1-click Apply-to-staff, my
  * applied case codes (board pills), the staff applications list and the
  * staff status triage.
  *
  * case_applications is RLS-deny; everything runs on the service-role client.
  * Tutor writes are gated by tutors.user_id = auth uid (tutor.functions.ts
  * pattern); staff reads/writes by the has_role rpc (admin-desk pattern).
- * Applications never route to the parent — staff see them on the desk.
+ * Applications never route to the parent, staff see them on the desk.
  */
 
 import { createServerFn } from "@tanstack/react-start";
@@ -124,7 +124,7 @@ export const applyToCase = createServerFn({ method: "POST" })
     const note = validateApplicationNote(data.note);
     if (!note.ok) throw new Error(note.error);
 
-    // UNIQUE (case_id, tutor_id) — a re-apply is a no-op, not an error.
+    // UNIQUE (case_id, tutor_id), a re-apply is a no-op, not an error.
     // The structural AdminTable insert has no options; cast just this call
     // for ignoreDuplicates (deleteRow precedent in tutor.functions.ts).
     const tableAny = db.from<Row>("case_applications") as unknown as {
@@ -189,7 +189,7 @@ export const listMyAppliedCaseCodes = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<string[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    // Guests-of-the-tutor-kind (no card) just never see pills — no error.
+    // Guests-of-the-tutor-kind (no card) just never see pills, no error.
     const tutor = await findMyTutor(db, context.userId);
     if (!tutor) return [];
     const rows = await selectRows<{ tutoring_cases: { case_code: string } | null }>(

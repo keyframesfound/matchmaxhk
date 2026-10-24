@@ -63,16 +63,28 @@ Known gotchas:
 
 ## Design Conventions
 
-**No shadows anywhere.** The site is flat and border-delineated by design:
+**Shadows float or they do not exist** (see DESIGN.md, "The Floating Shadow Rule"). Resting
+surfaces are flat and border-delineated; only layers that float above the page may cast a shadow:
 
 - Never introduce `shadow-*` utilities (including `shadow-none`), `drop-shadow-*`,
-  arbitrary `shadow-[...]` values, or `box-shadow` CSS (inline styles, `styles.css`,
-  or design tokens). This is enforced by a `no-restricted-syntax` ESLint rule in
-  `eslint.config.js`.
-- Express elevation with borders (`border-border`), surface colors (`bg-card` vs
+  arbitrary `shadow-[...]` values, or ad-hoc `box-shadow` CSS from TSX. This is enforced by a
+  `no-restricted-syntax` ESLint rule in `eslint.config.js`.
+- Floating overlays (dialogs, menus, popovers, sheets, toasts) get their elevation from the
+  `.mm-overlay-lift` class / `--lift-overlay` token in `styles.css`; the sanctioned
+  `.pill-elevate*` search-pill treatments live there too. New shadow values go into
+  `styles.css` as named classes, never into component markup.
+- Express resting elevation with borders (`border-border`), surface colors (`bg-card` vs
   `bg-muted`), or solid contrast. Convert any ring-like shadows to plain `border`.
 - `ring-*` classes are allowed for focus indicators only (accessibility, not decoration).
-- Transition lists must not reference `box-shadow`/`shadow`.
+- Transition lists must not reference `box-shadow`/`shadow` from TSX.
+
+## UI Arc (design authority)
+
+DESIGN.md follows the Arc (uiarc.dev) design bar: Geist display + Inter body at weights 400/500
+only, concentric radii (`--radius-control` 18px / `--radius-panel` 26px / `--radius-surface` 34px),
+sentence-case copy with no eyebrows or em dashes in English, plain icons beside labels (no
+decorative icon tiles), and motion that only explains state changes (no entrance choreography).
+Restyle existing components toward these rules; do not add new sections or decorative flourishes.
 
 ## UI Assets (21st.dev MCP)
 

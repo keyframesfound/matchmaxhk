@@ -8,7 +8,7 @@ import { SettingsCard } from "@/features/settings/option-card";
 /**
  * Issues #131/#133: the tutor-facing "Study Materials" settings tab.
  * Since the P8 (#288) notes rollout, the canonical tutor flow is
- * /account/notes/new — this tab points there instead of running a second
+ * /account/notes/new, this tab points there instead of running a second
  * upload path with different rules (#313 review fix: no upload path may
  * skip the note-kind validation).
  */
@@ -20,7 +20,7 @@ export function StudyMaterialsSection() {
       title={t("materials.upload_title")}
       description={t("materials.redirect_description")}
     >
-      <Button asChild className="w-full font-bold">
+      <Button asChild className="w-full font-medium">
         <Link to="/account/notes/new">
           <FilePlus2 className="mr-2 h-4 w-4" aria-hidden />
           {t("notes.form.new_title")}

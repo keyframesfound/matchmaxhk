@@ -76,7 +76,7 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
       {grade ? (
         <>
           <span className="mx-0.5 shrink-0 text-muted-foreground">:</span>
-          <span className="shrink-0 font-semibold">
+          <span className="shrink-0 font-medium">
             {grade.prefix}
             {grade.value}
           </span>
@@ -166,7 +166,7 @@ export function PublicTutorCard({
     () => approvedGradeLabels.map((label) => ({ subject: label, grade: null })),
     [approvedGradeLabels],
   );
-  // One Verified badge — derived from ">=1 approved grade" (#309), now the
+  // One Verified badge, derived from ">=1 approved grade" (#309), now the
   // minimalist BLUE TICK in MatchMax azure (issue #411 branding).
   const verified = approvedGradeLabels.length > 0;
   // Issue #411: Row 1 is the active dual-language custom headline
@@ -178,7 +178,7 @@ export function PublicTutorCard({
   const cardHighlights = useMemo(() => getTutorCardHighlights(tutor), [tutor]);
   const price = useMemo(() => getTutorPriceDisplay(tutor), [tutor]);
   // Issue #391: cheapest per-student group figure across small-group rate
-  // rows and open cohorts — drives the 👥 badge. Group rates never touch the
+  // rows and open cohorts, drives the 👥 badge. Group rates never touch the
   // 1-on-1 card floor above.
   const groupRate = useMemo(() => {
     const fromRows = groupRateFloor(tutor.rate_rows ?? []);
@@ -204,7 +204,7 @@ export function PublicTutorCard({
   }) as string;
   // Issues #77/#52: tutor status pill ("University student" etc.).
   const statusKey = getTutorStatusLabelKey(tutor.tutor_status);
-  // Issues #102/#151: dynamic demand badge (null = hidden — empty-restaurant
+  // Issues #102/#151: dynamic demand badge (null = hidden, empty-restaurant
   // guard) + Parent Favorite, computed from the engagement summary prop.
   const demandBadge = engagement
     ? selectDemandBadge({
@@ -221,7 +221,7 @@ export function PublicTutorCard({
       tutor.secondary_school ??
       t("tutor_card.verified_fallback"),
   );
-  // Issue #411: Core Academic Breakdown — per-curriculum totals + grade pills.
+  // Issue #411: Core Academic Breakdown, per-curriculum totals + grade pills.
   const breakdown = useMemo(
     () => buildCoreAcademicBreakdown(tutor.exam_results ?? [], tutor.academic_headline),
     [tutor.exam_results, tutor.academic_headline],
@@ -319,12 +319,12 @@ export function PublicTutorCard({
         // Issue #417: share title is the tutor's display name; the URL is the
         // canonical profile path resolved at click time (SSR-safe).
         title: tutor.display_name,
-        // Issue #125: a flagged pricing field strips the rate — omit it.
+        // Issue #125: a flagged pricing field strips the rate, omit it.
         // Issue #319: the shared figure is always the card floor ("$X up/hr"),
         // never a range and never max_hourly_rate_hkd.
         text:
           price.baseRate > 0
-            ? `Check out tutor ${tutor.tutor_code} on MatchMax — $${price.baseRate} up/hr.`
+            ? `Check out tutor ${tutor.tutor_code} on MatchMax, $${price.baseRate} up/hr.`
             : `Check out tutor ${tutor.tutor_code} on MatchMax.`,
         url: `${window.location.origin}/tutors/${tutor.tutor_code}`,
       },
@@ -337,9 +337,9 @@ export function PublicTutorCard({
     <article
       data-tour={tourId}
       className={cn(
-        "@container relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-[transform,border-color] duration-200 hover:-translate-y-1 hover:border-[color:var(--foreground)]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
+        "@container relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-[transform,border-color] duration-200 hover:-translate-y-1 hover:border-[color:var(--foreground)]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
         interactive && "cursor-pointer",
-        compareSelected && "border-[color:var(--ring)] ring-2 ring-[color:var(--ring)]/40",
+        compareSelected && "border-[color:var(--ring)] ring-2 ring-[color:var(--ring)]",
         className,
       )}
       role={interactive ? "link" : undefined}
@@ -383,14 +383,14 @@ export function PublicTutorCard({
                 />
               )}
             </div>
-            <p className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
+            <p className="whitespace-nowrap text-xs font-medium text-muted-foreground">
               {formatTutorCode(tutor.tutor_code)}
             </p>
             {/* Issues #77/#52: tutor status badge (uni student / full-part-time
                 / examiner) under the tutor code. Wraps to two lines for long
                 labels instead of ellipsizing. */}
             {statusLabel ? (
-              <span className="max-w-full whitespace-normal rounded-md bg-muted px-1.5 py-0.5 text-center text-[11px] font-semibold leading-tight text-[color:var(--ink)]">
+              <span className="max-w-full whitespace-normal rounded-md bg-muted px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight text-[color:var(--ink)]">
                 {statusLabel}
               </span>
             ) : null}
@@ -398,7 +398,7 @@ export function PublicTutorCard({
                 for money CTAs). Shown only when sen_enabled. */}
             {tutor.sen_enabled ? (
               <span
-                className="max-w-full whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-[color:var(--ink)]"
+                className="max-w-full whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight text-[color:var(--ink)]"
                 title={t("sen.badge_title")}
               >
                 SEN
@@ -437,7 +437,7 @@ export function PublicTutorCard({
               maxLines={2}
               contentKey={primaryCredential}
               className={cn(
-                "break-words text-sm font-bold leading-tight text-[color:var(--ink)] md:text-base @max-sm:text-xs!",
+                "break-words text-sm font-medium leading-tight text-[color:var(--ink)] md:text-base @max-sm:text-xs!",
                 // Keep the headline clear of the absolutely-positioned gender badge.
                 genderLabel && "pr-16 md:pr-[4.5rem]",
               )}
@@ -463,14 +463,14 @@ export function PublicTutorCard({
                 <span className="min-w-0 break-words line-clamp-2">{removeEmoji(line.text)}</span>
               </p>
             ))}
-            {/* Issue #387: verified experience pill — self-fetching, hides
+            {/* Issue #387: verified experience pill, self-fetching, hides
                 completely at 0 verified lessons (Ryan-frozen card: this is the
                 ONLY visual addition; nothing else on the card changes). */}
             <ExperiencePill tutorId={tutor.id} className="mt-1.5" />
           </div>
 
           {genderLabel ? (
-            <span className="absolute right-3 top-2.5 inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)] @max-sm:px-1.5 @max-sm:py-0.5 @max-sm:text-[11px] md:right-4 md:top-3">
+            <span className="absolute right-3 top-2.5 inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium text-[color:var(--ink)] @max-sm:px-1.5 @max-sm:py-0.5 @max-sm:text-[11px] md:right-4 md:top-3">
               <UserRound className="h-3 w-3 text-[color:var(--brand-link)]" aria-hidden="true" />
               {genderLabel}
             </span>
@@ -486,7 +486,7 @@ export function PublicTutorCard({
       ) : null}
 
       {availabilityReadiness === "pre_booking" && tutor.earliest_start_date ? (
-        <p className="flex items-center gap-1.5 border-b border-border bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-700 md:px-4 dark:text-amber-400">
+        <p className="flex items-center gap-1.5 border-b border-border bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-700 md:px-4 dark:text-amber-400">
           <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           {t("tutor_card.available_from", {
             date: formatAvailabilityDate(tutor.earliest_start_date, i18n.language),
@@ -501,7 +501,7 @@ export function PublicTutorCard({
             {verticalTierChips.map((label) => (
               <span
                 key={label}
-                className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold leading-tight text-[color:var(--ink)]"
+                className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-[color:var(--ink)]"
               >
                 {label}
               </span>
@@ -510,18 +510,18 @@ export function PublicTutorCard({
         ) : null}
         {breakdown.length > 0 || academicChips.length > 0 ? (
           <section className="border-b border-border pb-2.5 md:pb-3">
-            <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)] @max-sm:text-xs">
+            <h3 className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--ink)] @max-sm:text-xs">
               <LineChart
                 className="h-3.5 w-3.5 text-[color:var(--brand-link)] @max-sm:h-3 @max-sm:w-3"
                 strokeWidth={2.5}
                 aria-hidden="true"
               />
               {/* Issue #411: the EXACT shared label (same key as the detail
-                  page — never a "Academic Breakdown" variant). */}
+                  page, never a "Academic Breakdown" variant). */}
               {t("profile.section_academic")}
             </h3>
 
-            {/* Issue #411: per-curriculum groups — the total score is the
+            {/* Issue #411: per-curriculum groups, the total score is the
                 group header ("IBDP: 45/45"), grade pills underneath, subtle
                 divider between curriculums. Hidden entirely when the tutor
                 has no exam scores at all (Examiner / pro tutors). */}
@@ -540,7 +540,7 @@ export function PublicTutorCard({
                   key={`${group.curriculum}-${groupIndex}`}
                   className={groupIndex > 0 ? "mt-2 border-t border-border pt-2" : "mt-2"}
                 >
-                  <p className="text-xs font-bold leading-snug text-[color:var(--ink)]">
+                  <p className="text-xs font-medium leading-snug text-[color:var(--ink)]">
                     {group.total ? `${group.curriculum}: ${group.total}` : group.curriculum}
                   </p>
                   {gradesShown.length > 0 ? (
@@ -566,7 +566,7 @@ export function PublicTutorCard({
                 aria-expanded={isBreakdownExpanded}
                 onClick={toggleBreakdownGrades}
                 onKeyDown={(event) => event.stopPropagation()}
-                className="mt-1.5 inline-flex items-center gap-0.5 rounded-sm text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:text-sm @max-sm:text-[11px]!"
+                className="mt-1.5 inline-flex items-center gap-0.5 rounded-sm text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] md:text-sm @max-sm:text-[11px]!"
               >
                 {isBreakdownExpanded
                   ? t("tutor_card.show_fewer_grades")
@@ -595,7 +595,7 @@ export function PublicTutorCard({
                       aria-controls={`academic-achievements-${tutor.tutor_code}`}
                       onClick={toggleAcademicChips}
                       onKeyDown={(event) => event.stopPropagation()}
-                      className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:py-1.5 md:text-sm @max-sm:text-[11px]!"
+                      className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] md:py-1.5 md:text-sm @max-sm:text-[11px]!"
                     >
                       ... {t("tutor_card.more")}
                     </button>
@@ -609,7 +609,7 @@ export function PublicTutorCard({
         <section
           className={cn("flex flex-1 flex-col", academicChips.length > 0 ? "pt-2.5" : "pt-0")}
         >
-          <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)] @max-sm:text-xs">
+          <h3 className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--ink)] @max-sm:text-xs">
             <Award
               className="h-3.5 w-3.5 text-[color:var(--brand-link)] @max-sm:h-3 @max-sm:w-3"
               strokeWidth={2.5}
@@ -647,14 +647,14 @@ export function PublicTutorCard({
                 as="li"
                 maxLines={1}
                 contentKey={highlight}
-                className="whitespace-nowrap text-xs font-semibold leading-snug text-[color:var(--ink)] md:text-sm @max-sm:text-xs!"
+                className="whitespace-nowrap text-xs font-medium leading-snug text-[color:var(--ink)] md:text-sm @max-sm:text-xs!"
               >
                 {removeEmoji(highlight)}
               </FitText>
             ))}
           </ul>
 
-          {/* Issue #217: profile tags — click one to search it. Kept out of
+          {/* Issue #217: profile tags, click one to search it. Kept out of
               the compare flow via stopPropagation, like the other buttons. */}
           {tutor.profile_tags.length > 0 ? (
             <div className="mt-2.5 flex flex-wrap gap-1.5 border-t border-border pt-2.5 md:mt-3">
@@ -671,7 +671,7 @@ export function PublicTutorCard({
                   className={cn(
                     "inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-muted-foreground transition-colors",
                     tagQuery
-                      ? "hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                      ? "hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                       : "cursor-default",
                   )}
                 >
@@ -690,7 +690,7 @@ export function PublicTutorCard({
             as="p"
             maxLines={1}
             contentKey={`${price.baseRate}-${priceSuffix}`}
-            className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
+            className="min-w-0 flex-1 whitespace-nowrap text-xl font-medium leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
             title={
               displayCurrency !== DEFAULT_CURRENCY &&
               convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) &&
@@ -701,7 +701,7 @@ export function PublicTutorCard({
                 : undefined
             }
           >
-            {/* Issue #319: one "$X up/hr" figure — the base rate floor. Extra
+            {/* Issue #319: one "$X up/hr" figure, the base rate floor. Extra
                 rate rows never appear here, so they can never lower it.
                 #114: converted figure when the visitor picked a display
                 currency; tooltip shows the tutor's own quote when it differs. */}
@@ -733,7 +733,7 @@ export function PublicTutorCard({
                     onClick={handleCompareToggle}
                     onKeyDown={(event) => event.stopPropagation()}
                     className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
                       compareSelected
                         ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
                         : "text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06]",
@@ -764,7 +764,7 @@ export function PublicTutorCard({
                     aria-label={`${t("share.share_tutor")} (${formatTutorCode(tutor.tutor_code)})`}
                     onClick={handleShare}
                     onKeyDown={(event) => event.stopPropagation()}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8"
                   >
                     <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
                   </button>

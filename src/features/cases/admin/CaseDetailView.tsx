@@ -234,7 +234,7 @@ export function CaseDetailView({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // Issue #412: a compliance-hold request is locked — no tutor recommend,
+  // Issue #412: a compliance-hold request is locked, no tutor recommend,
   // no circulate (board publish), no contact flow until staff re-screen.
   const complianceLocked = caseRow.status === "compliance_hold";
   // The only allowed exits from a hold are clearing it (new), closing, or
@@ -253,7 +253,7 @@ export function CaseDetailView({
 
   const boardPublishMutation = useMutation({
     mutationFn: async (publish: boolean) => {
-      // Issue #412: held requests never circulate — even a stale Public
+      // Issue #412: held requests never circulate, even a stale Public
       // selection cannot publish a compliance_hold case to the board.
       if (publish && caseRow.status === "compliance_hold") {
         throw new Error("Compliance hold: this request cannot be published until re-screened.");
@@ -292,19 +292,19 @@ export function CaseDetailView({
             variant="ghost"
             size="sm"
             onClick={onBack}
-            className="mb-3 -ml-2 h-8 text-xs font-bold text-muted-foreground hover:text-[color:var(--ink)]"
+            className="mb-3 -ml-2 h-8 text-xs font-medium text-muted-foreground hover:text-[color:var(--ink)]"
           >
             <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> All cases
           </Button>
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="rounded-lg bg-[color:var(--ink)]/[0.06] px-2.5 py-1 font-mono text-sm font-bold text-[color:var(--ink)]">
+            <span className="rounded-lg bg-[color:var(--ink)]/[0.06] px-2.5 py-1 font-mono text-sm font-medium text-[color:var(--ink)]">
               {caseRow.case_code}
             </span>
-            <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+            <h1 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">
               {caseRow.title}
             </h1>
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${STATUS_PILL_CLASS[caseRow.status]}`}
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_PILL_CLASS[caseRow.status]}`}
             >
               {STATUS_LABEL[caseRow.status]}
             </span>
@@ -327,7 +327,7 @@ export function CaseDetailView({
         {/* Left column: requirements + contact + notes */}
         <div className="space-y-6 lg:col-span-2">
           <ConsolePanel>
-            <h2 className="text-xs font-semibold text-muted-foreground">Requirements</h2>
+            <h2 className="text-xs font-medium text-muted-foreground">Requirements</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
               <DetailRow
                 label="Student level"
@@ -369,7 +369,7 @@ export function CaseDetailView({
                 value={GENDER_LABEL[caseRow.preferred_gender] ?? caseRow.preferred_gender}
               />
               {/* Issue #437: case-level demographics (legacy rows pre-date
-                  the columns — show a quiet placeholder, never a crash). */}
+                  the columns, show a quiet placeholder, never a crash). */}
               <DetailRow
                 label="Who is this for"
                 value={caseRow.who_for ? (WHO_FOR_LABEL[caseRow.who_for] ?? caseRow.who_for) : "—"}
@@ -400,10 +400,12 @@ export function CaseDetailView({
           </ConsolePanel>
 
           <ConsolePanel>
-            <h2 className="text-xs font-semibold text-muted-foreground">Parent contact</h2>
+            <h2 className="text-xs font-medium text-muted-foreground">Parent contact</h2>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-bold text-[color:var(--ink)]">{caseRow.contact_name}</p>
+                <p className="text-sm font-medium text-[color:var(--ink)]">
+                  {caseRow.contact_name}
+                </p>
                 <p className="text-sm text-muted-foreground">{caseRow.contact_phone}</p>
               </div>
               <div className="flex gap-2">
@@ -423,8 +425,8 @@ export function CaseDetailView({
 
           <ConsolePanel>
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold text-muted-foreground">Internal notes</h2>
-              <NotebookPen className="h-4 w-4 text-muted-foreground/60" aria-hidden="true" />
+              <h2 className="text-xs font-medium text-muted-foreground">Internal notes</h2>
+              <NotebookPen className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </div>
             <div className="mt-3 space-y-2">
               <Textarea
@@ -439,7 +441,7 @@ export function CaseDetailView({
                   size="sm"
                   disabled={!noteBody.trim() || noteMutation.isPending}
                   onClick={() => noteMutation.mutate(noteBody.trim())}
-                  className="font-bold"
+                  className="font-medium"
                 >
                   {noteMutation.isPending ? (
                     <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -481,13 +483,13 @@ export function CaseDetailView({
 
         {/* Right column: handling */}
         <div className="space-y-6">
-          {/* Issue #412: compliance hold banner — the case is locked out of
+          {/* Issue #412: compliance hold banner, the case is locked out of
               matching/circulation until staff re-screen the triage answers. */}
           {caseRow.status === "compliance_hold" ? (
             <div className="rounded-xl border border-purple-500/30 bg-purple-500/[0.06] px-4 py-3.5">
-              <p className="flex items-center gap-2 text-sm font-bold text-purple-700 dark:text-purple-300">
+              <p className="flex items-center gap-2 text-sm font-medium text-purple-700 dark:text-purple-300">
                 <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
-                Compliance hold — matching, circulation, and contact release are locked
+                Compliance hold, matching, circulation, and contact release are locked
               </p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 Triage flagged this request. Review the answers below, contact the requester if
@@ -504,13 +506,13 @@ export function CaseDetailView({
             </div>
           ) : null}
           <ConsolePanel>
-            <h2 className="text-xs font-semibold text-muted-foreground">Handling</h2>
+            <h2 className="text-xs font-medium text-muted-foreground">Handling</h2>
             <div className="mt-3 space-y-3">
               <Select
                 value={caseRow.status}
                 onValueChange={(v) => handleStatusChange(v as CaseStatus)}
               >
-                <SelectTrigger className="h-9 w-full text-sm font-bold">
+                <SelectTrigger className="h-9 w-full text-sm font-medium">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -562,7 +564,7 @@ export function CaseDetailView({
 
           <ConsolePanel>
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold text-muted-foreground">Board listing</h2>
+              <h2 className="text-xs font-medium text-muted-foreground">Board listing</h2>
               <Button
                 size="sm"
                 variant="outline"
@@ -575,7 +577,7 @@ export function CaseDetailView({
             <div className="mt-3 rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3.5 py-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0 space-y-0.5">
-                  <Label className="text-sm font-bold text-foreground">Board visibility</Label>
+                  <Label className="text-sm font-medium text-foreground">Board visibility</Label>
                   <p className="text-xs leading-relaxed text-muted-foreground">
                     {caseRow.board_published_at
                       ? `Live at /tutor-requests since ${format(new Date(caseRow.board_published_at), "d MMM yyyy")}. Matched or closed cases are hidden automatically.`
@@ -590,7 +592,7 @@ export function CaseDetailView({
                     (complianceLocked && caseRow.board_published_at === null)
                   }
                 >
-                  <SelectTrigger className="h-9 w-[110px] shrink-0 text-sm font-bold">
+                  <SelectTrigger className="h-9 w-[110px] shrink-0 text-sm font-medium">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -605,7 +607,7 @@ export function CaseDetailView({
                 href="/tutor-requests"
                 target="_blank"
                 rel="noreferrer"
-                className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[color:var(--brand-link)] hover:underline"
+                className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[color:var(--brand-link)] hover:underline"
               >
                 View board <ExternalLink className="h-3 w-3" aria-hidden="true" />
               </a>
@@ -613,7 +615,7 @@ export function CaseDetailView({
           </ConsolePanel>
 
           <ConsolePanel>
-            <h2 className="text-xs font-semibold text-muted-foreground">Tags</h2>
+            <h2 className="text-xs font-medium text-muted-foreground">Tags</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               Track pipeline state: follow-up, premium, matched-source.
             </p>
@@ -630,7 +632,7 @@ export function CaseDetailView({
 
           <ConsolePanel>
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold text-muted-foreground">Suggested tutors</h2>
+              <h2 className="text-xs font-medium text-muted-foreground">Suggested tutors</h2>
               <Sparkles
                 className="h-4 w-4 text-[color:var(--muted-foreground)]"
                 aria-hidden="true"
@@ -661,11 +663,11 @@ export function CaseDetailView({
                       <InitialAvatar
                         stableId={t.tutor_code || t.id}
                         name={t.display_name}
-                        className="h-9 w-9 text-[10px]"
+                        className="h-9 w-9 text-[11px]"
                       />
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-bold text-[color:var(--ink)]">
+                      <p className="truncate text-xs font-medium text-[color:var(--ink)]">
                         {t.display_name}
                       </p>
                       <p className="truncate text-[11px] text-muted-foreground">
@@ -673,7 +675,7 @@ export function CaseDetailView({
                         {t.district ? ` · ${t.district}` : ""}
                       </p>
                     </div>
-                    <span className="rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[10px] font-bold text-[color:var(--foreground)]">
+                    <span className="rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[11px] font-medium text-[color:var(--foreground)]">
                       {Number(t.score).toFixed(0)}
                     </span>
                   </div>
@@ -683,7 +685,7 @@ export function CaseDetailView({
           </ConsolePanel>
 
           <section className="rounded-2xl border border-destructive/20 bg-[color:var(--surface)] p-5">
-            <h2 className="text-xs font-semibold text-muted-foreground">Danger zone</h2>
+            <h2 className="text-xs font-medium text-muted-foreground">Danger zone</h2>
             <Button
               variant="destructive"
               size="sm"

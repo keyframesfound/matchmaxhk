@@ -12,14 +12,14 @@ export const Route = createFileRoute("/guide/verification")({
       {
         name: "description",
         content:
-          "What MatchMax checks before a tutor card goes live: transcripts, component scores, university enrolment — and what verification does not mean.",
+          "What MatchMax checks before a tutor card goes live: transcripts, component scores, university enrolment, and what verification does not mean.",
       },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Verification | MatchMax" },
       {
         property: "og:description",
         content:
-          "What MatchMax checks before a tutor card goes live: transcripts, component scores, university enrolment — and what verification does not mean.",
+          "What MatchMax checks before a tutor card goes live: transcripts, component scores, university enrolment, and what verification does not mean.",
       },
       { property: "og:url", content: "https://matchmax.hk/guide/verification" },
     ],
@@ -53,10 +53,7 @@ function GuideVerificationPage() {
       />
       <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
         <div className="max-w-3xl">
-          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-            {t("hiw.verification_eyebrow")}
-          </p>
-          <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
             {t("hiw.verification_title")}
           </h1>
           <p className="mt-4 text-lg leading-8 text-[color:var(--ink)]/65">
@@ -72,7 +69,7 @@ function GuideVerificationPage() {
                 key={title}
                 className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-6 transition-colors hover:border-[color:var(--ink)]/25 md:p-8"
               >
-                <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
+                <h3 className="flex items-center gap-2 text-lg font-medium tracking-tight sm:text-xl">
                   {index === 0 ? (
                     <ShieldCheck
                       className="h-5 w-5 text-[color:var(--brand-link)]"
@@ -100,11 +97,11 @@ function GuideVerificationPage() {
                 key={key}
                 className="grid grid-cols-[3rem_minmax(0,1fr)] gap-5 border-b border-[color:var(--ink)]/15 py-6 sm:gap-8 sm:py-7"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--foreground)]/[0.06] text-sm font-bold">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--foreground)]/[0.06] text-sm font-medium">
                   {index + 1}
                 </span>
                 <div>
-                  <h3 className="text-lg font-bold tracking-tight sm:text-xl">
+                  <h3 className="text-lg font-medium tracking-tight sm:text-xl">
                     {t(`guide.verification.${key}_title`)}
                   </h3>
                   <p className="mt-2 max-w-2xl text-sm leading-7 text-[color:var(--ink)]/70">
@@ -122,7 +119,7 @@ function GuideVerificationPage() {
             <ul className="space-y-3">
               {notMean.map(([marker, text]) => (
                 <li key={text} className="flex gap-3 text-sm leading-7 text-[color:var(--ink)]/80">
-                  <span aria-hidden="true" className="font-bold text-amber-600">
+                  <span aria-hidden="true" className="font-medium text-amber-600">
                     {marker}
                   </span>
                   <span>{text}</span>
@@ -135,7 +132,7 @@ function GuideVerificationPage() {
           </div>
         </div>
 
-        {/* Issue #309: verification scope of the grade badge — the exact four
+        {/* Issue #309: verification scope of the grade badge, the exact four
             consent lines tutors accept at /join, in both locales. */}
         <div id="badge-scope" className="mt-14 max-w-4xl scroll-mt-40">
           <GuideHeading>{t("guide.verification.badge_title")}</GuideHeading>

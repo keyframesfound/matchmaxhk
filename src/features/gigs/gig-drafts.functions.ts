@@ -29,7 +29,7 @@ import { asAdminDb, base64ToBytes, type AdminDb } from "@/features/materials/sto
 
 const PUBLIC_BUCKET = "materials-previews";
 
-/** #326: cover images only — png/jpg/webp, 5MB (smaller than the PDF cap). */
+/** #326: cover images only, png/jpg/webp, 5MB (smaller than the PDF cap). */
 export const MAX_GIG_COVER_BYTES = 5 * 1024 * 1024;
 
 const GIG_COVER_CONTENT_TYPES: Record<string, string> = {
@@ -144,7 +144,7 @@ function assertCleanGigCopy(fields: {
 
 /**
  * #330: upheld contact-detail reports pause the freestyle privilege after the
- * threshold (gig.ts) — no new gig drafts or submissions until staff clear the
+ * threshold (gig.ts), no new gig drafts or submissions until staff clear the
  * reports. Runs on create AND submit so a paused tutor cannot round-trip an
  * existing draft through the submit gate either.
  */
@@ -163,7 +163,7 @@ async function assertFreestylePrivilege(db: AdminDb, tutorId: string) {
   }
 }
 
-/** #346 pattern: the form can only send catalog subjects — allowlist server-side. */
+/** #346 pattern: the form can only send catalog subjects, allowlist server-side. */
 function assertGigSubjectAllowed(
   curriculumTag: string | undefined,
   subjectTag: string | null | undefined,
@@ -250,7 +250,7 @@ export const createGigDraft = createServerFn({ method: "POST" })
 
 const UpdateGigDraftInput = GigMetaInput.extend({ gigId: z.string().uuid() });
 
-/** #326: partial draft update — validateGigPartial + mergeGigIntegrity. */
+/** #326: partial draft update, validateGigPartial + mergeGigIntegrity. */
 export const updateGigDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => UpdateGigDraftInput.parse(data))

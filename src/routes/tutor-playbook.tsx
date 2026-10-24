@@ -19,7 +19,7 @@ export const Route = createFileRoute("/tutor-playbook")({
             "zh-HK": "導師攻略：家長關係同禮儀 | MatchMax",
           },
           description: {
-            en: "The MatchMax Tutor Playbook — real-world scripts and protocols for tutors on parent relations, etiquette, logistics, and admin, from onboarding to locking in a weekly slot.",
+            en: "The MatchMax Tutor Playbook, real-world scripts and protocols for tutors on parent relations, etiquette, logistics, and admin, from onboarding to locking in a weekly slot.",
             "zh-HK":
               "MatchMax 導師攻略——由上手到鎖定每週固定時段，實戰話術同流程指南：家長關係、禮儀、物流同行政。",
           },
@@ -170,7 +170,7 @@ const SECTIONS: Section[] = [
             lines: [
               "Hi [Parent] and [Student]! Here's a quick recap of today's lesson. ☺️",
               "**Covered:** We worked on [topic], focusing on [key skill].",
-              "**Progress:** [Student], you were able to [specific task] independently—well done! [Skill] still needed some guidance, so we'll keep practising.",
+              "**Progress:** [Student], you were able to [specific task] independently, well done! [Skill] still needed some guidance, so we'll keep practising.",
               "**Additional practice:** Please complete [homework] by [deadline].",
               "**Next steps:** Next lesson, we'll focus on [priority]. If anything new comes up at school, please share it here beforehand so I can prepare! 🙏🏻",
             ],
@@ -197,7 +197,7 @@ const SECTIONS: Section[] = [
         items: [
           {
             label: "The script",
-            text: "Hi [Parent], I just had a great 15-minute chat with [Student] to build out their Study Plan! I've attached it here. To keep this momentum going and ensure we hit these targets, establishing a consistent weekly routine works best. I currently have Thursdays at 17:00 available—would you like to lock this in as our regular slot? No pressure at all, just let me know what works best for your schedule! ☺️",
+            text: "Hi [Parent], I just had a great 15-minute chat with [Student] to build out their Study Plan! I've attached it here. To keep this momentum going and ensure we hit these targets, establishing a consistent weekly routine works best. I currently have Thursdays at 17:00 available. Would you like to lock this in as our regular slot? No pressure at all, just let me know what works best for your schedule! ☺️",
           },
         ],
       },
@@ -265,7 +265,7 @@ const SECTIONS: Section[] = [
                 text: "Hi [Parent], a gentle reminder regarding this month's lesson fees. Please let me know once settled so I can update my records! 🙏🏻",
               },
               {
-                label: "Script — 48 hrs later",
+                label: "Script: 48 hrs later",
                 text: "Hi [Parent], following up on the pending payment. If you're having technical issues, let me know. 🫡",
               },
             ],
@@ -308,7 +308,7 @@ const SECTIONS: Section[] = [
             action: "Do not reply immediately if it is past 21:30. Train them on your boundaries.",
             scripts: [
               {
-                label: "Script — sent the next morning",
+                label: "Script, sent the next morning",
                 text: "Good morning [Parent]! Just seeing your message from last night. Regarding your question…",
               },
             ],
@@ -368,7 +368,7 @@ function renderInline(text: string) {
   return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, index) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return (
-        <strong key={index} className="font-semibold text-foreground">
+        <strong key={index} className="font-medium text-foreground">
           {part.slice(2, -2)}
         </strong>
       );
@@ -388,7 +388,7 @@ function ScriptCard({ label, text }: ScriptCardData) {
   return (
     <figure className="rounded-xl border border-border bg-muted/50 p-4 sm:p-5">
       {label ? (
-        <figcaption className="text-[11px] font-bold uppercase tracking-widest text-[color:var(--brand-link)]">
+        <figcaption className="text-[11px] font-medium text-[color:var(--brand-link)]">
           {label}
         </figcaption>
       ) : null}
@@ -403,15 +403,11 @@ function SayBlock({ dont, do: doText }: { dont: string; do: string }) {
   return (
     <div className="space-y-3">
       <div className="rounded-xl border border-border p-4 sm:p-5">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-          Don't say
-        </p>
+        <p className="text-[11px] font-medium text-muted-foreground">Don't say</p>
         <p className="mt-2 text-sm italic leading-7 text-muted-foreground">“{dont}”</p>
       </div>
       <div className="rounded-xl border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/5 p-4 sm:p-5">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-[color:var(--brand-link)]">
-          Do say
-        </p>
+        <p className="text-[11px] font-medium text-[color:var(--brand-link)]">Do say</p>
         <p className="mt-2 text-sm italic leading-7 text-foreground/85">{renderInline(doText)}</p>
       </div>
     </div>
@@ -423,7 +419,7 @@ function TemplateCards({ cards }: { cards: [TemplateCardData, TemplateCardData] 
     <div className="grid gap-4 sm:grid-cols-2">
       {cards.map((card) => (
         <div key={card.label} className="rounded-xl border border-border bg-card p-5">
-          <p className="text-sm font-bold text-foreground">{card.label}</p>
+          <p className="text-sm font-medium text-foreground">{card.label}</p>
           <div className="mt-3 space-y-3">
             {card.lines.map((line, index) => (
               <p key={index} className="text-sm leading-7 text-foreground/80">
@@ -444,7 +440,7 @@ function ScenarioRows({ rows }: { rows: Scenario[] }) {
         const isLast = index === rows.length - 1;
         return (
           <div key={row.title} className={`py-6 ${isLast ? "" : "border-b border-border"}`}>
-            <h4 className="text-base font-bold tracking-tight text-foreground sm:text-lg">
+            <h4 className="text-base font-medium tracking-tight text-foreground sm:text-lg">
               {row.title}
             </h4>
             <p className="mt-2 text-sm leading-7 text-muted-foreground">
@@ -476,7 +472,7 @@ function SectionBlocks({ blocks }: { blocks: Block[] }) {
             return (
               <h3
                 key={index}
-                className="pt-5 text-xl font-bold tracking-tight text-foreground sm:text-2xl"
+                className="pt-5 text-xl font-medium tracking-tight text-foreground sm:text-2xl"
               >
                 {block.text}
               </h3>
@@ -600,13 +596,12 @@ function TutorPlaybookPage() {
       </div>
 
       <PageIntro
-        eyebrow="Help Centre · For Tutors"
         title="The MatchMax Tutor Playbook"
         description="Real-world scripts and protocols for managing parent expectations, handling logistics, communicating value, and coordinating with MatchMax Admin."
         meta="Parent relations & etiquette · For MatchMax tutors"
       />
 
-      {/* Mobile section tabs — Airbnb persona-tab style, sticky under the mobile top bar */}
+      {/* Mobile section tabs, Airbnb persona-tab style, sticky under the mobile top bar */}
       <nav
         aria-label="Playbook sections"
         className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-sm lg:hidden"
@@ -620,7 +615,7 @@ function TutorPlaybookPage() {
                 href={`#${section.id}`}
                 className={`-mb-px whitespace-nowrap border-b-[3px] py-3 text-[15px] transition-colors ${
                   activeSection === section.id
-                    ? "border-foreground font-semibold text-foreground"
+                    ? "border-foreground font-medium text-foreground"
                     : "border-transparent text-muted-foreground"
                 }`}
               >
@@ -641,9 +636,7 @@ function TutorPlaybookPage() {
         <div className="mx-auto grid w-full max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-16">
           <nav aria-label="Playbook sections" className="hidden lg:block">
             <div className="sticky top-24">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                In this playbook
-              </p>
+              <p className="text-[11px] font-medium text-muted-foreground">In this playbook</p>
               <ul className="mt-4 space-y-1">
                 {SECTIONS.map((section, index) => (
                   <li key={section.id}>
@@ -651,11 +644,11 @@ function TutorPlaybookPage() {
                       href={`#${section.id}`}
                       className={`-ml-4 block border-l-2 py-2 pl-4 text-sm leading-6 transition-colors ${
                         activeSection === section.id
-                          ? "border-[color:var(--brand-link)] font-semibold text-foreground"
+                          ? "border-[color:var(--brand-link)] font-medium text-foreground"
                           : "border-border text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      <span className="mr-2 font-bold text-[color:var(--brand-link)]">
+                      <span className="mr-2 font-medium text-[color:var(--brand-link)]">
                         {SECTION_NUMBERS[index]}
                       </span>
                       {section.title}
@@ -678,7 +671,7 @@ function TutorPlaybookPage() {
                 Parents booking through MatchMax aren't just looking for someone who knows the
                 syllabus; they are paying for peace of mind, reliability, and an elite service
                 experience. Every tutor represents MatchMax and shapes our reputation, so your
-                success is our success—and our success is yours. This handbook gives you the exact
+                success is our success, and our success is yours. This handbook gives you the exact
                 scripts, psychology, and boundaries you need to look like a seasoned professional
                 from day one.
               </p>
@@ -697,10 +690,10 @@ function TutorPlaybookPage() {
                 className="scroll-mt-32 border-b border-border py-12 first-of-type:mt-12 lg:py-16"
               >
                 <div className="flex items-baseline gap-4">
-                  <span className="text-sm font-bold text-[color:var(--brand-link)]">
+                  <span className="text-sm font-medium text-[color:var(--brand-link)]">
                     {SECTION_NUMBERS[index]}
                   </span>
-                  <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+                  <h2 className="text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
                     {section.title}
                   </h2>
                 </div>
@@ -715,7 +708,7 @@ function TutorPlaybookPage() {
 
       <section className="bg-[#0f1419] text-white">
         <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          <h2 className="text-3xl font-medium tracking-tight text-white sm:text-4xl">
             Explore more
           </h2>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -729,7 +722,7 @@ function TutorPlaybookPage() {
                   <card.icon className="h-8 w-8 text-[#0f1419]" aria-hidden="true" />
                 </div>
                 <div className="flex flex-1 flex-col justify-center p-5">
-                  <p className="text-lg font-bold text-white">{card.title}</p>
+                  <p className="text-lg font-medium text-white">{card.title}</p>
                   <p className="mt-1 text-sm leading-6 text-white/70">{card.subtitle}</p>
                 </div>
               </Link>

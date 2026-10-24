@@ -84,7 +84,7 @@ function SavedPostsPage() {
               <p className="text-sm font-medium text-[color:var(--muted-foreground)]">
                 Your collection
               </p>
-              <h1 className="mt-2 text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
+              <h1 className="mt-2 text-4xl font-medium tracking-tight text-[color:var(--ink)] sm:text-5xl">
                 Saved Posts
               </h1>
               <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
@@ -101,7 +101,7 @@ function SavedPostsPage() {
               <div className="text-sm text-muted-foreground">Loading saved tutors...</div>
             ) : savedTutorsQuery.isError ? (
               <div className="p-12 text-center">
-                <p className="text-lg font-bold text-[color:var(--ink)]">
+                <p className="text-lg font-medium text-[color:var(--ink)]">
                   We couldn't load your saved tutors
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -114,7 +114,7 @@ function SavedPostsPage() {
                   className="mx-auto h-8 w-8 text-[color:var(--muted-foreground)]"
                   aria-hidden="true"
                 />
-                <p className="mt-4 text-lg font-bold text-[color:var(--ink)]">
+                <p className="mt-4 text-lg font-medium text-[color:var(--ink)]">
                   You haven't saved any tutors yet
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -138,13 +138,13 @@ function SavedPostsPage() {
                       saveAction={<TutorSaveButton tutorId={tutor.id} />}
                       footerAction={
                         inquiry.kind === "status" ? (
-                          <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
+                          <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-medium text-[color:var(--ink)]">
                             {inquiry.label}
                           </span>
                         ) : (
                           <Button
                             asChild
-                            className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                            className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-medium text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                           >
                             <a
                               href={inquiry.href}
@@ -164,7 +164,7 @@ function SavedPostsPage() {
             )}
 
             <div className="mt-14">
-              <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
+              <h2 className="text-xl font-medium tracking-tight text-[color:var(--ink)]">
                 Saved requests
               </h2>
               {savedCaseIdsQuery.isLoading || caseBoardQuery.isLoading ? (
@@ -175,7 +175,7 @@ function SavedPostsPage() {
                     className="mx-auto h-8 w-8 text-[color:var(--muted-foreground)]"
                     aria-hidden="true"
                   />
-                  <p className="mt-4 text-base font-bold text-[color:var(--ink)]">
+                  <p className="mt-4 text-base font-medium text-[color:var(--ink)]">
                     You haven't saved any requests yet
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
@@ -195,12 +195,12 @@ function SavedPostsPage() {
                         className="group flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-muted/40"
                       >
                         <div className="flex min-w-0 flex-col gap-1.5">
-                          <span className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]">
+                          <span className="flex items-center gap-2 text-sm font-medium text-[color:var(--ink)]">
                             <span className="min-w-0 truncate">
                               {item.subjects.filter(Boolean).slice(0, 2).join(", ") || item.title}
                             </span>
                             {item.startTiming === "asap" ? (
-                              <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-bold text-[#a16207] dark:text-[color:var(--warning)]">
+                              <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-medium text-[#a16207] dark:text-[color:var(--warning)]">
                                 <CalendarClock className="h-3 w-3" aria-hidden="true" />
                                 ASAP
                               </span>
@@ -227,7 +227,7 @@ function SavedPostsPage() {
                         <div className="flex shrink-0 items-center gap-1">
                           <CaseCompareToggle caseId={item.id} />
                           <CaseSaveButton caseId={item.id} compact />
-                          <span className="text-sm font-semibold text-[color:var(--ink)]">
+                          <span className="text-sm font-medium text-[color:var(--ink)]">
                             View details
                           </span>
                         </div>
@@ -240,7 +240,7 @@ function SavedPostsPage() {
 
             {CENTRE_MARKET_ENABLED && (
               <div className="mt-14">
-                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
+                <h2 className="text-xl font-medium tracking-tight text-[color:var(--ink)]">
                   Saved courses
                 </h2>
                 {savedCoursesQuery.isLoading ? (
@@ -251,7 +251,7 @@ function SavedPostsPage() {
                       className="mx-auto h-8 w-8 text-[color:var(--muted-foreground)]"
                       aria-hidden="true"
                     />
-                    <p className="mt-4 text-base font-bold text-[color:var(--ink)]">
+                    <p className="mt-4 text-base font-medium text-[color:var(--ink)]">
                       You haven't saved any courses yet
                     </p>
                     <p className="mt-2 text-sm text-muted-foreground">
@@ -282,7 +282,7 @@ function SavedPostsPage() {
                           <div className="min-w-0 flex-1">
                             <a
                               href={`/courses/${course.id}`}
-                              className="block truncate text-sm font-bold text-[color:var(--ink)] hover:text-[color:var(--brand-link)]"
+                              className="block truncate text-sm font-medium text-[color:var(--ink)] hover:text-[color:var(--brand-link)]"
                             >
                               {course.title}
                             </a>

@@ -1,5 +1,5 @@
 /**
- * Issue #201 — admin case-desk server fns: SoR transitions + audit, intro
+ * Issue #201, admin case-desk server fns: SoR transitions + audit, intro
  * lessons 1–2, admin-fee lifecycle, unpaid queue, case creation.
  *
  * Admin-gated via has_role (mirror of the orders-desk pattern). All SoR
@@ -288,7 +288,7 @@ export const transitionCase = createServerFn({ method: "POST" })
     await insertAudit(db, c.id, context.userId, c.sor_status, to, data.reason ?? null);
 
     // Issue #412 F: the engagement summary is created (or version-bumped)
-    // when the case reaches the engagement stage. Fail-open — a summary
+    // when the case reaches the engagement stage. Fail-open, a summary
     // write failure must never block the desk transition; the next ensure
     // (match panel, detail load) repairs it idempotently.
     if (to === "introduced") {
@@ -398,7 +398,7 @@ export const feeInvoiceCustom = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
-    // The partial unique index rejects a second open fee — surface it cleanly.
+    // The partial unique index rejects a second open fee, surface it cleanly.
     if (error)
       throw new Error(/duplicate|unique/i.test(error.message) ? "OPEN_FEE_EXISTS" : error.message);
     await insertAudit(
@@ -407,7 +407,7 @@ export const feeInvoiceCustom = createServerFn({ method: "POST" })
       context.userId,
       null,
       "fee_invoiced",
-      `custom ${data.multiplier}× — ${data.reason}`,
+      `custom ${data.multiplier}×, ${data.reason}`,
     );
     return { ok: true };
   });
@@ -473,7 +473,7 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
         "fee_paid",
         data.fpsReference ?? null,
       );
-      // QA (#375): the fee action must also advance the SoR machine — a case
+      // QA (#375): the fee action must also advance the SoR machine, a case
       // stuck on fee_invoiced keeps parent slot requests locked.
       await advanceSorCaseStatus(db, context.userId, feeCase[0].case_id, "fee_paid");
     }
@@ -636,7 +636,7 @@ export const lessonAdminMark = createServerFn({ method: "POST" })
     }
     const { error } = await db.from<Row>("case_lessons").update(patch).eq("id", lesson.id);
     if (error) throw new Error(error.message);
-    // no_show/cancelled never create fees (#201) — no side effect here by design.
+    // no_show/cancelled never create fees (#201), no side effect here by design.
     await insertAudit(
       db,
       lesson.case_id,
@@ -761,7 +761,7 @@ export const createSorCase = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// Case flags (issue #254 / F3) — staff-only, service-role table
+// Case flags (issue #254 / F3), staff-only, service-role table
 // ---------------------------------------------------------------------------
 
 export type DeskCaseFlag = {

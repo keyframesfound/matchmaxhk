@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 /**
- * Issue #97: Trophy Cabinet — responsive public gallery of the tutor's
+ * Issue #97: Trophy Cabinet, responsive public gallery of the tutor's
  * optional award/portfolio photos. Rendered ONLY when portfolio_images is
  * non-empty (issue's conditional-rendering requirement: no blank spaces or
  * broken UI for tutors who skip it). Click opens a full-size lightbox.

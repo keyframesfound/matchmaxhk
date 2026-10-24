@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // immediately (the server also forces global sign-out on ban); the
   // 'banned' flag intentionally survives the SIGNED_OUT event so the
   // blocked-message banner stays visible. Suspended accounts keep their
-  // session — the banner exposes the reason.
+  // session, the banner exposes the reason.
   const applyAccountStatus = (userId: string) => {
     fetchAccountStatus(userId).then(({ status, reason }) => {
       setSuspensionReason(reason);
@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           applyAccountStatus(sess.user.id);
           // P2 (#280): record the Google subject id on the profile for
           // reference. Ownership itself is the auth user id; this column is
-          // an audit/linking aid. Best-effort — never blocks sign-in.
+          // an audit/linking aid. Best-effort, never blocks sign-in.
           const identity = sess.user.identities?.find((i) => i.provider === "google");
           const googleSub = identity?.id ?? (sess.user.user_metadata?.sub as string | undefined);
           if (googleSub) {

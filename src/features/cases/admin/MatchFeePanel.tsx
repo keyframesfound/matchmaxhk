@@ -53,13 +53,13 @@ function TutorAvatar({ hit }: { hit: TutorHit }) {
     <InitialAvatar
       stableId={hit.tutor_code}
       name={hit.display_name}
-      className="h-9 w-9 text-[10px]"
+      className="h-9 w-9 text-[11px]"
     />
   );
 }
 
 /**
- * Match & fee capture — the two real-world events the referral bounty hangs
+ * Match & fee capture, the two real-world events the referral bounty hangs
  * off: which tutor won the case, and when the Administrative Matching Fee
  * arrived. Recording the fee on a referred tutor's case auto-logs their
  * referrer's 15% bounty via the trg_cases_fee_referral_bounty trigger.
@@ -129,7 +129,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
           toast.success(`Case ${caseRow.case_code} matched to ${tutor.display_name}`);
           // Issue #412 F: auto-create the engagement summary at match time
           // (board-matched path; the SoR `introduced` transition has its own
-          // hook). Fail-open — it re-ensures idempotently later.
+          // hook). Fail-open, it re-ensures idempotently later.
           void ensureFn({ data: { caseId: caseRow.id } }).catch((e: unknown) => {
             console.error("[engagement] failed to ensure summary on match:", e);
           });
@@ -161,7 +161,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
       {
         onSuccess: () => {
           setFeeInput("");
-          toast.success("Fee recorded — a referred tutor's bounty auto-logs at 15%");
+          toast.success("Fee recorded, a referred tutor's bounty auto-logs at 15%");
         },
       },
     );
@@ -180,8 +180,8 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
   return (
     <ConsolePanel>
       <div className="flex items-center justify-between">
-        <h2 className="text-xs font-semibold text-muted-foreground">Match &amp; fee</h2>
-        <UserRoundCheck className="h-4 w-4 text-muted-foreground/60" aria-hidden="true" />
+        <h2 className="text-xs font-medium text-muted-foreground">Match &amp; fee</h2>
+        <UserRoundCheck className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
       </div>
 
       {/* Matched tutor */}
@@ -191,7 +191,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
             <div className="flex items-center gap-3">
               <TutorAvatar hit={matchedTutor} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-bold text-[color:var(--ink)]">
+                <p className="truncate text-xs font-medium text-[color:var(--ink)]">
                   {matchedTutor.display_name}
                 </p>
                 <p className="truncate text-[11px] text-muted-foreground">
@@ -201,7 +201,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
                     : ""}
                 </p>
                 {referrerName ? (
-                  <p className="mt-0.5 truncate text-[11px] font-semibold text-[color:var(--brand-link)]">
+                  <p className="mt-0.5 truncate text-[11px] font-medium text-[color:var(--brand-link)]">
                     Referred by {referrerName}
                   </p>
                 ) : null}
@@ -209,7 +209,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 px-2 text-[11px] font-bold text-muted-foreground hover:text-[color:var(--ink)]"
+                className="h-7 px-2 text-[11px] font-medium text-muted-foreground hover:text-[color:var(--ink)]"
                 disabled={pending}
                 onClick={clearMatch}
               >
@@ -250,7 +250,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
                   >
                     <TutorAvatar hit={hit} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-xs font-bold text-[color:var(--ink)]">
+                      <span className="block truncate text-xs font-medium text-[color:var(--ink)]">
                         {hit.display_name}
                       </span>
                       <span className="block truncate text-[11px] text-muted-foreground">
@@ -258,7 +258,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
                         {hit.referrer ? ` · referred by ${hit.referrer.display_name}` : ""}
                       </span>
                     </span>
-                    <span className="shrink-0 text-[11px] font-bold text-[color:var(--brand-link)]">
+                    <span className="shrink-0 text-[11px] font-medium text-[color:var(--brand-link)]">
                       Match
                     </span>
                   </button>
@@ -273,20 +273,20 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
       <div className="mt-4 border-t border-[color:var(--ink)]/[0.07] pt-4">
         <div className="flex items-center gap-1.5">
           <Wallet className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-          <p className="text-xs font-semibold text-muted-foreground">Matching fee</p>
+          <p className="text-xs font-medium text-muted-foreground">Matching fee</p>
         </div>
         {caseRow.fee_collected_at ? (
           <div className="mt-2 rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3.5 py-3">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-xs font-bold text-[color:var(--ink)]">
+                <p className="text-xs font-medium text-[color:var(--ink)]">
                   {formatHkd(caseRow.fee_amount_cents)} collected
                 </p>
                 <p className="text-[11px] text-muted-foreground">
                   {format(new Date(caseRow.fee_collected_at), "d MMM yyyy, h:mm a")}
                 </p>
                 {referrerName && caseRow.fee_amount_cents ? (
-                  <p className="mt-0.5 text-[11px] font-semibold text-[color:var(--brand-link)]">
+                  <p className="mt-0.5 text-[11px] font-medium text-[color:var(--brand-link)]">
                     {referrerName}'s bounty:{" "}
                     {formatHkd(Math.round(caseRow.fee_amount_cents * 0.15))} (15%)
                   </p>
@@ -295,7 +295,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 shrink-0 px-2 text-[11px] font-bold text-muted-foreground hover:text-[color:var(--ink)]"
+                className="h-7 shrink-0 px-2 text-[11px] font-medium text-muted-foreground hover:text-[color:var(--ink)]"
                 disabled={pending}
                 onClick={undoFee}
               >
@@ -316,7 +316,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
               />
               <Button
                 size="sm"
-                className="h-9 shrink-0 font-bold"
+                className="h-9 shrink-0 font-medium"
                 disabled={pending}
                 onClick={markFeeCollected}
               >

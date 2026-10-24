@@ -9,7 +9,7 @@ interface ConciergeUnpaidDigestEmailProps {
 }
 
 /**
- * Issue #205 — concierge daily digest of admin fees invoiced more than 3 days
+ * Issue #205, concierge daily digest of admin fees invoiced more than 3 days
  * ago. Mirrors the in-app unpaid queue (#201): parent, tutor, amount, and the
  * admin-only WhatsApp link. Sent at most once per 24h by the lazy drain.
  */

@@ -107,7 +107,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           const tutorEntries = await fetchPublishedTutorEntries();
           entries.push(...tutorEntries);
         } catch {
-          // ignore — sitemap still serves core public routes
+          // ignore, sitemap still serves core public routes
         }
 
         const xml = [

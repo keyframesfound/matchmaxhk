@@ -7,7 +7,6 @@ import { PageContainer } from "./PageContainer";
 type PageIntroProps = {
   title: ReactNode;
   description?: ReactNode;
-  eyebrow?: ReactNode;
   meta?: ReactNode;
   align?: "left" | "center";
   width?: "narrow" | "default" | "wide";
@@ -18,7 +17,6 @@ type PageIntroProps = {
 export function PageIntro({
   title,
   description,
-  eyebrow,
   meta,
   align = "left",
   width = "narrow",
@@ -29,17 +27,7 @@ export function PageIntro({
   return (
     <section className={cn("border-b border-border", dense ? "py-6 sm:py-8" : "py-14 sm:py-20")}>
       <PageContainer width={width} className={cn(centered && "text-center")}>
-        {eyebrow ? (
-          <p className="text-sm font-semibold text-[color:var(--brand-link)]">{eyebrow}</p>
-        ) : null}
-        <h1
-          className={cn(
-            "mt-3 text-balance text-4xl font-bold text-foreground sm:text-5xl",
-            !eyebrow && "mt-0",
-          )}
-        >
-          {title}
-        </h1>
+        <h1 className="text-balance text-4xl font-medium text-foreground sm:text-5xl">{title}</h1>
         {description ? (
           <p
             className={cn(

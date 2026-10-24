@@ -8,13 +8,13 @@ import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib";
  * semi-transparent watermark on every page. The result is uploaded to the
  * PUBLIC previews bucket; the original never leaves the private bucket.
  *
- * Plain PDF processing via pdf-lib — no AI services involved.
+ * Plain PDF processing via pdf-lib, no AI services involved.
  */
 
 export const WATERMARK_TEXT = "PREVIEW COPY - MATCHMAX.HK";
 export const PREVIEW_PAGE_LIMIT = 5;
 
-/** #392: lesson-PDF stamp — short, tiled over the FULL document. */
+/** #392: lesson-PDF stamp, short, tiled over the FULL document. */
 export const FULL_WATERMARK_TEXT = "matchmax.hk";
 
 /** Result of watermarking: preview bytes plus the page count stamped. */

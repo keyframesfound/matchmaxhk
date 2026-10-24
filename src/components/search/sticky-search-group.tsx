@@ -133,7 +133,7 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // The pinned bar must clear the whole sticky header, announcement banner
-  // included — measure it live instead of hardcoding 64px.
+  // included, measure it live instead of hardcoding 64px.
   useEffect(() => {
     const header = document.querySelector<HTMLElement>("[data-site-header]");
     if (!header) return;
@@ -185,7 +185,7 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
     };
   }, [isDesktop, headerTop]);
 
-  // True while the page sits at its maximum scroll — the zone where the
+  // True while the page sits at its maximum scroll, the zone where the
   // browser fires clamp-correction scrolls after the band shrinks the page.
   function pinnedAtMaxScroll() {
     const doc = document.documentElement;
@@ -197,7 +197,7 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
       const target = collapsed ? 1 : 0;
       snapTargetRef.current = target;
       scrubTarget.set(target);
-      // A repeated same-target snap must not jump the spring — mid-animation
+      // A repeated same-target snap must not jump the spring, mid-animation
       // values are normal while a scroll burst re-fires the snapper. Jump
       // only when no frame has rendered since the snap (rAF dead: occluded
       // pane, hot reload), because then the spring can never progress.
@@ -243,7 +243,7 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
       if (phaseRef.current === "expanded") {
         // Scrolling down while tinted returns to the compact pill; scrolling
         // up keeps the expanded search open. Down-deltas are ignored briefly
-        // after expand() — see the guard set there.
+        // after expand(), see the guard set there.
         if (previous !== null && y - previous > 4 && Date.now() > expandGuardUntil.current) {
           collapse();
         }
@@ -379,7 +379,7 @@ export function StickySearchBar({
     <>
       {/* Flow-position sentinel: a pinned sticky bar's offsetTop shifts with
           the scroll position, so the pin offset is measured from this
-          zero-height marker instead — it stays at the band's flow spot. */}
+          zero-height marker instead, it stays at the band's flow spot. */}
       <div ref={registerBar} aria-hidden="true" className="h-0" />
       <div className="sticky z-40 hidden lg:block" style={{ top: headerTop }}>
         <div
@@ -440,7 +440,7 @@ export function CompactSearchPill({
       onClick={() => expand()}
       aria-label={t("search_ui.compact_expand")}
       className={cn(
-        "pill-elevate-lg group flex h-12 w-[min(36rem,calc(100vw-44rem))] min-w-56 items-center gap-2.5 rounded-full border border-border bg-card py-1 pr-1.5 pl-4 text-left transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+        "pill-elevate-lg group flex h-12 w-[min(36rem,calc(100vw-44rem))] min-w-56 items-center gap-2.5 rounded-full border border-border bg-card py-1 pr-1.5 pl-4 text-left transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
       )}
     >
       {icon ? (
@@ -468,7 +468,7 @@ export function CompactSearchPill({
                 expand(segment.id);
               }}
               className={cn(
-                "min-w-0 flex-1 truncate text-[13px] font-semibold text-[color:var(--ink)]",
+                "min-w-0 flex-1 truncate text-[13px] font-medium text-[color:var(--ink)]",
                 segment.id && "cursor-pointer",
               )}
             >

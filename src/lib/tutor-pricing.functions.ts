@@ -9,7 +9,7 @@ import { TutorPriceChangeEmail } from "./email-templates/tutor-price-change";
 import { getRuntimeEnv } from "./runtime-env";
 
 /**
- * Issue #110 — self-serve pricing edits, admin safety-guardrail half. The
+ * Issue #110, self-serve pricing edits, admin safety-guardrail half. The
  * tutor dashboard already writes hourly_rate/pricing_tiers directly
  * (my-tutor-profile-section.tsx, via the tutors_owner_update RLS policy).
  * After a successful save the dashboard calls notifyTutorPriceChange with the
@@ -49,7 +49,7 @@ const priceChangeInputSchema = z
       data.hourlyRate !== data.previousHourlyRate ||
       JSON.stringify(sortTiers(data.pricingTiers)) !==
         JSON.stringify(sortTiers(data.previousPricingTiers)),
-    { message: "Pricing is unchanged — nothing to report." },
+    { message: "Pricing is unchanged, nothing to report." },
   );
 
 export const notifyTutorPriceChange = createServerFn({ method: "POST" })
@@ -84,7 +84,7 @@ export const notifyTutorPriceChange = createServerFn({ method: "POST" })
     });
     const html = await render(element);
     const text = [
-      `Tutor pricing updated — ${data.displayName || data.tutorCode}`,
+      `Tutor pricing updated, ${data.displayName || data.tutorCode}`,
       "",
       "Previous:",
       `Flat rate: HK$${data.previousHourlyRate}/hr`,
@@ -105,7 +105,7 @@ export const notifyTutorPriceChange = createServerFn({ method: "POST" })
       const { error: sendError } = await new Resend(apiKey).emails.send({
         from: FROM,
         to: RECIPIENT,
-        subject: `Tutor pricing updated — ${data.displayName || data.tutorCode}`,
+        subject: `Tutor pricing updated, ${data.displayName || data.tutorCode}`,
         html,
         text,
       });

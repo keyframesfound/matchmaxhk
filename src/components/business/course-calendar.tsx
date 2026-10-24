@@ -144,7 +144,7 @@ export function CourseCalendar({ courses }: { courses: CalendarCourse[] }) {
     <div>
       {scheduledCount === 0 ? (
         <p className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
-          This business hasn't scheduled recurring class days yet — check each course for schedule
+          This business hasn't scheduled recurring class days yet, check each course for schedule
           details.
         </p>
       ) : (
@@ -167,7 +167,7 @@ export function CourseCalendar({ courses }: { courses: CalendarCourse[] }) {
               >
                 <ChevronRight className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <h3 className="ml-1 text-base font-bold tracking-tight text-[color:var(--ink)]">
+              <h3 className="ml-1 text-base font-medium tracking-tight text-[color:var(--ink)]">
                 {headerLabel}
               </h3>
             </div>
@@ -248,13 +248,13 @@ export function CourseCalendar({ courses }: { courses: CalendarCourse[] }) {
                                 className={cn("size-1.5 shrink-0", TONE_ACCENT[event.tone])}
                                 aria-hidden="true"
                               />
-                              <span className="truncate text-[10px] text-foreground/90">
+                              <span className="truncate text-[11px] text-foreground/90">
                                 {event.title}
                               </span>
                             </span>
                           ))}
                           {events.length > 2 && (
-                            <span className="pl-3 text-[10px] font-medium text-muted-foreground">
+                            <span className="pl-3 text-[11px] font-medium text-muted-foreground">
                               +{events.length - 2} more
                             </span>
                           )}
@@ -286,7 +286,7 @@ export function CourseCalendar({ courses }: { courses: CalendarCourse[] }) {
                   >
                     <span
                       className={cn(
-                        "flex size-7 items-center justify-center self-start rounded-md text-sm font-semibold",
+                        "flex size-7 items-center justify-center self-start rounded-md text-sm font-medium",
                         todayCell
                           ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
                           : "text-[color:var(--ink)]",
@@ -306,7 +306,7 @@ export function CourseCalendar({ courses }: { courses: CalendarCourse[] }) {
                           />
                           <div className="min-w-0 py-1 pr-1.5">
                             <p className="truncate text-xs font-medium">{event.title}</p>
-                            <p className="text-[10px] text-muted-foreground">{event.meta}</p>
+                            <p className="text-[11px] text-muted-foreground">{event.meta}</p>
                           </div>
                         </div>
                       ))}
@@ -332,8 +332,8 @@ export function CourseCalendar({ courses }: { courses: CalendarCourse[] }) {
 
           <div className="flex items-center gap-2 pr-8">
             <CalendarDays className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-            <h4 className="text-sm font-bold text-[color:var(--ink)]">{selectedLabel}</h4>
-            <Badge variant="secondary" className="text-[10px]">
+            <h4 className="text-sm font-medium text-[color:var(--ink)]">{selectedLabel}</h4>
+            <Badge variant="secondary" className="text-[11px]">
               {selectedEvents.length} {selectedEvents.length === 1 ? "class" : "classes"}
             </Badge>
           </div>

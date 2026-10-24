@@ -119,7 +119,7 @@ export function TeamPanel() {
         <p className="text-sm text-muted-foreground">
           {usage?.memberCount ?? members?.length ?? 1} of {usage?.memberLimit ?? 2} seats used
         </p>
-        <Button disabled={atLimit} onClick={() => setInviteOpen(true)} className="font-bold">
+        <Button disabled={atLimit} onClick={() => setInviteOpen(true)} className="font-medium">
           <UserPlus className="mr-2 h-4 w-4" />
           Invite admin
         </Button>
@@ -136,9 +136,9 @@ export function TeamPanel() {
         <table className="w-full text-left text-sm">
           <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
             <tr>
-              <th className="px-4 py-3 font-semibold">Member</th>
-              <th className="px-4 py-3 font-semibold">Role</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
+              <th className="px-4 py-3 font-medium">Member</th>
+              <th className="px-4 py-3 font-medium">Role</th>
+              <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
@@ -173,7 +173,7 @@ export function TeamPanel() {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
                           member.role === "owner"
                             ? "bg-violet-50 text-violet-700 ring-violet-700/10 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-400/20"
                             : "bg-blue-50 text-blue-700 ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-400/20"
@@ -184,7 +184,7 @@ export function TeamPanel() {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
                           member.status === "active"
                             ? "bg-emerald-50 text-emerald-700 ring-emerald-700/10 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-400/20"
                             : "bg-amber-50 text-amber-700 ring-amber-700/10 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-400/20"

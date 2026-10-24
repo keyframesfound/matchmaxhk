@@ -4,14 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
  * Issues #326/#329: client reads behind the `get_public_gigs` SECURITY
  * DEFINER RPC (migration 20261017100000_freestyle_gigs.sql). bought_count
  * lives in material_orders, which is NOT anon-readable, so the count must be
- * computed inside the database — same reason get_home_notes exists for the
+ * computed inside the database, same reason get_home_notes exists for the
  * notes row. The call is tolerant: when the RPC has not been applied yet,
  * PostgREST answers 42P01 (undefined object) or PGRST202 (schema cache miss)
  * and we return an empty list so the home row / directory section simply
  * render nothing instead of erroring (same pattern as home-notes.queries.ts).
  *
  * Rows are already filtered to published gigs of published tutors and sorted
- * bought_count DESC, then created_at DESC inside SQL — do not re-sort.
+ * bought_count DESC, then created_at DESC inside SQL, do not re-sort.
  */
 
 export type PublicGig = {
@@ -29,7 +29,7 @@ export type PublicGig = {
   tutorCode: string;
   tutorDisplayName: string;
   verificationTier: string | null;
-  /** Delivered orders ONLY (#329) — pending/refunded/past-due never count. */
+  /** Delivered orders ONLY (#329), pending/refunded/past-due never count. */
   boughtCount: number;
   createdAt: string;
 };
@@ -100,7 +100,7 @@ const PREVIEWS_BUCKET = "materials-previews";
 
 /**
  * Cover images live in the PUBLIC materials-previews bucket (staff-reviewed
- * at listing review), so a plain public URL is safe — no signing.
+ * at listing review), so a plain public URL is safe, no signing.
  */
 export function publicCoverUrl(path: string | null): string | null {
   if (!path) return null;
