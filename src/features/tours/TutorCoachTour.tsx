@@ -1,7 +1,8 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useGateOverlayPending } from "@/features/auth/gate-overlay";
 import "driver.js/dist/driver.css";
 import {
   TOUR_STORAGE_KEYS,
@@ -11,20 +12,45 @@ import {
   tourStep,
   visibleTourElement,
 } from "./coach-tours";
+import { consumeTourRequest, TOUR_REQUEST_EVENT } from "./tour-requests";
 
 /**
  * Issue #397 tutor tour. Fires exactly once when a tutor lands on the
  * dashboard with their profile approved AND published (`enabled`) — never on
  * a merely submitted application. Steps whose target is missing or hidden
  * (ghost elements) are skipped by `tourStep`.
+ *
+ * While a blocking gate dialog (onboarding/TOS) is up — or its check is
+ * still in flight — the tour holds off, so it starts only after the user has
+ * accepted the Terms instead of stacking on the dialog. A replay request from
+ * the header menu (`requestTour`) re-launches it on demand, bypassing the
+ * once-only flag.
  */
 export function TutorCoachTour({ enabled }: { enabled: boolean }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const gatePending = useGateOverlayPending();
   const startedRef = useRef(false);
+  const [requestSeq, setRequestSeq] = useState(0);
+
+  // Header menu can (re)launch the tour while this component is mounted.
+  useEffect(() => {
+    const onRequest = (event: Event) => {
+      if ((event as CustomEvent<string>).detail === TOUR_STORAGE_KEYS.tutor) {
+        setRequestSeq((seq) => seq + 1);
+      }
+    };
+    window.addEventListener(TOUR_REQUEST_EVENT, onRequest);
+    return () => window.removeEventListener(TOUR_REQUEST_EVENT, onRequest);
+  }, []);
 
   useEffect(() => {
-    if (!enabled || startedRef.current || hasSeenTour(TOUR_STORAGE_KEYS.tutor)) return;
+    const manual = consumeTourRequest(TOUR_STORAGE_KEYS.tutor);
+    if (!manual) {
+      if (!enabled || gatePending || startedRef.current || hasSeenTour(TOUR_STORAGE_KEYS.tutor)) {
+        return;
+      }
+    }
     startedRef.current = true;
 
     let cancelled = false;
@@ -75,7 +101,7 @@ export function TutorCoachTour({ enabled }: { enabled: boolean }) {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [enabled, navigate, t]);
+  }, [enabled, gatePending, requestSeq, navigate, t]);
 
   return null;
 }

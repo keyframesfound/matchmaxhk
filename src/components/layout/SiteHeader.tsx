@@ -1,8 +1,9 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Bookmark,
   Building2,
   CircleHelp,
+  Compass,
   Globe,
   Menu,
   Moon,
@@ -33,6 +34,7 @@ import { BellMenu } from "@/components/layout/bell-menu";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
+import { requestTour, TOUR_STORAGE_KEYS } from "@/features/tours/tour-requests";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 
@@ -140,7 +142,8 @@ export function SiteHeader({
   centerSlot?: React.ReactNode;
 }) {
   const { t, i18n } = useTranslation();
-  const { user, signOut, hasAnyRole } = useAuth();
+  const { user, signOut, hasAnyRole, hasRole } = useAuth();
+  const navigate = useNavigate();
   const { membership } = useMyOrganization();
   const hasOrg = !!membership;
   const { theme, setTheme } = useTheme();
@@ -339,6 +342,21 @@ export function SiteHeader({
                         {t("nav.settings")}
                       </Link>
                     </DropdownMenuItem>
+                    {/* Launch/replay the tutor dashboard tour from any page. */}
+                    {hasRole("tutor") && (
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          requestTour(TOUR_STORAGE_KEYS.tutor);
+                          void navigate({ to: "/dashboard", hash: "my-tutor" });
+                        }}
+                        className={menuLinkClassName}
+                      >
+                        <MenuIcon>
+                          <Compass className="size-5" />
+                        </MenuIcon>
+                        {t("nav.dashboard_tour")}
+                      </DropdownMenuItem>
+                    )}
                     {isAdmin && (
                       <DropdownMenuItem asChild className={menuLinkClassName}>
                         <Link to="/admin">

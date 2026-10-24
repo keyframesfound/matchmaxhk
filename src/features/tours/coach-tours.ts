@@ -1,4 +1,8 @@
-import { driver, type DriveStep } from "driver.js";
+import { driver, type Driver, type DriveStep } from "driver.js";
+
+import { TOUR_STORAGE_KEYS } from "./tour-requests";
+
+export { TOUR_STORAGE_KEYS };
 
 /**
  * Issue #397: post-signup coach-mark tours (tutors & parents).
@@ -7,11 +11,6 @@ import { driver, type DriveStep } from "driver.js";
  * custom overlay engine). Persistence is localStorage — per-browser,
  * no migration (the issue explicitly allows either).
  */
-
-export const TOUR_STORAGE_KEYS = {
-  tutor: "matchmax.tour.tutor.v1",
-  parent: "matchmax.tour.parent.v1",
-} as const;
 
 /** Unseen state must never brick a page when storage is unavailable. */
 export function hasSeenTour(key: string): boolean {
@@ -51,6 +50,9 @@ export type CoachTourTexts = {
   skip: string;
 };
 
+/** The one tour currently on screen, so a re-launch replaces it cleanly. */
+let activeDriver: Driver | null = null;
+
 /**
  * Run a tour over pre-resolved steps. Finishing, skipping (close button) or
  * clicking the overlay all destroy the driver → `onDismissed` marks the flag.
@@ -60,6 +62,9 @@ export function runCoachTour(
   texts: CoachTourTexts,
   onDismissed: () => void,
 ): void {
+  // Re-launch (e.g. header-menu replay) while a tour is open: replace it —
+  // destroy() fires onDestroyed, which clears the pointer and marks seen.
+  activeDriver?.destroy();
   if (steps.length === 0) {
     onDismissed();
     return;
@@ -76,8 +81,12 @@ export function runCoachTour(
     prevBtnText: texts.back,
     doneBtnText: texts.done,
     closeBtnLabel: texts.skip,
-    onDestroyed: () => onDismissed(),
+    onDestroyed: () => {
+      if (activeDriver === driverObj) activeDriver = null;
+      onDismissed();
+    },
   });
+  activeDriver = driverObj;
   driverObj.drive();
 }
 
