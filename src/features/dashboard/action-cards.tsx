@@ -28,6 +28,8 @@ type CardSpec = {
   primaryPost?: boolean;
   secondaryTo?: string;
   secondaryLabelKey?: string;
+  /** data-tour anchor for the coach-mark tours (issue #397). */
+  tourId?: string;
 };
 
 /** Tutor dashboard cards (issue #147 content spec). */
@@ -42,6 +44,7 @@ const TUTOR_ACTION_CARDS: CardSpec[] = [
     primaryLabelKey: "dashboard.actions.tutor_verify_primary",
     secondaryTo: "/guide",
     secondaryLabelKey: "dashboard.actions.tutor_verify_secondary",
+    tourId: "tutor-verification",
   },
   {
     icon: ClipboardList,
@@ -53,6 +56,7 @@ const TUTOR_ACTION_CARDS: CardSpec[] = [
     primaryLabelKey: "dashboard.actions.tutor_cases_primary",
     secondaryTo: "/tutor-requests",
     secondaryLabelKey: "dashboard.actions.tutor_cases_secondary",
+    tourId: "tutor-cases",
   },
   {
     icon: Compass,
@@ -153,6 +157,7 @@ export function SuggestedActionsSection({ isTutor }: { isTutor: boolean }) {
             primarySearch={card.primaryPost ? { post: true } : undefined}
             secondaryTo={card.secondaryTo}
             secondaryLabelKey={card.secondaryLabelKey}
+            dataTour={card.tourId}
           />
         ))}
       </SuggestedActionGrid>

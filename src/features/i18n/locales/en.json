@@ -1236,7 +1236,7 @@
     "t1_by": "Mrs. Chan, Kowloon Tong",
     "t2": "Clear tutor profiles and easy communication — no hard selling at all.",
     "t2_by": "Mr. Lam, Sha Tin",
-    "t3": "The match was spot on — we hired the first tutor we contacted.",
+    "t3": "The match was spot on — we went with the first tutor we contacted.",
     "t3_by": "Mrs. Wong, Central"
   },
   "feedback": {
@@ -1678,5 +1678,37 @@
     "case_status_closed": "Closed",
     "case_status_rejected": "Rejected",
     "case_status_other": "In review"
+  },
+  "tour": {
+    "next": "Next",
+    "back": "Back",
+    "done": "Done",
+    "skip": "Skip tour",
+    "tutor": {
+      "preview_title": "This is how parents see you",
+      "preview_body": "Your public tutor card. Your phone number and email are always hidden — parents reach you through MatchMax first.",
+      "rates_title": "Set your rates here",
+      "rates_body": "Update your subjects, bio, and your 1-on-1 or small-group rates. Parents only see the rates you publish.",
+      "verification_title": "Earn the Blue Tick",
+      "verification_body": "Submit your transcripts to earn the Blue Tick verification badge. Unverified tutors must show proof before the first lesson.",
+      "shop_title": "Sell study materials",
+      "shop_body": "Upload study notes, video courses, or services here. Parents buy them directly and you keep 80%.",
+      "cases_title": "Browse open cases",
+      "cases_body": "Browse open student requests and claim the cases that fit your schedule.",
+      "final_title": "You're all set!",
+      "final_body": "Check your WhatsApp for new case introductions from our concierge team."
+    },
+    "parent": {
+      "search_title": "Filter your search",
+      "search_body": "Filter tutors by curriculum (IB/DSE), subject, or MTR district.",
+      "card_title": "Open a full profile",
+      "card_body": "Click any card to see full academic scores, group class rates, and verified experience.",
+      "save_title": "Save favourites",
+      "save_body": "Save your favourite tutors to compare them later.",
+      "shop_title": "Visit the Shop",
+      "shop_body": "Switch to the Study Materials tab to instantly buy study notes, video courses, and past paper reviews.",
+      "concierge_title": "Need a hand?",
+      "concierge_body": "Found a match or need help deciding? Post a request and our team will coordinate the introduction — free for parents."
+    }
   }
 }

@@ -11,6 +11,7 @@ import { type ReactNode, useEffect } from "react";
 import appCss from "../styles.css?url";
 import { I18nProvider } from "@/features/i18n/I18nProvider";
 import { ProfileLocaleSync } from "@/features/i18n/ProfileLocaleSync";
+import { currentSeoLocale, localizedMeta, ogLocaleMeta } from "@/features/i18n/seo";
 import { AuthProvider } from "@/features/auth/useAuth";
 import { OnboardingGate } from "@/features/auth/OnboardingGate";
 import { CommunityCommitmentGate } from "@/features/auth/CommunityCommitmentGate";
@@ -83,68 +84,73 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "MatchMax | Verified Tutors in Hong Kong" },
-      {
-        name: "description",
-        content:
-          "MatchMax helps Hong Kong families find verified tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching.",
-      },
-      { name: "author", content: "MatchMax" },
-      { property: "og:site_name", content: "MatchMax" },
-      { property: "og:title", content: "MatchMax | Verified Tutors in Hong Kong" },
-      {
-        property: "og:description",
-        content:
-          "MatchMax helps Hong Kong families find verified tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://matchmax.hk" },
-      { property: "og:image", content: "https://matchmax.hk/matchmax-logo.png" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://matchmax.hk/matchmax-logo.png" },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
-      { rel: "shortcut icon", href: "/favicon.ico" },
-      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
-      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
-      { rel: "manifest", href: "/site.webmanifest" },
-    ],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "MatchMax",
-          url: "https://matchmax.hk",
-          logo: "https://matchmax.hk/matchmax-logo.png",
-          description:
-            "Hong Kong tutoring marketplace matching parents and students with verified DSE, IB, IGCSE, and AP tutors.",
-        }),
-      },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          name: "MatchMax",
-          url: "https://matchmax.hk",
-          potentialAction: {
-            "@type": "SearchAction",
-            target: "https://matchmax.hk/tutors?q={search_term_string}",
-            "query-input": "required name=search_term_string",
+  head: () => {
+    // Issue #401: the root fallback title/description follow the active
+    // locale; routes with their own head() override these.
+    const locale = currentSeoLocale();
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        ...localizedMeta(locale, {
+          title: {
+            en: "MatchMax | Verified Tutors in Hong Kong",
+            "zh-HK": "MatchMax | 香港已核實導師平台",
+          },
+          description: {
+            en: "MatchMax helps Hong Kong families find verified tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching.",
+            "zh-HK":
+              "MatchMax 幫香港家庭搵到已核實嘅 IB、DSE、IGCSE、AP、A-Level 等科目導師，配對快而靈活。",
           },
         }),
-      },
-    ],
-  }),
+        { name: "author", content: "MatchMax" },
+        { property: "og:site_name", content: "MatchMax" },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: "https://matchmax.hk" },
+        ...ogLocaleMeta(locale),
+        { property: "og:image", content: "https://matchmax.hk/matchmax-logo.png" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: "https://matchmax.hk/matchmax-logo.png" },
+      ],
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+        { rel: "shortcut icon", href: "/favicon.ico" },
+        { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+        { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+        { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+        { rel: "manifest", href: "/site.webmanifest" },
+      ],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "MatchMax",
+            url: "https://matchmax.hk",
+            logo: "https://matchmax.hk/matchmax-logo.png",
+            description:
+              "Hong Kong tutoring marketplace matching parents and students with verified DSE, IB, IGCSE, and AP tutors.",
+          }),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "MatchMax",
+            url: "https://matchmax.hk",
+            potentialAction: {
+              "@type": "SearchAction",
+              target: "https://matchmax.hk/tutors?q={search_term_string}",
+              "query-input": "required name=search_term_string",
+            },
+          }),
+        },
+      ],
+    };
+  },
 
   shellComponent: RootShell,
   component: RootComponent,

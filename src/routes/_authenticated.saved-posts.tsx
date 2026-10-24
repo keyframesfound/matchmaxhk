@@ -217,7 +217,7 @@ function SavedPostsPage() {
                             </span>
                             <span className="flex items-center gap-1">
                               <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
-                              {formatCaseBudgetHkd(item)}
+                              {formatCaseBudgetHkd(item, { detail: true })}
                             </span>
                           </div>
                         </div>

@@ -111,6 +111,8 @@ type PublicTutorCardProps = {
   shareable?: boolean;
   /** Issue #217: clicking a profile-tag chip searches /tutors?tag=<tag>. */
   tagQuery?: (tag: string) => void;
+  /** data-tour anchor for the coach-mark tours (issue #397). */
+  tourId?: string;
 };
 
 export function PublicTutorCard({
@@ -124,6 +126,7 @@ export function PublicTutorCard({
   onCompareToggle,
   shareable = true,
   tagQuery,
+  tourId,
 }: PublicTutorCardProps) {
   const { t, i18n } = useTranslation();
   const interactive = typeof onOpen === "function";
@@ -239,6 +242,7 @@ export function PublicTutorCard({
 
   return (
     <article
+      data-tour={tourId}
       className={cn(
         "@container relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-[transform,border-color] duration-200 hover:-translate-y-1 hover:border-[color:var(--foreground)]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
         interactive && "cursor-pointer",

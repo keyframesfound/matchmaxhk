@@ -473,7 +473,7 @@ export const COMMISSION_TEXT =
   "I understand that MatchMax will take 100% of the 1st paid lesson and 50% of the 2nd paid lesson as matching fee for each new student";
 
 export const PRIVACY_TEXT =
-  "I consent to MatchMax collecting and using the personal data in this form for tutor recruitment and matching purposes, in accordance with the Personal Data (Privacy) Ordinance (Cap. 486).";
+  "I consent to MatchMax collecting and using the personal data in this form for tutor listing and matching purposes, in accordance with the Personal Data (Privacy) Ordinance (Cap. 486).";
 
 export interface AnswerRow {
   label: string;

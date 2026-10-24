@@ -557,6 +557,7 @@ export function MyTutorProfileSection() {
                 to="/tutors/$tutorCode"
                 params={{ tutorCode: current.tutor_code }}
                 target="_blank"
+                data-tour="tutor-preview"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink)] underline-offset-4 hover:underline"
               >
                 <ExternalLink className="h-4 w-4" aria-hidden="true" />
@@ -753,7 +754,10 @@ export function MyTutorProfileSection() {
           {/* Issue #319: base rates + extra rows + travel/rate notes. At least
               one base rate keeps hourly_rate in sync; with neither set the
               legacy pricing fields are left untouched. */}
-          <div className="space-y-4 rounded-xl border border-[color:var(--ink)]/10 p-4">
+          <div
+            data-tour="tutor-rates"
+            className="space-y-4 rounded-xl border border-[color:var(--ink)]/10 p-4"
+          >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <Label className="text-[color:var(--ink)]">
                 {t("settings.my_tutor.rates_heading")}

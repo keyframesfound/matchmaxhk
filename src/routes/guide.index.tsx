@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
 import {
   ArrowRight,
   BookOpen,
@@ -23,25 +24,27 @@ import {
 import { ContentsRow, GuideHeading, GuidePage, type GuideTab } from "@/features/guide/guide-shell";
 
 export const Route = createFileRoute("/guide/")({
-  head: () => ({
-    meta: [
-      { title: "Guide | MatchMax" },
-      {
-        name: "description",
-        content:
-          "Why MatchMax, how matching works, and what we verify — plus guides for parents, tutors, notes buyers, and referrers.",
-      },
-      { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Guide | MatchMax" },
-      {
-        property: "og:description",
-        content:
-          "Why MatchMax, how matching works, and what we verify — plus guides for parents, tutors, notes buyers, and referrers.",
-      },
-      { property: "og:url", content: "https://matchmax.hk/guide" },
-    ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/guide" }],
-  }),
+  head: () => {
+    const locale = currentSeoLocale();
+    return {
+      meta: [
+        ...localizedMeta(locale, {
+          title: {
+            en: "Guide | MatchMax",
+            "zh-HK": "指南 | MatchMax",
+          },
+          description: {
+            en: "Why MatchMax, how matching works, and what we verify — plus guides for parents, tutors, notes buyers, and referrers.",
+            "zh-HK":
+              "點解揀 MatchMax、配對點運作、我哋核實啲乜——仲有家長、導師、筆記買家同推薦人嘅指南。",
+          },
+        }),
+        { name: "robots", content: "index, follow" },
+        { property: "og:url", content: "https://matchmax.hk/guide" },
+      ],
+      links: [{ rel: "canonical", href: "https://matchmax.hk/guide" }],
+    };
+  },
   component: GuideIndexPage,
 });
 

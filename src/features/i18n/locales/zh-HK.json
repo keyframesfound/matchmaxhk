@@ -434,7 +434,7 @@
     "t1_by": "陳太｜九龍塘",
     "t2": "導師資料清楚，溝通方便，完全冇硬銷，感覺好舒服",
     "t2_by": "林先生｜沙田",
-    "t3": "配對好準，第一位聯絡嘅導師就決定請",
+    "t3": "配對好準，第一位聯絡嘅導師就一拍即合",
     "t3_by": "黃太｜中環"
   },
   "footer": {
@@ -1247,7 +1247,7 @@
     "form_eyebrow": "平台意見",
     "form_title": "評價你嘅 MatchMax 體驗",
     "parent_subtext": "我哋一直努力改善配對服務。請話我哋知我哋嘅行政團隊點樣處理你最近嘅補習請求。",
-    "tutor_subtext": "你嘅意見幫我哋為教育工作者打造更好嘅平台。請話我哋知我哋嘅行政團隊點樣處理你嘅申請同入職流程。",
+    "tutor_subtext": "你嘅意見幫我哋為教育工作者打造更好嘅平台。請話我哋知我哋嘅行政團隊點樣處理你嘅申請同審核流程。",
     "parent_speed_prompt": "我哋團隊搵到合適導師並喺 WhatsApp 聯絡你嘅速度有幾快？",
     "parent_smoothness_prompt": "平台同我哋 WhatsApp 客服之間嘅協調有幾順暢？",
     "parent_service_prompt": "我哋嘅配對客服有幾有禮、專業同樂於助人？",
@@ -1678,5 +1678,37 @@
     "case_status_closed": "已結束",
     "case_status_rejected": "已拒絕",
     "case_status_other": "審核中"
+  },
+  "tour": {
+    "next": "下一步",
+    "back": "上一步",
+    "done": "完成",
+    "skip": "跳過導覽",
+    "tutor": {
+      "preview_title": "家長就係咁樣睇你",
+      "preview_body": "你嘅公開導師卡。你嘅電話同電郵永遠唔會顯示——家長會經 MatchMax 先聯絡你。",
+      "rates_title": "喺呢度設定鐘費",
+      "rates_body": "更新你嘅科目、簡介，同一對一或小組嘅收費。家長只會見到你公開嘅價錢。",
+      "verification_title": "攞藍剔認證",
+      "verification_body": "提交成績表就可以攞藍剔認證徽章。未認證嘅導師喺第一堂之前要先出示證明。",
+      "shop_title": "賣學習材料",
+      "shop_body": "喺呢度上架筆記、影片課程或服務。家長直接購買，你收 80%。",
+      "cases_title": "睇開放個案",
+      "cases_body": "瀏覽家長嘅補習需求，認領啱你時間表嘅個案。",
+      "final_title": "搞掂！",
+      "final_body": "留意你嘅 WhatsApp，我哋配對團隊會介紹新個案畀你。"
+    },
+    "parent": {
+      "search_title": "篩選搜尋",
+      "search_body": "按課程（IB／DSE）、科目或港鐵沿線地區篩選導師。",
+      "card_title": "打開完整檔案",
+      "card_body": "點任何一張卡，睇晒完整學術成績、小組鐘費同已核實嘅經驗。",
+      "save_title": "儲存心水導師",
+      "save_body": "儲存你鍾意嘅導師，之後慢慢比較。",
+      "shop_title": "行下商店",
+      "shop_body": "轉去「Study Materials」分頁，即時購買筆記、影片課程同 past paper 檢討。",
+      "concierge_title": "需要幫手？",
+      "concierge_body": "搵到心水定係想有人幫你揀？提出請求，我哋團隊會為你協調介紹——家長全程免費。"
+    }
   }
 }

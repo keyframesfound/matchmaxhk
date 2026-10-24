@@ -57,9 +57,24 @@ export const CASE_START_LABEL: Record<string, string> = {
   flexible: "Flexible start",
 };
 
-export function formatCaseBudget(min: number | null, max: number | null): string {
-  if (min === null && max === null) return "Budget open";
-  return `HK$${min ?? "?"}–${max ?? "?"}/hr`;
+/**
+ * Issue #423 rate matrix — never render `HK$?`:
+ *   set/set    → HK$300–500/hr (equal bounds collapse to HK$500/hr)
+ *   blank/set  → Up to HK$500/hr
+ *   set/blank  → From HK$300/hr
+ *   blank/blank→ "" (board hides the row) or "Rate TBA" (detail surfaces).
+ */
+export function formatCaseBudget(
+  min: number | null,
+  max: number | null,
+  opts?: { detail?: boolean },
+): string {
+  if (min !== null && max !== null) {
+    return min === max ? `HK$${min}/hr` : `HK$${min}–${max}/hr`;
+  }
+  if (max !== null) return `Up to HK$${max}/hr`;
+  if (min !== null) return `From HK$${min}/hr`;
+  return opts?.detail ? "Rate TBA" : "";
 }
 
 /**
@@ -81,14 +96,17 @@ export function caseBudgetHkdBounds(item: {
 }
 
 /** formatCaseBudget over the HKD-normalized bounds. */
-export function formatCaseBudgetHkd(item: {
-  budgetMin: number | null;
-  budgetMax: number | null;
-  budgetMinHkd: number | null;
-  budgetMaxHkd: number | null;
-}): string {
+export function formatCaseBudgetHkd(
+  item: {
+    budgetMin: number | null;
+    budgetMax: number | null;
+    budgetMinHkd: number | null;
+    budgetMaxHkd: number | null;
+  },
+  opts?: { detail?: boolean },
+): string {
   const { min, max } = caseBudgetHkdBounds(item);
-  return formatCaseBudget(min, max);
+  return formatCaseBudget(min, max, opts);
 }
 
 export function formatCaseSchedule(sessionsPerWeek: number, sessionLengthMinutes: number): string {

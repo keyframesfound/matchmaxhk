@@ -1,6 +1,13 @@
-import { BookOpen, ClipboardList, School, Star, type LucideIcon } from "lucide-react";
+import {
+  BookOpen,
+  ClipboardList,
+  GraduationCap,
+  School,
+  Star,
+  type LucideIcon,
+} from "lucide-react";
 
-import { TUTOR_BACKGROUND_LABELS } from "@/features/cases/case-options";
+import { TUTOR_BACKGROUND_LABELS, TARGET_PATHWAY_LABELS } from "@/features/cases/case-options";
 import type { PublicCaseBoardItem } from "@/lib/cases.functions";
 
 /**
@@ -78,6 +85,23 @@ export function casePills(item: PublicCaseBoardItem): CasePill[] {
       label: item.targetSchool,
       icon: School,
       tone: "background",
+    });
+  }
+
+  // Issue #423: admissions pathway / interview-test pills fold the derived
+  // tag vocabulary (#311) into this single chip system, so dropping the grey
+  // `#` tag row loses no case information.
+  const pathwayLabel = TARGET_PATHWAY_LABELS[item.targetPathway ?? ""];
+  if (pathwayLabel) {
+    pills.push({ key: "pathway", label: pathwayLabel, icon: GraduationCap, tone: "background" });
+  }
+
+  if (item.interviewTest) {
+    pills.push({
+      key: "interview_test",
+      label: item.interviewTest,
+      icon: ClipboardList,
+      tone: "hard",
     });
   }
 

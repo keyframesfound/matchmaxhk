@@ -17,7 +17,6 @@ import {
   ADMISSIONS_CATEGORY_OPTIONS,
   ADMISSIONS_CURRICULUM,
   ADMISSIONS_CURRICULUM_LABEL,
-  CURRICULUM_OPTIONS,
   DELIVERY_MODE_OPTIONS,
   INSTRUCTION_LANGUAGE_OPTIONS,
   INTERVIEW_TEST_OPTIONS,
@@ -28,6 +27,9 @@ import {
   TARGET_PATHWAY_OPTIONS,
   TARGET_SCHOOL_OPTIONS,
   TUTOR_BACKGROUND_OPTIONS,
+  curriculumOptionsForLevel,
+  levelOptionsForCurriculum,
+  tierPairAllowed,
   COMPONENT_SENTINEL,
   getComponentOptionsForCurriculum,
   getSubjectOptionsForCurriculum,
@@ -225,7 +227,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const showMtr = form.deliveryMode !== "" && form.deliveryMode !== "online";
 
   // Curriculum locking: subjects/components only populate for the active
-  // curriculum; changing it instantly resets them to blank.
+  // curriculum; changing it instantly resets them to blank. Issue #423: the
+  // picker is also tier-locked, so a `Primary` case can never carry IBDP
+  // subjects — when the new curriculum contradicts the chosen year, the year
+  // resets instead of letting the mismatch through.
   const handleCurriculumChange = (value: string) => {
     update({
       curriculum: value,
@@ -234,7 +239,25 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       subject3: "",
       subject4: "",
       specificComponent: "",
+      ...(form.year && !tierPairAllowed(form.year, value) ? { year: "" } : {}),
     });
+  };
+
+  // Issue #423: changing the tier drops a curriculum that no longer fits it.
+  const handleYearChange = (value: string) => {
+    if (form.curriculum && !tierPairAllowed(value, form.curriculum)) {
+      update({
+        year: value,
+        curriculum: "",
+        subject1: "",
+        subject2: "",
+        subject3: "",
+        subject4: "",
+        specificComponent: "",
+      });
+      return;
+    }
+    update({ year: value });
   };
 
   // Admissions auto-locks the curriculum to "University Admissions & Test
@@ -615,7 +638,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               <SearchableSelect
                 value={form.curriculum}
                 onChange={handleCurriculumChange}
-                options={CURRICULUM_OPTIONS}
+                options={curriculumOptionsForLevel(form.year)}
                 placeholder="Select curriculum"
                 searchPlaceholder="Search curriculum..."
                 className={controlClassName}
@@ -756,8 +779,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               </label>
               <SearchableSelect
                 value={form.year}
-                onChange={(v) => update({ year: v })}
-                options={LEVEL_OPTIONS}
+                onChange={handleYearChange}
+                options={levelOptionsForCurriculum(form.curriculum)}
                 placeholder="Select year"
                 searchPlaceholder="Search year..."
                 className={controlClassName}

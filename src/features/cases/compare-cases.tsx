@@ -229,7 +229,7 @@ function CaseCompareDialog({
       label: "Budget",
       render: (item) => (
         <p className="text-[13px] font-semibold text-[color:var(--ink)]">
-          {formatCaseBudgetHkd(item)}
+          {formatCaseBudgetHkd(item, { detail: true })}
         </p>
       ),
     },

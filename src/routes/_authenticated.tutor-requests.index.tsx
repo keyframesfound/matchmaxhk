@@ -42,6 +42,7 @@ import {
 } from "@/features/cases/compare-cases";
 import { CASE_MODE_LABEL, formatCaseBudgetHkd, formatCaseSchedule } from "@/features/cases/display";
 import { normalizeProfileTag } from "@/features/tutors/profile-tags";
+import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
 export const Route = createFileRoute("/_authenticated/tutor-requests/")({
@@ -76,28 +77,30 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
     if (search.open === "1" || search.open === "true" || search.open === true) result.open = true;
     return result;
   },
-  head: () => ({
-    meta: [
-      { title: "Tutor Request Board — Post a Request or Apply for Cases | MatchMax" },
-      {
-        name: "description",
-        content:
-          "Browse open tutoring cases posted by parents and students, or submit your requirements free and let qualified tutors apply for your case.",
-      },
-      { name: "robots", content: "index, follow" },
-      {
-        property: "og:title",
-        content: "Tutor Request Board — Post a Request or Apply for Cases | MatchMax",
-      },
-      {
-        property: "og:description",
-        content:
-          "Real tutoring requests from Hong Kong parents. Apply for a case that fits you, or post your own — free for parents.",
-      },
-      { property: "og:url", content: "https://matchmax.hk/tutor-requests" },
-    ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/tutor-requests" }],
-  }),
+  head: () => {
+    const locale = currentSeoLocale();
+    return {
+      meta: [
+        ...localizedMeta(locale, {
+          title: {
+            en: "Tutor Request Board — Post a Request or Apply for Cases | MatchMax",
+            "zh-HK": "補習需求板 — 出價請求或申請個案 | MatchMax",
+          },
+          description: {
+            en: "Browse open tutoring cases posted by parents and students, or submit your requirements free and let qualified tutors apply for your case.",
+            "zh-HK":
+              "瀏覽家長同學生發佈嘅補習個案，或者免費提交你嘅要求，等合資格導師申請你嘅個案。",
+          },
+        }),
+        { name: "robots", content: "index, follow" },
+        {
+          property: "og:url",
+          content: "https://matchmax.hk/tutor-requests",
+        },
+      ],
+      links: [{ rel: "canonical", href: "https://matchmax.hk/tutor-requests" }],
+    };
+  },
   component: TutorRequestsPage,
 });
 
@@ -105,33 +108,9 @@ function rowTitle(item: PublicCaseBoardItem): string {
   return item.subjects.filter(Boolean).slice(0, 2).join(", ") || item.title;
 }
 
-/**
- * Issue #311: tag chips on a board row. Rendered OUTSIDE the row's
- * `<Link>` — a `<button>` nested in a link is invalid HTML and breaks
- * keyboard/SR behavior, so the row renders as a non-link container with
- * the row Link covering the card content and these chips as siblings.
- */
-function CaseRowTags({ tags }: { tags: string[] }) {
-  // Issue #311 review: setting the tag filter keeps the other active
-  // filters (q/category/district) so tag ANDs with the rest of the search.
-  const { q, category, district } = Route.useSearch();
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {tags.map((tag) => (
-        <Link
-          key={tag}
-          to="/tutor-requests"
-          search={{ q, category, district, tag }}
-          aria-label={`Show cases tagged ${tag}`}
-          className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
-        >
-          <Hash className="h-3 w-3 shrink-0" aria-hidden="true" />
-          {tag}
-        </Link>
-      ))}
-    </div>
-  );
-}
+// Issue #423: the grey `#` tag row (#311) is gone — the colored requirement
+// pills (#149, now including pathway/interview-test) are the single chip
+// system on a case row. ?tag= URLs keep filtering via the active-tag chip.
 
 const CASE_SECTION_ORDER = [
   "IB",
@@ -164,9 +143,6 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
   const { pills, overflow } = casePillsForCard(item);
   return (
     <li className="relative">
-      {/* Row container is NOT a link (issue #311 review): the tag chips
-          below must not be nested interactive content. The Link covers the
-          card content; chips are siblings. */}
       <Link
         to="/tutor-requests/$caseCode"
         params={{ caseCode: item.caseCode }}
@@ -191,10 +167,14 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
               <Clock className="h-3.5 w-3.5" aria-hidden="true" />
               {formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes)}
             </span>
-            <span className="flex items-center gap-1">
-              <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
-              {formatCaseBudgetHkd(item)}
-            </span>
+            {/* Issue #423: rate row hidden entirely when no bounds are set —
+                never render `HK$?`. */}
+            {formatCaseBudgetHkd(item) ? (
+              <span className="flex items-center gap-1">
+                <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
+                {formatCaseBudgetHkd(item)}
+              </span>
+            ) : null}
           </div>
           {pills.length > 0 ? (
             <div className="flex flex-wrap items-center gap-1.5">
@@ -219,11 +199,6 @@ function CaseListRow({ item }: { item: PublicCaseBoardItem }) {
           />
         </span>
       </Link>
-      {item.tags.length > 0 ? (
-        <div className="px-4 pb-3.5">
-          <CaseRowTags tags={item.tags} />
-        </div>
-      ) : null}
     </li>
   );
 }

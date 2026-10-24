@@ -2,30 +2,33 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BookOpen, Briefcase, ChevronRight, UserRoundCheck } from "lucide-react";
 
+import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/tutor-playbook")({
-  head: () => ({
-    meta: [
-      { title: "Tutor Playbook: Parent Relations & Etiquette | MatchMax" },
-      {
-        name: "description",
-        content:
-          "The MatchMax Tutor Playbook — real-world scripts and protocols for tutors on parent relations, etiquette, logistics, and admin, from onboarding to locking in a weekly slot.",
-      },
-      { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Tutor Playbook: Parent Relations & Etiquette | MatchMax" },
-      {
-        property: "og:description",
-        content:
-          "Real-world scripts and protocols for MatchMax tutors: win over parents, master logistics, deliver post-lesson value, and coordinate with MatchMax Admin.",
-      },
-      { property: "og:url", content: "https://matchmax.hk/tutor-playbook" },
-    ],
-  }),
+  head: () => {
+    const locale = currentSeoLocale();
+    return {
+      meta: [
+        ...localizedMeta(locale, {
+          title: {
+            en: "Tutor Playbook: Parent Relations & Etiquette | MatchMax",
+            "zh-HK": "導師攻略：家長關係同禮儀 | MatchMax",
+          },
+          description: {
+            en: "The MatchMax Tutor Playbook — real-world scripts and protocols for tutors on parent relations, etiquette, logistics, and admin, from onboarding to locking in a weekly slot.",
+            "zh-HK":
+              "MatchMax 導師攻略——由上手到鎖定每週固定時段，實戰話術同流程指南：家長關係、禮儀、物流同行政。",
+          },
+        }),
+        { name: "robots", content: "index, follow" },
+        { property: "og:url", content: "https://matchmax.hk/tutor-playbook" },
+      ],
+    };
+  },
   component: TutorPlaybookPage,
 });
 
