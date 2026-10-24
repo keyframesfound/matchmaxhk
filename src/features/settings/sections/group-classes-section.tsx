@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import { SearchableSelect, DropdownModalContext } from "@/components/ui/searchable-select";
 import { SettingsCard } from "@/features/settings/option-card";
 import { TEACHING_CURRICULA } from "@/features/tutors/subjects";
 import {
@@ -159,191 +159,196 @@ function CohortFormDialog({
   return (
     <Dialog open={open} onOpenChange={(next) => (next ? undefined : onClose())}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>
-            {t(form.id ? "group_classes.edit_title" : "group_classes.create_title")}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>{t("group_classes.form_title")}</Label>
-            <Input
-              value={form.title}
-              maxLength={120}
-              placeholder={t("group_classes.form_title_placeholder")}
-              onChange={(e) => update({ title: e.target.value })}
-              className={inputClass}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+        {/* In-dialog dropdowns (district list overflows): the Radix dialog
+            scroll-lock must not eat the portaled list's wheel events (same
+            fix as the FiltersDialog). */}
+        <DropdownModalContext.Provider value={true}>
+          <DialogHeader>
+            <DialogTitle>
+              {t(form.id ? "group_classes.edit_title" : "group_classes.create_title")}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label>{t("group_classes.form_curriculum")}</Label>
-              <SearchableSelect
-                value={form.curriculum}
-                onChange={(v) => update({ curriculum: v || "" })}
-                options={TEACHING_CURRICULA.map((c) => ({ value: c.value, label: c.label }))}
-                placeholder={t("group_classes.form_curriculum")}
-                searchPlaceholder={t("group_classes.form_curriculum")}
-                className={inputClass}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("group_classes.form_subject")}</Label>
+              <Label>{t("group_classes.form_title")}</Label>
               <Input
-                value={form.subject}
+                value={form.title}
                 maxLength={120}
-                placeholder={t("group_classes.form_subject")}
-                onChange={(e) => update({ subject: e.target.value })}
+                placeholder={t("group_classes.form_title_placeholder")}
+                onChange={(e) => update({ title: e.target.value })}
                 className={inputClass}
               />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>{t("group_classes.form_student_level")}</Label>
-              <Input
-                value={form.studentLevel}
-                maxLength={80}
-                placeholder={t("group_classes.form_student_level_placeholder")}
-                onChange={(e) => update({ studentLevel: e.target.value })}
-                className={inputClass}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("group_classes.form_schedule")}</Label>
-              <Input
-                value={form.weeklySchedule}
-                maxLength={120}
-                placeholder={t("group_classes.form_schedule_placeholder")}
-                onChange={(e) => update({ weeklySchedule: e.target.value })}
-                className={inputClass}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>{t("group_classes.form_mode")}</Label>
-              <SearchableSelect
-                value={form.mode}
-                onChange={(v) => update({ mode: v === "in_person" ? "in_person" : "online" })}
-                options={[
-                  { value: "online", label: t("group_classes.mode_online") },
-                  { value: "in_person", label: t("group_classes.mode_in_person") },
-                ]}
-                placeholder={t("group_classes.form_mode")}
-                searchPlaceholder={t("group_classes.form_mode")}
-                className={inputClass}
-              />
-            </div>
-            {form.mode === "in_person" ? (
-              <div className="space-y-2">
-                <Label>{t("group_classes.form_district")}</Label>
-                <Input
-                  value={form.district}
-                  maxLength={80}
-                  placeholder={t("group_classes.form_district")}
-                  onChange={(e) => update({ district: e.target.value })}
-                  className={inputClass}
-                />
-              </div>
-            ) : null}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>{t("group_classes.form_rate")}</Label>
-              <Input
-                type="number"
-                inputMode="numeric"
-                min={RATE_MIN}
-                max={RATE_MAX}
-                value={form.perStudentRateHkd}
-                placeholder={t("group_classes.form_rate_placeholder")}
-                onChange={(e) =>
-                  update({ perStudentRateHkd: e.target.value.replace(/[^\d]/g, "").slice(0, 4) })
-                }
-                className={inputClass}
-              />
-              <p className="text-xs text-muted-foreground">{t("group_classes.form_rate_hint")}</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>{t("group_classes.form_min_seats")}</Label>
+                <Label>{t("group_classes.form_curriculum")}</Label>
                 <SearchableSelect
-                  value={form.minSeats}
-                  onChange={(v) => update({ minSeats: v || "1" })}
-                  options={Array.from({ length: COHORT_MAX_SEATS }, (_, i) => i + 1).map((n) => ({
-                    value: String(n),
-                    label: String(n),
-                  }))}
+                  value={form.curriculum}
+                  onChange={(v) => update({ curriculum: v || "" })}
+                  options={TEACHING_CURRICULA.map((c) => ({ value: c.value, label: c.label }))}
+                  placeholder={t("group_classes.form_curriculum")}
+                  searchPlaceholder={t("group_classes.form_curriculum")}
                   className={inputClass}
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t("group_classes.form_max_seats")}</Label>
-                <SearchableSelect
-                  value={form.maxSeats}
-                  onChange={(v) => update({ maxSeats: v || String(COHORT_MIN_SEATS) })}
-                  options={SEAT_OPTIONS}
+                <Label>{t("group_classes.form_subject")}</Label>
+                <Input
+                  value={form.subject}
+                  maxLength={120}
+                  placeholder={t("group_classes.form_subject")}
+                  onChange={(e) => update({ subject: e.target.value })}
                   className={inputClass}
                 />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>{t("group_classes.form_student_level")}</Label>
+                <Input
+                  value={form.studentLevel}
+                  maxLength={80}
+                  placeholder={t("group_classes.form_student_level_placeholder")}
+                  onChange={(e) => update({ studentLevel: e.target.value })}
+                  className={inputClass}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("group_classes.form_schedule")}</Label>
+                <Input
+                  value={form.weeklySchedule}
+                  maxLength={120}
+                  placeholder={t("group_classes.form_schedule_placeholder")}
+                  onChange={(e) => update({ weeklySchedule: e.target.value })}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>{t("group_classes.form_mode")}</Label>
+                <SearchableSelect
+                  value={form.mode}
+                  onChange={(v) => update({ mode: v === "in_person" ? "in_person" : "online" })}
+                  options={[
+                    { value: "online", label: t("group_classes.mode_online") },
+                    { value: "in_person", label: t("group_classes.mode_in_person") },
+                  ]}
+                  placeholder={t("group_classes.form_mode")}
+                  searchPlaceholder={t("group_classes.form_mode")}
+                  className={inputClass}
+                />
+              </div>
+              {form.mode === "in_person" ? (
+                <div className="space-y-2">
+                  <Label>{t("group_classes.form_district")}</Label>
+                  <Input
+                    value={form.district}
+                    maxLength={80}
+                    placeholder={t("group_classes.form_district")}
+                    onChange={(e) => update({ district: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+              ) : null}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>{t("group_classes.form_rate")}</Label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={RATE_MIN}
+                  max={RATE_MAX}
+                  value={form.perStudentRateHkd}
+                  placeholder={t("group_classes.form_rate_placeholder")}
+                  onChange={(e) =>
+                    update({ perStudentRateHkd: e.target.value.replace(/[^\d]/g, "").slice(0, 4) })
+                  }
+                  className={inputClass}
+                />
+                <p className="text-xs text-muted-foreground">{t("group_classes.form_rate_hint")}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>{t("group_classes.form_min_seats")}</Label>
+                  <SearchableSelect
+                    value={form.minSeats}
+                    onChange={(v) => update({ minSeats: v || "1" })}
+                    options={Array.from({ length: COHORT_MAX_SEATS }, (_, i) => i + 1).map((n) => ({
+                      value: String(n),
+                      label: String(n),
+                    }))}
+                    className={inputClass}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("group_classes.form_max_seats")}</Label>
+                  <SearchableSelect
+                    value={form.maxSeats}
+                    onChange={(v) => update({ maxSeats: v || String(COHORT_MIN_SEATS) })}
+                    options={SEAT_OPTIONS}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </div>
+            {seats < 0 ? (
+              <p className="text-xs font-semibold text-destructive">
+                {t("group_classes.min_gt_max_error")}
+              </p>
+            ) : null}
+            <div className="space-y-2">
+              <Label>{t("group_classes.form_description")}</Label>
+              <Textarea
+                value={form.description}
+                maxLength={COHORT_DESCRIPTION_MAX}
+                rows={3}
+                placeholder={t("group_classes.form_description_placeholder")}
+                onChange={(e) => update({ description: e.target.value })}
+                className={inputClass}
+              />
+              <p className="text-right text-xs text-muted-foreground">
+                {form.description.length}/{COHORT_DESCRIPTION_MAX}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("group_classes.form_status")}</Label>
+              <SearchableSelect
+                value={form.status}
+                onChange={(v) => update({ status: v === "running" ? "running" : "forming" })}
+                options={[
+                  { value: "forming", label: t("group_classes.state_forming") },
+                  { value: "running", label: t("group_classes.state_running") },
+                ]}
+                className={inputClass}
+              />
+              <p className="text-xs text-muted-foreground">{t("group_classes.form_status_hint")}</p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
+                {t("group_classes.cancel")}
+              </Button>
+              <Button
+                type="button"
+                onClick={save}
+                disabled={
+                  saving ||
+                  !form.title.trim() ||
+                  !form.curriculum ||
+                  !form.subject.trim() ||
+                  !form.studentLevel.trim() ||
+                  !form.weeklySchedule.trim() ||
+                  !form.perStudentRateHkd ||
+                  (form.mode === "in_person" && !form.district.trim()) ||
+                  seats < 0
+                }
+              >
+                {t(form.id ? "group_classes.save" : "group_classes.create")}
+              </Button>
+            </div>
           </div>
-          {seats < 0 ? (
-            <p className="text-xs font-semibold text-destructive">
-              {t("group_classes.min_gt_max_error")}
-            </p>
-          ) : null}
-          <div className="space-y-2">
-            <Label>{t("group_classes.form_description")}</Label>
-            <Textarea
-              value={form.description}
-              maxLength={COHORT_DESCRIPTION_MAX}
-              rows={3}
-              placeholder={t("group_classes.form_description_placeholder")}
-              onChange={(e) => update({ description: e.target.value })}
-              className={inputClass}
-            />
-            <p className="text-right text-xs text-muted-foreground">
-              {form.description.length}/{COHORT_DESCRIPTION_MAX}
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label>{t("group_classes.form_status")}</Label>
-            <SearchableSelect
-              value={form.status}
-              onChange={(v) => update({ status: v === "running" ? "running" : "forming" })}
-              options={[
-                { value: "forming", label: t("group_classes.state_forming") },
-                { value: "running", label: t("group_classes.state_running") },
-              ]}
-              className={inputClass}
-            />
-            <p className="text-xs text-muted-foreground">{t("group_classes.form_status_hint")}</p>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
-              {t("group_classes.cancel")}
-            </Button>
-            <Button
-              type="button"
-              onClick={save}
-              disabled={
-                saving ||
-                !form.title.trim() ||
-                !form.curriculum ||
-                !form.subject.trim() ||
-                !form.studentLevel.trim() ||
-                !form.weeklySchedule.trim() ||
-                !form.perStudentRateHkd ||
-                (form.mode === "in_person" && !form.district.trim()) ||
-                seats < 0
-              }
-            >
-              {t(form.id ? "group_classes.save" : "group_classes.create")}
-            </Button>
-          </div>
-        </div>
+        </DropdownModalContext.Provider>
       </DialogContent>
     </Dialog>
   );

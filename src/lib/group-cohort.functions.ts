@@ -443,7 +443,15 @@ export const bookGroupCohort = createServerFn({ method: "POST" })
       .insert(insertRow)
       .select("id,case_code")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) {
+      // The seat-cap trigger (20261024120000) is the race backstop for the
+      // availability check above — a booking that slipped past the pre-flight
+      // surfaces as the same parent-facing error.
+      if (error.message.includes("COHORT_SEAT_CAP_EXCEEDED")) {
+        throw new Error("NOT_ENOUGH_SEATS");
+      }
+      throw new Error(error.message);
+    }
 
     // Same fail-closed matching-fee acceptance as submitCaseRequest: the
     // acceptance write is atomic with the case via compensating delete.

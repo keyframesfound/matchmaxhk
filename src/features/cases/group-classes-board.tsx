@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import { SearchableSelect, DropdownModalContext } from "@/components/ui/searchable-select";
 import { BadgeCheck } from "lucide-react";
 import { useAuth } from "@/features/auth/useAuth";
 import {
@@ -192,165 +192,169 @@ function BookingDialog({ cohort, onClose }: { cohort: GroupCohortView; onClose: 
   return (
     <Dialog open onOpenChange={(next) => (next ? undefined : onClose())}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{t("group_classes.booking_title")}</DialogTitle>
-        </DialogHeader>
-        {bookedCode ? (
-          <div className="space-y-4">
-            <p className="text-sm text-[color:var(--ink)]">
-              {t("group_classes.booked_body", { code: bookedCode })}
-            </p>
-            <p className="text-sm text-muted-foreground">{t("group_classes.booked_next")}</p>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onClose}>
-                {t("group_classes.close")}
-              </Button>
-              <Button type="button" asChild>
-                <Link to="/account/cases">{t("group_classes.view_cases")}</Link>
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="rounded-sm border border-border p-3">
-              <p className="text-sm font-bold text-[color:var(--ink)]">{cohort.title}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {cohort.curriculum} · {cohort.subject} · {cohort.weeklySchedule} ·{" "}
-                {cohort.mode === "online"
-                  ? t("group_classes.mode_online")
-                  : `${t("group_classes.mode_in_person")} · ${cohort.district ?? ""}`}
+        {/* In-dialog dropdown: the Radix dialog scroll-lock must not eat the
+            portaled list's wheel events (same fix as the FiltersDialog). */}
+        <DropdownModalContext.Provider value={true}>
+          <DialogHeader>
+            <DialogTitle>{t("group_classes.booking_title")}</DialogTitle>
+          </DialogHeader>
+          {bookedCode ? (
+            <div className="space-y-4">
+              <p className="text-sm text-[color:var(--ink)]">
+                {t("group_classes.booked_body", { code: bookedCode })}
               </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>{t("group_classes.form_seats")}</Label>
-                <SearchableSelect
-                  value={seats}
-                  onChange={(v) => setSeatCount(v || "1")}
-                  options={Array.from({ length: cohort.seatsLeft }, (_, i) => i + 1).map((n) => ({
-                    value: String(n),
-                    label: String(n),
-                  }))}
-                  className={inputClass}
-                />
+              <p className="text-sm text-muted-foreground">{t("group_classes.booked_next")}</p>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={onClose}>
+                  {t("group_classes.close")}
+                </Button>
+                <Button type="button" asChild>
+                  <Link to="/account/cases">{t("group_classes.view_cases")}</Link>
+                </Button>
               </div>
-              <div className="space-y-2 self-end">
-                <p className="text-xs text-muted-foreground">
-                  {t("group_classes.seats_left", { left: cohort.seatsLeft })}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-sm border border-border p-3">
+                <p className="text-sm font-bold text-[color:var(--ink)]">{cohort.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {cohort.curriculum} · {cohort.subject} · {cohort.weeklySchedule} ·{" "}
+                  {cohort.mode === "online"
+                    ? t("group_classes.mode_online")
+                    : `${t("group_classes.mode_in_person")} · ${cohort.district ?? ""}`}
                 </p>
               </div>
-            </div>
 
-            {students.map((student, index) => (
-              <div key={index} className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>{t("group_classes.form_student_name", { index: index + 1 })}</Label>
+                  <Label>{t("group_classes.form_seats")}</Label>
+                  <SearchableSelect
+                    value={seats}
+                    onChange={(v) => setSeatCount(v || "1")}
+                    options={Array.from({ length: cohort.seatsLeft }, (_, i) => i + 1).map((n) => ({
+                      value: String(n),
+                      label: String(n),
+                    }))}
+                    className={inputClass}
+                  />
+                </div>
+                <div className="space-y-2 self-end">
+                  <p className="text-xs text-muted-foreground">
+                    {t("group_classes.seats_left", { left: cohort.seatsLeft })}
+                  </p>
+                </div>
+              </div>
+
+              {students.map((student, index) => (
+                <div key={index} className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>{t("group_classes.form_student_name", { index: index + 1 })}</Label>
+                    <Input
+                      value={student.firstName}
+                      maxLength={40}
+                      placeholder={t("group_classes.form_student_name_placeholder")}
+                      onChange={(e) => updateStudent(index, { firstName: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("group_classes.form_student_grade", { index: index + 1 })}</Label>
+                    <Input
+                      value={student.grade}
+                      maxLength={40}
+                      placeholder={t("group_classes.form_student_grade_placeholder")}
+                      onChange={(e) => updateStudent(index, { grade: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              ))}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>{t("group_classes.form_contact_name")}</Label>
                   <Input
-                    value={student.firstName}
-                    maxLength={40}
-                    placeholder={t("group_classes.form_student_name_placeholder")}
-                    onChange={(e) => updateStudent(index, { firstName: e.target.value })}
+                    value={contactName}
+                    maxLength={80}
+                    onChange={(e) => setContactName(e.target.value)}
                     className={inputClass}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("group_classes.form_student_grade", { index: index + 1 })}</Label>
+                  <Label>{t("group_classes.form_contact_phone")}</Label>
                   <Input
-                    value={student.grade}
+                    value={contactPhone}
+                    inputMode="tel"
                     maxLength={40}
-                    placeholder={t("group_classes.form_student_grade_placeholder")}
-                    onChange={(e) => updateStudent(index, { grade: e.target.value })}
+                    onChange={(e) => setContactPhone(e.target.value)}
                     className={inputClass}
                   />
                 </div>
               </div>
-            ))}
 
-            <div className="grid grid-cols-2 gap-3">
+              <label className="flex items-center gap-2 text-sm text-[color:var(--ink)]">
+                <Checkbox checked={whatsappOk} onCheckedChange={(v) => setWhatsappOk(v === true)} />
+                {t("group_classes.form_whatsapp_ok")}
+              </label>
+
               <div className="space-y-2">
-                <Label>{t("group_classes.form_contact_name")}</Label>
-                <Input
-                  value={contactName}
-                  maxLength={80}
-                  onChange={(e) => setContactName(e.target.value)}
+                <Label>{t("group_classes.form_notes")}</Label>
+                <Textarea
+                  value={notes}
+                  maxLength={500}
+                  rows={2}
+                  placeholder={t("group_classes.form_notes_placeholder")}
+                  onChange={(e) => setNotes(e.target.value)}
                   className={inputClass}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>{t("group_classes.form_contact_phone")}</Label>
-                <Input
-                  value={contactPhone}
-                  inputMode="tel"
-                  maxLength={40}
-                  onChange={(e) => setContactPhone(e.target.value)}
-                  className={inputClass}
+
+              {/* #391 fee preview — same math the desk invoices with. */}
+              <div className="rounded-sm border border-border p-3 text-xs text-muted-foreground">
+                <p className="font-semibold text-[color:var(--ink)]">
+                  {t("group_classes.fee_preview_title")}
+                </p>
+                <p className="mt-1">
+                  {t("group_classes.fee_preview_total", {
+                    total: adminFee,
+                    rate: cohort.perStudentRateHkd,
+                    seats: seatCount,
+                  })}
+                </p>
+                <p>{t("group_classes.fee_preview_split", { lesson1, lesson2 })}</p>
+                <p className="mt-1">{t("group_classes.fee_preview_note")}</p>
+              </div>
+
+              <label className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+                <Checkbox
+                  className="mt-0.5"
+                  checked={termsAck}
+                  onCheckedChange={(v) => setTermsAck(v === true)}
                 />
+                <span>{t("group_classes.terms_ack")}</span>
+              </label>
+              <label className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+                <Checkbox
+                  className="mt-0.5"
+                  checked={feeAck}
+                  onCheckedChange={(v) => setFeeAck(v === true)}
+                />
+                <span>{t("group_classes.fee_ack")}</span>
+              </label>
+
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
+                  {t("group_classes.cancel")}
+                </Button>
+                <Button type="button" onClick={submit} disabled={!canSubmit}>
+                  {submitting
+                    ? t("group_classes.booking")
+                    : t("group_classes.book_confirm", { seats: seatCount })}
+                </Button>
               </div>
             </div>
-
-            <label className="flex items-center gap-2 text-sm text-[color:var(--ink)]">
-              <Checkbox checked={whatsappOk} onCheckedChange={(v) => setWhatsappOk(v === true)} />
-              {t("group_classes.form_whatsapp_ok")}
-            </label>
-
-            <div className="space-y-2">
-              <Label>{t("group_classes.form_notes")}</Label>
-              <Textarea
-                value={notes}
-                maxLength={500}
-                rows={2}
-                placeholder={t("group_classes.form_notes_placeholder")}
-                onChange={(e) => setNotes(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-
-            {/* #391 fee preview — same math the desk invoices with. */}
-            <div className="rounded-sm border border-border p-3 text-xs text-muted-foreground">
-              <p className="font-semibold text-[color:var(--ink)]">
-                {t("group_classes.fee_preview_title")}
-              </p>
-              <p className="mt-1">
-                {t("group_classes.fee_preview_total", {
-                  total: adminFee,
-                  rate: cohort.perStudentRateHkd,
-                  seats: seatCount,
-                })}
-              </p>
-              <p>{t("group_classes.fee_preview_split", { lesson1, lesson2 })}</p>
-              <p className="mt-1">{t("group_classes.fee_preview_note")}</p>
-            </div>
-
-            <label className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
-              <Checkbox
-                className="mt-0.5"
-                checked={termsAck}
-                onCheckedChange={(v) => setTermsAck(v === true)}
-              />
-              <span>{t("group_classes.terms_ack")}</span>
-            </label>
-            <label className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
-              <Checkbox
-                className="mt-0.5"
-                checked={feeAck}
-                onCheckedChange={(v) => setFeeAck(v === true)}
-              />
-              <span>{t("group_classes.fee_ack")}</span>
-            </label>
-
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-                {t("group_classes.cancel")}
-              </Button>
-              <Button type="button" onClick={submit} disabled={!canSubmit}>
-                {submitting
-                  ? t("group_classes.booking")
-                  : t("group_classes.book_confirm", { seats: seatCount })}
-              </Button>
-            </div>
-          </div>
-        )}
+          )}
+        </DropdownModalContext.Provider>
       </DialogContent>
     </Dialog>
   );
