@@ -50,6 +50,7 @@ export type SettingsCategory =
   | "profile"
   | "my-tutor"
   | "availability"
+  | "group-classes"
   | "lessons"
   | "materials"
   | "account"
@@ -64,6 +65,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   "profile",
   "my-tutor",
   "availability",
+  "group-classes",
   "lessons",
   "materials",
   "account",

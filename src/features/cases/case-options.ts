@@ -197,6 +197,16 @@ export const STUDENT_COUNT_OPTIONS = [1, 2, 3, 4, 5].map((count) => ({
   label: count === 1 ? "1 student" : `${count} students`,
 }));
 
+/**
+ * Issue #391: class format preference. Values match the
+ * tutoring_cases.class_format_preference CHECK.
+ */
+export const CLASS_FORMAT_OPTIONS = [
+  { value: "one_on_one_only", label: "1-on-1 only" },
+  { value: "open_to_group", label: "Open to small group (lower rate)" },
+  { value: "either", label: "Either" },
+] as const;
+
 export function getComponentOptionsForCurriculum(curriculum: string): string[] {
   return [COMPONENT_SENTINEL, ...(CURRICULUM_COMPONENTS[curriculum] ?? [])];
 }

@@ -24,12 +24,17 @@ import {
   getTutorStatusLabelKey,
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
+import { groupRateFloor } from "@/features/tutors/rates";
 import {
   isParentFavorite,
   selectDemandBadge,
   type EngagementSummary,
 } from "@/features/tutors/engagement";
-import { DemandBadge, ParentFavoriteBadge } from "@/features/tutors/engagement-badges";
+import {
+  DemandBadge,
+  GroupClassBadge,
+  ParentFavoriteBadge,
+} from "@/features/tutors/engagement-badges";
 import { ExperiencePill } from "@/features/tutors/experience-badge";
 import { useFitText } from "@/hooks/use-fit-text";
 import { shareOrCopy } from "@/lib/share";
@@ -177,6 +182,16 @@ export function PublicTutorCard({
   );
   const cardHighlights = useMemo(() => getTutorCardHighlights(tutor), [tutor]);
   const price = useMemo(() => getTutorPriceDisplay(tutor), [tutor]);
+  // Issue #391: cheapest per-student group figure across small-group rate
+  // rows and open cohorts — drives the 👥 badge. Group rates never touch the
+  // 1-on-1 card floor above.
+  const groupRate = useMemo(() => {
+    const fromRows = groupRateFloor(tutor.rate_rows ?? []);
+    const fromCohorts = tutor.group_cohort_rate_hkd ?? null;
+    if (fromRows === null) return fromCohorts;
+    if (fromCohorts === null) return fromRows;
+    return Math.min(fromRows, fromCohorts);
+  }, [tutor]);
   const availabilityReadiness = useMemo(() => getTutorAvailabilityReadiness(tutor), [tutor]);
   const academicChipsRef = useRef<HTMLDivElement | null>(null);
   const academicWidthRef = useRef<number | null>(null);
@@ -412,6 +427,9 @@ export function PublicTutorCard({
                 the status/SEN/Verified badges above). */}
             {demandBadge ? <DemandBadge kind={demandBadge} /> : null}
             {showParentFavorite ? <ParentFavoriteBadge /> : null}
+            {/* Issue #391: group-classes availability pill (rate rows +
+                open cohorts). */}
+            {groupRate !== null ? <GroupClassBadge rate={groupRate} /> : null}
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">

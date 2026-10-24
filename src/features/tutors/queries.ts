@@ -149,13 +149,26 @@ export type Tutor = {
   /** Issue #319: base rates (whole dollars). Card floor = lowest of the two. */
   online_rate: number | null;
   inperson_rate: number | null;
-  rate_rows: { label: string; rate: number }[];
+  rate_rows: {
+    label: string;
+    rate: number;
+    /** #391: optional per-row class mode + 300-char expandable description. */
+    mode?: string;
+    description?: string;
+  }[];
   travel_note: string | null;
   rate_note: string | null;
   /** Issue #112: native pricing currency + HKD-normalized rate snapshots. */
   currency: string | null;
   min_hourly_rate_hkd: number | null;
   max_hourly_rate_hkd: number | null;
+  /**
+   * #391: cheapest per-student rate across the tutor's open (non-closed)
+   * group cohorts, batched onto list/profile fetches; null when the tutor
+   * runs none. The card badge takes the min of this and the small-group
+   * rate rows.
+   */
+  group_cohort_rate_hkd?: number | null;
   photo_url: string | null;
   tutor_code: string;
   is_published: boolean;
@@ -397,12 +410,33 @@ function normalize(
     rate_rows: Array.isArray(row.rate_rows)
       ? (row.rate_rows as unknown[])
           .map((entry) => {
-            const record = entry as { label?: unknown; rate?: unknown } | null;
-            const label = typeof record?.label === "string" ? record.label.trim() : "";
-            const rate = typeof record?.rate === "number" ? record.rate : Number.NaN;
-            return label && Number.isFinite(rate) ? { label, rate } : null;
+            const record = entry as {
+              label?: unknown;
+              rate?: unknown;
+              mode?: unknown;
+              description?: unknown;
+            } | null;
+            if (!record) return null;
+            const label = typeof record.label === "string" ? record.label.trim() : "";
+            const rate = typeof record.rate === "number" ? record.rate : Number.NaN;
+            if (!label || !Number.isFinite(rate)) return null;
+            // #391: mode/description ride along when present (contact
+            // filtering happened at save time in normalizeTutorRateRows).
+            return {
+              label,
+              rate,
+              ...(typeof record.mode === "string" && record.mode ? { mode: record.mode } : {}),
+              ...(typeof record.description === "string" && record.description
+                ? { description: record.description }
+                : {}),
+            };
           })
-          .filter((entry): entry is { label: string; rate: number } => entry !== null)
+          .filter(
+            (
+              entry,
+            ): entry is { label: string; rate: number; mode?: string; description?: string } =>
+              entry !== null,
+          )
       : [],
     travel_note: typeof row.travel_note === "string" ? row.travel_note : null,
     rate_note: typeof row.rate_note === "string" ? row.rate_note : null,
@@ -481,6 +515,45 @@ export function getTutorGenderLabel(gender: string | null | undefined): string {
   return "";
 }
 
+/**
+ * #391: cheapest per-student rate per tutor across open (forming/running)
+ * group cohorts, in one batched query. Best-effort enrichment — a missing
+ * table (pre-migration tab) or RLS hiccup degrades to no enrichment, never
+ * an error, matching the availability-columns tolerance pattern.
+ */
+async function attachGroupCohortRates(tutors: Tutor[]): Promise<Tutor[]> {
+  if (tutors.length === 0) return tutors;
+  try {
+    const { data, error } = await supabase
+      .from("group_cohorts")
+      .select("tutor_id, per_student_rate_hkd, status")
+      .in(
+        "tutor_id",
+        tutors.map((tutor) => tutor.id),
+      )
+      .neq("status", "closed");
+    if (error || !Array.isArray(data)) return tutors;
+    const minRate = new Map<string, number>();
+    for (const row of data as {
+      tutor_id: string;
+      per_student_rate_hkd: number;
+      status: string;
+    }[]) {
+      if (typeof row.per_student_rate_hkd !== "number" || row.per_student_rate_hkd <= 0) continue;
+      const current = minRate.get(row.tutor_id);
+      if (current === undefined || row.per_student_rate_hkd < current) {
+        minRate.set(row.tutor_id, row.per_student_rate_hkd);
+      }
+    }
+    if (minRate.size === 0) return tutors;
+    return tutors.map((tutor) =>
+      minRate.has(tutor.id) ? { ...tutor, group_cohort_rate_hkd: minRate.get(tutor.id) } : tutor,
+    );
+  } catch {
+    return tutors;
+  }
+}
+
 export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
   const defaults = await fetchTutorPhotoDefaults();
   const data = await withTutorSelectFallback<Record<string, unknown>[]>(
@@ -490,9 +563,11 @@ export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
       return query.order("created_at", { ascending: false }).limit(limit);
     },
   );
-  return (data ?? [])
-    .map((row) => normalize(row, defaults))
-    .filter((tutor) => isTutorPubliclyListed(tutor));
+  return attachGroupCohortRates(
+    (data ?? [])
+      .map((row) => normalize(row, defaults))
+      .filter((tutor) => isTutorPubliclyListed(tutor)),
+  );
 }
 
 export async function fetchPublishedTutors(): Promise<Tutor[]> {
@@ -504,9 +579,11 @@ export async function fetchPublishedTutors(): Promise<Tutor[]> {
       return query.order("created_at", { ascending: false });
     },
   );
-  return (data ?? [])
-    .map((row) => normalize(row, defaults))
-    .filter((tutor) => isTutorPubliclyListed(tutor));
+  return attachGroupCohortRates(
+    (data ?? [])
+      .map((row) => normalize(row, defaults))
+      .filter((tutor) => isTutorPubliclyListed(tutor)),
+  );
 }
 
 export async function fetchAllTutors(): Promise<Tutor[]> {
@@ -514,7 +591,7 @@ export async function fetchAllTutors(): Promise<Tutor[]> {
   const data = await withTutorSelectFallback<Record<string, unknown>[]>((selectCols) =>
     supabase.from("tutors").select(selectCols).order("created_at", { ascending: false }),
   );
-  return (data ?? []).map((row) => normalize(row, defaults));
+  return attachGroupCohortRates((data ?? []).map((row) => normalize(row, defaults)));
 }
 
 /**
@@ -548,7 +625,8 @@ export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
   // loader's `if (!tutor) throw notFound()` never fired and SSR shipped a 200
   // soft-404. A row lookup must return null whenever there is no row.
   if (!data || Array.isArray(data) || Object.keys(data).length === 0) return null;
-  return normalize(data, defaults);
+  const [tutor] = await attachGroupCohortRates([normalize(data, defaults)]);
+  return tutor;
 }
 
 /**

@@ -64,3 +64,36 @@ export function ParentFavoriteBadge({ className }: { className?: string }) {
     </span>
   );
 }
+
+/**
+ * Issue #391: small-group availability pill — "👥 Group from $Y/hr". Y is the
+ * cheapest per-student figure across the tutor's small-group rate rows and
+ * open cohorts (badge is hidden when neither exists). Neutral pill like the
+ * SEN badge: group rates must never be mistaken for the 1-on-1 card floor.
+ */
+export function GroupClassBadge({
+  rate,
+  className,
+}: {
+  rate: number | null | undefined;
+  className?: string;
+}) {
+  const { t } = useTranslation();
+
+  if (!Number.isFinite(rate) || (rate as number) <= 0) return null;
+
+  return (
+    <span
+      className={cn(
+        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-[color:var(--ink)]",
+        className,
+      )}
+      title={t("tutor_card.group_badge_title")}
+    >
+      <span className="shrink-0" aria-hidden="true">
+        👥
+      </span>
+      {t("tutor_card.group_badge_rate", { rate: Math.round(rate as number) })}
+    </span>
+  );
+}

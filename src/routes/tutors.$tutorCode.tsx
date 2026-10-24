@@ -27,6 +27,7 @@ import {
   Trophy,
   User,
   UserRound,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -76,6 +77,7 @@ import {
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { ExperienceLine } from "@/features/tutors/experience-badge";
+import { TutorGroupClassesSection } from "@/features/cases/tutor-cohorts-section";
 import {
   normalizeUniversityCourses,
   normalizeUniversityGpa,
@@ -1150,14 +1152,38 @@ function TutorDetail() {
                       </li>
                     ) : null}
                     {extraRateRows.map((row, index) => (
-                      <li
-                        key={`${row.label}-${index}`}
-                        className="flex items-center justify-between gap-4 px-4 py-2.5"
-                      >
-                        <span className="text-sm font-semibold text-[color:var(--ink)]">
-                          {row.label}
-                        </span>
-                        <RateValue rate={row.rate} nativeCurrency={t.currency} />
+                      <li key={`${row.label}-${index}`} className="px-4 py-2.5">
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-semibold text-[color:var(--ink)]">
+                            {row.label}
+                            {/* #391: what the rate buys — per-student group
+                                band or bootcamp; plain 1-on-1 rows stay bare. */}
+                            {row.mode && row.mode !== "one_on_one" ? (
+                              <span className="whitespace-nowrap rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-bold leading-tight text-[color:var(--ink)]">
+                                {translate(`settings.my_tutor.rate_mode_${row.mode}`)}
+                              </span>
+                            ) : null}
+                          </span>
+                          <RateValue rate={row.rate} nativeCurrency={t.currency} />
+                        </div>
+                        {/* #391: optional expandable per-row description
+                            (contact-filtered at save time, max 300 chars). */}
+                        {row.description ? (
+                          <details className="group mt-1">
+                            <summary className="cursor-pointer list-none text-xs font-semibold text-muted-foreground hover:text-[color:var(--ink)]">
+                              {translate("settings.my_tutor.rate_row_details_toggle")}
+                              <span
+                                className="ml-1 inline-block transition-transform group-open:rotate-180"
+                                aria-hidden="true"
+                              >
+                                ▾
+                              </span>
+                            </summary>
+                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                              {row.description}
+                            </p>
+                          </details>
+                        ) : null}
                       </li>
                     ))}
                   </ul>
@@ -1173,6 +1199,14 @@ function TutorDetail() {
                       {t.rate_note}
                     </p>
                   ) : null}
+                </ProfileSection>
+              ) : null}
+
+              {/* Issue #391: the tutor's open small-group cohorts, with
+                  booking on the /group-classes board. Hidden when none. */}
+              {inquiry.kind !== "waitlist" && t.id ? (
+                <ProfileSection icon={Users} title={translate("profile.section_group_classes")}>
+                  <TutorGroupClassesSection tutorId={t.id} />
                 </ProfileSection>
               ) : null}
 

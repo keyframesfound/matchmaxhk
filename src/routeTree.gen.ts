@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
 import { Route as CaseRequestRouteImport } from './routes/case-request'
+import { Route as GroupClassesRouteImport } from './routes/group-classes'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
@@ -95,6 +96,11 @@ const BecomeATutorRoute = BecomeATutorRouteImport.update({
 const CaseRequestRoute = CaseRequestRouteImport.update({
   id: '/case-request',
   path: '/case-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupClassesRoute = GroupClassesRouteImport.update({
+  id: '/group-classes',
+  path: '/group-classes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HowItWorksRoute = HowItWorksRouteImport.update({
@@ -418,6 +424,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -482,6 +489,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -547,6 +555,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -613,6 +622,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/group-classes'
     | '/how-it-works'
     | '/pricing'
     | '/privacy-policy'
@@ -677,6 +687,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/group-classes'
     | '/how-it-works'
     | '/pricing'
     | '/privacy-policy'
@@ -741,6 +752,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/group-classes'
     | '/how-it-works'
     | '/pricing'
     | '/privacy-policy'
@@ -807,6 +819,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
   CaseRequestRoute: typeof CaseRequestRoute
+  GroupClassesRoute: typeof GroupClassesRoute
   HowItWorksRoute: typeof HowItWorksRoute
   PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
@@ -869,6 +882,13 @@ declare module '@tanstack/react-router' {
       path: '/case-request'
       fullPath: '/case-request'
       preLoaderRoute: typeof CaseRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/group-classes': {
+      id: '/group-classes'
+      path: '/group-classes'
+      fullPath: '/group-classes'
+      preLoaderRoute: typeof GroupClassesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/how-it-works': {
@@ -1395,6 +1415,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
   CaseRequestRoute: CaseRequestRoute,
+  GroupClassesRoute: GroupClassesRoute,
   HowItWorksRoute: HowItWorksRoute,
   PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,

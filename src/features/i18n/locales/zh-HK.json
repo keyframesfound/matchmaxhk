@@ -56,7 +56,8 @@
       "my_tutor": "我的導師檔案",
       "materials": "學習材料",
       "lessons": "課堂",
-      "home": "主頁"
+      "home": "主頁",
+      "group_classes": "小組班"
     },
     "referrals": {
       "title": "推薦朋友，賺 15% 獎賞",
@@ -357,7 +358,14 @@
       "auto_translate": "自動翻譯",
       "auto_translate_hint": "自動翻譯會根據英文標題生成中文草稿——儲存前請檢查修改。",
       "auto_translate_done": "已填入中文草稿，請檢查修改後先儲存。",
-      "auto_translate_empty": "請先輸入英文標題。"
+      "auto_translate_empty": "請先輸入英文標題。",
+      "rate_mode_one_on_one": "一對一",
+      "rate_mode_small_group_2": "小組（1對2）",
+      "rate_mode_small_group_3_6": "小組（1對3至6）",
+      "rate_mode_intensive_bootcamp": "密集班",
+      "rate_mode_placeholder": "班型",
+      "rate_row_description_placeholder": "呢種班型係點上堂？（可選）",
+      "rate_row_details_toggle": "詳情"
     },
     "grid": {
       "title": "每週補習時間表",
@@ -914,7 +922,9 @@
     },
     "section_rates": "收費",
     "rates_online": "網上",
-    "rates_inperson": "實體"
+    "rates_inperson": "實體",
+    "section_group_classes": "小組班",
+    "group_classes_view_all": "查看並報名小組班"
   },
   "tutor_card": {
     "verified_fallback": "學術資料屬自行申報",
@@ -940,7 +950,9 @@
     "verified_badge": "已核實",
     "verified_disclaimer": "Staff已查核卡片上顯示嘅成績，但未向考試局確認。第一堂之前，請直接向導師攞成績紙。",
     "view_all_grades": "查看全部 {{count}} 項成績",
-    "show_fewer_grades": "收起成績"
+    "show_fewer_grades": "收起成績",
+    "group_badge_rate": "小組 ${{rate}}/hr 起",
+    "group_badge_title": "設有小組班，每位學生費率更低（唔會影響上面嘅一對一收費）"
   },
   "help": {
     "title": "你好，有咩可以幫到你？",
@@ -1462,7 +1474,9 @@
       "not_schedule_label": "我們不會管理你的時間表",
       "not_schedule_body": "改期及之後的時間表直接與導師安排。",
       "cta_browse": "瀏覽導師檔案",
-      "cta_request": "提交導師需求"
+      "cta_request": "提交導師需求",
+      "fact_group_label": "一對一 或 小組班",
+      "fact_group_body": "請私人一對一導師，或者報讀小組班（2至6人），每位學生費率更低。同一個 1.5 課管理費按每位學生計。"
     },
     "tutors": {
       "eyebrow": "給導師",
@@ -2315,7 +2329,8 @@
     "tutor_home_notes_note": "筆記淨額由 MatchMax 每月支付。上述行政費屬家長費用，絕不計入此總額。",
     "tutor_home_notes_link": "查看你的商品",
     "tutor_home_open_lessons": "前往課堂",
-    "bell_session_logged": "導師已記錄新的補習課堂"
+    "bell_session_logged": "導師已記錄新的補習課堂",
+    "admin_students_suffix": "位學生"
   },
   "currency": {
     "switcher_label": "貨幣",
@@ -2462,7 +2477,8 @@
     "detail_pref_short": "短個案：最多 5 堂 · 20% 行政費",
     "detail_pref_probono": "義教個案：HK$0 學費 · HK$0 行政費",
     "detail_flexible": "不限",
-    "detail_no_preference": "不限"
+    "detail_no_preference": "不限",
+    "form_class_format": "班型偏好"
   },
   "experience": {
     "lessons": "{{count}} 堂課堂",
@@ -2537,5 +2553,81 @@
       "verification_body": "提交成績表就可以攞藍剔認證徽章。未認證嘅導師喺第一堂之前要先出示證明。",
       "verification_title": "攞藍剔認證"
     }
+  },
+  "group_classes": {
+    "board_eyebrow": "小組班",
+    "board_title": "小組班（2至6人）",
+    "board_intro": "由導師開班，每位學生費率更低。同一個 1.5 課管理費按每位學生計，每個家庭都有自己嘅私人一對一個案，唔會同其他家長交換任何聯絡資料。",
+    "board_empty": "而家暫時未有招生中的小組班。遲啲再嚟睇下，或者喺導師檔案睇下佢有冇開班。",
+    "loading": "載入中…",
+    "state_forming": "招生中",
+    "state_running": "已開班",
+    "state_full": "已滿",
+    "state_closed": "已結束",
+    "mode_online": "網上",
+    "mode_in_person": "面授",
+    "per_student": " / 每位學生",
+    "per_student_rate_suffix": " / 每位學生 / 小時",
+    "seats_line": "已報 {{taken}}/{{max}} · {{min}} 人開班",
+    "seats_summary": "已佔 {{taken}}/{{max}} 個學額 · {{min}} 人開班",
+    "seats_left": "尚餘 {{left}} 個學額",
+    "book": "報名留位",
+    "booking": "處理中…",
+    "book_confirm": "報名 {{seats}} 個學額",
+    "booking_title": "小組班報名",
+    "booked_toast": "已報名 — 個案編號 {{code}}",
+    "booked_body": "報名成功！已為你建立個案 {{code}}。",
+    "booked_next": "團隊會介紹導師同確認第一課。1.5 課管理費涵蓋成個報名（所有兄弟姊妹）。",
+    "view_cases": "查看我的個案",
+    "close": "關閉",
+    "cancel": "取消",
+    "form_seats": "學額數目",
+    "form_student_name": "學生 {{index}} 名（名字）",
+    "form_student_name_placeholder": "名字",
+    "form_student_grade": "學生 {{index}} 年級",
+    "form_student_grade_placeholder": "例如 P5 / Y9",
+    "form_contact_name": "你的稱呼",
+    "form_contact_phone": "聯絡電話",
+    "form_whatsapp_ok": "可以用 WhatsApp 聯絡我",
+    "form_notes": "備註（可選）",
+    "form_notes_placeholder": "有咩想導師知道？",
+    "fee_preview_title": "管理費（按 MatchMax 政策）",
+    "fee_preview_total": "HK${{total}} = 1.5 × ${{rate}} × {{seats}} 位學生",
+    "fee_preview_split": "第一課：${{lesson1}} · 第二課餘款：${{lesson2}}",
+    "fee_preview_note": "導師第一課收 $0；第二課餘款由你直接支付導師。",
+    "terms_ack": "我同意服務條款同匿名配對模式。",
+    "fee_ack": "我明白 1.5 課管理費（第一課 100% + 第二課 50%）按每位學生計，以 FPS 支付予 MatchMax。",
+    "manager_title": "小組班",
+    "manager_description": "開辦 2 至 6 人小組班。家長按每位學生報名，每個家庭有私人一對一個案，1.5 課管理費按每位學生計。",
+    "create_title": "開新班",
+    "edit_title": "編輯小組班",
+    "create": "開班",
+    "save": "儲存變更",
+    "edit": "編輯",
+    "close_cohort": "結束班級",
+    "empty": "仲未有小組班。開一個新班開始收生。",
+    "created_toast": "小組班已建立",
+    "saved_toast": "小組班已儲存",
+    "closed_toast": "小組班已結束",
+    "form_title": "班名",
+    "form_title_placeholder": "例如 IBDP 數學 AA — Paper 1 操卷班（逢星期六）",
+    "form_curriculum": "課程",
+    "form_subject": "科目",
+    "form_student_level": "學生程度",
+    "form_student_level_placeholder": "例如 Y12 / S5",
+    "form_schedule": "每週時間",
+    "form_schedule_placeholder": "例如 週六 10:00–11:30",
+    "form_mode": "上課模式",
+    "form_district": "地區",
+    "form_rate": "每位學生費率（HKD/小時）",
+    "form_rate_placeholder": "例如 220",
+    "form_rate_hint": "低於你的一對一費率。唔會影響你卡片上嘅 $X up/hr 顯示。",
+    "form_min_seats": "開班最少人數",
+    "form_max_seats": "最多人數（2–6）",
+    "form_description": "班級簡介",
+    "form_description_placeholder": "堂上會做啲乜？（唔可以留聯絡方法）",
+    "form_status": "狀態",
+    "form_status_hint": "已開班 = 已開始上課但仍可收生；招生中 = 繼續湊人至開班人數。",
+    "min_gt_max_error": "開班最少人數唔可以大過最多人數。"
   }
 }

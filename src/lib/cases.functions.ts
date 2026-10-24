@@ -86,6 +86,9 @@ const CaseRequestInput = z
     packageType: z.enum(["ongoing_1_5", "short_20", "pro_bono"]).default("ongoing_1_5"),
     studentCount: z.number().int().min(1).max(5).default(1),
     rateUnit: z.enum(["hr", "lesson", "month"]).default("hr"),
+    // Issue #391: class format preference (1-on-1 only / open to group /
+    // either). Nullable on the column; legacy clients omit it.
+    classFormat: z.enum(["one_on_one_only", "open_to_group", "either"]).optional().nullable(),
     // Issue #423: the public client note is capped at 500 chars and piped
     // through stripContactDetails (sanitizeCaseFreeText) at save time.
     notes: z.string().trim().max(500).optional().nullable(),
@@ -507,6 +510,8 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       package_type: data.packageType,
       student_count: data.studentCount,
       rate_unit: data.rateUnit,
+      // Issue #391: class format preference.
+      class_format_preference: data.classFormat ?? null,
       budget_currency: data.budgetCurrency ?? DEFAULT_CURRENCY,
       contact_name: data.parentName,
       contact_phone: data.contactPhone,

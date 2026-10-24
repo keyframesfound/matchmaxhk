@@ -16,6 +16,7 @@ import {
   Settings2,
   Trash2,
   UserCog,
+  Users,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -34,6 +35,7 @@ import { TutorHomeSection } from "@/features/cases/tutor/tutor-home";
 import { TutorWeekView } from "@/features/cases/tutor/week-view";
 import { DangerZoneSection } from "@/features/settings/sections/danger-zone-section";
 import { GeneralSection } from "@/features/settings/sections/general-section";
+import { GroupClassesSection } from "@/features/settings/sections/group-classes-section";
 import { MyTutorProfileSection } from "@/features/settings/sections/my-tutor-profile-section";
 import { NotificationsSection } from "@/features/settings/sections/notifications-section";
 import { PrivacySection } from "@/features/settings/sections/privacy-section";
@@ -57,6 +59,7 @@ const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof S
   profile: { labelKey: "settings.nav.profile", icon: CircleUserRound },
   "my-tutor": { labelKey: "settings.nav.my_tutor", icon: GraduationCap },
   availability: { labelKey: "settings.nav.availability", icon: CalendarClock },
+  "group-classes": { labelKey: "settings.nav.group_classes", icon: Users },
   lessons: { labelKey: "settings.nav.lessons", icon: CalendarClock },
   materials: { labelKey: "settings.nav.materials", icon: BookOpen },
   account: { labelKey: "settings.nav.account", icon: UserCog },
@@ -109,6 +112,7 @@ const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSection
   profile: ProfileSection,
   "my-tutor": MyTutorProfileSection,
   availability: AvailabilityTab,
+  "group-classes": GroupClassesSection,
   lessons: LessonsTab,
   materials: StudyMaterialsSection,
   account: AccountSection,
@@ -193,6 +197,7 @@ export function SettingsPage() {
         category === "availability" ||
         category === "referrals" ||
         category === "my-tutor" ||
+        category === "group-classes" ||
         category === "lessons"
       ) {
         return hasLinkedTutor;
