@@ -70,7 +70,7 @@ export function TutorWeekView() {
                   {day.openSlots.map((s) => (
                     <li
                       key={s.startsAt.toISOString()}
-                      className="flex items-center gap-2 text-sm text-muted-foreground/70"
+                      className="flex items-center gap-2 text-sm text-muted-foreground"
                     >
                       <CalendarClock className="h-4 w-4 shrink-0" aria-hidden="true" />
                       <span>{format(s.startsAt, "HH:mm")}</span>

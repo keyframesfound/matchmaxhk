@@ -64,7 +64,7 @@ export function UserStatsOverview({ users, isLoading }: UserStatsOverviewProps) 
       subtitle: `${parentPct}% of user base`,
       icon: UserCheck,
       color:
-        "text-slate-600 dark:text-[color:var(--muted-foreground)] bg-slate-500/10 border-slate-500/20",
+        "text-muted-foreground dark:text-[color:var(--muted-foreground)] bg-slate-500/10 border-slate-500/20",
       barColor: "bg-slate-500 dark:bg-slate-400",
       pct: parentPct,
     },

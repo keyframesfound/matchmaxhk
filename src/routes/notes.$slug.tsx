@@ -344,7 +344,7 @@ function NotePage() {
                   href={whatsappQuery.data.requestUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-9 w-full items-center justify-center rounded-md border border-[#25D366]/40 text-sm font-medium text-[#1EA457] transition-colors hover:bg-[#25D366]/10"
+                  className="flex h-9 w-full items-center justify-center rounded-md border border-[#25D366]/40 text-sm font-medium text-success transition-colors hover:bg-[#25D366]/10"
                 >
                   <MessageCircle className="mr-2 h-4 w-4" aria-hidden />
                   {t("notes.request_tutor")}

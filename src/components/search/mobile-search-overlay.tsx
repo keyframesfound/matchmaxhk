@@ -122,7 +122,7 @@ export function MobileSearchOverlay({
             <span className="relative">
               {tab.icon}
               {tab.badge ? (
-                <span className="absolute -right-6 -top-2.5 rounded-full bg-[color:var(--foreground)] px-1.5 py-px text-[9px] font-medium uppercase leading-none text-[color:var(--background)]">
+                <span className="absolute -right-6 -top-2.5 rounded-full bg-[color:var(--foreground)] px-1.5 py-px text-[11px] font-medium uppercase leading-none text-[color:var(--background)]">
                   {tab.badge}
                 </span>
               ) : null}

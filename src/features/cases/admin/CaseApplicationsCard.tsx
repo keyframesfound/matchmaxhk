@@ -59,7 +59,7 @@ function ApplicationRow({
           <p className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-[color:var(--ink)]">
             <span className="truncate">{tutor?.display_name ?? "—"}</span>
             {tutor?.tutor_code ? (
-              <span className="shrink-0 rounded bg-[color:var(--ink)]/[0.06] px-1.5 py-0.5 font-mono text-[10px] font-medium text-[color:var(--ink)]">
+              <span className="shrink-0 rounded bg-[color:var(--ink)]/[0.06] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[color:var(--ink)]">
                 {tutor.tutor_code}
               </span>
             ) : null}
@@ -123,7 +123,7 @@ export function CaseApplicationsCard({ caseId }: { caseId: string }) {
         <h2 className="text-xs font-medium text-muted-foreground">
           {t("caseApplications.title", { defaultValue: "Applications" })}
         </h2>
-        <Inbox className="h-4 w-4 text-muted-foreground/60" aria-hidden="true" />
+        <Inbox className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
       </div>
       <div className="mt-3 space-y-2">
         {isLoading ? (

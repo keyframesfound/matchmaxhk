@@ -88,7 +88,7 @@ function gigStatusChipClass(status: string): string {
   if (status === "past_due") {
     return "rounded-md bg-rose-500/10 px-2 py-0.5 text-xs font-medium text-rose-700";
   }
-  return "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-medium text-slate-600";
+  return "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-medium text-muted-foreground";
 }
 
 export function MaterialsOrdersDesk() {
@@ -305,7 +305,7 @@ export function MaterialsOrdersDesk() {
                             ? "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700"
                             : order.status === "awaiting_payment"
                               ? "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700"
-                              : "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-medium text-slate-600"
+                              : "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-medium text-muted-foreground"
                         }
                       >
                         {order.status.replace(/_/g, " ")}

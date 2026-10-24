@@ -187,7 +187,7 @@ export function TagInput({
               >
                 <span>{option.label}</span>
                 {option.category && (
-                  <span className="text-[10px] text-muted-foreground font-normal">
+                  <span className="text-[11px] text-muted-foreground font-normal">
                     {option.category}
                   </span>
                 )}

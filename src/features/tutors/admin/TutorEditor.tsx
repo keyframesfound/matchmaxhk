@@ -2685,7 +2685,7 @@ export function TutorEditor({
             >
               {form.exam_results.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-8 text-center bg-[color:var(--surface-subtle)]/30">
-                  <GraduationCap className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                  <GraduationCap className="h-8 w-8 text-muted-foreground mb-2" />
                   <p className="text-xs font-medium text-[color:var(--ink)]">
                     No Exam Systems Added
                   </p>
@@ -3360,7 +3360,7 @@ export function TutorEditor({
                         />
                         <span
                           className={cn(
-                            "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-medium text-muted-foreground",
+                            "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-medium text-muted-foreground",
                             reachedLimit && "text-amber-600 dark:text-amber-400",
                           )}
                           aria-live="polite"

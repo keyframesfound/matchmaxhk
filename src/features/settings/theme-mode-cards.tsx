@@ -100,7 +100,7 @@ export function ThemeModeCards({
             option.value === "dark" ? (
               <Badge
                 variant="destructive"
-                className="px-1.5 py-0 text-[10px] font-medium leading-5"
+                className="px-1.5 py-0 text-[11px] font-medium leading-5"
               >
                 Beta
               </Badge>

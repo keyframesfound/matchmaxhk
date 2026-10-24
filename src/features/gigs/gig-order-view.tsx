@@ -107,7 +107,7 @@ function GigSourceUpload({ order }: { order: MyOrder }) {
         </p>
       )}
       {order.hasSourceFile && !uploading && (
-        <p className="flex items-center gap-1.5 text-xs font-medium text-[#00875A]">
+        <p className="flex items-center gap-1.5 text-xs font-medium text-success">
           <Check className="h-3.5 w-3.5" aria-hidden />
           {t("gigs.upload_success")}
         </p>
@@ -152,7 +152,7 @@ export function GigOrderPanels({ order }: { order: MyOrder }) {
   if (order.status === "past_due") {
     return (
       <div className="space-y-4 rounded-2xl border border-[#F4212E]/30 bg-[#F4212E]/5 p-6">
-        <h2 className="flex items-center gap-2 text-base font-medium text-[#F4212E]">
+        <h2 className="flex items-center gap-2 text-base font-medium text-destructive">
           <AlertTriangle className="h-4 w-4" aria-hidden />
           {t("gigs.past_due_title")}
         </h2>

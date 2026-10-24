@@ -256,7 +256,7 @@ function OrderPage() {
                     </p>
                   )}
                   {order.hasScreenshot && !uploading && (
-                    <p className="flex items-center gap-1.5 text-xs font-medium text-[#00875A]">
+                    <p className="flex items-center gap-1.5 text-xs font-medium text-success">
                       <Check className="h-3.5 w-3.5" aria-hidden />
                       {t("orders.screenshot_attached")}
                     </p>
@@ -278,7 +278,7 @@ function OrderPage() {
 
             {order.status === "rejected" && (
               <div className="flex items-start gap-3 rounded-2xl border border-[#F4212E]/30 bg-[#F4212E]/5 p-5 text-sm">
-                <X className="mt-0.5 h-4 w-4 shrink-0 text-[#F4212E]" aria-hidden />
+                <X className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden />
                 <p>{t("orders.rejected_note")}</p>
               </div>
             )}
@@ -291,7 +291,7 @@ function OrderPage() {
                   <li key={step.key} className="flex items-center gap-3 text-sm">
                     {step.done ? (
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#17BF63]/15">
-                        <Check className="h-3.5 w-3.5 text-[#00875A]" aria-hidden />
+                        <Check className="h-3.5 w-3.5 text-success" aria-hidden />
                       </span>
                     ) : step.current ? (
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent">
@@ -359,7 +359,7 @@ function OrderPage() {
                 </Button>
               )}
             {order.action === "request_refund" && (
-              <p className="rounded-md bg-[#F4212E]/10 px-3 py-2 text-center text-xs font-medium text-[#F4212E]">
+              <p className="rounded-md bg-[#F4212E]/10 px-3 py-2 text-center text-xs font-medium text-destructive">
                 {t("gigs.past_due_badge")}
               </p>
             )}

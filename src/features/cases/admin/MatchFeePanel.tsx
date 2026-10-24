@@ -53,7 +53,7 @@ function TutorAvatar({ hit }: { hit: TutorHit }) {
     <InitialAvatar
       stableId={hit.tutor_code}
       name={hit.display_name}
-      className="h-9 w-9 text-[10px]"
+      className="h-9 w-9 text-[11px]"
     />
   );
 }
@@ -181,7 +181,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
     <ConsolePanel>
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-medium text-muted-foreground">Match &amp; fee</h2>
-        <UserRoundCheck className="h-4 w-4 text-muted-foreground/60" aria-hidden="true" />
+        <UserRoundCheck className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
       </div>
 
       {/* Matched tutor */}

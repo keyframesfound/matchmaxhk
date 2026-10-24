@@ -152,7 +152,7 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
                 </p>
               ) : null}
               {accessQuery.isError && accessQuery.error.message !== COURSE_LOCKED_ERROR ? (
-                <p className="rounded-md border border-[#B42318]/30 bg-[#B42318]/5 p-4 text-sm text-[#B42318]">
+                <p className="rounded-md border border-[#B42318]/30 bg-[#B42318]/5 p-4 text-sm text-destructive">
                   {accessQuery.error.message}
                 </p>
               ) : null}

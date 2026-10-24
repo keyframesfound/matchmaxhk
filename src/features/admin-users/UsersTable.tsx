@@ -166,7 +166,7 @@ export function UsersTable({
                       size="sm"
                       variant="ghost"
                       onClick={() => onManageRoles(user)}
-                      className="h-6 px-1.5 text-[10px] font-medium text-muted-foreground hover:text-[color:var(--ink)]"
+                      className="h-6 px-1.5 text-[11px] font-medium text-muted-foreground hover:text-[color:var(--ink)]"
                     >
                       Edit
                     </Button>

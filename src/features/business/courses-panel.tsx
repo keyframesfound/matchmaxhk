@@ -113,7 +113,7 @@ function formatDate(value: string) {
 function SortIcon({ sorted }: { sorted: false | "asc" | "desc" }) {
   if (sorted === "asc") return <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />;
   if (sorted === "desc") return <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />;
-  return <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground/60" aria-hidden="true" />;
+  return <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />;
 }
 
 export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }) {
@@ -309,7 +309,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
               row.original.is_published
                 ? "bg-emerald-50 text-emerald-700 ring-emerald-700/10 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-400/20"
-                : "bg-gray-100 text-gray-600 ring-gray-500/10 dark:bg-gray-500/10 dark:text-[color:var(--muted-foreground)] dark:ring-gray-400/20"
+                : "bg-gray-100 text-muted-foreground ring-gray-500/10 dark:bg-gray-500/10 dark:text-[color:var(--muted-foreground)] dark:ring-gray-400/20"
             }`}
           >
             {row.original.is_published ? "Published" : "Unpublished"}

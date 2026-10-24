@@ -530,7 +530,7 @@ function VerificationPanel({ application }: { application: TutorApplicationRecor
                   />
                   <span>{item.label}</span>
                   {checked[item.key] === true ? (
-                    <span className="ml-auto rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+                    <span className="ml-auto rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
                       Verified
                     </span>
                   ) : null}
@@ -726,7 +726,7 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
               </span>
               <span
                 className={cn(
-                  "ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium",
+                  "ml-auto rounded-full px-2 py-0.5 text-[11px] font-medium",
                   studentCard
                     ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
                     : "bg-amber-500/15 text-amber-700 dark:text-amber-400",
@@ -750,7 +750,7 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
                 <span className="font-medium text-[color:var(--ink)]">{doc.curriculum}</span>
                 <span
                   className={cn(
-                    "ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium",
+                    "ml-auto rounded-full px-2 py-0.5 text-[11px] font-medium",
                     doc.file
                       ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
                       : doc.status === "provide_later"
@@ -778,7 +778,7 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
                   <span className="font-medium text-[color:var(--ink)]">{achievement.title}</span>
                   <span
                     className={cn(
-                      "ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium",
+                      "ml-auto rounded-full px-2 py-0.5 text-[11px] font-medium",
                       achievement.proof
                         ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
                         : achievement.proofStatus === "provide_later"

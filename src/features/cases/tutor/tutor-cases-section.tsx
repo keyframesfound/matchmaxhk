@@ -88,7 +88,7 @@ function TutorReviewParentForm({
             <Star
               className={cn(
                 "h-5 w-5",
-                s <= rating ? "fill-current text-amber-500" : "text-muted-foreground/40",
+                s <= rating ? "fill-current text-amber-500" : "text-muted-foreground",
               )}
             />
           </button>

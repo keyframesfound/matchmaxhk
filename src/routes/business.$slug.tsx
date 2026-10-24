@@ -135,7 +135,7 @@ function ListingCard({
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         ) : (
-          <span className="flex h-full w-full items-center justify-center text-muted-foreground/40">
+          <span className="flex h-full w-full items-center justify-center text-muted-foreground">
             <BookOpen className="h-10 w-10" />
           </span>
         )}

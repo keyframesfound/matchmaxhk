@@ -91,7 +91,7 @@ export function AdminCommandPalette() {
       >
         <Search className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
         <span className="hidden lg:inline">Search</span>
-        <kbd className="hidden rounded-[var(--radius-control)] border border-border bg-[color:var(--surface-subtle)] px-1.5 py-px font-sans text-[10px] font-normal text-muted-foreground lg:inline">
+        <kbd className="hidden rounded-[var(--radius-control)] border border-border bg-[color:var(--surface-subtle)] px-1.5 py-px font-sans text-[11px] font-normal text-muted-foreground lg:inline">
           ⌘K
         </kbd>
       </Button>

@@ -65,18 +65,18 @@ export const Route = createFileRoute("/_authenticated/account")({
 });
 
 const STATUS_BADGE: Record<string, string> = {
-  draft: "bg-slate-500/10 text-slate-600",
+  draft: "bg-slate-500/10 text-muted-foreground",
   pending_review: "bg-amber-500/10 text-amber-700",
   published: "bg-emerald-500/10 text-emerald-700",
-  hidden: "bg-slate-500/10 text-slate-600",
-  rejected: "bg-[#F4212E]/10 text-[#B42318]",
+  hidden: "bg-slate-500/10 text-muted-foreground",
+  rejected: "bg-[#F4212E]/10 text-destructive",
 };
 
 const CASE_STATUS_BADGE: Record<string, string> = {
   pending: "bg-amber-500/10 text-amber-700",
   matched: "bg-emerald-500/10 text-emerald-700",
-  closed: "bg-slate-500/10 text-slate-600",
-  rejected: "bg-[#F4212E]/10 text-[#B42318]",
+  closed: "bg-slate-500/10 text-muted-foreground",
+  rejected: "bg-[#F4212E]/10 text-destructive",
 };
 
 const CASE_STATUS_KEY: Record<string, string> = {
@@ -459,7 +459,7 @@ function AccountPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="truncate font-medium">{material.title}</p>
                       <span
-                        className={`rounded-md px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[material.status] ?? "bg-slate-500/10 text-slate-600"}`}
+                        className={`rounded-md px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[material.status] ?? "bg-slate-500/10 text-muted-foreground"}`}
                       >
                         {t(`account.status_${material.status}`)}
                       </span>
@@ -470,7 +470,7 @@ function AccountPage() {
                       )}
                     </div>
                     {material.status === "rejected" && material.rejectionReason && (
-                      <p className="mt-1 text-xs text-[#B42318]">
+                      <p className="mt-1 text-xs text-destructive">
                         {t("account.rejection_reason", { reason: material.rejectionReason })}
                       </p>
                     )}
@@ -559,13 +559,13 @@ function AccountPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="truncate font-medium">{gig.title}</p>
                       <span
-                        className={`rounded-md px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[gig.status] ?? "bg-slate-500/10 text-slate-600"}`}
+                        className={`rounded-md px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[gig.status] ?? "bg-slate-500/10 text-muted-foreground"}`}
                       >
                         {t(`account.status_${gig.status}`)}
                       </span>
                     </div>
                     {gig.status === "rejected" && gig.rejectionReason && (
-                      <p className="mt-1 text-xs text-[#B42318]">
+                      <p className="mt-1 text-xs text-destructive">
                         {t("account.rejection_reason", { reason: gig.rejectionReason })}
                       </p>
                     )}
@@ -651,7 +651,7 @@ function AccountPage() {
                     </p>
                   </div>
                   <span
-                    className={`rounded-md px-2 py-0.5 text-xs font-medium ${CASE_STATUS_BADGE[row.status] ?? "bg-slate-500/10 text-slate-600"}`}
+                    className={`rounded-md px-2 py-0.5 text-xs font-medium ${CASE_STATUS_BADGE[row.status] ?? "bg-slate-500/10 text-muted-foreground"}`}
                   >
                     {t(CASE_STATUS_KEY[row.status] ?? "account.case_status_other")}
                   </span>
@@ -807,7 +807,7 @@ function GigFulfillRow({ order }: { order: MyGigOrderRow }) {
           <div className="flex flex-wrap items-center gap-2">
             <p className="truncate font-medium">{order.title}</p>
             {order.status === "past_due" ? (
-              <span className="rounded-md bg-[#F4212E]/10 px-2 py-0.5 text-xs font-medium text-[#B42318]">
+              <span className="rounded-md bg-[#F4212E]/10 px-2 py-0.5 text-xs font-medium text-destructive">
                 {t("account.order_past_due")}
               </span>
             ) : (
@@ -860,7 +860,7 @@ function GigFulfillRow({ order }: { order: MyGigOrderRow }) {
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
             {fileTooLarge ? (
-              <p className="text-xs text-[#B42318]">{t("gigs.form.return_too_large")}</p>
+              <p className="text-xs text-destructive">{t("gigs.form.return_too_large")}</p>
             ) : null}
           </div>
         ) : (

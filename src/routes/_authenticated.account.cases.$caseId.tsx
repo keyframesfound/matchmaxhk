@@ -410,7 +410,7 @@ function ReviewSection({
                 <Star
                   className={cn(
                     "h-6 w-6",
-                    s <= rating ? "fill-current text-amber-500" : "text-muted-foreground/40",
+                    s <= rating ? "fill-current text-amber-500" : "text-muted-foreground",
                   )}
                 />
               </button>

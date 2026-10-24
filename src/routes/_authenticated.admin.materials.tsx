@@ -394,7 +394,7 @@ function AdminMaterials() {
                       className={
                         row.admin_star_rating
                           ? "h-4 w-4 fill-amber-400 text-amber-500"
-                          : "h-4 w-4 text-muted-foreground/40"
+                          : "h-4 w-4 text-muted-foreground"
                       }
                       aria-hidden
                     />
@@ -432,7 +432,7 @@ function AdminMaterials() {
                         ? "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700"
                         : row.status === "pending_review"
                           ? "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700"
-                          : "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-medium text-slate-600"
+                          : "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-medium text-muted-foreground"
                     }
                   >
                     {row.status === "published"
@@ -898,7 +898,7 @@ function GigReviewQueue() {
                   <p className="text-xs font-medium text-amber-800">
                     {t("gigs.admin_review_red_flag_banner")}
                   </p>
-                  <p className="mt-1 break-all font-mono text-[10px] text-amber-700">
+                  <p className="mt-1 break-all font-mono text-[11px] text-amber-700">
                     {flags.join(" · ")}
                   </p>
                 </div>

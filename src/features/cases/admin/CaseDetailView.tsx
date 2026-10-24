@@ -426,7 +426,7 @@ export function CaseDetailView({
           <ConsolePanel>
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-medium text-muted-foreground">Internal notes</h2>
-              <NotebookPen className="h-4 w-4 text-muted-foreground/60" aria-hidden="true" />
+              <NotebookPen className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </div>
             <div className="mt-3 space-y-2">
               <Textarea
@@ -663,7 +663,7 @@ export function CaseDetailView({
                       <InitialAvatar
                         stableId={t.tutor_code || t.id}
                         name={t.display_name}
-                        className="h-9 w-9 text-[10px]"
+                        className="h-9 w-9 text-[11px]"
                       />
                     )}
                     <div className="min-w-0 flex-1">
@@ -675,7 +675,7 @@ export function CaseDetailView({
                         {t.district ? ` · ${t.district}` : ""}
                       </p>
                     </div>
-                    <span className="rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[10px] font-medium text-[color:var(--foreground)]">
+                    <span className="rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[11px] font-medium text-[color:var(--foreground)]">
                       {Number(t.score).toFixed(0)}
                     </span>
                   </div>

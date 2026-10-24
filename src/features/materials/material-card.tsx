@@ -81,7 +81,7 @@ export function MaterialStars({ rating }: { rating: number | null }) {
           key={star}
           className={cn(
             "h-4 w-4",
-            star <= rounded ? "fill-amber-400 text-amber-500" : "text-muted-foreground/40",
+            star <= rounded ? "fill-amber-400 text-amber-500" : "text-muted-foreground",
           )}
           aria-hidden
         />
@@ -499,7 +499,7 @@ function CoverBlock({
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center" aria-hidden>
-          <span className="select-none px-4 text-center text-sm font-medium text-muted-foreground/60">
+          <span className="select-none px-4 text-center text-sm font-medium text-muted-foreground">
             {title}
           </span>
         </div>

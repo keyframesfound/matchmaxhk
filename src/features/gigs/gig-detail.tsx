@@ -77,22 +77,22 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
                   {formatMaterialTypeLabel(note.materialType, t)}
                 </span>
                 {note.gigCategory && (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                     {t(gigCategoryLabelKey(note.gigCategory))}
                   </span>
                 )}
                 {note.gigDeliveryType && (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                     {t(gigDeliveryLabelKey(note.gigDeliveryType))}
                   </span>
                 )}
                 {note.curriculumTag && (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                     {note.curriculumTag}
                   </span>
                 )}
                 {note.subjectTag && (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                     {note.subjectTag}
                   </span>
                 )}
@@ -109,7 +109,7 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
                   {note.tutorName}
                 </a>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="font-medium text-foreground/70">{note.tutorCode}</span>
+                  <span className="font-medium text-muted-foreground">{note.tutorCode}</span>
                   {note.tutorVerificationTier === "tier_2_verified" && (
                     <span className="inline-flex items-center gap-1 font-medium text-[color:var(--brand-link)]">
                       <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
@@ -146,7 +146,7 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
             {note.description && (
               <section className="space-y-2">
                 <h2 className="text-lg font-medium">{t("gigs.about_title")}</h2>
-                <p className="whitespace-pre-line text-[0.95rem] leading-relaxed text-foreground/90">
+                <p className="whitespace-pre-line text-[0.95rem] leading-relaxed text-muted-foreground">
                   {note.description}
                 </p>
               </section>

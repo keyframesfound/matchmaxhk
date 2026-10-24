@@ -215,7 +215,7 @@ function MoreFromCentre({ orgId, currentCourseId }: { orgId: string; currentCour
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                   />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center text-muted-foreground/40">
+                  <span className="flex h-full w-full items-center justify-center text-muted-foreground">
                     <BookOpen className="h-8 w-8" />
                   </span>
                 )}

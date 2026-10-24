@@ -214,7 +214,7 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
 
   const violationNote = (violations: { match: string }[]) =>
     violations.length > 0 ? (
-      <p className="text-xs text-[#B42318]">
+      <p className="text-xs text-destructive">
         {t("notes.form.contact_block", {
           match: violations
             .map((v) => v.match)
@@ -246,7 +246,7 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
       }}
     >
       {editorQuery.data?.course?.rejectionReason ? (
-        <p className="rounded-md border border-[#B42318]/30 bg-[#B42318]/5 px-3 py-2 text-xs leading-relaxed text-[#B42318]">
+        <p className="rounded-md border border-[#B42318]/30 bg-[#B42318]/5 px-3 py-2 text-xs leading-relaxed text-destructive">
           {editorQuery.data.course.rejectionReason}
         </p>
       ) : null}
@@ -321,7 +321,7 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
           />
           <p className="text-xs text-muted-foreground">{t("shop.form.cover_hint")}</p>
           {cover != null && cover.size > MAX_MATERIAL_COVER_BYTES ? (
-            <p className="text-xs text-[#B42318]">{t("shop.form.cover_too_large")}</p>
+            <p className="text-xs text-destructive">{t("shop.form.cover_too_large")}</p>
           ) : null}
         </div>
       </div>
@@ -333,7 +333,7 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
           <span
             className={
               lessonsCountInvalid
-                ? "text-xs font-medium text-[#B42318]"
+                ? "text-xs font-medium text-destructive"
                 : "text-xs font-medium text-emerald-700 dark:text-emerald-400"
             }
           >
@@ -374,7 +374,7 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
                     aria-label={t("shop.form.lesson_remove")}
                     disabled={lessons.length <= 1}
                     onClick={() => setLessons((prev) => prev.filter((_, i) => i !== index))}
-                    className="rounded-md border border-border p-1 text-muted-foreground hover:text-[#B42318] disabled:opacity-40"
+                    className="rounded-md border border-border p-1 text-muted-foreground hover:text-destructive disabled:opacity-40"
                   >
                     <X className="h-3.5 w-3.5" aria-hidden />
                   </button>
@@ -410,7 +410,7 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
                       : t("shop.form.provider_vimeo")}
                   </span>
                 ) : lesson.videoUrl.trim() ? (
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[#B42318]/40 bg-[#B42318]/5 px-2 py-1 text-xs font-medium text-[#B42318]">
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[#B42318]/40 bg-[#B42318]/5 px-2 py-1 text-xs font-medium text-destructive">
                     {t("shop.form.lesson_bad_video", { n: index + 1 })}
                   </span>
                 ) : null}
@@ -439,7 +439,7 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
               </div>
 
               {problems.length > 0 ? (
-                <p className="text-xs text-[#B42318]">{problems.join(" ")}</p>
+                <p className="text-xs text-destructive">{problems.join(" ")}</p>
               ) : (
                 <p className="flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
                   <PlayCircle className="h-3.5 w-3.5" aria-hidden />

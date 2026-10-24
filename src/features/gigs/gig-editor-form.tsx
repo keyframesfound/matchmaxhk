@@ -163,7 +163,7 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
 
   const violationNote = (violations: { match: string }[]) =>
     violations.length > 0 ? (
-      <p className="text-xs text-[#B42318]">
+      <p className="text-xs text-destructive">
         {t("gigs.form.contact_block", {
           match: violations
             .map((v) => v.match)
@@ -385,7 +385,7 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
           />
         ) : null}
         {coverTooLarge ? (
-          <p className="text-xs text-[#B42318]">{t("gigs.form.cover_too_large")}</p>
+          <p className="text-xs text-destructive">{t("gigs.form.cover_too_large")}</p>
         ) : (
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
             <Lock className="h-3 w-3" aria-hidden />

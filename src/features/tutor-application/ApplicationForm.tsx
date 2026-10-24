@@ -562,7 +562,7 @@ function ProfilePhotoUpload({
           ) : (
             <span className="grid justify-items-center gap-1">
               <User className="h-6 w-6" aria-hidden="true" />
-              <span className="text-[10px] font-medium leading-none">Add photo</span>
+              <span className="text-[11px] font-medium leading-none">Add photo</span>
             </span>
           )}
           <input

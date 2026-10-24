@@ -187,7 +187,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
 
   const violationNote = (violations: { match: string }[]) =>
     violations.length > 0 ? (
-      <p className="text-xs text-[#B42318]">
+      <p className="text-xs text-destructive">
         {t("notes.form.contact_block", {
           match: violations
             .map((v) => v.match)
@@ -349,7 +349,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           />
           <p className="text-xs text-muted-foreground">{t("notes.form.word_count_hint")}</p>
           {wordCountError ? (
-            <p className="text-xs text-[#B42318]">{t("notes.form.word_count_invalid")}</p>
+            <p className="text-xs text-destructive">{t("notes.form.word_count_invalid")}</p>
           ) : null}
         </div>
         <div className="space-y-1.5">
@@ -408,7 +408,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
         {fileTooLarge ? (
-          <p className="text-xs text-[#B42318]">{t("notes.form.file_too_large")}</p>
+          <p className="text-xs text-destructive">{t("notes.form.file_too_large")}</p>
         ) : materialType === "flashcards" ? (
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
             <Lock className="h-3 w-3" aria-hidden />

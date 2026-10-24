@@ -59,7 +59,7 @@ export function RoleManagementDialog({
               </span>
               <span className="ml-2 font-mono text-muted-foreground">({user.email ?? "—"})</span>
             </div>
-            <div className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
+            <div className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
               ID: {user.user_id.slice(0, 8)}...
             </div>
           </div>

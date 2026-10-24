@@ -78,7 +78,7 @@ export function ReviewSummaryBlock({ tutorId }: { tutorId: string }) {
                       key={s}
                       className={cn(
                         "h-3 w-3",
-                        s < r.rating ? "fill-current" : "text-muted-foreground/40",
+                        s < r.rating ? "fill-current" : "text-muted-foreground",
                       )}
                       aria-hidden="true"
                     />

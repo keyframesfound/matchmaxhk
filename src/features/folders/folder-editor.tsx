@@ -198,7 +198,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
 
   const violationNote = (violations: { match: string }[]) =>
     violations.length > 0 ? (
-      <p className="text-xs text-[#B42318]">
+      <p className="text-xs text-destructive">
         {t("notes.form.contact_block", {
           match: violations
             .map((v) => v.match)
@@ -217,7 +217,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
       }}
     >
       {editorQuery.data?.folder?.rejectionReason ? (
-        <p className="rounded-md border border-[#B42318]/30 bg-[#B42318]/5 px-3 py-2 text-xs leading-relaxed text-[#B42318]">
+        <p className="rounded-md border border-[#B42318]/30 bg-[#B42318]/5 px-3 py-2 text-xs leading-relaxed text-destructive">
           {editorQuery.data.folder.rejectionReason}
         </p>
       ) : null}
@@ -283,7 +283,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
           />
           <p className="text-xs text-muted-foreground">{t("shop.form.cover_hint")}</p>
           {cover != null && cover.size > MAX_MATERIAL_COVER_BYTES ? (
-            <p className="text-xs text-[#B42318]">{t("shop.form.cover_too_large")}</p>
+            <p className="text-xs text-destructive">{t("shop.form.cover_too_large")}</p>
           ) : null}
         </div>
       </div>
@@ -295,7 +295,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
           <span
             className={
               childrenInvalid
-                ? "text-xs font-medium text-[#B42318]"
+                ? "text-xs font-medium text-destructive"
                 : "text-xs font-medium text-emerald-700 dark:text-emerald-400"
             }
           >
@@ -347,7 +347,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
           </ul>
         )}
         {childMessages.length > 0 ? (
-          <p className="text-xs text-[#B42318]">{childMessages.join(" ")}</p>
+          <p className="text-xs text-destructive">{childMessages.join(" ")}</p>
         ) : null}
         <p className="text-xs text-muted-foreground">{t("shop.form.items_hint")}</p>
       </div>
@@ -370,7 +370,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
                 type="button"
                 aria-label={t("shop.form.remove_item")}
                 onClick={() => setSelectedIds((prev) => prev.filter((id) => id !== row.id))}
-                className="rounded-md border border-border p-1 text-muted-foreground hover:text-[#B42318]"
+                className="rounded-md border border-border p-1 text-muted-foreground hover:text-destructive"
               >
                 <X className="h-3.5 w-3.5" aria-hidden />
               </button>
