@@ -52,7 +52,7 @@ function StatePill({ state }: { state: string }) {
 function CohortCard({ cohort, onBook }: { cohort: GroupCohortView; onBook: () => void }) {
   const { t } = useTranslation();
   return (
-    <li className="flex flex-col rounded-sm border border-border bg-card p-5">
+    <li className="flex flex-col rounded-sm border border-border bg-card p-5 transition-[transform,border-color] duration-200 ease-out hover:-translate-y-1 hover:border-[color:var(--ink)]/25 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
       <div className="flex flex-wrap items-center gap-2">
         <StatePill state={cohort.state} />
         <span className="rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-semibold text-[color:var(--ink)]">

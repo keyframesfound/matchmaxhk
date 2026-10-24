@@ -2,10 +2,12 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LifeBuoy, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { motion, useReducedMotion } from "motion/react";
 import { z } from "zod";
 
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
 import { PublicPage } from "@/components/layout/PublicPage";
+import { Reveal } from "@/components/ui/reveal";
 import { useAuth } from "@/features/auth/useAuth";
 import { HelpArticleLink, useSupportWhatsAppHref } from "@/features/help/components";
 import {
@@ -177,6 +179,7 @@ function HelpCentrePage() {
   const { t } = useTranslation();
   const { hasRole } = useAuth();
   const navigate = useNavigate();
+  const shouldReduceMotion = useReducedMotion();
   const { audience } = Route.useSearch();
   const [query, setQuery] = useState("");
   const supportHref = useSupportWhatsAppHref();
@@ -260,12 +263,25 @@ function HelpCentrePage() {
                 aria-selected={activeTab === tab}
                 onClick={() => setTab(tab)}
                 className={cn(
-                  "h-9 shrink-0 whitespace-nowrap rounded-full px-5 text-sm font-semibold transition-colors",
+                  "relative isolate h-9 shrink-0 whitespace-nowrap rounded-full px-5 text-sm font-semibold transition-colors",
                   activeTab === tab
-                    ? "bg-[color:var(--foreground)] text-[color:var(--background)]"
+                    ? "text-[color:var(--background)]"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
+                {activeTab === tab ? (
+                  <motion.span
+                    aria-hidden="true"
+                    className="absolute inset-0 -z-10 rounded-full bg-[color:var(--foreground)]"
+                    initial={false}
+                    layoutId="help-audience-pill"
+                    transition={
+                      shouldReduceMotion
+                        ? { duration: 0 }
+                        : { type: "spring", stiffness: 420, damping: 32 }
+                    }
+                  />
+                ) : null}
                 {label}
               </button>
             ))}
@@ -277,64 +293,72 @@ function HelpCentrePage() {
         <SearchResults query={query.trim()} results={results} />
       ) : (
         <>
-          <section className="mx-auto w-full max-w-[1440px] px-5 py-12 sm:px-8 lg:px-12">
-            <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-              {t("help.featured_title")}
-            </h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {featured.map((article) => (
-                <FeaturedGuideCard key={article.slug} article={article} />
-              ))}
-            </div>
-          </section>
+          <Reveal>
+            <section className="mx-auto w-full max-w-[1440px] px-5 py-12 sm:px-8 lg:px-12">
+              <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+                {t("help.featured_title")}
+              </h2>
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {featured.map((article) => (
+                  <FeaturedGuideCard key={article.slug} article={article} />
+                ))}
+              </div>
+            </section>
+          </Reveal>
 
-          <section className="mx-auto w-full max-w-[1440px] px-5 pb-14 sm:px-8 lg:px-12">
-            <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-              {t("help.topics_title")}
-            </h2>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {topics.map(({ category, articles }) => (
-                <TopicCategoryCard
-                  key={category.slug}
-                  categorySlug={category.slug}
-                  articles={articles}
-                />
-              ))}
-            </div>
-          </section>
+          <Reveal>
+            <section className="mx-auto w-full max-w-[1440px] px-5 pb-14 sm:px-8 lg:px-12">
+              <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+                {t("help.topics_title")}
+              </h2>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {topics.map(({ category, articles }) => (
+                  <TopicCategoryCard
+                    key={category.slug}
+                    categorySlug={category.slug}
+                    articles={articles}
+                  />
+                ))}
+              </div>
+            </section>
+          </Reveal>
         </>
       )}
 
-      <section className="border-t border-border bg-muted/40">
-        <div className="mx-auto w-full max-w-2xl px-5 py-16 text-center">
-          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card">
-            <LifeBuoy className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
-          </span>
-          <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-            {t("help.contact_title")}
-          </h2>
-          <p className="mt-3 text-base leading-7 text-muted-foreground">{t("help.contact_body")}</p>
-          {supportHref ? (
-            <a
-              href={supportHref}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
-            >
-              <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
-              {t("help.contact_cta")}
-            </a>
-          ) : null}
-          <p className="mt-5 text-sm text-muted-foreground">
-            <a
-              href="mailto:contact@matchmax.hk?subject=MatchMax%20platform%20feedback"
-              className="font-semibold text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors hover:text-[color:var(--brand-link)] hover:decoration-[color:var(--brand-link)]"
-            >
-              {t("help.feedback_link")}
-            </a>
-          </p>
-        </div>
-      </section>
+      <Reveal>
+        <section className="border-t border-border bg-muted/40">
+          <div className="mx-auto w-full max-w-2xl px-5 py-16 text-center">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card">
+              <LifeBuoy className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
+            </span>
+            <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+              {t("help.contact_title")}
+            </h2>
+            <p className="mt-3 text-base leading-7 text-muted-foreground">
+              {t("help.contact_body")}
+            </p>
+            {supportHref ? (
+              <a
+                href={supportHref}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
+              >
+                <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
+                {t("help.contact_cta")}
+              </a>
+            ) : null}
+            <p className="mt-5 text-sm text-muted-foreground">
+              <a
+                href="mailto:contact@matchmax.hk?subject=MatchMax%20platform%20feedback"
+                className="font-semibold text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors hover:text-[color:var(--brand-link)] hover:decoration-[color:var(--brand-link)]"
+              >
+                {t("help.feedback_link")}
+              </a>
+            </p>
+          </div>
+        </section>
+      </Reveal>
     </PublicPage>
   );
 }

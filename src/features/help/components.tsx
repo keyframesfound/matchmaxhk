@@ -138,12 +138,16 @@ function HelpCopyBox({ label, text }: { label?: string; text: string }) {
         >
           {copied ? (
             <>
-              <Check className="h-3.5 w-3.5 text-[color:var(--brand-link)]" aria-hidden="true" />
+              <span className="mm-control-pop inline-flex">
+                <Check className="h-3.5 w-3.5 text-[color:var(--brand-link)]" aria-hidden="true" />
+              </span>
               {t("help.copied")}
             </>
           ) : (
             <>
-              <ClipboardCopy className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="mm-control-pop inline-flex">
+                <ClipboardCopy className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
               {t("help.copy_button")}
             </>
           )}

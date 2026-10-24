@@ -18,8 +18,8 @@
  */
 
 @theme inline {
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-accordion-down: accordion-down 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-accordion-up: accordion-up 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -76,18 +76,22 @@
 @keyframes accordion-down {
   from {
     height: 0;
+    opacity: 0;
   }
   to {
     height: var(--radix-accordion-content-height);
+    opacity: 1;
   }
 }
 
 @keyframes accordion-up {
   from {
     height: var(--radix-accordion-content-height);
+    opacity: 1;
   }
   to {
     height: 0;
+    opacity: 0;
   }
 }
 
@@ -441,6 +445,21 @@ html {
     cursor: pointer;
   }
 
+  /*
+   * One consistent keyboard-focus indicator site-wide: a 2px azure outline.
+   * Primitives that paint their own focus ring carry `outline-none`
+   * utilities, which live in the utilities layer and win over this
+   * element-level base rule, so nothing double-indicates.
+   */
+  button:focus-visible,
+  a[href]:focus-visible,
+  [role="button"]:focus-visible,
+  [role="tab"]:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--ring) 55%, transparent);
+    outline-offset: 2px;
+  }
+
   .font-medium {
     font-weight: 500 !important;
   }
@@ -486,79 +505,6 @@ html {
 @layer utilities {
   .dark .text-brand-gradient {
     background-image: linear-gradient(135deg, #8ecdf8 0%, #1d9bf0 100%);
-  }
-}
-
-@layer utilities {
-  .how-it-works-hero__image {
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(
-        100deg,
-        rgba(15, 20, 25, 0.98) 8%,
-        rgba(15, 20, 25, 0.82) 52%,
-        rgba(15, 20, 25, 0.55)
-      ),
-      url("/tutor-matching-network.jpeg") center / cover no-repeat;
-    filter: saturate(0.78) contrast(1.1);
-  }
-
-  .how-it-works-hero__image::after {
-    position: absolute;
-    inset: 0;
-    content: "";
-    background: radial-gradient(circle at 76% 30%, rgba(29, 161, 242, 0.32), transparent 33%);
-  }
-
-  .how-it-works-paper {
-    --hiw-compare-card: #ffffff;
-    --hiw-compare-card-border: color-mix(in oklab, var(--ink) 12%, transparent);
-    --hiw-compare-line: color-mix(in oklab, var(--ink) 10%, transparent);
-    --hiw-compare-max: color-mix(in oklab, var(--brand-link) 10%, transparent);
-    background-color: #f7fafc;
-    background-image:
-      radial-gradient(circle at 88% 28%, rgba(29, 161, 242, 0.16), transparent 22rem),
-      repeating-linear-gradient(
-        90deg,
-        transparent 0,
-        transparent calc(8.333% - 1px),
-        rgba(15, 20, 25, 0.05) calc(8.333% - 1px),
-        rgba(15, 20, 25, 0.05) 8.333%
-      ),
-      url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
-    background-attachment: fixed;
-  }
-
-  .dark .how-it-works-paper {
-    --hiw-compare-card: rgb(255 255 255 / 4%);
-    --hiw-compare-card-border: rgb(255 255 255 / 10%);
-    --hiw-compare-line: rgb(255 255 255 / 14%);
-    --hiw-compare-max: color-mix(in oklab, var(--brand-link) 16%, transparent);
-    background-color: var(--surface);
-    background-image: none;
-  }
-
-  .saved-posts-reserve-card {
-    background: color-mix(in oklab, var(--foreground) 4%, var(--surface));
-  }
-
-  .saved-posts-hero-visual {
-    background-color: var(--surface-subtle);
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-  }
-
-  .saved-posts-reserve-visual {
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.98) 18%,
-      rgba(247, 250, 252, 0.94) 100%
-    );
-    border: 1px solid rgba(15, 20, 25, 0.08);
   }
 }
 
@@ -623,26 +569,6 @@ html {
 }
 
 @layer utilities {
-  .landing-tutor-marquee {
-    animation: landing-tutor-marquee 42s linear infinite;
-    will-change: transform;
-  }
-  @keyframes landing-tutor-marquee {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(calc(-50% - 0.75rem));
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .landing-tutor-marquee {
-      animation-play-state: paused;
-      transform: translateX(0);
-    }
-  }
-
   /*
    * Horizontal rail scrollers (home tutor/notes/gigs rows, directory rows):
    * hide the native scrollbar — the grey bar under the rails read as
@@ -680,6 +606,42 @@ html {
     .animate-banner-in {
       animation: none;
     }
+  }
+
+  /*
+   * Small-control state pop (radio dot, selected chips): a one-shot
+   * scale+fade on mount so selection reads as a committed state change.
+   */
+  @keyframes control-pop {
+    from {
+      transform: scale(0.4);
+      opacity: 0;
+    }
+    60% {
+      opacity: 1;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  .mm-control-pop {
+    animation: control-pop 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mm-control-pop {
+      animation: none;
+    }
+  }
+
+  /*
+   * Sonner ships an elevation shadow on toasts; this system is flat and
+   * border-delineated (the toast border comes from the Toaster classNames),
+   * so the shadow is neutralized here — the banned `shadow-*` utilities
+   * can't do this from TSX.
+   */
+  [data-sonner-toast] {
+    box-shadow: none !important;
   }
 }
 

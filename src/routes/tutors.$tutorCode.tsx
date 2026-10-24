@@ -36,6 +36,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ReviewSummaryBlock } from "@/features/tutors/review-summary-block";
 import { Button } from "@/components/ui/button";
+import { Reveal } from "@/components/ui/reveal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import {
@@ -144,17 +145,19 @@ function ProfileSection({
   iconClassName?: string;
 }) {
   return (
-    <section className="border-b border-border px-5 py-5 last:border-b-0 sm:px-6">
-      <div className="flex items-center gap-2.5">
-        <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
-          <Icon className={`h-4 w-4 ${iconClassName}`} strokeWidth={2.1} />
-        </span>
-        <h2 className="text-base font-bold tracking-tight text-[color:var(--ink)] sm:text-lg">
-          {title}
-        </h2>
-      </div>
-      <div className="mt-3.5">{children}</div>
-    </section>
+    <Reveal className="border-b border-border last:border-b-0">
+      <section className="px-5 py-5 sm:px-6">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
+            <Icon className={`h-4 w-4 ${iconClassName}`} strokeWidth={2.1} />
+          </span>
+          <h2 className="text-base font-bold tracking-tight text-[color:var(--ink)] sm:text-lg">
+            {title}
+          </h2>
+        </div>
+        <div className="mt-3.5">{children}</div>
+      </section>
+    </Reveal>
   );
 }
 
@@ -1177,7 +1180,7 @@ function TutorDetail() {
                             <summary className="cursor-pointer list-none text-xs font-semibold text-muted-foreground hover:text-[color:var(--ink)]">
                               {translate("settings.my_tutor.rate_row_details_toggle")}
                               <span
-                                className="ml-1 inline-block transition-transform group-open:rotate-180"
+                                className="ml-1 inline-block transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-open:rotate-180 motion-reduce:transition-none"
                                 aria-hidden="true"
                               >
                                 ▾

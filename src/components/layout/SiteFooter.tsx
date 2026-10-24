@@ -53,7 +53,7 @@ export function SiteFooter({
 
             <div className="mt-5 flex gap-4">
               <a
-                className="text-foreground/60 transition-colors hover:text-brand"
+                className="text-foreground/60 transition-[color,transform] duration-150 hover:text-brand active:scale-90 motion-reduce:transition-none"
                 href="https://www.linkedin.com/company/matchmax/"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -62,7 +62,7 @@ export function SiteFooter({
                 <Linkedin className="h-5 w-5" aria-hidden="true" />
               </a>
               <a
-                className="text-foreground/60 transition-colors hover:text-brand"
+                className="text-foreground/60 transition-[color,transform] duration-150 hover:text-brand active:scale-90 motion-reduce:transition-none"
                 href="https://www.instagram.com/match_max/"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -71,7 +71,7 @@ export function SiteFooter({
                 <Instagram className="h-5 w-5" aria-hidden="true" />
               </a>
               <a
-                className="text-foreground/60 transition-colors hover:text-brand"
+                className="text-foreground/60 transition-[color,transform] duration-150 hover:text-brand active:scale-90 motion-reduce:transition-none"
                 href="mailto:contact@matchmax.hk"
                 aria-label="Email MatchMax"
               >
@@ -87,7 +87,7 @@ export function SiteFooter({
                 {productLinks.map((link) => (
                   <li key={link.to}>
                     <Link
-                      className="text-sm text-foreground/70 transition-colors hover:text-brand"
+                      className="relative text-sm text-foreground/70 transition-colors after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-200 after:ease-out hover:text-brand hover:after:scale-x-100 motion-reduce:after:transition-none"
                       to={link.to}
                     >
                       {t(link.key)}
@@ -103,7 +103,7 @@ export function SiteFooter({
                 {companyLinks.map((link) => (
                   <li key={link.key}>
                     <Link
-                      className="text-sm text-foreground/70 transition-colors hover:text-brand"
+                      className="relative text-sm text-foreground/70 transition-colors after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-200 after:ease-out hover:text-brand hover:after:scale-x-100 motion-reduce:after:transition-none"
                       to={link.to}
                       hash={"hash" in link ? link.hash : undefined}
                     >
@@ -121,14 +121,14 @@ export function SiteFooter({
                   <li key={link.key}>
                     {"href" in link ? (
                       <a
-                        className="text-sm text-foreground/70 transition-colors hover:text-brand"
+                        className="relative text-sm text-foreground/70 transition-colors after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-200 after:ease-out hover:text-brand hover:after:scale-x-100 motion-reduce:after:transition-none"
                         href={link.href}
                       >
                         {t(link.key)}
                       </a>
                     ) : (
                       <Link
-                        className="text-sm text-foreground/70 transition-colors hover:text-brand"
+                        className="relative text-sm text-foreground/70 transition-colors after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-200 after:ease-out hover:text-brand hover:after:scale-x-100 motion-reduce:after:transition-none"
                         to={link.to}
                       >
                         {t(link.key)}

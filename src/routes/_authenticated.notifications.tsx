@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Bell, CalendarClock, Package, Star, Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
@@ -57,6 +58,7 @@ function NotificationsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const shouldReduceMotion = useReducedMotion();
 
   const { data, isLoading } = useQuery({
     queryKey: ["bell", "page"],
@@ -108,7 +110,7 @@ function NotificationsPage() {
                   if (item.link) navigate({ to: item.link });
                 }}
                 className={cn(
-                  "flex w-full items-start gap-3 rounded-xl border border-[color:var(--ink)]/10 p-4 text-left transition-colors hover:bg-[color:var(--foreground)]/[0.03]",
+                  "flex w-full items-start gap-3 rounded-xl border border-[color:var(--ink)]/10 p-4 text-left transition-colors hover:bg-[color:var(--foreground)]/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
                   !item.read && "bg-[color:var(--foreground)]/[0.04]",
                 )}
               >
@@ -124,9 +126,20 @@ function NotificationsPage() {
                     {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
                   </span>
                 </span>
-                {!item.read && (
-                  <span className="mt-1.5 h-2 w-2 rounded-full bg-red-500" aria-hidden="true" />
-                )}
+                <AnimatePresence initial={false}>
+                  {!item.read ? (
+                    <motion.span
+                      className="mt-1.5 h-2 w-2 rounded-full bg-red-500"
+                      aria-hidden="true"
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0 }}
+                      initial={{ opacity: 0, scale: 0 }}
+                      transition={
+                        shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }
+                      }
+                    />
+                  ) : null}
+                </AnimatePresence>
               </button>
             );
           })}
