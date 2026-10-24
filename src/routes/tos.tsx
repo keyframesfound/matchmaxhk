@@ -23,7 +23,7 @@ export const Route = createFileRoute("/tos")({
 type Block = { kind: "p"; text: string } | { kind: "ul"; items: string[] };
 
 const INTRO_TEXT = `MatchMax Terms of Service
-Effective date: October 16, 2026
+Effective date: October 24, 2026
 Operator: Hau Yui Chan, trading as MatchMax (“MatchMax”, “we”, “us”)
 Business Registration number: 41690777
 Address: Shop T163, 3/F, The Capital, 61–65 Chatham Road South, Tsim Sha Tsui, Kowloon, Hong Kong
@@ -54,6 +54,10 @@ const SECTIONS: Section[] = [
       {
         kind: "p",
         text: "An Authorised Channel is the website, a contact method published on it, or another contact method specifically confirmed through a published MatchMax contact.",
+      },
+      {
+        kind: "p",
+        text: "A Partner Organisation is a Customer that is an organisation (for example a tutorial centre, day school, or NGO) contracting for educational services — a course module, exam clinic, or class series — delivered personally by an independent Tutor under a Contract for Services. MatchMax facilitates only genuine independent-contractor engagements of this kind. MatchMax is not an employment agency, does not hold an Employment Agency licence, and does not provide staff or employee recruitment or placement services. Requests to recruit employees or staff are outside the Platform’s scope: every engagement request is screened before matching, and a request that would place a Tutor under administrative, reception, or other non-teaching staff duties, engage a Tutor through a third party on whose behalf MatchMax cannot screen, or otherwise resemble an employment engagement may be placed on compliance hold and declined or removed.",
       },
       {
         kind: "p",

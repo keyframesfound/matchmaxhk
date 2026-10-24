@@ -1,4 +1,5 @@
-export type CaseStatus = "new" | "contacted" | "matched" | "closed" | "rejected";
+export type CaseStatus =
+  "new" | "contacted" | "compliance_hold" | "matched" | "closed" | "rejected";
 
 export type CaseRow = {
   id: string;
@@ -43,6 +44,9 @@ export type CaseRow = {
   kindergarten_focus?: string[] | null;
   last_contacted_at: string | null;
   board_published_at: string | null;
+  // Issue #412: triage answers + hold note (absent on pre-migration rows).
+  compliance_triage?: Record<string, unknown> | null;
+  compliance_note?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -56,11 +60,19 @@ export type CaseNoteRow = {
   created_at: string;
 };
 
-export const CASE_STATUSES: CaseStatus[] = ["new", "contacted", "matched", "closed", "rejected"];
+export const CASE_STATUSES: CaseStatus[] = [
+  "new",
+  "contacted",
+  "compliance_hold",
+  "matched",
+  "closed",
+  "rejected",
+];
 
 export const STATUS_LABEL: Record<CaseStatus, string> = {
   new: "New",
   contacted: "Contacted",
+  compliance_hold: "Compliance hold",
   matched: "Matched",
   closed: "Closed",
   rejected: "Rejected",
@@ -69,6 +81,7 @@ export const STATUS_LABEL: Record<CaseStatus, string> = {
 export const STATUS_PILL_CLASS: Record<CaseStatus, string> = {
   new: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
   contacted: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
+  compliance_hold: "bg-purple-500/15 text-purple-700 dark:text-purple-400",
   matched: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
   closed: "bg-muted text-muted-foreground",
   rejected: "bg-red-500/15 text-red-700 dark:text-red-400",

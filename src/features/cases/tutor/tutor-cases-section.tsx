@@ -21,6 +21,7 @@ import {
   type TutorCaseItem,
 } from "@/features/cases/tutor.functions";
 import { logTutorSession } from "@/features/cases/experience.functions";
+import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { lessonActionsFor } from "@/features/cases/tutor/week-model";
 import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
 import { canMarkDone, hktDateKey } from "@/features/cases/sor";
@@ -467,6 +468,9 @@ export function TutorCasesSection() {
                   c.sor_status !== "replaced" && <TutorReviewParentForm caseId={c.id} t={t} />}
                 {/* #387: logged sessions + logging form (fee-paid cases). */}
                 <SessionLogForm item={c} />
+                {/* Issue #412 F: engagement summary — the tutor confirms the
+                    agreed arrangements before contact/lessons finalise. */}
+                <EngagementSummaryCard caseId={c.id} party="tutor" />
               </li>
             ))}
           </ul>

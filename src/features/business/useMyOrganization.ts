@@ -35,6 +35,16 @@ export type Organization = {
   faq: OrgFaqItem[];
   plan: OrgPlan;
   status: OrgStatus;
+  // Issue #412 B: partner-org legal identity (null on legacy / tutor orgs).
+  legal_entity_name: string | null;
+  trading_name: string | null;
+  br_number: string | null;
+  rep_name: string | null;
+  rep_role: string | null;
+  org_type: "tutorial_centre" | "day_school" | "ngo" | null;
+  edb_identifier: string | null;
+  charity_identifier: string | null;
+  br_reviewed_at: string | null;
   created_at: string;
   updated_at: string;
 };

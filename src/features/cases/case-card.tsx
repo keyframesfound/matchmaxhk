@@ -6,7 +6,7 @@
 // Design system: hairline borders, no shadows, sentence-case labels.
 
 import { useTranslation } from "react-i18next";
-import { MapPin, Users } from "lucide-react";
+import { Building2, MapPin, ShieldCheck, Users } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 import {
@@ -181,5 +181,64 @@ export function CaseLogisticsLine({
       <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       <span className="truncate">{parts.join(" · ")}</span>
     </div>
+  );
+}
+
+/**
+ * Issues #412 / #423 B2B slice: the card identity row. Centre cases swap in
+ * the verified-org identity (name + Blue Tick, linking to the storefront
+ * when live); unverified centres fall back to the B2C identity line, and
+ * parent cases never change. Trust pills only ever render with real data —
+ * there is no parent rating today (precedent #151).
+ */
+export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
+  const { t } = useTranslation();
+  if (item.centre) {
+    const inner = (
+      <>
+        <Building2
+          className="h-3.5 w-3.5 shrink-0 text-[color:var(--brand-link)]"
+          aria-hidden="true"
+        />
+        <span className="truncate">{item.centre.name}</span>
+        {item.centre.verified ? (
+          <ShieldCheck
+            className="h-3.5 w-3.5 shrink-0 text-[color:var(--brand-link)]"
+            aria-label={t("case_board.centre_verified")}
+          />
+        ) : null}
+      </>
+    );
+    if (item.centre.verified && item.centre.slug) {
+      return (
+        <Link
+          to="/business/$slug"
+          params={{ slug: item.centre.slug }}
+          className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]"
+        >
+          {inner}
+        </Link>
+      );
+    }
+    return (
+      <span className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
+        {inner}
+      </span>
+    );
+  }
+  return (
+    <span className="truncate text-xs font-medium text-muted-foreground">
+      {t("case_board.identity_parent")}
+    </span>
+  );
+}
+
+/** Permanent Cap.57 chip on centre cards — never reads as a job vacancy. */
+export function CaseCap57Chip() {
+  const { t } = useTranslation();
+  return (
+    <span className="inline-flex w-full items-center gap-1 overflow-hidden rounded-full border border-purple-500/30 bg-purple-500/[0.06] px-2 py-0.5 text-[11px] font-semibold text-purple-700 dark:text-purple-400">
+      <span className="truncate">{t("case_board.cap57_chip")}</span>
+    </span>
   );
 }

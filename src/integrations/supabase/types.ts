@@ -365,6 +365,17 @@ export type Database = {
           website_url: string | null;
           whatsapp_number: string | null;
           x_url: string | null;
+          authority_ack_at?: string | null;
+          br_number?: string | null;
+          br_reviewed_at?: string | null;
+          br_reviewed_by?: string | null;
+          charity_identifier?: string | null;
+          edb_identifier?: string | null;
+          legal_entity_name?: string | null;
+          org_type?: string | null;
+          rep_name?: string | null;
+          rep_role?: string | null;
+          trading_name?: string | null;
           youtube_url: string | null;
         };
         Insert: {
@@ -394,6 +405,17 @@ export type Database = {
           website_url?: string | null;
           whatsapp_number?: string | null;
           x_url?: string | null;
+          authority_ack_at?: string | null;
+          br_number?: string | null;
+          br_reviewed_at?: string | null;
+          br_reviewed_by?: string | null;
+          charity_identifier?: string | null;
+          edb_identifier?: string | null;
+          legal_entity_name?: string | null;
+          org_type?: string | null;
+          rep_name?: string | null;
+          rep_role?: string | null;
+          trading_name?: string | null;
           youtube_url?: string | null;
         };
         Update: {
@@ -423,7 +445,87 @@ export type Database = {
           website_url?: string | null;
           whatsapp_number?: string | null;
           x_url?: string | null;
+          authority_ack_at?: string | null;
+          br_number?: string | null;
+          br_reviewed_at?: string | null;
+          br_reviewed_by?: string | null;
+          charity_identifier?: string | null;
+          edb_identifier?: string | null;
+          legal_entity_name?: string | null;
+          org_type?: string | null;
+          rep_name?: string | null;
+          rep_role?: string | null;
+          trading_name?: string | null;
           youtube_url?: string | null;
+        };
+        Relationships: [];
+      };
+      engagement_summaries: {
+        Row: {
+          case_id: string;
+          created_at: string;
+          customer_confirmed_at: string | null;
+          id: string;
+          payload: Json;
+          tutor_confirmed_at: string | null;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          case_id: string;
+          created_at?: string;
+          customer_confirmed_at?: string | null;
+          id?: string;
+          payload: Json;
+          tutor_confirmed_at?: string | null;
+          updated_at?: string;
+          version?: number;
+        };
+        Update: {
+          case_id?: string;
+          created_at?: string;
+          customer_confirmed_at?: string | null;
+          id?: string;
+          payload?: Json;
+          tutor_confirmed_at?: string | null;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [];
+      };
+      engagement_change_reports: {
+        Row: {
+          case_id: string;
+          created_at: string;
+          description: string;
+          engagement_id: string | null;
+          id: string;
+          reported_by_role: string;
+          reported_by_user: string | null;
+          resolved_at: string | null;
+          resolution_note: string | null;
+        };
+        Insert: {
+          case_id: string;
+          created_at?: string;
+          description: string;
+          engagement_id?: string | null;
+          id?: string;
+          reported_by_role: string;
+          reported_by_user?: string | null;
+          resolved_at?: string | null;
+          resolution_note?: string | null;
+        };
+        Update: {
+          case_id?: string;
+          created_at?: string;
+          description?: string;
+          engagement_id?: string | null;
+          id?: string;
+          reported_by_role?: string;
+          reported_by_user?: string | null;
+          resolved_at?: string | null;
+          resolution_note?: string | null;
         };
         Relationships: [];
       };
@@ -1004,6 +1106,9 @@ export type Database = {
           uni_name: string | null;
           uni_program: string | null;
           uni_course_codes: string | null;
+          compliance_note?: string | null;
+          compliance_triage?: Json | null;
+          organisation_id?: string | null;
           kindergarten_focus: Json;
         };
         Insert: {
@@ -1066,6 +1171,9 @@ export type Database = {
           uni_name?: string | null;
           uni_program?: string | null;
           uni_course_codes?: string | null;
+          compliance_note?: string | null;
+          compliance_triage?: Json | null;
+          organisation_id?: string | null;
           kindergarten_focus?: Json;
         };
         Update: {
@@ -1128,6 +1236,9 @@ export type Database = {
           uni_name?: string | null;
           uni_program?: string | null;
           uni_course_codes?: string | null;
+          compliance_note?: string | null;
+          compliance_triage?: Json | null;
+          organisation_id?: string | null;
           kindergarten_focus?: Json | null;
         };
         Relationships: [
@@ -1157,6 +1268,13 @@ export type Database = {
             columns: ["group_cohort_id"];
             isOneToOne: false;
             referencedRelation: "group_cohorts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tutoring_cases_organisation_id_fkey";
+            columns: ["organisation_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
             referencedColumns: ["id"];
           },
         ];
@@ -1542,7 +1660,8 @@ export type Database = {
       app_role: "super_admin" | "admin" | "staff" | "tutor" | "parent";
       case_gender_pref: "any" | "male" | "female";
       case_mode: "online" | "in_person" | "either";
-      case_request_status: "new" | "contacted" | "matched" | "closed" | "rejected";
+      case_request_status:
+        "new" | "contacted" | "compliance_hold" | "matched" | "closed" | "rejected";
       case_urgency: "low" | "normal" | "high";
       org_member_role: "owner" | "admin";
       org_member_status: "pending" | "active" | "revoked";
@@ -1676,7 +1795,7 @@ export const Constants = {
       app_role: ["super_admin", "admin", "staff", "tutor", "parent"],
       case_gender_pref: ["any", "male", "female"],
       case_mode: ["online", "in_person", "either"],
-      case_request_status: ["new", "contacted", "matched", "closed", "rejected"],
+      case_request_status: ["new", "contacted", "compliance_hold", "matched", "closed", "rejected"],
       case_urgency: ["low", "normal", "high"],
       org_member_role: ["owner", "admin"],
       org_member_status: ["pending", "active", "revoked"],

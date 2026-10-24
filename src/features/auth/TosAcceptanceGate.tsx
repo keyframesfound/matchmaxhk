@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/features/auth/useAuth";
-import { AcceptTermsDialog } from "@/features/auth/AcceptTermsGate";
+import { AcceptTermsDialog, TOS_VERSION } from "@/features/auth/AcceptTermsGate";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -26,14 +26,16 @@ export function TosAcceptanceGate({ children }: { children: ReactNode }) {
     setChecking(true);
     void supabase
       .from("profiles")
-      .select("tos_accepted_at")
+      .select("tos_accepted_at, tos_version")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (!active) return;
         // Missing row or error counts as not accepted (fail closed); accepting
         // upserts the profile row, which repairs a missing profile too.
-        setAcceptedFor(data?.tos_accepted_at ? user.id : null);
+        // #412: an accepted row only satisfies the gate at the CURRENT
+        // TOS_VERSION — bumping the constant re-prompts everyone once.
+        setAcceptedFor(data?.tos_accepted_at && data?.tos_version === TOS_VERSION ? user.id : null);
         setChecking(false);
       });
     return () => {

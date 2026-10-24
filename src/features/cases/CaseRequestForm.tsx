@@ -148,6 +148,9 @@ type FormState = {
   termsAgreed: boolean;
   // Issue #253 (F2): matching-fee agreement, version fee-2026-10.
   feeAgreed: boolean;
+  // Issue #412 E: parent B2C triage (compliance screening).
+  engager: string;
+  nonTutoringDuties: string;
 };
 
 const INITIAL_FORM: FormState = {
@@ -193,11 +196,24 @@ const INITIAL_FORM: FormState = {
   tags: [],
   termsAgreed: false,
   feeAgreed: false,
+  engager: "",
+  nonTutoringDuties: "no",
 };
 
 /** Issue #311: the preset tag seeds shown as one-tap chips on the case form
  * (same vocabulary as tutor profile tags). */
 const CASE_TAG_OPTIONS: string[] = [...PRESET_PROFILE_TAGS];
+
+/** Issue #412 E: parent B2C triage options. A third-party engager or
+ * non-tutoring duties drops the request into compliance_hold server-side. */
+const PARENT_ENGAGER_OPTIONS = [
+  { value: "myself_child", label: "Myself / my child" },
+  { value: "organisation_third_party", label: "An organisation or third party" },
+];
+const PARENT_DUTIES_OPTIONS = [
+  { value: "no", label: "No" },
+  { value: "yes", label: "Yes" },
+];
 
 type CaseRequestFormProps = {
   idPrefix?: string;
@@ -320,6 +336,15 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     // over-length notes — maxLength only blocks NEW typing, and the server
     // zod .max(500) would reject submit. Truncate to the live cap here.
     const notes = typeof restored.notes === "string" ? restored.notes.slice(0, 500) : "";
+    // Issue #412 E: sanitize the triage answers against tampered drafts.
+    const engager = PARENT_ENGAGER_OPTIONS.some((o) => o.value === restored.engager)
+      ? restored.engager
+      : "";
+    const nonTutoringDuties = PARENT_DUTIES_OPTIONS.some(
+      (o) => o.value === restored.nonTutoringDuties,
+    )
+      ? restored.nonTutoringDuties
+      : "no";
     setForm((prev) => ({
       ...prev,
       ...restored,
@@ -332,6 +357,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       rateUnit,
       classFormat,
       notes,
+      engager,
+      nonTutoringDuties,
       instructionLanguage: languages,
       tags,
     }));
@@ -348,7 +375,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         (key === "packageType" && v === "ongoing_1_5") ||
         (key === "studentCount" && v === "1") ||
         (key === "rateUnit" && v === "hr") ||
-        (key === "classFormat" && v === "either"),
+        (key === "classFormat" && v === "either") ||
+        // Issue #412 E: triage defaults are the blank state.
+        (key === "engager" && v === "") ||
+        (key === "nonTutoringDuties" && v === "no"),
     );
 
   const update = (patch: Partial<FormState>) => {
@@ -538,6 +568,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     }
     if (target === 3) {
       if (!form.deliveryMode) nextErrors.deliveryMode = "Required";
+      // Issue #412 E: the engager question is a hard gate.
+      if (!form.engager) nextErrors.engager = "Required";
       if (form.deliveryMode !== "online" && !form.district) nextErrors.district = "Required";
       if (!form.budgetMax.trim()) nextErrors.budgetMax = "Required";
       if (!form.termsAgreed) nextErrors.termsAgreed = "Required";
@@ -619,6 +651,11 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           senCategories: form.senRequired ? form.senCategories : [],
           senDetails: form.senRequired ? form.senDetails.trim() || null : null,
           tags: form.tags,
+          // Issue #412 E: parent B2C compliance triage.
+          triage: {
+            engager: form.engager as "myself_child" | "organisation_third_party",
+            nonTutoringDuties: form.nonTutoringDuties as "no" | "yes",
+          },
           termsAck: form.termsAgreed,
           feeTermsAck: form.feeAgreed,
           website: honeypot.current?.value || null,
@@ -1592,6 +1629,43 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                 Note: Official Examiners typically command double the hourly rate of University
                 Students
+              </p>
+            </div>
+            {/* Issue #412 E: parent B2C compliance triage. A third-party
+                engager or non-tutoring duties puts the request on
+                compliance_hold for staff re-screening before matching. */}
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-engager`}>
+                {t("case_request.triage_engager_label")}
+                {errors.engager === "Required" ? <RequiredFlag /> : null}
+              </label>
+              <SearchableSelect
+                value={form.engager}
+                onChange={(v) => update({ engager: v || "" })}
+                options={PARENT_ENGAGER_OPTIONS}
+                placeholder={t("case_request.triage_engager_label")}
+                searchPlaceholder={t("case_request.triage_engager_label")}
+                className={controlClassName}
+                invalid={Boolean(errors.engager)}
+              />
+              {errors.engager && errors.engager !== "Required" ? (
+                <p className="mt-1 text-xs font-semibold text-destructive">{errors.engager}</p>
+              ) : null}
+            </div>
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-non-tutoring-duties`}>
+                {t("case_request.triage_duties_label")}
+              </label>
+              <SearchableSelect
+                value={form.nonTutoringDuties}
+                onChange={(v) => update({ nonTutoringDuties: v || "no" })}
+                options={PARENT_DUTIES_OPTIONS}
+                placeholder={t("case_request.triage_duties_label")}
+                searchPlaceholder={t("case_request.triage_duties_label")}
+                className={controlClassName}
+              />
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                {t("case_request.triage_duties_hint")}
               </p>
             </div>
             {/* Issue #199: SEN support section — Yes/No toggle reveals the

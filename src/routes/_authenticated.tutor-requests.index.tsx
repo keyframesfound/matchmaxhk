@@ -32,8 +32,10 @@ import {
   useCaseCompare,
 } from "@/features/cases/compare-cases";
 import {
+  CaseCap57Chip,
   CaseChipRow,
   CaseFeePill,
+  CaseIdentityRow,
   CaseLogisticsLine,
   CaseStudentsRow,
   caseLogisticsParts,
@@ -170,11 +172,10 @@ function CaseCard({ item }: { item: PublicCaseBoardItem }) {
   return (
     <li className="relative flex flex-col rounded-xl border border-border bg-[color:var(--surface)] p-4 transition-colors hover:border-[color:var(--foreground)]/25">
       {/* Identity row — trust pills ONLY with real data; there is NO parent
-          rating today, so nothing fabricated renders (precedent #151). */}
+          rating today, so nothing fabricated renders (precedent #151).
+          Centre cases swap in the verified-org identity (#412/#423). */}
       <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-xs font-medium text-muted-foreground">
-          {t("case_board.identity_parent")}
-        </span>
+        <CaseIdentityRow item={item} />
         {item.startTiming === "asap" ? (
           <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-bold text-[#a16207] dark:text-[color:var(--warning)]">
             <CalendarClock className="h-3 w-3" aria-hidden="true" />
@@ -211,6 +212,13 @@ function CaseCard({ item }: { item: PublicCaseBoardItem }) {
       <div className="mt-1">
         <CaseStudentsRow item={item} />
       </div>
+
+      {/* Permanent Cap.57 chip on centre cards (#412). */}
+      {item.centre ? (
+        <div className="mt-1.5 min-w-0">
+          <CaseCap57Chip />
+        </div>
+      ) : null}
 
       <div className="mt-2 min-h-[1.75rem]">
         <CaseChipRow item={item} />

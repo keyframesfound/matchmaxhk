@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
 import { Loader2, UserRoundCheck, Wallet, X } from "lucide-react";
 import { toast } from "sonner";
+
+import { ensureEngagementSummary } from "@/features/cases/engagement.functions";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -58,6 +61,7 @@ function TutorAvatar({ hit }: { hit: TutorHit }) {
  * referrer's 15% bounty via the trg_cases_fee_referral_bounty trigger.
  */
 export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatched: () => void }) {
+  const ensureFn = useServerFn(ensureEngagementSummary);
   const [query, setQuery] = useState("");
   const [feeInput, setFeeInput] = useState("");
 
@@ -103,6 +107,12 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
   });
 
   const markMatched = (tutor: TutorHit) => {
+    // Issue #412: a compliance-held request cannot be matched until staff
+    // re-screen and clear the hold.
+    if (caseRow.status === "compliance_hold") {
+      toast.error("Compliance hold: re-screen this request before matching a tutor.");
+      return;
+    }
     patchMutation.mutate(
       {
         status: "matched",
@@ -113,6 +123,12 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
         onSuccess: () => {
           setQuery("");
           toast.success(`Case ${caseRow.case_code} matched to ${tutor.display_name}`);
+          // Issue #412 F: auto-create the engagement summary at match time
+          // (board-matched path; the SoR `introduced` transition has its own
+          // hook). Fail-open — it re-ensures idempotently later.
+          void ensureFn({ data: { caseId: caseRow.id } }).catch((e: unknown) => {
+            console.error("[engagement] failed to ensure summary on match:", e);
+          });
         },
       },
     );

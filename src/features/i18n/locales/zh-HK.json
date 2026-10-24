@@ -1364,6 +1364,33 @@
     "profile": {
       "inquiries_7d": "過去 7 日有 {{count}} 位家長查詢",
       "saves": "已獲 {{count}} 位家長儲存"
+    },
+    "summary": {
+      "title": "委聘摘要",
+      "version": "版本 {{version}}",
+      "customer": "客戶",
+      "educator": "導師",
+      "rate": "議定服務費",
+      "payer": "邊個俾 MatchMax 服務費",
+      "fee_line": "MatchMax 行政費",
+      "autonomy": "導師自主權",
+      "scope": "服務範圍",
+      "payment": "付款安排",
+      "confirmed_customer": "客戶已確認",
+      "confirmed_tutor": "導師已確認",
+      "not_yet": "尚未確認",
+      "both_confirmed": "雙方已確認此版本。",
+      "confirm": "我同意以上安排，並確認佢哋準確描述呢次委聘。如有重大變更，我會通知 MatchMax。",
+      "confirm_saved": "已記錄確認。",
+      "confirming": "確認中…",
+      "report_title": "申報重大變更",
+      "report_placeholder": "有咩變更？（職務、時數或訂約結構）——MatchMax 會重新審核呢次委聘。",
+      "report_submit": "送出申報",
+      "report_sending": "傳送中…",
+      "report_sent": "已送出——個案正重新審核中。",
+      "report_cancel": "取消",
+      "open_reports": "{{count}} 個待處理嘅變更申報",
+      "resolve": "標記已處理"
     }
   },
   "home": {
@@ -1601,6 +1628,28 @@
       "badge_line_2": "我哋唔會保證成績、取錄或教學成果。",
       "badge_line_3": "徽章只涵蓋卡片上顯示嘅成績，唔包括個人簡介。",
       "badge_line_4": "家長如果想看成績紙，喺介紹之後直接向導師攞。MatchMax唔會發送任何身份證明文件。"
+    },
+    "tab_partners": "教育機構合作",
+    "index_partners_body": "畀補習中心、學校同 NGO 委聘獨立導師——只做服務合約，絕不涉及員工招聘。",
+    "partners": {
+      "eyebrow": "教育機構合作",
+      "title": "為你嘅課程委聘獨立導師",
+      "intro": "MatchMax 協助補習中心、日校同 NGO 搵配獨立自僱導師，開辦專科課程、備考班同系列課堂——純粹服務合約，配對前必先審核。",
+      "steps_title": "委聘導師嘅流程",
+      "s1_title": "登記你的法律實體",
+      "s1_body": "以註冊公司名稱、商業登記號碼同授權代表開立教育機構合作帳戶。我哋團隊會先核實商業登記，先會啟用你的帳戶。",
+      "s2_title": "刊出獨立課程項目",
+      "s2_body": "描述專科課程項目、備考班或系列課堂同服務費。每個委聘都要通過四部分審核，確認屬獨立服務委聘——絕非員工招聘。",
+      "s3_title": "確認委聘摘要",
+      "s3_body": "配對成功後，雙方確認一頁式委聘摘要，列明服務範圍、服務費同 MatchMax 行政費。雙方自行直接簽訂服務合約（如需要，亦自行簽保密協議）。",
+      "rules_title": "MatchMax 係——同唔係——咩",
+      "r1": "MatchMax 係獨立導師配對平台，唔係職業介紹所，亦唔提供員工招聘服務。",
+      "r2": "平台導師全部係自僱專業人士。涉及行政、前台或一般職務嘅委聘會被拒絕或暫停待審。",
+      "r3": "導師保留教學方法嘅自主權，亦可以自由服務其他客戶。",
+      "r4": "職位空缺招聘唔喺服務範圍——MatchMax 從不刊登職位。",
+      "fee_title": "費用",
+      "fee_body": "MatchMax 配對行政費照舊係 1.5 課費用——首兩課完成後向自僱導師收取（第 1 課 100% 加第 2 課 50%）。五課或以內嘅短期套餐收套餐 20%，義務項目免費。機構永遠唔需要俾 MatchMax 配對費。",
+      "cta": "開立教育機構合作帳戶"
     }
   },
   "legal": {
@@ -1886,7 +1935,10 @@
     "detail_uni_name": "大學：{{value}}",
     "detail_uni_program": "學位課程：{{value}}",
     "detail_uni_courses": "大學課程／需要：{{value}}",
-    "rate_tba": "學費待議"
+    "rate_tba": "學費待議",
+    "triage_engager_label": "邊個委聘導師？學生係邊位？",
+    "triage_duties_label": "需唔需要導師處理教學以外嘅家務、湊仔或助理職務？",
+    "triage_duties_hint": "MatchMax 嘅導師只負責教學——涉及家務或職務嘅個案會交由合規審核。"
   },
   "sen": {
     "filter_title": "SEN 支援",
@@ -2478,7 +2530,29 @@
     "detail_pref_probono": "義教個案：HK$0 學費 · HK$0 行政費",
     "detail_flexible": "不限",
     "detail_no_preference": "不限",
-    "form_class_format": "班型偏好"
+    "form_class_format": "班型偏好",
+    "centre_summary_title": "機構委聘",
+    "centre_verified": "已核實",
+    "cap57_chip": "🚫 無行政／前台職務",
+    "centre_view_profile": "查看機構主頁 →",
+    "screening_contracting": "訂約方",
+    "screening_fee": "建議服務費",
+    "screening_premises": "場地及設備",
+    "screening_scope": "服務範圍",
+    "screening_zero_admin": "行政／前台職務",
+    "screening_confirmed_no": "機構確認毋須承擔",
+    "screening_methodology": "教學方法",
+    "screening_other_clients": "可自由服務其他客戶",
+    "screening_substitution": "替更／委派",
+    "screening_open_to_counter": "可議價",
+    "screening_confirm_title": "申請前確認",
+    "screening_confirm_option": "以上安排與我對這次獨立服務委聘的理解一致。",
+    "screening_clarify_option": "我需要更正或澄清這些工作安排。",
+    "screening_clarify_placeholder": "請描述需要澄清之處——配對團隊會重新審核此個案。",
+    "screening_clarify_submit": "傳送給配對團隊",
+    "screening_clarify_sending": "傳送中…",
+    "screening_clarify_sent": "多謝你的意見——已通知配對團隊，此個案正重新審核中。",
+    "screening_confirm_required": "請先確認審核摘要（或提出澄清），才可以申請。"
   },
   "experience": {
     "lessons": "{{count}} 堂課堂",

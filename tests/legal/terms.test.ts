@@ -16,6 +16,10 @@ describe("buildTermsAcceptanceRow", () => {
       surface: "signup",
       terms_version: TERMS_VERSION,
       subject_id: null,
+      // Issue #412 D: audit columns default to null.
+      ip_address: null,
+      legal_entity_name: null,
+      acceptance_details: null,
     });
   });
 
@@ -41,7 +45,7 @@ describe("buildTermsAcceptanceRow", () => {
     ).toThrow(/unknown terms surface/);
   });
 
-  it("covers exactly the five gated surfaces", () => {
+  it("covers exactly the six gated surfaces", () => {
     expect([...TERMS_SURFACES]).toEqual([
       "signup",
       "note_upload",
@@ -49,6 +53,8 @@ describe("buildTermsAcceptanceRow", () => {
       "referral_signup",
       // Issue #253 (F2): the case-request form's matching-fee checkbox.
       "case_request",
+      // Issue #412: Partner Org join — authority checkbox + partnership terms.
+      "centre_partnership",
     ]);
     expect(isTermsSurface("note_upload")).toBe(true);
     expect(isTermsSurface("NO_UPLOAD")).toBe(false);
@@ -67,6 +73,9 @@ describe("buildTermsAcceptanceRow", () => {
       surface: "case_request",
       terms_version: "fee-2026-10",
       subject_id: "case-1",
+      ip_address: null,
+      legal_entity_name: null,
+      acceptance_details: null,
     });
   });
 });

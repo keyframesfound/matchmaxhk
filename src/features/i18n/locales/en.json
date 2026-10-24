@@ -1364,6 +1364,33 @@
     "profile": {
       "inquiries_7d": "{{count}} parents inquired in the last 7 days",
       "saves": "Saved by {{count}} parents"
+    },
+    "summary": {
+      "title": "Engagement summary",
+      "version": "Version {{version}}",
+      "customer": "Customer",
+      "educator": "Educator",
+      "rate": "Agreed service rate",
+      "payer": "Who pays MatchMax's fee",
+      "fee_line": "MatchMax admin fee",
+      "autonomy": "Educator autonomy",
+      "scope": "Scope of services",
+      "payment": "Payment",
+      "confirmed_customer": "Customer confirmed",
+      "confirmed_tutor": "Educator confirmed",
+      "not_yet": "not yet",
+      "both_confirmed": "Both parties confirmed this version.",
+      "confirm": "I agree to the arrangements shown and confirm that they accurately describe the intended engagement. I will notify MatchMax of any material changes.",
+      "confirm_saved": "Confirmation recorded.",
+      "confirming": "Confirming…",
+      "report_title": "Report a material change",
+      "report_placeholder": "What changed? (duties, hours, or contracting structure) — MatchMax will re-screen the engagement.",
+      "report_submit": "Send report",
+      "report_sending": "Sending…",
+      "report_sent": "Report sent — the case is on hold for re-screening.",
+      "report_cancel": "Cancel",
+      "open_reports": "{{count}} open change report(s)",
+      "resolve": "Resolve"
     }
   },
   "home": {
@@ -1601,6 +1628,28 @@
       "badge_line_2": "We do not guarantee a grade, an offer, or a teaching result.",
       "badge_line_3": "The badge covers the grades shown on the card, not the bio.",
       "badge_line_4": "A parent who wants the slip asks the tutor after the introduction. MatchMax does not send identity documents."
+    },
+    "tab_partners": "Education Partners",
+    "index_partners_body": "For tutorial centres, schools, and NGOs engaging independent educators — Contracts for Services only, never staff recruitment.",
+    "partners": {
+      "eyebrow": "Education Partners",
+      "title": "Engage independent educators for your programmes",
+      "intro": "MatchMax helps tutorial centres, day schools, and NGOs find and match self-employed independent educators for course modules, exam clinics, and class series — genuine Contracts for Services, screened before matching.",
+      "steps_title": "How engaging an educator works",
+      "s1_title": "Register your legal entity",
+      "s1_body": "Create an Education Partner account with your registered legal entity name, Business Registration number, and authorised representative. Our team verifies the registration before your account is activated.",
+      "s2_title": "Post an independent course module",
+      "s2_body": "Describe the course module, exam clinic, or class series and the service fee. Every request passes a four-part screening that confirms it is an independent service engagement — never staff recruitment.",
+      "s3_title": "Confirm the Engagement Summary",
+      "s3_body": "When an educator is matched, both sides confirm a one-page Engagement Summary covering scope, rate, and the MatchMax admin fee. Parties execute their own Contract for Services (and NDA, if needed) directly with each other.",
+      "rules_title": "What MatchMax is — and is not",
+      "r1": "MatchMax is an independent educator marketplace. It is not an employment agency and does not provide staff or employee recruitment services.",
+      "r2": "Educators on MatchMax are self-employed professionals. Requests involving administrative, reception, or general staff duties are declined or placed on compliance hold.",
+      "r3": "Educators keep control of their teaching methodology and stay free to serve other clients.",
+      "r4": "Vacancy hiring is out of scope — MatchMax never publishes job listings.",
+      "fee_title": "Fees",
+      "fee_body": "MatchMax's matching admin fee is the standard 1.5-lesson fee — 100% of Lesson 1 plus 50% of Lesson 2 — charged to the self-employed educator after the first two introductions. Short packages of five lessons or fewer use 20% of the package, and pro-bono engagements are free. Organisations never pay MatchMax a matching fee.",
+      "cta": "Create an Education Partner account"
     }
   },
   "legal": {
@@ -1886,7 +1935,10 @@
     "detail_uni_name": "University: {{value}}",
     "detail_uni_program": "Programme: {{value}}",
     "detail_uni_courses": "University courses / need: {{value}}",
-    "rate_tba": "Rate TBA"
+    "rate_tba": "Rate TBA",
+    "triage_engager_label": "Who is engaging the tutor?",
+    "triage_duties_label": "Any non-tutoring household, childcare, or staff duties?",
+    "triage_duties_hint": "Tutors on MatchMax teach only — requests involving staff or household duties go to a compliance review."
   },
   "sen": {
     "filter_title": "SEN support",
@@ -2478,7 +2530,29 @@
     "detail_pref_probono": "Pro-bono case: HK$0 tuition · HK$0 admin fee",
     "detail_flexible": "flexible",
     "detail_no_preference": "No preference",
-    "form_class_format": "Class format preference"
+    "form_class_format": "Class format preference",
+    "centre_summary_title": "Centre engagement",
+    "centre_verified": "Verified",
+    "cap57_chip": "🚫 Zero admin / reception duty",
+    "centre_view_profile": "View the centre's profile →",
+    "screening_contracting": "Contracting entity",
+    "screening_fee": "Proposed service fee",
+    "screening_premises": "Premises & equipment",
+    "screening_scope": "Scope of services",
+    "screening_zero_admin": "Admin / reception duties",
+    "screening_confirmed_no": "Confirmed none by the centre",
+    "screening_methodology": "Teaching methodology",
+    "screening_other_clients": "Free to teach other clients",
+    "screening_substitution": "Substitution / delegation",
+    "screening_open_to_counter": "open to counter-proposal",
+    "screening_confirm_title": "Before you apply",
+    "screening_confirm_option": "These arrangements reflect my understanding of this independent service engagement.",
+    "screening_clarify_option": "I need to correct or clarify something about these working arrangements.",
+    "screening_clarify_placeholder": "Describe what needs clarifying — the matching desk will re-screen the request.",
+    "screening_clarify_submit": "Send to the matching desk",
+    "screening_clarify_sending": "Sending…",
+    "screening_clarify_sent": "Thanks — your note went to the matching desk and the request is on hold for re-screening.",
+    "screening_confirm_required": "Confirm the screening summary (or send a clarification) before applying."
   },
   "experience": {
     "lessons": "{{count}} lessons",
