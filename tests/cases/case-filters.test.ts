@@ -170,6 +170,8 @@ describe("URL-param parsers (#423)", () => {
     expect(parseCaseRateParam("300")).toBe(300);
     expect(parseCaseRateParam(-5)).toBeUndefined();
     expect(parseCaseRateParam("abc")).toBeUndefined();
+    expect(parseCaseRateParam("")).toBeUndefined();
+    expect(parseCaseRateParam("  ")).toBeUndefined();
     expect(parseCaseRateParam(undefined)).toBeUndefined();
   });
 

@@ -11,7 +11,6 @@
 // language "either" (no requirement) matches NO language filter — the
 // English/Cantonese filters find cases that REQUIRE that language.
 
-import { parseTierParam } from "@/features/tutors/search-tiers";
 import { normalizeProfileTag } from "@/features/tutors/profile-tags";
 import { caseAcademicTier, type AcademicTier } from "@/features/tutors/verticals";
 import { caseBudgetHkdBounds } from "@/features/cases/display";
@@ -55,6 +54,8 @@ export function parseCaseFeeParam(raw: unknown): string | undefined {
 }
 
 export function parseCaseRateParam(raw: unknown): number | undefined {
+  // "" and whitespace would Number() to 0 — treat them as absent, not zero.
+  if (typeof raw === "string" && !raw.trim()) return undefined;
   const value = typeof raw === "number" ? raw : typeof raw === "string" ? Number(raw) : NaN;
   return Number.isInteger(value) && value >= 0 ? value : undefined;
 }
