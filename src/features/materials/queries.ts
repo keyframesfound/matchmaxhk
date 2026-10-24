@@ -33,6 +33,12 @@ export type StudyMaterial = {
   promotional_note: string | null;
   admin_marketing_summary: string | null;
   created_at: string;
+  /** #392: public URL-ready listing slug (detail page for every kind). */
+  slug: string | null;
+  /** #392 big-cover shop card: public materials-previews path. */
+  cover_image_path: string | null;
+  /** #392: delivered orders only, incremented at delivery. */
+  sold_count: number;
 };
 
 export const MATERIALS_PREVIEW_DISCLAIMER_KEY = "materials.disclaimer";
@@ -42,7 +48,18 @@ function isMissingRelation(error: unknown): boolean {
 }
 
 const MATERIAL_COLS =
-  "id, tutor_id, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, word_count, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, admin_marketing_summary, created_at";
+  "id, tutor_id, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, word_count, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, admin_marketing_summary, created_at, slug, cover_image_path, sold_count";
+
+/**
+ * #392: the kinds the tutor-profile "Authored notes" section renders.
+ * Folders/courses/gigs are shop listings with their own card chrome and
+ * detail pages — they surface in the /tutors?view=materials directory, not
+ * in the profile notes block.
+ */
+export const PROFILE_NOTE_TYPES = ["notes", "mock", "exemplar", "flashcards"] as const;
+
+/** Profile query filter: the profile kinds PLUS gigs (never notes-block kinds). */
+const SUPPORTED_PROFILE_TYPES_CSV = '"notes","mock","exemplar","flashcards","gig"';
 
 function mapMaterial(row: Record<string, unknown>): StudyMaterial {
   return {
@@ -72,6 +89,9 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
     admin_marketing_summary:
       typeof row.admin_marketing_summary === "string" ? row.admin_marketing_summary : null,
     created_at: typeof row.created_at === "string" ? row.created_at : "",
+    slug: typeof row.slug === "string" ? row.slug : null,
+    cover_image_path: typeof row.cover_image_path === "string" ? row.cover_image_path : null,
+    sold_count: Number(row.sold_count ?? 0),
   };
 }
 
@@ -79,6 +99,7 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
 type AfterFilter = {
   eq: (col: string, value: string | boolean) => AfterFilter;
   neq: (col: string, value: string) => AfterFilter;
+  not: (col: string, op: string, value: string) => AfterFilter;
   order: (
     col: string,
     opts: { ascending: boolean },
@@ -108,10 +129,10 @@ export async function fetchMaterialsForTutor(tutorId: string): Promise<StudyMate
     .select(MATERIAL_COLS)
     .eq("tutor_id", tutorId)
     .eq("status", "published")
-    // Freestyle gigs (material_type 'gig') are SERVICES, not notes — they
-    // render only in the Tutor services surfaces (grok review 2026-10-17),
-    // never inside the authored-notes block.
-    .neq("material_type", "gig")
+    // Freestyle gigs (#326) AND the #392 shop kinds (folders / courses) are
+    // NOT authored notes — they render only through the shop directory and
+    // their own detail pages, never inside the profile notes block.
+    .not("material_type", "in", `(${SUPPORTED_PROFILE_TYPES_CSV})`)
     .order("created_at", { ascending: false });
   if (error) {
     if (isMissingRelation(error)) return [];
@@ -128,17 +149,19 @@ export type MarketplaceMaterial = StudyMaterial & {
   tutor_verified: boolean;
 };
 
+/**
+ * #392: the WHOLE published shop — notes kinds, folders, courses AND gigs —
+ * one RLS read feeding the unified directory grid (kind filter chips live
+ * client-side, same as the tutors list). The old gig exclusion is gone: the
+ * directory is the shop now, and the home rows / profile section keep their
+ * own note-only RPCs and queries.
+ */
 export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]> {
   const { data, error } = await materialsTable()
     .select(
       `${MATERIAL_COLS}, tutors!inner(display_name, tutor_code, is_published, verification_tier)`,
     )
     .eq("status", "published")
-    // Gigs are services — excluded from the notes marketplace grid here;
-    // they render solely through get_public_gigs / GigServicesSection
-    // (grok review 2026-10-17: otherwise a gig shows as a note card AND
-    // a service chip).
-    .neq("material_type", "gig")
     .order("created_at", { ascending: false });
   if (error) {
     if (isMissingRelation(error)) return [];

@@ -145,3 +145,13 @@ export function caseBudgetHkdBounds(
     max: row.budget_max_hkd ?? row.budget_max,
   };
 }
+
+/**
+ * The explicit column list the desk's client list query selects (admin
+ * cases route). The table grants authenticated a column-level SELECT
+ * (admin-only fields — internal_note, whatsapp_group_url, hourly_rate_hkd —
+ * are excluded DB-side), so select(*) would fail with permission denied.
+ * Shared with findCasesByTutorCode (#55) so both surfaces stay in lockstep.
+ */
+export const ADMIN_CASE_SELECT_COLUMNS =
+  "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, who_for, student_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, created_at, updated_at";

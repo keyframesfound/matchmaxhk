@@ -289,6 +289,39 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
     const deliveredPath = (order as unknown as { delivered_file_path?: string | null })
       ?.delivered_file_path;
     if (!deliveredPath) {
+      // #392: course and folder orders have no per-order stamped copy — the
+      // product opens on its own page instead of a file download.
+      const { data: mat } = await (
+        supabaseAdmin as unknown as {
+          from: (t: string) => {
+            select: (c: string) => {
+              eq: (
+                c: string,
+                v: string,
+              ) => {
+                maybeSingle: () => Promise<{
+                  data: { material_type: string } | null;
+                  error?: { message: string } | null;
+                }>;
+              };
+            };
+          };
+        }
+      )
+        .from("digital_materials")
+        .select("material_type")
+        // assertOwnedDeliveredOrder above guarantees a non-null order.
+        .eq("id", (order as { material_id: string }).material_id)
+        .maybeSingle();
+      if (
+        mat?.material_type === "video_course" ||
+        mat?.material_type === "general_course" ||
+        mat?.material_type === "topic_folder"
+      ) {
+        throw new Error(
+          "This purchase opens on its product page — there is no file download. Open the listing from Account → Bought.",
+        );
+      }
       throw new Error(
         "The stamped copy is not ready yet — the download unlocks once staff release the file.",
       );
@@ -631,4 +664,156 @@ export const getMyNotesSummary = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     return summarizeMyNotesOrders(orders ?? [], new Date());
+  });
+
+// ---------------------------------------------------------------------------
+// #392 course access: lesson embeds + signed lesson PDFs for buyers.
+// ---------------------------------------------------------------------------
+
+/** Typed error the course detail page catches to render the locked state. */
+export const COURSE_LOCKED_ERROR = "This course is not unlocked for your account.";
+
+export type CourseAccessLesson = {
+  id: string;
+  position: number;
+  title: string;
+  videoProvider: string | null;
+  /** youtube-nocookie / player.vimeo embed — NEVER the raw URL. */
+  embedUrl: string | null;
+  /** 10-minute signed URL for the watermarked lesson PDF (null when none). */
+  pdfSignedUrl: string | null;
+};
+
+export type CourseAccess = {
+  courseId: string;
+  courseTitle: string;
+  courseSlug: string | null;
+  lessons: CourseAccessLesson[];
+};
+
+/**
+ * Buyer access for a video_course / general_course: an authenticated buyer
+ * with a DELIVERED order on the course gets each lesson's embed URL
+ * (youtube-nocookie via parseYouTubeUrl, player.vimeo.com via
+ * parseVimeoUrl) plus a 10-minute signed URL per watermarked lesson PDF.
+ * Non-owners (and non-courses) get the typed COURSE_LOCKED_ERROR — the
+ * embed URLs and pdf paths never cross the gate. The raw video_url /
+ * pdf_path stay server-side.
+ */
+export const getCourseAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ materialId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }): Promise<CourseAccess> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { validateCourseVideoUrl } = await import("@/lib/vimeo");
+
+    const { data: order, error } = await (supabaseAdmin as unknown as OrdersClient)
+      .from("material_orders")
+      .select("*")
+      .eq("material_id", data.materialId)
+      .eq("buyer_account_id", context.userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    try {
+      assertOwnedDeliveredOrder(order, context.userId);
+    } catch {
+      throw new Error(COURSE_LOCKED_ERROR);
+    }
+
+    const { data: course, error: courseError } = await (
+      supabaseAdmin as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            eq: (
+              c: string,
+              v: string,
+            ) => {
+              maybeSingle: () => Promise<{
+                data: {
+                  id: string;
+                  title: string;
+                  slug: string | null;
+                  material_type: string;
+                } | null;
+                error?: { message: string } | null;
+              }>;
+            };
+          };
+        };
+      }
+    )
+      .from("digital_materials")
+      .select("id, title, slug, material_type")
+      .eq("id", data.materialId)
+      .maybeSingle();
+    if (courseError) throw new Error(courseError.message);
+    if (
+      !course ||
+      (course.material_type !== "video_course" && course.material_type !== "general_course")
+    ) {
+      throw new Error(COURSE_LOCKED_ERROR);
+    }
+
+    const { data: lessons, error: lessonsError } = await (
+      supabaseAdmin as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            eq: (
+              c: string,
+              v: string,
+            ) => {
+              order: (
+                c: string,
+                opts: { ascending: boolean },
+              ) => Promise<{
+                data: Array<{
+                  id: string;
+                  position: number;
+                  title: string;
+                  video_url: string | null;
+                  video_provider: string | null;
+                  pdf_path: string | null;
+                }> | null;
+                error?: { message: string } | null;
+              }>;
+            };
+          };
+        };
+      }
+    )
+      .from("course_lessons")
+      .select("id, position, title, video_url, video_provider, pdf_path")
+      .eq("material_id", course.id)
+      .order("position", { ascending: true });
+    if (lessonsError) throw new Error(lessonsError.message);
+
+    const accessLessons: CourseAccessLesson[] = [];
+    for (const lesson of lessons ?? []) {
+      const parsed = validateCourseVideoUrl(lesson.video_url);
+      let pdfSignedUrl: string | null = null;
+      if (lesson.pdf_path) {
+        const { data: signed, error: signError } = await supabaseAdmin.storage
+          .from("materials-originals")
+          .createSignedUrl(lesson.pdf_path, 60 * 10); // 10 minutes (#203)
+        pdfSignedUrl = signError ? null : (signed?.signedUrl ?? null);
+      }
+      accessLessons.push({
+        id: lesson.id,
+        position: Number(lesson.position),
+        title: lesson.title,
+        videoProvider:
+          lesson.video_provider === "youtube" || lesson.video_provider === "vimeo"
+            ? lesson.video_provider
+            : (parsed?.provider ?? null),
+        embedUrl: parsed?.embedUrl ?? null,
+        pdfSignedUrl,
+      });
+    }
+
+    return {
+      courseId: course.id,
+      courseTitle: course.title,
+      courseSlug: course.slug,
+      lessons: accessLessons,
+    };
   });

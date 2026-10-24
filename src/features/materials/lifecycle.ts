@@ -101,6 +101,41 @@ export function splitMaterialMoney(grossHkd: number): {
 }
 
 /**
+ * #392 Topic Folder upgrade proration (pure, money-critical — unit-tested):
+ * a buyer who already holds delivered orders on folder children pays the
+ * bulk price minus what they already paid for those children, floored at 0.
+ * `paidChildGross` is the list of gross_hkd over the buyer's DELIVERED
+ * orders on the folder's children (grant rows carry gross 0, so grants
+ * consume no credit but still mark the child as owned — the CALLER decides
+ * ownership; this helper only does the arithmetic).
+ */
+export function computeFolderAdjustedPrice(input: { bulkHkd: number; paidChildGross: number[] }): {
+  ownedSum: number;
+  adjusted: number;
+} {
+  const bulk = Math.max(0, Math.round(Number(input.bulkHkd) * 100) / 100);
+  let ownedSum = 0;
+  for (const gross of input.paidChildGross) {
+    ownedSum += Math.max(0, Number(gross) || 0);
+  }
+  ownedSum = Math.round(ownedSum * 100) / 100;
+  const adjusted = Math.round(Math.max(bulk - ownedSum, 0) * 100) / 100;
+  return { ownedSum, adjusted };
+}
+
+/**
+ * #392: folder savings vs buying every child at list price, as a whole
+ * percent (0 when the bulk price is not a saving). Pure — the editor's
+ * "Save HK$X (Y%)" line and the shop card badge share it.
+ */
+export function folderSavingsPercent(bulkHkd: number, childrenSumHkd: number): number {
+  const sum = Math.max(0, Math.round(Number(childrenSumHkd) * 100) / 100);
+  const bulk = Math.max(0, Math.round(Number(bulkHkd) * 100) / 100);
+  if (sum <= 0 || bulk >= sum) return 0;
+  return Math.round(((sum - bulk) / sum) * 100);
+}
+
+/**
  * Short human order reference (#203: "the order id as the reference").
  * MM- prefix + Crockford-ish base32 of the timestamp + 3 random chars —
  * readable over WhatsApp, unique in practice, and retried on collision by

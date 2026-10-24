@@ -46,6 +46,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { CaseDetailView } from "@/features/cases/admin/CaseDetailView";
 import { SorDeskTools } from "@/features/cases/admin/sor-desk";
 import {
+  ADMIN_CASE_SELECT_COLUMNS,
   CASE_STATUSES,
   MODE_LABEL,
   START_LABEL,
@@ -56,6 +57,10 @@ import {
   type CaseRow,
   type CaseStatus,
 } from "@/features/cases/admin/shared";
+import {
+  findCasesByTutorCode,
+  type TutorCodeCaseHit,
+} from "@/features/cases/desk-search.functions";
 import {
   applyCaseFilters,
   caseFilterOptions,
@@ -123,11 +128,11 @@ function AdminCases() {
       // Explicit columns: the table grants authenticated a column-level SELECT
       // (admin-only fields — internal_note, whatsapp_group_url, hourly_rate_hkd
       // — are excluded DB-side), so select(*) would fail with permission denied.
+      // The list lives in ADMIN_CASE_SELECT_COLUMNS (shared.ts) so the
+      // tutor-code search (#55) selects the identical shape.
       const { data, error } = await supabase
         .from("tutoring_cases")
-        .select(
-          "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, who_for, student_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, created_at, updated_at",
-        )
+        .select(ADMIN_CASE_SELECT_COLUMNS)
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
@@ -143,6 +148,34 @@ function AdminCases() {
 
   const filtered = useMemo(() => applyCaseFilters(cases, filters), [cases, filters]);
   const hasActiveFilters = !isDefaultFilters(filters);
+
+  // Issue #55: staff search by tutor code. The desk's q filter only sees
+  // case columns, so a tutor code runs a separate server fn whose hits are
+  // UNIONed ahead of the filtered list (dedupe by id). Kept as local state
+  // — one ad-hoc lookup input; URL persistence buys nothing here.
+  const [tutorCodeQuery, setTutorCodeQuery] = useState("");
+  const [tutorCodeDebounced, setTutorCodeDebounced] = useState("");
+  useEffect(() => {
+    const timer = window.setTimeout(() => setTutorCodeDebounced(tutorCodeQuery.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [tutorCodeQuery]);
+  const tutorCodeSearch = useQuery({
+    queryKey: ["admin", "cases", "tutor-code", tutorCodeDebounced],
+    queryFn: () => findCasesByTutorCode({ data: { query: tutorCodeDebounced } }),
+    enabled: tutorCodeDebounced.length > 0,
+  });
+  type AdminDeskRow = CaseRow & {
+    matchedTutor?: TutorCodeCaseHit["matchedTutor"];
+  };
+  const tutorCodeHits = useMemo<AdminDeskRow[]>(() => {
+    if (!tutorCodeDebounced) return [];
+    return (tutorCodeSearch.data?.items ?? []) as TutorCodeCaseHit[] as AdminDeskRow[];
+  }, [tutorCodeDebounced, tutorCodeSearch.data]);
+  const displayed = useMemo<AdminDeskRow[]>(() => {
+    if (tutorCodeHits.length === 0) return filtered;
+    const hitIds = new Set(tutorCodeHits.map((row) => row.id));
+    return [...tutorCodeHits, ...filtered.filter((row) => !hitIds.has(row.id))];
+  }, [filtered, tutorCodeHits]);
 
   const rateBandLabels: Record<CaseFilters["rateBand"], string> = {
     all: t("caseFilters.rate_any", { defaultValue: "Any rate" }),
@@ -221,15 +254,15 @@ function AdminCases() {
   });
 
   const allFilteredSelected =
-    filtered.length > 0 && filtered.every((row) => selectedIds.has(row.id));
+    displayed.length > 0 && displayed.every((row) => selectedIds.has(row.id));
 
   const toggleAll = () => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (allFilteredSelected) {
-        filtered.forEach((row) => next.delete(row.id));
+        displayed.forEach((row) => next.delete(row.id));
       } else {
-        filtered.forEach((row) => next.add(row.id));
+        displayed.forEach((row) => next.add(row.id));
       }
       return next;
     });
@@ -249,7 +282,7 @@ function AdminCases() {
 
   const downloadCsv = () => {
     const rows =
-      selectedIds.size > 0 ? filtered.filter((row) => selectedIds.has(row.id)) : filtered;
+      selectedIds.size > 0 ? displayed.filter((row) => selectedIds.has(row.id)) : displayed;
     if (rows.length === 0) return;
     const columns: { label: string; value: (row: (typeof cases)[number]) => string }[] = [
       { label: "Case code", value: (row) => row.case_code },
@@ -329,6 +362,20 @@ function AdminCases() {
                       placeholder="Search by code, contact, subject, tag..."
                       value={filters.q}
                       onChange={(e) => setFilters({ q: e.target.value })}
+                      className="h-10 border-[color:var(--ink)]/15 bg-[color:var(--surface)] pl-9"
+                    />
+                  </div>
+                  {/* Issue #55: find cases by the MATCHED TUTOR's code — the
+                      q filter only sees case columns. */}
+                  <div className="relative w-full lg:max-w-[220px]">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder={t("caseDesk.tutor_code_placeholder", {
+                        defaultValue: "Search by tutor code…",
+                      })}
+                      aria-label={t("caseDesk.tutor_code_label", { defaultValue: "Tutor code" })}
+                      value={tutorCodeQuery}
+                      onChange={(e) => setTutorCodeQuery(e.target.value)}
                       className="h-10 border-[color:var(--ink)]/15 bg-[color:var(--surface)] pl-9"
                     />
                   </div>
@@ -602,7 +649,7 @@ function AdminCases() {
                 <ConsoleTableBody>
                   {isLoading && <ConsoleTableSkeletonRows columns={9} />}
 
-                  {!isLoading && filtered.length === 0 && (
+                  {!isLoading && displayed.length === 0 && (
                     <ConsoleTableEmpty
                       colSpan={9}
                       icon={Inbox}
@@ -624,7 +671,7 @@ function AdminCases() {
                     />
                   )}
 
-                  {filtered.map((row) => {
+                  {displayed.map((row) => {
                     const budgetBounds = caseBudgetHkdBounds(row);
                     return (
                       <tr
@@ -665,6 +712,19 @@ function AdminCases() {
                           <p className="mt-0.5 max-w-xs truncate text-xs text-muted-foreground">
                             {row.title}
                           </p>
+                          {/* Issue #55: how this row matched the tutor-code search. */}
+                          {row.matchedTutor ? (
+                            <p className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">
+                              {t("caseDesk.matched_tutor_label", { defaultValue: "Matched tutor" })}
+                              :{" "}
+                              <span className="font-mono font-bold">
+                                {row.matchedTutor.tutor_code ?? "—"}
+                              </span>
+                              {row.matchedTutor.display_name
+                                ? ` · ${row.matchedTutor.display_name}`
+                                : ""}
+                            </p>
+                          ) : null}
                           <p className="mt-0.5 text-[11px] text-muted-foreground/80">
                             {formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}
                           </p>

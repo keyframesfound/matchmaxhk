@@ -13,6 +13,7 @@ import {
   Check,
   Clock,
   GraduationCap,
+  Loader2,
   MapPin,
   Share2,
   ShieldCheck,
@@ -46,7 +47,7 @@ import {
 import { caseScreeningLabel } from "@/features/cases/display";
 import { flagCaseComplianceConcern } from "@/features/cases/centre-case.functions";
 import { useServerFn } from "@tanstack/react-start";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { caseChips } from "@/features/cases/case-chips";
@@ -54,6 +55,16 @@ import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicCaseByCode, type PublicCaseBoardItem } from "@/lib/cases.functions";
 import { shareOrCopy } from "@/lib/share";
+import {
+  applyToCase,
+  listMyAppliedCaseCodes,
+  myAppliedCasesQueryKey,
+} from "@/features/cases/applications.functions";
+import {
+  canApplyToCase,
+  caseGenderMismatch,
+  type ApplicationBlockReason,
+} from "@/features/cases/applications";
 import { buildCaseTitle, caseTitleFieldsFromBoard } from "@/features/cases/case-title";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
 import { caseAcademicTier } from "@/features/tutors/verticals";
@@ -109,6 +120,116 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   return <h2 className="text-lg font-bold tracking-tight text-[color:var(--ink)]">{children}</h2>;
 }
 
+/** #81: stable block reasons from canApplyToCase → i18n copy. */
+const APPLY_BLOCK_COPY: Record<ApplicationBlockReason, string> = {
+  CASE_NOT_ON_BOARD: "caseApplications.case_not_available",
+  CASE_CLOSED: "caseApplications.case_not_available",
+  NO_TUTOR_PROFILE: "caseApplications.join_to_apply",
+  GENDER_MISMATCH: "caseApplications.gender_mismatch_block",
+  SCREENING_CONFIRM_REQUIRED: "caseApplications.screening_required",
+};
+
+/**
+ * #81: the in-app 1-click Apply control — primary CTA next to the WhatsApp
+ * "Apply now" (which stays as the concierge-intro secondary action). States:
+ * applied → disabled pill; no tutor card → link to /join; gender mismatch →
+ * dimmed with the #423 warning, blocked on click; centre screening → gated
+ * by the page's confirm radio (externalBlock). Shared by the header cluster
+ * and the bottom CTA block.
+ */
+function CaseApplyControl({
+  item,
+  tutorExists,
+  tutorGender,
+  genderMismatch,
+  alreadyApplied,
+  applyPending,
+  externalBlock,
+  onExternalBlock,
+  onApply,
+}: {
+  item: PublicCaseBoardItem;
+  /** Whether the signed-in user has a tutor card (null = still loading). */
+  tutorExists: boolean | null;
+  tutorGender: string | null;
+  /** #423 hard-preference dim, computed once on the page via the shared gate. */
+  genderMismatch: boolean;
+  alreadyApplied: boolean;
+  applyPending: boolean;
+  externalBlock: boolean;
+  onExternalBlock: () => void;
+  onApply: () => void;
+}) {
+  const { t } = useTranslation();
+  if (alreadyApplied) {
+    return (
+      <span
+        className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 text-sm font-bold text-emerald-700 dark:text-emerald-400"
+        title={t("caseApplications.applied_title", {
+          defaultValue: "You have applied for this case",
+        })}
+      >
+        <Check className="h-4 w-4" aria-hidden="true" />
+        {t("caseApplications.applied", { defaultValue: "Applied" })}
+      </span>
+    );
+  }
+  // No tutor card: apply is meaningless — send the user to the join flow.
+  if (tutorExists === false) {
+    return (
+      <Button asChild size="lg" variant="solid" color="blue" className="shrink-0">
+        <Link to="/join">
+          {t("caseApplications.join_to_apply", { defaultValue: "Join as a tutor to apply" })}
+        </Link>
+      </Button>
+    );
+  }
+  return (
+    <Button
+      type="button"
+      size="lg"
+      variant="solid"
+      color="blue"
+      className={`shrink-0 ${genderMismatch ? "opacity-50" : undefined}`}
+      disabled={applyPending}
+      title={genderMismatch ? t("case_board.gender_mismatch_warning") : undefined}
+      onClick={() => {
+        if (externalBlock) {
+          onExternalBlock();
+          return;
+        }
+        // Re-run the shared eligibility gate before the round trip so the
+        // tutor sees the reason immediately (the server re-checks anyway).
+        // status: "new" — board items are open by construction, the board
+        // query filters matched/closed/rejected/held rows out server-side.
+        // tutorExists is `true | null` here (false early-returned above):
+        // null = the card lookup is still loading, so pass through and let
+        // the server be authoritative instead of reporting a wrong block.
+        const eligibility = canApplyToCase(
+          {
+            boardPublishedAt: item.boardPublishedAt,
+            status: "new",
+            preferredGender: item.preferredGender,
+          },
+          { gender: tutorGender },
+        );
+        if (!eligibility.ok) {
+          toast.error(
+            t(APPLY_BLOCK_COPY[eligibility.reason], {
+              defaultValue: "You can't apply for this case.",
+            }),
+          );
+          return;
+        }
+        onApply();
+      }}
+    >
+      {applyPending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
+      {t("caseApplications.apply", { defaultValue: "Apply" })}
+    </Button>
+  );
+}
+
 function CaseDetailPage() {
   const { t, i18n } = useTranslation();
   // GLM round-3 minor on #430: this page's sentence lines previously rendered
@@ -129,29 +250,37 @@ function CaseDetailPage() {
   // Issue #423: the gender Female/Male Only chip is a HARD preference —
   // when the viewing tutor's own profile gender contradicts it, Apply dims
   // and shows ⚠️ (a warning, not a block). Guests and genderless tutors
-  // never see a mismatch.
+  // never see a mismatch. Issue #81: the same read tracks whether the
+  // viewer holds a tutor card at all (in-app Apply → /join without one).
   const { user } = useAuth();
-  const [viewerGender, setViewerGender] = useState<string | null>(null);
+  const [viewerTutor, setViewerTutor] = useState<{ gender: string | null } | null>(null);
+  const [viewerTutorLoaded, setViewerTutorLoaded] = useState(false);
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setViewerTutorLoaded(true);
+      return;
+    }
     let cancelled = false;
     void supabase
       .from("tutors")
-      .select("gender")
+      .select("id, gender")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (cancelled) return;
-        const gender = (data?.gender as string | null)?.toLowerCase() ?? null;
-        setViewerGender(gender);
+        setViewerTutor(
+          data ? { gender: ((data.gender as string | null) ?? "").toLowerCase() || null } : null,
+        );
+        setViewerTutorLoaded(true);
       });
     return () => {
       cancelled = true;
     };
   }, [user]);
-  const genderMismatch =
-    (item.preferredGender === "female" && viewerGender === "male") ||
-    (item.preferredGender === "male" && viewerGender === "female");
+  const viewerGender = viewerTutor?.gender ?? null;
+  // #81: the dim rule IS the shared canApplyToCase gender gate, factored
+  // into applications.ts so the WhatsApp dim and in-app Apply can't drift.
+  const genderMismatch = caseGenderMismatch(item.preferredGender, viewerGender);
 
   // Issue #412 E: centre cases show the screening summary and require one
   // radio before Apply — confirm enables the WhatsApp link; clarify posts
@@ -169,6 +298,43 @@ function CaseDetailPage() {
   });
   const screeningLocked = Boolean(item.centre) && screeningChoice !== "confirm";
   const applyDisabled = screeningLocked || (Boolean(item.centre) && screeningChoice === "clarify");
+
+  // Issue #81: 1-click in-app Apply. One application per (case, tutor) — the
+  // DB unique index makes a re-apply a no-op surfaced as alreadyApplied.
+  const queryClient = useQueryClient();
+  const appliedQuery = useQuery({
+    queryKey: myAppliedCasesQueryKey,
+    queryFn: () => listMyAppliedCaseCodes(),
+    enabled: Boolean(user),
+  });
+  const alreadyApplied = appliedQuery.data?.includes(item.caseCode) ?? false;
+  const applyMutation = useMutation({
+    mutationFn: () => applyToCase({ data: { caseCode: item.caseCode } }),
+    onSuccess: (result) => {
+      if (result.applied) {
+        toast.success(
+          t("caseApplications.apply_success", {
+            defaultValue: "Application sent — the MatchMax team will follow up.",
+          }),
+        );
+      } else {
+        toast.info(
+          t("caseApplications.apply_duplicate", {
+            defaultValue: "You have already applied for this case.",
+          }),
+        );
+      }
+      void queryClient.invalidateQueries({ queryKey: myAppliedCasesQueryKey });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const handleInAppApply = () => {
+    if (applyDisabled) {
+      toast.error(t("case_board.screening_confirm_required"));
+      return;
+    }
+    applyMutation.mutate();
+  };
 
   // Issue #423: "Rate TBA" is allowed ONLY on the detail page — the matrix
   // omits the rate everywhere else, and "HK$?" never renders.
@@ -438,7 +604,7 @@ function CaseDetailPage() {
                 </div>
               ) : null}
             </div>
-            <div className="flex shrink-0 items-center gap-1.5">
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
               <Button
                 type="button"
                 variant="ghost"
@@ -460,11 +626,23 @@ function CaseDetailPage() {
                   <AlertTriangle className="h-5 w-5" aria-hidden="true" />
                 </span>
               ) : null}
+              {/* Issue #81: in-app Apply is the primary CTA; the WhatsApp
+                  link stays as the concierge-intro secondary action. */}
+              <CaseApplyControl
+                item={item}
+                tutorExists={viewerTutorLoaded ? viewerTutor !== null : null}
+                tutorGender={viewerGender}
+                genderMismatch={genderMismatch}
+                alreadyApplied={alreadyApplied}
+                applyPending={applyMutation.isPending}
+                externalBlock={applyDisabled}
+                onExternalBlock={() => toast.error(t("case_board.screening_confirm_required"))}
+                onApply={handleInAppApply}
+              />
               {item.centre ? (
                 <Button
                   size="lg"
-                  variant="solid"
-                  color="blue"
+                  variant="outline"
                   disabled={applyDisabled || flagConcern.isPending}
                   className={genderMismatch ? "opacity-50" : undefined}
                   title={
@@ -489,8 +667,7 @@ function CaseDetailPage() {
                 <Button
                   asChild
                   size="lg"
-                  variant="solid"
-                  color="blue"
+                  variant="outline"
                   className={genderMismatch ? "opacity-50" : undefined}
                 >
                   <a
@@ -724,23 +901,36 @@ function CaseDetailPage() {
               </p>
               <p className="text-sm text-muted-foreground">{t("case_board.ready_body")}</p>
             </div>
-            <Button
-              asChild
-              variant="solid"
-              color="blue"
-              className={`shrink-0 ${genderMismatch ? "opacity-50" : undefined}`}
-            >
-              <a
-                href={applyUrl}
-                target="_blank"
-                rel="noreferrer"
-                title={genderMismatch ? t("case_board.gender_mismatch_warning") : undefined}
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              {/* Issue #81: the same in-app Apply control, WhatsApp secondary. */}
+              <CaseApplyControl
+                item={item}
+                tutorExists={viewerTutorLoaded ? viewerTutor !== null : null}
+                tutorGender={viewerGender}
+                genderMismatch={genderMismatch}
+                alreadyApplied={alreadyApplied}
+                applyPending={applyMutation.isPending}
+                externalBlock={applyDisabled}
+                onExternalBlock={() => toast.error(t("case_board.screening_confirm_required"))}
+                onApply={handleInAppApply}
+              />
+              <Button
+                asChild
+                variant="outline"
+                className={`shrink-0 ${genderMismatch ? "opacity-50" : undefined}`}
               >
-                {genderMismatch ? <AlertTriangle aria-hidden="true" /> : null}
-                <WhatsAppIcon aria-hidden="true" />
-                {t("case_board.apply_now")}
-              </a>
-            </Button>
+                <a
+                  href={applyUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={genderMismatch ? t("case_board.gender_mismatch_warning") : undefined}
+                >
+                  {genderMismatch ? <AlertTriangle aria-hidden="true" /> : null}
+                  <WhatsAppIcon aria-hidden="true" />
+                  {t("case_board.apply_now")}
+                </a>
+              </Button>
+            </div>
           </div>
         </article>
       </section>

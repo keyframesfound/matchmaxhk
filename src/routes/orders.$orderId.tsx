@@ -2,7 +2,16 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useRef, useState } from "react";
-import { Check, CircleDashed, Download, Loader2, MessageCircle, Receipt, X } from "lucide-react";
+import {
+  Check,
+  CircleDashed,
+  Download,
+  Loader2,
+  MessageCircle,
+  PlayCircle,
+  Receipt,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -135,6 +144,12 @@ function OrderPage() {
   // in_fulfillment -> delivered) instead of the notes stamping pipeline; the
   // shared reference card + FPS pay block below stay identical.
   const isGig = order.materialType === "gig";
+  // #392: course and folder purchases open on the product page (lesson
+  // embeds / child unlocks) — there is no per-order file to download.
+  const isShopProduct =
+    order.materialType === "video_course" ||
+    order.materialType === "general_course" ||
+    order.materialType === "topic_folder";
 
   const steps: { key: string; done: boolean; current: boolean }[] = isGig
     ? gigTimelineSteps(order.status)
@@ -320,22 +335,32 @@ function OrderPage() {
                 {t("orders.licence_note")}
               </p>
             </div>
-            {order.action === "download" && (!isGig || order.hasDeliveredFile) && (
-              <Button
-                variant="solid"
-                color="accent"
-                className="w-full font-bold"
-                disabled={downloadMutation.isPending}
-                onClick={() => downloadMutation.mutate()}
-              >
-                {downloadMutation.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-                ) : (
-                  <Download className="mr-2 h-4 w-4" aria-hidden />
-                )}
-                {t("orders.download_button")}
+            {order.action === "download" && isShopProduct && order.materialSlug ? (
+              <Button asChild variant="solid" color="accent" className="w-full font-bold">
+                <a href={`/notes/${order.materialSlug}`}>
+                  <PlayCircle className="mr-2 h-4 w-4" aria-hidden />
+                  {t("orders.open_course_button")}
+                </a>
               </Button>
-            )}
+            ) : null}
+            {order.action === "download" &&
+              !isShopProduct &&
+              (!isGig || order.hasDeliveredFile) && (
+                <Button
+                  variant="solid"
+                  color="accent"
+                  className="w-full font-bold"
+                  disabled={downloadMutation.isPending}
+                  onClick={() => downloadMutation.mutate()}
+                >
+                  {downloadMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                  ) : (
+                    <Download className="mr-2 h-4 w-4" aria-hidden />
+                  )}
+                  {t("orders.download_button")}
+                </Button>
+              )}
             {order.action === "request_refund" && (
               <p className="rounded-md bg-[#F4212E]/10 px-3 py-2 text-center text-xs font-bold text-[#F4212E]">
                 {t("gigs.past_due_badge")}
