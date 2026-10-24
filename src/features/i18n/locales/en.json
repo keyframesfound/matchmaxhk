@@ -1010,7 +1010,7 @@
     "flow_eyebrow": "02 / The matching flow",
     "flow_speed": "Instant direct connection",
     "flow_title": "The New Standard for Tutor Matching.",
-    "flow_body": "We manually verify top scorers with our Gold Badge, taking the guesswork out of hiring. Experience Hong Kong's most transparent, easy-to-use platform for finding and comparing premium tutors. Once you are matched, our concierge team actively manages the communication for your first 2 lessons—then parents and tutors take over the ongoing schedule directly.",
+    "flow_body": "We manually verify top scorers with our Gold Badge, taking the guesswork out of finding the right tutor. Experience Hong Kong's most transparent, easy-to-use platform for finding and comparing premium tutors. Once you are matched, our concierge team actively manages the communication for your first 2 lessons—then parents and tutors take over the ongoing schedule directly.",
     "flow_oneliner": "MatchMax manages the introduction and the first two lessons. The ongoing schedule is between parent and tutor.",
     "parents_eyebrow": "For parents & students",
     "parents_audience": "For Parents",
@@ -1322,7 +1322,7 @@
     "t1_by": "Mrs. Chan, Kowloon Tong",
     "t2": "Clear tutor profiles and easy communication — no hard selling at all.",
     "t2_by": "Mr. Lam, Sha Tin",
-    "t3": "The match was spot on — we hired the first tutor we contacted.",
+    "t3": "The match was spot on — we went with the first tutor we contacted.",
     "t3_by": "Mrs. Wong, Central"
   },
   "feedback": {
@@ -2521,6 +2521,38 @@
     "desk_empty": "No logged sessions.",
     "desk_revoke": "Revoke",
     "desk_revoked_ok": "Session revoked — public totals recalculated."
+  },
+  "tour": {
+    "back": "Back",
+    "done": "Done",
+    "next": "Next",
+    "parent": {
+      "card_body": "Click any card to see full academic scores, group class rates, and verified experience.",
+      "card_title": "Open a full profile",
+      "concierge_body": "Found a match or need help deciding? Post a request and our team will coordinate the introduction — free for parents.",
+      "concierge_title": "Need a hand?",
+      "save_body": "Save your favourite tutors to compare them later.",
+      "save_title": "Save favourites",
+      "search_body": "Filter tutors by curriculum (IB/DSE), subject, or MTR district.",
+      "search_title": "Filter your search",
+      "shop_body": "Switch to the Study Materials tab to instantly buy study notes, video courses, and past paper reviews.",
+      "shop_title": "Visit the Shop"
+    },
+    "skip": "Skip tour",
+    "tutor": {
+      "cases_body": "Browse open student requests and claim the cases that fit your schedule.",
+      "cases_title": "Browse open cases",
+      "final_body": "Check your WhatsApp for new case introductions from our concierge team.",
+      "final_title": "You're all set!",
+      "preview_body": "Your public tutor card. Your phone number and email are always hidden — parents reach you through MatchMax first.",
+      "preview_title": "This is how parents see you",
+      "rates_body": "Update your subjects, bio, and your 1-on-1 or small-group rates. Parents only see the rates you publish.",
+      "rates_title": "Set your rates here",
+      "shop_body": "Upload study notes, video courses, or services here. Parents buy them directly and you keep 80%.",
+      "shop_title": "Sell study materials",
+      "verification_body": "Submit your transcripts to earn the Blue Tick verification badge. Unverified tutors must show proof before the first lesson.",
+      "verification_title": "Earn the Blue Tick"
+    }
   },
   "group_classes": {
     "board_eyebrow": "Group classes",

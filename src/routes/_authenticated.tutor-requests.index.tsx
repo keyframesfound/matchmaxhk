@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { formatPostedAgo } from "@/lib/relative-time";
+import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
 import { ArrowRight, BadgeCheck, CalendarClock, Hash, Inbox, SearchX, Share2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -78,28 +79,34 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
     if (search.open === "1" || search.open === "true" || search.open === true) result.open = true;
     return result;
   },
-  head: () => ({
-    meta: [
-      { title: "Tutor Request Board — Post a Request or Apply for Cases | MatchMax" },
-      {
-        name: "description",
-        content:
-          "Browse open tutoring cases posted by parents and students, or submit your requirements free and let qualified tutors apply for your case.",
-      },
-      { name: "robots", content: "index, follow" },
-      {
-        property: "og:title",
-        content: "Tutor Request Board — Post a Request or Apply for Cases | MatchMax",
-      },
-      {
-        property: "og:description",
-        content:
-          "Real tutoring requests from Hong Kong parents. Apply for a case that fits you, or post your own — free for parents.",
-      },
-      { property: "og:url", content: "https://matchmax.hk/tutor-requests" },
-    ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/tutor-requests" }],
-  }),
+  head: () => {
+    const locale = currentSeoLocale();
+    return {
+      meta: [
+        ...localizedMeta(locale, {
+          title: {
+            en: "Tutor Request Board — Post a Request or Apply for Cases | MatchMax",
+            "zh-HK": "補習個案板 — 家長免費出需求，導師申請個案 | MatchMax",
+          },
+          description: {
+            en: "Browse open tutoring cases posted by parents and students, or submit your requirements free and let qualified tutors apply for your case.",
+            "zh-HK":
+              "瀏覽家長同學生張貼嘅開放補習個案，或者免費提交你嘅要求，等合資格導師申請你嘅個案。",
+          },
+        }),
+        { name: "robots", content: "index, follow" },
+        {
+          property: "og:description",
+          content:
+            locale === "zh-HK"
+              ? "真實香港家長補習需求。申請適合你嘅個案，或者自己出需求——家長完全免費。"
+              : "Real tutoring requests from Hong Kong parents. Apply for a case that fits you, or post your own — free for parents.",
+        },
+        { property: "og:url", content: "https://matchmax.hk/tutor-requests" },
+      ],
+      links: [{ rel: "canonical", href: "https://matchmax.hk/tutor-requests" }],
+    };
+  },
   component: TutorRequestsPage,
 });
 

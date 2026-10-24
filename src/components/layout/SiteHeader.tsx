@@ -14,6 +14,7 @@ import {
 import { motion, useMotionValueEvent, useTransform } from "motion/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { setLocale } from "@/features/i18n/config";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { CurrencyMenuSub, CurrencyToggle } from "@/components/brand/CurrencyToggle";
@@ -355,7 +356,7 @@ export function SiteHeader({
                 <MenuDivider />
                 <div className="px-1.5 py-1.5">
                   <DropdownMenuItem
-                    onSelect={() => void i18n.changeLanguage(nextLang)}
+                    onSelect={() => setLocale(nextLang)}
                     className={menuLinkClassName}
                   >
                     <MenuIcon>

@@ -8,10 +8,10 @@ import {
   hasActiveConversion,
   nativeToDisplayText,
   readStoredCurrency,
-} from "@/features/currency/convert";
-import { caseBudgetForTutor } from "@/features/cases/display";
-import { buildTutorCardInsert } from "@/lib/tutor-card-mapping";
-import { DEFAULT_CURRENCY, toHkdRates, type HkdRates } from "@/lib/money";
+} from "../../src/features/currency/convert";
+import { caseBudgetForTutor } from "../../src/features/cases/display";
+import { buildTutorCardInsert } from "../../src/lib/tutor-card-mapping";
+import { DEFAULT_CURRENCY, toHkdRates, type HkdRates } from "../../src/lib/money";
 
 const RATES: HkdRates = toHkdRates([
   { source_currency: "HKD", target_currency: "USD", rate: 0.128 },

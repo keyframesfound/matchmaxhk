@@ -50,6 +50,7 @@ import {
   type SettingsSectionProps,
 } from "@/features/settings/types";
 import { supabase } from "@/integrations/supabase/client";
+import { TutorCoachTour } from "@/features/tours/TutorCoachTour";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof Settings2 }> = {
@@ -160,17 +161,23 @@ export function SettingsPage() {
 
   // Issue #131: the Study Materials upload tab is Verified-only
   // (verification_tier = 'tier_2_verified' on the linked tutor card).
+  // is_published drives the once-only coach-mark tour (issue #397) — it must
+  // fire after approval + publication, not on a merely submitted application.
   const tutorVerifiedQuery = useQuery({
     queryKey: ["settings", "tutor-verified", userId],
     queryFn: async () => {
       if (!userId) throw new Error("Not signed in");
       const { data, error } = await supabase
         .from("tutors")
-        .select("id, verification_tier")
+        .select("id, verification_tier, is_published")
         .eq("user_id", userId)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; verification_tier: string | null } | null;
+      return data as {
+        id: string;
+        verification_tier: string | null;
+        is_published: boolean | null;
+      } | null;
     },
     enabled: Boolean(userId),
   });
@@ -268,6 +275,8 @@ export function SettingsPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--surface-subtle)] text-[color:var(--ink)]">
+      {/* Issue #397: once-only coach-mark tour for published tutors. */}
+      <TutorCoachTour enabled={hasLinkedTutor && tutorVerifiedQuery.data?.is_published === true} />
       <SiteHeader />
       <main className="flex-1">
         <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
@@ -308,6 +317,7 @@ export function SettingsPage() {
                       type="button"
                       onClick={() => selectCategory(category)}
                       aria-current={active ? "true" : undefined}
+                      data-tour={category === "materials" ? "tutor-materials" : undefined}
                       className={cn(
                         "flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
                         active
@@ -341,6 +351,7 @@ export function SettingsPage() {
                       type="button"
                       onClick={() => selectCategory(category)}
                       aria-current={active ? "true" : undefined}
+                      data-tour={category === "materials" ? "tutor-materials" : undefined}
                       className={cn("w-full text-left", navButtonClass(active))}
                     >
                       <Icon className="h-4 w-4" aria-hidden="true" />

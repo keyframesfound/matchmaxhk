@@ -6,6 +6,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -79,50 +80,58 @@ const TRENDING_MIN_ELIGIBLE = 3;
 type TrendingEntry = { tutor: Tutor; engagement: RankedTrending };
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Find Elite IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
-      {
-        name: "description",
-        content:
-          "Find elite IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly.",
-      },
-      { name: "robots", content: "index, follow" },
-      {
-        property: "og:title",
-        content: "Find Elite IB, DSE & IGCSE Tutors in Hong Kong | MatchMax",
-      },
-      {
-        property: "og:description",
-        content:
-          "Find elite IB, DSE, IGCSE, AP and A-Level tutors in Hong Kong. Compare tutor profiles, lesson modes and pricing to get matched quickly.",
-      },
-      { property: "og:url", content: "https://matchmax.hk/" },
-      { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "MatchMax" },
-      { property: "og:locale", content: "en_HK" },
-      { property: "og:image", content: OG_IMAGE },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "IB, DSE & IGCSE Tutors in Hong Kong | MatchMax" },
-      {
-        name: "twitter:description",
-        content:
-          "Find elite IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
-      },
-      { name: "twitter:image", content: OG_IMAGE },
-    ],
-    links: [
-      { rel: "canonical", href: "https://matchmax.hk/" },
-      { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
-      { rel: "shortcut icon", href: "/favicon.ico" },
-      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
-      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
-      { rel: "manifest", href: "/site.webmanifest" },
-    ],
-  }),
+  // Issue #401: locale-aware SEO copy (exact CEO-approved strings).
+  head: () => {
+    const locale = currentSeoLocale();
+    return {
+      meta: [
+        ...localizedMeta(locale, {
+          title: {
+            en: "MatchMax | Tutoring Made Convenient in Hong Kong",
+            "zh-HK": "MatchMax | 香港最透明的補習配對平台 · 極速配對・免中介費",
+          },
+          description: {
+            en: "Hong Kong's fairest and most transparent tutoring matching platform. Fast concierge matching, zero parent fees, an industry-low 1.5-lesson commission for tutors, and an integrated study notes shop.",
+            "zh-HK":
+              "Tutoring Made Convenient。打破傳統中介收費模式，提供極速專人配對及精讀筆記專門店。家長全免手續費，導師盡享全港最公平的 1.5 堂行政費。",
+          },
+        }),
+        { name: "robots", content: "index, follow" },
+        { property: "og:url", content: "https://matchmax.hk/" },
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: "MatchMax" },
+        { property: "og:image", content: OG_IMAGE },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { name: "twitter:card", content: "summary_large_image" },
+        {
+          name: "twitter:title",
+          content:
+            locale === "zh-HK"
+              ? "MatchMax | 香港最透明的補習配對平台"
+              : "Tutoring Made Convenient in Hong Kong | MatchMax",
+        },
+        {
+          name: "twitter:description",
+          content:
+            locale === "zh-HK"
+              ? "極速專人配對、透明紙面成績，家長全免手續費。"
+              : "Find elite IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
+        },
+        { name: "twitter:image", content: OG_IMAGE },
+      ],
+      links: [
+        { rel: "canonical", href: "https://matchmax.hk/" },
+        { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+        { rel: "shortcut icon", href: "/favicon.ico" },
+        { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+        { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+        { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+        { rel: "manifest", href: "/site.webmanifest" },
+      ],
+    };
+  },
+
   component: Landing,
 });
 

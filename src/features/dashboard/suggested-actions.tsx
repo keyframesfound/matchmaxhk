@@ -29,6 +29,8 @@ export type SuggestedActionCardProps = {
   secondaryHref?: string;
   secondaryLabelKey?: string;
   className?: string;
+  /** data-tour anchor for the coach-mark tours (issue #397). */
+  dataTour?: string;
 };
 
 function ActionLink({
@@ -85,10 +87,12 @@ export function SuggestedActionCard({
   secondaryHref,
   secondaryLabelKey,
   className,
+  dataTour,
 }: SuggestedActionCardProps) {
   const { t } = useTranslation();
   return (
     <article
+      data-tour={dataTour}
       className={cn(
         "flex h-full flex-col rounded-[var(--radius-panel)] border border-border bg-card p-5 transition-colors hover:border-[color:var(--foreground)]/25",
         className,

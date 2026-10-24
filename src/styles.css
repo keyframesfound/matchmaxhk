@@ -802,3 +802,84 @@ html {
     transform: none;
   }
 }
+
+/* Issue #397 coach-mark tours: flat MatchMax skin for driver.js. The library
+   ships a box-shadow on its popover; the design system is border-delineated,
+   so the shadow is neutralized and replaced with a hairline border.
+   Every selector is html-prefixed: driver.js's own driver.css is imported
+   inside the tour components, so it loads as route-chunk CSS AFTER styles.css
+   and would win every same-specificity tie (it ships .driver-popover with
+   background #fff + box-shadow at (0,1,0)). The html prefix puts each rule at
+   (0,1,1)+ so load order can never matter. */
+html .driver-popover {
+  font-family: inherit;
+  border: 1px solid var(--border);
+  box-shadow: none;
+  border-radius: 1rem;
+  background-color: var(--surface);
+  color: var(--ink);
+  padding: 20px;
+  max-width: 320px;
+}
+html .driver-popover-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+html .driver-popover-description {
+  margin-top: 6px;
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+html .driver-popover-close-btn {
+  color: var(--muted-foreground, #6b7280);
+  border-radius: 9999px;
+}
+html .driver-popover-close-btn:hover,
+html .driver-popover-close-btn:focus-visible {
+  color: var(--ink);
+}
+/* Arrow: recolor the base at (0,1,1), then re-zero the three hidden sides at
+   (0,2,1) — otherwise the bumped base rule out-ranks driver.css's own side
+   rules and paints a full square instead of a triangle. Visible side follows
+   var(--surface) so dark theme gets a dark arrow on a dark popover. */
+html .driver-popover-arrow {
+  border: 6px solid var(--surface);
+}
+html .driver-popover-arrow-side-left {
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+}
+html .driver-popover-arrow-side-right {
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+}
+html .driver-popover-arrow-side-top {
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+html .driver-popover-arrow-side-bottom {
+  border-top-color: transparent;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+html .driver-popover-footer-btn {
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--ink);
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  transition: background-color 0.2s;
+}
+html .driver-popover-footer-btn:hover,
+html .driver-popover-footer-btn:focus {
+  background-color: var(--surface-subtle, var(--surface));
+}
+html .driver-popover-progress-text {
+  color: var(--muted-foreground, #6b7280);
+}

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { SettingsCard, OptionCard, OptionCardGroup } from "@/features/settings/option-card";
+import { setLocale } from "@/features/i18n/config";
 import { ThemeModeCards } from "@/features/settings/theme-mode-cards";
 import type { SettingsSectionProps } from "@/features/settings/types";
 import { useTheme, type ThemePreference } from "@/features/theme/ThemeProvider";
@@ -26,7 +27,7 @@ export function GeneralSection({ profile, updateProfile }: SettingsSectionProps)
 
   function pickLocale(locale: string) {
     if (locale === currentLocale) return;
-    void i18n.changeLanguage(locale);
+    setLocale(locale);
     void updateProfile({ locale }).then((ok) => {
       if (ok) toast.success(t("settings.general.language_saved"));
     });

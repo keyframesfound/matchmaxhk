@@ -32,6 +32,8 @@ import {
   getTutorInquiryAction,
 } from "@/features/tutors/tutor-display";
 import { DirectoryToggle, MaterialsDirectory } from "@/features/materials/materials-directory";
+import { ParentCoachTour } from "@/features/tours/ParentCoachTour";
+import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
 import {
   fetchPublishedTutors,
   getTutorCardHighlights,
@@ -120,25 +122,28 @@ type SearchState = z.infer<typeof searchSchema>;
 
 export const Route = createFileRoute("/tutors/")({
   validateSearch: (s) => searchSchema.parse(s),
-  head: () => ({
-    meta: [
-      { title: "Find Elite Tutors in Hong Kong | MatchMax" },
-      {
-        name: "description",
-        content:
-          "Browse elite tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
-      },
-      { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Find Elite Tutors in Hong Kong | MatchMax" },
-      {
-        property: "og:description",
-        content:
-          "Browse elite tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
-      },
-      { property: "og:url", content: "https://matchmax.hk/tutors" },
-    ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/tutors" }],
-  }),
+  head: () => {
+    const locale = currentSeoLocale();
+    return {
+      meta: [
+        ...localizedMeta(locale, {
+          // English copy is main's post-#407 scrub ("elite", no Verified claims).
+          title: {
+            en: "Find Elite Tutors in Hong Kong | MatchMax",
+            "zh-HK": "搵到香港精英導師 | MatchMax",
+          },
+          description: {
+            en: "Browse elite tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
+            "zh-HK":
+              "按科目、港鐵站、上課模式同意價瀏覽香港精英導師。搵 IB、DSE、IGCSE、AP、A-Level、數學、英文等導師。",
+          },
+        }),
+        { name: "robots", content: "index, follow" },
+        { property: "og:url", content: "https://matchmax.hk/tutors" },
+      ],
+      links: [{ rel: "canonical", href: "https://matchmax.hk/tutors" }],
+    };
+  },
   component: TutorsDirectory,
 });
 
@@ -466,6 +471,8 @@ function TutorsDirectory() {
 
   return (
     <SearchGroupProvider>
+      {/* Issue #397: once-only parent/student coach-mark tour. */}
+      <ParentCoachTour ready={!isLoading && directoryView === "tutors" && filtered.length > 0} />
       <div className="flex min-h-screen flex-col bg-background">
         <SiteHeader
           merged
@@ -487,30 +494,32 @@ function TutorsDirectory() {
                       : "Start with a subject or tutor code, then narrow the list to the right fit."}
                   </p>
                 </div>
-                <div className="pt-2">
+                <div data-tour="parent-shop" className="pt-2">
                   <DirectoryToggle active={directoryView} onChange={setDirectoryView} />
                 </div>
               </div>
               {directoryView === "tutors" ? (
-                <TutorsSearchMobile
-                  className="mt-7"
-                  draft={draft}
-                  onDraftChange={setDraftParam}
-                  onApply={applySearch}
-                  onClear={clearAll}
-                  tier={tier}
-                  onTierChange={setTier}
-                  allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
-                  educationValues={educationValues}
-                  defaultOverlayOpen={search.open === true}
-                  whatsappUrl={hotlineUrl || undefined}
-                />
+                <div data-tour="parent-search">
+                  <TutorsSearchMobile
+                    className="mt-7"
+                    draft={draft}
+                    onDraftChange={setDraftParam}
+                    onApply={applySearch}
+                    onClear={clearAll}
+                    tier={tier}
+                    onTierChange={setTier}
+                    allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
+                    educationValues={educationValues}
+                    defaultOverlayOpen={search.open === true}
+                    whatsappUrl={hotlineUrl || undefined}
+                  />
+                </div>
               ) : null}
             </div>
           </section>
           {directoryView === "tutors" ? (
             <StickySearchBar>
-              <div className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
+              <div data-tour="parent-search" className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
                 <TutorsSearchBar
                   draft={draft}
                   onDraftChange={setDraftParam}
@@ -701,7 +710,7 @@ function TutorsDirectory() {
 
                 {!isLoading && filtered.length > 0 && (
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {filtered.map((tut: Tutor) => {
+                    {filtered.map((tut: Tutor, index: number) => {
                       const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
                       return (
                         <PublicTutorCard
@@ -716,9 +725,15 @@ function TutorsDirectory() {
                             setDraftParam({ tag });
                             applySearch({ tag });
                           }}
+                          // Issue #397: the parent tour spotlights the first card.
+                          tourId={index === 0 ? "parent-card" : undefined}
                           footerAction={
                             <>
-                              <TutorSaveButton tutorId={tut.id} compact />
+                              <TutorSaveButton
+                                tutorId={tut.id}
+                                compact
+                                dataTour={index === 0 ? "parent-save" : undefined}
+                              />
                               <Button
                                 asChild
                                 className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
