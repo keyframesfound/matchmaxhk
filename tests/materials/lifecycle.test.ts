@@ -47,9 +47,10 @@ describe("checkSubmitReadiness (P8 required fields)", () => {
     expect(result.missing).toEqual(["pdf"]);
   });
 
-  it("enforces the HK$30 floor (P8/#203)", () => {
+  it("accepts HK$0 free packs and blocks negative prices (#314)", () => {
+    expect(checkSubmitReadiness({ title: "Title here", priceHkd: 0, hasPdf: true }).ok).toBe(true);
     expect(
-      checkSubmitReadiness({ title: "Title here", priceHkd: 29, hasPdf: true }).missing,
+      checkSubmitReadiness({ title: "Title here", priceHkd: -1, hasPdf: true }).missing,
     ).toContain("price");
     expect(checkSubmitReadiness({ title: "Title here", priceHkd: 30, hasPdf: true }).ok).toBe(true);
   });

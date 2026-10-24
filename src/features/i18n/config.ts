@@ -21,6 +21,22 @@ function persistLocale(lng: string) {
   }
 }
 
+/**
+ * Explicit language switch (header toggle, settings picker, account-locale
+ * adoption): change the language AND persist it as the visitor's choice.
+ *
+ * The i18next detector's own soft result — a shared ?hl= override or a
+ * navigator default — is deliberately NEVER persisted here: a blanket
+ * languageChanged subscription persisted those too, so a zh-TW browser's
+ * first visit (or a zh-HK user opening a shared ?hl=en link) silently
+ * overwrote the stored choice (PR #433 review). Only explicit switches
+ * persist.
+ */
+export function setLocale(lng: string) {
+  void i18n.changeLanguage(lng);
+  persistLocale(lng);
+}
+
 // Issue #401: custom i18next language detector — the built-in
 // i18next-browser-languagedetector can't map zh-TW/zh-MO/generic-zh onto
 // zh-HK while keeping deferred zh-CN browsers on English, and we need cookie
@@ -36,8 +52,8 @@ const matchmaxDetector = {
     return readPreferredLocale() ?? navigatorLocale();
   },
   cacheUserLanguage() {
-    // Persistence runs in the languageChanged listener below instead — it
-    // also covers changeLanguage calls from ProfileLocaleSync and the toggle.
+    // Deliberately no-op: detection results (including the soft ?hl=
+    // override) must not be persisted. Only setLocale() persists.
   },
 };
 
@@ -54,10 +70,6 @@ if (!i18n.isInitialized) {
       supportedLngs: ["en", "zh-HK"],
       interpolation: { escapeValue: false },
     });
-
-  i18n.on("languageChanged", (lng) => {
-    if (lng) persistLocale(lng);
-  });
 }
 
 export default i18n;

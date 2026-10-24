@@ -18,6 +18,9 @@ import {
   type MyOrder,
 } from "@/features/materials/checkout.functions";
 import { getOwnedMaterialUrl } from "@/features/materials/orders.functions";
+import { gigTimelineSteps } from "@/features/gigs/gig";
+import { GigOrderPanels } from "@/features/gigs/gig-order-view";
+import { ReportMenuButton } from "@/features/reports/report-button";
 
 /**
  * #203 checkout + order status page. Manual cashier: the parent sees the
@@ -128,29 +131,45 @@ function OrderPage() {
 
   const order: MyOrder = orderData;
   const buyUrl = whatsappQuery.data?.url ?? WHATSAPP_FALLBACK;
+  // #328: gig orders run the service timeline (awaiting_payment ->
+  // in_fulfillment -> delivered) instead of the notes stamping pipeline; the
+  // shared reference card + FPS pay block below stay identical.
+  const isGig = order.materialType === "gig";
 
-  const steps: { key: string; done: boolean; current: boolean }[] = [
-    {
-      key: "awaiting_payment",
-      done: !["awaiting_payment", "rejected"].includes(order.status),
-      current: order.status === "awaiting_payment",
-    },
-    {
-      key: "paid",
-      done: ["stamping", "delivered"].includes(order.status),
-      current: order.status === "paid",
-    },
-    { key: "stamping", done: order.status === "delivered", current: order.status === "stamping" },
-    { key: "delivered", done: order.status === "delivered", current: false },
-  ];
+  const steps: { key: string; done: boolean; current: boolean }[] = isGig
+    ? gigTimelineSteps(order.status)
+    : [
+        {
+          key: "orders.step_awaiting_payment",
+          done: !["awaiting_payment", "rejected"].includes(order.status),
+          current: order.status === "awaiting_payment",
+        },
+        {
+          key: "orders.step_paid",
+          done: ["stamping", "delivered"].includes(order.status),
+          current: order.status === "paid",
+        },
+        {
+          key: "orders.step_stamping",
+          done: order.status === "delivered",
+          current: order.status === "stamping",
+        },
+        { key: "orders.step_delivered", done: order.status === "delivered", current: false },
+      ];
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
       <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6">
-        <p className="text-sm text-muted-foreground">{t("orders.eyebrow")}</p>
+        <p className="text-sm text-muted-foreground">
+          {isGig ? t("gigs.order_eyebrow") : t("orders.eyebrow")}
+        </p>
         <h1 className="mt-1 text-2xl font-bold tracking-normal">
-          {order.status === "delivered" ? t("orders.delivered_title") : t("orders.checkout_title")}
+          {order.status === "delivered"
+            ? isGig
+              ? t("gigs.delivered_title")
+              : t("orders.delivered_title")
+            : t("orders.checkout_title")}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           <Link to="/account" className="text-[color:var(--brand-link)] hover:underline">
@@ -180,6 +199,10 @@ function OrderPage() {
               </div>
               <p className="mt-3 text-sm text-muted-foreground">{t("orders.reference_hint")}</p>
             </div>
+
+            {/* #328 gig fulfillment panels (in_fulfillment upload + due date,
+                past_due refund, delivered completion note). */}
+            {isGig && <GigOrderPanels order={order} />}
 
             {/* FPS instructions */}
             {order.action === "pay" && (
@@ -270,7 +293,7 @@ function OrderPage() {
                         step.done || step.current ? "font-semibold" : "text-muted-foreground"
                       }
                     >
-                      {t(`orders.step_${step.key}`)}
+                      {t(step.key)}
                     </span>
                   </li>
                 ))}
@@ -297,7 +320,7 @@ function OrderPage() {
                 {t("orders.licence_note")}
               </p>
             </div>
-            {order.action === "download" && (
+            {order.action === "download" && (!isGig || order.hasDeliveredFile) && (
               <Button
                 variant="solid"
                 color="accent"
@@ -313,10 +336,38 @@ function OrderPage() {
                 {t("orders.download_button")}
               </Button>
             )}
+            {order.action === "request_refund" && (
+              <p className="rounded-md bg-[#F4212E]/10 px-3 py-2 text-center text-xs font-bold text-[#F4212E]">
+                {t("gigs.past_due_badge")}
+              </p>
+            )}
             {order.action === "refunded" && (
               <p className="rounded-md bg-amber-500/10 px-3 py-2 text-center text-xs font-bold text-amber-700">
                 {t("orders.refunded_badge")}
               </p>
+            )}
+            {/* #330: post-delivery quality disputes go through the #216 report
+                hook, operator-reviewed — refunds stay self-serve for past_due
+                non-delivery only, never auto-clawed back after delivery. */}
+            {isGig && order.action === "download" && (
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t("gigs.dispute_title")}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{t("gigs.dispute_note")}</p>
+                <div className="mt-3 flex justify-end">
+                  <ReportMenuButton
+                    targets={[
+                      {
+                        targetType: "material",
+                        targetId: order.materialId,
+                        label: order.materialTitle,
+                      },
+                    ]}
+                    menuLabel={t("gigs.dispute_report_label")}
+                  />
+                </div>
+              </div>
             )}
             {order.action === "preparing" && (
               <p className="rounded-md bg-accent px-3 py-2 text-center text-xs font-bold text-accent-foreground">

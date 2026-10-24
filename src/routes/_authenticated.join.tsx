@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageIntro } from "@/components/layout/PageIntro";
@@ -30,6 +31,8 @@ export const Route = createFileRoute("/_authenticated/join")({
 });
 
 function JoinPage() {
+  const { t } = useTranslation();
+
   return (
     <PublicPage>
       <PageIntro
@@ -37,6 +40,7 @@ function JoinPage() {
         title="Apply to Tutor With MatchMax"
         width="wide"
         dense
+        meta={t("join.new_to_market")}
       />
       <PageContainer className="py-5 sm:py-6" width="wide">
         <ApplicationForm />

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
  */
 export function SubjectMultiSelect({
   options,
+  labelFor,
   selected,
   onToggle,
   onClear,
@@ -20,6 +21,9 @@ export function SubjectMultiSelect({
   className,
 }: {
   options: string[];
+  /** Issue #199: optional display-label mapping (stored value -> label);
+   * defaults to showing the raw value. Toggle/search still use the value. */
+  labelFor?: (value: string) => string;
   selected: string[];
   onToggle: (subject: string) => void;
   onClear: () => void;
@@ -29,11 +33,18 @@ export function SubjectMultiSelect({
   className?: string;
 }) {
   const [query, setQuery] = useState("");
+  const labelOf = labelFor ?? ((value: string) => value);
   const normalized = query.trim().toLowerCase();
   const filtered = useMemo(
     () =>
-      normalized ? options.filter((option) => option.toLowerCase().includes(normalized)) : options,
-    [options, normalized],
+      normalized
+        ? options.filter(
+            (option) =>
+              option.toLowerCase().includes(normalized) ||
+              labelOf(option).toLowerCase().includes(normalized),
+          )
+        : options,
+    [options, labelOf, normalized],
   );
 
   return (
@@ -74,7 +85,7 @@ export function SubjectMultiSelect({
                   )}
                 >
                   <span className="block truncate text-[15px] font-medium text-[color:var(--ink)]">
-                    {option}
+                    {labelOf(option)}
                   </span>
                   {isSelected ? (
                     <Check
@@ -92,7 +103,7 @@ export function SubjectMultiSelect({
       {selected.length > 0 ? (
         <div className="flex items-center justify-between gap-2 border-t border-[color:var(--ink)]/[0.07] pt-2">
           <span className="truncate text-xs font-semibold text-[color:var(--ink)]/70">
-            {selected.join(" + ")}
+            {selected.map(labelOf).join(" + ")}
           </span>
           <button
             type="button"

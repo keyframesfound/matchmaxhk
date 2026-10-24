@@ -93,7 +93,7 @@ export const Route = createFileRoute("/")({
           content:
             locale === "zh-HK"
               ? "極速專人配對、透明紙面成績，家長全免手續費。"
-              : "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
+              : "Find elite IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
         },
         { name: "twitter:image", content: OG_IMAGE },
       ],
@@ -413,7 +413,7 @@ function Landing() {
     name: "MatchMax",
     url: "https://matchmax.hk/",
     description:
-      "Find verified IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
+      "Find elite IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
     areaServed: {
       "@type": "City",
       name: "Hong Kong",

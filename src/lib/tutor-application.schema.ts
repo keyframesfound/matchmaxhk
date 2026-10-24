@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
 import { contactFilterError } from "@/lib/contact-filter";
 import {
   MAX_RATE_ROWS,
@@ -11,6 +12,28 @@ import {
   normalizeTutorRateRows,
 } from "@/features/tutors/rates";
 import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
+import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
+import {
+  COURSE_GRADE_OPTIONS,
+  KINDERGARTEN_TOPICS,
+  MAX_UNIVERSITY_COURSES,
+  TARGET_TEACHING_LEVELS,
+  YEARS_OF_STUDY,
+  normalizeUniversityGpa,
+} from "@/features/tutors/verticals";
+
+/**
+ * Issue #357 / #359 — every free-text answer that is copied onto the public
+ * card must fail intake before the row is stored. `superRefine` runs on the
+ * schema output (after trim / default), so empty optional fields pass.
+ */
+function withContactFilter<T extends z.ZodTypeAny>(schema: T) {
+  return schema.superRefine((value, ctx) => {
+    if (typeof value !== "string") return;
+    const error = contactFilterError(value);
+    if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+  });
+}
 
 export const MAX_FILES = 5;
 export const MAX_ACHIEVEMENT_FILE_BYTES = 5 * 1024 * 1024;
@@ -52,6 +75,11 @@ export const CURRICULUM_OPTIONS = [
   "UCAT(3600)",
   "UCAT(2700)",
   "Foundation / other",
+  // Issue #190: the new verticals — a University-only or Kindergarten-only
+  // tutor picks these instead of a school exam curriculum, so the exam-score
+  // fields can stay hidden for them.
+  "University",
+  "Kindergarten",
 ] as const;
 export const MATERIALS_OPTIONS = ["Yes", "No", "In progress"] as const;
 export const FORMAT_OPTIONS = ["Face to face", "Online", "Both"] as const;
@@ -108,43 +136,11 @@ export const portfolioImageSchema = attachmentSchema.superRefine((image, context
   }
 });
 
-export const achievementSchema = z
-  .object({
-    title: z.string().trim().min(1, "Required").max(200),
-    description: z.string().trim().min(1, "Required").max(2000),
-    proof: attachmentSchema.optional(),
-    proofStatus: z.enum(["upload", "not_applicable", "provide_later"]),
-  })
-  .superRefine((achievement, context) => {
-    if (achievement.proofStatus === "upload" && !achievement.proof) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["proof"],
-        message: "Choose an evidence file",
-      });
-    }
-  });
-
-export const academicDocumentSchema = z
-  .object({
-    curriculum: z.enum(CURRICULUM_OPTIONS),
-    file: attachmentSchema.optional(),
-    status: z.enum(["upload", "not_applicable", "provide_later"]),
-  })
-  .superRefine((document, context) => {
-    if (document.status === "upload" && !document.file) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["file"],
-        message: "Choose a transcript file",
-      });
-    }
-  });
-
 export const tutorApplicationSchema = z
   .object({
     turnstileToken: z.string().trim().min(1, "Complete the security check").max(2048),
-    name: z.string().trim().min(1, "Required").max(120),
+    // Issue #359: name is the public display_name.
+    name: withContactFilter(z.string().trim().min(1, "Required").max(120)),
     // Issue #189: optional preferred name so the WhatsApp activation message
     // and later concierge chats can use what the tutor actually goes by.
     preferredName: z.string().trim().max(80).optional().default(""),
@@ -152,7 +148,7 @@ export const tutorApplicationSchema = z
     email: z.string().trim().email("Enter a valid email"),
     country: z.string().trim().min(1, "Required").max(100),
     year: z.string().trim().max(40).optional().default(""),
-    graduationYear: z.string().trim().max(40).optional().default(""),
+    graduationYear: withContactFilter(z.string().trim().max(40).optional().default("")),
     // Issue #106: tutors pick "Immediately" or a concrete earliest start date
     // (stored as an ISO yyyy-mm-dd string) so profiles can pre-book or hide
     // themselves from public browse automatically.
@@ -163,14 +159,13 @@ export const tutorApplicationSchema = z
     professionalRoles: z.array(z.enum(PROFESSIONAL_ROLE_OPTIONS)).default([]),
     examiningBoards: z.array(z.enum(EXAMINING_BOARD_OPTIONS)).default([]),
     teachingQualifications: z.array(z.enum(TEACHING_QUALIFICATION_OPTIONS)).default([]),
-    university: z.string().trim().max(200).optional().default(""),
-    programme: z.string().trim().max(200).optional().default(""),
+    university: withContactFilter(z.string().trim().max(200).optional().default("")),
+    programme: withContactFilter(z.string().trim().max(200).optional().default("")),
     // Issue #107: optional Master's / postgraduate / dual-degree history.
     hasPostgrad: z.boolean().default(false),
-    postgradUniversity: z.string().trim().max(200).optional().default(""),
-    postgradDegree: z.string().trim().max(200).optional().default(""),
-    studentCard: attachmentSchema.optional(),
-    highSchool: z.string().trim().min(1, "Required").max(200),
+    postgradUniversity: withContactFilter(z.string().trim().max(200).optional().default("")),
+    postgradDegree: withContactFilter(z.string().trim().max(200).optional().default("")),
+    highSchool: withContactFilter(z.string().trim().min(1, "Required").max(200)),
     curriculum: z.enum(CURRICULUM_OPTIONS),
     curricula: z.array(z.enum(CURRICULUM_OPTIONS)).min(1, "Select at least one curriculum"),
     // Issue #323: overall score is strictly OPTIONAL — tutors select a
@@ -190,16 +185,79 @@ export const tutorApplicationSchema = z
         const error = contactFilterError(text);
         if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
       }),
-    subjectsConfident: z.string().trim().min(1, "Required").max(2000),
-    subjectResults: z.string().trim().min(1, "Required").max(2000),
-    awards: z.string().trim().max(2000).optional().default(""),
-    achievements: z.array(achievementSchema).max(MAX_FILES).default([]),
-    academicDocuments: z.array(academicDocumentSchema).max(MAX_FILES).default([]),
+    // Issue #359: joined picker text is published as tutors.subjects.
+    subjectsConfident: withContactFilter(z.string().trim().min(1, "Required").max(2000)),
+    // Issue #190: required only for the school-exam path (Primary/Secondary);
+    // University-only tutors report course grades instead, Kindergarten-only
+    // tutors report their topics below.
+    subjectResults: z.string().trim().max(2000).optional().default(""),
+    // Issue #357: awards is the qualifications_summary fallback when there
+    // are no achievement blocks — both go live on the card, so both are
+    // contact-filtered (issue #357/#359 leak fix preserved post-#309).
+    awards: withContactFilter(z.string().trim().max(2000).optional().default("")),
+    achievements: z
+      .array(
+        z.object({
+          title: withContactFilter(z.string().trim().min(1, "Required").max(200)),
+          description: withContactFilter(z.string().trim().min(1, "Required").max(2000)),
+        }),
+      )
+      .max(MAX_FILES)
+      .default([]),
+    // Issue #309: join no longer collects evidence files — grade slips are
+    // uploaded per-grade from the profile editor and reviewed by staff there.
+    // Grade TEXT answers (curriculum/scores) stay plain text above.
+    // Issue #190: vertical routing + self-reported vertical fields.
+    targetLevels: z
+      .array(z.enum(TARGET_TEACHING_LEVELS))
+      .min(1, "Select at least one teaching level"),
+    universityYearOfStudy: z
+      .union([z.enum(YEARS_OF_STUDY), z.literal("")])
+      .optional()
+      .default(""),
+    universityGpa: z
+      .string()
+      .trim()
+      .max(10)
+      .optional()
+      .default("")
+      .refine((text) => text === "" || normalizeUniversityGpa(text) !== null, {
+        message: "Enter a GPA between 0 and 4.3",
+      }),
+    universityCourses: z
+      .array(withContactFilter(z.string().trim().min(1, "Required").max(40)))
+      .max(MAX_UNIVERSITY_COURSES)
+      .default([]),
+    courseGrades: z
+      .array(
+        z.object({
+          course: withContactFilter(z.string().trim().min(1, "Required").max(40)),
+          grade: z.enum(COURSE_GRADE_OPTIONS),
+        }),
+      )
+      .max(MAX_UNIVERSITY_COURSES)
+      .default([]),
+    kindergartenTopics: z.array(z.enum(KINDERGARTEN_TOPICS)).default([]),
     // Issue #97: optional Trophy Cabinet photos (public on the profile).
     portfolioImages: z.array(portfolioImageSchema).max(MAX_PORTFOLIO_FILES).default([]),
     // Consent required only when photos are actually uploaded (see superRefine).
     portfolioConsent: z.boolean().default(false),
     profilePhoto: profilePhotoSchema.optional(),
+    // Issue #199: SEN experience & qualifications. Revealed by the SEN
+    // toggle; at least one HK-common category is required when enabled so
+    // the /tutors SEN filter stays meaningful.
+    senEnabled: z.boolean().default(false),
+    senCategories: z.array(z.enum(SEN_CATEGORY_OPTIONS)).default([]),
+    senExperience: z
+      .string()
+      .trim()
+      .max(2000)
+      .optional()
+      .default("")
+      .superRefine((text, ctx) => {
+        const error = contactFilterError(text);
+        if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+      }),
     experience: z.string().trim().max(2000).optional().default(""),
     // Issue #119: optional tutor-written pitch shown on the public profile
     // once the concierge team has proofread it (2,000-char cap, line breaks
@@ -222,9 +280,15 @@ export const tutorApplicationSchema = z
     hourlyRate: z.string().trim().max(20).optional().default(""),
     onlineRate: z.number().int().min(RATE_MIN).max(RATE_MAX).nullable().default(null),
     inpersonRate: z.number().int().min(RATE_MIN).max(RATE_MAX).nullable().default(null),
+    // Issue #113: the currency the tutor quotes ALL pricing fields in. The
+    // stored rates stay native; tutors_normalize_hkd snapshots the HKD
+    // equivalents on publish.
+    currency: z.enum(SUPPORTED_CURRENCIES).default(DEFAULT_CURRENCY),
     // Extra rate rows (profile-only): lenient shape here — the same shared
     // rules as the form run in superRefine, and functions.ts stores the
     // normalized output (half-filled/invalid rows never reach the row).
+    // Issue #359: labels are contact-filtered inside normalizeTutorRateRows
+    // (shared with the profile editor) before a row is accepted.
     rateRows: z
       .array(
         z.object({
@@ -273,13 +337,16 @@ export const tutorApplicationSchema = z
     materials: z.enum(MATERIALS_OPTIONS),
     format: z.enum(FORMAT_OPTIONS),
     maxStudents: z.string().trim().max(20).optional().default(""),
-    locations: z
-      .string()
-      .trim()
-      .max(2000, "Too many teaching locations selected — please narrow your station selection.")
-      .optional()
-      .default(""),
-    medium: z.string().trim().min(1, "Required").max(200),
+    // Issue #359: locations and medium are published as stations / languages.
+    locations: withContactFilter(
+      z
+        .string()
+        .trim()
+        .max(2000, "Too many teaching locations selected — please narrow your station selection.")
+        .optional()
+        .default(""),
+    ),
+    medium: withContactFilter(z.string().trim().min(1, "Required").max(200)),
     notes: z.string().trim().max(2000).optional().default(""),
     referralCode: z
       .string()
@@ -356,13 +423,6 @@ export const tutorApplicationSchema = z
           message: "Required",
         });
       }
-      if (!data.studentCard) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["studentCard"],
-          message: "Upload your student ID card as evidence of your university and major",
-        });
-      }
     }
 
     if (data.hasPostgrad) {
@@ -431,6 +491,27 @@ export const tutorApplicationSchema = z
         message: "Tick the consent box to publish your photos",
       });
     }
+
+    // Issue #199: SEN categories are required once the SEN toggle is on.
+    if (data.senEnabled && data.senCategories.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["senCategories"],
+        message: "Select at least one SEN category",
+      });
+    }
+
+    // Issue #190: subject results stay required on the school-exam path only.
+    const verticalOnly =
+      data.targetLevels.length > 0 &&
+      data.targetLevels.every((level) => level === "University" || level === "Kindergarten");
+    if (!verticalOnly && !data.subjectResults) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["subjectResults"],
+        message: "Required",
+      });
+    }
   });
 
 export type TutorApplicationInput = z.input<typeof tutorApplicationSchema>;
@@ -487,6 +568,10 @@ export function getApplicationPath(data: Pick<TutorApplication, "status" | "curr
 export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
   return [
     { label: "Application path", value: getApplicationPath(data) },
+    {
+      label: "Target teaching levels",
+      value: (data.targetLevels ?? []).join(", ") || "—",
+    },
     { label: "Name", value: data.name },
     { label: "Preferred name", value: data.preferredName || "—" },
     { label: "Contact number / WhatsApp", value: data.phone },
@@ -518,7 +603,6 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
           },
         ]
       : []),
-    { label: "Student ID card", value: data.studentCard?.filename ?? "—" },
     { label: "Current year of study", value: data.year || "—" },
     { label: "High school and graduation year", value: data.highSchool },
     { label: "Primary curriculum", value: data.curriculum },
@@ -529,22 +613,10 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
     { label: "Relevant subject results / academic strengths", value: data.subjectResults },
     { label: "Awards / scholarships / achievements", value: data.awards || "—" },
     {
-      label: "Achievement evidence",
-      value: data.achievements
-        .map(
-          (achievement) =>
-            `${achievement.title}: ${achievement.description} (${achievement.proof?.filename ?? (achievement.proofStatus === "provide_later" ? "Provide later" : "N/A")})`,
-        )
-        .join("\n"),
-    },
-    {
-      label: "Academic documents",
+      label: "Achievements",
       value:
-        data.academicDocuments
-          .map(
-            (document) =>
-              `${document.curriculum}: ${document.file?.filename ?? (document.status === "provide_later" ? "Provide later" : "N/A")}`,
-          )
+        data.achievements
+          .map((achievement) => `${achievement.title}: ${achievement.description}`)
           .join("\n") || "—",
     },
     {
@@ -554,6 +626,15 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
         (data.portfolioConsent ? "— (consent ticked, no photos)" : "—"),
     },
     { label: "Teaching / tutoring experience", value: data.experience },
+    // Issue #199: SEN capability captured at intake.
+    {
+      label: "SEN experience",
+      value: data.senEnabled ? `Yes — ${data.senCategories.join(", ")}` : "No",
+    },
+    {
+      label: "SEN experience & qualifications",
+      value: data.senEnabled ? data.senExperience || "—" : "—",
+    },
     { label: "Self-introduction", value: data.selfIntroduction || "—" },
     { label: "Profile photo", value: data.profilePhoto?.filename ?? "—" },
     { label: "Normal hourly rate (HKD)", value: data.hourlyRate || "—" },

@@ -1,5 +1,13 @@
 // Dual-notation display labels: international schools use "Year X",
 // local schools use "S1–S6". Stored student_level values stay unchanged.
+import {
+  convertCurrency,
+  DEFAULT_CURRENCY,
+  formatMoney,
+  type CurrencyCode,
+  type HkdRates,
+} from "@/lib/money";
+
 const STUDENT_LEVEL_BOARD_LABELS: Record<string, string> = {
   "Junior secondary": "Year 7–9 / S1–S3",
   "Senior secondary": "Year 10–13 / S4–S6",
@@ -9,14 +17,6 @@ export function formatStudentLevel(level: string | null | undefined): string {
   const value = (level ?? "").trim();
   if (!value) return "";
   return STUDENT_LEVEL_BOARD_LABELS[value] ?? value;
-}
-
-export function formatCaseTitle(studentLevel: string, subjects: string[]): string {
-  const levelLabel = formatStudentLevel(studentLevel) || studentLevel;
-  const subjectPart = subjects.filter(Boolean).slice(0, 2).join(", ");
-  const extra =
-    subjects.filter(Boolean).length > 2 ? ` +${subjects.filter(Boolean).length - 2} more` : "";
-  return subjectPart ? `${levelLabel}: ${subjectPart}${extra}` : levelLabel;
 }
 
 export function buildCaseApplyWhatsAppUrl(whatsappNumber: string, caseCode: string): string {
@@ -57,24 +57,79 @@ export const CASE_START_LABEL: Record<string, string> = {
   flexible: "Flexible start",
 };
 
+// zh-HK variants feeding the public case-detail localized lines (#430 GLM
+// round-3 minor): the English maps above stay the canonical labels for the
+// board card logistics line and admin surfaces; these translate the value
+// slot inside the detail page's preference/lesson sentences. Unknown tokens
+// fall through to the caller's raw-value rendering.
+export const CASE_MODE_LABEL_ZH: Record<string, string> = {
+  online: "網上",
+  in_person: "面對面",
+  either: "網上或面對面",
+};
+
+export const CASE_GENDER_LABEL_ZH: Record<string, string> = {
+  any: "不限",
+  female: "女導師",
+  male: "男導師",
+};
+
+export const CASE_LANGUAGE_LABEL_ZH: Record<string, string> = {
+  en: "英文",
+  "zh-HK": "廣東話",
+  either: "不限",
+  english_only: "英文",
+  cantonese: "廣東話",
+  mandarin: "普通話",
+  bilingual: "雙語",
+  any: "不限",
+};
+
+export const CASE_START_LABEL_ZH: Record<string, string> = {
+  asap: "盡快開始",
+  two_weeks: "兩星期內",
+  flexible: "時間靈活",
+};
+
 /**
- * Issue #423 rate matrix — never render `HK$?`:
- *   set/set    → HK$300–500/hr (equal bounds collapse to HK$500/hr)
- *   blank/set  → Up to HK$500/hr
- *   set/blank  → From HK$300/hr
- *   blank/blank→ "" (board hides the row) or "Rate TBA" (detail surfaces).
+ * Issue #423 rate formatter matrix — `HK$?` may NEVER render.
+ *
+ * | min    | max    | Render              |
+ * |--------|--------|---------------------|
+ * | set    | set    | `HK$300–500/hr`     |
+ * | blank  | set    | `Up to HK$500/hr`   |
+ * | set    | blank  | `From HK$300/hr`    |
+ * | blank  | blank  | `""` (caller omits) |
+ *
+ * tutoring_cases has no rate_unit column today (the form collects hourly
+ * budgets only), so callers get the `/hr` suffix by default; the unit
+ * parameter is forward-compatible with a future hr/lesson/month column.
  */
-export function formatCaseBudget(
-  min: number | null,
-  max: number | null,
-  opts?: { detail?: boolean },
+export type CaseRateUnit = "hr" | "lesson" | "month";
+
+const RATE_UNIT_SUFFIX: Record<CaseRateUnit, string> = {
+  hr: "/hr",
+  lesson: "/lesson",
+  month: "/month",
+};
+
+export function formatCaseRate(
+  min: number | null | undefined,
+  max: number | null | undefined,
+  unit: CaseRateUnit = "hr",
 ): string {
-  if (min !== null && max !== null) {
-    return min === max ? `HK$${min}/hr` : `HK$${min}–${max}/hr`;
-  }
-  if (max !== null) return `Up to HK$${max}/hr`;
-  if (min !== null) return `From HK$${min}/hr`;
-  return opts?.detail ? "Rate TBA" : "";
+  const suffix = RATE_UNIT_SUFFIX[unit] ?? "/hr";
+  const hasMin = min !== null && min !== undefined;
+  const hasMax = max !== null && max !== undefined;
+  if (!hasMin && !hasMax) return "";
+  if (!hasMin) return `Up to HK$${max}${suffix}`;
+  if (!hasMax) return `From HK$${min}${suffix}`;
+  return `HK$${min}\u2013${max}${suffix}`;
+}
+
+/** formatCaseRate over the hourly budget bounds (the stored shape today). */
+export function formatCaseBudget(min: number | null, max: number | null): string {
+  return formatCaseRate(min, max);
 }
 
 /**
@@ -96,17 +151,56 @@ export function caseBudgetHkdBounds(item: {
 }
 
 /** formatCaseBudget over the HKD-normalized bounds. */
-export function formatCaseBudgetHkd(
+export function formatCaseBudgetHkd(item: {
+  budgetMin: number | null;
+  budgetMax: number | null;
+  budgetMinHkd: number | null;
+  budgetMaxHkd: number | null;
+}): string {
+  const { min, max } = caseBudgetHkdBounds(item);
+  return formatCaseBudget(min, max);
+}
+
+/**
+ * Issue #113: an authenticated tutor's view of a case budget. Primary is the
+ * HKD-normalized bounds converted into the tutor's quoting currency (null
+ * when they quote HKD or rates are unavailable — callers keep the plain HKD
+ * rendering); `original` always carries the HKD figure so nothing is hidden.
+ */
+export function caseBudgetForTutor(
   item: {
     budgetMin: number | null;
     budgetMax: number | null;
     budgetMinHkd: number | null;
     budgetMaxHkd: number | null;
   },
-  opts?: { detail?: boolean },
-): string {
+  tutorCurrency: CurrencyCode,
+  rates: HkdRates,
+  unit: CaseRateUnit = "hr",
+): { primary: string | null; original: string } {
   const { min, max } = caseBudgetHkdBounds(item);
-  return formatCaseBudget(min, max, opts);
+  const suffix = RATE_UNIT_SUFFIX[unit] ?? "/hr";
+  const original = formatCaseRate(min, max, unit);
+  if (!original) return { primary: null, original };
+  if (tutorCurrency === DEFAULT_CURRENCY) return { primary: null, original };
+  const convert = (value: number | null | undefined): string | null => {
+    if (value === null || value === undefined) return null;
+    const converted = convertCurrency(value, DEFAULT_CURRENCY, tutorCurrency, rates);
+    return Number.isFinite(converted) ? formatMoney(converted, tutorCurrency) : null;
+  };
+  // Same matrix as formatCaseRate, with each bound converted first (#423).
+  if (min === null) {
+    const to = convert(max);
+    return to ? { primary: `Up to ${to}${suffix}`, original } : { primary: null, original };
+  }
+  if (max === null) {
+    const from = convert(min);
+    return from ? { primary: `From ${from}${suffix}`, original } : { primary: null, original };
+  }
+  const from = convert(min);
+  const to = convert(max);
+  if (!from || !to) return { primary: null, original };
+  return { primary: `${from}\u2013${to}${suffix}`, original };
 }
 
 export function formatCaseSchedule(sessionsPerWeek: number, sessionLengthMinutes: number): string {

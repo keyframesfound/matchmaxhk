@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { motion, useReducedMotion } from "motion/react";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,10 @@ export function MobileBottomNav() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
   const [accountOpen, setAccountOpen] = useState(false);
+  // OS Reduce Motion must silence the sliding indicators too (#398 review):
+  // layoutId springs are transform/layout animations, which motion plays
+  // regardless of the media query unless gated here.
+  const prefersReducedMotion = useReducedMotion();
 
   const accountName =
     user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
@@ -69,9 +74,21 @@ export function MobileBottomNav() {
                 : "text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]",
             )}
           >
-            {isActive("/tutors") ? (
-              <span className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-[color:var(--foreground)]" />
-            ) : null}
+            {/* Sliding active indicator: the top bar springs between tabs
+                instead of vanishing/reappearing on the active one. */}
+            <span aria-hidden="true" className="absolute inset-x-6 top-0 h-0.5">
+              {isActive("/tutors") ? (
+                <motion.span
+                  layoutId="mobile-bottom-nav-indicator"
+                  className="block h-0.5 rounded-full bg-[color:var(--foreground)]"
+                  transition={
+                    prefersReducedMotion
+                      ? { duration: 0 }
+                      : { type: "spring", bounce: 0.15, duration: 0.4 }
+                  }
+                />
+              ) : null}
+            </span>
             <Compass className="h-5 w-5" aria-hidden="true" />
             {t("nav_mobile.explore")}
           </Link>
@@ -85,9 +102,20 @@ export function MobileBottomNav() {
                 : "text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]",
             )}
           >
-            {isActive("/saved-posts") ? (
-              <span className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-[color:var(--foreground)]" />
-            ) : null}
+            {/* Sliding active indicator (shared layoutId with Explore). */}
+            <span aria-hidden="true" className="absolute inset-x-6 top-0 h-0.5">
+              {isActive("/saved-posts") ? (
+                <motion.span
+                  layoutId="mobile-bottom-nav-indicator"
+                  className="block h-0.5 rounded-full bg-[color:var(--foreground)]"
+                  transition={
+                    prefersReducedMotion
+                      ? { duration: 0 }
+                      : { type: "spring", bounce: 0.15, duration: 0.4 }
+                  }
+                />
+              ) : null}
+            </span>
             <Bookmark className="h-5 w-5" aria-hidden="true" />
             {t("nav_mobile.saved_posts")}
           </Link>

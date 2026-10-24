@@ -45,10 +45,12 @@ export type SettingsProfile = {
 };
 
 export type SettingsCategory =
+  | "home"
   | "general"
   | "profile"
   | "my-tutor"
   | "availability"
+  | "lessons"
   | "materials"
   | "account"
   | "notifications"
@@ -57,10 +59,12 @@ export type SettingsCategory =
   | "danger-zone";
 
 export const SETTINGS_CATEGORIES: SettingsCategory[] = [
+  "home",
   "general",
   "profile",
   "my-tutor",
   "availability",
+  "lessons",
   "materials",
   "account",
   "notifications",

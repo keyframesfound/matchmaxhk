@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -24,6 +26,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EXAM_SYSTEM_OPTIONS, LEVEL_OPTIONS } from "@/features/cases/case-options";
+import {
+  ACADEMIC_TIERS,
+  FIELDS_OF_STUDY,
+  KINDERGARTEN_TOPICS,
+  UNIVERSITY_SUGGESTIONS,
+  caseAcademicTier,
+  normalizeAcademicTier,
+  normalizeKindergartenTopics,
+} from "@/features/tutors/verticals";
+import { academicTierLabel, kindergartenTopicLabel } from "@/features/tutors/verticals-labels";
+import { sanitizeCaseUniText } from "@/features/cases/case-verticals";
 import type { CaseRow } from "./shared";
 
 const controlClassName = "h-10 w-full rounded-sm";
@@ -35,6 +48,13 @@ type EditFormState = {
   subjectsText: string;
   studentLevel: string;
   examSystem: string;
+  // Issue #190: academic tier + vertical fields.
+  academicTier: string;
+  uniField: string;
+  uniName: string;
+  uniProgram: string;
+  uniCourseCodes: string;
+  kindergartenTopics: string[];
   district: string;
   mode: CaseRow["mode"];
   budgetMin: string;
@@ -49,6 +69,16 @@ function toFormState(caseRow: CaseRow): EditFormState {
     subjectsText: (caseRow.subjects ?? []).join(", "),
     studentLevel: caseRow.student_level ?? "",
     examSystem: caseRow.exam_system ?? "",
+    // Legacy rows have no stored tier — derive it from the student level.
+    academicTier:
+      normalizeAcademicTier(caseRow.academic_tier) ??
+      caseAcademicTier(caseRow.academic_tier, caseRow.student_level) ??
+      "",
+    uniField: caseRow.uni_field ?? "",
+    uniName: caseRow.uni_name ?? "",
+    uniProgram: caseRow.uni_program ?? "",
+    uniCourseCodes: caseRow.uni_course_codes ?? "",
+    kindergartenTopics: normalizeKindergartenTopics(caseRow.kindergarten_focus),
     district: caseRow.district ?? "",
     mode: caseRow.mode ?? "either",
     budgetMin:
@@ -73,6 +103,7 @@ export function CaseEditDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [form, setForm] = useState<EditFormState>(() => toFormState(caseRow));
 
   useEffect(() => {
@@ -94,6 +125,26 @@ export function CaseEditDialog({
         subjects,
         student_level: form.studentLevel || caseRow.student_level,
         exam_system: form.examSystem.trim() || null,
+        // Issue #190: tier + vertical fields. Uni fields only survive on the
+        // university tier, K topics only on the kindergarten tier; a blank
+        // tier clears them (normalizeAcademicTier returns null for "").
+        // Issue #396: uni free text goes through the shared contact filter
+        // (strip, not reject) before it can reach the public board.
+        academic_tier: normalizeAcademicTier(form.academicTier),
+        uni_field:
+          form.academicTier === "university" ? sanitizeCaseUniText(form.uniField, 80) : null,
+        uni_name:
+          form.academicTier === "university" ? sanitizeCaseUniText(form.uniName, 120) : null,
+        uni_program:
+          form.academicTier === "university" ? sanitizeCaseUniText(form.uniProgram, 120) : null,
+        uni_course_codes:
+          form.academicTier === "university"
+            ? sanitizeCaseUniText(form.uniCourseCodes, 2000)
+            : null,
+        kindergarten_focus:
+          form.academicTier === "kindergarten"
+            ? normalizeKindergartenTopics(form.kindergartenTopics)
+            : [],
         district: form.district.trim() || null,
         mode: form.mode,
         budget_min: form.budgetMin ? Number(form.budgetMin) : null,
@@ -179,6 +230,111 @@ export function CaseEditDialog({
               onChange={(e) => update({ subjectsText: e.target.value })}
             />
           </div>
+          <div className="sm:col-span-2">
+            <label className={labelClassName} htmlFor={`ce-tier-${caseRow.id}`}>
+              {t("case_request.tier_label")}
+            </label>
+            <SearchableSelect
+              value={form.academicTier}
+              onChange={(v) => update({ academicTier: v })}
+              options={[
+                { value: "", label: t("case_request.tier_unspecified") },
+                ...ACADEMIC_TIERS.map((tier) => ({ value: tier, label: academicTierLabel(tier) })),
+              ]}
+              placeholder={t("case_request.tier_unspecified")}
+              searchPlaceholder={t("case_request.tier_label")}
+              className={controlClassName}
+            />
+          </div>
+          {form.academicTier === "university" ? (
+            <>
+              <div>
+                <label className={labelClassName} htmlFor={`ce-uni-field-${caseRow.id}`}>
+                  {t("case_request.uni_field_label")}
+                </label>
+                <SearchableSelect
+                  value={form.uniField}
+                  onChange={(v) => update({ uniField: v })}
+                  options={FIELDS_OF_STUDY.map((field) => ({ value: field, label: field }))}
+                  allowCustom
+                  placeholder={t("case_request.uni_field_placeholder")}
+                  searchPlaceholder={t("case_request.uni_field_placeholder")}
+                  className={controlClassName}
+                />
+              </div>
+              <div>
+                <label className={labelClassName} htmlFor={`ce-uni-name-${caseRow.id}`}>
+                  {t("case_request.uni_name_label")}
+                </label>
+                <SearchableSelect
+                  value={form.uniName}
+                  onChange={(v) => update({ uniName: v })}
+                  options={UNIVERSITY_SUGGESTIONS.map((name) => ({ value: name, label: name }))}
+                  allowCustom
+                  placeholder={t("case_request.uni_name_placeholder")}
+                  searchPlaceholder={t("case_request.uni_name_placeholder")}
+                  className={controlClassName}
+                />
+              </div>
+              <div>
+                <label className={labelClassName} htmlFor={`ce-uni-program-${caseRow.id}`}>
+                  {t("case_request.uni_program_label")}
+                </label>
+                <Input
+                  id={`ce-uni-program-${caseRow.id}`}
+                  className={controlClassName}
+                  maxLength={120}
+                  value={form.uniProgram}
+                  onChange={(e) => update({ uniProgram: e.target.value })}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelClassName} htmlFor={`ce-uni-courses-${caseRow.id}`}>
+                  {t("case_request.uni_courses_label")}
+                </label>
+                <Textarea
+                  id={`ce-uni-courses-${caseRow.id}`}
+                  rows={3}
+                  maxLength={2000}
+                  className="w-full rounded-sm"
+                  value={form.uniCourseCodes}
+                  onChange={(e) => update({ uniCourseCodes: e.target.value })}
+                />
+              </div>
+            </>
+          ) : null}
+          {form.academicTier === "kindergarten" ? (
+            <div className="sm:col-span-2">
+              <span className={labelClassName}>{t("case_request.k_focus_label")}</span>
+              <div
+                role="group"
+                aria-label={t("case_request.k_focus_aria")}
+                className="space-y-1 rounded-sm border border-border p-3"
+              >
+                {KINDERGARTEN_TOPICS.map((topic) => {
+                  const active = form.kindergartenTopics.includes(topic);
+                  return (
+                    <label
+                      key={topic}
+                      className="flex cursor-pointer items-center gap-3 rounded-sm px-2 py-1.5 text-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.04]"
+                    >
+                      <Checkbox
+                        checked={active}
+                        onCheckedChange={(checked) =>
+                          update({
+                            kindergartenTopics: checked
+                              ? [...form.kindergartenTopics, topic]
+                              : form.kindergartenTopics.filter((item) => item !== topic),
+                          })
+                        }
+                      />
+                      <span className="font-medium">{kindergartenTopicLabel(topic)}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
           <div>
             <label className={labelClassName} htmlFor={`ce-district-${caseRow.id}`}>
               Nearest MTR station

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountActive } from "@/lib/account-status-enforcement";
 
 /**
  * Issue #216: Report button — one report form for a tutor card, a photo, an
@@ -76,7 +77,7 @@ export type AdminReportRow = ReportRow & {
 };
 
 export const submitReport = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) =>
     z
       .object({
@@ -160,6 +161,19 @@ export const submitReport = createServerFn({ method: "POST" })
       if (error || !material) throw new Error("Reported note not found.");
       tutorId = material.tutor_id;
       targetLabel = material.title;
+      // Same self-report rule as cards/photos/introductions: the note's owner
+      // reporting their own listing is a support request, not a signal
+      // (issue #294 — the owner cannot report themselves).
+      if (material.tutor_id) {
+        const { data: materialOwner } = await admin
+          .from("tutors")
+          .select("user_id")
+          .eq("id", material.tutor_id)
+          .maybeSingle();
+        if (materialOwner?.user_id && materialOwner.user_id === context.userId) {
+          throw new Error("SELF_REPORT");
+        }
+      }
     } else {
       const { data: tutor, error } = await admin
         .from("tutors")
@@ -335,10 +349,10 @@ export const listReportsAdmin = createServerFn({ method: "POST" })
  * the loser matches zero rows and reports already-resolved.
  *
  * Upheld reports hide the reported item until the tutor edits it (cards/
- * photos/introductions = the tutors row; notes = the material listing), and
+ * photos/introductions = the tutors row via is_published; notes/gigs = the
+ * material listing via the status machine's "hidden" state), and
  * the SECOND upheld report on the same tutor pauses the card (issue #216) —
- * both rules unpublish via is_published, so "pause" and "hide" share one
- * mechanism today; the count is surfaced in the queue. The tutor is NOT
+ * the count is surfaced in the queue. The tutor is NOT
  * emailed the reporter's name.
  */
 export const resolveReport = createServerFn({ method: "POST" })
@@ -408,11 +422,15 @@ export const resolveReport = createServerFn({ method: "POST" })
 
     if (data.action === "uphold") {
       // Hide the reported item until the tutor edits it (cards/photos/
-      // introductions = the tutors row; notes = the material listing).
+      // introductions = the tutors row; notes/gigs = the material listing).
+      // digital_materials has NO is_published column (that was dropped with
+      // the #203 status machine) — the real unpublish transition is
+      // status -> "hidden" (lifecycle "hide": published|hidden -> hidden,
+      // staff can unhide back to published).
       if (report.target_type === "material") {
         const { error } = (await admin
           .from("digital_materials")
-          .update({ is_published: false })
+          .update({ status: "hidden" })
           .eq("id", report.target_id)) as { error?: { message?: string } | null };
         if (error) throw new Error(error.message || "Failed to hide the note");
       } else if (report.tutor_id) {

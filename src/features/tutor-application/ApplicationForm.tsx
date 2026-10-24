@@ -44,6 +44,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { REFERRAL_CODE_PATTERN, readStoredReferralCode } from "@/lib/referral";
 import { contactFilterError } from "@/lib/contact-filter";
+import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES, toCurrencyCode } from "@/lib/money";
+import { approxHkdText } from "@/features/currency/convert";
+import { useExchangeRates } from "@/features/currency/display-currency-context";
 import {
   MAX_ACADEMIC_HEADLINE,
   academicHeadlineError,
@@ -52,10 +55,23 @@ import {
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
+import { submitTutorApplication } from "@/lib/tutor-application.functions";
 import {
-  extractTranscriptQualification,
-  submitTutorApplication,
-} from "@/lib/tutor-application.functions";
+  COURSE_GRADE_OPTIONS,
+  KINDERGARTEN_TOPICS,
+  MAX_UNIVERSITY_COURSES,
+  TARGET_TEACHING_LEVELS,
+  UNIVERSITY_SUGGESTIONS,
+  YEARS_OF_STUDY,
+  normalizeCourseGrades,
+  normalizeKindergartenTopics,
+  normalizeTargetLevels,
+  normalizeUniversityCourses,
+  normalizeUniversityGpa,
+  normalizeUniversityYear,
+} from "@/features/tutors/verticals";
+import { useVerticalLabels } from "@/features/tutors/verticals-labels";
+import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
 import {
   ACCEPT_ATTRIBUTE,
   ACCEPTED_FILE_TYPES,
@@ -108,6 +124,8 @@ import {
   isValidTutorRate,
   normalizeTutorRateRows,
 } from "@/features/tutors/rates";
+import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
+import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 
 type ScoreRow = {
   subject: string;
@@ -116,20 +134,18 @@ type ScoreRow = {
   gradeSystem: string;
   papers: { label: string; score: string }[];
 };
+// Issue #309: no evidence at /join — qualifications are TEXT answers only;
+// grade slips upload per-grade from the profile editor (tutor_grades).
 type Qualification = {
   curriculum: string;
   overall: string;
   boards: string[];
   scores: ScoreRow[];
   best6: string;
-  transcript: File | null;
-  transcriptStatus: "upload" | "not_applicable" | "provide_later";
 };
 type Achievement = {
   title: string;
   description: string;
-  proof: File | null;
-  proofStatus: "upload" | "not_applicable" | "provide_later";
 };
 
 const SYSTEM_IDS: Record<string, string> = {
@@ -272,26 +288,6 @@ function Hint({ children }: { children: React.ReactNode }) {
   return <p className="text-xs italic leading-relaxed text-muted-foreground">{children}</p>;
 }
 
-function EvidenceNote({ className }: { className?: string }) {
-  return (
-    <p
-      className={cn(
-        "flex gap-2.5 rounded-sm border border-border bg-[color:var(--surface-subtle)] px-3 py-2.5 text-xs leading-relaxed text-muted-foreground",
-        className,
-      )}
-    >
-      <ShieldCheck
-        className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
-        aria-hidden="true"
-      />
-      <span>
-        Uploaded credentials and evidence are used strictly for verification. They are kept secure
-        and will not be displayed directly to the public on your profile.
-      </span>
-    </p>
-  );
-}
-
 function readableFileSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} MB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -312,7 +308,6 @@ const FIELD_LABELS: Record<string, string> = {
   programme: "Degree / Programme Major",
   postgradUniversity: "Postgraduate University / Institution",
   postgradDegree: "Postgraduate Degree / Qualification",
-  studentCard: "Student ID card (evidence of university and major)",
   medium: "Medium of Instruction",
   roles: "Professional Role",
   boards: "Examining Board(s)",
@@ -330,6 +325,7 @@ const FIELD_LABELS: Record<string, string> = {
   commission: "Commission acknowledgment (final step)",
   privacy: "Privacy consent (final step)",
   terms: "Terms and Conditions consent (final step)",
+  termsGate: "Terms of Service acceptance (final step)",
   captcha: "Security check (final step)",
 };
 
@@ -351,13 +347,7 @@ function describeFieldError(key: string): string {
   if (match) return `Achievement ${Number(match[1]) + 1} — Title`;
   match = key.match(/^achievement-description-(\d+)$/);
   if (match) return `Achievement ${Number(match[1]) + 1} — Description`;
-  match = key.match(/^achievement-proof-(\d+)$/);
-  if (match) return `Achievement ${Number(match[1]) + 1} — Evidence file`;
   return key;
-}
-
-function isTranscriptImage(file: File) {
-  return ["image/jpeg", "image/png"].includes(file.type) || /\.(jpe?g|png)$/i.test(file.name);
 }
 
 function isProfilePhoto(file: File) {
@@ -501,116 +491,6 @@ function TrophyCabinetUpload({
   );
 }
 
-function DocumentUpload({
-  file,
-  onSelect,
-  onRemove,
-  disabled,
-  accept = ACCEPT_ATTRIBUTE,
-  prompt = "Drop a file here or choose a file",
-  invalid,
-}: {
-  file: File | null;
-  onSelect: (file: File) => void;
-  onRemove: () => void;
-  disabled?: boolean;
-  accept?: string;
-  prompt?: string;
-  invalid?: boolean;
-}) {
-  const [dragging, setDragging] = useState(false);
-  const [progress, setProgress] = useState(file ? 100 : 0);
-  useEffect(() => {
-    if (!file) {
-      setProgress(0);
-      return;
-    }
-    setProgress(0);
-    const interval = window.setInterval(() => {
-      setProgress((current) => {
-        if (current >= 100) {
-          window.clearInterval(interval);
-          return 100;
-        }
-        return Math.min(current + 20, 100);
-      });
-    }, 75);
-    return () => window.clearInterval(interval);
-  }, [file]);
-  const selectFile = (candidate: File | undefined) => {
-    if (candidate) onSelect(candidate);
-  };
-  return (
-    <div className="grid min-w-0 gap-2">
-      <label
-        className={cn(
-          "mx-auto flex min-h-20 w-full max-w-xs cursor-pointer flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-border bg-[color:var(--surface-subtle)] px-3 py-3 text-center text-sm text-muted-foreground transition-colors",
-          invalid && "border-destructive",
-          dragging && "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.05]",
-          disabled && "cursor-not-allowed opacity-60",
-        )}
-        aria-invalid={invalid || undefined}
-        onDragEnter={(event) => {
-          event.preventDefault();
-          if (!disabled) setDragging(true);
-        }}
-        onDragOver={(event) => event.preventDefault()}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(event) => {
-          event.preventDefault();
-          setDragging(false);
-          if (!disabled) selectFile(event.dataTransfer.files[0]);
-        }}
-      >
-        <Upload className="h-4 w-4 text-[color:var(--muted-foreground)]" />
-        <span>{prompt}</span>
-        <input
-          type="file"
-          className="sr-only"
-          accept={accept}
-          disabled={disabled}
-          onChange={(event) => {
-            selectFile(event.target.files?.[0]);
-            event.currentTarget.value = "";
-          }}
-        />
-      </label>
-      {file ? (
-        <div className="grid min-w-0 gap-1.5 rounded-sm border border-border px-3 py-2 text-xs text-muted-foreground">
-          <div className="flex items-start justify-between gap-2">
-            <span className="flex min-w-0 items-start gap-2">
-              <Paperclip className="mt-0.5 h-3 w-3 shrink-0" />
-              <span className="break-all text-left leading-snug">
-                {file.name} ({readableFileSize(file.size)})
-              </span>
-            </span>
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              aria-label="Remove file"
-              onClick={onRemove}
-              disabled={disabled}
-            >
-              <X />
-            </Button>
-          </div>
-          <div
-            className="h-1.5 overflow-hidden rounded-full bg-muted"
-            aria-label={`Upload ${progress}%`}
-          >
-            <div
-              className="h-full bg-[color:var(--brand-teal)] transition-[width] duration-100"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <span>{progress < 100 ? `Preparing upload ${progress}%` : "Ready"}</span>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 function ProfilePhotoUpload({
   file,
   onSelect,
@@ -725,6 +605,129 @@ function ProfilePhotoUpload({
   );
 }
 
+/** Issue #190: tag-list editor for university course codes/names (max 12). */
+function CourseTagEditor({
+  entries,
+  onChange,
+  placeholder,
+}: {
+  entries: string[];
+  onChange: (next: string[]) => void;
+  placeholder: string;
+}) {
+  const [draft, setDraft] = useState("");
+  const add = () => {
+    const value = draft.trim().slice(0, 40);
+    if (!value) return;
+    if (entries.some((entry) => entry.toLowerCase() === value.toLowerCase())) {
+      setDraft("");
+      return;
+    }
+    if (entries.length >= MAX_UNIVERSITY_COURSES) return;
+    onChange([...entries, value]);
+    setDraft("");
+  };
+  return (
+    <div className="grid gap-2">
+      <div className="flex gap-2">
+        <Input
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              add();
+            }
+          }}
+          placeholder={placeholder}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={add}
+          disabled={entries.length >= MAX_UNIVERSITY_COURSES}
+        >
+          Add
+        </Button>
+      </div>
+      {entries.length > 0 ? (
+        <ul className="grid gap-1.5">
+          {entries.map((entry, index) => (
+            <li
+              key={`${entry}-${index}`}
+              className="flex items-center justify-between gap-2 rounded-sm border border-border px-3 py-1.5 text-sm"
+            >
+              <span>{entry}</span>
+              <button
+                type="button"
+                onClick={() => onChange(entries.filter((_, i) => i !== index))}
+                className="text-muted-foreground hover:text-destructive"
+                aria-label={`Remove ${entry}`}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
+/** Issue #190: course + grade pair editor for course-specific grades. */
+function CourseGradeEditor({
+  rows,
+  onChange,
+}: {
+  rows: { course: string; grade: string }[];
+  onChange: (next: { course: string; grade: string }[]) => void;
+}) {
+  const update = (index: number, patch: Partial<{ course: string; grade: string }>) =>
+    onChange(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+  return (
+    <div className="grid gap-2">
+      {rows.map((row, index) => (
+        <div key={index} className="flex gap-2">
+          <Input
+            value={row.course}
+            onChange={(event) => update(index, { course: event.target.value.slice(0, 40) })}
+            placeholder="Course code, e.g. ECON1210"
+          />
+          <Select value={row.grade} onValueChange={(grade) => update(index, { grade })}>
+            <SelectTrigger className="h-11 w-28">
+              <SelectValue placeholder="Grade" />
+            </SelectTrigger>
+            <SelectContent>
+              {COURSE_GRADE_OPTIONS.map((grade) => (
+                <SelectItem key={grade} value={grade}>
+                  {grade}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <button
+            type="button"
+            onClick={() => onChange(rows.filter((_, i) => i !== index))}
+            className="text-muted-foreground hover:text-destructive"
+            aria-label="Remove course grade"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ))}
+      {rows.length < MAX_UNIVERSITY_COURSES ? (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => onChange([...rows, { course: "", grade: "" }])}
+        >
+          Add a course grade
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
 function blankQualification(curriculum = "IBDP"): Qualification {
   return {
     curriculum,
@@ -732,8 +735,6 @@ function blankQualification(curriculum = "IBDP"): Qualification {
     boards: [],
     scores: [blankScoreRow(curriculum)],
     best6: "",
-    transcript: null,
-    transcriptStatus: "upload",
   };
 }
 
@@ -912,7 +913,6 @@ type ApplicationBaseState = {
   hasPostgrad: boolean;
   postgradUniversity: string;
   postgradDegree: string;
-  studentCard: File | null;
   year: string;
   subjectsTaught: string[];
   format: string;
@@ -923,10 +923,16 @@ type ApplicationBaseState = {
   portfolioImages: File[];
   portfolioConsent: boolean;
   selfIntroduction: string;
+  // Issue #199: SEN experience & qualifications (step 5).
+  senEnabled: boolean;
+  senCategories: string[];
+  senExperience: string;
   // Issue #319: two base rates (whole dollars) replace the single
   // "Proposed Hourly Rate" input; rows/notes are profile-only extras.
   onlineRate: string;
   inpersonRate: string;
+  // Issue #113: the currency the tutor quotes every pricing field in.
+  currency: string;
   rateRows: { label: string; rate: string }[];
   travelNote: string;
   rateNote: string;
@@ -940,6 +946,11 @@ type ApplicationBaseState = {
   commission: boolean;
   privacy: boolean;
   terms: boolean;
+  // Issue #214: the terms-gate checkbox (records WHICH ToS version was
+  // accepted, server-side, on submit). Same checkbox serves signup and
+  // referral_signup — the surface tag is decided server-side by whether the
+  // submit arrived through a referrer link.
+  termsGate: boolean;
 };
 
 type ApplicationDraft = {
@@ -952,10 +963,18 @@ type ApplicationDraft = {
   // Issue #323: smart headline + whether the tutor has manually edited it.
   academicHeadline: string;
   headlineDirty: boolean;
+  // Issue #190: verticals survive the wizard (sanitized on restore).
+  targetLevels: string[];
+  universityYear: string;
+  universityGpa: string;
+  universityCourses: string[];
+  courseGrades: { course: string; grade: string }[];
+  kindergartenTopics: string[];
 };
 
 export function ApplicationForm() {
   const { t } = useTranslation();
+  const senCategoryLabels = useSenCategoryLabels();
   const submit = useServerFn(submitTutorApplication);
   // Referral attribution: an explicit ?ref= wins (last click); otherwise fall
   // back to a code captured earlier on the site (30-day window). The code
@@ -965,7 +984,6 @@ export function ApplicationForm() {
     const match = REFERRAL_CODE_PATTERN.exec(raw.trim());
     return match ? match[0] : readStoredReferralCode();
   });
-  const extractTranscript = useServerFn(extractTranscriptQualification);
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   // Remembered at submit time so the WhatsApp activation deep link can greet
@@ -974,11 +992,15 @@ export function ApplicationForm() {
   // Issue #189: server-assigned application id, surfaced in the WhatsApp
   // activation message so the team can match the chat to the stored row.
   const [applicationRef, setApplicationRef] = useState("");
+  // Issue #310: tutor code of the card published at submit (empty when the
+  // server could not publish — the success screen hides the card link then).
+  const [liveTutorCode, setLiveTutorCode] = useState("");
+  // Issue #358: true when submit reused a card that staff have since
+  // unpublished — the success screen must not claim the card is live.
+  const [unpublishedReuse, setUnpublishedReuse] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [transcriptStatus, setTranscriptStatus] = useState<"idle" | "reading">("idle");
-  const [transcriptMessage, setTranscriptMessage] = useState("");
   const [captcha, setCaptcha] = useState<string | null>(null);
   const [captchaError, setCaptchaError] = useState<string | null>(null);
   const captchaRef = useRef<HTMLDivElement>(null);
@@ -1012,7 +1034,6 @@ export function ApplicationForm() {
     hasPostgrad: false,
     postgradUniversity: "",
     postgradDegree: "",
-    studentCard: null,
     year: "",
     subjectsTaught: [] as string[],
     format: "",
@@ -1021,8 +1042,12 @@ export function ApplicationForm() {
     portfolioImages: [] as File[],
     portfolioConsent: false,
     selfIntroduction: "",
+    senEnabled: false,
+    senCategories: [] as string[],
+    senExperience: "",
     onlineRate: "",
     inpersonRate: "",
+    currency: DEFAULT_CURRENCY,
     rateRows: [] as { label: string; rate: string }[],
     travelNote: "",
     rateNote: "",
@@ -1034,6 +1059,7 @@ export function ApplicationForm() {
     commission: false,
     privacy: false,
     terms: false,
+    termsGate: false,
   });
   const [roles, setRoles] = useState<string[]>([]);
   const [boards, setBoards] = useState<string[]>([]);
@@ -1048,9 +1074,41 @@ export function ApplicationForm() {
   // clearing the field on blur unfreezes it (see the effect + input handlers).
   const [academicHeadline, setAcademicHeadline] = useState("");
   const [headlineDirty, setHeadlineDirty] = useState(false);
+  // Issue #190: target teaching levels route the verticals. University-only
+  // or Kindergarten-only tutors skip the school-exam qualification editor.
+  const [targetLevels, setTargetLevels] = useState<string[]>([]);
+  const [universityYear, setUniversityYear] = useState("");
+  const [universityGpa, setUniversityGpa] = useState("");
+  const [universityCourses, setUniversityCourses] = useState<string[]>([]);
+  const [courseGrades, setCourseGrades] = useState<{ course: string; grade: string }[]>([]);
+  const [kindergartenTopics, setKindergartenTopics] = useState<string[]>([]);
+  const verticalOnlyUni =
+    targetLevels.length > 0 && targetLevels.every((level) => level === "University");
+  const verticalOnlyKind =
+    targetLevels.length > 0 && targetLevels.every((level) => level === "Kindergarten");
+  const verticalOnly = verticalOnlyUni || verticalOnlyKind;
+  // Issue #190: vertical-only tutors skip the exam qualification editor —
+  // sync the hidden qualification row to the vertical so the existing
+  // payload logic (curricula, headline generator) keeps flowing unchanged.
+  useEffect(() => {
+    if (!verticalOnly) return;
+    const wanted = verticalOnlyUni ? "University" : "Kindergarten";
+    setQualifications((current) => {
+      if (
+        current.length === 1 &&
+        current[0].curriculum === wanted &&
+        current[0].scores.length === 0
+      ) {
+        return current;
+      }
+      const blank = blankQualification(wanted);
+      return [{ ...blank, scores: [] }];
+    });
+  }, [verticalOnly, verticalOnlyUni]);
   const professional = base.status === PROFESSIONAL_STATUS;
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
+  const verticalLabels = useVerticalLabels();
   // Hotline digits for the Step 2 activation link; fetched once the
   // application is submitted.
   const whatsappDigits = useWhatsAppNumber(done);
@@ -1114,11 +1172,6 @@ export function ApplicationForm() {
       ...prev,
       ...restoredDraft.base,
       photo: null,
-      studentCard: null,
-      achievements: (restoredDraft.base.achievements ?? []).map((achievement) => ({
-        ...achievement,
-        proof: null,
-      })),
     }));
     if (Array.isArray(restoredDraft.roles)) setRoles(restoredDraft.roles);
     if (Array.isArray(restoredDraft.boards)) setBoards(restoredDraft.boards);
@@ -1127,7 +1180,6 @@ export function ApplicationForm() {
       setQualifications(
         restoredDraft.qualifications.map((qualification) => ({
           ...qualification,
-          transcript: null,
           scores: Array.isArray(qualification.scores) ? qualification.scores : [],
         })),
       );
@@ -1136,6 +1188,23 @@ export function ApplicationForm() {
       setAcademicHeadline(restoredDraft.academicHeadline);
       setHeadlineDirty(Boolean(restoredDraft.headlineDirty));
     }
+    // Issue #190: vertical state survives a refresh; sanitize to canonical
+    // vocab like the case funnel does (junk/renamed entries drop silently).
+    const restoredLevels = normalizeTargetLevels(restoredDraft.targetLevels);
+    if (restoredLevels.length > 0) setTargetLevels(restoredLevels);
+    const restoredYear = normalizeUniversityYear(restoredDraft.universityYear);
+    if (restoredYear) setUniversityYear(restoredYear);
+    if (typeof restoredDraft.universityGpa === "string") {
+      setUniversityGpa(restoredDraft.universityGpa);
+    }
+    const restoredCourses = normalizeUniversityCourses(restoredDraft.universityCourses);
+    if (restoredCourses.length > 0) setUniversityCourses(restoredCourses);
+    const restoredGrades = Object.entries(normalizeCourseGrades(restoredDraft.courseGrades)).map(
+      ([course, grade]) => ({ course, grade }),
+    );
+    if (restoredGrades.length > 0) setCourseGrades(restoredGrades);
+    const restoredTopics = normalizeKindergartenTopics(restoredDraft.kindergartenTopics);
+    if (restoredTopics.length > 0) setKindergartenTopics(restoredTopics);
     if (
       typeof restoredDraft.step === "number" &&
       restoredDraft.step >= 1 &&
@@ -1153,18 +1222,20 @@ export function ApplicationForm() {
       base: {
         ...base,
         photo: null,
-        studentCard: null,
-        achievements: base.achievements.map((achievement) => ({ ...achievement, proof: null })),
       },
       roles,
       boards,
       credentials,
-      qualifications: qualifications.map((qualification) => ({
-        ...qualification,
-        transcript: null,
-      })),
+      qualifications,
       academicHeadline,
       headlineDirty,
+      // Issue #190: verticals survive the wizard.
+      targetLevels,
+      universityYear,
+      universityGpa,
+      universityCourses,
+      courseGrades,
+      kindergartenTopics,
     });
   }, [
     restoredDraft,
@@ -1177,6 +1248,12 @@ export function ApplicationForm() {
     qualifications,
     academicHeadline,
     headlineDirty,
+    targetLevels,
+    universityYear,
+    universityGpa,
+    universityCourses,
+    courseGrades,
+    kindergartenTopics,
   ]);
 
   // Issue #323: regenerate the smart headline whenever the qualifications
@@ -1388,6 +1465,19 @@ export function ApplicationForm() {
     setBase((previous) => ({ ...previous, [key]: value }));
     clearFieldError(key);
   }
+  // Issue #113: live ≈HK$ equivalents under each base-rate input (hidden for
+  // HKD quoting or before rates load — the note never blocks submission).
+  const fxRates = useExchangeRates();
+  const onlineRateApprox = approxHkdText(
+    Number(base.onlineRate),
+    toCurrencyCode(base.currency),
+    fxRates,
+  );
+  const inpersonRateApprox = approxHkdText(
+    Number(base.inpersonRate),
+    toCurrencyCode(base.currency),
+    fxRates,
+  );
   function clearFieldError(key: string) {
     setFieldErrors((current) => {
       if (!current[key]) return current;
@@ -1443,14 +1533,26 @@ export function ApplicationForm() {
     const required = (key: string, value: unknown) => {
       if (!value || (Array.isArray(value) && value.length === 0)) next[key] = "Required";
     };
+    const rejectContact = (key: string, value: string) => {
+      if (next[key]) return;
+      const error = contactFilterError(value);
+      if (error) next[key] = error;
+    };
     if (step === 1) {
       required("name", base.name.trim());
+      rejectContact("name", base.name);
+      rejectContact("graduationYear", base.graduationYear);
       required("phone", base.phone.trim());
       required("email", base.email.trim());
       required("country", base.country.trim());
       if (base.country === "Other") required("countryOther", base.countryOther.trim());
       required("status", base.status);
       required("medium", base.medium);
+      // Issue #361: medium feeds the public languages column — run the same
+      // step-level contact filter here that the server schema applies at
+      // submit, so the tutor sees the error on the step that caused it.
+      const mediumError = contactFilterError(base.medium.join(", "));
+      if (mediumError && !next.medium) next.medium = mediumError;
       if (base.status === "Other") required("statusOther", base.statusOther.trim());
       if (!base.startImmediately) {
         required("startDate", base.startDate.trim());
@@ -1473,9 +1575,12 @@ export function ApplicationForm() {
       }
     }
     if (step === 2) {
+      // Issue #190: teaching levels route the whole form.
+      required("targetLevels", targetLevels);
       if (professional) required("credentials", credentials);
       else {
         required("highSchool", base.highSchool.trim());
+        rejectContact("highSchool", base.highSchool);
         required("year", base.year.trim());
         required("university", base.university.trim());
         required("programme", base.programme.trim());
@@ -1483,13 +1588,43 @@ export function ApplicationForm() {
           required("postgradUniversity", base.postgradUniversity.trim());
           required("postgradDegree", base.postgradDegree.trim());
         }
-        required("studentCard", base.studentCard);
-        qualifications.forEach((qualification, index) => {
-          required(`curriculum-${index}`, qualification.curriculum);
-          // Issue #323: overall score is optional — never block on a blank.
-          if (["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum))
-            required(`boards-${index}`, qualification.boards);
-        });
+        // Issue #190: vertical-only tutors skip the exam qualification editor;
+        // their capability signal is the course list / K topics instead.
+        if (verticalOnlyUni && universityCourses.length === 0) {
+          next.universityCourses =
+            "Add at least one university course you can tutor (course code or name).";
+        }
+        if (verticalOnlyKind && kindergartenTopics.length === 0) {
+          next.kindergartenTopics = "Select at least one Kindergarten topic you teach.";
+        }
+        if (universityGpa.trim() !== "" && normalizeUniversityGpa(universityGpa) === null) {
+          next.universityGpa = "Enter a GPA between 0 and 4.3";
+        }
+        const verticalCoursesError = contactFilterError(universityCourses.join(", "));
+        if (verticalCoursesError && !next.universityCourses) {
+          next.universityCourses = verticalCoursesError;
+        }
+        // #190 review: the grade-map course keys also render on the public
+        // card — the DB insert guard now scans them, so name the field here.
+        const gradeKeysError = contactFilterError(courseGrades.map((row) => row.course).join(", "));
+        if (gradeKeysError && !next.courseGrades) {
+          next.courseGrades = gradeKeysError;
+        }
+        if (!verticalOnly)
+          qualifications.forEach((qualification, index) => {
+            required(`curriculum-${index}`, qualification.curriculum);
+            // Issue #323: overall score is optional — never block on a blank.
+            if (["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum))
+              required(`boards-${index}`, qualification.boards);
+          });
+      }
+      // University / programme are on this step for both paths and are copied
+      // onto the public card. Contact text fails here, before submit.
+      rejectContact("university", base.university);
+      rejectContact("programme", base.programme);
+      if (base.hasPostgrad) {
+        rejectContact("postgradUniversity", base.postgradUniversity);
+        rejectContact("postgradDegree", base.postgradDegree);
       }
       // Issue #323: the headline is required for every path; the shared helper
       // enforces required + max 40 + contact filter in one place (mirrored
@@ -1509,23 +1644,47 @@ export function ApplicationForm() {
         );
     }
     const taughtStep = professional ? 3 : 3;
-    if (step === taughtStep) required("subjectsTaught", selectedTeachingSubjects);
+    if (step === taughtStep) {
+      // Issue #190: vertical-only tutors list courses / K topics instead of
+      // standard subjects at this step.
+      if (verticalOnlyUni) required("subjectsTaught", universityCourses);
+      else if (verticalOnlyKind) required("subjectsTaught", kindergartenTopics);
+      else required("subjectsTaught", selectedTeachingSubjects);
+      // Issue #361: subjects feed the public card — filter them on-step too.
+      const taughtError = contactFilterError(
+        verticalOnlyUni
+          ? universityCourses.join(", ")
+          : verticalOnlyKind
+            ? kindergartenTopics.join(", ")
+            : selectedTeachingSubjects.join(", "),
+      );
+      if (taughtError && !next.subjectsTaught) next.subjectsTaught = taughtError;
+    }
     const lessonStep = professional ? 4 : 4;
     if (step === lessonStep) {
       required("format", base.format);
       if (base.format !== "Online") required("stations", base.stations);
+      // Issue #361: stations feed the public card — filter them on-step too.
+      const stationsError = contactFilterError(base.stations.join(", "));
+      if (stationsError && !next.stations) next.stations = stationsError;
     }
     const experienceStep = professional ? 5 : 5;
     if (step === experienceStep) {
       base.achievements.forEach((achievement, index) => {
         required(`achievement-title-${index}`, achievement.title.trim());
+        rejectContact(`achievement-title-${index}`, achievement.title);
         required(`achievement-description-${index}`, achievement.description.trim());
-        if (achievement.proofStatus === "upload")
-          required(`achievement-proof-${index}`, achievement.proof);
+        rejectContact(`achievement-description-${index}`, achievement.description);
       });
       // Issue #215: no contact details in the public self-introduction.
       const introError = contactFilterError(base.selfIntroduction);
       if (introError) next.selfIntroduction = introError;
+      // Issue #199: at least one SEN category once the SEN toggle is on.
+      if (base.senEnabled && base.senCategories.length === 0) {
+        next.senCategories = "Select at least one SEN category";
+      }
+      const senExperienceError = contactFilterError(base.senExperience);
+      if (senExperienceError) next.senExperience = senExperienceError;
     }
     const logisticsStep = professional ? 6 : 6;
     if (step === logisticsStep) {
@@ -1570,6 +1729,9 @@ export function ApplicationForm() {
       required("commission", base.commission);
       required("privacy", base.privacy);
       required("terms", base.terms);
+      // Issue #214: the terms gate must be checked before submit; the server
+      // fn independently validates and records the acceptance row.
+      required("termsGate", base.termsGate);
       if (!captcha) next.captcha = "Complete the security check.";
     }
     setFieldErrors(next);
@@ -1586,81 +1748,6 @@ export function ApplicationForm() {
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
-  }
-  async function autoFillQualification(qualificationIndex: number, file: File) {
-    if (!isTranscriptImage(file) || file.size > MAX_FILE_BYTES) {
-      setError("Use a JPG or PNG transcript image no larger than 5 MB.");
-      return;
-    }
-    setTranscriptStatus("reading");
-    setTranscriptMessage("Reading transcript with AI...");
-    setError(null);
-    try {
-      const extracted = await extractTranscript({
-        data: {
-          curriculum: qualifications[qualificationIndex]
-            .curriculum as (typeof CURRICULUM_OPTIONS)[number],
-          contentType: (file.type === "image/png" || /\.png$/i.test(file.name)
-            ? "image/png"
-            : "image/jpeg") as "image/jpeg" | "image/png",
-          content: await fileData(file),
-        },
-      });
-      const fixedSubject = FIXED_SCORE_SUBJECTS[qualifications[qualificationIndex].curriculum];
-      if (fixedSubject) {
-        const curriculum = qualifications[qualificationIndex].curriculum;
-        const componentLabels = isUcatCurriculum(curriculum)
-          ? ucatComponentLabels(curriculum)
-          : (getSystem(SYSTEM_IDS[curriculum] ?? "other")?.paperLabels ?? []);
-        const bands = new Map(
-          extracted.scores.map((score) => [score.subject.trim().toLowerCase(), score.grade.trim()]),
-        );
-        const overallBand =
-          extracted.overall.trim() ||
-          bands.get("overall") ||
-          bands.get("total") ||
-          bands.get(`${curriculum.toLowerCase()} overall`) ||
-          "";
-        const papers = componentLabels.map((label) => ({
-          label,
-          score: bands.get(label.toLowerCase()) ?? "",
-        }));
-        updateQualification(qualificationIndex, {
-          overall: overallBand,
-          best6: extracted.best6,
-          scores: [
-            {
-              subject: fixedSubject,
-              grade: overallBand,
-              level: "",
-              gradeSystem: "",
-              papers,
-            },
-          ],
-        });
-        setTranscriptMessage(
-          `Added ${papers.filter((paper) => paper.score).length} component scores. Review the fields below.`,
-        );
-        return;
-      }
-      updateQualification(qualificationIndex, {
-        overall: extracted.overall,
-        best6: extracted.best6,
-        scores: extracted.scores.map((score) => ({
-          ...score,
-          papers: [],
-        })),
-      });
-      setTranscriptMessage(
-        `Added ${extracted.scores.length} result${extracted.scores.length === 1 ? "" : "s"}. Review the fields below.`,
-      );
-    } catch (reason) {
-      const message = reason instanceof Error ? reason.message : "Transcript auto-fill failed.";
-      setError(message);
-      setTranscriptMessage(message);
-    } finally {
-      setTranscriptStatus("idle");
-    }
   }
   async function submitForm() {
     if (!validateCurrentStep()) return;
@@ -1711,54 +1798,41 @@ export function ApplicationForm() {
         hasPostgrad: base.hasPostgrad,
         postgradUniversity: base.hasPostgrad ? base.postgradUniversity : "",
         postgradDegree: base.hasPostgrad ? base.postgradDegree : "",
-        studentCard: base.studentCard
-          ? {
-              filename: base.studentCard.name,
-              contentType: base.studentCard.type,
-              size: base.studentCard.size,
-              content: await fileData(base.studentCard),
-            }
-          : undefined,
         highSchool: professional ? base.highSchool || "Not provided" : base.highSchool,
         year: base.year.trim(),
         curriculum: primary.curriculum,
         curricula: qualifications.map((qualification) => qualification.curriculum),
         overallScore: professional ? "Not applicable - professional pathway" : primary.overall,
         academicHeadline: academicHeadline.trim(),
-        subjectsConfident: selectedTeachingSubjects.join(", "),
+        // Issue #190: vertical routing + self-reported vertical fields.
+        targetLevels,
+        universityYearOfStudy: universityYear,
+        universityGpa: universityGpa.trim(),
+        universityCourses,
+        courseGrades: courseGrades.filter((row) => row.course.trim() !== "" && row.grade !== ""),
+        kindergartenTopics: targetLevels.includes("Kindergarten") ? kindergartenTopics : [],
+        subjectsConfident: verticalOnlyUni
+          ? universityCourses.join(", ")
+          : verticalOnlyKind
+            ? kindergartenTopics.join(", ")
+            : selectedTeachingSubjects.join(", "),
         subjectResults: professional
           ? `Professional subjects: ${selectedTeachingSubjects.join(", ")}\n${base.achievements.map((achievement) => achievement.description).join("\n")}`
-          : subjectResults,
+          : verticalOnlyUni
+            ? courseGrades
+                .filter((row) => row.course.trim() && row.grade)
+                .map((row) => `${row.course.trim()} - ${row.grade}`)
+                .join("\n")
+            : verticalOnlyKind
+              ? `Kindergarten topics: ${kindergartenTopics.join(", ")}`
+              : subjectResults,
         awards: "",
-        achievements: await Promise.all(
-          base.achievements.map(async (achievement) => ({
-            title: achievement.title,
-            description: achievement.description,
-            proofStatus: achievement.proofStatus,
-            proof: achievement.proof
-              ? {
-                  filename: achievement.proof.name,
-                  contentType: achievement.proof.type,
-                  size: achievement.proof.size,
-                  content: await fileData(achievement.proof),
-                }
-              : undefined,
-          })),
-        ),
-        academicDocuments: await Promise.all(
-          qualifications.map(async (qualification) => ({
-            curriculum: qualification.curriculum,
-            status: qualification.transcriptStatus,
-            file: qualification.transcript
-              ? {
-                  filename: qualification.transcript.name,
-                  contentType: qualification.transcript.type,
-                  size: qualification.transcript.size,
-                  content: await fileData(qualification.transcript),
-                }
-              : undefined,
-          })),
-        ),
+        // Issue #309: achievements are TEXT answers only — no evidence files
+        // at join time; slips upload per-grade from the profile editor.
+        achievements: base.achievements.map((achievement) => ({
+          title: achievement.title,
+          description: achievement.description,
+        })),
         // Issue #97: Trophy Cabinet — files + publication consent (zod enforces
         // consent only when at least one photo is attached).
         portfolioImages: await Promise.all(
@@ -1770,6 +1844,10 @@ export function ApplicationForm() {
           })),
         ),
         portfolioConsent: base.portfolioConsent,
+        // Issue #199: SEN experience & qualifications.
+        senEnabled: base.senEnabled,
+        senCategories: base.senEnabled ? base.senCategories : [],
+        senExperience: base.senEnabled ? base.senExperience.trim() : "",
         experience: base.achievements
           .map((achievement) => `${achievement.title}: ${achievement.description}`)
           .join("\n"),
@@ -1785,6 +1863,8 @@ export function ApplicationForm() {
           base.format !== "Online" && base.inpersonRate.trim() !== ""
             ? Number(base.inpersonRate)
             : null,
+        // Issue #113: the quoting currency travels with the stored rates.
+        currency: toCurrencyCode(base.currency),
         rateRows: base.rateRows
           .filter((row) => row.label.trim() !== "" && row.rate.trim() !== "")
           .map((row) => ({ label: row.label.trim(), rate: Number(row.rate) })),
@@ -1826,8 +1906,19 @@ export function ApplicationForm() {
         scrollToStepperTop();
         return;
       }
-      await submit({ data: parsed.data }).then((result) => {
+      // Issue #214: the client gate above (validateCurrentStep) only reaches
+      // this line with the terms gate checked, so legalAgreed: true is the
+      // contract the server fn re-validates before storing anything.
+      await submit({ data: { ...parsed.data, legalAgreed: true } }).then((result) => {
         setApplicationRef(result?.applicationId ?? "");
+        // Issue #310: the card is published at submit — keep its public path
+        // so the success screen can link straight to the live card.
+        // Issue #358: a reused card that staff have since unpublished is not
+        // live — hide the "View live card" button and swap the success copy
+        // to a received-not-live variant (no published-success claim).
+        const reusedUnpublished = result?.published === false;
+        setUnpublishedReuse(reusedUnpublished);
+        setLiveTutorCode(reusedUnpublished ? "" : (result?.tutorCode ?? ""));
         return result;
       });
       clearDraft();
@@ -1853,11 +1944,25 @@ export function ApplicationForm() {
             aria-hidden="true"
           />
           <h1 className="mt-4 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
-            Application received
+            {unpublishedReuse ? t("join.success_unpublished_title") : t("join.success_title")}
           </h1>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
-            Your application has been received{professional ? " securely" : ""}! That’s step 1
-            complete — one quick step left to activate it.
+            {unpublishedReuse ? t("join.success_unpublished_message") : t("join.success_message")}
+          </p>
+          {liveTutorCode ? (
+            <Button
+              asChild
+              variant="solid"
+              size="lg"
+              className="mt-6 h-12 rounded-sm bg-[color:var(--ink)] px-8 font-bold text-[color:var(--surface)] hover:opacity-90"
+            >
+              <Link to="/tutors/$tutorCode" params={{ tutorCode: liveTutorCode }}>
+                {t("join.view_live_card")}
+              </Link>
+            </Button>
+          ) : null}
+          <p className="mx-auto mt-4 max-w-lg text-xs text-muted-foreground">
+            {t("join.manage_hint")}
           </p>
         </div>
         <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-8 text-center sm:p-12">
@@ -2386,7 +2491,7 @@ export function ApplicationForm() {
                       invalid={Boolean(fieldErrors.medium)}
                     />
                   </Field>
-                  <Field label="Graduation Year">
+                  <Field label="Graduation Year" error={fieldErrors.graduationYear}>
                     <Input
                       value={base.graduationYear}
                       onChange={(event) => setBaseField("graduationYear", event.target.value)}
@@ -2500,6 +2605,114 @@ export function ApplicationForm() {
                   professional ? "Higher Education & Teaching Credentials" : "Academic Background"
                 }
               />
+              {/* Issue #190: target teaching levels route the verticals. */}
+              <Field label="Target Teaching Level" required error={fieldErrors.targetLevels}>
+                <Choices
+                  options={TARGET_TEACHING_LEVELS}
+                  values={targetLevels}
+                  onToggle={(level) => {
+                    setTargetLevels((current) =>
+                      current.includes(level)
+                        ? current.filter((item) => item !== level)
+                        : [...current, level],
+                    );
+                    clearFieldError("targetLevels");
+                  }}
+                  invalid={Boolean(fieldErrors.targetLevels)}
+                />
+              </Field>
+              {targetLevels.includes("University") ? (
+                <div className="grid gap-4 rounded-sm border border-border p-4 sm:grid-cols-2">
+                  <Field label="Current Year of Study" error={fieldErrors.universityYear}>
+                    <Select
+                      value={universityYear}
+                      onValueChange={(value) => {
+                        setUniversityYear(value);
+                        clearFieldError("universityYear");
+                      }}
+                    >
+                      <SelectTrigger className={controlClassName}>
+                        <SelectValue placeholder="Select your year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {YEARS_OF_STUDY.map((year) => (
+                          <SelectItem key={year} value={year}>
+                            {verticalLabels.years[year]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label="Cumulative GPA" error={fieldErrors.universityGpa}>
+                    <Input
+                      value={universityGpa}
+                      onChange={(event) => {
+                        setUniversityGpa(event.target.value);
+                        clearFieldError("universityGpa");
+                      }}
+                      inputMode="decimal"
+                      placeholder="e.g. 3.85"
+                    />
+                    <Hint>Scale 0 – 4.3, optional.</Hint>
+                  </Field>
+                  <div className="sm:col-span-2">
+                    <Field
+                      label="University Courses You Can Tutor"
+                      required={verticalOnlyUni}
+                      error={fieldErrors.universityCourses}
+                    >
+                      <CourseTagEditor
+                        entries={universityCourses}
+                        onChange={(next) => {
+                          setUniversityCourses(next);
+                          clearFieldError("universityCourses");
+                        }}
+                        placeholder="Type a course code or name, e.g. ECON1210"
+                      />
+                      <Hint>
+                        Course codes are searchable — students looking for ECON1210 will find you.
+                      </Hint>
+                    </Field>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Field label="Course-Specific Grades" error={fieldErrors.courseGrades}>
+                      <CourseGradeEditor
+                        rows={courseGrades}
+                        onChange={(next) => {
+                          setCourseGrades(next);
+                          clearFieldError("courseGrades");
+                        }}
+                      />
+                      <Hint>
+                        Optional — grades you received in the courses you intend to tutor.
+                      </Hint>
+                    </Field>
+                  </div>
+                </div>
+              ) : null}
+              {targetLevels.includes("Kindergarten") ? (
+                <div className="rounded-sm border border-border p-4">
+                  <Field
+                    label="Kindergarten Topics You Teach"
+                    required={verticalOnlyKind}
+                    error={fieldErrors.kindergartenTopics}
+                  >
+                    <Choices
+                      options={[...KINDERGARTEN_TOPICS]}
+                      values={kindergartenTopics}
+                      onToggle={(topic) => {
+                        setKindergartenTopics((current) =>
+                          current.includes(topic)
+                            ? current.filter((item) => item !== topic)
+                            : [...current, topic],
+                        );
+                        clearFieldError("kindergartenTopics");
+                      }}
+                      invalid={Boolean(fieldErrors.kindergartenTopics)}
+                    />
+                  </Field>
+                </div>
+              ) : null}
               <div className="grid gap-4 sm:grid-cols-2">
                 {professional ? (
                   <Field label="Teaching Qualifications" required error={fieldErrors.credentials}>
@@ -2540,7 +2753,14 @@ export function ApplicationForm() {
                     value={base.university}
                     onChange={(event) => setBaseField("university", event.target.value)}
                     placeholder="HKUST"
+                    list="university-suggestions"
                   />
+                  {/* Issue #190: suggestions + free text — any university works. */}
+                  <datalist id="university-suggestions">
+                    {UNIVERSITY_SUGGESTIONS.map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                  </datalist>
                 </Field>
                 <Field label="Degree / Programme Major" required error={fieldErrors.programme}>
                   <Input
@@ -2594,34 +2814,7 @@ export function ApplicationForm() {
                     </Field>
                   </>
                 ) : null}
-                {!professional ? (
-                  <Field
-                    label="Student ID Card"
-                    required
-                    error={fieldErrors.studentCard}
-                    hint="Upload a photo or scan of your student ID card showing your university and programme, so we can verify your enrollment. JPG, PNG, PDF, or DOC, up to 5 MB."
-                    className="sm:col-span-2"
-                  >
-                    <DocumentUpload
-                      file={base.studentCard}
-                      invalid={Boolean(fieldErrors.studentCard)}
-                      prompt="Drop your student ID card here or choose a file"
-                      onRemove={() => setBaseField("studentCard", null)}
-                      onSelect={(file) => {
-                        if (
-                          !ACCEPTED_FILE_TYPES.includes(file.type) ||
-                          file.size > MAX_FILE_BYTES
-                        ) {
-                          setError("Choose a supported student ID file no larger than 5 MB.");
-                          return;
-                        }
-                        setBaseField("studentCard", file);
-                      }}
-                    />
-                    <EvidenceNote className="mt-2" />
-                  </Field>
-                ) : null}
-                {!professional ? (
+                {!professional && !verticalOnly ? (
                   <div className="sm:col-span-2">
                     <Hint>
                       Parents and students actively seek alumni from their own secondary schools, or
@@ -2755,112 +2948,6 @@ export function ApplicationForm() {
                               />
                             </Field>
                           ) : null}
-                          <Field label="Academic transcript / supporting document">
-                            <Select
-                              value={
-                                qualification.transcriptStatus === "upload"
-                                  ? "File upload"
-                                  : qualification.transcriptStatus === "provide_later"
-                                    ? "Provide later"
-                                    : "N/A"
-                              }
-                              onValueChange={(choice) =>
-                                updateQualification(index, {
-                                  transcriptStatus:
-                                    choice === "File upload"
-                                      ? "upload"
-                                      : choice === "Provide later"
-                                        ? "provide_later"
-                                        : "not_applicable",
-                                  transcript:
-                                    choice === "File upload" ? qualification.transcript : null,
-                                })
-                              }
-                            >
-                              <SelectTrigger
-                                aria-label="Academic document option"
-                                className={controlClassName}
-                              >
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {["File upload", "N/A", "Provide later"].map((option) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            {qualification.transcriptStatus === "upload" ? (
-                              <div className="mt-3 grid gap-2">
-                                <DocumentUpload
-                                  file={qualification.transcript}
-                                  disabled={transcriptStatus === "reading"}
-                                  accept=".jpg,.jpeg,.png,image/jpeg,image/png"
-                                  prompt="Drop a JPG or PNG image here or choose one"
-                                  onRemove={() => updateQualification(index, { transcript: null })}
-                                  onSelect={(file) => {
-                                    if (!isTranscriptImage(file)) {
-                                      setError(
-                                        "PDFs and documents cannot be uploaded here. Use a JPG or PNG image of your transcript instead.",
-                                      );
-                                      return;
-                                    }
-                                    if (file.size > MAX_FILE_BYTES) {
-                                      setError("Transcript images must be no larger than 5 MB.");
-                                      return;
-                                    }
-                                    updateQualification(index, { transcript: file });
-                                  }}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  className="w-fit rounded-sm"
-                                  loading={transcriptStatus === "reading"}
-                                  disabled={transcriptStatus === "reading"}
-                                  onClick={() => {
-                                    if (!qualification.transcript) {
-                                      setError(
-                                        "Upload a JPG or PNG transcript before using AI auto-fill.",
-                                      );
-                                      return;
-                                    }
-                                    if (!isTranscriptImage(qualification.transcript)) {
-                                      setError(
-                                        "AI auto-fill supports JPG and PNG transcript images only.",
-                                      );
-                                      return;
-                                    }
-                                    void autoFillQualification(index, qualification.transcript);
-                                  }}
-                                >
-                                  <Sparkles /> Auto-fill with AI
-                                </Button>
-                                <Hint>
-                                  JPG and PNG transcripts can be read by AI. Review every populated
-                                  field before submitting.
-                                </Hint>
-                                {transcriptMessage ? (
-                                  <p
-                                    className={cn(
-                                      "text-xs font-medium",
-                                      transcriptStatus === "reading"
-                                        ? "animate-pulse text-[color:var(--muted-foreground)]"
-                                        : transcriptMessage.startsWith("Added")
-                                          ? "text-emerald-700"
-                                          : "text-destructive",
-                                    )}
-                                    role="status"
-                                    aria-live="polite"
-                                  >
-                                    {transcriptMessage}
-                                  </p>
-                                ) : null}
-                              </div>
-                            ) : null}
-                            <EvidenceNote />
-                          </Field>
                         </div>
                         <div className="mt-5 border-t border-border pt-5">
                           <h3 className="text-base font-bold text-[color:var(--ink)]">
@@ -3155,16 +3242,14 @@ export function ApplicationForm() {
               <Heading step={professional ? 5 : 5} title="Achievements and Experiences" />
               <Hint>
                 Achievements and experience are optional. Add only items you would like MatchMax to
-                consider. Items without uploaded evidence will not be shown on your public profile,
-                except claims that cannot be documented, such as private tutoring experience or
-                student feedback.
+                consider. You do not upload any evidence here — grade slips are added later from
+                your profile editor, where MatchMax staff review them.
               </Hint>
-              <EvidenceNote className="mt-2" />
               <div className="mt-5 grid gap-4">
                 {base.achievements.map((achievement, index) => (
                   <div
                     key={index}
-                    className="grid gap-3 rounded-sm border border-border p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(15rem,1fr)_auto]"
+                    className="grid gap-3 rounded-sm border border-border p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_auto]"
                   >
                     <Field label="Title" required error={fieldErrors[`achievement-title-${index}`]}>
                       <Input
@@ -3196,61 +3281,6 @@ export function ApplicationForm() {
                         )}
                       />
                     </Field>
-                    <Field label="Evidence" error={fieldErrors[`achievement-proof-${index}`]}>
-                      <Select
-                        value={
-                          achievement.proofStatus === "upload"
-                            ? "File upload"
-                            : achievement.proofStatus === "provide_later"
-                              ? "Provide later"
-                              : "N/A"
-                        }
-                        onValueChange={(choice) =>
-                          updateAchievement(index, {
-                            proofStatus:
-                              choice === "File upload"
-                                ? "upload"
-                                : choice === "Provide later"
-                                  ? "provide_later"
-                                  : "not_applicable",
-                            proof: choice === "File upload" ? achievement.proof : null,
-                          })
-                        }
-                      >
-                        <SelectTrigger
-                          aria-label="Achievement evidence option"
-                          className={controlClassName}
-                        >
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {["File upload", "N/A", "Provide later"].map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {achievement.proofStatus === "upload" ? (
-                        <div className="mt-2">
-                          <DocumentUpload
-                            file={achievement.proof}
-                            invalid={Boolean(fieldErrors[`achievement-proof-${index}`])}
-                            onRemove={() => updateAchievement(index, { proof: null })}
-                            onSelect={(file) => {
-                              if (
-                                !ACCEPTED_FILE_TYPES.includes(file.type) ||
-                                file.size > MAX_FILE_BYTES
-                              ) {
-                                setError("Choose a supported evidence file no larger than 5 MB.");
-                                return;
-                              }
-                              updateAchievement(index, { proof: file });
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                    </Field>
                     <Button
                       type="button"
                       size="icon"
@@ -3275,7 +3305,7 @@ export function ApplicationForm() {
                     onClick={() =>
                       setBaseField("achievements", [
                         ...base.achievements,
-                        { title: "", description: "", proof: null, proofStatus: "not_applicable" },
+                        { title: "", description: "" },
                       ])
                     }
                   >
@@ -3355,6 +3385,83 @@ export function ApplicationForm() {
                   </p>
                 </Field>
               </div>
+              <div className="mt-6 border-t border-border pt-5">
+                {/* Issue #199: SEN experience & qualifications. Categories use
+                    the shared HK-common vocabulary (src/features/tutors/sen.ts). */}
+                <label className="flex cursor-pointer items-start justify-between gap-3">
+                  <span>
+                    <span className="block text-sm font-semibold text-[color:var(--ink)]">
+                      {t("sen.join_toggle")}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      {t("sen.join_toggle_hint")}
+                    </span>
+                  </span>
+                  <Checkbox
+                    checked={base.senEnabled}
+                    onCheckedChange={(checked) => {
+                      setBaseField("senEnabled", checked === true);
+                      if (checked) clearFieldError("senCategories");
+                    }}
+                    aria-invalid={fieldErrors.senCategories ? true : undefined}
+                    className={fieldErrors.senCategories ? "border-destructive" : undefined}
+                  />
+                </label>
+
+                {base.senEnabled ? (
+                  <div className="mt-4 space-y-4">
+                    <div
+                      role="group"
+                      aria-label={t("sen.categories_aria")}
+                      className="space-y-1.5 rounded-sm border border-border p-3"
+                    >
+                      {SEN_CATEGORY_OPTIONS.map((category) => {
+                        const active = base.senCategories.includes(category);
+                        return (
+                          <label
+                            key={category}
+                            className="flex cursor-pointer items-center gap-3 rounded-sm px-2 py-1.5 text-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.04]"
+                          >
+                            <Checkbox
+                              checked={active}
+                              onCheckedChange={(checked) => {
+                                setBaseField(
+                                  "senCategories",
+                                  checked
+                                    ? [...base.senCategories, category]
+                                    : base.senCategories.filter((item) => item !== category),
+                                );
+                                if (checked) clearFieldError("senCategories");
+                              }}
+                              aria-invalid={fieldErrors.senCategories ? true : undefined}
+                            />
+                            <span className="font-medium">{senCategoryLabels[category]}</span>
+                          </label>
+                        );
+                      })}
+                      {fieldErrors.senCategories ? (
+                        <p className="text-xs font-medium text-destructive">
+                          {fieldErrors.senCategories}
+                        </p>
+                      ) : null}
+                    </div>
+                    <Field
+                      label={t("sen.experience_label")}
+                      optional
+                      hint={t("sen.experience_hint")}
+                    >
+                      <Textarea
+                        rows={4}
+                        maxLength={2000}
+                        value={base.senExperience}
+                        onChange={(event) => setBaseField("senExperience", event.target.value)}
+                        placeholder={t("sen.experience_placeholder")}
+                        className="w-full rounded-sm"
+                      />
+                    </Field>
+                  </div>
+                ) : null}
+              </div>
             </>
           ) : null}
 
@@ -3374,12 +3481,29 @@ export function ApplicationForm() {
               ) : null}
               {/* Issue #319: two base rates replace the single proposed rate.
                   Whole dollars only (step=1 blocks decimals at the input);
-                  which field is required follows the lesson format. */}
+                  which field is required follows the lesson format.
+                  Issue #113: the tutor picks the currency every rate is
+                  quoted in; labels + the ≈HK$ note follow it. */}
+              <Field label={t("join.rates.currency_label")}>
+                <select
+                  aria-label={t("join.rates.currency_label")}
+                  value={base.currency}
+                  onChange={(event) => setBaseField("currency", event.target.value)}
+                  className="h-10 w-full max-w-48 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-3 text-sm font-semibold text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                >
+                  {SUPPORTED_CURRENCIES.map((code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
+                </select>
+              </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
-                  label={t("join.rates.online")}
+                  label={t("join.rates.online", { currency: base.currency })}
                   required={base.format !== "Face to face"}
                   error={fieldErrors.onlineRate}
+                  hint={onlineRateApprox ? `≈ ${onlineRateApprox} / hr` : undefined}
                 >
                   <Input
                     type="number"
@@ -3393,9 +3517,10 @@ export function ApplicationForm() {
                   />
                 </Field>
                 <Field
-                  label={t("join.rates.in_person")}
+                  label={t("join.rates.in_person", { currency: base.currency })}
                   required={base.format !== "Online"}
                   error={fieldErrors.inpersonRate}
+                  hint={inpersonRateApprox ? `≈ ${inpersonRateApprox} / hr` : undefined}
                 >
                   <Input
                     type="number"
@@ -3491,11 +3616,11 @@ export function ApplicationForm() {
                           htmlFor={`rate-row-rate-${index}`}
                           className="text-xs font-semibold text-foreground"
                         >
-                          {t("join.rates.row_rate")}
+                          {t("join.rates.row_rate", { currency: base.currency })}
                         </Label>
                         <div className="relative">
                           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
-                            HK$
+                            {base.currency}
                           </span>
                           <Input
                             id={`rate-row-rate-${index}`}
@@ -3667,9 +3792,24 @@ export function ApplicationForm() {
                           Required
                         </span>
                       ) : null}
+                      {/* Issue #309: verification scope lines — part of the
+                          tutor terms consent, in both locales. */}
+                      <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-relaxed">
+                        {([1, 2, 3, 4] as const).map((line) => (
+                          <li key={line}>{t(`join.terms_verification_${line}`)}</li>
+                        ))}
+                      </ul>
                     </span>
                   </label>
                 </div>
+                {/* Issue #214: the terms gate — records which ToS version the
+                    applicant accepted (server-side) and links the matching,
+                    verification and referral sections. */}
+                <TermsGateCheckbox
+                  checked={base.termsGate}
+                  invalid={Boolean(fieldErrors.termsGate)}
+                  onCheckedChange={(checked) => setBaseField("termsGate", checked)}
+                />
                 <div className="grid gap-1.5">
                   <label className="flex gap-3 text-sm text-muted-foreground">
                     <Checkbox

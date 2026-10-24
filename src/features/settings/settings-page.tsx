@@ -10,6 +10,7 @@ import {
   Database,
   Gift,
   GraduationCap,
+  Home,
   KeyRound,
   LogOut,
   Settings2,
@@ -27,6 +28,10 @@ import { SuggestedActionsSection } from "@/features/dashboard/action-cards";
 import { AccountSection } from "@/features/settings/sections/account-section";
 import { AvailabilitySection } from "@/features/settings/sections/availability-section";
 import { AvailabilityGridEditor } from "@/features/settings/sections/availability-grid-editor";
+import { CalendarWindowsEditor } from "@/features/cases/tutor/calendar-windows-editor";
+import { TutorCasesSection } from "@/features/cases/tutor/tutor-cases-section";
+import { TutorHomeSection } from "@/features/cases/tutor/tutor-home";
+import { TutorWeekView } from "@/features/cases/tutor/week-view";
 import { DangerZoneSection } from "@/features/settings/sections/danger-zone-section";
 import { GeneralSection } from "@/features/settings/sections/general-section";
 import { MyTutorProfileSection } from "@/features/settings/sections/my-tutor-profile-section";
@@ -47,10 +52,12 @@ import { TutorCoachTour } from "@/features/tours/TutorCoachTour";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof Settings2 }> = {
+  home: { labelKey: "settings.nav.home", icon: Home },
   general: { labelKey: "settings.nav.general", icon: Settings2 },
   profile: { labelKey: "settings.nav.profile", icon: CircleUserRound },
   "my-tutor": { labelKey: "settings.nav.my_tutor", icon: GraduationCap },
   availability: { labelKey: "settings.nav.availability", icon: CalendarClock },
+  lessons: { labelKey: "settings.nav.lessons", icon: CalendarClock },
   materials: { labelKey: "settings.nav.materials", icon: BookOpen },
   account: { labelKey: "settings.nav.account", icon: UserCog },
   notifications: { labelKey: "settings.nav.notifications", icon: Bell },
@@ -69,15 +76,40 @@ function AvailabilityTab(_props: SettingsSectionProps) {
       {/* AvailabilitySection takes no props (it reads auth + queries itself). */}
       <AvailabilitySection />
       <AvailabilityGridEditor />
+      {/* #204: bookable weekly windows + blackout dates (separate from the display grid above). */}
+      <CalendarWindowsEditor />
+    </div>
+  );
+}
+
+/**
+ * Issue #202: the Tutor home tab — today's next lesson, pending confirms,
+ * admin-fee status and the notes summary. Tutor-only, default landing tab.
+ */
+function HomeTab(_props: SettingsSectionProps) {
+  return <TutorHomeSection />;
+}
+
+/**
+ * #201/#204: the Lessons tab — SoR cases with lesson actions, the 14-day week
+ * view and the Tutor Plus banner. Tutor-only (same gate as availability).
+ */
+function LessonsTab(_props: SettingsSectionProps) {
+  return (
+    <div className="space-y-6">
+      <TutorCasesSection />
+      <TutorWeekView />
     </div>
   );
 }
 
 const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSectionProps>> = {
+  home: HomeTab,
   general: GeneralSection,
   profile: ProfileSection,
   "my-tutor": MyTutorProfileSection,
   availability: AvailabilityTab,
+  lessons: LessonsTab,
   materials: StudyMaterialsSection,
   account: AccountSection,
   notifications: NotificationsSection,
@@ -93,7 +125,6 @@ export function SettingsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const activeCategory = categoryFromHash(location.hash);
   const isInternal = hasAnyRole(["admin", "staff", "super_admin"]);
 
   const userId = user?.id;
@@ -115,6 +146,14 @@ export function SettingsPage() {
     enabled: Boolean(userId),
   });
   const hasLinkedTutor = Boolean(tutorLinkQuery.data);
+
+  // #202: tutors land on their Home tab when the URL has no explicit hash;
+  // everyone else (and every deep link) keeps the hashed category.
+  const activeCategory = location.hash
+    ? categoryFromHash(location.hash)
+    : hasLinkedTutor
+      ? ("home" as SettingsCategory)
+      : categoryFromHash("");
 
   // Issue #131: the Study Materials upload tab is Verified-only
   // (verification_tier = 'tier_2_verified' on the linked tutor card).
@@ -144,10 +183,18 @@ export function SettingsPage() {
     const all = Object.keys(CATEGORY_META) as SettingsCategory[];
     return all.filter((category) => {
       if (category === "account" && isInternal) return false;
+      // #202: the Tutor home tab is tutor-only (same gate as the other
+      // tutor tabs — the account must be linked to a tutor card).
+      if (category === "home") return hasLinkedTutor;
       // Availability, referrals and my-tutor are tutor-only: all need the
       // signed-in account to be linked to a tutor card (tutors.user_id,
       // set by admins in the editor's Assigned Account section).
-      if (category === "availability" || category === "referrals" || category === "my-tutor") {
+      if (
+        category === "availability" ||
+        category === "referrals" ||
+        category === "my-tutor" ||
+        category === "lessons"
+      ) {
         return hasLinkedTutor;
       }
       // Materials upload is Verified-only (issue #131's access moat).

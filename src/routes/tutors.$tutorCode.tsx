@@ -4,14 +4,19 @@ import { useMemo, useEffect, useState } from "react";
 import {
   MapPin,
   MessageCircle,
+  Star,
   ArrowLeft,
   Award,
+  BadgeCheck,
   BookOpen,
   CalendarDays,
   Clock,
   Coins,
+  Flame,
   Globe,
   GraduationCap,
+  Heart,
+  Info,
   Languages,
   Layers,
   LineChart,
@@ -28,9 +33,16 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { ReviewSummaryBlock } from "@/features/tutors/review-summary-block";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
+import {
+  trackTutorEvent,
+  useTutorEngagementSummaries,
+  useTrackProfileView,
+} from "@/features/tracking/engagement-client";
+import { selectProfileSocialProof } from "@/features/tutors/engagement";
 import {
   fetchPublishedTutors,
   fetchTutorByCode,
@@ -40,7 +52,20 @@ import {
   getTutorStationsText,
   type Tutor,
 } from "@/features/tutors/queries";
-import { getSystem, type ExamResult } from "@/features/tutors/examSystems";
+import { type ExamResult } from "@/features/tutors/examSystems";
+import {
+  buildCoreAcademicBreakdown,
+  formatExamSystemLabel,
+  type CoreAcademicGroup,
+} from "@/features/tutors/core-academic-breakdown";
+import { getActiveCustomHeadline } from "@/features/tutors/custom-headline";
+import { useDisplayCurrency } from "@/features/currency/display-currency-context";
+import {
+  convertedTextFromHkd,
+  hasActiveConversion,
+  nativeToDisplayText,
+} from "@/features/currency/convert";
+import { DEFAULT_CURRENCY, formatMoney, toCurrencyCode } from "@/lib/money";
 import {
   formatAvailabilityDate,
   getTutorAvailabilityReadiness,
@@ -50,11 +75,24 @@ import {
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
+import { ExperienceLine } from "@/features/tutors/experience-badge";
+import {
+  normalizeUniversityCourses,
+  normalizeUniversityGpa,
+  normalizeUniversityYear,
+} from "@/features/tutors/verticals";
+import { kindergartenTopicLabel, yearOfStudyLabel } from "@/features/tutors/verticals-labels";
+import {
+  courseGradeRows,
+  formatCourseGradeLine,
+  kindergartenTopicsInSubjects,
+} from "@/features/tutors/verticals-form";
 import { TrophyCabinet } from "@/features/tutors/trophy-cabinet";
 import { AvailabilityGrid } from "@/features/tutors/availability-grid";
 import { TutorReviews } from "@/features/tutors/tutor-reviews";
 import { fetchMaterialsForTutor } from "@/features/materials/queries";
 import { TutorMaterialsSection } from "@/features/materials/tutor-materials-section";
+import { TutorAuthoredNotes } from "@/features/materials/home-notes-row";
 import { InlineReportLink, ReportMenuButton } from "@/features/reports/report-button";
 import {
   countAvailableCells,
@@ -143,27 +181,6 @@ function LessonDetailRow({
   );
 }
 
-function formatExamSystemLabel(system: string) {
-  const normalized = system.trim().toLowerCase();
-
-  if (normalized === "ib" || normalized === "ibdp") return "IBDP";
-  if (normalized === "dse" || normalized === "hkdse") return "HKDSE";
-  if (normalized === "alevel" || normalized === "a-level" || normalized === "gce a-level")
-    return "GCE A-Level";
-  if (normalized === "igcse" || normalized === "gcse") return "IGCSE / GCSE";
-  if (normalized === "ap") return "AP";
-  if (normalized === "sat") return "SAT";
-  if (normalized === "ielts") return "IELTS";
-  if (normalized === "isat") return "ISAT";
-  if (normalized === "ucat") return "UCAT";
-  if (normalized === "primary") return "Primary School";
-  if (normalized === "junior secondary") return "Junior Secondary";
-  if (normalized === "admissions") return "University Admissions & Test Prep";
-
-  const systemName = system.trim();
-  return (getSystem(normalized)?.label ?? systemName) || "Exam system";
-}
-
 function getExamSystemSubjectSummary(result: ExamResult) {
   const systemLabel = formatExamSystemLabel(result.system);
   const subjects = (result.subjects ?? []).map((entry) => entry.subject.trim()).filter(Boolean);
@@ -171,26 +188,40 @@ function getExamSystemSubjectSummary(result: ExamResult) {
   return { systemLabel, subjects };
 }
 
-function AcademicQualification({ result }: { result: ExamResult }) {
-  const label = formatExamSystemLabel(result.system);
-  const normalizedSystem = result.system.trim().toLowerCase();
+/** Issue #411: shared per-curriculum groups (totals as headers). */
+const academicBreakdown = (t: Tutor) =>
+  buildCoreAcademicBreakdown(t.exam_results ?? [], t.academic_headline);
+
+function CoreAcademicGroupBlock({
+  group,
+  isFirst,
+}: {
+  group: CoreAcademicGroup;
+  isFirst: boolean;
+}) {
+  const normalizedSystem = String(group.curriculum).trim().toLowerCase();
   const gradeNoun =
     normalizedSystem === "ielts"
       ? "Band"
       : normalizedSystem === "isat" || normalizedSystem === "ucat"
         ? "Score"
         : "Grade";
-  const subjects = result.subjects.filter((entry) => entry.subject.trim());
+  const subjects = group.grades.filter((entry) => entry.subject.trim());
 
-  if (subjects.length === 0) return null;
+  if (subjects.length === 0 && !group.total) return null;
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-[color:var(--ink)]">{label}</p>
-      <ul className="space-y-1.5">
-        {subjects.map((entry, subjectIndex) => {
-          const papers = (entry.papers ?? []).filter((p) => p.label.trim() && p.score.trim());
-          return (
+    <div
+      className={isFirst ? "space-y-2" : "mt-4 space-y-2 border-t border-dashed border-border pt-4"}
+    >
+      {/* Issue #411: the curriculum's total score IS the group header
+          ("IBDP: 41/45"); partial data shows the curriculum name only. */}
+      <p className="text-sm font-bold text-[color:var(--ink)]">
+        {group.total ? `${group.curriculum}: ${group.total}` : group.curriculum}
+      </p>
+      {subjects.length > 0 ? (
+        <ul className="space-y-1.5">
+          {subjects.map((entry, subjectIndex) => (
             <li
               key={`${entry.subject}-${subjectIndex}`}
               className="border-l-2 border-[color:var(--brand-link)] pl-3"
@@ -199,17 +230,13 @@ function AcademicQualification({ result }: { result: ExamResult }) {
                 <span className="text-sm font-bold text-[color:var(--ink)]">{entry.subject}</span>
                 {entry.grade.trim() ? (
                   <span className="text-sm font-bold text-[color:var(--brand-link)]">
-                    – {gradeNoun}{" "}
-                    {entry.grade
-                      // Issue #206: hide the intake-era "(legacy)" suffix.
-                      .replace(/\s*\(legacy\)\s*$/i, "")
-                      .replace(/^(grade|band)\s+/i, "")}
+                    – {gradeNoun} {entry.grade}
                   </span>
                 ) : null}
               </div>
-              {papers.length > 0 ? (
+              {entry.papers && entry.papers.length > 0 ? (
                 <p className="mt-0.5 text-xs font-semibold text-[color:var(--brand-link)]">
-                  {papers.map((paper, paperIndex) => (
+                  {entry.papers.map((paper, paperIndex) => (
                     <span key={`${paper.label}-${paperIndex}`}>
                       {paperIndex > 0 ? <strong> · </strong> : null}
                       {paper.label}: {paper.score}
@@ -218,21 +245,32 @@ function AcademicQualification({ result }: { result: ExamResult }) {
                 </p>
               ) : null}
             </li>
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }
 
-function RateValue({ rate }: { rate: number }) {
+function RateValue({ rate, nativeCurrency }: { rate: number; nativeCurrency: string | null }) {
   const { t } = useTranslation();
+  // Issue #114: rates are stored in the tutor's native currency; when the
+  // visitor picked a display currency the row shows the converted figure with
+  // the stored one beside it. Without a conversion (display = HKD or no
+  // rates) the row renders exactly as before.
+  const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
+  const native = toCurrencyCode(nativeCurrency);
+  const converted = nativeToDisplayText(rate, native, displayCurrency, fxRates);
+  const nativeText = native === DEFAULT_CURRENCY ? `$${rate}` : formatMoney(rate, native);
   return (
     <span className="shrink-0 text-sm font-bold text-[color:var(--ink)]">
-      ${rate}
+      {converted ?? nativeText}
       <span className="ml-0.5 text-xs font-medium text-muted-foreground">
         {t("featured.per_hour")}
       </span>
+      {converted ? (
+        <span className="ml-1.5 text-xs font-medium text-muted-foreground">({nativeText})</span>
+      ) : null}
     </span>
   );
 }
@@ -397,6 +435,7 @@ function TutorDetail() {
   const { tutor } = Route.useLoaderData();
   const navigate = useNavigate();
   const { t: translate, i18n } = useTranslation();
+  const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
   const { user } = useAuth();
 
   const { data: whatsappNumber } = useQuery({
@@ -460,6 +499,18 @@ function TutorDetail() {
       .map((entry) => entry.tutor);
   }, [allPublished, t]);
 
+  // Issue #102: one profile_view per mount, plus batched engagement summaries
+  // for this tutor's social-proof block and the suggested-tutor cards below.
+  useTrackProfileView(t.id);
+  const engagementTutorIds = useMemo(
+    () => [t.id, ...suggestedTutors.map((candidate) => candidate.id)],
+    [t.id, suggestedTutors],
+  );
+  const { data: engagementSummaries } = useTutorEngagementSummaries(engagementTutorIds);
+  const profileEngagement = engagementSummaries?.get(t.id) ?? null;
+  // Renders nothing below both thresholds — never a "0 inquiries" line.
+  const profileSocialProof = profileEngagement ? selectProfileSocialProof(profileEngagement) : null;
+
   const waDigits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
   const inquiry = getTutorInquiryAction(t, whatsappNumber, i18n.language);
   const waUrl = waDigits ? inquiry.href : "";
@@ -469,6 +520,12 @@ function TutorDetail() {
   // Issue #116: self-serve weekly grid has at least one non-unavailable cell.
   const hasAvailabilityGrid = countAvailableCells(parseAvailabilityGrid(t.availability_grid)) > 0;
   const genderLabel = getTutorGenderLabel(t.gender);
+  // Issue #411: the active dual-language custom headline is the prominent
+  // main line (custom_headline_en/zh with strict fallback to academic_headline).
+  const activeHeadline = useMemo(
+    () => getActiveCustomHeadline(t, i18n.language),
+    [t, i18n.language],
+  );
   // Issues #77/#52: tutor status badge key (null when unset/unknown).
   const statusKey = getTutorStatusLabelKey(t.tutor_status);
   const subjectText = (t.subjects ?? []).filter(Boolean).slice(0, 3).join(", ");
@@ -485,9 +542,24 @@ function TutorDetail() {
       subjects: subjects.length > 0 ? subjects : [systemLabel],
     };
   });
-  const examResults = (t.exam_results ?? []).filter((result) =>
-    result.subjects.some((entry) => entry.subject.trim()),
+  // Issue #190 verticals: University block shows when any university field is
+  // set; Kindergarten block when the level is opted into OR K topics sit in
+  // subjects. Labels localize through verticals-labels.
+  const universityYear = normalizeUniversityYear(t.university_year_of_study);
+  // Canonical normalizer: tolerant of string numerics (BE review soft).
+  const universityGpa = normalizeUniversityGpa(t.university_gpa);
+  const universityCourses = normalizeUniversityCourses(t.university_courses);
+  const courseGradeLines = courseGradeRows(t.course_specific_grades).filter(
+    (row) => row.course.trim() && row.grade.trim(),
   );
+  const hasUniversityBlock =
+    Boolean(universityYear) ||
+    universityGpa !== null ||
+    universityCourses.length > 0 ||
+    courseGradeLines.length > 0;
+  const kindergartenTopics = kindergartenTopicsInSubjects(t.subjects ?? []);
+  const hasKindergartenBlock =
+    (t.target_students ?? []).includes("Kindergarten") || kindergartenTopics.length > 0;
   const profileBio = t.qualifications_summary?.trim() ?? "";
   const selfIntroduction = t.self_introduction?.trim() ?? "";
   const lessonLocation = (() => {
@@ -517,7 +589,9 @@ function TutorDetail() {
     setIsSharing(true);
     void shareOrCopy(
       {
-        title: `Tutor ${t.tutor_code} | MatchMax`,
+        // Issue #417: share title is the tutor's display name; the URL is the
+        // canonical profile URL of the page the visitor is on.
+        title: t.display_name,
         // Issue #125: flagged pricing strips the rate — omit it from shares.
         // Issue #319: matches the card — "$X up/hr" (base-rate floor).
         text:
@@ -526,7 +600,8 @@ function TutorDetail() {
             : `Check out tutor ${t.tutor_code} on MatchMax.`,
         url: window.location.href,
       },
-      translate("profile.link_copied"),
+      translate("share.copied"),
+      translate("share.share_failed"),
     ).finally(() => setIsSharing(false));
   };
   const tutorStructuredData = {
@@ -601,16 +676,33 @@ function TutorDetail() {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl font-bold text-[color:var(--ink)] sm:text-2xl">
-                    {t.tutor_code}
-                    {genderLabel ? (
-                      <>
-                        <strong> • </strong>
-                        {genderLabel}
-                      </>
-                    ) : null}
-                  </h1>
+                {/* Issue #411 header restructure — (1) code • gender + BLUE
+                    TICK as the small secondary line, (2) active custom
+                    headline as the prominent main bold line, (3) university,
+                    (4) secondary school. */}
+                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                  <span className="font-semibold">{t.tutor_code}</span>
+                  {genderLabel ? (
+                    <>
+                      <span aria-hidden="true">•</span>
+                      <span>{genderLabel}</span>
+                    </>
+                  ) : null}
+                  {/* Issue #411: minimalist BLUE TICK (MatchMax azure),
+                      same #309 approved-grade gate as the card. */}
+                  {(t.approved_grade_labels?.length ?? 0) > 0 ? (
+                    <span
+                      className="inline-flex items-center"
+                      title={translate("tutor_card.verified_disclaimer")}
+                    >
+                      <BadgeCheck
+                        className="h-4 w-4 fill-[#1d9bf0] text-white dark:text-[#0b2230]"
+                        strokeWidth={1.8}
+                        aria-hidden="true"
+                      />
+                      <span className="sr-only">{translate("tutor_card.verified_badge")}</span>
+                    </span>
+                  ) : null}
                   {/* Issues #77/#52: tutor status badge on the profile header. */}
                   {statusKey ? (
                     <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)]">
@@ -622,47 +714,46 @@ function TutorDetail() {
                     </span>
                   ) : null}
                 </div>
-                {t.academic_headline || t.undergrad_university || t.secondary_school ? (
-                  <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
-                    {t.academic_headline ? (
-                      <p className="break-words">{t.academic_headline}</p>
-                    ) : null}
-                    {t.has_postgrad && (t.postgrad_university || t.postgrad_degree) ? (
-                      <p className="flex items-start gap-1.5">
-                        <GraduationCap
-                          className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
-                          aria-hidden="true"
-                        />
-                        <span className="break-words">
-                          {translate("profile.education_postgraduate")}:{" "}
-                          {formatInstitutionDegree(t.postgrad_university, t.postgrad_degree)}
-                        </span>
-                      </p>
-                    ) : null}
-                    {t.undergrad_university || t.undergrad_degree ? (
-                      <p className="flex items-start gap-1.5">
-                        <GraduationCap
-                          className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
-                          aria-hidden="true"
-                        />
-                        <span className="break-words">
-                          {translate("profile.education_undergraduate")}:{" "}
-                          {formatInstitutionDegree(t.undergrad_university, t.undergrad_degree)}
-                        </span>
-                      </p>
-                    ) : null}
-                    {t.secondary_school ? (
-                      <p className="flex items-start gap-1.5">
-                        <School
-                          className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
-                          aria-hidden="true"
-                        />
-                        <span className="break-words">
-                          {translate("profile.education_secondary")}: {t.secondary_school}
-                        </span>
-                      </p>
-                    ) : null}
-                  </div>
+                <h1 className="mt-1 break-words text-xl font-bold leading-tight text-[color:var(--ink)] sm:text-2xl">
+                  {activeHeadline ?? t.tutor_code}
+                </h1>
+                {/* Issue #387: verified lessons · hours · tenure, verified
+                    sessions only; hides completely at zero. */}
+                <ExperienceLine tutorId={t.id} className="mt-1" />
+                {t.has_postgrad && (t.postgrad_university || t.postgrad_degree) ? (
+                  <p className="mt-2 flex items-start gap-1.5 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
+                    <GraduationCap
+                      className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                      aria-hidden="true"
+                    />
+                    <span className="break-words">
+                      {translate("profile.education_postgraduate")}:{" "}
+                      {formatInstitutionDegree(t.postgrad_university, t.postgrad_degree)}
+                    </span>
+                  </p>
+                ) : null}
+                {t.undergrad_university || t.undergrad_degree ? (
+                  <p className="mt-1 flex items-start gap-1.5 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
+                    <GraduationCap
+                      className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                      aria-hidden="true"
+                    />
+                    <span className="break-words">
+                      {translate("profile.education_undergraduate")}:{" "}
+                      {formatInstitutionDegree(t.undergrad_university, t.undergrad_degree)}
+                    </span>
+                  </p>
+                ) : null}
+                {t.secondary_school ? (
+                  <p className="mt-1 flex items-start gap-1.5 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
+                    <School
+                      className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                      aria-hidden="true"
+                    />
+                    <span className="break-words">
+                      {translate("profile.education_secondary")}: {t.secondary_school}
+                    </span>
+                  </p>
                 ) : null}
               </div>
               <div className="w-full sm:w-auto sm:text-right">
@@ -672,7 +763,8 @@ function TutorDetail() {
                       "$X up/hr" figure — the base-rate floor, never a range. */}
                   {price.baseRate > 0 ? (
                     <p className="text-3xl font-bold text-[color:var(--ink)]">
-                      ${price.baseRate}
+                      {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ??
+                        `$${price.baseRate}`}
                       <span className="ml-1 text-sm font-semibold text-muted-foreground">
                         {translate("tutor_card.price_up")}
                         {translate("featured.per_hour")}
@@ -707,7 +799,8 @@ function TutorDetail() {
                     variant="ghost"
                     size="icon"
                     className="h-9 w-9 shrink-0"
-                    aria-label="Share this tutor profile"
+                    aria-label={translate("share.share_tutor")}
+                    title={translate("share.share_tutor")}
                     disabled={isSharing}
                     onClick={() => void handleShare()}
                   >
@@ -745,6 +838,36 @@ function TutorDetail() {
                     </p>
                   </div>
                 ) : null}
+                {/* Issue #102: social-proof lines, each only above its
+                    threshold (selectProfileSocialProof); nothing renders for
+                    quiet tutors. No response-time line — no real data (#102). */}
+                {profileSocialProof &&
+                (profileSocialProof.showInquiries || profileSocialProof.showSaves) ? (
+                  <div className="mt-3 space-y-1">
+                    {profileSocialProof.showInquiries ? (
+                      <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
+                        <Flame
+                          className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
+                          aria-hidden="true"
+                        />
+                        {translate("engagement.profile.inquiries_7d", {
+                          count: profileEngagement?.inquiries_7d ?? 0,
+                        })}
+                      </p>
+                    ) : null}
+                    {profileSocialProof.showSaves ? (
+                      <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
+                        <Heart
+                          className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
+                          aria-hidden="true"
+                        />
+                        {translate("engagement.profile.saves", {
+                          count: profileEngagement?.saves_total ?? 0,
+                        })}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
                 {inquiry.kind === "status" ? (
                   <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
                     <Lock className="h-3.5 w-3.5" aria-hidden="true" />
@@ -757,7 +880,15 @@ function TutorDetail() {
                     color="blue"
                     className="mt-3 w-full rounded-sm font-bold sm:w-auto"
                   >
-                    <a href={waUrl} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={waUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClickCapture={() => {
+                        // Issue #102: fire-and-forget; never blocks the CTA.
+                        void trackTutorEvent(t.id, "inquiry_click");
+                      }}
+                    >
                       <MessageCircle className="mr-2 h-4 w-4" /> {inquiry.label}
                     </a>
                   </Button>
@@ -781,11 +912,123 @@ function TutorDetail() {
         <section className="py-8 sm:py-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div>
-              {examResults.length > 0 ? (
-                <ProfileSection icon={LineChart} title={translate("profile.section_academic")}>
-                  <div className="space-y-4">
-                    {examResults.map((result, index) => (
-                      <AcademicQualification key={`${result.system}-${index}`} result={result} />
+              {/* Issue #394 (TDO liability): non-Gold-Verified profiles must
+                  proactively flag their scores as self-reported — never render a
+                  generic "Verified" checkmark. Gate matches the card badge
+                  (public-tutor-card: badge only for staff-approved grades) so a
+                  tutor never shows a Verified card badge alongside a
+                  Self-Reported pill here; the tier check stays belt-and-braces. */}
+              {(t.approved_grade_labels?.length ?? 0) === 0 &&
+              t.verification_tier !== "tier_2_verified" ? (
+                <p className="mb-4 inline-flex w-full items-start gap-2 rounded-md border border-border bg-muted px-3 py-2 text-xs leading-snug text-muted-foreground sm:w-auto sm:max-w-xl">
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span>
+                    <span className="font-bold">{translate("profile.self_reported")}:</span>{" "}
+                    {translate("profile.self_reported_note")}
+                  </span>
+                </p>
+              ) : null}
+              {(() => {
+                // Issue #411: Core Academic Breakdown — per-curriculum groups
+                // with the total as the header and the existing vertical-bar
+                // grade rows underneath; hidden when there are no scores at
+                // all (Examiner / pro tutors).
+                const breakdown = academicBreakdown(t);
+                if (breakdown.length === 0) return null;
+                return (
+                  <ProfileSection icon={LineChart} title={translate("profile.section_academic")}>
+                    <div className="space-y-4">
+                      {breakdown.map((group, index) => (
+                        <CoreAcademicGroupBlock
+                          key={`${group.curriculum}-${index}`}
+                          group={group}
+                          isFirst={index === 0}
+                        />
+                      ))}
+                    </div>
+                  </ProfileSection>
+                );
+              })()}
+
+              {/* Issue #190: University vertical block — extends the existing
+                  education lines (university + degree stay in the header);
+                  adds year of study, GPA, courses taught and course grades. */}
+              {hasUniversityBlock ? (
+                <ProfileSection
+                  icon={GraduationCap}
+                  title={translate("verticals.profile_university")}
+                >
+                  <div className="space-y-3 text-sm">
+                    {universityYear || universityGpa !== null ? (
+                      <div className="flex flex-wrap gap-x-6 gap-y-1">
+                        {universityYear ? (
+                          <p className="leading-relaxed">
+                            <span className="font-bold text-[color:var(--ink)]">
+                              {translate("verticals.profile_year_of_study")}:
+                            </span>{" "}
+                            <span className="text-muted-foreground">
+                              {yearOfStudyLabel(universityYear)}
+                            </span>
+                          </p>
+                        ) : null}
+                        {universityGpa !== null ? (
+                          <p className="leading-relaxed">
+                            <span className="font-bold text-[color:var(--ink)]">
+                              {translate("verticals.profile_gpa")}
+                            </span>{" "}
+                            <span className="text-muted-foreground">{universityGpa}</span>
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {universityCourses.length > 0 ? (
+                      <div className="space-y-1.5">
+                        <p className="font-bold text-[color:var(--ink)]">
+                          {translate("verticals.profile_courses")}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {universityCourses.map((course) => (
+                            <span
+                              key={course}
+                              className="inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)]"
+                            >
+                              {course}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                    {courseGradeLines.length > 0 ? (
+                      <div className="space-y-1.5">
+                        <p className="font-bold text-[color:var(--ink)]">
+                          {translate("verticals.profile_course_grades")}
+                        </p>
+                        <ul className="space-y-1">
+                          {courseGradeLines.map((row) => (
+                            <li key={row.course} className="leading-relaxed text-muted-foreground">
+                              {formatCourseGradeLine(row)}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </div>
+                </ProfileSection>
+              ) : null}
+
+              {/* Issue #190: Kindergarten block — translated topic tags from
+                  subjects (gated on the level opt-in OR topics present; no
+                  topics → no chips to list, so nothing renders). */}
+              {hasKindergartenBlock && kindergartenTopics.length > 0 ? (
+                <ProfileSection icon={School} title={translate("verticals.profile_kindergarten")}>
+                  <div className="flex flex-wrap gap-1.5">
+                    {kindergartenTopics.map((topic) => (
+                      <span
+                        key={topic}
+                        className="inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)]"
+                      >
+                        {kindergartenTopicLabel(topic)}
+                      </span>
                     ))}
                   </div>
                 </ProfileSection>
@@ -822,6 +1065,11 @@ function TutorDetail() {
                   </div>
                 </ProfileSection>
               ) : null}
+
+              {/* Issue #312: the tutor's public notes with delivered-order
+                  bought counts; hidden when the tutor has none. Sits under
+                  the bio, above the marketplace section (#176). */}
+              <TutorAuthoredNotes tutorCode={t.tutor_code} />
 
               {/* Issue #97: Trophy Cabinet — optional award photos; hidden
                   entirely when the tutor uploaded none. */}
@@ -885,7 +1133,7 @@ function TutorDetail() {
                         <span className="text-sm font-semibold text-[color:var(--ink)]">
                           {translate("profile.rates_online")}
                         </span>
-                        <RateValue rate={t.online_rate} />
+                        <RateValue rate={t.online_rate} nativeCurrency={t.currency} />
                       </li>
                     ) : null}
                     {t.inperson_rate !== null ? (
@@ -894,7 +1142,7 @@ function TutorDetail() {
                           <span className="text-sm font-semibold text-[color:var(--ink)]">
                             {translate("profile.rates_inperson")}
                           </span>
-                          <RateValue rate={t.inperson_rate} />
+                          <RateValue rate={t.inperson_rate} nativeCurrency={t.currency} />
                         </div>
                         {t.travel_note ? (
                           <p className="mt-1 text-xs text-muted-foreground">{t.travel_note}</p>
@@ -909,10 +1157,17 @@ function TutorDetail() {
                         <span className="text-sm font-semibold text-[color:var(--ink)]">
                           {row.label}
                         </span>
-                        <RateValue rate={row.rate} />
+                        <RateValue rate={row.rate} nativeCurrency={t.currency} />
                       </li>
                     ))}
                   </ul>
+                  {hasActiveConversion(displayCurrency, fxRates) ? (
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      {translate("currency.profile_disclaimer", {
+                        currency: displayCurrency,
+                      })}
+                    </p>
+                  ) : null}
                   {t.rate_note ? (
                     <p className="mt-3 text-xs leading-relaxed text-muted-foreground sm:text-sm">
                       {t.rate_note}
@@ -935,6 +1190,12 @@ function TutorDetail() {
                   <TutorReviews reviews={reviews} />
                 </ProfileSection>
               ) : null}
+
+              {/* #205 + #287: in-platform case reviews (avg, count, latest 5);
+                  "New tutor" when none. */}
+              <ProfileSection icon={Star} title={translate("sor.case_reviews_title")}>
+                <ReviewSummaryBlock tutorId={t.id} />
+              </ProfileSection>
 
               {/* Issues #131/#134: study materials marketplace listings;
                   hidden entirely when the tutor has none. */}
@@ -1002,6 +1263,7 @@ function TutorDetail() {
                     <PublicTutorCard
                       key={candidate.id}
                       tutor={candidate}
+                      engagement={engagementSummaries?.get(candidate.id) ?? null}
                       priceSuffix={translate("featured.per_hour")}
                       onOpen={(code) =>
                         void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })

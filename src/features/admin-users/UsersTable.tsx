@@ -1,5 +1,16 @@
 import { useState } from "react";
-import { MoreHorizontal, Shield, Trash2, Copy, Check, User, Calendar } from "lucide-react";
+import {
+  MoreHorizontal,
+  Shield,
+  ShieldOff,
+  Ban,
+  ShieldCheck,
+  Trash2,
+  Copy,
+  Check,
+  User,
+  Calendar,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +32,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ROLE_DISPLAY_NAMES, ROLE_BADGE_STYLES } from "@/features/auth/roleLabel";
+import {
+  accountStatusBadgeClass,
+  accountStatusLabel,
+  type StatusAction,
+} from "./account-status.shared";
 import type { UserRow } from "./UserStatsOverview";
 
 interface UsersTableProps {
@@ -28,6 +44,10 @@ interface UsersTableProps {
   isLoading: boolean;
   onManageRoles: (user: UserRow) => void;
   onDeleteUser: (user: UserRow) => void;
+  /** Issue #308: row-level Suspend / Ban / Restore controls. */
+  onStatusAction: (user: UserRow, action: StatusAction) => void;
+  /** Only admins (and super admins) may ban or restore. */
+  canBan: boolean;
 }
 
 const AVATAR_COLORS = [
@@ -47,7 +67,14 @@ function getAvatarColor(id: string) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-export function UsersTable({ users, isLoading, onManageRoles, onDeleteUser }: UsersTableProps) {
+export function UsersTable({
+  users,
+  isLoading,
+  onManageRoles,
+  onDeleteUser,
+  onStatusAction,
+  canBan,
+}: UsersTableProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopyId = (id: string) => {
@@ -63,16 +90,17 @@ export function UsersTable({ users, isLoading, onManageRoles, onDeleteUser }: Us
         <tr>
           <ConsoleTh>User</ConsoleTh>
           <ConsoleTh>User ID</ConsoleTh>
+          <ConsoleTh>Status</ConsoleTh>
           <ConsoleTh>Granted Roles</ConsoleTh>
           <ConsoleTh align="right">Actions</ConsoleTh>
         </tr>
       </ConsoleTableHead>
       <ConsoleTableBody>
-        {isLoading && <ConsoleTableSkeletonRows columns={4} rows={6} />}
+        {isLoading && <ConsoleTableSkeletonRows columns={5} rows={6} />}
 
         {!isLoading && users.length === 0 && (
           <ConsoleTableEmpty
-            colSpan={4}
+            colSpan={5}
             icon={User}
             title="No users found"
             description="No accounts matched your current search query or filter selection."
@@ -122,6 +150,17 @@ export function UsersTable({ users, isLoading, onManageRoles, onDeleteUser }: Us
                       <Copy className="h-3 w-3 opacity-60 group-hover:opacity-100" />
                     )}
                   </button>
+                </ConsoleTd>
+
+                {/* Account Status Column (issue #308) */}
+                <ConsoleTd>
+                  <Badge
+                    variant="outline"
+                    className={`text-[11px] font-bold ${accountStatusBadgeClass(user.account_status)}`}
+                    title={user.account_status_reason ?? undefined}
+                  >
+                    {accountStatusLabel(user.account_status)}
+                  </Badge>
                 </ConsoleTd>
 
                 {/* Granted Roles Column */}
@@ -176,6 +215,33 @@ export function UsersTable({ users, isLoading, onManageRoles, onDeleteUser }: Us
                         <Shield className="mr-2 h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400" />
                         Manage Roles
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => onStatusAction(user, "suspend")}
+                        className="cursor-pointer text-xs"
+                      >
+                        <ShieldOff className="mr-2 h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
+                        Suspend
+                      </DropdownMenuItem>
+                      {canBan && (
+                        <DropdownMenuItem
+                          onClick={() => onStatusAction(user, "ban")}
+                          className="cursor-pointer text-xs text-destructive focus:bg-destructive/10 focus:text-destructive"
+                        >
+                          <Ban className="mr-2 h-3.5 w-3.5" />
+                          Ban
+                        </DropdownMenuItem>
+                      )}
+                      {canBan && user.account_status && user.account_status !== "active" && (
+                        <DropdownMenuItem
+                          onClick={() => onStatusAction(user, "restore")}
+                          className="cursor-pointer text-xs"
+                        >
+                          <ShieldCheck className="mr-2 h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />
+                          Restore
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={() => handleCopyId(user.user_id)}
                         className="cursor-pointer text-xs"

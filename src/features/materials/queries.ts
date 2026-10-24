@@ -24,6 +24,8 @@ export type StudyMaterial = {
   exemplar_permission: boolean;
   year_tag: string | null;
   page_count: number | null;
+  /** #136: tutor-entered approximate word count (optional). */
+  word_count: number | null;
   exact_score_achieved: string | null;
   includes_examiner_comments: boolean;
   watermarked_preview_url: string;
@@ -40,7 +42,7 @@ function isMissingRelation(error: unknown): boolean {
 }
 
 const MATERIAL_COLS =
-  "id, tutor_id, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, admin_marketing_summary, created_at";
+  "id, tutor_id, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, word_count, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, admin_marketing_summary, created_at";
 
 function mapMaterial(row: Record<string, unknown>): StudyMaterial {
   return {
@@ -59,6 +61,7 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
     exemplar_permission: row.exemplar_permission === true,
     year_tag: typeof row.year_tag === "string" ? row.year_tag : null,
     page_count: typeof row.page_count === "number" ? row.page_count : null,
+    word_count: typeof row.word_count === "number" ? row.word_count : null,
     exact_score_achieved:
       typeof row.exact_score_achieved === "string" ? row.exact_score_achieved : null,
     includes_examiner_comments: row.includes_examiner_comments === true,
@@ -73,34 +76,21 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
 }
 
 /** Minimal structural type for the untyped table access below. */
+type AfterFilter = {
+  eq: (col: string, value: string | boolean) => AfterFilter;
+  neq: (col: string, value: string) => AfterFilter;
+  order: (
+    col: string,
+    opts: { ascending: boolean },
+  ) => Promise<{
+    data: Record<string, unknown>[] | null;
+    error?: { code?: string; message?: string } | null;
+  }>;
+};
+
 type MaterialsQuery = {
   from: (table: string) => {
-    select: (cols: string) => {
-      eq: (
-        col: string,
-        value: string | boolean,
-      ) => {
-        eq: (
-          col: string,
-          value: string | boolean,
-        ) => {
-          order: (
-            col: string,
-            opts: { ascending: boolean },
-          ) => Promise<{
-            data: Record<string, unknown>[] | null;
-            error?: { code?: string; message?: string } | null;
-          }>;
-        };
-        order: (
-          col: string,
-          opts: { ascending: boolean },
-        ) => Promise<{
-          data: Record<string, unknown>[] | null;
-          error?: { code?: string; message?: string } | null;
-        }>;
-      };
-    };
+    select: (cols: string) => AfterFilter;
   };
 };
 
@@ -118,6 +108,10 @@ export async function fetchMaterialsForTutor(tutorId: string): Promise<StudyMate
     .select(MATERIAL_COLS)
     .eq("tutor_id", tutorId)
     .eq("status", "published")
+    // Freestyle gigs (material_type 'gig') are SERVICES, not notes — they
+    // render only in the Tutor services surfaces (grok review 2026-10-17),
+    // never inside the authored-notes block.
+    .neq("material_type", "gig")
     .order("created_at", { ascending: false });
   if (error) {
     if (isMissingRelation(error)) return [];
@@ -130,12 +124,21 @@ export async function fetchMaterialsForTutor(tutorId: string): Promise<StudyMate
 export type MarketplaceMaterial = StudyMaterial & {
   tutor_display_name: string;
   tutor_code: string;
+  /** #314: the tutor holds the Verified badge (verification_tier tier_2_verified). */
+  tutor_verified: boolean;
 };
 
 export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]> {
   const { data, error } = await materialsTable()
-    .select(`${MATERIAL_COLS}, tutors!inner(display_name, tutor_code, is_published)`)
+    .select(
+      `${MATERIAL_COLS}, tutors!inner(display_name, tutor_code, is_published, verification_tier)`,
+    )
     .eq("status", "published")
+    // Gigs are services — excluded from the notes marketplace grid here;
+    // they render solely through get_public_gigs / GigServicesSection
+    // (grok review 2026-10-17: otherwise a gig shows as a note card AND
+    // a service chip).
+    .neq("material_type", "gig")
     .order("created_at", { ascending: false });
   if (error) {
     if (isMissingRelation(error)) return [];
@@ -151,6 +154,7 @@ export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]
         tutor_display_name:
           typeof tutor?.display_name === "string" ? tutor.display_name : "MatchMax Tutor",
         tutor_code: typeof tutor?.tutor_code === "string" ? tutor.tutor_code : "",
+        tutor_verified: tutor?.verification_tier === "tier_2_verified",
       };
     })
     .filter((m) => m.id && m.tutor_code);

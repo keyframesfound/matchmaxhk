@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { hktDateKey } from "@/features/cases/sor";
 
 /**
  * Issue #250 groundwork (stacked on the #131–#134 marketplace MVP):
@@ -122,7 +123,7 @@ type MaterialsAdminClient = {
       ) => {
         eq: (
           col: string,
-          value: boolean,
+          value: string,
         ) => Promise<{
           data: Array<{ id: string; tutor_id: string }> | null;
           error?: { message: string } | null;
@@ -278,24 +279,22 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     assertOwnedDeliveredOrder(order, context.userId);
 
-    const { data: material, error: materialError } = await (
-      supabaseAdmin as unknown as OrdersClient
-    )
-      .from("digital_materials")
-      .select("original_file_path")
-      .eq("id", data.materialId)
-      .maybeSingle();
-    const originalPath = (material as unknown as { original_file_path?: string })
-      ?.original_file_path;
-    if (materialError || !originalPath) throw new Error("Material not found");
-
-    // #203: prefer the per-order STAMPED copy (order id + buyer footer) that
-    // releaseOrder produced (stored in materials-originals under delivered/);
-    // fall back to the raw original only if the stamped file is missing
-    // (e.g. #250-era delivered orders).
+    // Issue #374: buyer downloads sign ONLY the per-order DELIVERED copy —
+    // the stamped file staff released (delivered_file_path). No
+    // original_file_path fallback: after release the buyer must never read
+    // the unstamped original. Gig file_back returns also live in
+    // delivered_file_path, so both product kinds unlock through this gate.
+    // (Verified 2026-10-18: zero delivered orders existed on live, so no
+    // legacy #250-era buyer loses access.)
     const deliveredPath = (order as unknown as { delivered_file_path?: string | null })
       ?.delivered_file_path;
-    const pathToSign = deliveredPath || originalPath;
+    if (!deliveredPath) {
+      throw new Error(
+        "The stamped copy is not ready yet — the download unlocks once staff release the file.",
+      );
+    }
+
+    const pathToSign = deliveredPath;
 
     const { data: signed, error: signError } = await supabaseAdmin.storage
       .from("materials-originals")
@@ -335,7 +334,7 @@ export const staffGrantMaterials = createServerFn({ method: "POST" })
       .from("digital_materials")
       .select("id, tutor_id")
       .in("id", data.materialIds)
-      .eq("is_published", true);
+      .eq("status", "published");
     if (error) throw new Error(error.message);
     const found = new Set((materials ?? []).map((m) => m.id));
     const missing = data.materialIds.filter((id) => !found.has(id));
@@ -509,4 +508,127 @@ export const exportTutorPayoutCsv = createServerFn({ method: "POST" })
       rowCount: rows.length,
       fileName: `tutor-payouts-${new Date().toISOString().slice(0, 10)}.csv`,
     };
+  });
+
+// ---------------------------------------------------------------------------
+// #202 Tutor home: the tutor's own notes summary.
+// ---------------------------------------------------------------------------
+
+export type MyNotesSummary = {
+  /** Orders delivered in the CURRENT HKT calendar month. */
+  deliveredThisMonth: number;
+  /**
+   * Sum of tutor_net over delivered, non-grant orders with no payout ledger
+   * yet (the manual monthly payout has no paid marker — see the payout
+   * export's paid_out_at note). Grant rows are HK$0 by construction and are
+   * excluded anyway. The case admin fee is a PARENT fee and never enters
+   * this number (it lives in case_fees, a different table).
+   */
+  netOwedHkd: number;
+};
+
+/**
+ * Pure core of the #202 notes summary (extracted for tests): counts orders
+ * DELIVERED in the current HKT calendar month and sums tutor_net over ALL
+ * delivered non-grant rows (all-time — there is no paid_out_at ledger yet;
+ * see the payout export's follow-up note). Grant rows are HK$0 by
+ * construction: they count as deliveries but add nothing to net.
+ */
+export function summarizeMyNotesOrders(
+  rows: Array<{
+    delivered_at: string;
+    tutor_net_hkd: number | string;
+    is_grant: boolean;
+  }>,
+  now: Date,
+): MyNotesSummary {
+  // Current HKT month window, reusing the payout export's month logic.
+  const monthKey = hktDateKey(now).slice(0, 7);
+  const { fromIso, toIso } = parsePayoutMonthWindow(monthKey);
+  const from = new Date(fromIso).getTime();
+  const to = new Date(toIso).getTime();
+
+  let deliveredThisMonth = 0;
+  let netOwedHkd = 0;
+  for (const row of rows) {
+    if (!row.is_grant) netOwedHkd += Number(row.tutor_net_hkd) || 0;
+    const at = new Date(row.delivered_at).getTime();
+    if (at >= from && at < to) deliveredThisMonth += 1;
+  }
+  return {
+    deliveredThisMonth,
+    netOwedHkd: Math.round(netOwedHkd * 100) / 100,
+  };
+}
+
+/**
+ * #202 Tutor home notes block: delivered count this month (HKT) + net owed.
+ * Tutor-gated (tutors.user_id); returns zeros for accounts without a card
+ * instead of throwing — the block simply renders nothing.
+ */
+export const getMyNotesSummary = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<MyNotesSummary> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: tutorRow, error: tutorError } = await (
+      supabaseAdmin as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            eq: (
+              c: string,
+              v: string,
+            ) => {
+              maybeSingle: () => Promise<{
+                data: { id: string } | null;
+                error: { message: string } | null;
+              }>;
+            };
+          };
+        };
+      }
+    )
+      .from("tutors")
+      .select("id")
+      .eq("user_id", context.userId)
+      // Review blocker: without .maybeSingle() supabase-js resolves an ARRAY
+      // for this filter, so tutorRow?.id was always undefined and the whole
+      // summary silently returned zeros. maybeSingle() yields the one row
+      // (or null when the account has no card), matching the type above.
+      .maybeSingle();
+    if (tutorError) throw new Error(tutorError.message);
+    const tutorId = tutorRow?.id;
+    if (!tutorId) return { deliveredThisMonth: 0, netOwedHkd: 0 };
+
+    const { data: orders, error } = await (
+      supabaseAdmin as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            eq: (
+              c: string,
+              v: string,
+            ) => {
+              eq: (
+                c: string,
+                v: string,
+              ) => Promise<{
+                data: Array<{
+                  delivered_at: string;
+                  tutor_net_hkd: number;
+                  is_grant: boolean;
+                }> | null;
+                error: { message: string } | null;
+              }>;
+            };
+          };
+        };
+      }
+    )
+      .from("material_orders")
+      .select("delivered_at, tutor_net_hkd, is_grant")
+      .eq("tutor_id", tutorId)
+      .eq("status", "delivered");
+    if (error) throw new Error(error.message);
+
+    return summarizeMyNotesOrders(orders ?? [], new Date());
   });

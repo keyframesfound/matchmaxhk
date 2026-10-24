@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -75,6 +76,27 @@ import { getCurriculumGroupLabel, getTutorSubjectGroups } from "@/features/tutor
 import { parseProfileTags, popularProfileTags } from "@/features/tutors/profile-tags";
 import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import { fetchPublishedTutors } from "@/features/tutors/queries";
+import { SEN_CATEGORY_OPTIONS, normalizeSenCategories } from "@/features/tutors/sen";
+import {
+  COURSE_GRADE_OPTIONS,
+  KINDERGARTEN_TOPICS,
+  MAX_UNIVERSITY_COURSES,
+  TARGET_TEACHING_LEVELS,
+  YEARS_OF_STUDY,
+  isInvalidUniversityGpaText,
+  normalizeCourseGrades,
+  normalizeUniversityCourses,
+  normalizeUniversityGpa,
+  normalizeUniversityYear,
+} from "@/features/tutors/verticals";
+import { useVerticalLabels } from "@/features/tutors/verticals-labels";
+import {
+  courseGradeRows,
+  courseGradeRowsToRecord,
+  selectedTargetLevels,
+  toggleKindergartenTopic,
+  toggleTargetLevel,
+} from "@/features/tutors/verticals-form";
 import { supabase } from "@/integrations/supabase/client";
 import {
   IA_EE_TOK_SUPPORT_OPTIONS,
@@ -128,7 +150,9 @@ import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
 import type { TutorAutofillResult } from "./autofill.functions";
 
 export const TARGET_STUDENT_OPTIONS = [
+  "Kindergarten",
   "Primary",
+  "Secondary",
   "Junior Secondary",
   "IBDP",
   "IGCSE",
@@ -211,6 +235,9 @@ export const tutorFormSchema = z.object({
     .max(MAX_ACADEMIC_HEADLINE, `Keep the headline to ${MAX_ACADEMIC_HEADLINE} characters or fewer`)
     .optional()
     .or(z.literal("")),
+  // Issue #411: dual-language custom headlines (DB CHECK <= 60 chars).
+  custom_headline_en: z.string().trim().max(60).default(""),
+  custom_headline_zh: z.string().trim().max(60).default(""),
   // Issue #107: undergraduate + optional postgraduate degree history.
   undergrad_university: z.string().trim().max(120).optional().or(z.literal("")),
   undergrad_degree: z.string().trim().max(120).optional().or(z.literal("")),
@@ -311,6 +338,27 @@ export const tutorFormSchema = z.object({
     .max(MAX_TUTOR_ACHIEVEMENTS, "Add no more than three achievements"),
   ia_ee_tok_support: z.array(z.enum(IA_EE_TOK_SUPPORT_OPTIONS)),
   ia_ee_tok_notes: z.string().trim().max(1000).optional().or(z.literal("")),
+  // Issue #199: SEN capability. Categories use the shared HK-common
+  // vocabulary; the experience note is a profile-only free-text field.
+  sen_enabled: z.boolean(),
+  sen_categories: z.array(z.enum(SEN_CATEGORY_OPTIONS)),
+  sen_experience: z.string().trim().max(2000).optional().or(z.literal("")),
+  // Issue #190 verticals (owner-writable, self-reported — never part of the
+  // credential-freeze/verification surfaces). GPA and course grades are
+  // draft strings here; formDataToPayload normalizes via verticals.ts.
+  university_year_of_study: z.string(),
+  university_gpa: z.string(),
+  university_courses: z
+    .array(z.string().trim().max(40))
+    .max(MAX_UNIVERSITY_COURSES, `Add no more than ${MAX_UNIVERSITY_COURSES} courses`),
+  course_grade_rows: z
+    .array(
+      z.object({
+        course: z.string().trim().max(40),
+        grade: z.string().trim(),
+      }),
+    )
+    .max(MAX_UNIVERSITY_COURSES, `Add no more than ${MAX_UNIVERSITY_COURSES} course grades`),
 });
 
 export type TutorFormData = z.infer<typeof tutorFormSchema>;
@@ -336,6 +384,8 @@ export const emptyTutorForm: TutorFormData = {
   subjects: [],
   target_students: [],
   academic_headline: "",
+  custom_headline_en: "",
+  custom_headline_zh: "",
   undergrad_university: "",
   undergrad_degree: "",
   undergrad_graduation_year: "",
@@ -374,6 +424,13 @@ export const emptyTutorForm: TutorFormData = {
   achievements: [],
   ia_ee_tok_support: [],
   ia_ee_tok_notes: "",
+  sen_enabled: false,
+  sen_categories: [],
+  sen_experience: "",
+  university_year_of_study: "",
+  university_gpa: "",
+  university_courses: [],
+  course_grade_rows: [],
 };
 
 export function tutorToFormData(t: Tutor): TutorFormData {
@@ -385,6 +442,8 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     subjects: t.subjects ?? [],
     target_students: t.target_students ?? [],
     academic_headline: t.academic_headline ?? "",
+    custom_headline_en: t.custom_headline_en ?? "",
+    custom_headline_zh: t.custom_headline_zh ?? "",
     undergrad_university: t.undergrad_university ?? "",
     undergrad_degree: t.undergrad_degree ?? "",
     undergrad_graduation_year: t.undergrad_graduation_year ?? "",
@@ -445,6 +504,16 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     })),
     ia_ee_tok_support: t.ia_ee_tok_support ?? [],
     ia_ee_tok_notes: t.ia_ee_tok_notes ?? "",
+    sen_enabled: t.sen_enabled === true,
+    sen_categories: normalizeSenCategories(t.sen_categories),
+    sen_experience: t.sen_experience ?? "",
+    university_year_of_study: normalizeUniversityYear(t.university_year_of_study) ?? "",
+    university_gpa:
+      t.university_gpa === null || t.university_gpa === undefined ? "" : String(t.university_gpa),
+    university_courses: normalizeUniversityCourses(t.university_courses),
+    course_grade_rows: courseGradeRows(
+      t.course_specific_grades as Record<string, string> | null | undefined,
+    ),
   };
 }
 
@@ -493,6 +562,10 @@ export function formDataToPayload(v: TutorFormData) {
       .filter(Boolean)
       .slice(0, MAX_TUTOR_CARD_HIGHLIGHTS),
     academic_headline: v.academic_headline?.trim() || null,
+    // Issue #411: owner-editable dual-language custom headlines (<= 60 chars,
+    // DB CHECK + contact guard); the tutor sees exactly what they saved.
+    custom_headline_en: v.custom_headline_en?.trim() || null,
+    custom_headline_zh: v.custom_headline_zh?.trim() || null,
     undergrad_university: v.undergrad_university?.trim() || null,
     undergrad_degree: v.undergrad_degree?.trim() || null,
     undergrad_graduation_year: v.undergrad_graduation_year?.trim() || null,
@@ -544,6 +617,17 @@ export function formDataToPayload(v: TutorFormData) {
     achievements: cleanAchievements,
     ia_ee_tok_support: v.ia_ee_tok_support,
     ia_ee_tok_notes: v.ia_ee_tok_notes?.trim() || null,
+    // Issue #199: categories only persist while SEN experience is enabled.
+    sen_enabled: v.sen_enabled,
+    sen_categories: v.sen_enabled ? v.sen_categories : [],
+    sen_experience: v.sen_enabled ? v.sen_experience?.trim() || null : null,
+    // Issue #190 verticals: self-reported, owner-writable plain fields (NOT
+    // credential-locked). Normalizers live in verticals.ts; invalid GPA or
+    // half-filled grade rows are dropped, never blocked.
+    university_year_of_study: normalizeUniversityYear(v.university_year_of_study),
+    university_gpa: normalizeUniversityGpa(v.university_gpa),
+    university_courses: normalizeUniversityCourses(v.university_courses),
+    course_specific_grades: normalizeCourseGrades(courseGradeRowsToRecord(v.course_grade_rows)),
   };
 }
 
@@ -1110,6 +1194,8 @@ export function TutorEditor({
   applicationId = null,
   educationValues,
 }: TutorEditorProps) {
+  const { t } = useTranslation();
+  const verticalLabels = useVerticalLabels();
   const [form, setForm] = React.useState<TutorFormData>(() =>
     initialData ? tutorToFormData(initialData) : emptyTutorForm,
   );
@@ -1144,6 +1230,15 @@ export function TutorEditor({
     () => getTutorSubjectGroups({ subjects: form.subjects, exam_results: form.exam_results }),
     [form.subjects, form.exam_results],
   );
+
+  // Issue #190: canonical teaching levels currently ticked (case-insensitive
+  // read so a legacy "ibdp" style entry never duplicates a canonical value).
+  const selectedLevels = React.useMemo(
+    () => selectedTargetLevels(form.target_students),
+    [form.target_students],
+  );
+  const hasUniversityLevel = selectedLevels.includes("University");
+  const hasKindergartenLevel = selectedLevels.includes("Kindergarten");
 
   // Issue #311: tags used by 3+ tutors, with counts, for the tag editor's
   // type-ahead suggestions.
@@ -1429,10 +1524,19 @@ export function TutorEditor({
         .filter((a) => a.short_text),
       ia_ee_tok_support: form.ia_ee_tok_support,
       ia_ee_tok_notes: form.ia_ee_tok_notes?.trim() || null,
+      sen_enabled: form.sen_enabled,
+      sen_categories: form.sen_enabled ? form.sen_categories : [],
+      sen_experience: form.sen_enabled ? form.sen_experience?.trim() || null : null,
       remaining_student_slots: form.remaining_student_slots,
       is_accepting_students: form.is_accepting_students,
       preferred_time_windows: form.preferred_time_windows,
       availability_grid: form.availability_grid,
+      university_year_of_study: normalizeUniversityYear(form.university_year_of_study),
+      university_gpa: normalizeUniversityGpa(form.university_gpa),
+      university_courses: normalizeUniversityCourses(form.university_courses),
+      course_specific_grades: normalizeCourseGrades(
+        courseGradeRowsToRecord(form.course_grade_rows),
+      ),
     }),
     [form, initialData?.id, initialData?.created_at],
   );
@@ -1464,6 +1568,24 @@ export function TutorEditor({
     if (adminTravelNoteError) publishErrors.travel_note = adminTravelNoteError;
     const adminRateNoteError = contactFilterError((parsed.data.rate_note ?? "").trim());
     if (adminRateNoteError) publishErrors.rate_note = adminRateNoteError;
+    // #190 review: course tags and grade-map course keys render on the public
+    // card. Staff writes bypass tutors_owner_contact_guard, so this client
+    // check is the only guard on admin EDITS of those fields (admin INSERTS
+    // still hit tutors_insert_contact_guard).
+    const adminUniCoursesError = contactFilterError(parsed.data.university_courses.join(", "));
+    if (adminUniCoursesError) publishErrors.university_courses = adminUniCoursesError;
+    const adminGradeKeysError = contactFilterError(
+      parsed.data.course_grade_rows.map((row) => row.course).join(", "),
+    );
+    if (adminGradeKeysError) publishErrors.course_grade_rows = adminGradeKeysError;
+    // Issue #190/#395: GPA is a free decimal 0–4.3 (blank allowed); an
+    // out-of-band value blocks the save with the same `editor_gpa_invalid`
+    // error the join/owner forms show, instead of being silently dropped to
+    // null by formDataToPayload.
+    const gpaText = (parsed.data.university_gpa ?? "").trim();
+    if (isInvalidUniversityGpaText(gpaText)) {
+      publishErrors.university_gpa = t("verticals.editor_gpa_invalid");
+    }
     if (parsed.data.is_published) {
       if (
         !(parsed.data.academic_headline ?? "").trim() &&
@@ -2314,6 +2436,218 @@ export function TutorEditor({
                 />
               </FormField>
 
+              {/* Issue #190: canonical teaching levels tick into the same
+                  target_students array — free-text curricula (IBDP, HKDSE…)
+                  are preserved alongside. */}
+              <FormField
+                label={t("verticals.editor_target_levels")}
+                hint={t("verticals.editor_target_levels_hint")}
+              >
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {TARGET_TEACHING_LEVELS.map((level) => {
+                    const active = selectedLevels.includes(level);
+                    return (
+                      <label
+                        key={level}
+                        className="flex cursor-pointer items-center gap-2 rounded-sm border border-border px-3 py-2 text-sm font-medium text-[color:var(--ink)] transition-colors hover:bg-muted/40"
+                      >
+                        <Checkbox
+                          checked={active}
+                          onCheckedChange={(checked) =>
+                            setForm({
+                              ...form,
+                              target_students: toggleTargetLevel(
+                                form.target_students,
+                                level,
+                                checked === true,
+                              ),
+                            })
+                          }
+                        />
+                        <span>{verticalLabels.levels[level]}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </FormField>
+
+              {/* Issue #190: University vertical — self-reported year, GPA,
+                  courses and course-specific grades. Owner-writable plain
+                  fields; never part of credential verification. */}
+              {hasUniversityLevel ? (
+                <div className="space-y-4 rounded-sm border border-border p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    {t("verticals.editor_university")}
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField label={t("verticals.editor_year_of_study")}>
+                      <SearchableSelect
+                        value={form.university_year_of_study}
+                        onChange={(v) => setForm({ ...form, university_year_of_study: v })}
+                        options={[
+                          { value: "", label: t("verticals.editor_none") },
+                          ...YEARS_OF_STUDY.map((year) => ({
+                            value: year,
+                            label: verticalLabels.years[year],
+                          })),
+                        ]}
+                        placeholder={t("verticals.editor_none")}
+                      />
+                    </FormField>
+                    <FormField
+                      label={t("verticals.editor_gpa")}
+                      error={errors.university_gpa}
+                      hint="0–4.3"
+                    >
+                      <Input
+                        value={form.university_gpa}
+                        inputMode="decimal"
+                        onChange={(e) => setForm({ ...form, university_gpa: e.target.value })}
+                        placeholder="e.g. 3.85"
+                      />
+                    </FormField>
+                  </div>
+                  <FormField
+                    label={t("verticals.editor_courses")}
+                    hint={t("verticals.editor_courses_hint")}
+                    error={errors.university_courses}
+                  >
+                    <TagInput
+                      value={form.university_courses}
+                      onChange={(university_courses) =>
+                        setForm({
+                          ...form,
+                          university_courses: university_courses.slice(0, MAX_UNIVERSITY_COURSES),
+                        })
+                      }
+                      suggestions={[]}
+                      maxTags={MAX_UNIVERSITY_COURSES}
+                      placeholder={t("verticals.editor_courses_placeholder")}
+                    />
+                  </FormField>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold text-[color:var(--ink)]">
+                        {t("verticals.editor_course_grades")}
+                      </Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setForm({
+                            ...form,
+                            course_grade_rows: [
+                              ...form.course_grade_rows,
+                              { course: "", grade: "" },
+                            ],
+                          })
+                        }
+                        disabled={form.course_grade_rows.length >= MAX_UNIVERSITY_COURSES}
+                        className="h-8 text-xs"
+                      >
+                        <Plus className="mr-1 h-3.5 w-3.5" />
+                        {t("verticals.editor_add_course_grade")}
+                      </Button>
+                    </div>
+                    {errors.course_grade_rows ? (
+                      <p className="text-xs font-medium text-destructive">
+                        {errors.course_grade_rows}
+                      </p>
+                    ) : null}
+                    {form.course_grade_rows.map((row, index) => (
+                      <div
+                        key={index}
+                        className="grid grid-cols-[1fr_140px_36px] items-center gap-2"
+                      >
+                        <Input
+                          value={row.course}
+                          maxLength={40}
+                          onChange={(e) => {
+                            const rows = [...form.course_grade_rows];
+                            rows[index] = { ...row, course: e.target.value };
+                            setForm({ ...form, course_grade_rows: rows });
+                          }}
+                          placeholder={t("verticals.editor_course_placeholder")}
+                        />
+                        <SearchableSelect
+                          value={row.grade}
+                          onChange={(grade) => {
+                            const rows = [...form.course_grade_rows];
+                            rows[index] = { ...row, grade };
+                            setForm({ ...form, course_grade_rows: rows });
+                          }}
+                          options={COURSE_GRADE_OPTIONS.map((grade) => ({
+                            value: grade,
+                            label: grade,
+                          }))}
+                          placeholder={t("verticals.editor_grade_placeholder")}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={t("verticals.editor_remove_course_grade")}
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              course_grade_rows: form.course_grade_rows.filter(
+                                (_, idx) => idx !== index,
+                              ),
+                            })
+                          }
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Issue #190: Kindergarten topics are canonical tags that live
+                  inside subjects[] — ticking them edits the shared subjects
+                  list, not a separate column. */}
+              {hasKindergartenLevel ? (
+                <div className="space-y-2 rounded-sm border border-border p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    {t("verticals.editor_kindergarten")}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {t("verticals.editor_kindergarten_hint")}
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {KINDERGARTEN_TOPICS.map((topic) => {
+                      const active = form.subjects.some(
+                        (subject) => subject.trim().toLowerCase() === topic.toLowerCase(),
+                      );
+                      return (
+                        <label
+                          key={topic}
+                          className="flex cursor-pointer items-center gap-2 rounded-sm border border-border px-3 py-2 text-sm font-medium text-[color:var(--ink)] transition-colors hover:bg-muted/40"
+                        >
+                          <Checkbox
+                            checked={active}
+                            onCheckedChange={(checked) =>
+                              setForm({
+                                ...form,
+                                subjects: toggleKindergartenTopic(
+                                  form.subjects,
+                                  topic,
+                                  checked === true,
+                                ),
+                              })
+                            }
+                          />
+                          <span>{verticalLabels.topics[topic]}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
               {/* Issue #217/#311: up to five free-text tags shown on the
                   public card; the cap + contact-detail rule are in
                   ProfileTagsField, which also suggests existing tags. */}
@@ -3138,6 +3472,73 @@ export function TutorEditor({
                     />
                   </FormField>
                 )}
+              </div>
+
+              {/* Issue #199: SEN experience & qualifications. Drives the SEN
+                  search filter and the SEN badge on the tutor card. */}
+              <div className="space-y-3 pt-2 border-t border-[color:var(--ink)]/10">
+                <label className="flex cursor-pointer items-center justify-between gap-3">
+                  <span>
+                    <Label className="text-xs font-semibold text-[color:var(--ink)]">
+                      SEN Experience & Qualifications
+                    </Label>
+                    <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                      Tutor has experience or qualifications teaching students with Special
+                      Educational Needs (SEN).
+                    </span>
+                  </span>
+                  <Checkbox
+                    checked={form.sen_enabled}
+                    onCheckedChange={(checked) =>
+                      setForm({ ...form, sen_enabled: checked === true })
+                    }
+                  />
+                </label>
+
+                {form.sen_enabled ? (
+                  <>
+                    <div className="flex flex-wrap gap-2.5">
+                      {SEN_CATEGORY_OPTIONS.map((category) => (
+                        <label
+                          key={category}
+                          className={cn(
+                            "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors",
+                            form.sen_categories.includes(category)
+                              ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
+                              : "border-border bg-background text-[color:var(--ink)] hover:bg-muted/40",
+                          )}
+                        >
+                          <Checkbox
+                            checked={form.sen_categories.includes(category)}
+                            onCheckedChange={(checked) =>
+                              setForm({
+                                ...form,
+                                sen_categories: checked
+                                  ? [...form.sen_categories, category]
+                                  : form.sen_categories.filter((item) => item !== category),
+                              })
+                            }
+                          />
+                          <span>{category}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <FormField
+                      label="SEN Experience Details"
+                      error={errors.sen_experience}
+                      hint="Certificates, coursework, years of SEN experience (shown on the profile)"
+                    >
+                      <Textarea
+                        rows={3}
+                        maxLength={2000}
+                        value={form.sen_experience}
+                        onChange={(e) => setForm({ ...form, sen_experience: e.target.value })}
+                        placeholder="e.g. PGDE with SEN specialization; 4 years supporting dyslexic students in 1:1 English lessons."
+                        className="text-xs"
+                      />
+                    </FormField>
+                  </>
+                ) : null}
               </div>
             </EditorSection>
 

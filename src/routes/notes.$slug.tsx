@@ -16,8 +16,10 @@ import {
   type PublicNote,
 } from "@/features/materials/notes.functions";
 import { startCheckout } from "@/features/materials/checkout.functions";
+import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
 import { NotePreviewViewer } from "@/features/materials/note-preview-viewer";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
+import { GigDetailPage } from "@/features/gigs/gig-detail";
 import { ReportMenuButton } from "@/features/reports/report-button";
 
 /**
@@ -29,9 +31,16 @@ import { ReportMenuButton } from "@/features/reports/report-button";
  */
 
 export const Route = createFileRoute("/notes/$slug")({
-  head: ({ params }) => ({
+  head: ({ params, loaderData }) => ({
     meta: [
-      { title: "Notes | MatchMax" },
+      {
+        // #326: gigs ride the /notes/$slug rails but are services, not notes.
+        title:
+          (loaderData as { note?: { materialType?: string } | null } | undefined)?.note
+            ?.materialType === "gig"
+            ? "Service | MatchMax"
+            : "Notes | MatchMax",
+      },
       { property: "og:type", content: "product" },
       { property: "og:url", content: `https://matchmax.hk/notes/${params.slug}` },
       { name: "description", content: "Preview and buy study notes on MatchMax." },
@@ -45,8 +54,20 @@ export const Route = createFileRoute("/notes/$slug")({
     if (!note) throw notFound();
     return { note };
   },
-  component: NotePage,
+  component: GigOrNotePage,
 });
+
+/**
+ * #326: one route, two products. Gigs ride the same slug/loader/404 rails as
+ * notes but render the service page (no watermark viewer, no preview, no
+ * view counter). Branching lives in sibling components so each keeps its own
+ * stable hook order.
+ */
+function GigOrNotePage() {
+  const { note } = Route.useLoaderData() as { note: PublicNote };
+  if (note.materialType === "gig") return <GigDetailPage note={note} />;
+  return <NotePage />;
+}
 
 function NotePage() {
   const { note } = Route.useLoaderData() as { note: PublicNote };
@@ -55,6 +76,12 @@ function NotePage() {
   const router = useRouter();
   const navigate = router.navigate.bind(router);
   const [gateOpen, setGateOpen] = useState(false);
+  // Issue #214: the checkout terms gate — the buy click doubles as the
+  // notes-terms acceptance click. Client gate here (button refuses to place
+  // the order unchecked); startCheckout re-validates server-side and records
+  // the terms_acceptances row (surface checkout, subject_id = order id).
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsGateInvalid, setTermsGateInvalid] = useState(false);
   // Owner check uses the tutor's AUTH id (tutors.user_id), not the tutors
   // row id — review fix: note.tutorId is the FK, user.id is an auth uid.
   const isOwner = Boolean(user && note.tutorUserId && user.id === note.tutorUserId);
@@ -81,7 +108,7 @@ function NotePage() {
   });
 
   const checkoutMutation = useMutation({
-    mutationFn: () => startCheckout({ data: { materialId: note.id } }),
+    mutationFn: () => startCheckout({ data: { materialId: note.id, legalAgreed: true } }),
     onSuccess: ({ orderId }) => {
       void navigate({ to: `/orders/${orderId}` });
     },
@@ -96,6 +123,9 @@ function NotePage() {
 
   const iaLabel = ["ia", "ee", "tok_essay"].includes(note.documentType);
   const isExemplar = note.materialType === "exemplar" || iaLabel;
+  // #314: an .apkg deck has no watermarked preview — the page shows a
+  // download panel instead of the in-browser viewer (no Anki player).
+  const isApkgDeck = note.materialType === "flashcards" && !note.previewUrl;
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
@@ -143,6 +173,12 @@ function NotePage() {
                     {t("notes.page_count", { count: note.pageCount })}
                   </span>
                 )}
+                {note.wordCount != null && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <FileText className="h-4 w-4" aria-hidden />
+                    {t("notes.card.word_count", { count: note.wordCount })}
+                  </span>
+                )}
                 <span className="inline-flex items-center gap-1.5">
                   <Eye className="h-4 w-4" aria-hidden />
                   {t("notes.views", { count: note.viewCount })}
@@ -156,13 +192,27 @@ function NotePage() {
               </div>
             </header>
 
-            <NotePreviewViewer
-              previewUrl={note.previewUrl}
-              previewPages={note.previewPages}
-              pageCount={note.pageCount}
-              ctaLabel={t("notes.unlock_cta")}
-              lockedLabel={t("notes.locked_title")}
-            />
+            {isApkgDeck ? (
+              <div className="flex items-start gap-4 rounded-xl border border-border bg-card p-6">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent">
+                  <FileText className="h-5 w-5 text-accent-foreground" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold">{t("notes.apkg_panel_title")}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    {t("notes.apkg_panel_body")}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <NotePreviewViewer
+                previewUrl={note.previewUrl}
+                previewPages={note.previewPages}
+                pageCount={note.pageCount}
+                ctaLabel={t("notes.unlock_cta")}
+                lockedLabel={t("notes.locked_title")}
+              />
+            )}
 
             {note.description && (
               <section className="space-y-2">
@@ -208,9 +258,17 @@ function NotePage() {
                     </dd>
                   </div>
                 )}
+                {note.wordCount != null && (
+                  <div className="flex justify-between gap-4 sm:block">
+                    <dt className="text-muted-foreground">{t("notes.field_word_count")}</dt>
+                    <dd className="font-semibold">
+                      {t("notes.card.word_count", { count: note.wordCount })}
+                    </dd>
+                  </div>
+                )}
                 <div className="flex justify-between gap-4 sm:block">
                   <dt className="text-muted-foreground">{t("notes.field_format")}</dt>
-                  <dd className="font-semibold">PDF</dd>
+                  <dd className="font-semibold">{isApkgDeck ? t("notes.format_apkg") : "PDF"}</dd>
                 </div>
               </dl>
               {isExemplar && (
@@ -223,7 +281,9 @@ function NotePage() {
           <aside className="lg:sticky lg:top-24 lg:self-start" id="buy">
             <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
               <p className="text-3xl font-bold tracking-normal">
-                {t("notes.price", { amount: note.priceHkd })}
+                {note.priceHkd === 0
+                  ? t("notes.card.free")
+                  : t("notes.price", { amount: note.priceHkd })}
               </p>
               <Link
                 to="/tutors/$tutorCode"
@@ -233,6 +293,17 @@ function NotePage() {
                 <GraduationCap className="h-4 w-4" aria-hidden />
                 {note.tutorName}
               </Link>
+              {!isOwner && (
+                <TermsGateCheckbox
+                  section="notes"
+                  checked={termsAccepted}
+                  invalid={termsGateInvalid}
+                  onCheckedChange={(checked) => {
+                    setTermsAccepted(checked);
+                    if (checked) setTermsGateInvalid(false);
+                  }}
+                />
+              )}
               <Button
                 variant="solid"
                 color="accent"
@@ -241,6 +312,12 @@ function NotePage() {
                 onClick={() => {
                   if (!user) {
                     setGateOpen(true);
+                    return;
+                  }
+                  // Issue #214: refuse to place the order with the terms
+                  // gate unchecked (client half; server re-validates).
+                  if (!termsAccepted) {
+                    setTermsGateInvalid(true);
                     return;
                   }
                   checkoutMutation.mutate();
@@ -291,7 +368,9 @@ function NotePage() {
                 >
                   <p className="font-semibold group-hover:underline">{other.title}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {t("notes.price", { amount: other.priceHkd })}
+                    {other.priceHkd === 0
+                      ? t("notes.card.free")
+                      : t("notes.price", { amount: other.priceHkd })}
                   </p>
                 </a>
               ))}

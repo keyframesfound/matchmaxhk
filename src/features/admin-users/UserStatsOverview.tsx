@@ -7,6 +7,9 @@ export type UserRow = {
   email: string | null;
   roles: AppRole[];
   created_at?: string | null;
+  /** Issue #308: active | suspended | banned (profiles.account_status). */
+  account_status?: string | null;
+  account_status_reason?: string | null;
 };
 
 interface UserStatsOverviewProps {

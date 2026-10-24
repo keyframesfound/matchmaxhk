@@ -99,3 +99,102 @@ export function contactFilterError(text: string): string | null {
   const rest = violations.length > 3 ? ` (+${violations.length - 3} more)` : "";
   return `No contact details in public text — remove ${listed}${rest}. Parents reach you through MatchMax.`;
 }
+
+// Global variants of the single-match patterns above, for stripping.
+const URL_PATTERN_GLOBAL = new RegExp(URL_PATTERN.source, "gi");
+const EMAIL_PATTERN_GLOBAL = new RegExp(CONTACT_EMAIL_PATTERN.source, "g");
+const PHONE_PATTERN_GLOBAL = new RegExp(PHONE_PATTERN.source, "g");
+
+/**
+ * Strip-mode false-positive guards (GLM review round 1, finding 2). A
+ * phone match is left untouched when it reads as ordinary course/paper
+ * text rather than a number:
+ *  - it is glued to letters (MATH2010-2011) — the digits are part of a
+ *    word-shaped token, not a standalone number;
+ *  - it is a hyphenated or space-separated 4-4 pair whose halves share
+ *    two or more digit positions — the shape of year/course-level ranges
+ *    (2010-2011, 2010 2011, 2015-2019, 3000-4000) rather than a dialling
+ *    number (9123-4567 and 9123 4567 share none).
+ * These guards apply ONLY to the strip variant; findContactViolations
+ * keeps the loose detection vocabulary, so strip and detect can disagree
+ * on range-like strings — intentional (detect stays conservative and
+ * tutor-side rejection is visible/rephrasable). Implemented with
+ * matchAll + manual slicing, NOT a lookbehind regex literal: lookbehind
+ * literals throw at parse time on Safari < 16.4 and would take down the
+ * whole bundle for those users.
+ */
+function isGuardedPhoneMatch(match: string, text: string, start: number): boolean {
+  if (start > 0 && /[A-Za-z]/.test(text[start - 1] ?? "")) return true;
+  const pair = /^(\d{4})[\s-](\d{4})$/.exec(match);
+  if (!pair) return false;
+  let shared = 0;
+  for (let i = 0; i < 4; i++) if (pair[1][i] === pair[2][i]) shared++;
+  return shared >= 2;
+}
+
+/** PHONE_PATTERN_GLOBAL removal with the strip-mode guards above. */
+function stripPhonesGuarded(text: string): string {
+  let out = "";
+  let last = 0;
+  for (const m of text.matchAll(PHONE_PATTERN_GLOBAL)) {
+    const start = m.index ?? 0;
+    if (isGuardedPhoneMatch(m[0], text, start)) continue;
+    out += text.slice(last, start) + " ";
+    last = start + m[0].length;
+  }
+  return out + text.slice(last);
+}
+
+/**
+ * Issue #396 — case-side free text that reaches the public board
+ * (uni_course_codes and the other uni fields whitelisted in
+ * PUBLIC_CASE_COLUMNS) is written by paths that must never reject the
+ * submitter, so matches are STRIPPED instead of reported. Same rule set as
+ * findContactViolations above — no separate regex vocabulary. Emails are
+ * removed first (a bare address is the more specific match — the URL rule
+ * would otherwise eat just the domain and strand the local part), then
+ * URLs, phones and channel words; the pass repeats until stable so
+ * removing one match cannot stitch the surrounding text into a new one.
+ */
+export function stripContactDetails(text: string): string {
+  let out = text;
+  // Bounded fixpoint, cap 5 (GLM round-2 nit: 3 passes could in theory
+  // strand a residual fragment on a deliberately layered input — 5 costs
+  // nothing on converging inputs and only tightens the strip).
+  for (let pass = 0; pass < 5; pass++) {
+    const next = stripPhonesGuarded(
+      out.replace(EMAIL_PATTERN_GLOBAL, " ").replace(URL_PATTERN_GLOBAL, " "),
+    ).replace(CHANNEL_PATTERN, " ");
+    if (next === out) return next;
+    out = next;
+  }
+  return out;
+}
+
+/**
+ * Issue #410 — shared strip-never-reject sanitizer for parent-authored
+ * free-text case fields that reach the public board (description from
+ * data.notes, target_school from the admissions path — both whitelisted
+ * in PUBLIC_CASE_COLUMNS and stored verbatim until now). The #396 uni
+ * fields run the same pipeline through sanitizeCaseUniText.
+ * stripContactDetails -> whitespace collapse -> trim, run to a FIXPOINT
+ * (bounded): a single pass can reconstitute a number the first pass
+ * split — e.g. "9123 foo@bar.com 4567" strips to "9123   4567" and
+ * collapsing the whitespace stitches it back into the canonical
+ * "9123 4567", so the collapsed output is re-filtered. Then cap, and a
+ * blank result stores null. NEVER rejects: the parent submit path must
+ * not 500 on a pasted phone number (precedent #334).
+ */
+export function sanitizeCaseFreeText(raw: unknown, max: number): string | null {
+  let value = typeof raw === "string" ? raw : "";
+  // Cap 5 (GLM round-2 nit, mirrors stripContactDetails): converging
+  // inputs settle in 1-2 passes; the higher bound only tightens.
+  for (let i = 0; i < 5; i++) {
+    const next = stripContactDetails(value)
+      .replace(/\s{2,}/g, " ")
+      .trim();
+    if (next === value) break;
+    value = next;
+  }
+  return value.slice(0, max) || null;
+}

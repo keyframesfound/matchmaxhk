@@ -23,13 +23,23 @@ export const Route = createFileRoute("/tos")({
 type Block = { kind: "p"; text: string } | { kind: "ul"; items: string[] };
 
 const INTRO_TEXT = `MatchMax Terms of Service
-Effective date: September 15, 2026
+Effective date: October 16, 2026
 Operator: Hau Yui Chan, trading as MatchMax (“MatchMax”, “we”, “us”)
 Business Registration number: 41690777
 Address: Shop T163, 3/F, The Capital, 61–65 Chatham Road South, Tsim Sha Tsui, Kowloon, Hong Kong
 Email: contact@matchmax.hk`;
 
-const SECTIONS: { title: string; blocks: Block[] }[] = [
+type Section = {
+  title: string;
+  /**
+   * Issue #214: optional HTML anchor so the terms-gate checkboxes can link
+   * straight at the section a surface gates on (e.g. /tos#tos-notes).
+   */
+  id?: string;
+  blocks: Block[];
+};
+
+const SECTIONS: Section[] = [
   {
     title: "1. Scope, definitions and acceptance",
     blocks: [
@@ -456,6 +466,152 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
       },
     ],
   },
+  {
+    title: "15. Matching, the admin fee and what we do not promise",
+    id: "tos-matching",
+    blocks: [
+      {
+        kind: "p",
+        text: "This section applies when MatchMax introduces a Customer to a Tutor for tuition (a “match”). It works alongside sections 3, 5 and 6; the matching fee described here is charged under the Fee Agreement accepted when the case is confirmed, as section 6 requires.",
+      },
+      {
+        kind: "p",
+        text: "MatchMax introduces a parent (the Customer) and a Tutor. MatchMax is not the school, is not the Tutor’s employer, and is not a party to the Lesson Contract.",
+      },
+      {
+        kind: "p",
+        text: "The matching fee for a standard match equals 100% of the agreed tuition for Lesson 1 plus 50% of the agreed tuition for Lesson 2 — 1.5 lessons in total (the “admin fee”) — multiplied by the number of enrolled students on the case. It is the only money MatchMax keeps for matching. The Customer pays the admin fee to MatchMax by FPS; the Tutor receives nothing for Lesson 1, and the Customer is responsible for paying the Tutor the remaining 50% of Lesson 2 directly. After the admin fee is paid, the Customer pays the Tutor directly for further tuition, and MatchMax does not hold or process ongoing tuition payments.",
+      },
+      {
+        kind: "p",
+        text: "The admin fee is charged once per match and is owed by the Customer on the case — the parent, or the centre where an agreed partnership says so. It is a fee for MatchMax’s introduction; it is not a tutor placement commission, and the Tutor is never the payer. For example, at a HK$400 hourly rate with 60-minute lessons, the admin fee is HK$400 for Lesson 1 plus HK$200 for Lesson 2 — HK$600 in total. A short case — one the client has asked to run for 5 lessons or fewer — carries a fee of 20% of the scheduled package instead of the standard calculation above, which MatchMax’s team records and can audit.",
+      },
+      {
+        kind: "p",
+        text: "Using the introduction and then taking lessons without paying the admin fee when it falls due is a breach of these Terms. The remedy is the unpaid fee, closure of the case, and a bar on new requests through the Platform. No other penalty applies.",
+      },
+      {
+        kind: "p",
+        text: "MatchMax manages the introduction and supports the first two lessons. Once those lessons are done, the schedule, format and other arrangements are agreed between the Customer and the Tutor.",
+      },
+      {
+        kind: "p",
+        text: "A cancellation or no-show before Lesson 1 is completed results in no admin fee. Once Lesson 1 is completed, the Lesson 1 portion — 100% of the agreed tuition for Lesson 1 — is accrued and immediately payable to MatchMax, even if either party cancels or declines to proceed with Lesson 2. Replacement introductions are handled as a new case, to which the same fee terms apply.",
+      },
+      {
+        kind: "p",
+        text: "MatchMax does not guarantee any grade, school offer, placement or teacher’s mark. Nothing in the matching, verification or notes services promises an academic result (see also sections 4 and 11).",
+      },
+    ],
+  },
+  {
+    title: "16. Tutor cards, verification and endorsement",
+    id: "tos-verification",
+    blocks: [
+      {
+        kind: "p",
+        text: "A tutor card goes live only after MatchMax has checked the documents the tutor uploads against the claims on the card. That check is the limited review described in section 4; it is not a guarantee of authenticity, quality or results.",
+      },
+      {
+        kind: "p",
+        text: "MatchMax has no affiliation with, and receives no endorsement from, the International Baccalaureate (IB), the HKEAA, or any school. No card, listing or note on the Platform is a recommendation by any examining body or school.",
+      },
+      {
+        kind: "p",
+        text: "A public tutor card does not display the tutor’s full name.",
+      },
+      {
+        kind: "p",
+        text: "Opening a case with MatchMax does not publish it. Case details, including the Customer’s requirements and any offered rate, stay with MatchMax and the parties to that case.",
+      },
+    ],
+  },
+  {
+    title: "17. Study notes: licences, delivery and refunds",
+    id: "tos-notes",
+    blocks: [
+      {
+        kind: "p",
+        text: "When a tutor lists a study note for sale, the tutor licences MatchMax to store, describe and sell the file through the Platform. A buyer receives a personal licence to use the file for one student. Buyers must not resell a file, share it as a class set, or upload it anywhere else.",
+      },
+      {
+        kind: "p",
+        text: "Tutors warrant that they authored each file or hold the seller’s written permission, and that no listing is a school’s internal test, mock or answer key; a publisher’s worksheet or textbook page; an HKEAA paper or marking scheme; an IB past paper, markscheme or questionbank; or another student’s coursework (unless the required written permission is held). This is the same ban list as the notes guide.",
+      },
+      {
+        kind: "p",
+        text: "MatchMax may reject a listing before sale, remove it after sale, refund buyers, and suspend a tutor’s selling. Repeatedly uploading files on the ban list closes the notes privilege.",
+      },
+      {
+        kind: "p",
+        text: "A purchased file is delivered inside the buyer’s MatchMax account once staff mark the FPS payment as received. The receipt email contains no file.",
+      },
+      {
+        kind: "p",
+        text: "Buying a note does not create a chat with the tutor, and tutors and buyers are not given each other’s contact details. “Request this tutor” opens a match request with MatchMax, not a conversation.",
+      },
+      {
+        kind: "p",
+        text: "MatchMax keeps 20% of the file price. The tutor receives the balance by FPS on the monthly settlement run. That settlement is payment for goods (the notes) and is separate from the 1.5-lesson admin fee in section 15.",
+      },
+      {
+        kind: "p",
+        text: "Before a file is released, a buyer may request a full refund. After release, refunds are limited to a file that cannot be opened or a listing that breaches the ban list above.",
+      },
+    ],
+  },
+  {
+    title: "18. Referral bounties",
+    id: "tos-referral",
+    blocks: [
+      {
+        kind: "p",
+        text: "A referral exists only when the tutor applicant submits the join form through a referrer’s link. Mentioning a referrer on WhatsApp or any other channel does not create a referral. Where more than one link is used, the first link wins and only one referrer is recorded. Referring yourself, or applying when you are already an approved tutor, does not create a referral. A referral link attributes applications for 90 days.",
+      },
+      {
+        kind: "p",
+        text: "The bounty is 15% of the MatchMax admin fee (section 15) on the referred tutor’s first successful case. It is not 15% of the tutor’s hourly pay.",
+      },
+      {
+        kind: "p",
+        text: "The bounty becomes payable only when the referred tutor’s first case completes both initial lessons and the admin fee is marked paid. If that case is waived, refunded or replaced before payment, nothing is payable.",
+      },
+      {
+        kind: "p",
+        text: "Bounties are paid by FPS on the monthly run.",
+      },
+    ],
+  },
+  {
+    title: "19. Notes order records and privacy",
+    id: "tos-privacy",
+    blocks: [
+      {
+        kind: "p",
+        text: "A note order records the buyer’s account, the pack identifier, the payment reference and the time of each download.",
+      },
+      {
+        kind: "p",
+        text: "Each delivered file is stamped with the order identifier and the buyer’s account identifier.",
+      },
+      {
+        kind: "p",
+        text: "The tutor sees how many units sold and the net amount due. The tutor is not shown the buyer’s identity.",
+      },
+      {
+        kind: "p",
+        text: "MatchMax staff can view the file to review listings and orders.",
+      },
+      {
+        kind: "p",
+        text: "These records are kept for 7 years. On request, a sold file is deleted where no payout or open dispute depends on it.",
+      },
+      {
+        kind: "p",
+        text: "This section summarises how note orders interact with privacy; it does not replace the Privacy Policy on this site, which governs.",
+      },
+    ],
+  },
 ];
 
 /**
@@ -492,7 +648,7 @@ function TermsOfUsePage() {
       <PageIntro
         description="The ground rules for using MatchMax — what you can expect from us and what we expect from you."
         eyebrow="Legal"
-        meta="Effective 15 September 2026"
+        meta="Effective 16 October 2026"
         title="Terms and Conditions"
       />
 
@@ -506,7 +662,10 @@ function TermsOfUsePage() {
             {SECTIONS.map((section) => (
               <article
                 key={section.title}
-                className="border-b border-border pb-12 last:border-b-0 last:pb-0"
+                id={section.id}
+                className={`border-b border-border pb-12 last:border-b-0 last:pb-0${
+                  section.id ? " scroll-mt-24" : ""
+                }`}
               >
                 <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{section.title}</h2>
                 <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">

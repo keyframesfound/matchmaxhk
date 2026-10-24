@@ -48,6 +48,7 @@ function GuideVerificationPage() {
           { id: "tiers", label: t("guide.verification.tiers_title") },
           { id: "process", label: t("guide.verification.process_title") },
           { id: "not-mean", label: t("guide.verification.not_mean_title") },
+          { id: "badge-scope", label: t("guide.verification.badge_title") },
         ]}
       />
       <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
@@ -132,6 +133,19 @@ function GuideVerificationPage() {
               {t("hiw.verification_disclaimer")}
             </p>
           </div>
+        </div>
+
+        {/* Issue #309: verification scope of the grade badge — the exact four
+            consent lines tutors accept at /join, in both locales. */}
+        <div id="badge-scope" className="mt-14 max-w-4xl scroll-mt-40">
+          <GuideHeading>{t("guide.verification.badge_title")}</GuideHeading>
+          <ul className="mt-6 list-disc space-y-3 border-t border-[color:var(--ink)]/15 pt-6 pl-5">
+            {([1, 2, 3, 4] as const).map((line) => (
+              <li key={line} className="text-sm leading-7 text-[color:var(--ink)]/80">
+                {t(`guide.verification.badge_line_${line}`)}
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="mt-14 flex flex-wrap gap-3">

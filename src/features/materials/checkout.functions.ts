@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { asAdminDb, type AdminDb } from "@/features/materials/storage-helpers";
 import { isUniqueViolation } from "@/features/materials/orders.functions";
 import {
@@ -10,6 +11,8 @@ import {
   orderGrantsAccess,
   splitMaterialMoney,
 } from "@/features/materials/lifecycle";
+import { gigOrderBuyerAction } from "@/features/gigs/gig";
+import { sweepPastDueGigOrders } from "@/features/gigs/gig-buyer.functions";
 
 /**
  * Issues #203 + P13 (#293): the manual-cashier checkout server functions.
@@ -51,6 +54,13 @@ type OrderRow = {
   delivered_at: string | null;
   receipt_sent_at: string | null;
   created_at: string;
+  // #328 gig fulfillment columns (null on note orders).
+  in_fulfillment_at: string | null;
+  fulfillment_due_at: string | null;
+  past_due_at: string | null;
+  buyer_source_path: string | null;
+  completion_note: string | null;
+  refund_requested_at: string | null;
 };
 
 type PublicMaterialRow = {
@@ -60,8 +70,11 @@ type PublicMaterialRow = {
   price_hkd: number;
   status: string;
   original_file_path: string | null;
+  material_type: string;
   page_count: number | null;
   tutor_id: string;
+  gig_category: string | null;
+  gig_delivery_type: string | null;
 };
 
 type OrderWithMaterial = OrderRow & { digital_materials: PublicMaterialRow | null };
@@ -125,6 +138,16 @@ export function escapeHtml(text: string): string {
 }
 
 /**
+ * Issue #214: record the checkout acceptance for an order. Thin wrapper so
+ * all three startCheckout paths (create, reuse, race-winner) stay fail-closed
+ * — a failed insert throws and the whole checkout fails.
+ */
+async function recordCheckoutAcceptance(userId: string, orderId: string): Promise<void> {
+  const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
+  await recordTermsAcceptance({ userId, surface: "checkout", subjectId: orderId });
+}
+
+/**
  * #203 flow step 3: create (or return) the awaiting_payment order for this
  * buyer + pack. Unique (material, buyer) among NON-refunded orders makes
  * double-checkout impossible — the second attempt gets the existing order
@@ -135,25 +158,41 @@ export function escapeHtml(text: string): string {
  */
 export const startCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ materialId: z.string().uuid() }).parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        materialId: z.string().uuid(),
+        // Issue #214: the buy click doubles as the notes-terms acceptance
+        // click — the checkbox must arrive true, and the handler records the
+        // terms_acceptances row (surface checkout, subject_id = order id).
+        legalAgreed: z.literal(true),
+      })
+      .parse(data),
+  )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
 
     const { data: material } = await db
       .from<PublicMaterialRow>("digital_materials")
-      .select("id, title, slug, price_hkd, status, original_file_path, page_count, tutor_id")
+      .select(
+        "id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id, gig_category, gig_delivery_type",
+      )
       .eq("id", data.materialId)
       .maybeSingle();
     if (!material || material.status !== "published") {
       throw new Error("This note is not available right now.");
     }
-    if (!material.original_file_path) {
+    // #326: gigs have NO listing-level source file (file_back returns ride
+    // the ORDER after payment; session/package gigs carry no file at all),
+    // so the notes "original must exist" gate is notes-only.
+    if (material.material_type !== "gig" && !material.original_file_path) {
       throw new Error("This note is not available right now.");
     }
-    if (material.price_hkd <= 0) {
-      throw new Error("This note is not purchasable right now.");
-    }
+    // #314: HK$0 free packs ARE purchasable — they run the same manual
+    // cashier flow (staff approve + release, ban list already applied at
+    // submit), the delivered order counts in the listing's bought count,
+    // and the file is released inside the buyer's account.
     // No self-purchase: tutors.user_id is the listing owner's AUTH account.
     const { data: ownerTutor } = await db
       .from<{ user_id: string }>("tutors")
@@ -180,7 +219,12 @@ export const startCheckout = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(2);
     const reusable = pickReusableOrder(existingRows ?? []);
-    if (reusable) return reusable;
+    if (reusable) {
+      // Issue #214: the gate fires on the reuse path too — the checkbox was
+      // still clicked, so record the acceptance for the returned order.
+      await recordCheckoutAcceptance(context.userId, reusable.orderId);
+      return reusable;
+    }
 
     const reference = buildOrderReference();
     const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(Number(material.price_hkd));
@@ -210,12 +254,20 @@ export const startCheckout = createServerFn({ method: "POST" })
         .order("created_at", { ascending: false })
         .limit(2);
       const reusableWinner = pickReusableOrder(winnerRows ?? []);
-      if (reusableWinner) return reusableWinner;
+      if (reusableWinner) {
+        await recordCheckoutAcceptance(context.userId, reusableWinner.orderId);
+        return reusableWinner;
+      }
       if (isUniqueViolation(insert.error)) {
         throw new Error("Could not create the order. Please try again.");
       }
       throw new Error(insert.error?.message || "Could not create the order.");
     }
+    // Issue #214: the order exists — record WHICH terms version the buyer
+    // accepted (subject_id = order id). Fail-closed: an insert failure fails
+    // the whole checkout, so no order is ever placed without a recorded
+    // acceptance.
+    await recordCheckoutAcceptance(context.userId, insert.data.id);
     return { orderId: insert.data.id, reference };
   });
 
@@ -231,10 +283,19 @@ export type MyOrder = {
   hasScreenshot: boolean;
   createdAt: string;
   deliveredAt: string | null;
-  action: "download" | "refunded" | "preparing" | "pay";
+  action: "download" | "refunded" | "preparing" | "pay" | "awaiting_delivery" | "request_refund";
+  // --- Freestyle gig fields (#328): populated only for material_type 'gig'.
+  materialType: string;
+  gigCategory: string | null;
+  gigDeliveryType: string | null;
+  fulfillmentDueAt: string | null;
+  completionNote: string | null;
+  hasSourceFile: boolean;
+  hasDeliveredFile: boolean;
 };
 
-function orderAction(status: string): MyOrder["action"] {
+function orderAction(status: string, materialType?: string): MyOrder["action"] {
+  if (materialType === "gig") return gigOrderBuyerAction(status);
   if (status === "awaiting_payment" || status === "rejected") return "pay";
   return boughtListAction(status);
 }
@@ -247,10 +308,14 @@ export const getMyOrder = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
 
+    // #328 lazy sweep first: the buyer's read is the freshest chance to flip
+    // an over-due in_fulfillment gig to past_due (advisory, never throws).
+    await sweepPastDueGigOrders(db);
+
     const { data: order } = await db
       .from<OrderWithMaterial>("material_orders")
       .select(
-        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, page_count, tutor_id)",
+        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, buyer_source_path, completion_note, fulfillment_due_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id, gig_category, gig_delivery_type)",
       )
       .eq("id", data.orderId)
       .eq("buyer_account_id", context.userId)
@@ -269,7 +334,14 @@ export const getMyOrder = createServerFn({ method: "POST" })
       hasScreenshot: Boolean(order.payment_screenshot_path),
       createdAt: order.created_at,
       deliveredAt: order.delivered_at,
-      action: orderAction(order.status),
+      action: orderAction(order.status, material?.material_type),
+      materialType: material?.material_type ?? "notes",
+      gigCategory: material?.gig_category ?? null,
+      gigDeliveryType: material?.gig_delivery_type ?? null,
+      fulfillmentDueAt: order.fulfillment_due_at ?? null,
+      completionNote: order.completion_note ?? null,
+      hasSourceFile: Boolean(order.buyer_source_path),
+      hasDeliveredFile: Boolean(order.delivered_file_path),
     } satisfies MyOrder;
   });
 
@@ -280,16 +352,21 @@ export const getBoughtMaterials = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
 
+    // #328 lazy sweep first (advisory) so the library shows fresh past_due.
+    await sweepPastDueGigOrders(db);
+
     const { data, error } = await db
       .from<OrderWithMaterial>("material_orders")
       .select(
-        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, page_count, tutor_id)",
+        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id, gig_category, gig_delivery_type)",
       )
       .eq("buyer_account_id", context.userId)
       .in("status", [
         "awaiting_payment",
         "paid",
         "stamping",
+        "in_fulfillment",
+        "past_due",
         "delivered",
         "stamp_failed",
         "rejected",
@@ -307,9 +384,10 @@ export const getBoughtMaterials = createServerFn({ method: "POST" })
         grossHkd: Number(order.gross_hkd),
         status: order.status,
         isGrant: false,
+        materialType: material?.material_type ?? "notes",
         deliveredAt: order.delivered_at,
         createdAt: order.created_at,
-        action: orderAction(order.status),
+        action: orderAction(order.status, material?.material_type),
         grantsAccess: orderGrantsAccess(order.status),
       };
     });
@@ -317,7 +395,7 @@ export const getBoughtMaterials = createServerFn({ method: "POST" })
 
 /** P14/checkout support: buyer attaches the one optional FPS proof screenshot. */
 export const uploadPaymentScreenshot = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) =>
     z
       .object({
@@ -435,13 +513,23 @@ export const markOrderPaid = createServerFn({ method: "POST" })
     // stops staff from clobbering delivered/refunded/stamping rows and
     // overwriting paid_at / fps_reference, mirroring releaseOrder's gate.
     const { data: order } = await db
-      .from<OrderRow>("material_orders")
-      .select("id, status")
+      .from<{
+        id: string;
+        status: string;
+        digital_materials: { material_type: string } | null;
+      }>("material_orders")
+      .select("id, status, digital_materials(material_type)")
       .eq("id", data.orderId)
       .maybeSingle();
     if (!order) throw new Error("Order not found.");
     if (!canMarkOrderPaid(order.status)) {
       throw new Error(`Order in status "${order.status}" cannot be marked paid.`);
+    }
+    // Grok review 2026-10-17 (soft): gig orders have their own fulfillment
+    // machine — a wrong-desk call here would park one at notes-only "paid"
+    // with no fulfillment_due_at. Send staff to markGigOrderPaid instead.
+    if (order.digital_materials?.material_type === "gig") {
+      throw new Error("This order is for a service listing — mark it paid from the Services desk.");
     }
 
     const { error } = await db
@@ -468,7 +556,7 @@ export const releaseOrder = createServerFn({ method: "POST" })
     const { data: order } = await db
       .from<OrderWithMaterial>("material_orders")
       .select(
-        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, page_count, tutor_id)",
+        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id)",
       )
       .eq("id", data.orderId)
       .maybeSingle();
@@ -493,13 +581,22 @@ export const releaseOrder = createServerFn({ method: "POST" })
       const res = await fetch(signed.signedUrl);
       if (!res.ok) throw new Error("Could not read original");
       const originalBytes = new Uint8Array(await res.arrayBuffer());
-      const stamped = await buildDeliveredFile(originalBytes, order);
 
-      const path = `delivered/${order.id}.pdf`;
+      // #314: a PDF gets the per-order stamp; an .apkg deck has no pages to
+      // stamp (and pdf-lib cannot read it), so the deck itself is released
+      // as the per-order copy. Either way delivery stays in-account and the
+      // tutor never sees the buyer.
+      const isApkg = /\.apkg$/i.test(material.original_file_path);
+      const ext = isApkg ? "apkg" : "pdf";
+      const deliveredBytes = isApkg
+        ? originalBytes
+        : await buildDeliveredFile(originalBytes, order);
+
+      const path = `delivered/${order.id}.${ext}`;
       const { error: uploadError } = await db.storage
         .from(ORIGINALS_BUCKET)
-        .upload(path, stamped as unknown as BlobPart, {
-          contentType: "application/pdf",
+        .upload(path, deliveredBytes as unknown as BlobPart, {
+          contentType: isApkg ? "application/octet-stream" : "application/pdf",
           upsert: true,
         });
       if (uploadError) throw new Error(uploadError.message);
@@ -578,7 +675,7 @@ export async function sendOrderReceipt(orderId: string): Promise<void> {
   const { data: order } = await db
     .from<OrderWithMaterial>("material_orders")
     .select(
-      "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, receipt_sent_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, page_count, tutor_id)",
+      "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, receipt_sent_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id)",
     )
     .eq("id", orderId)
     .maybeSingle();

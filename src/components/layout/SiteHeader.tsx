@@ -14,8 +14,10 @@ import {
 import { motion, useMotionValueEvent, useTransform } from "motion/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { setLocale } from "@/features/i18n/config";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
+import { CurrencyMenuSub, CurrencyToggle } from "@/components/brand/CurrencyToggle";
 import { Logo } from "@/components/brand/Logo";
 import { COLLAPSE_MIDPOINT, useSearchGroup } from "@/components/search/sticky-search-group";
 import {
@@ -26,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { BellMenu } from "@/components/layout/bell-menu";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
@@ -90,7 +93,7 @@ function DesktopTab({
       to={to}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-base font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-4",
+        "group relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-base font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-4",
         active
           ? "text-[color:var(--ink)]"
           : "text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]",
@@ -104,10 +107,14 @@ function DesktopTab({
         className="h-6 w-6 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
       />
       {children}
+      {/* Active underline + hover sweep: 2px ink bar that scales in from the
+          left (the DESIGN.md nav language), instead of a bare opacity flip. */}
       <span
         className={cn(
-          "absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-[color:var(--foreground)] transition-opacity duration-200 xl:inset-x-4",
-          active ? "opacity-100" : "opacity-0",
+          "absolute inset-x-3 bottom-0 h-[2px] origin-left rounded-full bg-[color:var(--foreground)] transition-transform duration-200 ease-out xl:inset-x-4 motion-reduce:transition-none",
+          active
+            ? "scale-x-100"
+            : "scale-x-0 group-hover:scale-x-100 group-focus-visible:scale-x-100",
         )}
       />
     </Link>
@@ -255,6 +262,8 @@ export function SiteHeader({
               {t("nav.become_tutor")}
             </Link>
 
+            {user && <BellMenu />}
+
             {user ? (
               <Link
                 to="/dashboard"
@@ -347,7 +356,7 @@ export function SiteHeader({
                 <MenuDivider />
                 <div className="px-1.5 py-1.5">
                   <DropdownMenuItem
-                    onSelect={() => void i18n.changeLanguage(nextLang)}
+                    onSelect={() => setLocale(nextLang)}
                     className={menuLinkClassName}
                   >
                     <MenuIcon>
@@ -358,6 +367,7 @@ export function SiteHeader({
                       {currentLang === "en" ? "EN" : "繁"}
                     </span>
                   </DropdownMenuItem>
+                  <CurrencyMenuSub />
                   <DropdownMenuItem
                     onSelect={() => setTheme(useDarkTheme ? "dark" : "light")}
                     className={menuLinkClassName}
@@ -443,48 +453,52 @@ export function SiteHeader({
               <span className={brandLabelClassName}>MatchMax</span>
             </div>
           </Link>
-          <StaggeredMobileMenu
-            items={mobileItems}
-            renderFooter={(closeMenu) => (
-              <div className="flex flex-col gap-3">
-                {!user ? (
-                  <>
-                    <Link to="/auth" onClick={closeMenu}>
-                      <Button
-                        variant="outline"
-                        className="h-10 w-full rounded-full border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
-                      >
-                        {t("nav.sign_in")}
-                      </Button>
-                    </Link>
-                    <Link to="/auth" onClick={closeMenu}>
-                      <Button
-                        variant="solid"
-                        color="blue"
-                        className="h-10 w-full rounded-full text-sm font-semibold"
-                      >
-                        {t("nav.sign_up")}
-                      </Button>
-                    </Link>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void signOut();
-                      closeMenu();
-                    }}
-                    className="h-10 w-full rounded-full border border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
-                  >
-                    {t("nav.sign_out")}
-                  </button>
-                )}
-                <div className="flex items-center justify-start pt-2">
-                  <LanguageToggle />
+          <div className="flex shrink-0 items-center gap-1">
+            {user && <BellMenu />}
+            <StaggeredMobileMenu
+              items={mobileItems}
+              renderFooter={(closeMenu) => (
+                <div className="flex flex-col gap-3">
+                  {!user ? (
+                    <>
+                      <Link to="/auth" onClick={closeMenu}>
+                        <Button
+                          variant="outline"
+                          className="h-10 w-full rounded-full border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
+                        >
+                          {t("nav.sign_in")}
+                        </Button>
+                      </Link>
+                      <Link to="/auth" onClick={closeMenu}>
+                        <Button
+                          variant="solid"
+                          color="blue"
+                          className="h-10 w-full rounded-full text-sm font-semibold"
+                        >
+                          {t("nav.sign_up")}
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void signOut();
+                        closeMenu();
+                      }}
+                      className="h-10 w-full rounded-full border border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
+                    >
+                      {t("nav.sign_out")}
+                    </button>
+                  )}
+                  <div className="flex items-center justify-start gap-2 pt-2">
+                    <LanguageToggle />
+                    <CurrencyToggle />
+                  </div>
                 </div>
-              </div>
-            )}
-          />
+              )}
+            />
+          </div>
         </div>
       </div>
       <MobileBottomNav />

@@ -69,6 +69,18 @@ function GuideTutorsPage() {
           <p className="mt-4 text-lg leading-8 text-[color:var(--ink)]/65">
             {t("guide.tutors.intro")}
           </p>
+          <p className="mt-4 text-base leading-7 text-[color:var(--ink)]/65">
+            {t("guide.tutors.support_para")}
+          </p>
+          <p className="mt-3 text-base leading-7 text-[color:var(--ink)]/65">
+            <Link
+              to="/tutor-playbook"
+              className="font-bold underline underline-offset-4 hover:opacity-80"
+            >
+              {t("guide.tutors.support_link_label")}
+            </Link>
+            {t("guide.tutors.support_link_suffix")}
+          </p>
         </div>
 
         <div id="steps" className="mt-12 max-w-4xl scroll-mt-40">
@@ -124,6 +136,10 @@ function GuideTutorsPage() {
           <Link to="/tutor-playbook" className="font-bold underline underline-offset-4">
             {t("guide.tutors.playbook_link")}
           </Link>
+        </p>
+
+        <p className="mt-10 border-t border-[color:var(--ink)]/12 pt-6 text-sm text-muted-foreground">
+          {t("guide.tutors.founder_line")}
         </p>
       </section>
     </GuidePage>

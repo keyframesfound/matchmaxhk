@@ -22,6 +22,7 @@ import {
   TRAVEL_NOTE_MAX,
 } from "@/features/tutors/rates";
 import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
+import { nextTutorCode } from "@/lib/tutor-code";
 import { buildAnswerRows, type TutorApplication } from "@/lib/tutor-application.schema";
 import { getRuntimeEnv } from "@/lib/runtime-env";
 
@@ -216,14 +217,8 @@ function buildCurriculumSubjectVocab(): string {
   ].join("\n");
 }
 
-function nextTutorCode(rows: { tutor_code?: string | null }[]): string {
-  let max = 0;
-  for (const row of rows) {
-    const match = /^MM-T(\d+)$/i.exec((row.tutor_code ?? "").trim());
-    if (match) max = Math.max(max, Number(match[1]));
-  }
-  return `MM-T${String(max + 1).padStart(3, "0")}`;
-}
+// nextTutorCode moved to @/lib/tutor-code (issue #310) so the submit-time
+// publisher shares the exact same code-allocation rule.
 
 function buildSystemPrompt(styleExamples: StyleExample[], suggestedCode: string): string {
   return `You are the profile-builder assistant for MatchMax, a Hong Kong tutoring marketplace. You convert raw tutor application information into a complete tutor profile that matches the MatchMax house style EXACTLY.

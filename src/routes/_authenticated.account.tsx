@@ -1,16 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   BookOpen,
+  Briefcase,
   CalendarClock,
   Download,
   Eye,
   FilePlus2,
   Inbox,
   Loader2,
+  PackageCheck,
   Pencil,
   Plus,
+  ScanEye,
   ShoppingCart,
   Star,
 } from "lucide-react";
@@ -19,7 +23,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/features/auth/useAuth";
+import { SignupChecklistCard } from "@/features/account/signup-checklist";
 import {
   formatAvailabilityDate,
   getTutorAvailabilityReadiness,
@@ -32,6 +39,15 @@ import {
 } from "@/features/materials/note-drafts.functions";
 import { getBoughtMaterials } from "@/features/materials/checkout.functions";
 import { getOwnedMaterialUrl } from "@/features/materials/orders.functions";
+import { gigDeliveryLabelKey, MAX_GIG_FILE_BYTES } from "@/features/gigs/gig";
+import { getMyGigs, type MyGigRow } from "@/features/gigs/gig-drafts.functions";
+import {
+  getMyGigOrders,
+  deliverGigOrder,
+  getGigBuyerSourceUrl,
+  type MyGigOrderRow,
+} from "@/features/gigs/gig-fulfillment.functions";
+import { fileToBase64 } from "@/features/gigs/gig-files";
 
 /**
  * Epic #280 P6: Account is the store page, Carousell order. Top is identity
@@ -120,6 +136,19 @@ function AccountPage() {
     enabled: Boolean(user),
   });
 
+  // Freestyle gigs (#326/#328): my service listings + orders waiting on me.
+  const gigsQuery = useQuery({
+    queryKey: ["account", "my-gigs", user?.id],
+    queryFn: () => getMyGigs(),
+    enabled: Boolean(user),
+  });
+
+  const gigOrdersQuery = useQuery({
+    queryKey: ["account", "my-gig-orders", user?.id],
+    queryFn: () => getMyGigOrders(),
+    enabled: Boolean(user),
+  });
+
   // P6: the signed-in account's own card (RLS tutors_owner_select — includes
   // an unpublished card, so the owner still sees it here).
   const myTutorQuery = useQuery({
@@ -186,6 +215,8 @@ function AccountPage() {
   const materials: MyMaterialsRow[] = materialsQuery.data ?? [];
   const bought = boughtQuery.data ?? [];
   const cases = myCasesQuery.data ?? [];
+  const gigs: MyGigRow[] = gigsQuery.data ?? [];
+  const gigOrders: MyGigOrderRow[] = gigOrdersQuery.data ?? [];
   const parentName =
     (user.user_metadata?.name as string | undefined) ?? user.email?.split("@")[0] ?? "";
   const availabilityState = tutor ? getTutorAvailabilityState(tutor) : null;
@@ -202,6 +233,9 @@ function AccountPage() {
       <SiteHeader />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">
         <h1 className="text-2xl font-bold tracking-normal">{t("account.title")}</h1>
+
+        {/* #141: post-signup checklist — first block, dismissible, hidden once done */}
+        <SignupChecklistCard />
 
         {/* P6: identity + rating — the store header */}
         <section className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-5">
@@ -256,6 +290,15 @@ function AccountPage() {
                 >
                   <Eye className="mr-2 h-4 w-4" aria-hidden />
                   {t("account.view_public")}
+                </Link>
+              </Button>
+            ) : null}
+            {/* Issue #104: guided Preview-as-Parent sandbox. */}
+            {tutor ? (
+              <Button variant="outline" className="font-semibold" asChild>
+                <Link to="/account/preview">
+                  <ScanEye className="mr-2 h-4 w-4" aria-hidden />
+                  {t("account.preview_cta")}
                 </Link>
               </Button>
             ) : null}
@@ -475,6 +518,103 @@ function AccountPage() {
           )}
         </section>
 
+        {/* Freestyle gigs (tutor side, #326/#328) — my services + fulfillment */}
+        <section className="mt-8 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-lg font-bold">
+              <Briefcase className="h-5 w-5" aria-hidden />
+              {t("account.my_services")}
+            </h2>
+            <Button variant="outline" className="font-semibold" asChild>
+              <a href="/account/services/new">
+                <Plus className="mr-2 h-4 w-4" aria-hidden />
+                {t("account.add_service")}
+              </a>
+            </Button>
+          </div>
+
+          {gigsQuery.isLoading ? (
+            <div className="flex h-32 items-center justify-center rounded-xl border border-border bg-card">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden />
+            </div>
+          ) : gigs.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-card p-10 text-center">
+              <FilePlus2 className="h-8 w-8 text-muted-foreground" aria-hidden />
+              <p className="text-sm text-muted-foreground">{t("account.no_services")}</p>
+              <Button variant="solid" color="accent" className="font-bold" asChild>
+                <a href="/account/services/new">
+                  <Plus className="mr-2 h-4 w-4" aria-hidden />
+                  {t("account.add_service")}
+                </a>
+              </Button>
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {gigs.map((gig) => (
+                <li
+                  key={gig.id}
+                  className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-border bg-card p-4"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate font-semibold">{gig.title}</p>
+                      <span
+                        className={`rounded-md px-2 py-0.5 text-xs font-bold ${STATUS_BADGE[gig.status] ?? "bg-slate-500/10 text-slate-600"}`}
+                      >
+                        {t(`account.status_${gig.status}`)}
+                      </span>
+                    </div>
+                    {gig.status === "rejected" && gig.rejectionReason && (
+                      <p className="mt-1 text-xs text-[#B42318]">
+                        {t("account.rejection_reason", { reason: gig.rejectionReason })}
+                      </p>
+                    )}
+                    <p className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                      <span>{t("notes.price", { amount: gig.priceHkd })}</span>
+                      {gig.deliveryType ? (
+                        <span>{t(gigDeliveryLabelKey(gig.deliveryType))}</span>
+                      ) : null}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label={t("account.edit_service")}
+                      asChild
+                    >
+                      <a href={`/account/services/${gig.id}/edit`}>
+                        <Pencil className="h-4 w-4" aria-hidden />
+                      </a>
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* #328: open orders waiting on this tutor (swept server-side). */}
+          {gigOrders.length > 0 ? (
+            <div className="space-y-3">
+              <h3 className="flex items-center gap-2 text-sm font-bold">
+                <PackageCheck className="h-4 w-4" aria-hidden />
+                {t("account.orders_to_fulfill")}
+              </h3>
+              {gigOrdersQuery.isLoading ? (
+                <div className="flex h-24 items-center justify-center rounded-xl border border-border bg-card">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden />
+                </div>
+              ) : (
+                <ul className="space-y-3">
+                  {gigOrders.map((order) => (
+                    <GigFulfillRow key={order.orderId} order={order} />
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : null}
+        </section>
+
         {/* P6 parent block: my cases */}
         <section className="mt-12 space-y-4">
           <h2 className="flex items-center gap-2 text-lg font-bold">
@@ -583,6 +723,20 @@ function AccountPage() {
                       {t("orders.preparing_badge")}
                     </span>
                   )}
+                  {row.action === "awaiting_delivery" && (
+                    <span className="rounded-md bg-accent px-2.5 py-1 text-xs font-bold text-accent-foreground">
+                      {t("account.order_awaiting_delivery")}
+                    </span>
+                  )}
+                  {row.action === "request_refund" && (
+                    <Link
+                      to="/orders/$orderId"
+                      params={{ orderId: row.orderId }}
+                      className="text-xs font-semibold text-rose-600 hover:underline"
+                    >
+                      {t("account.order_past_due")}
+                    </Link>
+                  )}
                   {row.action === "pay" && (
                     <Link
                       to="/orders/$orderId"
@@ -600,5 +754,144 @@ function AccountPage() {
       </main>
       <SiteFooter />
     </div>
+  );
+}
+
+/**
+ * #328: one open gig order with its delivery action — file_back uploads a
+ * return file (PDF/DOCX); session/package mark complete with an optional
+ * note. Buyer identity never appears here (the server fn never returns it).
+ */
+function GigFulfillRow({ order }: { order: MyGigOrderRow }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [note, setNote] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+
+  const isFileBack = order.deliveryType === "file_back";
+  const fileTooLarge = file != null && file.size > MAX_GIG_FILE_BYTES;
+
+  // #328 file_back: the tutor must be able to READ the buyer's source
+  // before annotating it (grok re-review 2026-10-17: upload-only flow).
+  const sourceUrl = useMutation({
+    mutationFn: () => getGigBuyerSourceUrl({ data: { orderId: order.orderId } }),
+    onSuccess: (result) => window.open(result.signedUrl, "_blank", "noopener"),
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : t("account.source_file_unavailable")),
+  });
+
+  const deliver = useMutation({
+    mutationFn: async () => {
+      const base64 = file ? await fileToBase64(file) : undefined;
+      return deliverGigOrder({
+        data: {
+          orderId: order.orderId,
+          completionNote: isFileBack ? undefined : note.trim() || undefined,
+          base64Data: base64,
+          fileName: file?.name,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success(t("account.fulfill_done"));
+      void queryClient.invalidateQueries({ queryKey: ["account", "my-gig-orders"] });
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : t("account.fulfill_failed")),
+  });
+
+  return (
+    <li className="rounded-xl border border-border bg-card p-4">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="truncate font-semibold">{order.title}</p>
+            {order.status === "past_due" ? (
+              <span className="rounded-md bg-[#F4212E]/10 px-2 py-0.5 text-xs font-bold text-[#B42318]">
+                {t("account.order_past_due")}
+              </span>
+            ) : (
+              <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700">
+                {t("account.order_awaiting_delivery")}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            {order.deliveryType ? <span>{t(gigDeliveryLabelKey(order.deliveryType))}</span> : null}
+            <span>{t("notes.price", { amount: order.grossHkd })}</span>
+            {order.fulfillmentDueAt ? (
+              <span>
+                {t("account.order_due", {
+                  date: new Date(order.fulfillmentDueAt).toLocaleDateString(),
+                })}
+              </span>
+            ) : null}
+          </p>
+        </div>
+      </div>
+      <div className="mt-3 space-y-2 border-t border-border pt-3">
+        {isFileBack ? (
+          <div className="space-y-1.5">
+            {order.hasSourceFile ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="font-semibold"
+                disabled={sourceUrl.isPending}
+                onClick={() => sourceUrl.mutate()}
+              >
+                {sourceUrl.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" aria-hidden />
+                )}
+                {t("account.source_file_download")}
+              </Button>
+            ) : (
+              <p className="text-xs text-muted-foreground">{t("account.source_file_waiting")}</p>
+            )}
+            <Label htmlFor={`return-file-${order.orderId}`}>{t("account.return_file_label")}</Label>
+            <Input
+              id={`return-file-${order.orderId}`}
+              type="file"
+              accept=".pdf,.docx"
+              className="h-11 cursor-pointer"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            />
+            {fileTooLarge ? (
+              <p className="text-xs text-[#B42318]">{t("gigs.form.return_too_large")}</p>
+            ) : null}
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            <Label htmlFor={`completion-note-${order.orderId}`}>
+              {t("account.fulfillment_note_label")}
+            </Label>
+            <Input
+              id={`completion-note-${order.orderId}`}
+              value={note}
+              maxLength={300}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder={t("account.fulfillment_note_placeholder")}
+              className="h-11"
+            />
+          </div>
+        )}
+        <div>
+          <Button
+            variant="outline"
+            className="font-semibold"
+            disabled={deliver.isPending || fileTooLarge || (isFileBack && !file)}
+            onClick={() => deliver.mutate()}
+          >
+            {deliver.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+            ) : null}
+            {isFileBack ? t("account.fulfill_deliver") : t("account.fulfill_complete")}
+          </Button>
+        </div>
+      </div>
+    </li>
   );
 }

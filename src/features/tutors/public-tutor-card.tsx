@@ -2,12 +2,13 @@ import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState }
 import { useTranslation } from "react-i18next";
 import {
   Award,
-  BookOpen,
+  BadgeCheck,
   CalendarDays,
   Check,
   Columns2,
   GraduationCap,
   Hash,
+  LineChart,
   School,
   Share2,
   UserRound,
@@ -21,12 +22,27 @@ import {
   getTutorEducationLines,
   getTutorPriceDisplay,
   getTutorStatusLabelKey,
-  getTutorSubjectChips,
   type TutorSubjectChip,
 } from "@/features/tutors/tutor-display";
+import {
+  isParentFavorite,
+  selectDemandBadge,
+  type EngagementSummary,
+} from "@/features/tutors/engagement";
+import { DemandBadge, ParentFavoriteBadge } from "@/features/tutors/engagement-badges";
+import { ExperiencePill } from "@/features/tutors/experience-badge";
 import { useFitText } from "@/hooks/use-fit-text";
 import { shareOrCopy } from "@/lib/share";
 import { cn } from "@/lib/utils";
+import { academicTierLabel } from "@/features/tutors/verticals-labels";
+import { getActiveCustomHeadline } from "@/features/tutors/custom-headline";
+import {
+  buildCoreAcademicBreakdown,
+  countCoreAcademicGrades,
+} from "@/features/tutors/core-academic-breakdown";
+import { useDisplayCurrency } from "@/features/currency/display-currency-context";
+import { convertedTextFromHkd } from "@/features/currency/convert";
+import { DEFAULT_CURRENCY, formatMoney, toCurrencyCode } from "@/lib/money";
 
 function getTutorInitials(tutorCode?: string | null) {
   const normalized = (tutorCode ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
@@ -76,9 +92,11 @@ type FitTextProps = {
   contentKey: string | number;
   className?: string;
   children: ReactNode;
+  /** Native hover tooltip (#114): the tutor's own quoted figure. */
+  title?: string;
 };
 
-function FitText({ as, maxLines, contentKey, className, children }: FitTextProps) {
+function FitText({ as, maxLines, contentKey, className, children, title }: FitTextProps) {
   const ref = useFitText<HTMLParagraphElement & HTMLLIElement>({
     maxLines,
     contentKey,
@@ -86,14 +104,14 @@ function FitText({ as, maxLines, contentKey, className, children }: FitTextProps
 
   if (as === "li") {
     return (
-      <li ref={ref} className={className}>
+      <li ref={ref} className={className} title={title}>
         {children}
       </li>
     );
   }
 
   return (
-    <p ref={ref} className={className}>
+    <p ref={ref} className={className} title={title}>
       {children}
     </p>
   );
@@ -113,6 +131,9 @@ type PublicTutorCardProps = {
   tagQuery?: (tag: string) => void;
   /** data-tour anchor for the coach-mark tours (issue #397). */
   tourId?: string;
+  /** Issues #102/#151: engagement summary from get_tutor_engagement. When
+   *  absent (or null) no demand / Parent Favorite badges render. */
+  engagement?: EngagementSummary | null;
 };
 
 export function PublicTutorCard({
@@ -127,16 +148,43 @@ export function PublicTutorCard({
   shareable = true,
   tagQuery,
   tourId,
+  engagement,
 }: PublicTutorCardProps) {
   const { t, i18n } = useTranslation();
+  // Issue #114: honor the visitor's display currency; the native-figure
+  // tooltip only appears when the tutor quotes in a different currency.
+  const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
   const interactive = typeof onOpen === "function";
-  const academicChips = useMemo(() => getTutorSubjectChips(tutor), [tutor]);
+  // Issue #309: the academic chips show APPROVED tutor_grades labels only.
+  // Pending/rejected rows never reach the public card; the slip file itself is
+  // never displayed or linked to parents.
+  const approvedGradeLabels = useMemo(
+    () => (tutor.approved_grade_labels ?? []).map((label) => label.trim()).filter(Boolean),
+    [tutor],
+  );
+  const academicChips = useMemo<TutorSubjectChip[]>(
+    () => approvedGradeLabels.map((label) => ({ subject: label, grade: null })),
+    [approvedGradeLabels],
+  );
+  // One Verified badge — derived from ">=1 approved grade" (#309), now the
+  // minimalist BLUE TICK in MatchMax azure (issue #411 branding).
+  const verified = approvedGradeLabels.length > 0;
+  // Issue #411: Row 1 is the active dual-language custom headline
+  // (custom_headline_en/zh with strict fallback to the derived headline).
+  const activeHeadline = useMemo(
+    () => getActiveCustomHeadline(tutor, i18n.language),
+    [tutor, i18n.language],
+  );
   const cardHighlights = useMemo(() => getTutorCardHighlights(tutor), [tutor]);
   const price = useMemo(() => getTutorPriceDisplay(tutor), [tutor]);
   const availabilityReadiness = useMemo(() => getTutorAvailabilityReadiness(tutor), [tutor]);
   const academicChipsRef = useRef<HTMLDivElement | null>(null);
   const academicWidthRef = useRef<number | null>(null);
   const [areAcademicChipsExpanded, setAreAcademicChipsExpanded] = useState(false);
+  // Issue #411: Core Academic Breakdown "View all N grades" expand toggle —
+  // the card stretches to reveal every pill only when the tutor clicks.
+  const [isBreakdownExpanded, setIsBreakdownExpanded] = useState(false);
+  const visibleGradeCap = 6;
   const [visibleAcademicChipCount, setVisibleAcademicChipCount] = useState(academicChips.length);
   const [hasPhotoError, setHasPhotoError] = useState(false);
   useEffect(() => setHasPhotoError(false), [tutor.photo_url]);
@@ -146,18 +194,44 @@ export function PublicTutorCard({
   }) as string;
   // Issues #77/#52: tutor status pill ("University student" etc.).
   const statusKey = getTutorStatusLabelKey(tutor.tutor_status);
+  // Issues #102/#151: dynamic demand badge (null = hidden — empty-restaurant
+  // guard) + Parent Favorite, computed from the engagement summary prop.
+  const demandBadge = engagement
+    ? selectDemandBadge({
+        remaining_student_slots: tutor.remaining_student_slots,
+        inquiries_7d: engagement.inquiries_7d,
+        saves_total: engagement.saves_total,
+      })
+    : null;
+  const showParentFavorite = engagement ? isParentFavorite(engagement) : false;
   const statusLabel = statusKey ? t(statusKey) : "";
   const primaryCredential = removeEmoji(
-    tutor.academic_headline ??
+    activeHeadline ??
       tutor.undergrad_university ??
       tutor.secondary_school ??
       t("tutor_card.verified_fallback"),
   );
+  // Issue #411: Core Academic Breakdown — per-curriculum totals + grade pills.
+  const breakdown = useMemo(
+    () => buildCoreAcademicBreakdown(tutor.exam_results ?? [], tutor.academic_headline),
+    [tutor.exam_results, tutor.academic_headline],
+  );
+  const breakdownGradeCount = useMemo(() => countCoreAcademicGrades(breakdown), [breakdown]);
   // Issue #107: degree line (postgrad • undergrad) + secondary school. Issue
   // #138: each school/uni line may wrap to two lines instead of truncating.
   const educationLines = getTutorEducationLines(tutor).filter(
     (line) => removeEmoji(line.text) !== primaryCredential,
   );
+  // Issue #190: one compact chip per vertical the tutor opted into
+  // (Kindergarten / University). Canonical target_students markers only;
+  // legacy curriculum strings (IBDP…) never render here. No GPA on cards.
+  const verticalTierChips = useMemo(() => {
+    const levels = Array.isArray(tutor.target_students) ? tutor.target_students : [];
+    const chips: string[] = [];
+    if (levels.includes("Kindergarten")) chips.push(academicTierLabel("kindergarten"));
+    if (levels.includes("University")) chips.push(academicTierLabel("university"));
+    return chips;
+  }, [tutor.target_students]);
 
   useEffect(() => {
     setAreAcademicChipsExpanded(false);
@@ -217,6 +291,12 @@ export function PublicTutorCard({
     setAreAcademicChipsExpanded((expanded) => !expanded);
   };
 
+  // Issue #411: stretch the card to reveal every grade pill (and back).
+  const toggleBreakdownGrades = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setIsBreakdownExpanded((expanded) => !expanded);
+  };
+
   const handleCompareToggle = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onCompareToggle?.();
@@ -226,7 +306,9 @@ export function PublicTutorCard({
     event.stopPropagation();
     void shareOrCopy(
       {
-        title: `Tutor ${formatTutorCode(tutor.tutor_code)} | MatchMax`,
+        // Issue #417: share title is the tutor's display name; the URL is the
+        // canonical profile path resolved at click time (SSR-safe).
+        title: tutor.display_name,
         // Issue #125: a flagged pricing field strips the rate — omit it.
         // Issue #319: the shared figure is always the card floor ("$X up/hr"),
         // never a range and never max_hourly_rate_hkd.
@@ -236,7 +318,8 @@ export function PublicTutorCard({
             : `Check out tutor ${tutor.tutor_code} on MatchMax.`,
         url: `${window.location.origin}/tutors/${tutor.tutor_code}`,
       },
-      t("profile.link_copied"),
+      t("share.copied"),
+      t("share.share_failed"),
     );
   };
 
@@ -297,6 +380,38 @@ export function PublicTutorCard({
                 {statusLabel}
               </span>
             ) : null}
+            {/* Issue #199: neutral SEN capability badge (azure stays reserved
+                for money CTAs). Shown only when sen_enabled. */}
+            {tutor.sen_enabled ? (
+              <span
+                className="max-w-full whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-[color:var(--ink)]"
+                title={t("sen.badge_title")}
+              >
+                SEN
+              </span>
+            ) : null}
+            {/* Issue #411: BLUE TICK verified badge (MatchMax azure) replacing
+                the #309 emerald pill. Icon-only, like the industry standard;
+                the #309 disclaimer line still renders under the header and the
+                Self-Reported pill is untouched. */}
+            {verified ? (
+              <span
+                className="inline-flex max-w-full items-center justify-center"
+                title={t("tutor_card.verified_disclaimer")}
+              >
+                <BadgeCheck
+                  className="h-5 w-5 fill-[#1d9bf0] text-white dark:text-[#0b2230]"
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
+                <span className="sr-only">{t("tutor_card.verified_badge")}</span>
+              </span>
+            ) : null}
+            {/* Issues #102/#151: dynamic demand + Parent Favorite badges in
+                the card's badge column (same wrap-friendly pill anatomy as
+                the status/SEN/Verified badges above). */}
+            {demandBadge ? <DemandBadge kind={demandBadge} /> : null}
+            {showParentFavorite ? <ParentFavoriteBadge /> : null}
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">
@@ -331,6 +446,10 @@ export function PublicTutorCard({
                 <span className="min-w-0 break-words line-clamp-2">{removeEmoji(line.text)}</span>
               </p>
             ))}
+            {/* Issue #387: verified experience pill — self-fetching, hides
+                completely at 0 verified lessons (Ryan-frozen card: this is the
+                ONLY visual addition; nothing else on the card changes). */}
+            <ExperiencePill tutorId={tutor.id} className="mt-1.5" />
           </div>
 
           {genderLabel ? (
@@ -342,6 +461,13 @@ export function PublicTutorCard({
         </div>
       </header>
 
+      {/* Issue #309: the exact card line under the Verified badge. */}
+      {verified ? (
+        <p className="border-b border-border bg-[color:var(--surface-subtle)] px-3 py-1.5 text-[11px] leading-snug text-muted-foreground md:px-4">
+          {t("tutor_card.verified_disclaimer")}
+        </p>
+      ) : null}
+
       {availabilityReadiness === "pre_booking" && tutor.earliest_start_date ? (
         <p className="flex items-center gap-1.5 border-b border-border bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-700 md:px-4 dark:text-amber-400">
           <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -352,42 +478,114 @@ export function PublicTutorCard({
       ) : null}
 
       <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
-        {academicChips.length > 0 ? (
+        {/* Issue #190: compact vertical tier chips (Kindergarten / University). */}
+        {verticalTierChips.length > 0 ? (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {verticalTierChips.map((label) => (
+              <span
+                key={label}
+                className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold leading-tight text-[color:var(--ink)]"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {breakdown.length > 0 || academicChips.length > 0 ? (
           <section className="border-b border-border pb-2.5 md:pb-3">
             <h3 className="flex items-center gap-1.5 text-sm font-bold text-[color:var(--ink)] @max-sm:text-xs">
-              <BookOpen
+              <LineChart
                 className="h-3.5 w-3.5 text-[color:var(--brand-link)] @max-sm:h-3 @max-sm:w-3"
                 strokeWidth={2.5}
                 aria-hidden="true"
               />
-              {t("tutor_card.academic_achievements")}
+              {/* Issue #411: the EXACT shared label (same key as the detail
+                  page — never a "Academic Breakdown" variant). */}
+              {t("profile.section_academic")}
             </h3>
-            <div className="relative mt-2">
-              <div
-                id={`academic-achievements-${tutor.tutor_code}`}
-                ref={academicChipsRef}
-                className="flex flex-wrap items-start gap-2 overflow-hidden"
+
+            {/* Issue #411: per-curriculum groups — the total score is the
+                group header ("IBDP: 45/45"), grade pills underneath, subtle
+                divider between curriculums. Hidden entirely when the tutor
+                has no exam scores at all (Examiner / pro tutors). */}
+            {breakdown.map((group, groupIndex) => {
+              const gradesShown = isBreakdownExpanded
+                ? group.grades
+                : (() => {
+                    let before = 0;
+                    for (let i = 0; i < groupIndex; i += 1) before += breakdown[i].grades.length;
+                    const room = Math.max(0, visibleGradeCap - before);
+                    return group.grades.slice(0, room);
+                  })();
+              if (!isBreakdownExpanded && gradesShown.length === 0) return null;
+              return (
+                <div
+                  key={`${group.curriculum}-${groupIndex}`}
+                  className={groupIndex > 0 ? "mt-2 border-t border-border pt-2" : "mt-2"}
+                >
+                  <p className="text-xs font-bold leading-snug text-[color:var(--ink)]">
+                    {group.total ? `${group.curriculum}: ${group.total}` : group.curriculum}
+                  </p>
+                  {gradesShown.length > 0 ? (
+                    <div className="mt-1 flex flex-wrap items-start gap-2">
+                      {gradesShown.map((grade, gradeIndex) => (
+                        <AcademicResultChip
+                          key={`${grade.subject}-${gradeIndex}`}
+                          chip={{ subject: grade.subject, grade: grade.grade || null }}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+
+            {/* Issue #411 extension system: pills beyond the cap collapse
+                behind a "View all N grades" toggle so the card stretches
+                only on click. */}
+            {breakdownGradeCount > visibleGradeCap ? (
+              <button
+                type="button"
+                aria-expanded={isBreakdownExpanded}
+                onClick={toggleBreakdownGrades}
+                onKeyDown={(event) => event.stopPropagation()}
+                className="mt-1.5 inline-flex items-center gap-0.5 rounded-sm text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:text-sm @max-sm:text-[11px]!"
               >
-                {academicChips
-                  .slice(0, areAcademicChipsExpanded ? undefined : visibleAcademicChipCount)
-                  .map((chip, index) => (
-                    <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
-                  ))}
-                {!areAcademicChipsExpanded && visibleAcademicChipCount < academicChips.length ? (
-                  <button
-                    data-academic-more
-                    type="button"
-                    aria-expanded={false}
-                    aria-controls={`academic-achievements-${tutor.tutor_code}`}
-                    onClick={toggleAcademicChips}
-                    onKeyDown={(event) => event.stopPropagation()}
-                    className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:py-1.5 md:text-sm @max-sm:text-[11px]!"
-                  >
-                    ... {t("tutor_card.more")}
-                  </button>
-                ) : null}
+                {isBreakdownExpanded
+                  ? t("tutor_card.show_fewer_grades")
+                  : t("tutor_card.view_all_grades", { count: breakdownGradeCount })}
+              </button>
+            ) : null}
+
+            {/* Issue #309: staff-APPROVED grade labels keep their chips row. */}
+            {academicChips.length > 0 ? (
+              <div className="relative mt-2">
+                <div
+                  id={`academic-achievements-${tutor.tutor_code}`}
+                  ref={academicChipsRef}
+                  className="flex flex-wrap items-start gap-2 overflow-hidden"
+                >
+                  {academicChips
+                    .slice(0, areAcademicChipsExpanded ? undefined : visibleAcademicChipCount)
+                    .map((chip, index) => (
+                      <AcademicResultChip key={`${chip.subject}-${index}`} chip={chip} />
+                    ))}
+                  {!areAcademicChipsExpanded && visibleAcademicChipCount < academicChips.length ? (
+                    <button
+                      data-academic-more
+                      type="button"
+                      aria-expanded={false}
+                      aria-controls={`academic-achievements-${tutor.tutor_code}`}
+                      onClick={toggleAcademicChips}
+                      onKeyDown={(event) => event.stopPropagation()}
+                      className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:py-1.5 md:text-sm @max-sm:text-[11px]!"
+                    >
+                      ... {t("tutor_card.more")}
+                    </button>
+                  ) : null}
+                </div>
               </div>
-            </div>
+            ) : null}
           </section>
         ) : null}
 
@@ -476,10 +674,21 @@ export function PublicTutorCard({
             maxLines={1}
             contentKey={`${price.baseRate}-${priceSuffix}`}
             className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
+            title={
+              displayCurrency !== DEFAULT_CURRENCY &&
+              convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) &&
+              toCurrencyCode(tutor.currency) !== displayCurrency
+                ? t("currency.base_price_tooltip", {
+                    amount: formatMoney(tutor.hourly_rate, toCurrencyCode(tutor.currency)),
+                  })
+                : undefined
+            }
           >
             {/* Issue #319: one "$X up/hr" figure — the base rate floor. Extra
-                rate rows never appear here, so they can never lower it. */}
-            ${price.baseRate}
+                rate rows never appear here, so they can never lower it.
+                #114: converted figure when the visitor picked a display
+                currency; tooltip shows the tutor's own quote when it differs. */}
+            {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ?? `$${price.baseRate}`}
             <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
               {t("tutor_card.price_up")}
               {priceSuffix}
@@ -535,7 +744,7 @@ export function PublicTutorCard({
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    aria-label={t("tutor_card.share", { code: formatTutorCode(tutor.tutor_code) })}
+                    aria-label={`${t("share.share_tutor")} (${formatTutorCode(tutor.tutor_code)})`}
                     onClick={handleShare}
                     onKeyDown={(event) => event.stopPropagation()}
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8"
@@ -543,9 +752,7 @@ export function PublicTutorCard({
                     <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent side="top">
-                  {t("tutor_card.share", { code: formatTutorCode(tutor.tutor_code) })}
-                </TooltipContent>
+                <TooltipContent side="top">{t("share.share_tutor")}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           ) : null}

@@ -22,6 +22,9 @@ export type TutorApplicationRecord = {
   attachment_files: StoredApplicationFile[];
   rejected_at: string | null;
   purge_after: string | null;
+  // Issue #310: set at submit time when the card was published from this row.
+  linked_tutor_id: string | null;
+  linked_tutor_code: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -66,11 +69,16 @@ function normalizeApplication(row: Record<string, unknown>): TutorApplicationRec
     attachment_files: normalizeFiles(row.attachment_files),
     rejected_at: typeof row.rejected_at === "string" ? row.rejected_at : null,
     purge_after: typeof row.purge_after === "string" ? row.purge_after : null,
+    linked_tutor_id: typeof row.linked_tutor_id === "string" ? row.linked_tutor_id : null,
+    linked_tutor_code: null,
     created_at: String(row.created_at ?? ""),
     updated_at: String(row.updated_at ?? ""),
   };
 }
 
+// Issue #310: join-requests is a read-only archive; each row shows the code of
+// the tutor card that was published from it (resolved in one extra query —
+// linked_tutor_id has no PostgREST-embeddable FK).
 export async function fetchTutorApplications(): Promise<TutorApplicationRecord[]> {
   const { data, error } = await supabase
     .from("tutor_applications")
@@ -79,7 +87,30 @@ export async function fetchTutorApplications(): Promise<TutorApplicationRecord[]
     .limit(500);
 
   if (error) throw error;
-  return ((data ?? []) as Record<string, unknown>[]).map(normalizeApplication);
+  const records = ((data ?? []) as Record<string, unknown>[]).map(normalizeApplication);
+  const linkedIds = [
+    ...new Set(
+      records.flatMap((record) => (record.linked_tutor_id ? [record.linked_tutor_id] : [])),
+    ),
+  ];
+  if (linkedIds.length === 0) return records;
+
+  const { data: tutors, error: tutorError } = await supabase
+    .from("tutors")
+    .select("id, tutor_code")
+    .in("id", linkedIds);
+  if (tutorError) throw tutorError;
+  const codeById = new Map(
+    ((tutors ?? []) as { id: string; tutor_code: string }[]).map((tutor) => [
+      tutor.id,
+      tutor.tutor_code,
+    ]),
+  );
+  return records.map((record) =>
+    record.linked_tutor_id
+      ? { ...record, linked_tutor_code: codeById.get(record.linked_tutor_id) ?? null }
+      : record,
+  );
 }
 
 export async function fetchPendingApplicationCount(): Promise<number> {

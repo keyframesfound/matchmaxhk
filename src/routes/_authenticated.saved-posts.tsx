@@ -215,10 +215,13 @@ function SavedPostsPage() {
                               <Clock className="h-3.5 w-3.5" aria-hidden="true" />
                               {formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes)}
                             </span>
-                            <span className="flex items-center gap-1">
-                              <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
-                              {formatCaseBudgetHkd(item, { detail: true })}
-                            </span>
+                            {/* #423: empty string (both bounds blank) omits the rate. */}
+                            {formatCaseBudgetHkd(item) ? (
+                              <span className="flex items-center gap-1">
+                                <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
+                                {formatCaseBudgetHkd(item)}
+                              </span>
+                            ) : null}
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-1">
