@@ -92,17 +92,25 @@ export function buildFolderChildGrantRows(input: {
  * buyer may already hold a child via a direct purchase or an earlier
  * folder). Children grants never bump child sold_count — the CALLER owns
  * the single increment_material_sold_count call for the FOLDER.
+ *
+ * The (material, buyer) uniqueness on material_orders is a PARTIAL unique
+ * index (status <> 'refunded', 20261012153000) — PostgREST's on_conflict
+ * cannot infer it (42P10), so plain-insert and treat 23505 as "already
+ * held". A child the buyer refunded earlier gets a fresh grant row: the
+ * folder purchase re-unlocks it.
  */
 async function insertFolderChildGrants(
   db: AdminDb,
   rows: ReturnType<typeof buildFolderChildGrantRows>,
 ): Promise<void> {
   if (rows.length === 0) return;
-  const { error } = await db.from<never>("material_orders").upsert(rows, {
-    onConflict: "material_id,buyer_account_id",
-    ignoreDuplicates: true,
-  });
-  if (error) throw new Error(error.message);
+  const { error } = await db.from<never>("material_orders").insert(rows);
+  if (!error) return;
+  if (error.code !== "23505") throw new Error(error.message);
+  for (const row of rows) {
+    const { error: rowError } = await db.from<never>("material_orders").insert(row);
+    if (rowError && rowError.code !== "23505") throw new Error(rowError.message);
+  }
 }
 
 export const ORDER_STATUSES = [
@@ -366,6 +374,7 @@ export const startCheckout = createServerFn({ method: "POST" })
             .select("*")
             .eq("material_id", material.id)
             .eq("buyer_account_id", context.userId)
+            .neq("status", "refunded")
             .order("created_at", { ascending: false })
             .limit(1);
           const winner = winnerRows?.[0];

@@ -5,8 +5,12 @@
  * gate. Server-side only (uses Buffer/atob via base64 utilities).
  */
 
-/** Supabase error shape we care about across the server functions. */
-export type DbError = { message: string } | null;
+/**
+ * Supabase error shape we care about across the server functions. `code`
+ * (PostgREST SQLSTATE, e.g. "23505" unique_violation) is present on real
+ * responses; typed optional so test doubles may omit it.
+ */
+export type DbError = { message: string; code?: string } | null;
 
 /**
  * Fluent builder subset actually used by the marketplace server functions.

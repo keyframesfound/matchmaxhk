@@ -2782,6 +2782,8 @@
       "items_count": "已選 {{count}} 件",
       "items_empty": "你還未有已上架的項目可以組合——請先上架筆記、閃卡或課程。",
       "items_hint": "選擇 2–20 件你自己已上架的項目。組合不可嵌套，服務亦不可併入。",
+      "folder_children_count": "組合需要 {{min}} 至 {{max}} 件項目（現時已選 {{n}} 件）。",
+      "folder_children_dup": "同一項目不可以重複加入組合。",
       "remove_item": "移除項目",
       "items_sum_label": "項目總和",
       "bulk_label": "組合價",

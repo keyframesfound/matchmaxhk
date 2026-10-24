@@ -2782,6 +2782,8 @@
       "items_count": "{{count}} selected",
       "items_empty": "You have no published items to bundle yet — publish a note, deck, or course first.",
       "items_hint": "Pick 2–20 of your own published listings. Folders cannot nest, and services cannot be bundled.",
+      "folder_children_count": "A folder needs between {{min}} and {{max}} items (you have {{n}}).",
+      "folder_children_dup": "The same listing cannot appear twice in one folder.",
       "remove_item": "Remove item",
       "items_sum_label": "Items combined",
       "bulk_label": "Your folder price",

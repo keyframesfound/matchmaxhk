@@ -97,6 +97,27 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
       materialType: row.materialType,
     })),
   );
+  // Client-renderable child problems with i18n copy. The picker is
+  // server-filtered to the tutor's own published pickable items, so only the
+  // count and duplicate rules can surface here; the remaining validator
+  // rules gate submit and re-check server-side.
+  const childMessages: string[] = [];
+  if (selectedRows.length < FOLDER_MIN_CHILDREN || selectedRows.length > FOLDER_MAX_CHILDREN) {
+    childMessages.push(
+      t("shop.form.folder_children_count", {
+        min: FOLDER_MIN_CHILDREN,
+        max: FOLDER_MAX_CHILDREN,
+        n: selectedRows.length,
+      }),
+    );
+  }
+  {
+    const seenIds = new Set<string>();
+    for (const row of selectedRows) {
+      if (seenIds.has(row.id)) childMessages.push(t("shop.form.folder_children_dup"));
+      seenIds.add(row.id);
+    }
+  }
 
   const copyViolations = useMemo(() => {
     const titleV = findContactViolations(title);
@@ -325,8 +346,8 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
             })}
           </ul>
         )}
-        {childErrors.length > 0 ? (
-          <p className="text-xs text-[#B42318]">{childErrors.join(" ")}</p>
+        {childMessages.length > 0 ? (
+          <p className="text-xs text-[#B42318]">{childMessages.join(" ")}</p>
         ) : null}
         <p className="text-xs text-muted-foreground">{t("shop.form.items_hint")}</p>
       </div>
