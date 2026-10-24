@@ -343,7 +343,7 @@ export function SiteHeader({
                       </Link>
                     </DropdownMenuItem>
                     {/* Launch/replay the tutor dashboard tour from any page. */}
-                    {hasRole("tutor") && (
+                    {(hasRole("tutor") || isAdmin) && (
                       <DropdownMenuItem
                         onSelect={() => {
                           requestTour(TOUR_STORAGE_KEYS.tutor);
