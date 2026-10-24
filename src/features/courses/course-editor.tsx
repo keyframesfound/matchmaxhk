@@ -291,7 +291,7 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
           onChange={(e) => setDescription(e.target.value)}
           rows={4}
           placeholder={t("shop.form.description_placeholder")}
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
         />
         {violationNote(copyViolations.descV)}
       </div>

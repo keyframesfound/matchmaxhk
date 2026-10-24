@@ -60,7 +60,7 @@ export function SubjectMultiSelect({
           onChange={(event) => setQuery(event.target.value)}
           placeholder={searchPlaceholder}
           aria-label={searchPlaceholder}
-          className="h-11 w-full rounded-2xl border border-[color:var(--ink)]/15 bg-[color:var(--surface-subtle)] pl-10 pr-3 text-sm font-medium text-[color:var(--ink)] placeholder:font-normal placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40"
+          className="h-11 w-full rounded-2xl border border-[color:var(--ink)]/15 bg-[color:var(--surface-subtle)] pl-10 pr-3 text-sm font-medium text-[color:var(--ink)] placeholder:font-normal placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
       <div className="max-h-64 overflow-y-auto">
@@ -108,7 +108,7 @@ export function SubjectMultiSelect({
           <button
             type="button"
             onClick={onClear}
-            className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:border-[color:var(--ink)]/30 hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+            className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:border-[color:var(--ink)]/30 hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
           >
             <X className="h-3 w-3" aria-hidden="true" />
             {clearLabel}

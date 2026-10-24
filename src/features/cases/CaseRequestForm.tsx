@@ -914,7 +914,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                       aria-checked={active}
                       onClick={() => handleAcademicLevelChange(level)}
                       className={cn(
-                        "inline-flex h-10 items-center rounded-full border px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+                        "inline-flex h-10 items-center rounded-full border px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]",
                         active
                           ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 text-[color:var(--ink)]"
                           : "border-border text-muted-foreground hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)]",
@@ -1613,7 +1613,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               <div className="flex items-center gap-2">
                 <select
                   aria-label="Budget currency"
-                  className="h-10 shrink-0 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 text-sm font-medium text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                  className="h-10 shrink-0 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 text-sm font-medium text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                   value={form.budgetCurrency}
                   onChange={(e) => {
                     // #380 review: freeze the seed sync once the visitor
@@ -1807,7 +1807,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                         })
                       }
                       className={cn(
-                        "inline-flex h-9 items-center rounded-full border px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+                        "inline-flex h-9 items-center rounded-full border px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]",
                         active
                           ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 text-[color:var(--ink)]"
                           : "border-border text-muted-foreground hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)]",
@@ -1907,7 +1907,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                         })
                       }
                       className={cn(
-                        "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+                        "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]",
                         active
                           ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 text-[color:var(--ink)]"
                           : "border-border text-muted-foreground hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)]",

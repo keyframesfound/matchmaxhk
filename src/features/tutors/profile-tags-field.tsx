@@ -124,7 +124,7 @@ export function ProfileTagsField({ tags, onChange, suggestions, id }: ProfileTag
                 setDraft("");
                 addTag(item.tag);
               }}
-              className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
             >
               <Hash className="h-3 w-3" aria-hidden="true" />
               {item.tag}
@@ -142,7 +142,7 @@ export function ProfileTagsField({ tags, onChange, suggestions, id }: ProfileTag
               type="button"
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => addTag(tag)}
-              className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+              className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
             >
               <Hash className="h-3 w-3" aria-hidden="true" />
               {tag}

@@ -149,7 +149,7 @@ export function FiltersDialog({
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t("search_ui.search_all_filters")}
               aria-label={t("search_ui.search_all_filters")}
-              className="h-11 w-full rounded-full border border-transparent bg-[color:var(--surface-subtle)] pl-4 pr-10 text-sm font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40"
+              className="h-11 w-full rounded-full border border-transparent bg-[color:var(--surface-subtle)] pl-4 pr-10 text-sm font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring"
             />
             {query ? (
               <button
@@ -286,7 +286,7 @@ export function FilterQuickPicks({
             aria-pressed={option.active}
             onClick={option.onToggle}
             className={cn(
-              "flex w-28 shrink-0 flex-col items-center justify-center gap-2.5 rounded-2xl border px-2 py-3.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+              "flex w-28 shrink-0 flex-col items-center justify-center gap-2.5 rounded-2xl border px-2 py-3.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               option.active
                 ? "border-[1.5px] border-[color:var(--foreground)] bg-card"
                 : "border-border bg-card hover:bg-[color:var(--surface-subtle)]",

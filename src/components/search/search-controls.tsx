@@ -46,7 +46,7 @@ export function Segmented<T extends string>({
             aria-checked={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              "flex h-10 min-w-0 items-center justify-center gap-1 border-0 px-2 text-[13px] whitespace-nowrap transition-[background-color,border-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40 sm:px-4",
+              "flex h-10 min-w-0 items-center justify-center gap-1 border-0 px-2 text-[13px] whitespace-nowrap transition-[background-color,border-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-4",
               index > 0 && !active && "border-l border-border",
               active
                 ? "rounded-lg border-[1.5px] border-[color:var(--foreground)] font-medium text-[color:var(--ink)]"
@@ -105,7 +105,7 @@ export function SearchBigInput({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         aria-label={ariaLabel ?? placeholder}
-        className="h-13 w-full rounded-2xl border border-[color:var(--ink)]/20 bg-transparent pl-11 pr-10 text-base font-medium text-[color:var(--ink)] placeholder:font-normal placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40"
+        className="h-13 w-full rounded-2xl border border-[color:var(--ink)]/20 bg-transparent pl-11 pr-10 text-base font-medium text-[color:var(--ink)] placeholder:font-normal placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring"
       />
       {value ? (
         <button
@@ -232,7 +232,7 @@ export function SearchableOptionsPanel({
             onChange={(event) => setQuery(event.target.value)}
             placeholder={searchPlaceholder}
             aria-label={searchPlaceholder}
-            className="h-11 w-full rounded-2xl border border-[color:var(--ink)]/15 bg-[color:var(--surface-subtle)] pl-10 pr-3 text-sm font-medium text-[color:var(--ink)] placeholder:font-normal placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40"
+            className="h-11 w-full rounded-2xl border border-[color:var(--ink)]/15 bg-[color:var(--surface-subtle)] pl-10 pr-3 text-sm font-medium text-[color:var(--ink)] placeholder:font-normal placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       ) : null}

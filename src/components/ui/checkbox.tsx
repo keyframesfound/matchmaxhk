@@ -24,7 +24,7 @@ const Checkbox = React.forwardRef<
       ref={ref}
       checked={checked}
       className={cn(
-        "peer grid h-4 w-4 shrink-0 place-content-center cursor-pointer rounded-[5px] border border-[color:var(--ink)]/25 bg-transparent transition-[background-color,border-color,color,transform] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 focus-visible:ring-offset-2 active:scale-90 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=indeterminate]:border-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground motion-reduce:transition-none motion-reduce:active:scale-100",
+        "peer grid h-4 w-4 shrink-0 place-content-center cursor-pointer rounded-[5px] border border-[color:var(--ink)]/25 bg-transparent transition-[background-color,border-color,color,transform] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] focus-visible:ring-offset-2 active:scale-90 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=indeterminate]:border-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground motion-reduce:transition-none motion-reduce:active:scale-100",
         className,
       )}
       {...props}

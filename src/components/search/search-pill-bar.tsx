@@ -332,7 +332,7 @@ export function SearchPillBar({
                 onFocus={() => setHoveredId(segment.id)}
                 onClick={() => setOpenId(openIdRef.current === segment.id ? null : segment.id)}
                 className={cn(
-                  "relative flex min-w-0 flex-col justify-center gap-0.5 rounded-full px-4 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:px-5",
+                  "relative flex min-w-0 flex-col justify-center gap-0.5 rounded-full px-4 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-5",
                   index > 0 &&
                     (dividerHidden ? "border-l border-transparent" : "border-l border-border"),
                   segment.grow ?? "flex-1",

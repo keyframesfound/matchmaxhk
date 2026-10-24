@@ -110,7 +110,7 @@ function NotificationsPage() {
                   if (item.link) navigate({ to: item.link });
                 }}
                 className={cn(
-                  "flex w-full items-start gap-3 rounded-xl border border-[color:var(--ink)]/10 p-4 text-left transition-colors hover:bg-[color:var(--foreground)]/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+                  "flex w-full items-start gap-3 rounded-xl border border-[color:var(--ink)]/10 p-4 text-left transition-colors hover:bg-[color:var(--foreground)]/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]",
                   !item.read && "bg-[color:var(--foreground)]/[0.04]",
                 )}
               >

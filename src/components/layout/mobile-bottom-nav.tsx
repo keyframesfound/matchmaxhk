@@ -28,7 +28,7 @@ import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 
 const tabButtonClass =
-  "relative flex flex-1 flex-col items-center gap-1 px-2 py-2.5 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40";
+  "relative flex flex-1 flex-col items-center gap-1 px-2 py-2.5 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring";
 
 /**
  * Fixed mobile bottom navigation: Explore, Saved and Account (the account tab
@@ -55,7 +55,7 @@ export function MobileBottomNav() {
   const useDarkTheme = theme !== "dark";
 
   const itemRowClass =
-    "flex w-full items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40";
+    "flex w-full items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
   return (
     <>

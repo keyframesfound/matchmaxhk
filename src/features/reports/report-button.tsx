@@ -365,7 +365,7 @@ export function ReportMenuButton({
           title={menuLabel}
           onClick={() => toast.info(t("report.self_own_profile"))}
           className={cn(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
             className,
           )}
         >
@@ -379,7 +379,7 @@ export function ReportMenuButton({
               aria-label={menuLabel}
               title={menuLabel}
               className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
                 className,
               )}
             >
@@ -623,7 +623,7 @@ function TooltipWrappedReportTrigger({
       onClick={onOpen}
       onKeyDown={(event) => event.stopPropagation()}
       className={cn(
-        "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
+        "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
         className,
       )}
     >

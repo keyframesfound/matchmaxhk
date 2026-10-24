@@ -337,9 +337,9 @@ export function PublicTutorCard({
     <article
       data-tour={tourId}
       className={cn(
-        "@container relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-[transform,border-color] duration-200 hover:-translate-y-1 hover:border-[color:var(--foreground)]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
+        "@container relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-[transform,border-color] duration-200 hover:-translate-y-1 hover:border-[color:var(--foreground)]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
         interactive && "cursor-pointer",
-        compareSelected && "border-[color:var(--ring)] ring-2 ring-[color:var(--ring)]/40",
+        compareSelected && "border-[color:var(--ring)] ring-2 ring-[color:var(--ring)]",
         className,
       )}
       role={interactive ? "link" : undefined}
@@ -566,7 +566,7 @@ export function PublicTutorCard({
                 aria-expanded={isBreakdownExpanded}
                 onClick={toggleBreakdownGrades}
                 onKeyDown={(event) => event.stopPropagation()}
-                className="mt-1.5 inline-flex items-center gap-0.5 rounded-sm text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:text-sm @max-sm:text-[11px]!"
+                className="mt-1.5 inline-flex items-center gap-0.5 rounded-sm text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] md:text-sm @max-sm:text-[11px]!"
               >
                 {isBreakdownExpanded
                   ? t("tutor_card.show_fewer_grades")
@@ -595,7 +595,7 @@ export function PublicTutorCard({
                       aria-controls={`academic-achievements-${tutor.tutor_code}`}
                       onClick={toggleAcademicChips}
                       onKeyDown={(event) => event.stopPropagation()}
-                      className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 md:py-1.5 md:text-sm @max-sm:text-[11px]!"
+                      className="inline-flex translate-y-0.5 items-center self-center rounded-sm px-0.5 py-1 text-xs font-medium leading-snug text-[color:var(--brand-link)] underline-offset-2 transition-colors hover:text-[color:var(--ink)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] md:py-1.5 md:text-sm @max-sm:text-[11px]!"
                     >
                       ... {t("tutor_card.more")}
                     </button>
@@ -671,7 +671,7 @@ export function PublicTutorCard({
                   className={cn(
                     "inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-muted-foreground transition-colors",
                     tagQuery
-                      ? "hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                      ? "hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                       : "cursor-default",
                   )}
                 >
@@ -733,7 +733,7 @@ export function PublicTutorCard({
                     onClick={handleCompareToggle}
                     onKeyDown={(event) => event.stopPropagation()}
                     className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
                       compareSelected
                         ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
                         : "text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06]",
@@ -764,7 +764,7 @@ export function PublicTutorCard({
                     aria-label={`${t("share.share_tutor")} (${formatTutorCode(tutor.tutor_code)})`}
                     onClick={handleShare}
                     onKeyDown={(event) => event.stopPropagation()}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8"
                   >
                     <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
                   </button>

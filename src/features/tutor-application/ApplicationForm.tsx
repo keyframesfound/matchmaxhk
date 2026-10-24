@@ -537,7 +537,7 @@ function ProfilePhotoUpload({
       <div className="flex items-center gap-4">
         <label
           className={cn(
-            "relative grid h-20 w-20 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full border border-border bg-[color:var(--surface-subtle)] text-muted-foreground transition-colors focus-within:ring-2 focus-within:ring-[color:var(--ring)]/40 focus-within:ring-offset-2",
+            "relative grid h-20 w-20 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full border border-border bg-[color:var(--surface-subtle)] text-muted-foreground transition-colors focus-within:ring-2 focus-within:ring-[color:var(--ring)] focus-within:ring-offset-2",
             dragging && "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.05]",
             error && "border-destructive",
           )}
@@ -3589,7 +3589,7 @@ export function ApplicationForm() {
                   aria-label={t("join.rates.currency_label")}
                   value={base.currency}
                   onChange={(event) => setBaseField("currency", event.target.value)}
-                  className="h-10 w-full max-w-48 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-3 text-sm font-medium text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                  className="h-10 w-full max-w-48 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-3 text-sm font-medium text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                 >
                   {SUPPORTED_CURRENCIES.map((code) => (
                     <option key={code} value={code}>

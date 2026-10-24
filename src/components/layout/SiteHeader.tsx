@@ -76,7 +76,7 @@ function MenuDivider() {
 
 /** Round icon trigger for the header popovers (avatar / burger). */
 const headerCircleClassName =
-  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40";
+  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 /** Centered category tab for the lg+ nav row, Airbnb-style icon + label with an active underline. */
 function DesktopTab({

@@ -1290,7 +1290,7 @@ export function MyTutorProfileSection() {
                   aria-label={t("settings.my_tutor.rates_currency")}
                   value={rates.currency}
                   onChange={(e) => handleRateField({ currency: e.target.value })}
-                  className="h-9 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-2 text-sm font-medium text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                  className="h-9 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-2 text-sm font-medium text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                 >
                   {SUPPORTED_CURRENCIES.map((code) => (
                     <option key={code} value={code}>

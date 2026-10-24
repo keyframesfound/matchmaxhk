@@ -52,7 +52,7 @@ export function MobileSearchTrigger({
       <button
         type="button"
         onClick={onClick}
-        className="pill-elevate-lg flex w-full items-center justify-center gap-2.5 rounded-full border border-transparent bg-card px-4 py-3.5 text-base font-medium text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 dark:border-border"
+        className="pill-elevate-lg flex w-full items-center justify-center gap-2.5 rounded-full border border-transparent bg-card px-4 py-3.5 text-base font-medium text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-border"
       >
         <Search className="h-5 w-5 shrink-0" aria-hidden="true" />
         <span className="truncate">{label}</span>
@@ -69,7 +69,7 @@ export function MobileSearchTrigger({
               to={pill.to}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "pill-elevate flex shrink-0 items-center justify-center rounded-full border px-3.5 py-2.5 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+                "pill-elevate flex shrink-0 items-center justify-center rounded-full border px-3.5 py-2.5 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 active &&
                   "pill-elevate-strong border-transparent bg-muted font-medium text-[color:var(--ink)] dark:border-[color:var(--foreground)] dark:bg-card",
                 !active &&

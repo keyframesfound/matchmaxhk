@@ -555,7 +555,7 @@ function TutorsDirectory() {
                     <button
                       type="button"
                       onClick={() => setDraftParam({ tag: "" })}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                     >
                       <Hash className="h-3 w-3" aria-hidden="true" />
                       {tagFilter}
@@ -577,7 +577,7 @@ function TutorsDirectory() {
                             setDraftParam({ tag: item.tag });
                             applySearch({ tag: item.tag });
                           }}
-                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                         >
                           <Hash className="h-3 w-3" aria-hidden="true" />
                           {item.tag}

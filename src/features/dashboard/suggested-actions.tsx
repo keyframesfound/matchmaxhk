@@ -48,7 +48,7 @@ function ActionLink({
 }) {
   const { t } = useTranslation();
   const className = cn(
-    "inline-flex items-center gap-0.5 text-sm font-medium underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+    "inline-flex items-center gap-0.5 text-sm font-medium underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]",
     primary ? "text-[color:var(--brand-link)]" : "text-[color:var(--ink)]/70",
   );
   const label = t(labelKey);

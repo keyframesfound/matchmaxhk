@@ -33,7 +33,7 @@ function StarRating({ value, onChange, label }: StarRatingProps) {
           aria-label={t("feedback.star_label_other", { count: star })}
           onClick={() => onChange(star)}
           className={cn(
-            "text-2xl leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+            "text-2xl leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]",
             star <= value
               ? "text-amber-500"
               : "text-[color:var(--foreground)]/20 hover:text-amber-300",
@@ -148,7 +148,7 @@ export default function Feedback() {
                     key={option.value}
                     type="button"
                     onClick={() => setRole(option.value)}
-                    className="rounded-[var(--radius-panel)] border border-border bg-card px-6 py-8 text-base font-medium text-[color:var(--ink)] transition-colors hover:border-[color:var(--foreground)]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                    className="rounded-[var(--radius-panel)] border border-border bg-card px-6 py-8 text-base font-medium text-[color:var(--ink)] transition-colors hover:border-[color:var(--foreground)]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                   >
                     {t(option.labelKey)}
                   </button>
@@ -220,7 +220,7 @@ export default function Feedback() {
                     rows={5}
                     value={additional}
                     onChange={(event) => setAdditional(event.target.value)}
-                    className="w-full rounded-xl border border-input bg-[color:var(--surface)] px-3 py-2 text-sm text-[color:var(--ink)] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                    className="w-full rounded-xl border border-input bg-[color:var(--surface)] px-3 py-2 text-sm text-[color:var(--ink)] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                   />
                 </div>
 

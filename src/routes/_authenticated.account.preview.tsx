@@ -123,7 +123,7 @@ function PreviewPage() {
               type="button"
               aria-label={t("preview.banner_dismiss")}
               onClick={() => setBannerVisible(false)}
-              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
