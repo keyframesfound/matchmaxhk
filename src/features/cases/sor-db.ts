@@ -66,6 +66,8 @@ export type SorCaseRow = {
   organisation_id: string | null;
   concierge_id: string | null;
   hourly_rate_hkd: number | null;
+  /** #391: per-case seat count (NOT NULL, default 1) — scales the admin fee. */
+  student_count: number;
   whatsapp_group_url: string | null;
   replacement_of_case_id: string | null;
   internal_note: string | null;

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   computeSuggestedRates,
+  groupRateFloor,
+  isGroupRateRow,
   isValidTutorRate,
   medianRate,
   normalizeTutorRateRows,
@@ -158,5 +160,78 @@ describe("computeSuggestedRates", () => {
     );
     expect(result).toEqual({ status: "ok", online: 150, inPerson: 250 });
     expect(JSON.stringify(result)).not.toContain("label");
+  });
+});
+
+describe("rate row mode tags + group floor (#391)", () => {
+  it("keeps mode and a contact-filtered description on the saved row", () => {
+    const result = normalizeTutorRateRows([
+      {
+        label: "IBDP Maths",
+        rate: 220,
+        mode: "small_group_2",
+        description: "30 mins core concepts + 30 mins past-paper drilling.",
+      },
+    ]);
+    expect(result).toEqual({
+      ok: true,
+      rows: [
+        {
+          label: "IBDP Maths",
+          rate: 220,
+          mode: "small_group_2",
+          description: "30 mins core concepts + 30 mins past-paper drilling.",
+        },
+      ],
+    });
+  });
+
+  it("rejects an unknown mode", () => {
+    const result = normalizeTutorRateRows([{ label: "A", rate: 200, mode: "mega_class" }]);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors[0]).toMatch(/unknown class mode/);
+  });
+
+  it("rejects an over-long description", () => {
+    const result = normalizeTutorRateRows([
+      { label: "A", rate: 200, description: "x".repeat(301) },
+    ]);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors[0]).toMatch(/300 characters or fewer/);
+  });
+
+  it("contact-filters the description", () => {
+    const result = normalizeTutorRateRows([
+      { label: "A", rate: 200, description: "WhatsApp me at 91234567" },
+    ]);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors.length).toBeGreaterThan(0);
+  });
+
+  it("legacy rows without mode/description stay unchanged", () => {
+    const result = normalizeTutorRateRows([{ label: "Admissions", rate: 800 }]);
+    expect(result).toEqual({ ok: true, rows: [{ label: "Admissions", rate: 800 }] });
+  });
+
+  it("groupRateFloor takes the cheapest small-group row and ignores 1-on-1/bootcamp rows", () => {
+    expect(
+      groupRateFloor([
+        { label: "Base", rate: 500, mode: "one_on_one" },
+        { label: "Pair", rate: 300, mode: "small_group_2" },
+        { label: "Trio+", rate: 260, mode: "small_group_3_6" },
+        { label: "Bootcamp", rate: 100, mode: "intensive_bootcamp" },
+      ]),
+    ).toBe(260);
+    expect(groupRateFloor([{ label: "Base", rate: 200, mode: "one_on_one" }])).toBeNull();
+    expect(groupRateFloor([])).toBeNull();
+    // Legacy rows carry no mode — they never read as group rates.
+    expect(groupRateFloor([{ label: "Legacy", rate: 100 }])).toBeNull();
+  });
+
+  it("isGroupRateRow matches only the two small-group modes", () => {
+    expect(isGroupRateRow({ mode: "small_group_2" })).toBe(true);
+    expect(isGroupRateRow({ mode: "small_group_3_6" })).toBe(true);
+    expect(isGroupRateRow({ mode: "intensive_bootcamp" })).toBe(false);
+    expect(isGroupRateRow({ mode: null })).toBe(false);
   });
 });

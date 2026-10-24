@@ -18,7 +18,50 @@ export const RATE_NOTE_MAX = 120;
 /** Minimum similar live cards before suggest-a-rate fills anything (issue #345). */
 export const SUGGEST_MIN_SIMILAR = 10;
 
-export type TutorRateRow = { label: string; rate: number };
+/**
+ * #391 — per-row class mode. The rate row answers "what does this rate buy":
+ * `one_on_one` rows are the classic hourly quote, `small_group_2` /
+ * `small_group_3_6` are per-STUDENT group rates, `intensive_bootcamp` is a
+ * cram-mode rate. Group rows are profile-only extras — like every extra row
+ * they never enter the card floor (#319 trigger), which is exactly the
+ * floor-price protection the issue demands.
+ */
+export const RATE_ROW_MODES = [
+  "one_on_one",
+  "small_group_2",
+  "small_group_3_6",
+  "intensive_bootcamp",
+] as const;
+export type TutorRateRowMode = (typeof RATE_ROW_MODES)[number];
+
+export const GROUP_RATE_ROW_MODES: readonly TutorRateRowMode[] = [
+  "small_group_2",
+  "small_group_3_6",
+];
+
+export const RATE_ROW_DESCRIPTION_MAX = 300;
+
+export type TutorRateRow = {
+  label: string;
+  rate: number;
+  mode?: TutorRateRowMode;
+  description?: string;
+};
+
+/** True when the row quotes a per-student small-group rate. */
+export function isGroupRateRow(row: { mode?: string | null }): boolean {
+  return GROUP_RATE_ROW_MODES.includes(row.mode as TutorRateRowMode);
+}
+
+/**
+ * Cheapest small-group per-student rate across the profile's rows — the
+ * `👥 Group from HK$Y/hr` card badge figure. Null when the tutor quotes no
+ * group rate.
+ */
+export function groupRateFloor(rows: { mode?: string | null; rate: number }[]): number | null {
+  const groupRates = rows.filter(isGroupRateRow).map((row) => row.rate);
+  return groupRates.length > 0 ? Math.min(...groupRates) : null;
+}
 
 /** Whole dollars inside the 50-3000 band — $49 and $3001 are rejected. */
 export function isValidTutorRate(value: unknown): value is number {
@@ -33,10 +76,17 @@ export type NormalizedRateRows =
 /**
  * Extra rate rows (profile-only): a row saves only when BOTH the label and
  * the rate are filled; a half-filled row is rejected, not silently trimmed.
- * Completely empty rows are dropped. Max six rows.
+ * Completely empty rows are dropped. Max six rows. Mode is optional
+ * (legacy rows have none); the optional 300-char description is
+ * contact-filtered like the label.
  */
 export function normalizeTutorRateRows(
-  rows: { label?: string | null; rate?: number | string | null }[],
+  rows: {
+    label?: string | null;
+    rate?: number | string | null;
+    mode?: string | null;
+    description?: string | null;
+  }[],
 ): NormalizedRateRows {
   const errors: string[] = [];
   const cleaned: TutorRateRow[] = [];
@@ -79,7 +129,31 @@ export function normalizeTutorRateRows(
       errors.push(`Extra rate row ${index + 1}: ${contactError}`);
       continue;
     }
-    cleaned.push({ label, rate: rate as number });
+    const cleanedRow: TutorRateRow = { label, rate: rate as number };
+    const rawMode = (row.mode ?? "").trim();
+    if (rawMode) {
+      if (!(RATE_ROW_MODES as readonly string[]).includes(rawMode)) {
+        errors.push(`Extra rate row ${index + 1}: unknown class mode`);
+        continue;
+      }
+      cleanedRow.mode = rawMode as TutorRateRowMode;
+    }
+    const description = (row.description ?? "").trim();
+    if (description) {
+      if (description.length > RATE_ROW_DESCRIPTION_MAX) {
+        errors.push(
+          `Extra rate row ${index + 1}: description must be ${RATE_ROW_DESCRIPTION_MAX} characters or fewer`,
+        );
+        continue;
+      }
+      const descriptionContactError = contactFilterError(description);
+      if (descriptionContactError) {
+        errors.push(`Extra rate row ${index + 1}: ${descriptionContactError}`);
+        continue;
+      }
+      cleanedRow.description = description;
+    }
+    cleaned.push(cleanedRow);
   }
 
   if (cleaned.length > MAX_RATE_ROWS) {

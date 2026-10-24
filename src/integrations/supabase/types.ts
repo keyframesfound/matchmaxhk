@@ -225,6 +225,71 @@ export type Database = {
         };
         Relationships: [];
       };
+      group_cohorts: {
+        Row: {
+          created_at: string;
+          curriculum: string;
+          description: string | null;
+          district: string | null;
+          id: string;
+          max_seats: number;
+          min_seats: number;
+          mode: string;
+          per_student_rate_hkd: number;
+          status: string;
+          student_level: string;
+          subject: string;
+          title: string;
+          tutor_id: string;
+          updated_at: string;
+          weekly_schedule: string;
+        };
+        Insert: {
+          created_at?: string;
+          curriculum: string;
+          description?: string | null;
+          district?: string | null;
+          id?: string;
+          max_seats: number;
+          min_seats?: number;
+          mode: string;
+          per_student_rate_hkd: number;
+          status?: string;
+          student_level: string;
+          subject: string;
+          title: string;
+          tutor_id: string;
+          updated_at?: string;
+          weekly_schedule: string;
+        };
+        Update: {
+          created_at?: string;
+          curriculum?: string;
+          description?: string | null;
+          district?: string | null;
+          id?: string;
+          max_seats?: number;
+          min_seats?: number;
+          mode?: string;
+          per_student_rate_hkd?: number;
+          status?: string;
+          student_level?: string;
+          subject?: string;
+          title?: string;
+          tutor_id?: string;
+          updated_at?: string;
+          weekly_schedule?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "group_cohorts_tutor_id_fkey";
+            columns: ["tutor_id"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       organization_members: {
         Row: {
           claimed_at: string | null;
@@ -881,6 +946,8 @@ export type Database = {
       tutoring_cases: {
         Row: {
           assigned_to: string | null;
+          class_format_preference: string | null;
+          group_cohort_id: string | null;
           package_type: string;
           rate_unit: string;
           student_count: number;
@@ -941,6 +1008,8 @@ export type Database = {
         };
         Insert: {
           assigned_to?: string | null;
+          class_format_preference?: string | null;
+          group_cohort_id?: string | null;
           package_type?: string;
           rate_unit?: string;
           student_count?: number;
@@ -1001,6 +1070,8 @@ export type Database = {
         };
         Update: {
           assigned_to?: string | null;
+          class_format_preference?: string | null;
+          group_cohort_id?: string | null;
           package_type?: string;
           rate_unit?: string;
           student_count?: number;
@@ -1079,6 +1150,13 @@ export type Database = {
             columns: ["matched_tutor_id"];
             isOneToOne: false;
             referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tutoring_cases_group_cohort_id_fkey";
+            columns: ["group_cohort_id"];
+            isOneToOne: false;
+            referencedRelation: "group_cohorts";
             referencedColumns: ["id"];
           },
         ];

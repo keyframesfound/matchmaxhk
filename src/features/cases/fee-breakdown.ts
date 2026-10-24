@@ -5,9 +5,10 @@
  * invoice amounts and the paid-progress state from existing case_fees rows.
  * Amounts round to whole HKD (parents pay whole-dollar FPS transfers).
  *
- * Group scaling (#385): tutoring_cases has no student_count column yet —
- * every helper here computes ×1 per case. Scaling by student_count lands
- * with issue #391.
+ * Group scaling (#391): every helper takes an optional studentCount (the
+ * case's student_count, 1 for legacy rows) and rounds the TOTAL, so a group
+ * case pays 1.5 × per-student rate × student count as one whole-dollar sum
+ * (0.5 × $333 × 3 → $500, not 3 × $167).
  */
 
 export const LESSON1_MULTIPLIER = 1.0;
@@ -20,19 +21,26 @@ export type FeeBreakdownFeeRow = {
   amount_hkd: number | string | null;
 };
 
-/** 100% of Lesson 1 — accrued the moment Lesson 1 is marked done. */
-export function lesson1Amount(rateHkd: number): number {
-  return Math.round(rateHkd * LESSON1_MULTIPLIER);
+/** Whole-dollar positive count, 1 for every legacy (non-group) case. */
+function normalizeStudentCount(studentCount: number | null | undefined): number {
+  return Number.isInteger(studentCount) && (studentCount as number) >= 1
+    ? (studentCount as number)
+    : 1;
+}
+
+/** 100% of Lesson 1 per student — accrued the moment Lesson 1 is marked done. */
+export function lesson1Amount(rateHkd: number, studentCount?: number): number {
+  return Math.round(rateHkd * normalizeStudentCount(studentCount) * LESSON1_MULTIPLIER);
 }
 
 /** Remaining 50% of Lesson 2 — invoiced after Lesson 2 when 1.0× L1 was paid. */
-export function lesson2BalanceAmount(rateHkd: number): number {
-  return Math.round(rateHkd * LESSON2_BALANCE_MULTIPLIER);
+export function lesson2BalanceAmount(rateHkd: number, studentCount?: number): number {
+  return Math.round(rateHkd * normalizeStudentCount(studentCount) * LESSON2_BALANCE_MULTIPLIER);
 }
 
-/** Full 1.5-lesson admin fee (100% L1 + 50% L2) in one invoice. */
-export function fullAdminFeeAmount(rateHkd: number): number {
-  return Math.round(rateHkd * FULL_ADMIN_MULTIPLIER);
+/** Full 1.5-lesson admin fee (100% L1 + 50% L2), scaled by student count. */
+export function fullAdminFeeAmount(rateHkd: number, studentCount?: number): number {
+  return Math.round(rateHkd * normalizeStudentCount(studentCount) * FULL_ADMIN_MULTIPLIER);
 }
 
 export type FeePaidState = "none" | "partial_l1" | "full";
@@ -47,16 +55,18 @@ export type FeePaidState = "none" | "partial_l1" | "full";
 export function derivePaidState(
   fees: FeeBreakdownFeeRow[],
   rateHkd: number | null | undefined,
+  studentCount?: number,
 ): FeePaidState {
   if (!Number.isFinite(rateHkd) || (rateHkd as number) <= 0) return "none";
   const rate = Number(rateHkd);
+  const count = normalizeStudentCount(studentCount);
   const paidSum = fees.reduce<number>((sum, f) => {
     if (f.status !== "paid") return sum;
     const n = Number(f.amount_hkd);
     return Number.isFinite(n) && n > 0 ? sum + n : sum;
   }, 0);
   if (paidSum <= 0) return "none";
-  if (paidSum >= fullAdminFeeAmount(rate)) return "full";
-  if (paidSum >= lesson1Amount(rate)) return "partial_l1";
+  if (paidSum >= fullAdminFeeAmount(rate, count)) return "full";
+  if (paidSum >= lesson1Amount(rate, count)) return "partial_l1";
   return "none";
 }
