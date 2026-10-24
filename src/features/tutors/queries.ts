@@ -1,6 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeSenCategories } from "./sen";
+import { normalizeUniversityGpa } from "./verticals";
 import { isTutorPubliclyListed } from "./tutor-display";
 import { normalizeExamResults, type ExamResult } from "./examSystems";
+import type { TutorReview } from "./tutor-reviews";
+import type { EducationValueRow } from "./education-filters";
 
 export const MAX_TUTOR_ACHIEVEMENTS = 3;
 export const TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT = 60;
@@ -125,6 +129,11 @@ export type Tutor = {
   postgrad_degree: string | null;
   secondary_school: string | null;
   target_students: string[];
+  /** Issue #190: university-vertical self-reported fields. */
+  university_year_of_study: string | null;
+  university_gpa: number | null;
+  university_courses: string[];
+  course_specific_grades: Record<string, string>;
   qualifications_summary: string | null;
   self_introduction: string | null;
   subjects: string[];
@@ -137,6 +146,29 @@ export type Tutor = {
   lesson_mode: "online" | "in_person" | "either";
   hourly_rate: number;
   pricing_tiers: PricingTier[];
+  /** Issue #319: base rates (whole dollars). Card floor = lowest of the two. */
+  online_rate: number | null;
+  inperson_rate: number | null;
+  rate_rows: {
+    label: string;
+    rate: number;
+    /** #391: optional per-row class mode + 300-char expandable description. */
+    mode?: string;
+    description?: string;
+  }[];
+  travel_note: string | null;
+  rate_note: string | null;
+  /** Issue #112: native pricing currency + HKD-normalized rate snapshots. */
+  currency: string | null;
+  min_hourly_rate_hkd: number | null;
+  max_hourly_rate_hkd: number | null;
+  /**
+   * #391: cheapest per-student rate across the tutor's open (non-closed)
+   * group cohorts, batched onto list/profile fetches; null when the tutor
+   * runs none. The card badge takes the min of this and the small-group
+   * rate rows.
+   */
+  group_cohort_rate_hkd?: number | null;
   photo_url: string | null;
   tutor_code: string;
   is_published: boolean;
@@ -153,6 +185,39 @@ export type Tutor = {
   remaining_student_slots: number | null;
   is_accepting_students: boolean | null;
   preferred_time_windows: PreferredTimeWindow[];
+  /** Issue #116: self-serve weekly availability grid (raw JSONB, parsed downstream). */
+  availability_grid: unknown;
+  /** Issue #97: Trophy Cabinet public portfolio photo URLs; empty = hidden. */
+  portfolio_images: string[];
+  /** Issue #217: up to 5 free-text profile tags (lowercase, no hash). */
+  profile_tags: string[];
+  /** Epic #280 P2: owning auth account id; null = unclaimed card. */
+  user_id: string | null;
+  /** Issue #199: self-reported SEN experience + HK-common categories. */
+  sen_enabled: boolean;
+  sen_categories: string[];
+  sen_experience: string | null;
+  /**
+   * Issue #308: owner's account status mirrored by a DB trigger
+   * ('active' | 'suspended' | 'banned'). Suspended owners keep their card
+   * up but lose the Request-tutor action. Optional so pre-migration data
+   * and partial picks still type-check; undefined counts as active.
+   */
+  owner_account_status?: string;
+  /**
+   * Issue #309: labels of staff-APPROVED tutor_grades rows, kept in sync by a
+   * DB trigger. Drives the one Verified badge and the public grade line —
+   * labels only, never the slip file. Optional pre-migration; [] = no badge.
+   */
+  approved_grade_labels?: string[];
+  /**
+   * Issue #411: dual-language custom headline (<= 60 chars each, DB CHECK).
+   * Pre-seeded from academic_headline on creation; owner-editable. Render
+   * precedence lives in getActiveCustomHeadline (custom-headline.ts).
+   * Optional so pre-migration data still type-checks.
+   */
+  custom_headline_en?: string | null;
+  custom_headline_zh?: string | null;
 };
 
 export type TutorPhotoDefaults = {
@@ -166,7 +231,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, approved_grade_labels, custom_headline_en, custom_headline_zh";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -339,6 +404,42 @@ function normalize(
     exam_results: exams,
     achievements: normalizeAchievements(row.achievements),
     pricing_tiers: normalizePricingTiers(row.pricing_tiers),
+    // Issue #319: tolerate missing columns pre-migration.
+    online_rate: typeof row.online_rate === "number" ? row.online_rate : null,
+    inperson_rate: typeof row.inperson_rate === "number" ? row.inperson_rate : null,
+    rate_rows: Array.isArray(row.rate_rows)
+      ? (row.rate_rows as unknown[])
+          .map((entry) => {
+            const record = entry as {
+              label?: unknown;
+              rate?: unknown;
+              mode?: unknown;
+              description?: unknown;
+            } | null;
+            if (!record) return null;
+            const label = typeof record.label === "string" ? record.label.trim() : "";
+            const rate = typeof record.rate === "number" ? record.rate : Number.NaN;
+            if (!label || !Number.isFinite(rate)) return null;
+            // #391: mode/description ride along when present (contact
+            // filtering happened at save time in normalizeTutorRateRows).
+            return {
+              label,
+              rate,
+              ...(typeof record.mode === "string" && record.mode ? { mode: record.mode } : {}),
+              ...(typeof record.description === "string" && record.description
+                ? { description: record.description }
+                : {}),
+            };
+          })
+          .filter(
+            (
+              entry,
+            ): entry is { label: string; rate: number; mode?: string; description?: string } =>
+              entry !== null,
+          )
+      : [],
+    travel_note: typeof row.travel_note === "string" ? row.travel_note : null,
+    rate_note: typeof row.rate_note === "string" ? row.rate_note : null,
     ia_ee_tok_support: normalizeIaEeTokSupport(row.ia_ee_tok_support),
     ia_ee_tok_notes: typeof row.ia_ee_tok_notes === "string" ? row.ia_ee_tok_notes : null,
     tutor_status: typeof row.tutor_status === "string" ? row.tutor_status : null,
@@ -347,6 +448,27 @@ function normalize(
     earliest_start_date:
       typeof row.earliest_start_date === "string" ? row.earliest_start_date : null,
     target_students: targetStudents,
+    // Issue #190: tolerant vertical reads (missing columns pre-migration).
+    // GPA goes through the canonical normalizer so a string numeral from a
+    // hand-rolled payload ("3.75") still renders instead of being dropped.
+    university_year_of_study:
+      typeof row.university_year_of_study === "string" ? row.university_year_of_study : null,
+    university_gpa: normalizeUniversityGpa(row.university_gpa),
+    university_courses: Array.isArray(row.university_courses)
+      ? (row.university_courses as unknown[]).filter(
+          (value): value is string => typeof value === "string" && value.trim().length > 0,
+        )
+      : [],
+    course_specific_grades:
+      row.course_specific_grades &&
+      typeof row.course_specific_grades === "object" &&
+      !Array.isArray(row.course_specific_grades)
+        ? Object.fromEntries(
+            Object.entries(row.course_specific_grades as Record<string, unknown>)
+              .filter(([key, value]) => key.trim() && typeof value === "string")
+              .map(([key, value]) => [key, String(value)]),
+          )
+        : {},
     stations,
     remaining_student_slots:
       typeof row.remaining_student_slots === "number"
@@ -355,6 +477,33 @@ function normalize(
     is_accepting_students:
       typeof row.is_accepting_students === "boolean" ? row.is_accepting_students : null,
     preferred_time_windows: normalizePreferredTimeWindows(row.preferred_time_windows),
+    availability_grid: row.availability_grid ?? null,
+    // Issue #97: Trophy Cabinet URLs; tolerate missing column pre-migration.
+    portfolio_images: Array.isArray(row.portfolio_images)
+      ? row.portfolio_images.filter((url): url is string => typeof url === "string" && url !== "")
+      : [],
+    // Issue #217: profile tags; tolerate missing column pre-migration.
+    profile_tags: Array.isArray(row.profile_tags)
+      ? row.profile_tags.filter((tag): tag is string => typeof tag === "string" && tag !== "")
+      : [],
+    // Issue #199: SEN capability; tolerate missing columns pre-migration.
+    sen_enabled: row.sen_enabled === true,
+    sen_categories: normalizeSenCategories(row.sen_categories),
+    sen_experience: typeof row.sen_experience === "string" ? row.sen_experience : null,
+    // Issue #308: owner status mirror; 'active' when the column is missing.
+    owner_account_status:
+      typeof row.owner_account_status === "string" ? row.owner_account_status : "active",
+    // Issue #309: approved grade labels; tolerate the missing pre-migration
+    // column so every public feed keeps rendering.
+    approved_grade_labels: Array.isArray(row.approved_grade_labels)
+      ? row.approved_grade_labels.filter(
+          (label): label is string => typeof label === "string" && label.trim() !== "",
+        )
+      : [],
+    // Issue #411: dual-language custom headlines; tolerate the missing
+    // pre-migration column so every public feed keeps rendering.
+    custom_headline_en: typeof row.custom_headline_en === "string" ? row.custom_headline_en : null,
+    custom_headline_zh: typeof row.custom_headline_zh === "string" ? row.custom_headline_zh : null,
   };
 }
 
@@ -366,6 +515,45 @@ export function getTutorGenderLabel(gender: string | null | undefined): string {
   return "";
 }
 
+/**
+ * #391: cheapest per-student rate per tutor across open (forming/running)
+ * group cohorts, in one batched query. Best-effort enrichment — a missing
+ * table (pre-migration tab) or RLS hiccup degrades to no enrichment, never
+ * an error, matching the availability-columns tolerance pattern.
+ */
+async function attachGroupCohortRates(tutors: Tutor[]): Promise<Tutor[]> {
+  if (tutors.length === 0) return tutors;
+  try {
+    const { data, error } = await supabase
+      .from("group_cohorts")
+      .select("tutor_id, per_student_rate_hkd, status")
+      .in(
+        "tutor_id",
+        tutors.map((tutor) => tutor.id),
+      )
+      .neq("status", "closed");
+    if (error || !Array.isArray(data)) return tutors;
+    const minRate = new Map<string, number>();
+    for (const row of data as {
+      tutor_id: string;
+      per_student_rate_hkd: number;
+      status: string;
+    }[]) {
+      if (typeof row.per_student_rate_hkd !== "number" || row.per_student_rate_hkd <= 0) continue;
+      const current = minRate.get(row.tutor_id);
+      if (current === undefined || row.per_student_rate_hkd < current) {
+        minRate.set(row.tutor_id, row.per_student_rate_hkd);
+      }
+    }
+    if (minRate.size === 0) return tutors;
+    return tutors.map((tutor) =>
+      minRate.has(tutor.id) ? { ...tutor, group_cohort_rate_hkd: minRate.get(tutor.id) } : tutor,
+    );
+  } catch {
+    return tutors;
+  }
+}
+
 export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
   const defaults = await fetchTutorPhotoDefaults();
   const data = await withTutorSelectFallback<Record<string, unknown>[]>(
@@ -375,9 +563,11 @@ export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
       return query.order("created_at", { ascending: false }).limit(limit);
     },
   );
-  return (data ?? [])
-    .map((row) => normalize(row, defaults))
-    .filter((tutor) => isTutorPubliclyListed(tutor));
+  return attachGroupCohortRates(
+    (data ?? [])
+      .map((row) => normalize(row, defaults))
+      .filter((tutor) => isTutorPubliclyListed(tutor)),
+  );
 }
 
 export async function fetchPublishedTutors(): Promise<Tutor[]> {
@@ -389,9 +579,11 @@ export async function fetchPublishedTutors(): Promise<Tutor[]> {
       return query.order("created_at", { ascending: false });
     },
   );
-  return (data ?? [])
-    .map((row) => normalize(row, defaults))
-    .filter((tutor) => isTutorPubliclyListed(tutor));
+  return attachGroupCohortRates(
+    (data ?? [])
+      .map((row) => normalize(row, defaults))
+      .filter((tutor) => isTutorPubliclyListed(tutor)),
+  );
 }
 
 export async function fetchAllTutors(): Promise<Tutor[]> {
@@ -399,7 +591,22 @@ export async function fetchAllTutors(): Promise<Tutor[]> {
   const data = await withTutorSelectFallback<Record<string, unknown>[]>((selectCols) =>
     supabase.from("tutors").select(selectCols).order("created_at", { ascending: false }),
   );
-  return (data ?? []).map((row) => normalize(row, defaults));
+  return attachGroupCohortRates((data ?? []).map((row) => normalize(row, defaults)));
+}
+
+/**
+ * Free-text education values (published tutors' rows) used to populate the
+ * editor dropdowns on the self-serve profile page — so tutors pick an
+ * existing university/school/major spelling instead of typing a new variant.
+ */
+export async function fetchEducationValues(): Promise<EducationValueRow[]> {
+  const { data, error } = await supabase
+    .from("tutors")
+    .select(
+      "undergrad_university, postgrad_university, secondary_school, undergrad_degree, postgrad_degree",
+    );
+  if (error) throw error;
+  return (data ?? []) as EducationValueRow[];
 }
 
 export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
@@ -412,7 +619,50 @@ export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
       .eq("is_published", true)
       .maybeSingle(),
   );
-  return data ? normalize(data as Record<string, unknown>, defaults) : null;
+  // Issue #405: withTutorSelectFallback coerces a missing row's null data to
+  // [] (its list-query default). That array is truthy, so an unknown code used
+  // to surface as a Tutor-shaped object full of undefined fields — the route
+  // loader's `if (!tutor) throw notFound()` never fired and SSR shipped a 200
+  // soft-404. A row lookup must return null whenever there is no row.
+  if (!data || Array.isArray(data) || Object.keys(data).length === 0) return null;
+  const [tutor] = await attachGroupCohortRates([normalize(data, defaults)]);
+  return tutor;
+}
+
+/**
+ * Issues #83 + #105 (+ reviews half of #116): published reviews for a tutor's
+ * public profile. RLS scopes anon reads to published reviews on published
+ * tutors; admin sees all. Degrades to an empty list if the migration hasn't
+ * been applied yet (same tolerant pattern as the availability columns).
+ */
+export async function fetchTutorReviews(tutorId: string): Promise<TutorReview[]> {
+  const { data, error } = await supabase
+    .from("tutor_reviews")
+    .select("id, rating, public_review, reviewer_display_name, student_grade_school, created_at")
+    .eq("tutor_id", tutorId)
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
+  if (error) {
+    if (extractMissingColumn(error) || (error as { code?: string }).code === "42P01") {
+      return [];
+    }
+    throw error;
+  }
+  const rows = Array.isArray(data) ? data : [];
+  return rows
+    .map((row) => ({
+      id: typeof row.id === "string" ? row.id : "",
+      rating: typeof row.rating === "number" ? Math.min(5, Math.max(1, Math.round(row.rating))) : 0,
+      public_review: typeof row.public_review === "string" ? row.public_review : null,
+      reviewer_display_name:
+        typeof row.reviewer_display_name === "string" ? row.reviewer_display_name : "",
+      student_grade_school:
+        typeof row.student_grade_school === "string" ? row.student_grade_school : null,
+      created_at: typeof row.created_at === "string" ? row.created_at : "",
+    }))
+    .filter(
+      (review) => review.id !== "" && review.rating >= 1 && review.reviewer_display_name !== "",
+    );
 }
 
 export function getTutorLessonModeLabel(mode: Tutor["lesson_mode"]): string {

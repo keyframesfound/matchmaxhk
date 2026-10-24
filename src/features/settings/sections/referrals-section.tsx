@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { SettingsCard } from "@/features/settings/option-card";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { formatMoneyFromCents } from "@/lib/money";
 
 type ReferralDashboard = {
   referral_code: string;
@@ -19,13 +20,7 @@ type ReferralDashboard = {
 };
 
 function formatHkd(cents: number): string {
-  const dollars = cents / 100;
-  return new Intl.NumberFormat("en-HK", {
-    style: "currency",
-    currency: "HKD",
-    minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2,
-    maximumFractionDigits: 2,
-  }).format(dollars);
+  return formatMoneyFromCents(cents);
 }
 
 /**
@@ -160,9 +155,9 @@ export function ReferralsSection() {
             <span>{t("settings.referrals.note")}</span>
           </p>
 
+          {/* Issue #208: the dashboard deep-links the written refer rules. */}
           <Link
-            to="/how-it-works"
-            hash="referral-bounty"
+            to="/guide/refer"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--brand-link)] underline underline-offset-2 hover:opacity-80"
           >
             {t("settings.referrals.rules_link")}

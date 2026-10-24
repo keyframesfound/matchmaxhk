@@ -8,6 +8,33 @@ export type Database = {
   };
   public: {
     Tables: {
+      account_blocklist: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          email: string;
+          google_sub: string | null;
+          id: string;
+          note: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          email: string;
+          google_sub?: string | null;
+          id?: string;
+          note?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          email?: string;
+          google_sub?: string | null;
+          id?: string;
+          note?: string | null;
+        };
+        Relationships: [];
+      };
       app_settings: {
         Row: {
           key: string;
@@ -177,6 +204,92 @@ export type Database = {
           },
         ];
       };
+      exchange_rates: {
+        Row: {
+          rate: number;
+          source_currency: Database["public"]["Enums"]["supported_currency"];
+          target_currency: Database["public"]["Enums"]["supported_currency"];
+          updated_at: string;
+        };
+        Insert: {
+          rate: number;
+          source_currency: Database["public"]["Enums"]["supported_currency"];
+          target_currency: Database["public"]["Enums"]["supported_currency"];
+          updated_at?: string;
+        };
+        Update: {
+          rate?: number;
+          source_currency?: Database["public"]["Enums"]["supported_currency"];
+          target_currency?: Database["public"]["Enums"]["supported_currency"];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      group_cohorts: {
+        Row: {
+          created_at: string;
+          curriculum: string;
+          description: string | null;
+          district: string | null;
+          id: string;
+          max_seats: number;
+          min_seats: number;
+          mode: string;
+          per_student_rate_hkd: number;
+          status: string;
+          student_level: string;
+          subject: string;
+          title: string;
+          tutor_id: string;
+          updated_at: string;
+          weekly_schedule: string;
+        };
+        Insert: {
+          created_at?: string;
+          curriculum: string;
+          description?: string | null;
+          district?: string | null;
+          id?: string;
+          max_seats: number;
+          min_seats?: number;
+          mode: string;
+          per_student_rate_hkd: number;
+          status?: string;
+          student_level: string;
+          subject: string;
+          title: string;
+          tutor_id: string;
+          updated_at?: string;
+          weekly_schedule: string;
+        };
+        Update: {
+          created_at?: string;
+          curriculum?: string;
+          description?: string | null;
+          district?: string | null;
+          id?: string;
+          max_seats?: number;
+          min_seats?: number;
+          mode?: string;
+          per_student_rate_hkd?: number;
+          status?: string;
+          student_level?: string;
+          subject?: string;
+          title?: string;
+          tutor_id?: string;
+          updated_at?: string;
+          weekly_schedule?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "group_cohorts_tutor_id_fkey";
+            columns: ["tutor_id"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       organization_members: {
         Row: {
           claimed_at: string | null;
@@ -252,6 +365,17 @@ export type Database = {
           website_url: string | null;
           whatsapp_number: string | null;
           x_url: string | null;
+          authority_ack_at?: string | null;
+          br_number?: string | null;
+          br_reviewed_at?: string | null;
+          br_reviewed_by?: string | null;
+          charity_identifier?: string | null;
+          edb_identifier?: string | null;
+          legal_entity_name?: string | null;
+          org_type?: string | null;
+          rep_name?: string | null;
+          rep_role?: string | null;
+          trading_name?: string | null;
           youtube_url: string | null;
         };
         Insert: {
@@ -281,6 +405,17 @@ export type Database = {
           website_url?: string | null;
           whatsapp_number?: string | null;
           x_url?: string | null;
+          authority_ack_at?: string | null;
+          br_number?: string | null;
+          br_reviewed_at?: string | null;
+          br_reviewed_by?: string | null;
+          charity_identifier?: string | null;
+          edb_identifier?: string | null;
+          legal_entity_name?: string | null;
+          org_type?: string | null;
+          rep_name?: string | null;
+          rep_role?: string | null;
+          trading_name?: string | null;
           youtube_url?: string | null;
         };
         Update: {
@@ -310,7 +445,87 @@ export type Database = {
           website_url?: string | null;
           whatsapp_number?: string | null;
           x_url?: string | null;
+          authority_ack_at?: string | null;
+          br_number?: string | null;
+          br_reviewed_at?: string | null;
+          br_reviewed_by?: string | null;
+          charity_identifier?: string | null;
+          edb_identifier?: string | null;
+          legal_entity_name?: string | null;
+          org_type?: string | null;
+          rep_name?: string | null;
+          rep_role?: string | null;
+          trading_name?: string | null;
           youtube_url?: string | null;
+        };
+        Relationships: [];
+      };
+      engagement_summaries: {
+        Row: {
+          case_id: string;
+          created_at: string;
+          customer_confirmed_at: string | null;
+          id: string;
+          payload: Json;
+          tutor_confirmed_at: string | null;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          case_id: string;
+          created_at?: string;
+          customer_confirmed_at?: string | null;
+          id?: string;
+          payload: Json;
+          tutor_confirmed_at?: string | null;
+          updated_at?: string;
+          version?: number;
+        };
+        Update: {
+          case_id?: string;
+          created_at?: string;
+          customer_confirmed_at?: string | null;
+          id?: string;
+          payload?: Json;
+          tutor_confirmed_at?: string | null;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [];
+      };
+      engagement_change_reports: {
+        Row: {
+          case_id: string;
+          created_at: string;
+          description: string;
+          engagement_id: string | null;
+          id: string;
+          reported_by_role: string;
+          reported_by_user: string | null;
+          resolved_at: string | null;
+          resolution_note: string | null;
+        };
+        Insert: {
+          case_id: string;
+          created_at?: string;
+          description: string;
+          engagement_id?: string | null;
+          id?: string;
+          reported_by_role: string;
+          reported_by_user?: string | null;
+          resolved_at?: string | null;
+          resolution_note?: string | null;
+        };
+        Update: {
+          case_id?: string;
+          created_at?: string;
+          description?: string;
+          engagement_id?: string | null;
+          id?: string;
+          reported_by_role?: string;
+          reported_by_user?: string | null;
+          resolved_at?: string | null;
+          resolution_note?: string | null;
         };
         Relationships: [];
       };
@@ -358,10 +573,16 @@ export type Database = {
       };
       profiles: {
         Row: {
+          account_status: string;
+          account_status_at: string | null;
+          account_status_reason: string | null;
           avatar_url: string | null;
+          community_commitment_at: string | null;
+          community_commitment_version: string | null;
           created_at: string;
           display_name: string | null;
           email: string | null;
+          google_sub: string | null;
           id: string;
           locale: string;
           notification_preferences: Json;
@@ -373,10 +594,16 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          account_status?: string;
+          account_status_at?: string | null;
+          account_status_reason?: string | null;
           avatar_url?: string | null;
+          community_commitment_at?: string | null;
+          community_commitment_version?: string | null;
           created_at?: string;
           display_name?: string | null;
           email?: string | null;
+          google_sub?: string | null;
           id: string;
           locale?: string;
           notification_preferences?: Json;
@@ -388,10 +615,16 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          account_status?: string;
+          account_status_at?: string | null;
+          account_status_reason?: string | null;
           avatar_url?: string | null;
+          community_commitment_at?: string | null;
+          community_commitment_version?: string | null;
           created_at?: string;
           display_name?: string | null;
           email?: string | null;
+          google_sub?: string | null;
           id?: string;
           locale?: string;
           notification_preferences?: Json;
@@ -591,59 +824,13 @@ export type Database = {
           },
         ];
       };
-      tutor_reviews: {
-        Row: {
-          author_alias: string;
-          author_user_id: string | null;
-          comment: string | null;
-          created_at: string;
-          created_by: string | null;
-          id: string;
-          is_published: boolean;
-          rating: number;
-          tutor_id: string;
-          updated_at: string;
-        };
-        Insert: {
-          author_alias: string;
-          author_user_id?: string | null;
-          comment?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          id?: string;
-          is_published?: boolean;
-          rating: number;
-          tutor_id: string;
-          updated_at?: string;
-        };
-        Update: {
-          author_alias?: string;
-          author_user_id?: string | null;
-          comment?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          id?: string;
-          is_published?: boolean;
-          rating?: number;
-          tutor_id?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "tutor_reviews_tutor_id_fkey";
-            columns: ["tutor_id"];
-            isOneToOne: false;
-            referencedRelation: "tutors";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       tutor_applications: {
         Row: {
           attachment_files: Json;
           created_at: string;
           data: Json;
           id: string;
+          linked_tutor_id: string | null;
           purge_after: string | null;
           referred_by: string | null;
           rejected_at: string | null;
@@ -655,6 +842,7 @@ export type Database = {
           created_at?: string;
           data: Json;
           id?: string;
+          linked_tutor_id?: string | null;
           purge_after?: string | null;
           referred_by?: string | null;
           rejected_at?: string | null;
@@ -666,6 +854,7 @@ export type Database = {
           created_at?: string;
           data?: Json;
           id?: string;
+          linked_tutor_id?: string | null;
           purge_after?: string | null;
           referred_by?: string | null;
           rejected_at?: string | null;
@@ -682,14 +871,195 @@ export type Database = {
           },
         ];
       };
+      tutor_claim_requests: {
+        Row: {
+          created_at: string;
+          email: string | null;
+          id: string;
+          note: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          status: string;
+          tutor_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          email?: string | null;
+          id?: string;
+          note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: string;
+          tutor_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          email?: string | null;
+          id?: string;
+          note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: string;
+          tutor_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tutor_claim_requests_tutor_id_fkey";
+            columns: ["tutor_id"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tutor_claim_requests_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      tutor_grades: {
+        Row: {
+          created_at: string;
+          file_path: string | null;
+          id: string;
+          label: string;
+          reviewed_at: string | null;
+          staff_reason: string | null;
+          status: Database["public"]["Enums"]["tutor_grade_status"];
+          tutor_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          file_path?: string | null;
+          id?: string;
+          label: string;
+          reviewed_at?: string | null;
+          staff_reason?: string | null;
+          status?: Database["public"]["Enums"]["tutor_grade_status"];
+          tutor_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          file_path?: string | null;
+          id?: string;
+          label?: string;
+          reviewed_at?: string | null;
+          staff_reason?: string | null;
+          status?: Database["public"]["Enums"]["tutor_grade_status"];
+          tutor_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tutor_grades_tutor_id_fkey";
+            columns: ["tutor_id"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      tutor_notices: {
+        Row: {
+          created_at: string;
+          id: string;
+          kind: string;
+          payload: Json;
+          read_at: string | null;
+          tutor_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          kind: string;
+          payload?: Json;
+          read_at?: string | null;
+          tutor_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          payload?: Json;
+          read_at?: string | null;
+          tutor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tutor_notices_tutor_id_fkey";
+            columns: ["tutor_id"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      tutor_reviews: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_published: boolean;
+          is_verified: boolean;
+          public_review: string | null;
+          rating: number;
+          reviewer_display_name: string;
+          student_grade_school: string | null;
+          tutor_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_published?: boolean;
+          is_verified?: boolean;
+          public_review?: string | null;
+          rating: number;
+          reviewer_display_name: string;
+          student_grade_school?: string | null;
+          tutor_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_published?: boolean;
+          is_verified?: boolean;
+          public_review?: string | null;
+          rating?: number;
+          reviewer_display_name?: string;
+          student_grade_school?: string | null;
+          tutor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tutor_reviews_tutor_id_fkey";
+            columns: ["tutor_id"];
+            isOneToOne: false;
+            referencedRelation: "tutors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       tutoring_cases: {
         Row: {
           assigned_to: string | null;
+          class_format_preference: string | null;
+          group_cohort_id: string | null;
+          package_type: string;
+          rate_unit: string;
+          student_count: number;
           board_published_at: string | null;
+          budget_currency: Database["public"]["Enums"]["supported_currency"];
           budget_max: number | null;
+          budget_max_hkd: number | null;
           budget_min: number | null;
+          budget_min_hkd: number | null;
           case_code: string;
-          contact_email: string | null;
           contact_name: string;
           contact_phone: string;
           created_at: string;
@@ -710,6 +1080,9 @@ export type Database = {
           requester_type: string | null;
           schedule_note: string | null;
           school_type: string | null;
+          sen_categories: string[];
+          sen_details: string | null;
+          sen_required: boolean;
           session_length_minutes: number;
           sessions_per_week: number;
           source: string;
@@ -728,14 +1101,30 @@ export type Database = {
           tutor_background: string | null;
           updated_at: string;
           urgency: Database["public"]["Enums"]["case_urgency"];
+          academic_tier: string | null;
+          uni_field: string | null;
+          uni_name: string | null;
+          uni_program: string | null;
+          uni_course_codes: string | null;
+          compliance_note?: string | null;
+          compliance_triage?: Json | null;
+          organisation_id?: string | null;
+          kindergarten_focus: Json;
         };
         Insert: {
           assigned_to?: string | null;
+          class_format_preference?: string | null;
+          group_cohort_id?: string | null;
+          package_type?: string;
+          rate_unit?: string;
+          student_count?: number;
           board_published_at?: string | null;
+          budget_currency?: Database["public"]["Enums"]["supported_currency"];
           budget_max?: number | null;
+          budget_max_hkd?: number | null;
           budget_min?: number | null;
+          budget_min_hkd?: number | null;
           case_code?: string;
-          contact_email?: string | null;
           contact_name: string;
           contact_phone: string;
           created_at?: string;
@@ -765,6 +1154,9 @@ export type Database = {
           student_grade_current?: string | null;
           student_level: string;
           student_school?: string | null;
+          sen_categories?: string[];
+          sen_details?: string | null;
+          sen_required?: boolean;
           subjects?: string[];
           support_type?: string | null;
           tags?: string[];
@@ -774,14 +1166,30 @@ export type Database = {
           tutor_background?: string | null;
           updated_at?: string;
           urgency?: Database["public"]["Enums"]["case_urgency"];
+          academic_tier?: string | null;
+          uni_field?: string | null;
+          uni_name?: string | null;
+          uni_program?: string | null;
+          uni_course_codes?: string | null;
+          compliance_note?: string | null;
+          compliance_triage?: Json | null;
+          organisation_id?: string | null;
+          kindergarten_focus?: Json;
         };
         Update: {
           assigned_to?: string | null;
+          class_format_preference?: string | null;
+          group_cohort_id?: string | null;
+          package_type?: string;
+          rate_unit?: string;
+          student_count?: number;
           board_published_at?: string | null;
+          budget_currency?: Database["public"]["Enums"]["supported_currency"];
           budget_max?: number | null;
+          budget_max_hkd?: number | null;
           budget_min?: number | null;
+          budget_min_hkd?: number | null;
           case_code?: string;
-          contact_email?: string | null;
           contact_name?: string;
           contact_phone?: string;
           created_at?: string;
@@ -802,6 +1210,9 @@ export type Database = {
           requester_type?: string | null;
           schedule_note?: string | null;
           school_type?: string | null;
+          sen_categories?: string[];
+          sen_details?: string | null;
+          sen_required?: boolean;
           session_length_minutes?: number;
           sessions_per_week?: number;
           source?: string;
@@ -820,6 +1231,15 @@ export type Database = {
           tutor_background?: string | null;
           updated_at?: string;
           urgency?: Database["public"]["Enums"]["case_urgency"];
+          academic_tier?: string | null;
+          uni_field?: string | null;
+          uni_name?: string | null;
+          uni_program?: string | null;
+          uni_course_codes?: string | null;
+          compliance_note?: string | null;
+          compliance_triage?: Json | null;
+          organisation_id?: string | null;
+          kindergarten_focus?: Json | null;
         };
         Relationships: [
           {
@@ -843,15 +1263,34 @@ export type Database = {
             referencedRelation: "tutors";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "tutoring_cases_group_cohort_id_fkey";
+            columns: ["group_cohort_id"];
+            isOneToOne: false;
+            referencedRelation: "group_cohorts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tutoring_cases_organisation_id_fkey";
+            columns: ["organisation_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
         ];
       };
       tutors: {
         Row: {
           achievements: Json;
           academic_headline: string | null;
+          custom_headline_en: string | null;
+          custom_headline_zh: string | null;
           badge: string | null;
+          card_hidden_by_ban: boolean;
+          owner_account_status: string;
           created_at: string;
           created_by: string | null;
+          currency: Database["public"]["Enums"]["supported_currency"];
           display_name: string;
           district: string | null;
           experience_years: number | null;
@@ -859,13 +1298,21 @@ export type Database = {
           gender: string | null;
           headline: string | null;
           card_highlights: string[];
+          claimed_at: string | null;
           hourly_rate: number;
           ia_ee_tok_notes: string | null;
           ia_ee_tok_support: string[];
+          inperson_rate: number | null;
+          online_rate: number | null;
+          rate_note: string | null;
+          rate_rows: Json;
+          travel_note: string | null;
           id: string;
           is_published: boolean;
           languages: string[];
           lesson_mode: Database["public"]["Enums"]["case_mode"];
+          max_hourly_rate_hkd: number | null;
+          min_hourly_rate_hkd: number | null;
           photo_url: string | null;
           pricing_tiers: Json;
           qualifications_summary: string | null;
@@ -873,6 +1320,9 @@ export type Database = {
           referral_code: string | null;
           referred_by: string | null;
           secondary_school: string | null;
+          sen_categories: string[];
+          sen_enabled: boolean;
+          sen_experience: string | null;
           start_immediately: boolean;
           earliest_start_date: string | null;
           stations: string[];
@@ -891,20 +1341,39 @@ export type Database = {
           remaining_student_slots: number;
           is_accepting_students: boolean;
           preferred_time_windows: string[];
+          availability_grid: Json;
+          deletion_requested_at: string | null;
+          portfolio_images: string[];
+          approved_grade_labels: string[];
+          university_year_of_study: string | null;
+          university_gpa: number | null;
+          university_courses: Json;
+          course_specific_grades: Json;
         };
         Insert: {
           achievements?: Json;
           academic_headline?: string | null;
+          custom_headline_en?: string | null;
+          custom_headline_zh?: string | null;
           badge?: string | null;
+          card_hidden_by_ban?: boolean;
+          owner_account_status?: string;
           created_at?: string;
           created_by?: string | null;
+          currency?: Database["public"]["Enums"]["supported_currency"];
           display_name: string;
+          inperson_rate?: number | null;
+          online_rate?: number | null;
+          rate_note?: string | null;
+          rate_rows?: Json;
+          travel_note?: string | null;
           district?: string | null;
           experience_years?: number | null;
           exam_results?: Json;
           gender?: string | null;
           headline?: string | null;
           card_highlights?: string[];
+          claimed_at?: string | null;
           hourly_rate?: number;
           ia_ee_tok_notes?: string | null;
           ia_ee_tok_support?: string[];
@@ -912,6 +1381,8 @@ export type Database = {
           is_published?: boolean;
           languages?: string[];
           lesson_mode?: Database["public"]["Enums"]["case_mode"];
+          max_hourly_rate_hkd?: number | null;
+          min_hourly_rate_hkd?: number | null;
           photo_url?: string | null;
           pricing_tiers?: Json;
           qualifications_summary?: string | null;
@@ -919,6 +1390,9 @@ export type Database = {
           referral_code?: string | null;
           referred_by?: string | null;
           secondary_school?: string | null;
+          sen_categories?: string[];
+          sen_enabled?: boolean;
+          sen_experience?: string | null;
           start_immediately?: boolean;
           earliest_start_date?: string | null;
           stations?: string[];
@@ -934,20 +1408,39 @@ export type Database = {
           postgrad_degree?: string | null;
           updated_at?: string;
           user_id?: string | null;
+          availability_grid?: Json;
+          deletion_requested_at?: string | null;
+          portfolio_images?: string[];
+          approved_grade_labels?: string[];
+          university_year_of_study?: string | null;
+          university_gpa?: number | null;
+          university_courses?: Json;
+          course_specific_grades?: Json;
         };
         Update: {
           achievements?: Json;
           academic_headline?: string | null;
+          custom_headline_en?: string | null;
+          custom_headline_zh?: string | null;
           badge?: string | null;
+          card_hidden_by_ban?: boolean;
+          owner_account_status?: string;
           created_at?: string;
           created_by?: string | null;
+          currency?: Database["public"]["Enums"]["supported_currency"];
           display_name?: string;
+          inperson_rate?: number | null;
+          online_rate?: number | null;
+          rate_note?: string | null;
+          rate_rows?: Json;
+          travel_note?: string | null;
           district?: string | null;
           experience_years?: number | null;
           exam_results?: Json;
           gender?: string | null;
           headline?: string | null;
           card_highlights?: string[];
+          claimed_at?: string | null;
           hourly_rate?: number;
           ia_ee_tok_notes?: string | null;
           ia_ee_tok_support?: string[];
@@ -955,6 +1448,8 @@ export type Database = {
           is_published?: boolean;
           languages?: string[];
           lesson_mode?: Database["public"]["Enums"]["case_mode"];
+          max_hourly_rate_hkd?: number | null;
+          min_hourly_rate_hkd?: number | null;
           photo_url?: string | null;
           pricing_tiers?: Json;
           qualifications_summary?: string | null;
@@ -962,6 +1457,9 @@ export type Database = {
           referral_code?: string | null;
           referred_by?: string | null;
           secondary_school?: string | null;
+          sen_categories?: string[];
+          sen_enabled?: boolean;
+          sen_experience?: string | null;
           start_immediately?: boolean;
           earliest_start_date?: string | null;
           stations?: string[];
@@ -980,6 +1478,14 @@ export type Database = {
           remaining_student_slots?: number;
           is_accepting_students?: boolean;
           preferred_time_windows?: string[];
+          availability_grid?: Json;
+          deletion_requested_at?: string | null;
+          portfolio_images?: string[];
+          approved_grade_labels?: string[];
+          university_year_of_study?: string | null;
+          university_gpa?: number | null;
+          university_courses?: Json | null;
+          course_specific_grades?: Json | null;
         };
         Relationships: [
           {
@@ -1025,11 +1531,71 @@ export type Database = {
     };
     Functions: {
       claim_org_memberships: { Args: never; Returns: number };
+      get_trending_tutors: {
+        Args: { p_candidate_limit?: number };
+        Returns: {
+          tutor_id: string;
+          base_score: number;
+          inquiries_7d: number;
+          views_30d: number;
+          requests_30d: number;
+          saves_total: number;
+          saves_30d: number;
+        }[];
+      };
+      get_tutor_engagement: {
+        Args: { p_tutor_ids: string[] };
+        Returns: {
+          tutor_id: string;
+          inquiries_7d: number;
+          views_30d: number;
+          requests_30d: number;
+          saves_total: number;
+          saves_30d: number;
+        }[];
+      };
+      record_tutor_engagement: {
+        Args: { p_tutor_id: string; p_event_type: string; p_viewer_key: string };
+        Returns: undefined;
+      };
       complete_onboarding: { Args: { _choice: string }; Returns: undefined };
+      confirm_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
+      request_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
+      publish_tutor_from_application: {
+        Args: { p_application_id: string; p_card: Json };
+        Returns: Json;
+      };
+      resolve_tutor_claim: {
+        Args: { p_request_id: string; p_approve: boolean; p_note?: string | null };
+        Returns: string;
+      };
       find_user_id_by_email: { Args: { _email: string }; Returns: string };
       list_accounts_for_assignment: {
         Args: { _search: string };
         Returns: { id: string; email: string | null; display_name: string | null }[];
+      };
+      get_tutor_contact_details: {
+        Args: { _tutor_id: string };
+        Returns: {
+          account_email: string | null;
+          account_phone: string | null;
+          account_display_name: string | null;
+          application_name: string | null;
+          application_phone: string | null;
+          application_email: string | null;
+          application_id: string | null;
+          application_status: string | null;
+          application_created_at: string | null;
+        }[];
+      };
+      list_tutor_applications_for_linking: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          label: string;
+          status: string | null;
+          created_at: string;
+        }[];
       };
       get_my_referral_dashboard: { Args: never; Returns: Json };
       update_my_availability: {
@@ -1042,6 +1608,10 @@ export type Database = {
           _is_accepting_students: boolean;
           _preferred_time_windows: string[];
         };
+        Returns: undefined;
+      };
+      update_my_availability_grid: {
+        Args: { _grid: Json };
         Returns: undefined;
       };
       get_org_role: {
@@ -1090,14 +1660,17 @@ export type Database = {
       app_role: "super_admin" | "admin" | "staff" | "tutor" | "parent";
       case_gender_pref: "any" | "male" | "female";
       case_mode: "online" | "in_person" | "either";
-      case_request_status: "new" | "contacted" | "matched" | "closed" | "rejected";
+      case_request_status:
+        "new" | "contacted" | "compliance_hold" | "matched" | "closed" | "rejected";
       case_urgency: "low" | "normal" | "high";
       org_member_role: "owner" | "admin";
       org_member_status: "pending" | "active" | "revoked";
       org_plan: "business" | "enterprise";
       org_status: "pending" | "active" | "suspended";
       referral_bounty_status: "pending" | "ready_for_payout" | "paid";
+      supported_currency: "AUD" | "CAD" | "CNY" | "EUR" | "GBP" | "HKD" | "SGD" | "USD";
       tutor_application_status: "pending" | "accepted" | "rejected";
+      tutor_grade_status: "none" | "pending" | "approved" | "rejected";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1222,14 +1795,16 @@ export const Constants = {
       app_role: ["super_admin", "admin", "staff", "tutor", "parent"],
       case_gender_pref: ["any", "male", "female"],
       case_mode: ["online", "in_person", "either"],
-      case_request_status: ["new", "contacted", "matched", "closed", "rejected"],
+      case_request_status: ["new", "contacted", "compliance_hold", "matched", "closed", "rejected"],
       case_urgency: ["low", "normal", "high"],
       org_member_role: ["owner", "admin"],
       org_member_status: ["pending", "active", "revoked"],
       org_plan: ["business", "enterprise"],
       org_status: ["pending", "active", "suspended"],
       referral_bounty_status: ["pending", "ready_for_payout", "paid"],
+      supported_currency: ["AUD", "CAD", "CNY", "EUR", "GBP", "HKD", "SGD", "USD"],
       tutor_application_status: ["pending", "accepted", "rejected"],
+      tutor_grade_status: ["none", "pending", "approved", "rejected"],
     },
   },
 } as const;

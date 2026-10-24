@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
 import { Loader2, UserRoundCheck, Wallet, X } from "lucide-react";
 import { toast } from "sonner";
+
+import { ensureEngagementSummary } from "@/features/cases/engagement.functions";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConsolePanel } from "@/components/ui/console-panel";
+import { formatMoneyFromCents } from "@/lib/money";
 import type { CaseRow } from "./shared";
 
 type TutorHit = {
@@ -15,22 +19,22 @@ type TutorHit = {
   display_name: string;
   tutor_code: string;
   hourly_rate: number;
+  min_hourly_rate_hkd: number | null;
   photo_url: string | null;
   referrer: { display_name: string } | null;
 };
 
 const TUTOR_SELECT =
-  "id, display_name, tutor_code, hourly_rate, photo_url, referrer:tutors!tutors_referred_by_fkey(display_name)";
+  "id, display_name, tutor_code, hourly_rate, min_hourly_rate_hkd, photo_url, referrer:tutors!tutors_referred_by_fkey(display_name)";
+
+// Fee policy comparisons happen in HKD (issue #112), so a tutor quoting in
+// another currency is judged on the HKD-normalized snapshot.
+function tutorHkdRate(hit: Pick<TutorHit, "hourly_rate" | "min_hourly_rate_hkd">): number {
+  return hit.min_hourly_rate_hkd ?? hit.hourly_rate;
+}
 
 function formatHkd(cents: number | null): string {
-  if (cents === null) return "—";
-  const dollars = cents / 100;
-  return new Intl.NumberFormat("en-HK", {
-    style: "currency",
-    currency: "HKD",
-    minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2,
-    maximumFractionDigits: 2,
-  }).format(dollars);
+  return cents === null ? "—" : formatMoneyFromCents(cents);
 }
 
 function TutorAvatar({ hit }: { hit: TutorHit }) {
@@ -57,6 +61,7 @@ function TutorAvatar({ hit }: { hit: TutorHit }) {
  * referrer's 15% bounty via the trg_cases_fee_referral_bounty trigger.
  */
 export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatched: () => void }) {
+  const ensureFn = useServerFn(ensureEngagementSummary);
   const [query, setQuery] = useState("");
   const [feeInput, setFeeInput] = useState("");
 
@@ -102,6 +107,12 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
   });
 
   const markMatched = (tutor: TutorHit) => {
+    // Issue #412: a compliance-held request cannot be matched until staff
+    // re-screen and clear the hold.
+    if (caseRow.status === "compliance_hold") {
+      toast.error("Compliance hold: re-screen this request before matching a tutor.");
+      return;
+    }
     patchMutation.mutate(
       {
         status: "matched",
@@ -112,6 +123,12 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
         onSuccess: () => {
           setQuery("");
           toast.success(`Case ${caseRow.case_code} matched to ${tutor.display_name}`);
+          // Issue #412 F: auto-create the engagement summary at match time
+          // (board-matched path; the SoR `introduced` transition has its own
+          // hook). Fail-open — it re-ensures idempotently later.
+          void ensureFn({ data: { caseId: caseRow.id } }).catch((e: unknown) => {
+            console.error("[engagement] failed to ensure summary on match:", e);
+          });
         },
       },
     );
@@ -174,7 +191,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
                   {matchedTutor.display_name}
                 </p>
                 <p className="truncate text-[11px] text-muted-foreground">
-                  HK${matchedTutor.hourly_rate}/hr
+                  HK${tutorHkdRate(matchedTutor)}/hr
                   {caseRow.matched_at
                     ? ` · matched ${format(new Date(caseRow.matched_at), "d MMM yyyy")}`
                     : ""}
@@ -233,7 +250,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
                         {hit.display_name}
                       </span>
                       <span className="block truncate text-[11px] text-muted-foreground">
-                        {hit.tutor_code} · HK${hit.hourly_rate}/hr
+                        {hit.tutor_code} · HK${tutorHkdRate(hit)}/hr
                         {hit.referrer ? ` · referred by ${hit.referrer.display_name}` : ""}
                       </span>
                     </span>

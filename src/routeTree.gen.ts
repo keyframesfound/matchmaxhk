@@ -14,32 +14,47 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
 import { Route as CaseRequestRouteImport } from './routes/case-request'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as GroupClassesRouteImport } from './routes/group-classes'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
-import { Route as JoinRouteImport } from './routes/join'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TosRouteImport } from './routes/tos'
 import { Route as TutorPlaybookRouteImport } from './routes/tutor-playbook'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated.account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
+import { Route as AuthenticatedJoinRouteImport } from './routes/_authenticated.join'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
 import { Route as BusinessSlugRouteImport } from './routes/business.$slug'
 import { Route as CoursesIndexRouteImport } from './routes/courses.index'
 import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
+import { Route as GuideIndexRouteImport } from './routes/guide.index'
+import { Route as GuideNotesRouteImport } from './routes/guide.notes'
+import { Route as GuideParentsRouteImport } from './routes/guide.parents'
+import { Route as GuidePartnersRouteImport } from './routes/guide.partners'
+import { Route as GuideReferRouteImport } from './routes/guide.refer'
+import { Route as GuideTutorsRouteImport } from './routes/guide.tutors'
+import { Route as GuideVerificationRouteImport } from './routes/guide.verification'
 import { Route as HelpIndexRouteImport } from './routes/help.index'
-import { Route as TutorRequestsIndexRouteImport } from './routes/tutor-requests.index'
-import { Route as TutorRequestsCaseCodeRouteImport } from './routes/tutor-requests.$caseCode'
+import { Route as LegalNotesTermsRouteImport } from './routes/legal.notes-terms'
+import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
+import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
+import { Route as AuthenticatedAccountCasesRouteImport } from './routes/_authenticated.account.cases'
+import { Route as AuthenticatedAccountClaimRouteImport } from './routes/_authenticated.account.claim'
+import { Route as AuthenticatedAccountPreviewRouteImport } from './routes/_authenticated.account.preview'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedAdminCasesRouteImport } from './routes/_authenticated.admin.cases'
+import { Route as AuthenticatedAdminGradesRouteImport } from './routes/_authenticated.admin.grades'
 import { Route as AuthenticatedAdminJoinRequestsRouteImport } from './routes/_authenticated.admin.join-requests'
+import { Route as AuthenticatedAdminMaterialsRouteImport } from './routes/_authenticated.admin.materials'
 import { Route as AuthenticatedAdminOrganizationsRouteImport } from './routes/_authenticated.admin.organizations'
 import { Route as AuthenticatedAdminR2RouteImport } from './routes/_authenticated.admin.r2'
 import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated.admin.referrals'
+import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated.admin.reports'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
 import { Route as AuthenticatedAdminTutorsRouteImport } from './routes/_authenticated.admin.tutors'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
@@ -48,10 +63,18 @@ import { Route as AuthenticatedBusinessCoursesRouteImport } from './routes/_auth
 import { Route as AuthenticatedBusinessJoinRouteImport } from './routes/_authenticated.business.join'
 import { Route as AuthenticatedBusinessSettingsRouteImport } from './routes/_authenticated.business.settings'
 import { Route as AuthenticatedBusinessTeamRouteImport } from './routes/_authenticated.business.team'
+import { Route as AuthenticatedTutorRequestsIndexRouteImport } from './routes/_authenticated.tutor-requests.index'
+import { Route as AuthenticatedTutorRequestsCaseCodeRouteImport } from './routes/_authenticated.tutor-requests.$caseCode'
 import { Route as HelpCategorySlugRouteImport } from './routes/help.$category.$slug'
+import { Route as AuthenticatedAccountCasesCaseIdRouteImport } from './routes/_authenticated.account.cases.$caseId'
+import { Route as AuthenticatedAccountNotesNewRouteImport } from './routes/_authenticated.account.notes.new'
+import { Route as AuthenticatedAccountServicesNewRouteImport } from './routes/_authenticated.account.services.new'
+import { Route as AuthenticatedBusinessCasesNewRouteImport } from './routes/_authenticated.business.cases.new'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
+import { Route as AuthenticatedAccountNotesMaterialIdEditRouteImport } from './routes/_authenticated.account.notes.$materialId.edit'
+import { Route as AuthenticatedAccountServicesMaterialIdEditRouteImport } from './routes/_authenticated.account.services.$materialId.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -77,19 +100,14 @@ const CaseRequestRoute = CaseRequestRouteImport.update({
   path: '/case-request',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
+const GroupClassesRoute = GroupClassesRouteImport.update({
+  id: '/group-classes',
+  path: '/group-classes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JoinRoute = JoinRouteImport.update({
-  id: '/join',
-  path: '/join',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -100,11 +118,6 @@ const PricingRoute = PricingRouteImport.update({
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -122,6 +135,11 @@ const TutorPlaybookRoute = TutorPlaybookRouteImport.update({
   path: '/tutor-playbook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -132,6 +150,17 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedJoinRoute = AuthenticatedJoinRouteImport.update({
+  id: '/join',
+  path: '/join',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSavedPostsRoute = AuthenticatedSavedPostsRouteImport.update({
   id: '/saved-posts',
   path: '/saved-posts',
@@ -152,19 +181,59 @@ const CoursesCourseIdRoute = CoursesCourseIdRouteImport.update({
   path: '/courses/$courseId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuideIndexRoute = GuideIndexRouteImport.update({
+  id: '/guide/',
+  path: '/guide/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideNotesRoute = GuideNotesRouteImport.update({
+  id: '/guide/notes',
+  path: '/guide/notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideParentsRoute = GuideParentsRouteImport.update({
+  id: '/guide/parents',
+  path: '/guide/parents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuidePartnersRoute = GuidePartnersRouteImport.update({
+  id: '/guide/partners',
+  path: '/guide/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideReferRoute = GuideReferRouteImport.update({
+  id: '/guide/refer',
+  path: '/guide/refer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideTutorsRoute = GuideTutorsRouteImport.update({
+  id: '/guide/tutors',
+  path: '/guide/tutors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideVerificationRoute = GuideVerificationRouteImport.update({
+  id: '/guide/verification',
+  path: '/guide/verification',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HelpIndexRoute = HelpIndexRouteImport.update({
   id: '/help/',
   path: '/help/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TutorRequestsIndexRoute = TutorRequestsIndexRouteImport.update({
-  id: '/tutor-requests/',
-  path: '/tutor-requests/',
+const LegalNotesTermsRoute = LegalNotesTermsRouteImport.update({
+  id: '/legal/notes-terms',
+  path: '/legal/notes-terms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TutorRequestsCaseCodeRoute = TutorRequestsCaseCodeRouteImport.update({
-  id: '/tutor-requests/$caseCode',
-  path: '/tutor-requests/$caseCode',
+const NotesSlugRoute = NotesSlugRouteImport.update({
+  id: '/notes/$slug',
+  path: '/notes/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersOrderIdRoute = OrdersOrderIdRouteImport.update({
+  id: '/orders/$orderId',
+  path: '/orders/$orderId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TutorsIndexRoute = TutorsIndexRouteImport.update({
@@ -177,6 +246,24 @@ const TutorsTutorCodeRoute = TutorsTutorCodeRouteImport.update({
   path: '/tutors/$tutorCode',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountCasesRoute =
+  AuthenticatedAccountCasesRouteImport.update({
+    id: '/cases',
+    path: '/cases',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
+const AuthenticatedAccountClaimRoute =
+  AuthenticatedAccountClaimRouteImport.update({
+    id: '/claim',
+    path: '/claim',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
+const AuthenticatedAccountPreviewRoute =
+  AuthenticatedAccountPreviewRouteImport.update({
+    id: '/preview',
+    path: '/preview',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -187,10 +274,22 @@ const AuthenticatedAdminCasesRoute = AuthenticatedAdminCasesRouteImport.update({
   path: '/cases',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminGradesRoute =
+  AuthenticatedAdminGradesRouteImport.update({
+    id: '/grades',
+    path: '/grades',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminJoinRequestsRoute =
   AuthenticatedAdminJoinRequestsRouteImport.update({
     id: '/join-requests',
     path: '/join-requests',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminMaterialsRoute =
+  AuthenticatedAdminMaterialsRouteImport.update({
+    id: '/materials',
+    path: '/materials',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminOrganizationsRoute =
@@ -208,6 +307,12 @@ const AuthenticatedAdminReferralsRoute =
   AuthenticatedAdminReferralsRouteImport.update({
     id: '/referrals',
     path: '/referrals',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminReportsRoute =
+  AuthenticatedAdminReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminSettingsRoute =
@@ -257,11 +362,47 @@ const AuthenticatedBusinessTeamRoute =
     path: '/business/team',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedTutorRequestsIndexRoute =
+  AuthenticatedTutorRequestsIndexRouteImport.update({
+    id: '/tutor-requests/',
+    path: '/tutor-requests/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedTutorRequestsCaseCodeRoute =
+  AuthenticatedTutorRequestsCaseCodeRouteImport.update({
+    id: '/tutor-requests/$caseCode',
+    path: '/tutor-requests/$caseCode',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const HelpCategorySlugRoute = HelpCategorySlugRouteImport.update({
   id: '/help/$category/$slug',
   path: '/help/$category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountCasesCaseIdRoute =
+  AuthenticatedAccountCasesCaseIdRouteImport.update({
+    id: '/$caseId',
+    path: '/$caseId',
+    getParentRoute: () => AuthenticatedAccountCasesRoute,
+  } as any)
+const AuthenticatedAccountNotesNewRoute =
+  AuthenticatedAccountNotesNewRouteImport.update({
+    id: '/notes/new',
+    path: '/notes/new',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
+const AuthenticatedAccountServicesNewRoute =
+  AuthenticatedAccountServicesNewRouteImport.update({
+    id: '/services/new',
+    path: '/services/new',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
+const AuthenticatedBusinessCasesNewRoute =
+  AuthenticatedBusinessCasesNewRouteImport.update({
+    id: '/business/cases/new',
+    path: '/business/cases/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   id: '/lovable/email/auth/preview',
   path: '/lovable/email/auth/preview',
@@ -278,37 +419,64 @@ const LovableEmailTransactionalPreviewRoute =
     path: '/lovable/email/transactional/preview',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAccountNotesMaterialIdEditRoute =
+  AuthenticatedAccountNotesMaterialIdEditRouteImport.update({
+    id: '/notes/$materialId/edit',
+    path: '/notes/$materialId/edit',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
+const AuthenticatedAccountServicesMaterialIdEditRoute =
+  AuthenticatedAccountServicesMaterialIdEditRouteImport.update({
+    id: '/services/$materialId/edit',
+    path: '/services/$materialId/edit',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
-  '/forgot-password': typeof ForgotPasswordRoute
+  '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
-  '/join': typeof JoinRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
+  '/account': typeof AuthenticatedAccountRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/join': typeof AuthenticatedJoinRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
-  '/tutor-requests/$caseCode': typeof TutorRequestsCaseCodeRoute
+  '/guide/notes': typeof GuideNotesRoute
+  '/guide/parents': typeof GuideParentsRoute
+  '/guide/partners': typeof GuidePartnersRoute
+  '/guide/refer': typeof GuideReferRoute
+  '/guide/tutors': typeof GuideTutorsRoute
+  '/guide/verification': typeof GuideVerificationRoute
+  '/legal/notes-terms': typeof LegalNotesTermsRoute
+  '/notes/$slug': typeof NotesSlugRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses/': typeof CoursesIndexRoute
+  '/guide/': typeof GuideIndexRoute
   '/help/': typeof HelpIndexRoute
-  '/tutor-requests/': typeof TutorRequestsIndexRoute
   '/tutors/': typeof TutorsIndexRoute
+  '/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
+  '/account/claim': typeof AuthenticatedAccountClaimRoute
+  '/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
+  '/admin/grades': typeof AuthenticatedAdminGradesRoute
   '/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
+  '/admin/materials': typeof AuthenticatedAdminMaterialsRoute
   '/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/admin/r2': typeof AuthenticatedAdminR2Route
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -316,42 +484,65 @@ export interface FileRoutesByFullPath {
   '/business/join': typeof AuthenticatedBusinessJoinRoute
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
+  '/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/business/': typeof AuthenticatedBusinessIndexRoute
+  '/tutor-requests/': typeof AuthenticatedTutorRequestsIndexRoute
+  '/account/cases/$caseId': typeof AuthenticatedAccountCasesCaseIdRoute
+  '/account/notes/new': typeof AuthenticatedAccountNotesNewRoute
+  '/account/services/new': typeof AuthenticatedAccountServicesNewRoute
+  '/business/cases/new': typeof AuthenticatedBusinessCasesNewRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/account/notes/$materialId/edit': typeof AuthenticatedAccountNotesMaterialIdEditRoute
+  '/account/services/$materialId/edit': typeof AuthenticatedAccountServicesMaterialIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
-  '/forgot-password': typeof ForgotPasswordRoute
+  '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
-  '/join': typeof JoinRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
+  '/account': typeof AuthenticatedAccountRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/join': typeof AuthenticatedJoinRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
-  '/tutor-requests/$caseCode': typeof TutorRequestsCaseCodeRoute
+  '/guide/notes': typeof GuideNotesRoute
+  '/guide/parents': typeof GuideParentsRoute
+  '/guide/partners': typeof GuidePartnersRoute
+  '/guide/refer': typeof GuideReferRoute
+  '/guide/tutors': typeof GuideTutorsRoute
+  '/guide/verification': typeof GuideVerificationRoute
+  '/legal/notes-terms': typeof LegalNotesTermsRoute
+  '/notes/$slug': typeof NotesSlugRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses': typeof CoursesIndexRoute
+  '/guide': typeof GuideIndexRoute
   '/help': typeof HelpIndexRoute
-  '/tutor-requests': typeof TutorRequestsIndexRoute
   '/tutors': typeof TutorsIndexRoute
+  '/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
+  '/account/claim': typeof AuthenticatedAccountClaimRoute
+  '/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
+  '/admin/grades': typeof AuthenticatedAdminGradesRoute
   '/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
+  '/admin/materials': typeof AuthenticatedAdminMaterialsRoute
   '/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/admin/r2': typeof AuthenticatedAdminR2Route
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -359,12 +550,20 @@ export interface FileRoutesByTo {
   '/business/join': typeof AuthenticatedBusinessJoinRoute
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
+  '/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/business': typeof AuthenticatedBusinessIndexRoute
+  '/tutor-requests': typeof AuthenticatedTutorRequestsIndexRoute
+  '/account/cases/$caseId': typeof AuthenticatedAccountCasesCaseIdRoute
+  '/account/notes/new': typeof AuthenticatedAccountNotesNewRoute
+  '/account/services/new': typeof AuthenticatedAccountServicesNewRoute
+  '/business/cases/new': typeof AuthenticatedBusinessCasesNewRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/account/notes/$materialId/edit': typeof AuthenticatedAccountNotesMaterialIdEditRoute
+  '/account/services/$materialId/edit': typeof AuthenticatedAccountServicesMaterialIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -373,31 +572,46 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
-  '/forgot-password': typeof ForgotPasswordRoute
+  '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
-  '/join': typeof JoinRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/join': typeof AuthenticatedJoinRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
-  '/tutor-requests/$caseCode': typeof TutorRequestsCaseCodeRoute
+  '/guide/notes': typeof GuideNotesRoute
+  '/guide/parents': typeof GuideParentsRoute
+  '/guide/partners': typeof GuidePartnersRoute
+  '/guide/refer': typeof GuideReferRoute
+  '/guide/tutors': typeof GuideTutorsRoute
+  '/guide/verification': typeof GuideVerificationRoute
+  '/legal/notes-terms': typeof LegalNotesTermsRoute
+  '/notes/$slug': typeof NotesSlugRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/courses/': typeof CoursesIndexRoute
+  '/guide/': typeof GuideIndexRoute
   '/help/': typeof HelpIndexRoute
-  '/tutor-requests/': typeof TutorRequestsIndexRoute
   '/tutors/': typeof TutorsIndexRoute
+  '/_authenticated/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
+  '/_authenticated/account/claim': typeof AuthenticatedAccountClaimRoute
+  '/_authenticated/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
+  '/_authenticated/admin/grades': typeof AuthenticatedAdminGradesRoute
   '/_authenticated/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
+  '/_authenticated/admin/materials': typeof AuthenticatedAdminMaterialsRoute
   '/_authenticated/admin/organizations': typeof AuthenticatedAdminOrganizationsRoute
   '/_authenticated/admin/r2': typeof AuthenticatedAdminR2Route
   '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
+  '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -405,12 +619,20 @@ export interface FileRoutesById {
   '/_authenticated/business/join': typeof AuthenticatedBusinessJoinRoute
   '/_authenticated/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/_authenticated/business/team': typeof AuthenticatedBusinessTeamRoute
+  '/_authenticated/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/business/': typeof AuthenticatedBusinessIndexRoute
+  '/_authenticated/tutor-requests/': typeof AuthenticatedTutorRequestsIndexRoute
+  '/_authenticated/account/cases/$caseId': typeof AuthenticatedAccountCasesCaseIdRoute
+  '/_authenticated/account/notes/new': typeof AuthenticatedAccountNotesNewRoute
+  '/_authenticated/account/services/new': typeof AuthenticatedAccountServicesNewRoute
+  '/_authenticated/business/cases/new': typeof AuthenticatedBusinessCasesNewRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/_authenticated/account/notes/$materialId/edit': typeof AuthenticatedAccountNotesMaterialIdEditRoute
+  '/_authenticated/account/services/$materialId/edit': typeof AuthenticatedAccountServicesMaterialIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -419,31 +641,46 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
-    | '/forgot-password'
+    | '/group-classes'
     | '/how-it-works'
-    | '/join'
     | '/pricing'
     | '/privacy-policy'
-    | '/reset-password'
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
+    | '/account'
     | '/admin'
     | '/dashboard'
+    | '/join'
+    | '/notifications'
     | '/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
-    | '/tutor-requests/$caseCode'
+    | '/guide/notes'
+    | '/guide/parents'
+    | '/guide/partners'
+    | '/guide/refer'
+    | '/guide/tutors'
+    | '/guide/verification'
+    | '/legal/notes-terms'
+    | '/notes/$slug'
+    | '/orders/$orderId'
     | '/tutors/$tutorCode'
     | '/courses/'
+    | '/guide/'
     | '/help/'
-    | '/tutor-requests/'
     | '/tutors/'
+    | '/account/cases'
+    | '/account/claim'
+    | '/account/preview'
     | '/admin/cases'
+    | '/admin/grades'
     | '/admin/join-requests'
+    | '/admin/materials'
     | '/admin/organizations'
     | '/admin/r2'
     | '/admin/referrals'
+    | '/admin/reports'
     | '/admin/settings'
     | '/admin/tutors'
     | '/admin/users'
@@ -451,42 +688,65 @@ export interface FileRouteTypes {
     | '/business/join'
     | '/business/settings'
     | '/business/team'
+    | '/tutor-requests/$caseCode'
     | '/help/$category/$slug'
     | '/admin/'
     | '/business/'
+    | '/tutor-requests/'
+    | '/account/cases/$caseId'
+    | '/account/notes/new'
+    | '/account/services/new'
+    | '/business/cases/new'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/account/notes/$materialId/edit'
+    | '/account/services/$materialId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
-    | '/forgot-password'
+    | '/group-classes'
     | '/how-it-works'
-    | '/join'
     | '/pricing'
     | '/privacy-policy'
-    | '/reset-password'
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
+    | '/account'
     | '/dashboard'
+    | '/join'
+    | '/notifications'
     | '/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
-    | '/tutor-requests/$caseCode'
+    | '/guide/notes'
+    | '/guide/parents'
+    | '/guide/partners'
+    | '/guide/refer'
+    | '/guide/tutors'
+    | '/guide/verification'
+    | '/legal/notes-terms'
+    | '/notes/$slug'
+    | '/orders/$orderId'
     | '/tutors/$tutorCode'
     | '/courses'
+    | '/guide'
     | '/help'
-    | '/tutor-requests'
     | '/tutors'
+    | '/account/cases'
+    | '/account/claim'
+    | '/account/preview'
     | '/admin/cases'
+    | '/admin/grades'
     | '/admin/join-requests'
+    | '/admin/materials'
     | '/admin/organizations'
     | '/admin/r2'
     | '/admin/referrals'
+    | '/admin/reports'
     | '/admin/settings'
     | '/admin/tutors'
     | '/admin/users'
@@ -494,12 +754,20 @@ export interface FileRouteTypes {
     | '/business/join'
     | '/business/settings'
     | '/business/team'
+    | '/tutor-requests/$caseCode'
     | '/help/$category/$slug'
     | '/admin'
     | '/business'
+    | '/tutor-requests'
+    | '/account/cases/$caseId'
+    | '/account/notes/new'
+    | '/account/services/new'
+    | '/business/cases/new'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/account/notes/$materialId/edit'
+    | '/account/services/$materialId/edit'
   id:
     | '__root__'
     | '/'
@@ -507,31 +775,46 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
-    | '/forgot-password'
+    | '/group-classes'
     | '/how-it-works'
-    | '/join'
     | '/pricing'
     | '/privacy-policy'
-    | '/reset-password'
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
+    | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/_authenticated/join'
+    | '/_authenticated/notifications'
     | '/_authenticated/saved-posts'
     | '/business/$slug'
     | '/courses/$courseId'
-    | '/tutor-requests/$caseCode'
+    | '/guide/notes'
+    | '/guide/parents'
+    | '/guide/partners'
+    | '/guide/refer'
+    | '/guide/tutors'
+    | '/guide/verification'
+    | '/legal/notes-terms'
+    | '/notes/$slug'
+    | '/orders/$orderId'
     | '/tutors/$tutorCode'
     | '/courses/'
+    | '/guide/'
     | '/help/'
-    | '/tutor-requests/'
     | '/tutors/'
+    | '/_authenticated/account/cases'
+    | '/_authenticated/account/claim'
+    | '/_authenticated/account/preview'
     | '/_authenticated/admin/cases'
+    | '/_authenticated/admin/grades'
     | '/_authenticated/admin/join-requests'
+    | '/_authenticated/admin/materials'
     | '/_authenticated/admin/organizations'
     | '/_authenticated/admin/r2'
     | '/_authenticated/admin/referrals'
+    | '/_authenticated/admin/reports'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/tutors'
     | '/_authenticated/admin/users'
@@ -539,12 +822,20 @@ export interface FileRouteTypes {
     | '/_authenticated/business/join'
     | '/_authenticated/business/settings'
     | '/_authenticated/business/team'
+    | '/_authenticated/tutor-requests/$caseCode'
     | '/help/$category/$slug'
     | '/_authenticated/admin/'
     | '/_authenticated/business/'
+    | '/_authenticated/tutor-requests/'
+    | '/_authenticated/account/cases/$caseId'
+    | '/_authenticated/account/notes/new'
+    | '/_authenticated/account/services/new'
+    | '/_authenticated/business/cases/new'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/_authenticated/account/notes/$materialId/edit'
+    | '/_authenticated/account/services/$materialId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -553,22 +844,28 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
   CaseRequestRoute: typeof CaseRequestRoute
-  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  GroupClassesRoute: typeof GroupClassesRoute
   HowItWorksRoute: typeof HowItWorksRoute
-  JoinRoute: typeof JoinRoute
   PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TosRoute: typeof TosRoute
   TutorPlaybookRoute: typeof TutorPlaybookRoute
   BusinessSlugRoute: typeof BusinessSlugRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
-  TutorRequestsCaseCodeRoute: typeof TutorRequestsCaseCodeRoute
+  GuideNotesRoute: typeof GuideNotesRoute
+  GuideParentsRoute: typeof GuideParentsRoute
+  GuidePartnersRoute: typeof GuidePartnersRoute
+  GuideReferRoute: typeof GuideReferRoute
+  GuideTutorsRoute: typeof GuideTutorsRoute
+  GuideVerificationRoute: typeof GuideVerificationRoute
+  LegalNotesTermsRoute: typeof LegalNotesTermsRoute
+  NotesSlugRoute: typeof NotesSlugRoute
+  OrdersOrderIdRoute: typeof OrdersOrderIdRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
   CoursesIndexRoute: typeof CoursesIndexRoute
+  GuideIndexRoute: typeof GuideIndexRoute
   HelpIndexRoute: typeof HelpIndexRoute
-  TutorRequestsIndexRoute: typeof TutorRequestsIndexRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
   HelpCategorySlugRoute: typeof HelpCategorySlugRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -613,11 +910,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CaseRequestRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
+    '/group-classes': {
+      id: '/group-classes'
+      path: '/group-classes'
+      fullPath: '/group-classes'
+      preLoaderRoute: typeof GroupClassesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/how-it-works': {
@@ -625,13 +922,6 @@ declare module '@tanstack/react-router' {
       path: '/how-it-works'
       fullPath: '/how-it-works'
       preLoaderRoute: typeof HowItWorksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/join': {
-      id: '/join'
-      path: '/join'
-      fullPath: '/join'
-      preLoaderRoute: typeof JoinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -646,13 +936,6 @@ declare module '@tanstack/react-router' {
       path: '/privacy-policy'
       fullPath: '/privacy-policy'
       preLoaderRoute: typeof PrivacyPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -676,6 +959,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TutorPlaybookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -688,6 +978,20 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/join': {
+      id: '/_authenticated/join'
+      path: '/join'
+      fullPath: '/join'
+      preLoaderRoute: typeof AuthenticatedJoinRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/saved-posts': {
@@ -718,6 +1022,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoursesCourseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guide/': {
+      id: '/guide/'
+      path: '/guide'
+      fullPath: '/guide/'
+      preLoaderRoute: typeof GuideIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/notes': {
+      id: '/guide/notes'
+      path: '/guide/notes'
+      fullPath: '/guide/notes'
+      preLoaderRoute: typeof GuideNotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/parents': {
+      id: '/guide/parents'
+      path: '/guide/parents'
+      fullPath: '/guide/parents'
+      preLoaderRoute: typeof GuideParentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/partners': {
+      id: '/guide/partners'
+      path: '/guide/partners'
+      fullPath: '/guide/partners'
+      preLoaderRoute: typeof GuidePartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/refer': {
+      id: '/guide/refer'
+      path: '/guide/refer'
+      fullPath: '/guide/refer'
+      preLoaderRoute: typeof GuideReferRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/tutors': {
+      id: '/guide/tutors'
+      path: '/guide/tutors'
+      fullPath: '/guide/tutors'
+      preLoaderRoute: typeof GuideTutorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/verification': {
+      id: '/guide/verification'
+      path: '/guide/verification'
+      fullPath: '/guide/verification'
+      preLoaderRoute: typeof GuideVerificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/help/': {
       id: '/help/'
       path: '/help'
@@ -725,18 +1078,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HelpIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tutor-requests/': {
-      id: '/tutor-requests/'
-      path: '/tutor-requests'
-      fullPath: '/tutor-requests/'
-      preLoaderRoute: typeof TutorRequestsIndexRouteImport
+    '/legal/notes-terms': {
+      id: '/legal/notes-terms'
+      path: '/legal/notes-terms'
+      fullPath: '/legal/notes-terms'
+      preLoaderRoute: typeof LegalNotesTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tutor-requests/$caseCode': {
-      id: '/tutor-requests/$caseCode'
-      path: '/tutor-requests/$caseCode'
-      fullPath: '/tutor-requests/$caseCode'
-      preLoaderRoute: typeof TutorRequestsCaseCodeRouteImport
+    '/notes/$slug': {
+      id: '/notes/$slug'
+      path: '/notes/$slug'
+      fullPath: '/notes/$slug'
+      preLoaderRoute: typeof NotesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/$orderId': {
+      id: '/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof OrdersOrderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tutors/': {
@@ -753,6 +1113,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TutorsTutorCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/account/cases': {
+      id: '/_authenticated/account/cases'
+      path: '/cases'
+      fullPath: '/account/cases'
+      preLoaderRoute: typeof AuthenticatedAccountCasesRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
+    '/_authenticated/account/claim': {
+      id: '/_authenticated/account/claim'
+      path: '/claim'
+      fullPath: '/account/claim'
+      preLoaderRoute: typeof AuthenticatedAccountClaimRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
+    '/_authenticated/account/preview': {
+      id: '/_authenticated/account/preview'
+      path: '/preview'
+      fullPath: '/account/preview'
+      preLoaderRoute: typeof AuthenticatedAccountPreviewRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
       path: '/'
@@ -767,11 +1148,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCasesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/grades': {
+      id: '/_authenticated/admin/grades'
+      path: '/grades'
+      fullPath: '/admin/grades'
+      preLoaderRoute: typeof AuthenticatedAdminGradesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/join-requests': {
       id: '/_authenticated/admin/join-requests'
       path: '/join-requests'
       fullPath: '/admin/join-requests'
       preLoaderRoute: typeof AuthenticatedAdminJoinRequestsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/materials': {
+      id: '/_authenticated/admin/materials'
+      path: '/materials'
+      fullPath: '/admin/materials'
+      preLoaderRoute: typeof AuthenticatedAdminMaterialsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/organizations': {
@@ -793,6 +1188,13 @@ declare module '@tanstack/react-router' {
       path: '/referrals'
       fullPath: '/admin/referrals'
       preLoaderRoute: typeof AuthenticatedAdminReferralsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/reports': {
+      id: '/_authenticated/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AuthenticatedAdminReportsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/settings': {
@@ -851,12 +1253,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBusinessTeamRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/tutor-requests/': {
+      id: '/_authenticated/tutor-requests/'
+      path: '/tutor-requests'
+      fullPath: '/tutor-requests/'
+      preLoaderRoute: typeof AuthenticatedTutorRequestsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/tutor-requests/$caseCode': {
+      id: '/_authenticated/tutor-requests/$caseCode'
+      path: '/tutor-requests/$caseCode'
+      fullPath: '/tutor-requests/$caseCode'
+      preLoaderRoute: typeof AuthenticatedTutorRequestsCaseCodeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/help/$category/$slug': {
       id: '/help/$category/$slug'
       path: '/help/$category/$slug'
       fullPath: '/help/$category/$slug'
       preLoaderRoute: typeof HelpCategorySlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/account/cases/$caseId': {
+      id: '/_authenticated/account/cases/$caseId'
+      path: '/$caseId'
+      fullPath: '/account/cases/$caseId'
+      preLoaderRoute: typeof AuthenticatedAccountCasesCaseIdRouteImport
+      parentRoute: typeof AuthenticatedAccountCasesRoute
+    }
+    '/_authenticated/account/notes/new': {
+      id: '/_authenticated/account/notes/new'
+      path: '/notes/new'
+      fullPath: '/account/notes/new'
+      preLoaderRoute: typeof AuthenticatedAccountNotesNewRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
+    '/_authenticated/account/services/new': {
+      id: '/_authenticated/account/services/new'
+      path: '/services/new'
+      fullPath: '/account/services/new'
+      preLoaderRoute: typeof AuthenticatedAccountServicesNewRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
+    '/_authenticated/business/cases/new': {
+      id: '/_authenticated/business/cases/new'
+      path: '/business/cases/new'
+      fullPath: '/business/cases/new'
+      preLoaderRoute: typeof AuthenticatedBusinessCasesNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/lovable/email/auth/preview': {
       id: '/lovable/email/auth/preview'
@@ -879,15 +1323,71 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/account/notes/$materialId/edit': {
+      id: '/_authenticated/account/notes/$materialId/edit'
+      path: '/notes/$materialId/edit'
+      fullPath: '/account/notes/$materialId/edit'
+      preLoaderRoute: typeof AuthenticatedAccountNotesMaterialIdEditRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
+    '/_authenticated/account/services/$materialId/edit': {
+      id: '/_authenticated/account/services/$materialId/edit'
+      path: '/services/$materialId/edit'
+      fullPath: '/account/services/$materialId/edit'
+      preLoaderRoute: typeof AuthenticatedAccountServicesMaterialIdEditRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
   }
 }
 
+interface AuthenticatedAccountCasesRouteChildren {
+  AuthenticatedAccountCasesCaseIdRoute: typeof AuthenticatedAccountCasesCaseIdRoute
+}
+
+const AuthenticatedAccountCasesRouteChildren: AuthenticatedAccountCasesRouteChildren =
+  {
+    AuthenticatedAccountCasesCaseIdRoute: AuthenticatedAccountCasesCaseIdRoute,
+  }
+
+const AuthenticatedAccountCasesRouteWithChildren =
+  AuthenticatedAccountCasesRoute._addFileChildren(
+    AuthenticatedAccountCasesRouteChildren,
+  )
+
+interface AuthenticatedAccountRouteChildren {
+  AuthenticatedAccountCasesRoute: typeof AuthenticatedAccountCasesRouteWithChildren
+  AuthenticatedAccountClaimRoute: typeof AuthenticatedAccountClaimRoute
+  AuthenticatedAccountPreviewRoute: typeof AuthenticatedAccountPreviewRoute
+  AuthenticatedAccountNotesNewRoute: typeof AuthenticatedAccountNotesNewRoute
+  AuthenticatedAccountServicesNewRoute: typeof AuthenticatedAccountServicesNewRoute
+  AuthenticatedAccountNotesMaterialIdEditRoute: typeof AuthenticatedAccountNotesMaterialIdEditRoute
+  AuthenticatedAccountServicesMaterialIdEditRoute: typeof AuthenticatedAccountServicesMaterialIdEditRoute
+}
+
+const AuthenticatedAccountRouteChildren: AuthenticatedAccountRouteChildren = {
+  AuthenticatedAccountCasesRoute: AuthenticatedAccountCasesRouteWithChildren,
+  AuthenticatedAccountClaimRoute: AuthenticatedAccountClaimRoute,
+  AuthenticatedAccountPreviewRoute: AuthenticatedAccountPreviewRoute,
+  AuthenticatedAccountNotesNewRoute: AuthenticatedAccountNotesNewRoute,
+  AuthenticatedAccountServicesNewRoute: AuthenticatedAccountServicesNewRoute,
+  AuthenticatedAccountNotesMaterialIdEditRoute:
+    AuthenticatedAccountNotesMaterialIdEditRoute,
+  AuthenticatedAccountServicesMaterialIdEditRoute:
+    AuthenticatedAccountServicesMaterialIdEditRoute,
+}
+
+const AuthenticatedAccountRouteWithChildren =
+  AuthenticatedAccountRoute._addFileChildren(AuthenticatedAccountRouteChildren)
+
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCasesRoute: typeof AuthenticatedAdminCasesRoute
+  AuthenticatedAdminGradesRoute: typeof AuthenticatedAdminGradesRoute
   AuthenticatedAdminJoinRequestsRoute: typeof AuthenticatedAdminJoinRequestsRoute
+  AuthenticatedAdminMaterialsRoute: typeof AuthenticatedAdminMaterialsRoute
   AuthenticatedAdminOrganizationsRoute: typeof AuthenticatedAdminOrganizationsRoute
   AuthenticatedAdminR2Route: typeof AuthenticatedAdminR2Route
   AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
+  AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTutorsRoute: typeof AuthenticatedAdminTutorsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
@@ -896,10 +1396,13 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCasesRoute: AuthenticatedAdminCasesRoute,
+  AuthenticatedAdminGradesRoute: AuthenticatedAdminGradesRoute,
   AuthenticatedAdminJoinRequestsRoute: AuthenticatedAdminJoinRequestsRoute,
+  AuthenticatedAdminMaterialsRoute: AuthenticatedAdminMaterialsRoute,
   AuthenticatedAdminOrganizationsRoute: AuthenticatedAdminOrganizationsRoute,
   AuthenticatedAdminR2Route: AuthenticatedAdminR2Route,
   AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,
+  AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTutorsRoute: AuthenticatedAdminTutorsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
@@ -910,25 +1413,38 @@ const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRouteWithChildren
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedJoinRoute: typeof AuthenticatedJoinRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedSavedPostsRoute: typeof AuthenticatedSavedPostsRoute
   AuthenticatedBusinessCoursesRoute: typeof AuthenticatedBusinessCoursesRoute
   AuthenticatedBusinessJoinRoute: typeof AuthenticatedBusinessJoinRoute
   AuthenticatedBusinessSettingsRoute: typeof AuthenticatedBusinessSettingsRoute
   AuthenticatedBusinessTeamRoute: typeof AuthenticatedBusinessTeamRoute
+  AuthenticatedTutorRequestsCaseCodeRoute: typeof AuthenticatedTutorRequestsCaseCodeRoute
   AuthenticatedBusinessIndexRoute: typeof AuthenticatedBusinessIndexRoute
+  AuthenticatedTutorRequestsIndexRoute: typeof AuthenticatedTutorRequestsIndexRoute
+  AuthenticatedBusinessCasesNewRoute: typeof AuthenticatedBusinessCasesNewRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAccountRoute: AuthenticatedAccountRouteWithChildren,
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedJoinRoute: AuthenticatedJoinRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedSavedPostsRoute: AuthenticatedSavedPostsRoute,
   AuthenticatedBusinessCoursesRoute: AuthenticatedBusinessCoursesRoute,
   AuthenticatedBusinessJoinRoute: AuthenticatedBusinessJoinRoute,
   AuthenticatedBusinessSettingsRoute: AuthenticatedBusinessSettingsRoute,
   AuthenticatedBusinessTeamRoute: AuthenticatedBusinessTeamRoute,
+  AuthenticatedTutorRequestsCaseCodeRoute:
+    AuthenticatedTutorRequestsCaseCodeRoute,
   AuthenticatedBusinessIndexRoute: AuthenticatedBusinessIndexRoute,
+  AuthenticatedTutorRequestsIndexRoute: AuthenticatedTutorRequestsIndexRoute,
+  AuthenticatedBusinessCasesNewRoute: AuthenticatedBusinessCasesNewRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -941,22 +1457,28 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
   CaseRequestRoute: CaseRequestRoute,
-  ForgotPasswordRoute: ForgotPasswordRoute,
+  GroupClassesRoute: GroupClassesRoute,
   HowItWorksRoute: HowItWorksRoute,
-  JoinRoute: JoinRoute,
   PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TosRoute: TosRoute,
   TutorPlaybookRoute: TutorPlaybookRoute,
   BusinessSlugRoute: BusinessSlugRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
-  TutorRequestsCaseCodeRoute: TutorRequestsCaseCodeRoute,
+  GuideNotesRoute: GuideNotesRoute,
+  GuideParentsRoute: GuideParentsRoute,
+  GuidePartnersRoute: GuidePartnersRoute,
+  GuideReferRoute: GuideReferRoute,
+  GuideTutorsRoute: GuideTutorsRoute,
+  GuideVerificationRoute: GuideVerificationRoute,
+  LegalNotesTermsRoute: LegalNotesTermsRoute,
+  NotesSlugRoute: NotesSlugRoute,
+  OrdersOrderIdRoute: OrdersOrderIdRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
   CoursesIndexRoute: CoursesIndexRoute,
+  GuideIndexRoute: GuideIndexRoute,
   HelpIndexRoute: HelpIndexRoute,
-  TutorRequestsIndexRoute: TutorRequestsIndexRoute,
   TutorsIndexRoute: TutorsIndexRoute,
   HelpCategorySlugRoute: HelpCategorySlugRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,

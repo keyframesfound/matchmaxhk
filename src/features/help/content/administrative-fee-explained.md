@@ -8,6 +8,6 @@ icon: wallet
 tags: [admin fee, fees, billing, concierge]
 order: 2
 status: published
-external: /how-it-works
+external: /guide
 ---
-The fee is summarised in the billing FAQ on the How It Works page, including the concierge window for the first two lessons and short-term case rates.
+The fee is summarised in the billing FAQ on the Guide page, including the concierge window for the first two lessons and short-term case rates.

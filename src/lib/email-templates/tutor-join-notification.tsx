@@ -18,7 +18,7 @@ interface TutorJoinNotificationEmailProps {
   email: string;
   phone: string;
   attachmentCount: number;
-  reviewUrl: string;
+  archiveUrl: string;
 }
 
 export const TutorJoinNotificationEmail = ({
@@ -27,17 +27,18 @@ export const TutorJoinNotificationEmail = ({
   email,
   phone,
   attachmentCount,
-  reviewUrl,
+  archiveUrl,
 }: TutorJoinNotificationEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>New tutor join request — {applicantName}</Preview>
+    <Preview>New tutor card is live — {applicantName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>New tutor join request</Heading>
+        <Heading style={h1}>New tutor card is live</Heading>
         <Text style={intro}>
-          A new tutor has joined via the MatchMax tutor application page (/join). The full
-          application is waiting in the admin console — this email is only a notification.
+          A new tutor submitted the MatchMax tutor application (/join) and their card is already
+          published. The join archive in the admin console is the read-only record — nothing needs
+          review unless the team follows up.
         </Text>
         <Hr style={hr} />
         <Info label="Applicant" value={applicantName} />
@@ -46,8 +47,8 @@ export const TutorJoinNotificationEmail = ({
         <Info label="Phone" value={phone} />
         <Info label="Attachments stored" value={String(attachmentCount)} />
         <Hr style={hr} />
-        <Button href={reviewUrl} style={button}>
-          Review application
+        <Button href={archiveUrl} style={button}>
+          Open join archive
         </Button>
         <Text style={footer}>
           Reply directly to the applicant at {email} if you need more information.

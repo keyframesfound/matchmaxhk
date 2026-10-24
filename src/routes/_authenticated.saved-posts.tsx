@@ -18,7 +18,7 @@ import {
   CaseCompareToggle,
   useCaseCompare,
 } from "@/features/cases/compare-cases";
-import { CASE_MODE_LABEL, formatCaseBudget, formatCaseSchedule } from "@/features/cases/display";
+import { CASE_MODE_LABEL, formatCaseBudgetHkd, formatCaseSchedule } from "@/features/cases/display";
 import { getPublicCaseBoard } from "@/lib/cases.functions";
 import { courseModeLabel, formatCoursePrice } from "@/features/courses/queries";
 import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
@@ -137,19 +137,25 @@ function SavedPostsPage() {
                       compareSelected={compareIds.includes(tutor.id)}
                       saveAction={<TutorSaveButton tutorId={tutor.id} />}
                       footerAction={
-                        <Button
-                          asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                        >
-                          <a
-                            href={inquiry.href}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(event) => event.stopPropagation()}
-                          >
+                        inquiry.kind === "status" ? (
+                          <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
                             {inquiry.label}
-                          </a>
-                        </Button>
+                          </span>
+                        ) : (
+                          <Button
+                            asChild
+                            className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                          >
+                            <a
+                              href={inquiry.href}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              {inquiry.label}
+                            </a>
+                          </Button>
+                        )
                       }
                     />
                   );
@@ -209,10 +215,13 @@ function SavedPostsPage() {
                               <Clock className="h-3.5 w-3.5" aria-hidden="true" />
                               {formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes)}
                             </span>
-                            <span className="flex items-center gap-1">
-                              <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
-                              {formatCaseBudget(item.budgetMin, item.budgetMax)}
-                            </span>
+                            {/* #423: empty string (both bounds blank) omits the rate. */}
+                            {formatCaseBudgetHkd(item) ? (
+                              <span className="flex items-center gap-1">
+                                <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
+                                {formatCaseBudgetHkd(item)}
+                              </span>
+                            ) : null}
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-1">

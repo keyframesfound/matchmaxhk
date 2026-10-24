@@ -51,6 +51,16 @@ export type OrganizationRecord = {
   faq: OrgFaqItem[];
   plan: "business" | "enterprise";
   status: "pending" | "active" | "suspended";
+  // Issue #412 B: partner-org legal identity (null on legacy / tutor orgs).
+  legal_entity_name: string | null;
+  trading_name: string | null;
+  br_number: string | null;
+  rep_name: string | null;
+  rep_role: string | null;
+  org_type: "tutorial_centre" | "day_school" | "ngo" | null;
+  edb_identifier: string | null;
+  charity_identifier: string | null;
+  br_reviewed_at: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -100,11 +110,41 @@ const CreateOrganizationInput = z.object({
   tagline: z.string().trim().max(160).optional(),
   description: z.string().trim().max(5000).optional(),
   website_url: z.string().trim().max(300).optional(),
-  contact_email: z.string().trim().max(200).optional(),
-  contact_phone: z.string().trim().max(40).optional(),
   whatsapp_number: z.string().trim().max(40).optional(),
   district: z.string().trim().max(80).optional(),
+  // Issue #412 B: partner-org legal identity. Required on the join form —
+  // the server rejects a submission without BR + representative + authority
+  // acknowledgement, so a centre can never exist without its paper trail.
+  legal_entity_name: z.string().trim().min(2, "Legal entity name is required").max(200),
+  trading_name: z.string().trim().max(120).optional(),
+  br_number: z.string().trim().min(1, "Business Registration number is required").max(40),
+  rep_name: z.string().trim().min(2, "Representative name is required").max(120),
+  rep_role: z.string().trim().min(2, "Representative role is required").max(80),
+  org_type: z.enum(["tutorial_centre", "day_school", "ngo"]),
+  edb_identifier: z.string().trim().max(40).optional(),
+  charity_identifier: z.string().trim().max(40).optional(),
+  // Verified contact (#412 B required field 5): email + phone, validated
+  // structurally here (depth verification is the staff BR review).
+  contact_email: z.string().trim().min(1, "Contact email is required").max(200),
+  contact_phone: z.string().trim().min(1, "Contact phone is required").max(40),
+  // #412 D: unticked-by-default consents. Authority + ToS + fee agreement are
+  // mandatory literals; direct marketing is optional and defaults off.
+  authorityAck: z.literal(true),
+  termsAck: z.literal(true),
+  feeTermsAck: z.literal(true),
+  marketingAck: z.boolean().optional(),
 });
+
+/** Exact checkbox strings recorded on the acceptance row (#412 D audit). */
+const CENTRE_PARTNERSHIP_CHECKBOX_STRINGS = {
+  authority: (legalEntityName: string) =>
+    `I confirm that I am authorised to accept these Terms and bind ${legalEntityName}.`,
+  terms:
+    "I have read and agree to the MatchMax Platform Terms of Service and Privacy Collection Statement.",
+  fee: "I have read and agree to the Matching and Platform Service Fee Agreement (1.5-lesson admin fee, paid by the self-employed tutor).",
+  marketing:
+    "I consent to receive updates, case alerts, and promotional communications from MatchMax.",
+};
 
 export const createOrganization = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -150,6 +190,16 @@ export const createOrganization = createServerFn({ method: "POST" })
         contact_phone: emptyToNull(data.contact_phone),
         whatsapp_number: emptyToNull(data.whatsapp_number),
         district: emptyToNull(data.district),
+        // Issue #412 B: legal identity — reviewed by staff before activation.
+        legal_entity_name: data.legal_entity_name,
+        trading_name: emptyToNull(data.trading_name),
+        br_number: data.br_number,
+        rep_name: data.rep_name,
+        rep_role: data.rep_role,
+        org_type: data.org_type,
+        edb_identifier: emptyToNull(data.edb_identifier),
+        charity_identifier: emptyToNull(data.charity_identifier),
+        authority_ack_at: new Date().toISOString(),
         plan: "business",
         status: "pending",
         created_by: context.userId,
@@ -157,6 +207,44 @@ export const createOrganization = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error) throw new Error(error.message || "Failed to create organization");
+
+    // Issue #412 D: record the centre_partnership acceptance (account,
+    // version, legal entity, exact checkbox strings). Fail-closed with the
+    // same compensating delete as submitCaseRequest: an org row can never
+    // exist without its partnership acceptance on file.
+    const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
+    const { CENTRE_PARTNERSHIP_TERMS_VERSION } = await import("@/features/legal/terms");
+    const checkboxStrings = [
+      CENTRE_PARTNERSHIP_CHECKBOX_STRINGS.authority(data.legal_entity_name),
+      CENTRE_PARTNERSHIP_CHECKBOX_STRINGS.terms,
+      CENTRE_PARTNERSHIP_CHECKBOX_STRINGS.fee,
+      ...(data.marketingAck ? [CENTRE_PARTNERSHIP_CHECKBOX_STRINGS.marketing] : []),
+    ];
+    try {
+      await recordTermsAcceptance({
+        userId: context.userId,
+        surface: "centre_partnership",
+        termsVersion: CENTRE_PARTNERSHIP_TERMS_VERSION,
+        subjectId: org.id,
+        legalEntityName: data.legal_entity_name,
+        acceptanceDetails: checkboxStrings,
+      });
+    } catch (acceptanceError) {
+      // Roll back through the service-role client: the join-form RLS policies
+      // may not grant DELETE to the creator, and an orphan org without its
+      // acceptance must never survive.
+      const { error: rollbackError } = await supabaseAdmin
+        .from("organizations")
+        .delete()
+        .eq("id", org.id);
+      if (rollbackError) {
+        console.error(
+          "[business-join] failed to roll back organization after acceptance write failed:",
+          rollbackError.message,
+        );
+      }
+      throw acceptanceError;
+    }
 
     const ownerEmail = getUserEmail(context);
     const { error: memberError } = await client.from("organization_members").insert({

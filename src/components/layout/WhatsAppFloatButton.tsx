@@ -1,5 +1,7 @@
 import { useRouterState } from "@tanstack/react-router";
+import { motion, useReducedMotion } from "motion/react";
 
+import { useCompareBarVisible } from "@/lib/compare-bar";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 
 // Custom SVG since Lucide doesn't include brand icons
@@ -11,24 +13,45 @@ export function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+/**
+ * Floating WhatsApp support button (#207 — removed 2026-10-08 as a desktop
+ * dead end, restored 2026-10-18 on Ryan's call: mobile-first traffic is the
+ * audience and the wa.me link hands off to WhatsApp Web on desktop).
+ * Hidden on /join (that flow has its own activation step) and while the
+ * mobile tutor/case compare bar is up — both sit in the same 5rem bottom
+ * band and the float (z-50) would paint over the bar's Compare/Clear
+ * controls (mirrors BackToTopButton); the hotline
+ * digits come from app_settings.whatsapp_number via the server value.
+ */
 export function WhatsAppFloatButton() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const compareBarVisible = useCompareBarVisible();
+  const prefersReducedMotion = useReducedMotion();
   const digits = useWhatsAppNumber(pathname !== "/join");
-  if (pathname === "/join" || !digits) return null;
+  if (pathname === "/join" || compareBarVisible || !digits) return null;
 
   const message = "Hi MatchMax, I need support.";
   const href = `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 
   return (
-    <a
+    <motion.a
       href={href}
       target="_blank"
       rel="noreferrer"
       aria-label="Contact MatchMax support on WhatsApp"
-      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--brand-whatsapp)] text-white transition-transform duration-200 hover:scale-105 hover:bg-[color:var(--brand-whatsapp-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ink)] focus-visible:ring-offset-2 lg:bottom-6 lg:right-6"
+      // Quiet entrance: the float settles in shortly after load instead of
+      // popping with the first paint. Reduced-motion renders it immediately.
+      initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={
+        prefersReducedMotion
+          ? { duration: 0 }
+          : { delay: 0.6, duration: 0.3, ease: [0.22, 1, 0.36, 1] }
+      }
+      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--brand-whatsapp)] text-white transition-[scale,background-color] duration-200 hover:scale-105 hover:bg-[color:var(--brand-whatsapp-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ink)] focus-visible:ring-offset-2 lg:bottom-6 lg:right-6"
     >
       <WhatsAppIcon className="h-7 w-7" aria-hidden="true" />
       <span className="sr-only">WhatsApp support</span>
-    </a>
+    </motion.a>
   );
 }

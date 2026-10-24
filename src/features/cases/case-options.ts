@@ -9,6 +9,7 @@ import {
 } from "@/features/tutors/subjects";
 
 export const LEVEL_OPTIONS = [
+  { value: "Kindergarten", label: "Kindergarten" },
   { value: "Primary", label: "Primary" },
   { value: "Junior secondary", label: "Junior secondary (Year 7–9 / S1–S3)" },
   { value: "Senior secondary", label: "Senior secondary (Year 10–13 / S4–S6)" },
@@ -56,6 +57,11 @@ export const CURRICULUM_OPTIONS = [
   { value: "IGCSE", label: "IGCSE" },
   { value: "Primary School", label: "Primary School" },
   { value: "Junior Secondary", label: "Junior Secondary" },
+  // Issue #190: the Kindergarten and University verticals as case-side
+  // curriculum entries so the board grouping and admin edit dialog can
+  // represent them without a parallel vocabulary.
+  { value: "Kindergarten", label: "Kindergarten" },
+  { value: "University", label: "University" },
   { value: ADMISSIONS_CURRICULUM, label: ADMISSIONS_CURRICULUM_LABEL },
 ];
 
@@ -75,8 +81,11 @@ export const ADMISSIONS_CATEGORY_OPTIONS = [
   },
 ];
 
-// Curriculum-specific components. Curricula without components still show
-// the dropdown with a single "None" option (decided: show with 'None').
+// Curriculum-specific components. The sentinel option is worded
+// "Subject Tutoring" (issue #182) — plain tutoring rather than a named
+// component like IA/EE/TOK; it is stripped before persisting.
+export const COMPONENT_SENTINEL = "Subject Tutoring";
+
 export const CURRICULUM_COMPONENTS: Record<string, string[]> = {
   IB: ["IA", "EE", "TOK"],
   "Primary School": ["Phonics"],
@@ -85,19 +94,21 @@ export const CURRICULUM_COMPONENTS: Record<string, string[]> = {
   "Int'l Primary": ["Phonics"],
 };
 
+// "Bilingual" removed (issue #184): parents combine English + Cantonese +
+// Mandarin via multi-select instead.
 export const INSTRUCTION_LANGUAGE_OPTIONS = [
   { value: "english_only", label: "English" },
   { value: "cantonese", label: "Cantonese" },
   { value: "mandarin", label: "Mandarin" },
-  { value: "bilingual", label: "Bilingual" },
   { value: "any", label: "No preference" },
 ];
 
 // "offline" maps to DB 'in_person'; "both"/"no_pref" map to DB 'either'.
+// Legacy rows stored with mode "both" still render via DELIVERY_MODE_LABELS
+// (no_pref and both share the "No preference" label now that "Both" is gone).
 export const DELIVERY_MODE_OPTIONS = [
   { value: "online", label: "Online" },
   { value: "offline", label: "In Person" },
-  { value: "both", label: "Both" },
   { value: "no_pref", label: "No preference" },
 ];
 
@@ -164,8 +175,40 @@ export const SCHOOL_TYPE_OPTIONS = [
   { value: "Other", label: "Other" },
 ];
 
+// --- Issue #423 (sections 2+3): structured package fields -------------------
+
+/** Fee-rule packages — the card footer pill renders the same vocabulary. */
+export const PACKAGE_TYPE_OPTIONS = [
+  { value: "ongoing_1_5", label: "Ongoing (>5 lessons)" },
+  { value: "short_20", label: "Short package (≤5 lessons)" },
+  { value: "pro_bono", label: "Pro-bono / CSR" },
+] as const;
+
+/** Rate suffix the #426 rate formatter applies (/hr | /lesson | /month). */
+export const RATE_UNIT_OPTIONS = [
+  { value: "hr", label: "Per hour" },
+  { value: "lesson", label: "Per lesson" },
+  { value: "month", label: "Per month" },
+] as const;
+
+/** Hard student-count dropdown — card shows "👥 N students" when > 1. */
+export const STUDENT_COUNT_OPTIONS = [1, 2, 3, 4, 5].map((count) => ({
+  value: String(count),
+  label: count === 1 ? "1 student" : `${count} students`,
+}));
+
+/**
+ * Issue #391: class format preference. Values match the
+ * tutoring_cases.class_format_preference CHECK.
+ */
+export const CLASS_FORMAT_OPTIONS = [
+  { value: "one_on_one_only", label: "1-on-1 only" },
+  { value: "open_to_group", label: "Open to small group (lower rate)" },
+  { value: "either", label: "Either" },
+] as const;
+
 export function getComponentOptionsForCurriculum(curriculum: string): string[] {
-  return ["None", ...(CURRICULUM_COMPONENTS[curriculum] ?? [])];
+  return [COMPONENT_SENTINEL, ...(CURRICULUM_COMPONENTS[curriculum] ?? [])];
 }
 
 // Subjects locked to the selected curriculum; empty until one is chosen.
@@ -175,4 +218,64 @@ export function getSubjectOptionsForCurriculum(curriculum: string): string[] {
   if (curriculum === "Int'l Primary") return [...INTL_PRIMARY_SUBJECTS];
   if (!curriculum) return [];
   return getSubjectOptionsForCategory(curriculum);
+}
+
+// --- Issue #423 bug 3: tier/curriculum lock -------------------------------
+
+/**
+ * Which curricula are coherent for each case-request funnel level. A
+ * `Primary` case must never carry an `IB` curriculum (the "Primary: Chem HL"
+ * auto-title bug), so the picker filters to this set and the submit handler
+ * drops inconsistent pairs server-side (DROP-not-reject — unauthenticated-
+ * adjacent path must never 500).
+ *
+ * Legacy stored curricula ("Local Primary", "Int'l Primary") stay readable
+ * through getSubjectOptionsForCurriculum but are no longer selectable.
+ */
+export const CURRICULA_FOR_ACADEMIC_LEVEL: Record<string, string[]> = {
+  Kindergarten: ["Kindergarten"],
+  Primary: ["Primary School"],
+  Secondary: ["IB", "DSE", "A-Level", "IGCSE", "Junior Secondary"],
+  University: ["University"],
+};
+
+/** Curriculum options narrowed to the chosen funnel level (all when unknown). */
+export function getCurriculumOptionsForLevel(
+  academicLevel: string | null | undefined,
+): { value: string; label: string }[] {
+  const allowed = academicLevel ? CURRICULA_FOR_ACADEMIC_LEVEL[academicLevel] : undefined;
+  if (!allowed) return CURRICULUM_OPTIONS;
+  return CURRICULUM_OPTIONS.filter((option) => allowed.includes(option.value));
+}
+
+/**
+ * Server-side tier consistency for a submitted case: returns the
+ * tier-coherent {curriculum, subjects} pair, DROPPING anything that
+ * contradicts the funnel level (never throws — #396 precedent).
+ *
+ * A curriculum outside the level's set is dropped together with the subjects
+ * drawn from its pool; free-text/custom subjects survive (the subject picker
+ * is allowCustom, so unknown strings are legitimate parent input).
+ */
+export function enforceCaseTierConsistency(payload: {
+  supportType: string;
+  academicLevel: string;
+  curriculum: string | null | undefined;
+  subjects: string[];
+}): { curriculum: string | null; subjects: string[] } {
+  const { supportType, academicLevel, subjects } = payload;
+  // Admissions auto-locks the curriculum umbrella — always coherent.
+  if (supportType === "admissions") {
+    return { curriculum: ADMISSIONS_CURRICULUM, subjects };
+  }
+  const curriculum = payload.curriculum?.trim() || null;
+  const allowed = CURRICULA_FOR_ACADEMIC_LEVEL[academicLevel];
+  if (!curriculum) return { curriculum: null, subjects };
+  if (!allowed || allowed.includes(curriculum)) return { curriculum, subjects };
+  // Mismatch: drop the curriculum and any subject that came from its pool.
+  const mismatchedPool = new Set(getSubjectOptionsForCurriculum(curriculum));
+  return {
+    curriculum: null,
+    subjects: subjects.filter((subject) => !mismatchedPool.has(subject)),
+  };
 }

@@ -3,17 +3,20 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Bell,
+  BookOpen,
   Bookmark,
   CalendarClock,
   CircleUserRound,
   Database,
   Gift,
   GraduationCap,
+  Home,
   KeyRound,
   LogOut,
   Settings2,
   Trash2,
   UserCog,
+  Users,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -25,14 +28,20 @@ import { useAuth } from "@/features/auth/useAuth";
 import { SuggestedActionsSection } from "@/features/dashboard/action-cards";
 import { AccountSection } from "@/features/settings/sections/account-section";
 import { AvailabilitySection } from "@/features/settings/sections/availability-section";
+import { AvailabilityGridEditor } from "@/features/settings/sections/availability-grid-editor";
+import { CalendarWindowsEditor } from "@/features/cases/tutor/calendar-windows-editor";
+import { TutorCasesSection } from "@/features/cases/tutor/tutor-cases-section";
+import { TutorHomeSection } from "@/features/cases/tutor/tutor-home";
+import { TutorWeekView } from "@/features/cases/tutor/week-view";
 import { DangerZoneSection } from "@/features/settings/sections/danger-zone-section";
 import { GeneralSection } from "@/features/settings/sections/general-section";
+import { GroupClassesSection } from "@/features/settings/sections/group-classes-section";
 import { MyTutorProfileSection } from "@/features/settings/sections/my-tutor-profile-section";
 import { NotificationsSection } from "@/features/settings/sections/notifications-section";
 import { PrivacySection } from "@/features/settings/sections/privacy-section";
 import { ProfileSection } from "@/features/settings/sections/profile-section";
 import { ReferralsSection } from "@/features/settings/sections/referrals-section";
-import { SecuritySection } from "@/features/settings/sections/security-section";
+import { StudyMaterialsSection } from "@/features/settings/sections/study-materials-section";
 import {
   categoryFromHash,
   type SettingsCategory,
@@ -41,28 +50,72 @@ import {
   type SettingsSectionProps,
 } from "@/features/settings/types";
 import { supabase } from "@/integrations/supabase/client";
+import { TutorCoachTour } from "@/features/tours/TutorCoachTour";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof Settings2 }> = {
+  home: { labelKey: "settings.nav.home", icon: Home },
   general: { labelKey: "settings.nav.general", icon: Settings2 },
   profile: { labelKey: "settings.nav.profile", icon: CircleUserRound },
   "my-tutor": { labelKey: "settings.nav.my_tutor", icon: GraduationCap },
   availability: { labelKey: "settings.nav.availability", icon: CalendarClock },
+  "group-classes": { labelKey: "settings.nav.group_classes", icon: Users },
+  lessons: { labelKey: "settings.nav.lessons", icon: CalendarClock },
+  materials: { labelKey: "settings.nav.materials", icon: BookOpen },
   account: { labelKey: "settings.nav.account", icon: UserCog },
-  security: { labelKey: "settings.nav.security", icon: KeyRound },
   notifications: { labelKey: "settings.nav.notifications", icon: Bell },
   referrals: { labelKey: "settings.nav.referrals", icon: Gift },
   privacy: { labelKey: "settings.nav.privacy", icon: Database },
   "danger-zone": { labelKey: "settings.nav.danger", icon: Trash2 },
 };
 
+/**
+ * Issue #116: the Availability tab holds the existing start-date/capacity card
+ * plus the new self-serve weekly availability grid beneath it.
+ */
+function AvailabilityTab(_props: SettingsSectionProps) {
+  return (
+    <div className="space-y-6">
+      {/* AvailabilitySection takes no props (it reads auth + queries itself). */}
+      <AvailabilitySection />
+      <AvailabilityGridEditor />
+      {/* #204: bookable weekly windows + blackout dates (separate from the display grid above). */}
+      <CalendarWindowsEditor />
+    </div>
+  );
+}
+
+/**
+ * Issue #202: the Tutor home tab — today's next lesson, pending confirms,
+ * admin-fee status and the notes summary. Tutor-only, default landing tab.
+ */
+function HomeTab(_props: SettingsSectionProps) {
+  return <TutorHomeSection />;
+}
+
+/**
+ * #201/#204: the Lessons tab — SoR cases with lesson actions, the 14-day week
+ * view and the Tutor Plus banner. Tutor-only (same gate as availability).
+ */
+function LessonsTab(_props: SettingsSectionProps) {
+  return (
+    <div className="space-y-6">
+      <TutorCasesSection />
+      <TutorWeekView />
+    </div>
+  );
+}
+
 const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSectionProps>> = {
+  home: HomeTab,
   general: GeneralSection,
   profile: ProfileSection,
   "my-tutor": MyTutorProfileSection,
-  availability: AvailabilitySection,
+  availability: AvailabilityTab,
+  "group-classes": GroupClassesSection,
+  lessons: LessonsTab,
+  materials: StudyMaterialsSection,
   account: AccountSection,
-  security: SecuritySection,
   notifications: NotificationsSection,
   referrals: ReferralsSection,
   privacy: PrivacySection,
@@ -76,7 +129,6 @@ export function SettingsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const activeCategory = categoryFromHash(location.hash);
   const isInternal = hasAnyRole(["admin", "staff", "super_admin"]);
 
   const userId = user?.id;
@@ -99,19 +151,62 @@ export function SettingsPage() {
   });
   const hasLinkedTutor = Boolean(tutorLinkQuery.data);
 
+  // #202: tutors land on their Home tab when the URL has no explicit hash;
+  // everyone else (and every deep link) keeps the hashed category.
+  const activeCategory = location.hash
+    ? categoryFromHash(location.hash)
+    : hasLinkedTutor
+      ? ("home" as SettingsCategory)
+      : categoryFromHash("");
+
+  // Issue #131: the Study Materials upload tab is Verified-only
+  // (verification_tier = 'tier_2_verified' on the linked tutor card).
+  // is_published drives the once-only coach-mark tour (issue #397) — it must
+  // fire after approval + publication, not on a merely submitted application.
+  const tutorVerifiedQuery = useQuery({
+    queryKey: ["settings", "tutor-verified", userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("Not signed in");
+      const { data, error } = await supabase
+        .from("tutors")
+        .select("id, verification_tier, is_published")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as {
+        id: string;
+        verification_tier: string | null;
+        is_published: boolean | null;
+      } | null;
+    },
+    enabled: Boolean(userId),
+  });
+  const isVerifiedTutor = tutorVerifiedQuery.data?.verification_tier === "tier_2_verified";
+
   const categories = useMemo(() => {
     const all = Object.keys(CATEGORY_META) as SettingsCategory[];
     return all.filter((category) => {
       if (category === "account" && isInternal) return false;
+      // #202: the Tutor home tab is tutor-only (same gate as the other
+      // tutor tabs — the account must be linked to a tutor card).
+      if (category === "home") return hasLinkedTutor;
       // Availability, referrals and my-tutor are tutor-only: all need the
       // signed-in account to be linked to a tutor card (tutors.user_id,
       // set by admins in the editor's Assigned Account section).
-      if (category === "availability" || category === "referrals" || category === "my-tutor") {
+      if (
+        category === "availability" ||
+        category === "referrals" ||
+        category === "my-tutor" ||
+        category === "group-classes" ||
+        category === "lessons"
+      ) {
         return hasLinkedTutor;
       }
+      // Materials upload is Verified-only (issue #131's access moat).
+      if (category === "materials") return isVerifiedTutor;
       return true;
     });
-  }, [isInternal, hasLinkedTutor]);
+  }, [isInternal, hasLinkedTutor, isVerifiedTutor]);
 
   const profileQuery = useQuery({
     queryKey: ["settings", "profile", userId],
@@ -148,10 +243,13 @@ export function SettingsPage() {
     [queryClient, userId],
   );
 
-  // Switching category swaps the whole content pane — always start at the top.
+  // Issue #198: jump to the top on mount only (covers deep links like
+  // /dashboard#security). Switching tabs must keep the scroll position —
+  // the sidebar sits mid-page, so resetting it on every click yanked the
+  // user's viewport back to the header on each switch.
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [activeCategory]);
+  }, []);
 
   if (!user) return null;
 
@@ -177,6 +275,8 @@ export function SettingsPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--surface-subtle)] text-[color:var(--ink)]">
+      {/* Issue #397: once-only coach-mark tour for published tutors. */}
+      <TutorCoachTour enabled={hasLinkedTutor && tutorVerifiedQuery.data?.is_published === true} />
       <SiteHeader />
       <main className="flex-1">
         <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
@@ -217,6 +317,7 @@ export function SettingsPage() {
                       type="button"
                       onClick={() => selectCategory(category)}
                       aria-current={active ? "true" : undefined}
+                      data-tour={category === "materials" ? "tutor-materials" : undefined}
                       className={cn(
                         "flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
                         active
@@ -250,6 +351,7 @@ export function SettingsPage() {
                       type="button"
                       onClick={() => selectCategory(category)}
                       aria-current={active ? "true" : undefined}
+                      data-tour={category === "materials" ? "tutor-materials" : undefined}
                       className={cn("w-full text-left", navButtonClass(active))}
                     >
                       <Icon className="h-4 w-4" aria-hidden="true" />

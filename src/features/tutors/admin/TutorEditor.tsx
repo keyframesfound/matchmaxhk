@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -8,6 +9,7 @@ import {
   Award,
   BookOpen,
   Briefcase,
+  CalendarClock,
   Check,
   ChevronRight,
   ExternalLink,
@@ -17,6 +19,8 @@ import {
   Loader2,
   LocateFixed,
   MapPin,
+  MessageSquareQuote,
+  Phone,
   Plus,
   Sparkles,
   Trash2,
@@ -48,7 +52,9 @@ import {
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   highSchoolEditorOptions,
+  majorEditorOptions,
   universityEditorOptions,
+  type EducationValueSets,
 } from "@/features/tutors/education-filters";
 import { MtrStationMultiSelect, MtrStationSelect } from "@/components/ui/mtr-station-select";
 import { getNearestMtrStation, getReachableMtrStations } from "@/features/tutor-application/mtr";
@@ -67,20 +73,58 @@ import {
   getSubjectOptionsForCategory,
 } from "@/features/tutors/subjects";
 import { getCurriculumGroupLabel, getTutorSubjectGroups } from "@/features/tutors/tutor-display";
+import { parseProfileTags, popularProfileTags } from "@/features/tutors/profile-tags";
+import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
+import { fetchPublishedTutors } from "@/features/tutors/queries";
+import { SEN_CATEGORY_OPTIONS, normalizeSenCategories } from "@/features/tutors/sen";
+import {
+  COURSE_GRADE_OPTIONS,
+  KINDERGARTEN_TOPICS,
+  MAX_UNIVERSITY_COURSES,
+  TARGET_TEACHING_LEVELS,
+  YEARS_OF_STUDY,
+  isInvalidUniversityGpaText,
+  normalizeCourseGrades,
+  normalizeUniversityCourses,
+  normalizeUniversityGpa,
+  normalizeUniversityYear,
+} from "@/features/tutors/verticals";
+import { useVerticalLabels } from "@/features/tutors/verticals-labels";
+import {
+  courseGradeRows,
+  courseGradeRowsToRecord,
+  selectedTargetLevels,
+  toggleKindergartenTopic,
+  toggleTargetLevel,
+} from "@/features/tutors/verticals-form";
 import { supabase } from "@/integrations/supabase/client";
 import {
   IA_EE_TOK_SUPPORT_OPTIONS,
   MAX_PRICING_TIERS,
   MAX_TUTOR_ACHIEVEMENTS,
   MAX_TUTOR_CARD_HIGHLIGHTS,
+  PREFERRED_TIME_WINDOWS,
   TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT,
   TUTOR_CARD_HIGHLIGHT_ROW_LIMIT,
+  normalizePreferredTimeWindows,
   normalizeTutorCardHighlights,
   type Tutor,
   type IaEeTokSupport,
   type PricingTier,
   type TutorAchievement,
 } from "@/features/tutors/queries";
+import {
+  GRID_DAYS,
+  GRID_SLOTS,
+  emptyAvailabilityGrid,
+  parseAvailabilityGrid,
+  type GridCellState,
+  type GridDay,
+} from "@/features/tutors/availability-grid-model";
+import {
+  CapacityEditorFields,
+  EditableAvailabilityGrid,
+} from "@/features/tutors/availability-editor-fields";
 import {
   EXAM_PAPER_LABELS,
   EXAM_SYSTEMS,
@@ -90,10 +134,25 @@ import {
   type ExamResultEntry,
 } from "@/features/tutors/examSystems";
 import { AutofillDialog } from "./AutofillDialog";
+import { TutorReviewsAdmin } from "./tutor-reviews-admin";
+import { TutorContactDetails } from "./tutor-contact-details";
+import {
+  MAX_RATE_ROWS,
+  RATE_MAX,
+  RATE_MIN,
+  RATE_NOTE_MAX,
+  RATE_ROW_LABEL_MAX,
+  TRAVEL_NOTE_MAX,
+  normalizeTutorRateRows,
+} from "@/features/tutors/rates";
+import { contactFilterError } from "@/lib/contact-filter";
+import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
 import type { TutorAutofillResult } from "./autofill.functions";
 
 export const TARGET_STUDENT_OPTIONS = [
+  "Kindergarten",
   "Primary",
+  "Secondary",
   "Junior Secondary",
   "IBDP",
   "IGCSE",
@@ -147,7 +206,7 @@ export const TUTOR_STATUS_OPTIONS: {
   label: string;
 }[] = [
   { value: "uni_student", label: "University student" },
-  { value: "full_part_time_tutor", label: "Full or part-time tutor" },
+  { value: "full_part_time_tutor", label: "Full/Part-Time Tutor" },
   { value: "examiner", label: "Examiner / professional teacher" },
 ];
 
@@ -169,7 +228,16 @@ export const tutorFormSchema = z.object({
     .refine((values) => values.some((value) => value.trim()), "Add at least one card highlight"),
   subjects: z.array(z.string().trim().min(1).max(80)).min(1, "Pick at least one subject"),
   target_students: z.array(z.string().trim().min(1).max(80)),
-  academic_headline: z.string().trim().max(120).optional().or(z.literal("")),
+  // Issue #323: hard 40-char cap shared with the join form and profile editor.
+  academic_headline: z
+    .string()
+    .trim()
+    .max(MAX_ACADEMIC_HEADLINE, `Keep the headline to ${MAX_ACADEMIC_HEADLINE} characters or fewer`)
+    .optional()
+    .or(z.literal("")),
+  // Issue #411: dual-language custom headlines (DB CHECK <= 60 chars).
+  custom_headline_en: z.string().trim().max(60).default(""),
+  custom_headline_zh: z.string().trim().max(60).default(""),
   // Issue #107: undergraduate + optional postgraduate degree history.
   undergrad_university: z.string().trim().max(120).optional().or(z.literal("")),
   undergrad_degree: z.string().trim().max(120).optional().or(z.literal("")),
@@ -185,6 +253,33 @@ export const tutorFormSchema = z.object({
   stations: z.array(z.string().trim().min(1).max(80)).max(200),
   lesson_mode: z.enum(["online", "in_person", "either"]),
   hourly_rate: z.coerce.number().int().min(0).max(100000),
+  // Issue #319: base rates (whole HKD, 50-3000). Blank = null; admins may
+  // save legacy cards with neither base rate set, so neither is required.
+  online_rate: z.coerce
+    .number()
+    .int(`Whole dollars only`)
+    .min(RATE_MIN, `Rate must be at least HK$${RATE_MIN}`)
+    .max(RATE_MAX, `Rate must be at most HK$${RATE_MAX}`)
+    .optional()
+    .or(z.literal("")),
+  inperson_rate: z.coerce
+    .number()
+    .int(`Whole dollars only`)
+    .min(RATE_MIN, `Rate must be at least HK$${RATE_MIN}`)
+    .max(RATE_MAX, `Rate must be at most HK$${RATE_MAX}`)
+    .optional()
+    .or(z.literal("")),
+  // Issue #319: extra profile-only rate rows. Shape only here — the pairing,
+  // contact-filter and cap rules live in normalizeTutorRateRows, checked at
+  // submit so half-filled rows are rejected, not silently trimmed.
+  rate_rows: z.array(
+    z.object({
+      label: z.string().trim().max(RATE_ROW_LABEL_MAX),
+      rate: z.union([z.string(), z.coerce.number()]),
+    }),
+  ),
+  travel_note: z.string().trim().max(TRAVEL_NOTE_MAX).optional().or(z.literal("")),
+  rate_note: z.string().trim().max(RATE_NOTE_MAX).optional().or(z.literal("")),
   pricing_tiers: z
     .array(
       z.object({
@@ -194,6 +289,12 @@ export const tutorFormSchema = z.object({
     )
     .max(MAX_PRICING_TIERS),
   photo_url: z.string().trim().max(1000).optional().or(z.literal("")),
+  // Issue #97: Trophy Cabinet public photo URLs (admin-curated).
+  portfolio_images: z.array(z.string().trim().url().max(1000)).max(6),
+  // Issue #217: up to 5 free-text profile tags (shape here; the cap, dedupe
+  // and contact-detail rejection live in parseProfileTags, applied by both
+  // editors before this schema runs).
+  profile_tags: z.array(z.string().trim().max(30)).max(5),
   tutor_code: z
     .string()
     .trim()
@@ -205,6 +306,26 @@ export const tutorFormSchema = z.object({
   // public listing; tutors self-serve these fields from their dashboard.
   start_immediately: z.boolean(),
   earliest_start_date: z.string().trim(),
+  // Issue #103/#116: capacity + weekly grid. Tutors self-serve these from
+  // their dashboard (RPCs); admins edit the same fields here directly.
+  is_accepting_students: z.boolean(),
+  remaining_student_slots: z.coerce.number().int().min(0).max(99),
+  preferred_time_windows: z.array(z.enum(PREFERRED_TIME_WINDOWS)),
+  // Always built by parseAvailabilityGrid/emptyAvailabilityGrid (full 7×6
+  // matrix), so a structural check is enough — zod records over enum keys
+  // infer Partial and fight the grid model's types.
+  availability_grid: z.custom<Record<GridDay, GridCellState[]>>((value) => {
+    if (!value || typeof value !== "object") return false;
+    const source = value as Record<string, unknown>;
+    return GRID_DAYS.every((day) => {
+      const row = source[day];
+      return (
+        Array.isArray(row) &&
+        row.length === GRID_SLOTS.length &&
+        row.every((cell) => cell === "a" || cell === "p" || cell === "u")
+      );
+    });
+  }),
   languages: z.array(z.string().trim().min(1).max(60)),
   gender: z.enum(["male", "female", "other"]),
   tutor_status: z.enum(["uni_student", "full_part_time_tutor", "examiner"]).or(z.literal("")),
@@ -217,6 +338,27 @@ export const tutorFormSchema = z.object({
     .max(MAX_TUTOR_ACHIEVEMENTS, "Add no more than three achievements"),
   ia_ee_tok_support: z.array(z.enum(IA_EE_TOK_SUPPORT_OPTIONS)),
   ia_ee_tok_notes: z.string().trim().max(1000).optional().or(z.literal("")),
+  // Issue #199: SEN capability. Categories use the shared HK-common
+  // vocabulary; the experience note is a profile-only free-text field.
+  sen_enabled: z.boolean(),
+  sen_categories: z.array(z.enum(SEN_CATEGORY_OPTIONS)),
+  sen_experience: z.string().trim().max(2000).optional().or(z.literal("")),
+  // Issue #190 verticals (owner-writable, self-reported — never part of the
+  // credential-freeze/verification surfaces). GPA and course grades are
+  // draft strings here; formDataToPayload normalizes via verticals.ts.
+  university_year_of_study: z.string(),
+  university_gpa: z.string(),
+  university_courses: z
+    .array(z.string().trim().max(40))
+    .max(MAX_UNIVERSITY_COURSES, `Add no more than ${MAX_UNIVERSITY_COURSES} courses`),
+  course_grade_rows: z
+    .array(
+      z.object({
+        course: z.string().trim().max(40),
+        grade: z.string().trim(),
+      }),
+    )
+    .max(MAX_UNIVERSITY_COURSES, `Add no more than ${MAX_UNIVERSITY_COURSES} course grades`),
 });
 
 export type TutorFormData = z.infer<typeof tutorFormSchema>;
@@ -242,6 +384,8 @@ export const emptyTutorForm: TutorFormData = {
   subjects: [],
   target_students: [],
   academic_headline: "",
+  custom_headline_en: "",
+  custom_headline_zh: "",
   undergrad_university: "",
   undergrad_degree: "",
   undergrad_graduation_year: "",
@@ -254,12 +398,23 @@ export const emptyTutorForm: TutorFormData = {
   stations: [],
   lesson_mode: "either",
   hourly_rate: 0,
+  online_rate: "",
+  inperson_rate: "",
+  rate_rows: [],
+  travel_note: "",
+  rate_note: "",
   pricing_tiers: [],
   photo_url: "",
+  portfolio_images: [],
+  profile_tags: [],
   tutor_code: "",
   is_published: true,
   start_immediately: true,
   earliest_start_date: "",
+  is_accepting_students: true,
+  remaining_student_slots: 2,
+  preferred_time_windows: [],
+  availability_grid: emptyAvailabilityGrid(),
   languages: ["English", "Cantonese"],
   gender: "female",
   tutor_status: "",
@@ -269,6 +424,13 @@ export const emptyTutorForm: TutorFormData = {
   achievements: [],
   ia_ee_tok_support: [],
   ia_ee_tok_notes: "",
+  sen_enabled: false,
+  sen_categories: [],
+  sen_experience: "",
+  university_year_of_study: "",
+  university_gpa: "",
+  university_courses: [],
+  course_grade_rows: [],
 };
 
 export function tutorToFormData(t: Tutor): TutorFormData {
@@ -280,6 +442,8 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     subjects: t.subjects ?? [],
     target_students: t.target_students ?? [],
     academic_headline: t.academic_headline ?? "",
+    custom_headline_en: t.custom_headline_en ?? "",
+    custom_headline_zh: t.custom_headline_zh ?? "",
     undergrad_university: t.undergrad_university ?? "",
     undergrad_degree: t.undergrad_degree ?? "",
     undergrad_graduation_year: t.undergrad_graduation_year ?? "",
@@ -292,12 +456,26 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     stations: t.stations ?? [],
     lesson_mode: t.lesson_mode ?? "either",
     hourly_rate: t.hourly_rate ?? 0,
+    online_rate: typeof t.online_rate === "number" ? t.online_rate : "",
+    inperson_rate: typeof t.inperson_rate === "number" ? t.inperson_rate : "",
+    rate_rows: (t.rate_rows ?? []).slice(0, MAX_RATE_ROWS).map((row) => ({
+      label: row.label ?? "",
+      rate: String(row.rate ?? ""),
+    })),
+    travel_note: t.travel_note ?? "",
+    rate_note: t.rate_note ?? "",
     pricing_tiers: (t.pricing_tiers ?? []).slice(0, MAX_PRICING_TIERS),
     photo_url: t.photo_url ?? "",
+    portfolio_images: t.portfolio_images ?? [],
+    profile_tags: t.profile_tags ?? [],
     tutor_code: t.tutor_code ?? "",
     is_published: t.is_published ?? true,
     start_immediately: t.start_immediately ?? true,
     earliest_start_date: t.earliest_start_date ?? "",
+    is_accepting_students: t.is_accepting_students ?? true,
+    remaining_student_slots: t.remaining_student_slots ?? 2,
+    preferred_time_windows: normalizePreferredTimeWindows(t.preferred_time_windows),
+    availability_grid: parseAvailabilityGrid(t.availability_grid),
     languages: t.languages ?? ["English"],
     gender: ["male", "female", "other"].includes(
       (t as unknown as { gender?: string | null }).gender ?? "",
@@ -326,6 +504,16 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     })),
     ia_ee_tok_support: t.ia_ee_tok_support ?? [],
     ia_ee_tok_notes: t.ia_ee_tok_notes ?? "",
+    sen_enabled: t.sen_enabled === true,
+    sen_categories: normalizeSenCategories(t.sen_categories),
+    sen_experience: t.sen_experience ?? "",
+    university_year_of_study: normalizeUniversityYear(t.university_year_of_study) ?? "",
+    university_gpa:
+      t.university_gpa === null || t.university_gpa === undefined ? "" : String(t.university_gpa),
+    university_courses: normalizeUniversityCourses(t.university_courses),
+    course_grade_rows: courseGradeRows(
+      t.course_specific_grades as Record<string, string> | null | undefined,
+    ),
   };
 }
 
@@ -374,6 +562,10 @@ export function formDataToPayload(v: TutorFormData) {
       .filter(Boolean)
       .slice(0, MAX_TUTOR_CARD_HIGHLIGHTS),
     academic_headline: v.academic_headline?.trim() || null,
+    // Issue #411: owner-editable dual-language custom headlines (<= 60 chars,
+    // DB CHECK + contact guard); the tutor sees exactly what they saved.
+    custom_headline_en: v.custom_headline_en?.trim() || null,
+    custom_headline_zh: v.custom_headline_zh?.trim() || null,
     undergrad_university: v.undergrad_university?.trim() || null,
     undergrad_degree: v.undergrad_degree?.trim() || null,
     undergrad_graduation_year: v.undergrad_graduation_year?.trim() || null,
@@ -391,12 +583,31 @@ export function formDataToPayload(v: TutorFormData) {
         : [...new Set(v.stations.map((station) => station.trim()).filter(Boolean))],
     lesson_mode: v.lesson_mode,
     hourly_rate: v.hourly_rate,
+    // Issue #319: blank base rates save as null (legacy cards may have
+    // neither); the DB trigger recomputes the HKD card-floor snapshots.
+    online_rate: v.online_rate === "" ? null : v.online_rate,
+    inperson_rate: v.inperson_rate === "" ? null : v.inperson_rate,
+    rate_rows: (() => {
+      const normalized = normalizeTutorRateRows(v.rate_rows);
+      return normalized.ok ? normalized.rows : [];
+    })(),
+    travel_note: v.travel_note?.trim() || null,
+    rate_note: v.rate_note?.trim() || null,
     pricing_tiers: cleanPricingTiersResult,
     photo_url: v.photo_url?.trim() || null,
+    portfolio_images: v.portfolio_images.map((url) => url.trim()).filter(Boolean),
+    profile_tags: (() => {
+      const parsed = parseProfileTags(v.profile_tags);
+      return parsed.ok ? parsed.tags : [];
+    })(),
     tutor_code: v.tutor_code.trim(),
     is_published: v.is_published,
     start_immediately: v.start_immediately,
     earliest_start_date: v.start_immediately ? null : v.earliest_start_date.trim() || null,
+    is_accepting_students: v.is_accepting_students,
+    remaining_student_slots: v.remaining_student_slots,
+    preferred_time_windows: v.preferred_time_windows,
+    availability_grid: v.availability_grid,
     languages: v.languages,
     gender: v.gender,
     tutor_status: v.tutor_status || null,
@@ -406,6 +617,17 @@ export function formDataToPayload(v: TutorFormData) {
     achievements: cleanAchievements,
     ia_ee_tok_support: v.ia_ee_tok_support,
     ia_ee_tok_notes: v.ia_ee_tok_notes?.trim() || null,
+    // Issue #199: categories only persist while SEN experience is enabled.
+    sen_enabled: v.sen_enabled,
+    sen_categories: v.sen_enabled ? v.sen_categories : [],
+    sen_experience: v.sen_enabled ? v.sen_experience?.trim() || null : null,
+    // Issue #190 verticals: self-reported, owner-writable plain fields (NOT
+    // credential-locked). Normalizers live in verticals.ts; invalid GPA or
+    // half-filled grade rows are dropped, never blocked.
+    university_year_of_study: normalizeUniversityYear(v.university_year_of_study),
+    university_gpa: normalizeUniversityGpa(v.university_gpa),
+    university_courses: normalizeUniversityCourses(v.university_courses),
+    course_specific_grades: normalizeCourseGrades(courseGradeRowsToRecord(v.course_grade_rows)),
   };
 }
 
@@ -441,6 +663,13 @@ function mergeAutofillResult(prev: TutorFormData, result: TutorAutofillResult): 
       ? result.lesson_mode
       : prev.lesson_mode,
     hourly_rate: result.hourly_rate > 0 ? result.hourly_rate : prev.hourly_rate,
+    online_rate: typeof result.online_rate === "number" ? result.online_rate : prev.online_rate,
+    inperson_rate:
+      typeof result.inperson_rate === "number" ? result.inperson_rate : prev.inperson_rate,
+    rate_rows:
+      result.rate_rows.length > 0 ? result.rate_rows.slice(0, MAX_RATE_ROWS) : prev.rate_rows,
+    travel_note: result.travel_note || prev.travel_note,
+    rate_note: result.rate_note || prev.rate_note,
     start_immediately: result.start_immediately,
     earliest_start_date: result.start_immediately
       ? ""
@@ -463,6 +692,9 @@ function mergeAutofillResult(prev: TutorFormData, result: TutorAutofillResult): 
     ia_ee_tok_support:
       result.ia_ee_tok_support.length > 0 ? result.ia_ee_tok_support : prev.ia_ee_tok_support,
     ia_ee_tok_notes: result.ia_ee_tok_notes || prev.ia_ee_tok_notes,
+    // Issue #77: only prefill the status when the AI mapped one; the admin
+    // dropdown (TUTOR_STATUS_OPTIONS) stays the override.
+    tutor_status: result.tutor_status ?? prev.tutor_status,
   };
 }
 
@@ -704,6 +936,175 @@ function ModernPhotoUpload({
   );
 }
 
+/**
+ * Issue #97: Trophy Cabinet editor — up to 6 public award photos. Upload goes
+ * to the same R2 tutor-images bucket as the profile photo; tutors submit
+ * candidates at intake and admins curate the final public list here.
+ */
+function PortfolioImagesEditor({
+  images,
+  onChange,
+}: {
+  images: string[];
+  onChange: (images: string[]) => void;
+}) {
+  const listImagesFn = useServerFn(listTutorProfileImages);
+  const uploadImageFn = useServerFn(uploadTutorProfileImage);
+  const [showGallery, setShowGallery] = React.useState(false);
+  const full = images.length >= 6;
+
+  const { data: library = [], isLoading: isLibraryLoading } = useQuery({
+    queryKey: ["admin", "r2", "tutor-images"],
+    queryFn: () => listImagesFn({ data: { limit: 40 } }) as Promise<R2TutorImage[]>,
+    enabled: showGallery,
+  });
+
+  const upload = useMutation({
+    mutationFn: async (file: File) => {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      let binary = "";
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.slice(i, i + chunkSize));
+      }
+      const base64Data = btoa(binary);
+      return uploadImageFn({
+        data: {
+          fileName: file.name,
+          contentType: file.type || "image/jpeg",
+          base64Data,
+        },
+      }) as Promise<{ key: string; url: string }>;
+    },
+    onSuccess: (result) => {
+      if (images.length < 6) onChange([...images, result.url]);
+      toast.success("Photo uploaded — added to the Trophy Cabinet");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const onFilePick: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    const file = event.target.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please pick an image file (PNG, JPG, WebP).");
+      return;
+    }
+    if (images.length >= 6) {
+      toast.error("Maximum of 6 photos. Remove one first.");
+      return;
+    }
+    upload.mutate(file);
+  };
+
+  return (
+    <div className="space-y-3">
+      {images.length > 0 ? (
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+          {images.map((url, index) => (
+            <div
+              key={`${index}-${url}`}
+              className="group relative overflow-hidden rounded-lg border border-border"
+            >
+              <img
+                src={url}
+                alt={`Award photo ${index + 1}`}
+                className="aspect-square w-full object-cover"
+              />
+              <button
+                type="button"
+                aria-label={`Remove award photo ${index + 1}`}
+                className="absolute top-1 right-1 rounded-full bg-background/90 p-1 text-destructive opacity-0 transition-all hover:bg-destructive hover:text-white group-hover:opacity-100"
+                onClick={() => onChange(images.filter((_, i) => i !== index))}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+          No award photos set — the public gallery stays hidden.
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <label
+          className={cn(
+            "inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[color:var(--ink)] px-3.5 text-xs font-semibold text-[color:var(--surface)] transition-colors hover:bg-[color:var(--ink)]/90",
+            full && "pointer-events-none opacity-50",
+          )}
+        >
+          {upload.isPending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Upload className="h-3.5 w-3.5" />
+          )}
+          <span>{images.length > 0 ? `Add photo (${images.length}/6)` : "Upload photo"}</span>
+          <input type="file" accept="image/*" className="hidden" onChange={onFilePick} />
+        </label>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setShowGallery((prev) => !prev)}
+          className="h-9 text-xs"
+        >
+          {showGallery ? "Hide Library" : "Choose from R2 Library"}
+        </Button>
+      </div>
+
+      {showGallery ? (
+        <div className="space-y-3 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-3">
+          {isLibraryLoading ? (
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <Skeleton key={idx} className="h-16 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : library.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border py-6 text-center text-xs text-muted-foreground">
+              No images in storage yet.
+            </div>
+          ) : (
+            <div className="grid max-h-48 grid-cols-4 gap-2 overflow-y-auto p-1 sm:grid-cols-6">
+              {library.map((item) => {
+                const alreadyPicked = images.includes(item.url);
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    disabled={alreadyPicked || full}
+                    title={
+                      alreadyPicked ? "Already in the Trophy Cabinet" : "Add to Trophy Cabinet"
+                    }
+                    onClick={() => {
+                      if (!alreadyPicked && !full) onChange([...images, item.url]);
+                    }}
+                    className={cn(
+                      "block aspect-square w-full overflow-hidden rounded-lg border-2 transition-all",
+                      alreadyPicked
+                        ? "border-[color:var(--ring)] ring-2 ring-[color:var(--ring)]/30"
+                        : "border-transparent hover:border-[color:var(--ink)]/20",
+                      (alreadyPicked || full) && !alreadyPicked && "opacity-40",
+                    )}
+                  >
+                    <img src={item.url} alt="" className="h-full w-full object-cover" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 // Section Container Component
 function EditorSection({
   icon: Icon,
@@ -781,6 +1182,8 @@ interface TutorEditorProps {
   isSaving?: boolean;
   /** Join application to offer as AI autofill source (never prefills the form). */
   applicationId?: string | null;
+  /** Distinct education values already in use on tutor profiles — feeds the education dropdowns. */
+  educationValues?: EducationValueSets;
 }
 
 export function TutorEditor({
@@ -789,7 +1192,10 @@ export function TutorEditor({
   onCancel,
   isSaving = false,
   applicationId = null,
+  educationValues,
 }: TutorEditorProps) {
+  const { t } = useTranslation();
+  const verticalLabels = useVerticalLabels();
   const [form, setForm] = React.useState<TutorFormData>(() =>
     initialData ? tutorToFormData(initialData) : emptyTutorForm,
   );
@@ -824,6 +1230,24 @@ export function TutorEditor({
     () => getTutorSubjectGroups({ subjects: form.subjects, exam_results: form.exam_results }),
     [form.subjects, form.exam_results],
   );
+
+  // Issue #190: canonical teaching levels currently ticked (case-insensitive
+  // read so a legacy "ibdp" style entry never duplicates a canonical value).
+  const selectedLevels = React.useMemo(
+    () => selectedTargetLevels(form.target_students),
+    [form.target_students],
+  );
+  const hasUniversityLevel = selectedLevels.includes("University");
+  const hasKindergartenLevel = selectedLevels.includes("Kindergarten");
+
+  // Issue #311: tags used by 3+ tutors, with counts, for the tag editor's
+  // type-ahead suggestions.
+  const tagSuggestionsQuery = useQuery({
+    queryKey: ["tutors", "tag-suggestions"],
+    queryFn: fetchPublishedTutors,
+    select: (tutors) => popularProfileTags(tutors),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const applyAutofill = (result: TutorAutofillResult) => {
     const snapshot = form;
@@ -1026,6 +1450,7 @@ export function TutorEditor({
     () => ({
       id: initialData?.id ?? "preview-tutor",
       created_at: initialData?.created_at ?? new Date().toISOString(),
+      user_id: initialData?.user_id ?? null,
       display_name: form.tutor_code.trim() || "MM-PREVIEW",
       headline:
         form.card_highlights
@@ -1057,8 +1482,26 @@ export function TutorEditor({
       verification_tier: form.verification_tier || null,
       lesson_mode: form.lesson_mode,
       hourly_rate: Number.isFinite(form.hourly_rate) ? form.hourly_rate : 0,
+      online_rate:
+        typeof form.online_rate === "number" && Number.isFinite(form.online_rate)
+          ? form.online_rate
+          : null,
+      inperson_rate:
+        typeof form.inperson_rate === "number" && Number.isFinite(form.inperson_rate)
+          ? form.inperson_rate
+          : null,
+      rate_rows: normalizeTutorRateRows(form.rate_rows).rows,
+      travel_note: form.travel_note?.trim() || null,
+      rate_note: form.rate_note?.trim() || null,
       pricing_tiers: cleanFormPricingTiers(form.pricing_tiers),
+      // Issue #112: the preview derives from native HKD inputs; normalized
+      // snapshots only exist on saved rows.
+      currency: "HKD",
+      min_hourly_rate_hkd: null,
+      max_hourly_rate_hkd: null,
       photo_url: form.photo_url?.trim() || null,
+      portfolio_images: form.portfolio_images,
+      profile_tags: form.profile_tags,
       tutor_code: form.tutor_code.trim() || "MM-PREVIEW",
       is_published: form.is_published,
       start_immediately: form.start_immediately,
@@ -1081,20 +1524,21 @@ export function TutorEditor({
         .filter((a) => a.short_text),
       ia_ee_tok_support: form.ia_ee_tok_support,
       ia_ee_tok_notes: form.ia_ee_tok_notes?.trim() || null,
-      // Issue #103: admin editor doesn't manage capacity; defaults reflect a
-      // live tutor until the tutor sets their own via the dashboard.
-      remaining_student_slots: initialData?.remaining_student_slots ?? 2,
-      is_accepting_students: initialData?.is_accepting_students ?? true,
-      preferred_time_windows: initialData?.preferred_time_windows ?? [],
+      sen_enabled: form.sen_enabled,
+      sen_categories: form.sen_enabled ? form.sen_categories : [],
+      sen_experience: form.sen_enabled ? form.sen_experience?.trim() || null : null,
+      remaining_student_slots: form.remaining_student_slots,
+      is_accepting_students: form.is_accepting_students,
+      preferred_time_windows: form.preferred_time_windows,
+      availability_grid: form.availability_grid,
+      university_year_of_study: normalizeUniversityYear(form.university_year_of_study),
+      university_gpa: normalizeUniversityGpa(form.university_gpa),
+      university_courses: normalizeUniversityCourses(form.university_courses),
+      course_specific_grades: normalizeCourseGrades(
+        courseGradeRowsToRecord(form.course_grade_rows),
+      ),
     }),
-    [
-      form,
-      initialData?.id,
-      initialData?.created_at,
-      initialData?.remaining_student_slots,
-      initialData?.is_accepting_students,
-      initialData?.preferred_time_windows,
-    ],
+    [form, initialData?.id, initialData?.created_at],
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1111,6 +1555,37 @@ export function TutorEditor({
     }
 
     const publishErrors: Record<string, string> = {};
+    // Issue #319: extra rate rows reject half-filled rows, bad rates and
+    // contact-looking labels instead of silently trimming them.
+    const rateRowsResult = normalizeTutorRateRows(parsed.data.rate_rows);
+    if (!rateRowsResult.ok) {
+      publishErrors.rate_rows = rateRowsResult.errors[0] ?? "Fix the extra rate rows.";
+    }
+    // Same contact filter the tutor self-serve form applies: the travel and
+    // rate notes render on the public Rates block, so they cannot carry
+    // phone numbers, links or chat-app handles.
+    const adminTravelNoteError = contactFilterError((parsed.data.travel_note ?? "").trim());
+    if (adminTravelNoteError) publishErrors.travel_note = adminTravelNoteError;
+    const adminRateNoteError = contactFilterError((parsed.data.rate_note ?? "").trim());
+    if (adminRateNoteError) publishErrors.rate_note = adminRateNoteError;
+    // #190 review: course tags and grade-map course keys render on the public
+    // card. Staff writes bypass tutors_owner_contact_guard, so this client
+    // check is the only guard on admin EDITS of those fields (admin INSERTS
+    // still hit tutors_insert_contact_guard).
+    const adminUniCoursesError = contactFilterError(parsed.data.university_courses.join(", "));
+    if (adminUniCoursesError) publishErrors.university_courses = adminUniCoursesError;
+    const adminGradeKeysError = contactFilterError(
+      parsed.data.course_grade_rows.map((row) => row.course).join(", "),
+    );
+    if (adminGradeKeysError) publishErrors.course_grade_rows = adminGradeKeysError;
+    // Issue #190/#395: GPA is a free decimal 0–4.3 (blank allowed); an
+    // out-of-band value blocks the save with the same `editor_gpa_invalid`
+    // error the join/owner forms show, instead of being silently dropped to
+    // null by formDataToPayload.
+    const gpaText = (parsed.data.university_gpa ?? "").trim();
+    if (isInvalidUniversityGpaText(gpaText)) {
+      publishErrors.university_gpa = t("verticals.editor_gpa_invalid");
+    }
     if (parsed.data.is_published) {
       if (
         !(parsed.data.academic_headline ?? "").trim() &&
@@ -1206,6 +1681,29 @@ export function TutorEditor({
     setForm((prev) => ({
       ...prev,
       pricing_tiers: prev.pricing_tiers.filter((_, idx) => idx !== index),
+    }));
+  };
+
+  // Extra rate rows (issue #319): profile-only label + rate pairs.
+  const addRateRow = () => {
+    setForm((prev) => {
+      if (prev.rate_rows.length >= MAX_RATE_ROWS) return prev;
+      return { ...prev, rate_rows: [...prev.rate_rows, { label: "", rate: "" }] };
+    });
+  };
+
+  const updateRateRow = (index: number, patch: Partial<{ label: string; rate: string }>) => {
+    setForm((prev) => {
+      const rows = [...prev.rate_rows];
+      rows[index] = { ...rows[index], ...patch };
+      return { ...prev, rate_rows: rows };
+    });
+  };
+
+  const removeRateRow = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      rate_rows: prev.rate_rows.filter((_, idx) => idx !== index),
     }));
   };
 
@@ -1425,10 +1923,11 @@ export function TutorEditor({
                 <FormField
                   label="Academic Headline"
                   error={errors.academic_headline}
-                  hint="IBDP 45 / 45 | AP"
+                  hint={`Max ${MAX_ACADEMIC_HEADLINE} chars — e.g. IBDP 44/45`}
                 >
                   <Input
                     value={form.academic_headline}
+                    maxLength={MAX_ACADEMIC_HEADLINE}
                     onChange={(e) => setForm({ ...form, academic_headline: e.target.value })}
                     placeholder="e.g. IBDP 44/45 or HKDSE Best 5: 32"
                   />
@@ -1442,7 +1941,10 @@ export function TutorEditor({
                   <SearchableSelect
                     value={form.undergrad_university ?? ""}
                     onChange={(v) => setForm({ ...form, undergrad_university: v })}
-                    options={universityEditorOptions(form.undergrad_university)}
+                    options={universityEditorOptions(
+                      form.undergrad_university,
+                      educationValues?.universities,
+                    )}
                     placeholder="e.g. The University of Hong Kong"
                     searchPlaceholder="Search universities…"
                     emptyText="No university found — keep typing to add it"
@@ -1458,7 +1960,10 @@ export function TutorEditor({
                   <SearchableSelect
                     value={form.secondary_school ?? ""}
                     onChange={(v) => setForm({ ...form, secondary_school: v })}
-                    options={highSchoolEditorOptions(form.secondary_school)}
+                    options={highSchoolEditorOptions(
+                      form.secondary_school,
+                      educationValues?.highSchools,
+                    )}
                     placeholder="e.g. Diocesan Boys' School"
                     searchPlaceholder="Search schools…"
                     emptyText="No school found — keep typing to add it"
@@ -1469,12 +1974,16 @@ export function TutorEditor({
                 <FormField
                   label="Undergraduate Degree"
                   error={errors.undergrad_degree}
-                  hint="Degree / programme major"
+                  hint="Search or add — e.g. Bachelor of Engineering in Computer Engineering"
                 >
-                  <Input
-                    value={form.undergrad_degree}
-                    onChange={(e) => setForm({ ...form, undergrad_degree: e.target.value })}
+                  <SearchableSelect
+                    value={form.undergrad_degree ?? ""}
+                    onChange={(v) => setForm({ ...form, undergrad_degree: v })}
+                    options={majorEditorOptions(form.undergrad_degree, educationValues?.majors)}
                     placeholder="e.g. BSc Theoretical Physics"
+                    searchPlaceholder="Search majors…"
+                    emptyText="No major found — keep typing to add it"
+                    allowCustom
                   />
                 </FormField>
 
@@ -1509,7 +2018,10 @@ export function TutorEditor({
                       <SearchableSelect
                         value={form.postgrad_university ?? ""}
                         onChange={(v) => setForm({ ...form, postgrad_university: v })}
-                        options={universityEditorOptions(form.postgrad_university)}
+                        options={universityEditorOptions(
+                          form.postgrad_university,
+                          educationValues?.universities,
+                        )}
                         placeholder="e.g. University of Edinburgh"
                         searchPlaceholder="Search universities…"
                         emptyText="No university found — keep typing to add it"
@@ -1519,12 +2031,16 @@ export function TutorEditor({
                     <FormField
                       label="Postgraduate Degree"
                       error={errors.postgrad_degree}
-                      hint="Cards abbreviate to MSc / MA / PhD etc."
+                      hint="Search or add — cards abbreviate to MSc / MA / PhD etc."
                     >
-                      <Input
-                        value={form.postgrad_degree}
-                        onChange={(e) => setForm({ ...form, postgrad_degree: e.target.value })}
+                      <SearchableSelect
+                        value={form.postgrad_degree ?? ""}
+                        onChange={(v) => setForm({ ...form, postgrad_degree: v })}
+                        options={majorEditorOptions(form.postgrad_degree, educationValues?.majors)}
                         placeholder="e.g. MSc Theoretical Physics"
+                        searchPlaceholder="Search majors…"
+                        emptyText="No major found — keep typing to add it"
+                        allowCustom
                       />
                     </FormField>
                   </div>
@@ -1535,6 +2051,18 @@ export function TutorEditor({
                 <ModernPhotoUpload
                   value={form.photo_url ?? ""}
                   onChange={(url) => setForm({ ...form, photo_url: url })}
+                />
+              </FormField>
+
+              {/* Issue #97: Trophy Cabinet — public award photos picked from
+                  the same R2 library; empty = gallery hidden on the profile. */}
+              <FormField
+                label="Trophy Cabinet (public award photos)"
+                hint="Optional. Shown on the public profile only when at least one photo is set; up to 6."
+              >
+                <PortfolioImagesEditor
+                  images={form.portfolio_images}
+                  onChange={(images) => setForm({ ...form, portfolio_images: images })}
                 />
               </FormField>
 
@@ -1579,6 +2107,46 @@ export function TutorEditor({
                   />
                 </FormField>
               ) : null}
+            </EditorSection>
+
+            {/* Capacity + weekly grid — the same controls tutors get in their
+                dashboard Availability section; admins edit them directly and
+                changes go live with the usual Save. */}
+            <EditorSection
+              icon={CalendarClock}
+              title="Capacity & Availability"
+              description="Accepting status, open slots, preferred time windows and the weekly availability grid from the tutor's dashboard."
+              id="availability"
+            >
+              <CapacityEditorFields
+                value={{
+                  acceptingStudents: form.is_accepting_students,
+                  openSlots: form.remaining_student_slots,
+                  timeWindows: form.preferred_time_windows,
+                }}
+                onChange={(next) =>
+                  setForm({
+                    ...form,
+                    is_accepting_students: next.acceptingStudents,
+                    remaining_student_slots: next.openSlots,
+                    preferred_time_windows: next.timeWindows,
+                  })
+                }
+              />
+
+              <div className="space-y-2 border-t border-[color:var(--ink)]/10 pt-6">
+                <p className="text-sm font-bold text-[color:var(--ink)]">
+                  Weekly availability grid
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Tap a cell to cycle: available → partially available → unavailable. An empty grid
+                  stays hidden on the public profile.
+                </p>
+                <EditableAvailabilityGrid
+                  grid={form.availability_grid}
+                  onChange={(grid) => setForm({ ...form, availability_grid: grid })}
+                />
+              </div>
             </EditorSection>
 
             {/* Referral program */}
@@ -1662,6 +2230,23 @@ export function TutorEditor({
               )}
             </EditorSection>
 
+            {/* Reviews (issues #83 + #105 + reviews half of #116): admin-
+                curated verified parent/student testimonials. */}
+            <EditorSection
+              icon={MessageSquareQuote}
+              title="Reviews"
+              description="Verified parent/student feedback, collected off-platform and published here. Published reviews show on the public profile; tutors cannot edit them."
+              id="reviews"
+            >
+              {initialData ? (
+                <TutorReviewsAdmin tutorId={initialData.id} />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Save the tutor first, then add reviews here.
+                </p>
+              )}
+            </EditorSection>
+
             {/* Assigned account (issue #160): GitHub-style assignee. Links a
                 MatchMax account to this card — unlocks the Referrals & Rewards
                 tab AND the tutor's own profile editor in dashboard settings. */}
@@ -1741,6 +2326,22 @@ export function TutorEditor({
                 </div>
               )}
             </EditorSection>
+
+            {/* Contact details (issue #295): admin-only read-only reveal of
+                everything the tutor gave us — assigned-account email/phone
+                plus the join application's intake contact fields. Data is
+                resolved by the admin-gated get_tutor_contact_details RPC;
+                nothing here is editable or public. */}
+            {initialData ? (
+              <EditorSection
+                icon={Phone}
+                title="Contact Details"
+                description="Read-only contact info from the tutor's assigned account and join application. Never shown publicly."
+                id="contact-details"
+              >
+                <TutorContactDetails tutorId={initialData.id} tutorCode={initialData.tutor_code} />
+              </EditorSection>
+            ) : null}
 
             {/* 2. Subjects & Target Levels */}
             <EditorSection
@@ -1832,6 +2433,232 @@ export function TutorEditor({
                   onChange={(target_students) => setForm({ ...form, target_students })}
                   suggestions={TARGET_STUDENT_OPTIONS}
                   placeholder="Add target levels (e.g. IBDP, HKDSE)..."
+                />
+              </FormField>
+
+              {/* Issue #190: canonical teaching levels tick into the same
+                  target_students array — free-text curricula (IBDP, HKDSE…)
+                  are preserved alongside. */}
+              <FormField
+                label={t("verticals.editor_target_levels")}
+                hint={t("verticals.editor_target_levels_hint")}
+              >
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {TARGET_TEACHING_LEVELS.map((level) => {
+                    const active = selectedLevels.includes(level);
+                    return (
+                      <label
+                        key={level}
+                        className="flex cursor-pointer items-center gap-2 rounded-sm border border-border px-3 py-2 text-sm font-medium text-[color:var(--ink)] transition-colors hover:bg-muted/40"
+                      >
+                        <Checkbox
+                          checked={active}
+                          onCheckedChange={(checked) =>
+                            setForm({
+                              ...form,
+                              target_students: toggleTargetLevel(
+                                form.target_students,
+                                level,
+                                checked === true,
+                              ),
+                            })
+                          }
+                        />
+                        <span>{verticalLabels.levels[level]}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </FormField>
+
+              {/* Issue #190: University vertical — self-reported year, GPA,
+                  courses and course-specific grades. Owner-writable plain
+                  fields; never part of credential verification. */}
+              {hasUniversityLevel ? (
+                <div className="space-y-4 rounded-sm border border-border p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    {t("verticals.editor_university")}
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField label={t("verticals.editor_year_of_study")}>
+                      <SearchableSelect
+                        value={form.university_year_of_study}
+                        onChange={(v) => setForm({ ...form, university_year_of_study: v })}
+                        options={[
+                          { value: "", label: t("verticals.editor_none") },
+                          ...YEARS_OF_STUDY.map((year) => ({
+                            value: year,
+                            label: verticalLabels.years[year],
+                          })),
+                        ]}
+                        placeholder={t("verticals.editor_none")}
+                      />
+                    </FormField>
+                    <FormField
+                      label={t("verticals.editor_gpa")}
+                      error={errors.university_gpa}
+                      hint="0–4.3"
+                    >
+                      <Input
+                        value={form.university_gpa}
+                        inputMode="decimal"
+                        onChange={(e) => setForm({ ...form, university_gpa: e.target.value })}
+                        placeholder="e.g. 3.85"
+                      />
+                    </FormField>
+                  </div>
+                  <FormField
+                    label={t("verticals.editor_courses")}
+                    hint={t("verticals.editor_courses_hint")}
+                    error={errors.university_courses}
+                  >
+                    <TagInput
+                      value={form.university_courses}
+                      onChange={(university_courses) =>
+                        setForm({
+                          ...form,
+                          university_courses: university_courses.slice(0, MAX_UNIVERSITY_COURSES),
+                        })
+                      }
+                      suggestions={[]}
+                      maxTags={MAX_UNIVERSITY_COURSES}
+                      placeholder={t("verticals.editor_courses_placeholder")}
+                    />
+                  </FormField>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold text-[color:var(--ink)]">
+                        {t("verticals.editor_course_grades")}
+                      </Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setForm({
+                            ...form,
+                            course_grade_rows: [
+                              ...form.course_grade_rows,
+                              { course: "", grade: "" },
+                            ],
+                          })
+                        }
+                        disabled={form.course_grade_rows.length >= MAX_UNIVERSITY_COURSES}
+                        className="h-8 text-xs"
+                      >
+                        <Plus className="mr-1 h-3.5 w-3.5" />
+                        {t("verticals.editor_add_course_grade")}
+                      </Button>
+                    </div>
+                    {errors.course_grade_rows ? (
+                      <p className="text-xs font-medium text-destructive">
+                        {errors.course_grade_rows}
+                      </p>
+                    ) : null}
+                    {form.course_grade_rows.map((row, index) => (
+                      <div
+                        key={index}
+                        className="grid grid-cols-[1fr_140px_36px] items-center gap-2"
+                      >
+                        <Input
+                          value={row.course}
+                          maxLength={40}
+                          onChange={(e) => {
+                            const rows = [...form.course_grade_rows];
+                            rows[index] = { ...row, course: e.target.value };
+                            setForm({ ...form, course_grade_rows: rows });
+                          }}
+                          placeholder={t("verticals.editor_course_placeholder")}
+                        />
+                        <SearchableSelect
+                          value={row.grade}
+                          onChange={(grade) => {
+                            const rows = [...form.course_grade_rows];
+                            rows[index] = { ...row, grade };
+                            setForm({ ...form, course_grade_rows: rows });
+                          }}
+                          options={COURSE_GRADE_OPTIONS.map((grade) => ({
+                            value: grade,
+                            label: grade,
+                          }))}
+                          placeholder={t("verticals.editor_grade_placeholder")}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={t("verticals.editor_remove_course_grade")}
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              course_grade_rows: form.course_grade_rows.filter(
+                                (_, idx) => idx !== index,
+                              ),
+                            })
+                          }
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Issue #190: Kindergarten topics are canonical tags that live
+                  inside subjects[] — ticking them edits the shared subjects
+                  list, not a separate column. */}
+              {hasKindergartenLevel ? (
+                <div className="space-y-2 rounded-sm border border-border p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    {t("verticals.editor_kindergarten")}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {t("verticals.editor_kindergarten_hint")}
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {KINDERGARTEN_TOPICS.map((topic) => {
+                      const active = form.subjects.some(
+                        (subject) => subject.trim().toLowerCase() === topic.toLowerCase(),
+                      );
+                      return (
+                        <label
+                          key={topic}
+                          className="flex cursor-pointer items-center gap-2 rounded-sm border border-border px-3 py-2 text-sm font-medium text-[color:var(--ink)] transition-colors hover:bg-muted/40"
+                        >
+                          <Checkbox
+                            checked={active}
+                            onCheckedChange={(checked) =>
+                              setForm({
+                                ...form,
+                                subjects: toggleKindergartenTopic(
+                                  form.subjects,
+                                  topic,
+                                  checked === true,
+                                ),
+                              })
+                            }
+                          />
+                          <span>{verticalLabels.topics[topic]}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Issue #217/#311: up to five free-text tags shown on the
+                  public card; the cap + contact-detail rule are in
+                  ProfileTagsField, which also suggests existing tags. */}
+              <FormField
+                label="Profile Tags"
+                hint="Free-text search tags on the card (max 5, stored lowercase, no hash). Tags that look like phone numbers, emails, or handles are rejected."
+              >
+                <ProfileTagsField
+                  tags={form.profile_tags}
+                  onChange={(profile_tags) => setForm({ ...form, profile_tags })}
+                  suggestions={tagSuggestionsQuery.data}
                 />
               </FormField>
             </EditorSection>
@@ -2095,6 +2922,173 @@ export function TutorEditor({
                     />
                   </div>
                 </FormField>
+              </div>
+
+              {/* Issue #319: base rates + profile-only extras. The DB trigger
+                  recomputes the HKD card-floor snapshots on save. */}
+              <div className="space-y-4 border-t border-[color:var(--ink)]/10 pt-6">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    label="Online rate (HKD)"
+                    error={errors.online_rate}
+                    hint="Blank = not offered online"
+                  >
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                        HK$
+                      </span>
+                      <Input
+                        type="number"
+                        step={1}
+                        min={RATE_MIN}
+                        max={RATE_MAX}
+                        value={form.online_rate}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            online_rate: e.target.value === "" ? "" : Number(e.target.value),
+                          })
+                        }
+                        placeholder="e.g. 400"
+                        className="pl-10 font-semibold"
+                      />
+                    </div>
+                  </FormField>
+
+                  <FormField
+                    label="In-person rate (HKD)"
+                    error={errors.inperson_rate}
+                    hint="Blank = not offered in person"
+                  >
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                        HK$
+                      </span>
+                      <Input
+                        type="number"
+                        step={1}
+                        min={RATE_MIN}
+                        max={RATE_MAX}
+                        value={form.inperson_rate}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            inperson_rate: e.target.value === "" ? "" : Number(e.target.value),
+                          })
+                        }
+                        placeholder="e.g. 500"
+                        className="pl-10 font-semibold"
+                      />
+                    </div>
+                  </FormField>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Whole dollars, HK${RATE_MIN}–{RATE_MAX}. Legacy cards may have neither rate set —
+                  only fill what applies. The lowest entered rate becomes the card's “HK$X up”
+                  floor.
+                </p>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    label="Travel note"
+                    error={errors.travel_note}
+                    hint={`${(form.travel_note ?? "").length}/${TRAVEL_NOTE_MAX} — e.g. “No travel to Lantau”`}
+                  >
+                    <Input
+                      value={form.travel_note ?? ""}
+                      maxLength={TRAVEL_NOTE_MAX}
+                      onChange={(e) => setForm({ ...form, travel_note: e.target.value })}
+                      placeholder="e.g. Happy to travel within NT East"
+                    />
+                  </FormField>
+
+                  <FormField
+                    label="Rate note"
+                    error={errors.rate_note}
+                    hint={`${(form.rate_note ?? "").length}/${RATE_NOTE_MAX} — e.g. “+HK$100 for a second student”`}
+                  >
+                    <Input
+                      value={form.rate_note ?? ""}
+                      maxLength={RATE_NOTE_MAX}
+                      onChange={(e) => setForm({ ...form, rate_note: e.target.value })}
+                      placeholder="e.g. Small-group rate available"
+                    />
+                  </FormField>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-end justify-between gap-2">
+                    <div>
+                      <Label className="text-xs font-semibold">
+                        Extra rate rows (profile only)
+                      </Label>
+                      <p className="mt-1 max-w-md text-xs text-muted-foreground">
+                        Optional label + rate pairs shown on the profile (max {MAX_RATE_ROWS}).
+                        Half-filled rows are rejected on save.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addRateRow}
+                      disabled={form.rate_rows.length >= MAX_RATE_ROWS}
+                    >
+                      <Plus className="mr-1.5 h-3.5 w-3.5" />
+                      Add rate row ({form.rate_rows.length}/{MAX_RATE_ROWS})
+                    </Button>
+                  </div>
+                  {errors.rate_rows ? (
+                    <p className="flex items-center gap-1 text-xs font-medium text-destructive">
+                      <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                      {errors.rate_rows}
+                    </p>
+                  ) : null}
+                  {form.rate_rows.length > 0 ? (
+                    <div className="space-y-2">
+                      {form.rate_rows.map((row, index) => (
+                        <div
+                          key={index}
+                          className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_9rem_auto] sm:items-center"
+                        >
+                          <Input
+                            value={row.label}
+                            maxLength={RATE_ROW_LABEL_MAX}
+                            onChange={(e) => updateRateRow(index, { label: e.target.value })}
+                            placeholder={`Label (e.g. Small group of 3, max ${RATE_ROW_LABEL_MAX} chars)`}
+                            aria-label={`Extra rate row ${index + 1} label`}
+                            className="text-xs"
+                          />
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                              HK$
+                            </span>
+                            <Input
+                              type="number"
+                              min={RATE_MIN}
+                              max={RATE_MAX}
+                              value={row.rate}
+                              onChange={(e) => updateRateRow(index, { rate: e.target.value })}
+                              placeholder="450"
+                              aria-label={`Extra rate row ${index + 1} rate`}
+                              className="pl-10 text-xs font-semibold"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 shrink-0"
+                            aria-label={`Remove extra rate row ${index + 1}`}
+                            onClick={() => removeRateRow(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               </div>
 
               <div className="mt-6">
@@ -2478,6 +3472,73 @@ export function TutorEditor({
                     />
                   </FormField>
                 )}
+              </div>
+
+              {/* Issue #199: SEN experience & qualifications. Drives the SEN
+                  search filter and the SEN badge on the tutor card. */}
+              <div className="space-y-3 pt-2 border-t border-[color:var(--ink)]/10">
+                <label className="flex cursor-pointer items-center justify-between gap-3">
+                  <span>
+                    <Label className="text-xs font-semibold text-[color:var(--ink)]">
+                      SEN Experience & Qualifications
+                    </Label>
+                    <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                      Tutor has experience or qualifications teaching students with Special
+                      Educational Needs (SEN).
+                    </span>
+                  </span>
+                  <Checkbox
+                    checked={form.sen_enabled}
+                    onCheckedChange={(checked) =>
+                      setForm({ ...form, sen_enabled: checked === true })
+                    }
+                  />
+                </label>
+
+                {form.sen_enabled ? (
+                  <>
+                    <div className="flex flex-wrap gap-2.5">
+                      {SEN_CATEGORY_OPTIONS.map((category) => (
+                        <label
+                          key={category}
+                          className={cn(
+                            "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors",
+                            form.sen_categories.includes(category)
+                              ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
+                              : "border-border bg-background text-[color:var(--ink)] hover:bg-muted/40",
+                          )}
+                        >
+                          <Checkbox
+                            checked={form.sen_categories.includes(category)}
+                            onCheckedChange={(checked) =>
+                              setForm({
+                                ...form,
+                                sen_categories: checked
+                                  ? [...form.sen_categories, category]
+                                  : form.sen_categories.filter((item) => item !== category),
+                              })
+                            }
+                          />
+                          <span>{category}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <FormField
+                      label="SEN Experience Details"
+                      error={errors.sen_experience}
+                      hint="Certificates, coursework, years of SEN experience (shown on the profile)"
+                    >
+                      <Textarea
+                        rows={3}
+                        maxLength={2000}
+                        value={form.sen_experience}
+                        onChange={(e) => setForm({ ...form, sen_experience: e.target.value })}
+                        placeholder="e.g. PGDE with SEN specialization; 4 years supporting dyslexic students in 1:1 English lessons."
+                        className="text-xs"
+                      />
+                    </FormField>
+                  </>
+                ) : null}
               </div>
             </EditorSection>
 

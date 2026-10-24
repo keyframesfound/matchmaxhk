@@ -45,24 +45,30 @@ export type SettingsProfile = {
 };
 
 export type SettingsCategory =
+  | "home"
   | "general"
   | "profile"
   | "my-tutor"
   | "availability"
+  | "group-classes"
+  | "lessons"
+  | "materials"
   | "account"
-  | "security"
   | "notifications"
   | "referrals"
   | "privacy"
   | "danger-zone";
 
 export const SETTINGS_CATEGORIES: SettingsCategory[] = [
+  "home",
   "general",
   "profile",
   "my-tutor",
   "availability",
+  "group-classes",
+  "lessons",
+  "materials",
   "account",
-  "security",
   "notifications",
   "referrals",
   "privacy",
@@ -73,6 +79,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
 const HASH_ALIASES: Record<string, SettingsCategory> = {
   appearance: "general",
   "account-type": "account",
+  security: "account",
 };
 
 export function categoryFromHash(hash: string): SettingsCategory {

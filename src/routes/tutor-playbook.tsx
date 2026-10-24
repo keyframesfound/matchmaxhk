@@ -2,30 +2,33 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BookOpen, Briefcase, ChevronRight, UserRoundCheck } from "lucide-react";
 
+import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/tutor-playbook")({
-  head: () => ({
-    meta: [
-      { title: "Tutor Playbook: Parent Relations & Etiquette | MatchMax" },
-      {
-        name: "description",
-        content:
-          "The MatchMax Tutor Playbook — real-world scripts and protocols for tutors on parent relations, etiquette, logistics, and admin, from onboarding to locking in a weekly slot.",
-      },
-      { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Tutor Playbook: Parent Relations & Etiquette | MatchMax" },
-      {
-        property: "og:description",
-        content:
-          "Real-world scripts and protocols for MatchMax tutors: win over parents, master logistics, deliver post-lesson value, and coordinate with MatchMax Admin.",
-      },
-      { property: "og:url", content: "https://matchmax.hk/tutor-playbook" },
-    ],
-  }),
+  head: () => {
+    const locale = currentSeoLocale();
+    return {
+      meta: [
+        ...localizedMeta(locale, {
+          title: {
+            en: "Tutor Playbook: Parent Relations & Etiquette | MatchMax",
+            "zh-HK": "導師攻略：家長關係同禮儀 | MatchMax",
+          },
+          description: {
+            en: "The MatchMax Tutor Playbook — real-world scripts and protocols for tutors on parent relations, etiquette, logistics, and admin, from onboarding to locking in a weekly slot.",
+            "zh-HK":
+              "MatchMax 導師攻略——由上手到鎖定每週固定時段，實戰話術同流程指南：家長關係、禮儀、物流同行政。",
+          },
+        }),
+        { name: "robots", content: "index, follow" },
+        { property: "og:url", content: "https://matchmax.hk/tutor-playbook" },
+      ],
+    };
+  },
   component: TutorPlaybookPage,
 });
 
@@ -124,7 +127,7 @@ const SECTIONS: Section[] = [
       {
         kind: "ul",
         items: [
-          "Finish preparation and equipment checks 10 minutes before the start. Be ready online a few minutes early, or arrive at in-person locations exactly at the agreed time.",
+          "Finish preparation and equipment checks 10 minutes before the start. Be ready online a few minutes early, or arrive at in-person locations 5–7 minutes early.",
           "Always use a consistent Zoom link for each student and pin it in the chat so it's never lost.",
           "Maintain a separate Google Drive folder for each student containing notes, resources, and homework, and pin this link in the chat as well.",
         ],
@@ -528,9 +531,9 @@ function SectionBlocks({ blocks }: { blocks: Block[] }) {
 
 const EXPLORE_CARDS = [
   {
-    to: "/how-it-works",
+    to: "/guide",
     icon: BookOpen,
-    title: "How it works",
+    title: "Guide",
     subtitle: "Matching, fees, and the concierge window.",
   },
   {
@@ -593,7 +596,7 @@ function TutorPlaybookPage() {
   return (
     <PublicPage>
       <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-6 lg:hidden">
-        <PageBackButton fallbackTo="/how-it-works" />
+        <PageBackButton fallbackTo="/guide" />
       </div>
 
       <PageIntro
@@ -680,8 +683,9 @@ function TutorPlaybookPage() {
                 from day one.
               </p>
               <aside className="border-l-2 border-border pl-4 text-sm italic leading-7 text-muted-foreground">
-                Note: Classroom management and teaching techniques are covered in the separate
-                MatchMax Tutor Lesson Quality Guide. This guide focuses strictly on mastering parent
+                Note: Classroom management and teaching techniques are covered in the Tutor Handbook
+                in the Help Centre (delivery standards, client mastery, decoding students, lesson
+                blueprints, safeguarding). This guide focuses strictly on mastering parent
                 relations, etiquette, and essential admin.
               </aside>
             </div>

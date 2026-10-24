@@ -8,6 +8,7 @@ import { KeywordPanelContent, SearchPillBar, type PillSegment } from "./search-p
 import { MobileSearchOverlay, type MobileSearchTab } from "./mobile-search-overlay";
 import { setSearchSlideDirection } from "./slide-direction";
 import { MobileSearchTrigger } from "./mobile-search-trigger";
+import type { CompactSegment } from "./sticky-search-group";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
@@ -16,6 +17,9 @@ export type CasesSearchState = {
   q?: string;
   category?: string;
   district?: string;
+  /** Issue #311: active tag filter. Lives on the route, not the search
+   * bar draft — applySearch preserves it, clearSearch clears it. */
+  tag?: string;
 };
 
 type CasesSearchProps = {
@@ -38,12 +42,23 @@ const caseCategoryLabel = (value: string, t: (key: string) => string) => {
 };
 
 /** Segments for the compact nav pill — Airbnb "Anywhere | Anytime" style. */
-export function useCasesCompactSegments(draft: CasesSearchState): string[] {
+export function useCasesCompactSegments(draft: CasesSearchState): CompactSegment[] {
   const { t } = useTranslation();
   return [
-    draft.q?.trim() || t("search_ui.compact_any_keyword"),
-    draft.category ? caseCategoryLabel(draft.category, t) : t("search_ui.compact_any_curriculum"),
-    draft.district || t("search_ui.compact_anywhere"),
+    {
+      id: "keyword",
+      text: draft.q?.trim() || t("search_ui.compact_any_keyword"),
+    },
+    {
+      id: "category",
+      text: draft.category
+        ? caseCategoryLabel(draft.category, t)
+        : t("search_ui.compact_any_curriculum"),
+    },
+    {
+      id: "district",
+      text: draft.district || t("search_ui.compact_anywhere"),
+    },
   ];
 }
 

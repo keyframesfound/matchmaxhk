@@ -16,12 +16,25 @@ export type TutorPriceDisplay = {
 };
 
 /**
- * Card price model derived from the per-curriculum pricing tiers; tutors
- * without tiers fall back to the flat hourly_rate.
+ * Card price model (issue #112): prefers the HKD-normalized snapshots the DB
+ * trigger maintains from pricing_tiers / hourly_rate, so tutors quoting in
+ * any supported currency sort, filter and display consistently in HKD. Falls
+ * back to the legacy native derivation when the snapshots are missing
+ * (pre-migration rows, stale tabs).
  */
 export function getTutorPriceDisplay(
-  tutor: Pick<Tutor, "hourly_rate" | "pricing_tiers">,
+  tutor: Pick<
+    Tutor,
+    "hourly_rate" | "pricing_tiers" | "currency" | "min_hourly_rate_hkd" | "max_hourly_rate_hkd"
+  >,
 ): TutorPriceDisplay {
+  if (tutor.min_hourly_rate_hkd !== null && tutor.min_hourly_rate_hkd !== undefined) {
+    const maxHkd = tutor.max_hourly_rate_hkd;
+    return {
+      baseRate: tutor.min_hourly_rate_hkd,
+      isRange: maxHkd !== null && maxHkd !== undefined && maxHkd > tutor.min_hourly_rate_hkd,
+    };
+  }
   const rates = (tutor.pricing_tiers ?? [])
     .map((tier) => tier.rate)
     .filter((rate) => Number.isFinite(rate));
@@ -31,7 +44,12 @@ export function getTutorPriceDisplay(
 }
 
 /** Lowest base hourly rate — shared by price filters, sorting and the histogram. */
-export function getTutorBaseRate(tutor: Pick<Tutor, "hourly_rate" | "pricing_tiers">): number {
+export function getTutorBaseRate(
+  tutor: Pick<
+    Tutor,
+    "hourly_rate" | "pricing_tiers" | "currency" | "min_hourly_rate_hkd" | "max_hourly_rate_hkd"
+  >,
+): number {
   return getTutorPriceDisplay(tutor).baseRate;
 }
 
@@ -59,6 +77,20 @@ export function formatTutorCode(code?: string | null) {
   if (/^\d{4}$/.test(normalized)) return `MM-${normalized}`;
   if (/^MM-/.test(normalized)) return normalized;
   return normalized;
+}
+
+/** i18n key for a tutor_status value ("" when unset/unknown). */
+export function getTutorStatusLabelKey(tutorStatus: string | null | undefined): string | null {
+  switch ((tutorStatus ?? "").trim()) {
+    case "uni_student":
+      return "tutor_card.status_uni_student";
+    case "full_part_time_tutor":
+      return "tutor_card.status_full_part_time";
+    case "examiner":
+      return "tutor_card.status_examiner";
+    default:
+      return null;
+  }
 }
 
 export function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorCode: string) {
@@ -132,10 +164,26 @@ export function buildTutorPreBookingWhatsAppUrl(
 }
 
 export type TutorInquiryAction = {
-  kind: "request" | "pre_book" | "waitlist";
+  kind: "request" | "pre_book" | "waitlist" | "status";
   href: string;
   label: string;
 };
+
+/**
+ * Epic #280 P5: owner-controlled availability state.
+ *  - taking: accepting students with at least one open slot
+ *  - full: at the cap (remaining_student_slots = 0)
+ *  - inactive: owner paused the card (accepting_students = false)
+ */
+export type TutorAvailabilityState = "taking" | "full" | "inactive";
+
+export function getTutorAvailabilityState(
+  tutor: Pick<Tutor, "is_accepting_students" | "remaining_student_slots">,
+): TutorAvailabilityState {
+  if (tutor.is_accepting_students === false) return "inactive";
+  if (isTutorFullyBooked(tutor)) return "full";
+  return "taking";
+}
 
 /**
  * Issue #103: waitlist CTA for fully booked tutors — same WhatsApp deep link,
@@ -165,10 +213,26 @@ export function getTutorInquiryAction(
     | "earliest_start_date"
     | "is_accepting_students"
     | "remaining_student_slots"
+    | "owner_account_status"
   >,
   whatsappNumber: string | undefined,
   language: string,
 ): TutorInquiryAction {
+  // Issue #308: a suspended owner keeps their card up but loses every
+  // request/waitlist/pre-book action; the caller renders a status chip.
+  // Undefined (pre-migration data) counts as active.
+  if (tutor.owner_account_status === "suspended" || tutor.owner_account_status === "banned") {
+    return { kind: "status", href: "", label: "Requests paused" };
+  }
+  // P5 (#280): Full and Inactive hide the Request-tutor action; the caller
+  // renders a status chip instead (kind "status").
+  const availabilityState = getTutorAvailabilityState(tutor);
+  if (availabilityState === "inactive") {
+    return { kind: "status", href: "", label: "Inactive" };
+  }
+  if (availabilityState === "full") {
+    return { kind: "status", href: "", label: "Full" };
+  }
   if (isTutorFullyBooked(tutor)) {
     return {
       kind: "waitlist",
@@ -200,7 +264,14 @@ function normalizeSubjectKey(value: string) {
 }
 
 export function formatTutorGradeLabel(grade?: string | null): string | null {
-  const trimmed = grade?.trim() ?? "";
+  // Issue #206: older rows stored IGCSE letter grades as "A* (legacy)" — the
+  // "(legacy)" suffix was an intake artifact, never something to show. Strip it
+  // wherever a grade renders (also covers compare + profile pages).
+  const trimmed =
+    grade
+      ?.trim()
+      .replace(/\s*\(legacy\)\s*$/i, "")
+      .trim() ?? "";
   if (!trimmed) return null;
   if (/^band\s+/i.test(trimmed)) return trimmed;
   return /^grade\s+/i.test(trimmed) ? trimmed : `Grade ${trimmed}`;

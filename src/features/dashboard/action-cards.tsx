@@ -28,6 +28,8 @@ type CardSpec = {
   primaryPost?: boolean;
   secondaryTo?: string;
   secondaryLabelKey?: string;
+  /** data-tour anchor for the coach-mark tours (issue #397). */
+  tourId?: string;
 };
 
 /** Tutor dashboard cards (issue #147 content spec). */
@@ -40,8 +42,9 @@ const TUTOR_ACTION_CARDS: CardSpec[] = [
     descriptionKey: "dashboard.actions.tutor_verify_desc",
     primaryTo: "/tutors",
     primaryLabelKey: "dashboard.actions.tutor_verify_primary",
-    secondaryTo: "/how-it-works",
+    secondaryTo: "/guide",
     secondaryLabelKey: "dashboard.actions.tutor_verify_secondary",
+    tourId: "tutor-verification",
   },
   {
     icon: ClipboardList,
@@ -53,6 +56,7 @@ const TUTOR_ACTION_CARDS: CardSpec[] = [
     primaryLabelKey: "dashboard.actions.tutor_cases_primary",
     secondaryTo: "/tutor-requests",
     secondaryLabelKey: "dashboard.actions.tutor_cases_secondary",
+    tourId: "tutor-cases",
   },
   {
     icon: Compass,
@@ -107,7 +111,7 @@ const PARENT_ACTION_CARDS: CardSpec[] = [
     tagColor: "gray",
     headlineKey: "dashboard.actions.parent_guide_headline",
     descriptionKey: "dashboard.actions.parent_guide_desc",
-    primaryTo: "/how-it-works",
+    primaryTo: "/guide",
     primaryLabelKey: "dashboard.actions.parent_guide_primary",
     secondaryTo: "/help",
     secondaryLabelKey: "dashboard.actions.secondary_help_center",
@@ -153,6 +157,7 @@ export function SuggestedActionsSection({ isTutor }: { isTutor: boolean }) {
             primarySearch={card.primaryPost ? { post: true } : undefined}
             secondaryTo={card.secondaryTo}
             secondaryLabelKey={card.secondaryLabelKey}
+            dataTour={card.tourId}
           />
         ))}
       </SuggestedActionGrid>

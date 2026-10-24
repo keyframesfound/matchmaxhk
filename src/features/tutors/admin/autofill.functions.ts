@@ -13,6 +13,16 @@ import {
   MAX_TUTOR_CARD_HIGHLIGHTS,
   TUTOR_CARD_HIGHLIGHT_ROW_LIMIT,
 } from "@/features/tutors/queries";
+import {
+  MAX_RATE_ROWS,
+  RATE_MAX,
+  RATE_MIN,
+  RATE_NOTE_MAX,
+  RATE_ROW_LABEL_MAX,
+  TRAVEL_NOTE_MAX,
+} from "@/features/tutors/rates";
+import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
+import { nextTutorCode } from "@/lib/tutor-code";
 import { buildAnswerRows, type TutorApplication } from "@/lib/tutor-application.schema";
 import { getRuntimeEnv } from "@/lib/runtime-env";
 
@@ -92,7 +102,22 @@ const autofillResultSchema = z.object({
     .regex(/^[A-Za-z0-9-]{2,20}$/)
     .catch(""),
   gender: z.enum(["male", "female", "other"]).catch("other"),
-  academic_headline: z.string().trim().max(200).catch(""),
+  academic_headline: z.string().trim().max(MAX_ACADEMIC_HEADLINE).catch(""),
+  // Issue #319: base rates + profile-only extras, transcribed from the
+  // application's own answers (never invented by the model).
+  online_rate: z.coerce.number().int().min(RATE_MIN).max(RATE_MAX).nullable().catch(null),
+  inperson_rate: z.coerce.number().int().min(RATE_MIN).max(RATE_MAX).nullable().catch(null),
+  rate_rows: z
+    .array(
+      z.object({
+        label: z.string().trim().min(1).max(RATE_ROW_LABEL_MAX),
+        rate: z.coerce.number().int().min(RATE_MIN).max(RATE_MAX),
+      }),
+    )
+    .max(MAX_RATE_ROWS)
+    .catch([]),
+  travel_note: z.string().trim().max(TRAVEL_NOTE_MAX).catch(""),
+  rate_note: z.string().trim().max(RATE_NOTE_MAX).catch(""),
   undergrad_university: z.string().trim().max(200).catch(""),
   secondary_school: z.string().trim().max(200).catch(""),
   subjects: z.array(z.string().trim().min(1).max(80)).max(20).catch([]),
@@ -133,6 +158,9 @@ const autofillResultSchema = z.object({
   qualifications_summary: z.string().trim().min(1).max(2000).catch(""),
   // Issue #119: the tutor's own self-introduction, copied near-verbatim.
   self_introduction: z.string().trim().max(2000).catch(""),
+  // Issue #77: application "Current status" mapped to the tutors.tutor_status
+  // code the public badge uses (null when the source doesn't state one).
+  tutor_status: z.enum(["uni_student", "full_part_time_tutor", "examiner"]).nullable().catch(null),
   ia_ee_tok_support: z.array(z.enum(IA_EE_TOK_SUPPORT_OPTIONS)).max(3).catch([]),
   ia_ee_tok_notes: z.string().trim().max(1000).catch(""),
   notes: z.array(z.string().trim().min(1).max(300)).max(10).catch([]),
@@ -189,14 +217,8 @@ function buildCurriculumSubjectVocab(): string {
   ].join("\n");
 }
 
-function nextTutorCode(rows: { tutor_code?: string | null }[]): string {
-  let max = 0;
-  for (const row of rows) {
-    const match = /^MM-T(\d+)$/i.exec((row.tutor_code ?? "").trim());
-    if (match) max = Math.max(max, Number(match[1]));
-  }
-  return `MM-T${String(max + 1).padStart(3, "0")}`;
-}
+// nextTutorCode moved to @/lib/tutor-code (issue #310) so the submit-time
+// publisher shares the exact same code-allocation rule.
 
 function buildSystemPrompt(styleExamples: StyleExample[], suggestedCode: string): string {
   return `You are the profile-builder assistant for MatchMax, a Hong Kong tutoring marketplace. You convert raw tutor application information into a complete tutor profile that matches the MatchMax house style EXACTLY.
@@ -204,7 +226,7 @@ function buildSystemPrompt(styleExamples: StyleExample[], suggestedCode: string)
 Return ONLY a JSON object with these keys:
 - tutor_code (suggest "${suggestedCode}" unless the source specifies a code)
 - gender ("male" | "female" | "other")
-- academic_headline (string <= 120 chars, e.g. "IBDP 44/45", "HKDSE Best 5: 32", "Official IB Maths Examiner & School Teacher")
+- academic_headline (string <= 40 chars, e.g. "IBDP 44/45", "HKDSE Best 5: 32", "Official IB Maths Examiner & School Teacher"; when the source has an "Academic headline" answer, copy it VERBATIM)
 - undergrad_university (short name e.g. "HKU", "CUHK", "University College London"; empty if unknown)
 - secondary_school (empty if unknown)
 - subjects (array of teachable subject names, using the exam-system vocabulary below where possible, or the curriculum subject vocabulary for primary school, junior secondary, and admissions/test-prep support)
@@ -212,6 +234,11 @@ Return ONLY a JSON object with these keys:
 - exam_results (array of at most 3 objects: { system: "<system id>", subjects: [{ subject, grade, papers?: [{ label, score }] }] }). Grade formats: IB "7"-"1" (TOK/EE "A"-"E"); DSE "5**","5*","5"...; IGCSE "A* (legacy)" or "9"-"1"; A-Level "A*"-"U"; AP "5"-"1"; IELTS bands like "8.5". Only include papers when the source gives component scores (labels "Paper 1", "Paper 2", "Paper 3").
 - lesson_mode ("online" | "in_person" | "either"; "Face to face" -> in_person, "Online" -> online, "Both" -> either)
 - hourly_rate (integer HKD)
+- online_rate (integer HKD 50-3000 or null; copy the source's "Online rate" answer; null when absent or out of range)
+- inperson_rate (integer HKD 50-3000 or null; copy the source's "In-person rate" answer; null when absent or out of range)
+- rate_rows (array of at most 6 objects { label, rate } copied from the source's "Extra rate rows" answer; empty array when none)
+- travel_note (<= 80 chars; copy the source's "Travel note" answer verbatim; empty string when absent)
+- rate_note (<= 120 chars; copy the source's "Rate note" / "Anything that changes this rate?" answer verbatim; empty string when absent)
 - start_immediately (boolean; false only when the source states a concrete future earliest start date)
 - earliest_start_date (ISO "yyyy-mm-dd" from the source's earliest start date; null when starting immediately or unknown)
 - stations (array of exact MTR station names from the list below; empty if online only or unknown)
@@ -221,6 +248,7 @@ Return ONLY a JSON object with these keys:
 - qualifications_summary (markdown <= 1500 chars. House style: blocks of "**• <Award or honor title> :** <one-sentence description of what it is and why it matters>" separated by blank lines, title bold, institution names italic when natural, a relevant emoji at the end of each block. Finish with a lighter unbolded bullet about tutoring experience. NEVER invent awards, scores, scholarships, or schools that are not in the source. If the source has no awards, write a simple experience-focused summary instead.)
 - self_introduction (<= 2000 chars. Copy the source's self-introduction answer VERBATIM in the tutor's own words, preserving their paragraph breaks and language (English, Chinese, or both). Only omit any personal contact info such as phone numbers, WhatsApp, WeChat, Instagram handles or email addresses, and fix obvious typos. Empty string when the source has no self-introduction answer.)
 - ia_ee_tok_support (subset of ["IA","EE","TOK"]; only when the source clearly indicates IB coursework mentoring or examiner status)
+- tutor_status (one of "uni_student", "full_part_time_tutor", "examiner", or null; map from the source's current-status answer: university/secondary student -> "uni_student", full-time or part-time tutor -> "full_part_time_tutor", teacher/examiner -> "examiner")
 - ia_ee_tok_notes (short optional string)
 - notes (array of strings flagging anything uncertain, invented nothing: e.g. "University not mentioned - left blank", "Award X could not be verified from source")
 

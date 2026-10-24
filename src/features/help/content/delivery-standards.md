@@ -76,7 +76,7 @@ Hi! See you and [Student] online in a few hours at [Time]. Please have [Specific
 **Prepare and Organise:**
 
 - Confirm the date, time, duration, location/link, and required materials.
-- Finish preparation and equipment checks 10 minutes before the start. Be ready online a few minutes early; arrive at in-person locations exactly at the agreed time.
+- Finish preparation and equipment checks 10 minutes before the start. Be ready online a few minutes early; arrive at in-person locations 5–7 minutes early.
 - Use a consistent Zoom link for each student/group and pin it in the chat so it's never lost.
 - Maintain a separate Google Drive folder for each student containing notes, resources, homework, and the Study Plan. Pin the folder link in the chat and restrict access to authorised people.
 

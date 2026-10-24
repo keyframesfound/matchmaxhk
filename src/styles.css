@@ -91,6 +91,17 @@
   }
 }
 
+/*
+ * Disable the browser's scroll anchoring: when the sticky search band
+ * collapses or expands, Chrome compensates by nudging scrollY to keep the
+ * content below stable, and those phantom scroll deltas race the search
+ * band's scroll-direction snapper (band reopens → nudge down → re-collapses
+ * → nudge up → …  — a stuck jump loop when scrolling back up).
+ */
+html {
+  overflow-anchor: none;
+}
+
 :root {
   --radius: 1.3rem;
   --radius-control: 0.5rem;
@@ -166,7 +177,7 @@
   /* Themed app surfaces */
   --ink: #0f1419;
   --surface: #ffffff;
-  --surface-header: #fefefe; /* grouped nav + directory search band (Airbnb grey) */
+  --surface-header: #f2f3f5; /* grouped nav + directory search band (Airbnb grey) */
   --surface-subtle: #f7f9fa;
   --surface-hover: #eff3f4;
   --surface-invert: #0f1419;
@@ -631,6 +642,45 @@
       transform: translateX(0);
     }
   }
+
+  /*
+   * Horizontal rail scrollers (home tutor/notes/gigs rows, directory rows):
+   * hide the native scrollbar — the grey bar under the rails read as
+   * unpolished chrome — while keeping snap, touch momentum and wheel
+   * scrolling. Discoverability comes from the next card peeking past the
+   * rail edge, not from a scrollbar.
+   */
+  .rail-scroll {
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .rail-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /*
+   * One-time entrance for the announcement banner: a quiet 6px drop-in.
+   * Transform/opacity only, so the sticky header's layout height (and the
+   * search group's ResizeObserver measurements) never see it move.
+   */
+  @keyframes banner-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-banner-in {
+    animation: banner-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-banner-in {
+      animation: none;
+    }
+  }
 }
 
 @layer components {
@@ -682,8 +732,9 @@
  * Airbnb-style elevation — the ONLY sanctioned shadow usage in this flat,
  * border-delineated design system (explicit user exception). Scope: the
  * mobile "Start your search" trigger and quick-nav pills rendered by
- * src/components/search/mobile-search-trigger.tsx. Do not reuse these
- * classes anywhere else, and do not add new shadow rules.
+ * src/components/search/mobile-search-trigger.tsx, plus the desktop search
+ * bar family (SearchPillBar band + panel, CompactSearchPill) which shares
+ * the same elevation language per user request. Do not add new shadow rules.
  */
 .pill-elevate,
 .pill-elevate-lg,
@@ -750,4 +801,85 @@
   .pill-elevate-strong:active {
     transform: none;
   }
+}
+
+/* Issue #397 coach-mark tours: flat MatchMax skin for driver.js. The library
+   ships a box-shadow on its popover; the design system is border-delineated,
+   so the shadow is neutralized and replaced with a hairline border.
+   Every selector is html-prefixed: driver.js's own driver.css is imported
+   inside the tour components, so it loads as route-chunk CSS AFTER styles.css
+   and would win every same-specificity tie (it ships .driver-popover with
+   background #fff + box-shadow at (0,1,0)). The html prefix puts each rule at
+   (0,1,1)+ so load order can never matter. */
+html .driver-popover {
+  font-family: inherit;
+  border: 1px solid var(--border);
+  box-shadow: none;
+  border-radius: 1rem;
+  background-color: var(--surface);
+  color: var(--ink);
+  padding: 20px;
+  max-width: 320px;
+}
+html .driver-popover-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+html .driver-popover-description {
+  margin-top: 6px;
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+html .driver-popover-close-btn {
+  color: var(--muted-foreground, #6b7280);
+  border-radius: 9999px;
+}
+html .driver-popover-close-btn:hover,
+html .driver-popover-close-btn:focus-visible {
+  color: var(--ink);
+}
+/* Arrow: recolor the base at (0,1,1), then re-zero the three hidden sides at
+   (0,2,1) — otherwise the bumped base rule out-ranks driver.css's own side
+   rules and paints a full square instead of a triangle. Visible side follows
+   var(--surface) so dark theme gets a dark arrow on a dark popover. */
+html .driver-popover-arrow {
+  border: 6px solid var(--surface);
+}
+html .driver-popover-arrow-side-left {
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+}
+html .driver-popover-arrow-side-right {
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+}
+html .driver-popover-arrow-side-top {
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+html .driver-popover-arrow-side-bottom {
+  border-top-color: transparent;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+html .driver-popover-footer-btn {
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--ink);
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  transition: background-color 0.2s;
+}
+html .driver-popover-footer-btn:hover,
+html .driver-popover-footer-btn:focus {
+  background-color: var(--surface-subtle, var(--surface));
+}
+html .driver-popover-progress-text {
+  color: var(--muted-foreground, #6b7280);
 }

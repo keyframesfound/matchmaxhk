@@ -1,4 +1,5 @@
-export type CaseStatus = "new" | "contacted" | "matched" | "closed" | "rejected";
+export type CaseStatus =
+  "new" | "contacted" | "compliance_hold" | "matched" | "closed" | "rejected";
 
 export type CaseRow = {
   id: string;
@@ -21,6 +22,9 @@ export type CaseRow = {
   urgency: "low" | "normal" | "high";
   budget_min: number | null;
   budget_max: number | null;
+  budget_currency: string;
+  budget_min_hkd: number | null;
+  budget_max_hkd: number | null;
   contact_name: string;
   contact_phone: string;
   status: CaseStatus;
@@ -30,8 +34,19 @@ export type CaseRow = {
   fee_amount_cents: number | null;
   tags: string[];
   source: string;
+  // Issue #190: vertical columns (absent on rows selected before the
+  // migration, hence optional).
+  academic_tier?: string | null;
+  uni_field?: string | null;
+  uni_name?: string | null;
+  uni_program?: string | null;
+  uni_course_codes?: string | null;
+  kindergarten_focus?: string[] | null;
   last_contacted_at: string | null;
   board_published_at: string | null;
+  // Issue #412: triage answers + hold note (absent on pre-migration rows).
+  compliance_triage?: Record<string, unknown> | null;
+  compliance_note?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -45,11 +60,19 @@ export type CaseNoteRow = {
   created_at: string;
 };
 
-export const CASE_STATUSES: CaseStatus[] = ["new", "contacted", "matched", "closed", "rejected"];
+export const CASE_STATUSES: CaseStatus[] = [
+  "new",
+  "contacted",
+  "compliance_hold",
+  "matched",
+  "closed",
+  "rejected",
+];
 
 export const STATUS_LABEL: Record<CaseStatus, string> = {
   new: "New",
   contacted: "Contacted",
+  compliance_hold: "Compliance hold",
   matched: "Matched",
   closed: "Closed",
   rejected: "Rejected",
@@ -58,6 +81,7 @@ export const STATUS_LABEL: Record<CaseStatus, string> = {
 export const STATUS_PILL_CLASS: Record<CaseStatus, string> = {
   new: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
   contacted: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
+  compliance_hold: "bg-purple-500/15 text-purple-700 dark:text-purple-400",
   matched: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
   closed: "bg-muted text-muted-foreground",
   rejected: "bg-red-500/15 text-red-700 dark:text-red-400",
@@ -89,4 +113,19 @@ export function whatsappUrl(phone: string): string {
 export function formatBudget(min: number | null, max: number | null): string {
   if (min === null && max === null) return "Not set";
   return `HK$${min ?? "?"}-${max ?? "?"}/hr`;
+}
+
+/**
+ * Budget bounds as stored by the requester (native currency) vs the
+ * HKD-normalized snapshots the DB trigger maintains (issue #112). Admin
+ * surfaces show normalized values so mixed-currency cases stay comparable;
+ * the fallback covers pre-migration rows where snapshots are still null.
+ */
+export function caseBudgetHkdBounds(
+  row: Pick<CaseRow, "budget_min" | "budget_max" | "budget_min_hkd" | "budget_max_hkd">,
+): { min: number | null; max: number | null } {
+  return {
+    min: row.budget_min_hkd ?? row.budget_min,
+    max: row.budget_max_hkd ?? row.budget_max,
+  };
 }

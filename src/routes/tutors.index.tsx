@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { GraduationCap, SearchX } from "lucide-react";
+import { GraduationCap, Hash, SearchX } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
@@ -19,6 +19,10 @@ import {
   TutorsSearchMobile,
   useTutorsCompactSegments,
 } from "@/components/search/tutors-search";
+import {
+  trackTutorEvent,
+  useTutorEngagementSummaries,
+} from "@/features/tracking/engagement-client";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
@@ -27,6 +31,9 @@ import {
   getTutorBaseRate,
   getTutorInquiryAction,
 } from "@/features/tutors/tutor-display";
+import { DirectoryToggle, MaterialsDirectory } from "@/features/materials/materials-directory";
+import { ParentCoachTour } from "@/features/tours/ParentCoachTour";
+import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
 import {
   fetchPublishedTutors,
   getTutorCardHighlights,
@@ -34,59 +41,109 @@ import {
   matchesStationFilter,
   type Tutor,
 } from "@/features/tutors/queries";
+import { matchesSenFilter } from "@/features/tutors/sen";
+import { normalizeProfileTag, popularProfileTags } from "@/features/tutors/profile-tags";
 import { matchesCategoryFilter, matchesSubjectQuery } from "@/features/tutors/subjects";
 import {
-  matchesAnyHighSchoolFilter,
-  matchesAnyUniversityFilter,
+  collectEducationValueSets,
+  matchesHighSchoolFilter,
+  matchesUniversityFilter,
+  matchesMajorFilter,
   isElitePedigree,
 } from "@/features/tutors/education-filters";
+import {
+  kindergartenActiveToggles,
+  matchesFieldOfStudyFilter,
+  matchesKeywordHaystack,
+  matchesTierFilter,
+  parseTierParam,
+  parseToggleParam,
+  tierSwitchPatch,
+} from "@/features/tutors/search-tiers";
+import {
+  matchesKindergartenFilter,
+  universityCourseTexts,
+  type AcademicTier,
+} from "@/features/tutors/verticals";
 import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({
+  // Issue #190: academic-tier tab (Kindergarten | Primary & Secondary |
+  // University). Only the exact canonical strings are accepted — TanStack
+  // delivers search params JSON-decoded (?tier=university is "university").
+  tier: z.preprocess(
+    parseTierParam,
+    z.enum(["kindergarten", "primary_secondary", "university"]).optional(),
+  ),
   category: z.string().optional(),
   subject: z.string().optional(),
+  // Issue #187: extra subjects beyond the primary (comma-free, "||"-joined).
+  // AND-ed with `subject` — a tutor must teach every selected subject.
+  subjects_extra: z.string().optional(),
   station: z.string().optional(), // nearest MTR station to the student
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
   status: z.string().optional(), // uni_student | full_part_time_tutor | examiner
+  tag: z.string().optional(), // issue #217: profile-tag search (?tag=ia review)
   verified: z.preprocess(
-    (value) => (value === "1" || value === "true" || value === true ? true : undefined),
+    (value) =>
+      value === 1 || value === "1" || value === "true" || value === true ? true : undefined,
     z.boolean().optional(),
   ), // issue #142: Verified Tutors Only (tier_2_verified), default off
   university: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
   high_school: z.string().optional(), // issue #130 education filter bucket(s), comma-joined
+  major: z.string().optional(), // issue #23 exact major over the free-text degree fields
+  // Issue #190: university-tab field of study (text-contains over degrees).
+  field: z.string().optional(),
+  // Issue #190: kindergarten-tab toggles — persist as "true" strings; accept
+  // boolean true too (the JSON-decode gotcha).
+  k_phonics: z.preprocess(parseToggleParam, z.boolean().optional()),
+  k_mandarin: z.preprocess(parseToggleParam, z.boolean().optional()),
+  k_interview: z.preprocess(parseToggleParam, z.boolean().optional()),
+  // Issue #199: SEN-experienced tutors only + required categories ("||"-joined).
+  sen: z.preprocess(
+    (value) =>
+      value === 1 || value === "1" || value === "true" || value === true ? true : undefined,
+    z.boolean().optional(),
+  ),
+  sen_categories: z.string().optional(), // SEN categories, ALL must match
   min_price: z.coerce.number().int().min(0).optional(),
   max_price: z.coerce.number().int().min(0).optional(),
   sort: z.string().optional(), // "" | price_asc | price_desc
   q: z.string().optional(),
   open: z.preprocess(
-    (value) => (value === "1" || value === "true" || value === true ? true : undefined),
+    (value) =>
+      value === 1 || value === "1" || value === "true" || value === true ? true : undefined,
     z.boolean().optional(),
   ), // transient: opens the mobile search overlay when hopping tabs
+  view: z.enum(["tutors", "materials"]).optional(), // #131 directory tab
 });
 type SearchState = z.infer<typeof searchSchema>;
 
 export const Route = createFileRoute("/tutors/")({
   validateSearch: (s) => searchSchema.parse(s),
-  head: () => ({
-    meta: [
-      { title: "Find Verified Tutors in Hong Kong | MatchMax" },
-      {
-        name: "description",
-        content:
-          "Browse verified tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
-      },
-      { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Find Verified Tutors in Hong Kong | MatchMax" },
-      {
-        property: "og:description",
-        content:
-          "Browse verified tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
-      },
-      { property: "og:url", content: "https://matchmax.hk/tutors" },
-    ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/tutors" }],
-  }),
+  head: () => {
+    const locale = currentSeoLocale();
+    return {
+      meta: [
+        ...localizedMeta(locale, {
+          // English copy is main's post-#407 scrub ("elite", no Verified claims).
+          title: {
+            en: "Find Elite Tutors in Hong Kong | MatchMax",
+            "zh-HK": "搵到香港精英導師 | MatchMax",
+          },
+          description: {
+            en: "Browse elite tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
+            "zh-HK":
+              "按科目、港鐵站、上課模式同意價瀏覽香港精英導師。搵 IB、DSE、IGCSE、AP、A-Level、數學、英文等導師。",
+          },
+        }),
+        { name: "robots", content: "index, follow" },
+        { property: "og:url", content: "https://matchmax.hk/tutors" },
+      ],
+      links: [{ rel: "canonical", href: "https://matchmax.hk/tutors" }],
+    };
+  },
   component: TutorsDirectory,
 });
 
@@ -117,6 +174,10 @@ function TutorsDirectory() {
     queryFn: fetchPublishedTutors,
   });
 
+  // Education dropdown options = the distinct values that actually appear on
+  // tutor profiles (issue #130), refreshed whenever the tutor list does.
+  const educationValues = useMemo(() => collectEducationValueSets(tutors), [tutors]);
+
   const { data: whatsappNumber = "" } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
     queryFn: async () => {
@@ -134,6 +195,11 @@ function TutorsDirectory() {
   const categoryFilter = (draft.category ?? "").toLowerCase();
 
   const subjectFilter = (draft.subject ?? "").toLowerCase();
+  // Issue #187: every selected subject beyond the first must also match (AND).
+  const extraSubjectFilters = (draft.subjects_extra ?? "")
+    .split("||")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
   const stationFilter = draft.station ?? "";
   const modeFilter = draft.mode ?? "";
   const genderFilter = draft.gender ?? "";
@@ -141,14 +207,37 @@ function TutorsDirectory() {
   const verifiedOnly = search.verified === true;
   const universityFilter = draft.university ?? "";
   const highSchoolFilter = draft.high_school ?? "";
+  const majorFilter = draft.major ?? "";
   const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
+  // Issue #217: profile-tag filter (the tag chips on the cards link here).
+  const tagFilter = normalizeProfileTag(draft.tag ?? "");
+  // Issue #199: SEN capability filter — sen_enabled AND every picked category.
+  const senOnly = draft.sen === true;
+  const senCategoryFilters = (draft.sen_categories ?? "")
+    .split("||")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  // Issue #190: academic-tier tab (default Primary & Secondary) and its
+  // per-tier filter states.
+  const tier: AcademicTier = draft.tier ?? "primary_secondary";
+  const isKindergartenTier = tier === "kindergarten";
+  const isUniversityTier = tier === "university";
+  const isPrimarySecondaryTier = tier === "primary_secondary";
+  const fieldFilter = draft.field ?? "";
+  const kindergartenToggles = kindergartenActiveToggles(draft);
 
   const filtered = useMemo(() => {
     const query = (draft.q ?? "").trim().toLowerCase();
     const sort = draft.sort ?? "";
 
     const list = tutors.filter((tut) => {
+      // Issue #190: every tutor is gated to the active academic-tier tab
+      // (legacy tutors with no tier data sit in the default tab).
+      if (!matchesTierFilter(tier, tut.target_students)) return false;
+      // Curriculum/subject filters only exist on the Primary & Secondary tab;
+      // the vertical tabs replace those dropdowns with their own states.
       if (
+        isPrimarySecondaryTier &&
         categoryFilter &&
         !matchesCategoryFilter(categoryFilter, tut.subjects, [
           ...tut.target_students,
@@ -156,7 +245,20 @@ function TutorsDirectory() {
         ])
       )
         return false;
-      if (subjectFilter && !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter)))
+      if (
+        isPrimarySecondaryTier &&
+        subjectFilter &&
+        !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter))
+      )
+        return false;
+      // Issue #187: AND semantics — a tutor must teach every extra subject too.
+      if (
+        isPrimarySecondaryTier &&
+        extraSubjectFilters.length > 0 &&
+        !extraSubjectFilters.every((extra) =>
+          tut.subjects.some((s) => matchesSubjectQuery(s, extra)),
+        )
+      )
         return false;
       if (draft.min_price !== undefined && getTutorBaseRate(tut) < draft.min_price) return false;
       if (draft.max_price !== undefined && getTutorBaseRate(tut) > draft.max_price) return false;
@@ -167,20 +269,49 @@ function TutorsDirectory() {
         if (g !== genderFilter) return false;
       }
       if (statusFilter && (tut.tutor_status ?? "") !== statusFilter) return false;
+      // Issue #217: exact match on one of the tutor's profile tags.
+      if (tagFilter && !(tut.profile_tags ?? []).includes(tagFilter)) return false;
       // Issue #142: Verified Tutors Only — hide everything below tier_2_verified.
       if (verifiedOnly && tut.verification_tier !== "tier_2_verified") return false;
-      // Issue #130: institutional-pedigree filters over free-text education fields.
+      // Issue #199: SEN support — enabled tutors only, and every picked
+      // category must be on the tutor's profile (match-all).
+      if (senOnly && !matchesSenFilter(senCategoryFilters, tut)) return false;
+      // Issue #130: institutional-pedigree filters over free-text education
+      // fields. The kindergarten tab replaces the education dropdowns, so the
+      // pedigree filters don't apply there.
       if (
-        !matchesAnyUniversityFilter(universityFilter, {
+        !isKindergartenTier &&
+        !matchesUniversityFilter(universityFilter, {
           undergradUniversity: tut.undergrad_university,
           postgradUniversity: tut.postgrad_university,
-          secondarySchool: tut.secondary_school,
         })
       )
         return false;
       if (
-        !matchesAnyHighSchoolFilter(highSchoolFilter, {
-          secondarySchool: tut.secondary_school,
+        !isKindergartenTier &&
+        !matchesHighSchoolFilter(highSchoolFilter, { secondarySchool: tut.secondary_school })
+      )
+        return false;
+      // Issue #23: exact major over the free-text degree fields.
+      if (
+        !isKindergartenTier &&
+        !matchesMajorFilter(majorFilter, {
+          undergradDegree: tut.undergrad_degree,
+          postgradDegree: tut.postgrad_degree,
+        })
+      )
+        return false;
+      // Issue #190: kindergarten tab — the three topic toggles (AND via
+      // matchesKindergartenFilter).
+      if (isKindergartenTier && !matchesKindergartenFilter(tut.subjects, kindergartenToggles))
+        return false;
+      // Issue #190: university tab — field of study, text-contains over the
+      // degree fields.
+      if (
+        isUniversityTier &&
+        !matchesFieldOfStudyFilter(fieldFilter, {
+          undergradDegree: tut.undergrad_degree,
+          postgradDegree: tut.postgrad_degree,
         })
       )
         return false;
@@ -188,8 +319,20 @@ function TutorsDirectory() {
         query &&
         !(
           tut.tutor_code.toLowerCase().includes(query) ||
-          tut.subjects.some((s) => matchesSubjectQuery(s, query)) ||
-          getTutorCardHighlights(tut).some((highlight) => highlight.toLowerCase().includes(query))
+          // Issue #190: on the university tab the haystack also indexes the
+          // tutor's course tags (universityCourseTexts) so "ECON1210" finds
+          // course-tagged tutors.
+          matchesKeywordHaystack(
+            query,
+            tut.subjects,
+            isUniversityTier ? universityCourseTexts(tut) : [],
+          ) ||
+          getTutorCardHighlights(tut).some((highlight) =>
+            highlight.toLowerCase().includes(query),
+          ) ||
+          // Issue #217: free-text search also matches a profile tag, so
+          // searching "IA review" returns tutors who saved that tag.
+          (tut.profile_tags ?? []).some((tag) => tag.includes(query))
         )
       )
         return false;
@@ -213,15 +356,26 @@ function TutorsDirectory() {
     });
   }, [
     tutors,
+    tier,
+    isKindergartenTier,
+    isUniversityTier,
+    isPrimarySecondaryTier,
     categoryFilter,
     subjectFilter,
+    extraSubjectFilters,
     effectiveStationFilter,
     modeFilter,
     genderFilter,
     statusFilter,
     verifiedOnly,
+    senOnly,
+    senCategoryFilters,
     universityFilter,
     highSchoolFilter,
+    majorFilter,
+    fieldFilter,
+    kindergartenToggles,
+    tagFilter,
     draft.q,
     draft.min_price,
     draft.max_price,
@@ -231,7 +385,8 @@ function TutorsDirectory() {
   // Issue #130: when the pedigree filters alone zero out the results, show a
   // friendly empty state plus a fallback list of elite-pedigree tutors instead
   // of the generic "no matches" block.
-  const educationFiltered = universityFilter !== "" || highSchoolFilter !== "";
+  const educationFiltered =
+    universityFilter !== "" || highSchoolFilter !== "" || majorFilter !== "";
   const fallbackTutors = useMemo(() => {
     if (!educationFiltered || filtered.length > 0) return [];
     return tutors
@@ -245,6 +400,15 @@ function TutorsDirectory() {
       .slice(0, 6);
   }, [educationFiltered, filtered.length, tutors]);
 
+  // Issue #102: batched engagement summaries for every rendered card (main
+  // grid + pedigree fallback) — one RPC call; the card renders demand /
+  // parent-favorite badges only above the #102/#151 thresholds.
+  const engagementTutorIds = useMemo(
+    () => [...filtered.map((tut) => tut.id), ...fallbackTutors.map((tut) => tut.id)],
+    [filtered, fallbackTutors],
+  );
+  const { data: engagementSummaries } = useTutorEngagementSummaries(engagementTutorIds);
+
   const { compareIds, compareTutors, toggleCompare, compareOpen, setCompareOpen, clearCompare } =
     useTutorCompare(tutors);
 
@@ -253,11 +417,39 @@ function TutorsDirectory() {
     navigate({ search: {} as SearchState });
   };
 
+  // Issue #190: switching tier resets the vertical-specific filters (each tab
+  // renders its own) and navigates immediately; q/subject and the generic
+  // filters survive.
+  const setTier = (next: AcademicTier) => {
+    if (next === tier) return;
+    const patch = tierSwitchPatch(next);
+    setDraftParam(patch);
+    applySearch(patch);
+  };
+
   const openTutorDetail = (tutorCode: string) => {
     navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
   };
 
+  // Issue #190: per-tier empty-state copy for the generic SearchX block.
+  const tierEmptyTitleKey =
+    tier === "kindergarten"
+      ? "directory.empty_kindergarten_title"
+      : tier === "university"
+        ? "directory.empty_university_title"
+        : "directory.empty_primary_secondary_title";
+  const tierEmptyDescKey =
+    tier === "kindergarten"
+      ? "directory.empty_kindergarten_desc"
+      : tier === "university"
+        ? "directory.empty_university_desc"
+        : "directory.empty_primary_secondary_desc";
+
   const hotlineUrl = buildTutorWhatsAppUrl(whatsappNumber, "");
+
+  // Issue #217: tags used by 3+ tutors become search suggestions under the
+  // result count; clicking a card tag filters by that tag.
+  const popularTags = useMemo(() => popularProfileTags(tutors), [tutors]);
 
   const applySearch = (override?: Partial<SearchState>) => {
     const next = { ...draft, ...override };
@@ -271,8 +463,16 @@ function TutorsDirectory() {
 
   const compactSegments = useTutorsCompactSegments(draft);
 
+  // #131: Tutors | Study Materials directory tab.
+  const directoryView = search.view === "materials" ? "materials" : "tutors";
+  const setDirectoryView = (next: "tutors" | "materials") => {
+    navigate({ search: next === "materials" ? { view: "materials" } : {} });
+  };
+
   return (
     <SearchGroupProvider>
+      {/* Issue #397: once-only parent/student coach-mark tour. */}
+      <ParentCoachTour ready={!isLoading && directoryView === "tutors" && filtered.length > 0} />
       <div className="flex min-h-screen flex-col bg-background">
         <SiteHeader
           merged
@@ -281,190 +481,287 @@ function TutorsDirectory() {
         <main className="flex-1">
           <section className="border-b border-border bg-[color:var(--surface-header)] pt-10 pb-6 sm:pt-12 sm:pb-8 lg:border-b-0">
             <div className="mx-auto max-w-7xl px-4 sm:px-6">
-              <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
-                Find verified tutors
-              </h1>
-              <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                Start with a subject or tutor code, then narrow the list to the right fit.
-              </p>
-              <TutorsSearchMobile
-                className="mt-7"
-                draft={draft}
-                onDraftChange={setDraftParam}
-                onApply={applySearch}
-                onClear={clearAll}
-                allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
-                defaultOverlayOpen={search.open === true}
-                whatsappUrl={hotlineUrl || undefined}
-              />
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
+                    {directoryView === "materials"
+                      ? t("materials.directory_title")
+                      : "Find elite tutors"}
+                  </h1>
+                  <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                    {directoryView === "materials"
+                      ? t("materials.directory_subtitle")
+                      : "Start with a subject or tutor code, then narrow the list to the right fit."}
+                  </p>
+                </div>
+                <div data-tour="parent-shop" className="pt-2">
+                  <DirectoryToggle active={directoryView} onChange={setDirectoryView} />
+                </div>
+              </div>
+              {directoryView === "tutors" ? (
+                <div data-tour="parent-search">
+                  <TutorsSearchMobile
+                    className="mt-7"
+                    draft={draft}
+                    onDraftChange={setDraftParam}
+                    onApply={applySearch}
+                    onClear={clearAll}
+                    tier={tier}
+                    onTierChange={setTier}
+                    allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
+                    educationValues={educationValues}
+                    defaultOverlayOpen={search.open === true}
+                    whatsappUrl={hotlineUrl || undefined}
+                  />
+                </div>
+              ) : null}
             </div>
           </section>
-          <StickySearchBar>
-            <div className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
-              <TutorsSearchBar
-                draft={draft}
-                onDraftChange={setDraftParam}
-                onApply={applySearch}
-                onClear={clearAll}
-                resultCount={filtered.length}
-                allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
-                whatsappUrl={hotlineUrl || undefined}
-              />
-            </div>
-          </StickySearchBar>
-          <section className="pt-6 pb-12 sm:pt-8">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6">
-              <div className="mb-6 flex items-baseline justify-between">
-                {isLoading ? (
-                  <Skeleton className="h-4 w-28" />
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-bold text-foreground">{filtered.length}</span>{" "}
-                    {filtered.length === 1 ? "tutor" : "tutors"} found
-                  </p>
+          {directoryView === "tutors" ? (
+            <StickySearchBar>
+              <div data-tour="parent-search" className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
+                <TutorsSearchBar
+                  draft={draft}
+                  onDraftChange={setDraftParam}
+                  onApply={applySearch}
+                  onClear={clearAll}
+                  tier={tier}
+                  onTierChange={setTier}
+                  resultCount={filtered.length}
+                  allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
+                  educationValues={educationValues}
+                  whatsappUrl={hotlineUrl || undefined}
+                />
+              </div>
+            </StickySearchBar>
+          ) : null}
+          {directoryView === "materials" ? (
+            <MaterialsDirectory whatsappNumber={whatsappNumber || undefined} />
+          ) : (
+            <section className="pt-6 pb-12 sm:pt-8">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6">
+                <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-28" />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-bold text-foreground">{filtered.length}</span>{" "}
+                      {filtered.length === 1 ? "tutor" : "tutors"} found
+                    </p>
+                  )}
+                  {/* Issue #217: popular-tag suggestions (3+ tutors) and the
+                    active-tag chip with a one-click clear. */}
+                  {tagFilter ? (
+                    <button
+                      type="button"
+                      onClick={() => setDraftParam({ tag: "" })}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                    >
+                      <Hash className="h-3 w-3" aria-hidden="true" />
+                      {tagFilter}
+                      <span aria-hidden="true" className="text-[color:var(--ink)]/50">
+                        ×
+                      </span>
+                    </button>
+                  ) : null}
+                  {popularTags.length > 0 ? (
+                    <div className="ml-auto flex flex-wrap items-center gap-1.5">
+                      <span className="text-xs text-muted-foreground">
+                        {t("directory.popular_tags")}
+                      </span>
+                      {popularTags.map((item) => (
+                        <button
+                          key={item.tag}
+                          type="button"
+                          onClick={() => {
+                            setDraftParam({ tag: item.tag });
+                            applySearch({ tag: item.tag });
+                          }}
+                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                        >
+                          <Hash className="h-3 w-3" aria-hidden="true" />
+                          {item.tag}
+                          <span aria-hidden="true">·</span>
+                          <span>{item.count}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+
+                {isLoading && (
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <Skeleton key={i} className="h-[23rem] rounded-[10px] border border-border" />
+                    ))}
+                  </div>
+                )}
+
+                {!isLoading && filtered.length === 0 && educationFiltered && (
+                  <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
+                      <GraduationCap
+                        className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                      {t("directory.empty_edu_title")}
+                    </h2>
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                      {t("directory.empty_edu_desc")}
+                    </p>
+                    <div className="mt-6 flex flex-wrap justify-center gap-3">
+                      <Button variant="outline" onClick={clearAll}>
+                        {t("directory.empty_edu_clear")}
+                      </Button>
+                    </div>
+                    {fallbackTutors.length > 0 && (
+                      <div className="mt-8 text-left">
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                          {fallbackTutors.map((tut: Tutor) => {
+                            const inquiry = getTutorInquiryAction(
+                              tut,
+                              whatsappNumber,
+                              i18n.language,
+                            );
+                            return (
+                              <PublicTutorCard
+                                key={tut.id}
+                                tutor={tut}
+                                engagement={engagementSummaries?.get(tut.id) ?? null}
+                                priceSuffix={t("featured.per_hour")}
+                                onOpen={openTutorDetail}
+                                footerAction={
+                                  <>
+                                    <TutorSaveButton tutorId={tut.id} compact />
+                                    {inquiry.kind === "status" ? (
+                                      <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
+                                        {inquiry.label}
+                                      </span>
+                                    ) : (
+                                      <Button
+                                        asChild
+                                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                                      >
+                                        <a
+                                          href={inquiry.href}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          onClick={(event) => event.stopPropagation()}
+                                          onClickCapture={() => {
+                                            // Issue #102: fire-and-forget; never
+                                            // blocks or alters the CTA itself.
+                                            void trackTutorEvent(tut.id, "inquiry_click");
+                                          }}
+                                        >
+                                          {inquiry.label}
+                                        </a>
+                                      </Button>
+                                    )}
+                                  </>
+                                }
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!isLoading && filtered.length === 0 && !educationFiltered && (
+                  <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
+                      <SearchX
+                        className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                      {t(tierEmptyTitleKey)}
+                    </h2>
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                      {t(tierEmptyDescKey)}
+                    </p>
+                    <div className="mt-6 flex flex-wrap justify-center gap-3">
+                      <Button variant="outline" onClick={clearAll}>
+                        {t("directory.empty_clear")}
+                      </Button>
+                      {hotlineUrl ? (
+                        <Button asChild variant="ghost">
+                          <a href={hotlineUrl} target="_blank" rel="noreferrer">
+                            <WhatsAppIcon
+                              className="mr-2 h-4 w-4 text-[color:var(--muted-foreground)]"
+                              aria-hidden="true"
+                            />
+                            {t("directory.empty_whatsapp")}
+                          </a>
+                        </Button>
+                      ) : null}
+                      <Button asChild variant="solid" color="blue" className="font-bold">
+                        <Link to="/tutor-requests" search={{ post: true }}>
+                          {t("directory.empty_case")}
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {!isLoading && filtered.length > 0 && (
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {filtered.map((tut: Tutor, index: number) => {
+                      const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
+                      return (
+                        <PublicTutorCard
+                          key={tut.id}
+                          tutor={tut}
+                          engagement={engagementSummaries?.get(tut.id) ?? null}
+                          priceSuffix={t("featured.per_hour")}
+                          onOpen={openTutorDetail}
+                          onCompareToggle={() => toggleCompare(tut)}
+                          compareSelected={compareIds.includes(tut.id)}
+                          tagQuery={(tag) => {
+                            setDraftParam({ tag });
+                            applySearch({ tag });
+                          }}
+                          // Issue #397: the parent tour spotlights the first card.
+                          tourId={index === 0 ? "parent-card" : undefined}
+                          footerAction={
+                            <>
+                              <TutorSaveButton
+                                tutorId={tut.id}
+                                compact
+                                dataTour={index === 0 ? "parent-save" : undefined}
+                              />
+                              <Button
+                                asChild
+                                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                              >
+                                <a
+                                  href={inquiry.href}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(event) => event.stopPropagation()}
+                                  onClickCapture={() => {
+                                    // Issue #102: fire-and-forget; never blocks
+                                    // or alters the CTA itself.
+                                    void trackTutorEvent(tut.id, "inquiry_click");
+                                  }}
+                                >
+                                  {inquiry.label}
+                                </a>
+                              </Button>
+                            </>
+                          }
+                        />
+                      );
+                    })}
+                  </div>
                 )}
               </div>
-
-              {isLoading && (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <Skeleton key={i} className="h-[23rem] rounded-[10px] border border-border" />
-                  ))}
-                </div>
-              )}
-
-              {!isLoading && filtered.length === 0 && educationFiltered && (
-                <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
-                    <GraduationCap
-                      className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
-                    {t("directory.empty_edu_title")}
-                  </h2>
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                    {t("directory.empty_edu_desc")}
-                  </p>
-                  <div className="mt-6 flex flex-wrap justify-center gap-3">
-                    <Button variant="outline" onClick={clearAll}>
-                      {t("directory.empty_edu_clear")}
-                    </Button>
-                  </div>
-                  {fallbackTutors.length > 0 && (
-                    <div className="mt-8 text-left">
-                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {fallbackTutors.map((tut: Tutor) => {
-                          const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
-                          return (
-                            <PublicTutorCard
-                              key={tut.id}
-                              tutor={tut}
-                              priceSuffix={t("featured.per_hour")}
-                              onOpen={openTutorDetail}
-                              footerAction={
-                                <>
-                                  <TutorSaveButton tutorId={tut.id} compact />
-                                  <Button
-                                    asChild
-                                    className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                                  >
-                                    <a
-                                      href={inquiry.href}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      onClick={(event) => event.stopPropagation()}
-                                    >
-                                      {inquiry.label}
-                                    </a>
-                                  </Button>
-                                </>
-                              }
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!isLoading && filtered.length === 0 && !educationFiltered && (
-                <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
-                    <SearchX
-                      className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
-                    {t("directory.empty_title")}
-                  </h2>
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                    {t("directory.empty_desc")}
-                  </p>
-                  <div className="mt-6 flex flex-wrap justify-center gap-3">
-                    <Button variant="outline" onClick={clearAll}>
-                      {t("directory.empty_clear")}
-                    </Button>
-                    {hotlineUrl ? (
-                      <Button asChild variant="ghost">
-                        <a href={hotlineUrl} target="_blank" rel="noreferrer">
-                          <WhatsAppIcon
-                            className="mr-2 h-4 w-4 text-[color:var(--muted-foreground)]"
-                            aria-hidden="true"
-                          />
-                          {t("directory.empty_whatsapp")}
-                        </a>
-                      </Button>
-                    ) : null}
-                    <Button asChild variant="solid" color="blue" className="font-bold">
-                      <Link to="/tutor-requests" search={{ post: true }}>
-                        {t("directory.empty_case")}
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {!isLoading && filtered.length > 0 && (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filtered.map((tut: Tutor) => {
-                    const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
-                    return (
-                      <PublicTutorCard
-                        key={tut.id}
-                        tutor={tut}
-                        priceSuffix={t("featured.per_hour")}
-                        onOpen={openTutorDetail}
-                        onCompareToggle={() => toggleCompare(tut)}
-                        compareSelected={compareIds.includes(tut.id)}
-                        footerAction={
-                          <>
-                            <TutorSaveButton tutorId={tut.id} compact />
-                            <Button
-                              asChild
-                              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                            >
-                              <a
-                                href={inquiry.href}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={(event) => event.stopPropagation()}
-                              >
-                                {inquiry.label}
-                              </a>
-                            </Button>
-                          </>
-                        }
-                      />
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </section>
+            </section>
+          )}
         </main>
         <SiteFooter />
         {compareTutors.length > 0 && !compareOpen ? (

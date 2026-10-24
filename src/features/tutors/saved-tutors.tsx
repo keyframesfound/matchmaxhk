@@ -97,9 +97,12 @@ async function setSavedTutor({
 export function TutorSaveButton({
   tutorId,
   compact = false,
+  dataTour,
 }: {
   tutorId: string;
   compact?: boolean;
+  /** data-tour anchor for the coach-mark tours (issue #397). */
+  dataTour?: string;
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -159,6 +162,7 @@ export function TutorSaveButton({
           type="button"
           variant="ghost"
           size="icon"
+          data-tour={dataTour}
           aria-label={saved ? "Remove tutor from saved posts" : "Save tutor"}
           title={saved ? "Remove from saved posts" : "Save tutor"}
           disabled={mutation.isPending}

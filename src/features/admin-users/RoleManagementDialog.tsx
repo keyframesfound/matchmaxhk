@@ -89,9 +89,7 @@ export function RoleManagementDialog({
               <div
                 key={def.role}
                 className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border p-3.5 transition-all ${
-                  hasRole
-                    ? "border-border/80 bg-card"
-                    : "border-border/40 bg-muted/20 opacity-85"
+                  hasRole ? "border-border/80 bg-card" : "border-border/40 bg-muted/20 opacity-85"
                 }`}
               >
                 <div className="space-y-1">

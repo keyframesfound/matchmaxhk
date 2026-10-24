@@ -1,20 +1,18 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
-  Check,
   Download,
   FileText,
   Image as ImageIcon,
-  RotateCcw,
   Search,
   ShieldCheck,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ConsolePanel } from "@/components/ui/console-panel";
 import {
   ConsoleTable,
@@ -25,18 +23,7 @@ import {
   ConsoleTd,
   ConsoleTh,
 } from "@/components/ui/console-table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import {
   fetchTutorApplications,
   formatDate,
@@ -123,14 +110,23 @@ function ApplicationNotFound({ onBack }: { onBack: () => void }) {
   );
 }
 
+// Issue #310: join-requests is now a READ-ONLY archive. Cards go live at
+// submit (submitTutorApplication → publishTutorCardFromApplication), so the
+// Accept/Reject queue is gone — staff manage the published cards from
+// /admin/tutors (unpublish / suspend / ban).
+type ArchiveTab = "all" | "linked";
+
+const TAB_LABELS: Record<ArchiveTab, string> = {
+  all: "All",
+  linked: "Live-linked",
+};
+
 function AdminJoinRequests() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const search = Route.useSearch();
-  const [tab, setTab] = useState<TutorApplicationStatus>("pending");
+  const [tab, setTab] = useState<ArchiveTab>("all");
   const [searchText, setSearchText] = useState("");
   const [detailId, setDetailId] = useState<string | null>(search.application ?? null);
-  const [rejecting, setRejecting] = useState<TutorApplicationRecord | null>(null);
 
   const {
     data: applications = [],
@@ -146,40 +142,6 @@ function AdminJoinRequests() {
     if (search.application) setDetailId(search.application);
   }, [search.application]);
 
-  const updateStatus = useMutation({
-    mutationFn: async ({
-      id,
-      status,
-      rejectedAt,
-      purgeAfter,
-    }: {
-      id: string;
-      status: TutorApplicationStatus;
-      rejectedAt?: string | null;
-      purgeAfter?: string | null;
-    }) => {
-      const { data, error } = await supabase
-        .from("tutor_applications")
-        .update({
-          status,
-          rejected_at: rejectedAt ?? null,
-          purge_after: purgeAfter ?? null,
-        } as never)
-        .eq("id", id)
-        .select("id");
-      if (error) throw error;
-      if (!data || data.length === 0) {
-        throw new Error(
-          "No changes were saved — your session may not have admin access to this application.",
-        );
-      }
-    },
-    onError: (e: Error) => toast.error(e.message),
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ["admin", "join-requests"] });
-    },
-  });
-
   const clearDetailParam = () => {
     navigate({ to: "/admin/join-requests", search: { application: undefined } });
   };
@@ -191,9 +153,8 @@ function AdminJoinRequests() {
 
   const counts = useMemo(
     () => ({
-      pending: applications.filter((a) => a.status === "pending").length,
-      rejected: applications.filter((a) => a.status === "rejected").length,
-      accepted: applications.filter((a) => a.status === "accepted").length,
+      all: applications.length,
+      linked: applications.filter((a) => a.linked_tutor_id).length,
     }),
     [applications],
   );
@@ -201,68 +162,18 @@ function AdminJoinRequests() {
   const filtered = useMemo(() => {
     const q = searchText.trim().toLowerCase();
     return applications.filter((row) => {
-      if (row.status !== tab) return false;
+      if (tab === "linked" && !row.linked_tutor_id) return false;
       if (!q) return true;
       return (
         row.data.name?.toLowerCase().includes(q) ||
         row.data.email?.toLowerCase().includes(q) ||
-        row.id.toLowerCase().includes(q)
+        row.id.toLowerCase().includes(q) ||
+        (row.linked_tutor_code ?? "").toLowerCase().includes(q)
       );
     });
   }, [applications, tab, searchText]);
 
   const detailApplication = applications.find((row) => row.id === detailId) ?? null;
-
-  const acceptApplication = (row: TutorApplicationRecord) => {
-    if (row.status !== "pending") {
-      updateStatus.mutate(
-        { id: row.id, status: "pending", rejectedAt: null, purgeAfter: null },
-        {
-          onSuccess: () =>
-            toast.success("Application moved back to pending", {
-              description:
-                "You can accept or reject it again. Any tutor card already created from it is unaffected.",
-            }),
-        },
-      );
-      return;
-    }
-    updateStatus.mutate(
-      { id: row.id, status: "accepted" },
-      {
-        onSuccess: () => {
-          toast.success("Application accepted", {
-            description: "Create the tutor card from the Tutors page.",
-          });
-          navigate({
-            to: "/admin/tutors",
-            search: { create: true, applicationId: row.id },
-          });
-        },
-      },
-    );
-  };
-
-  const rejectApplication = (row: TutorApplicationRecord) => {
-    const now = new Date();
-    const purgeAfter = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-    updateStatus.mutate(
-      {
-        id: row.id,
-        status: "rejected",
-        rejectedAt: now.toISOString(),
-        purgeAfter: purgeAfter.toISOString(),
-      },
-      {
-        onSuccess: () => {
-          toast.success("Application rejected", {
-            description: "Data is kept for 30 days, then auto-deleted.",
-          });
-          setRejecting(null);
-        },
-      },
-    );
-  };
 
   if (detailApplication) {
     return (
@@ -273,16 +184,6 @@ function AdminJoinRequests() {
             setDetailId(null);
             clearDetailParam();
           }}
-          isMutating={updateStatus.isPending}
-          onAccept={() => acceptApplication(detailApplication)}
-          onReject={() => setRejecting(detailApplication)}
-        />
-        <RejectDialog
-          open={Boolean(rejecting)}
-          application={rejecting}
-          isPending={updateStatus.isPending}
-          onConfirm={() => rejecting && rejectApplication(rejecting)}
-          onCancel={() => setRejecting(null)}
         />
       </div>
     );
@@ -304,19 +205,12 @@ function AdminJoinRequests() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[color:var(--ink)]/10">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
-              Tutor Join Requests
-            </h1>
-            {counts.pending > 0 ? (
-              <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400">
-                {counts.pending} pending
-              </span>
-            ) : null}
-          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
+            Tutor Join Requests
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Review join form submissions. Rejected applications stay recoverable for 30 days before
-            automatic deletion.
+            Read-only archive of join form submissions — every card went live at submit. Manage the
+            published cards (unpublish / suspend / ban) from the Tutors page.
           </p>
         </div>
       </div>
@@ -324,7 +218,7 @@ function AdminJoinRequests() {
       {/* Tabs + Search */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-1 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)]/60 p-1">
-          {(["pending", "rejected", "accepted"] as const).map((value) => (
+          {(["all", "linked"] as const).map((value) => (
             <button
               key={value}
               type="button"
@@ -336,7 +230,7 @@ function AdminJoinRequests() {
                   : "text-muted-foreground hover:text-[color:var(--ink)]",
               )}
             >
-              {STATUS_LABELS[value]}
+              {TAB_LABELS[value]}
               {counts[value] > 0 ? (
                 <span className="ml-1.5 tabular-nums opacity-70">{counts[value]}</span>
               ) : null}
@@ -346,7 +240,7 @@ function AdminJoinRequests() {
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name, email, or reference..."
+            placeholder="Search by name, email, reference, or tutor code..."
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             className="pl-9 h-10 bg-[color:var(--surface)] border-[color:var(--ink)]/15"
@@ -361,16 +255,17 @@ function AdminJoinRequests() {
             <ConsoleTh>Path</ConsoleTh>
             <ConsoleTh>Overall Score</ConsoleTh>
             <ConsoleTh>Rate</ConsoleTh>
+            <ConsoleTh>Live Card</ConsoleTh>
             <ConsoleTh>Submitted</ConsoleTh>
             <ConsoleTh align="right">Actions</ConsoleTh>
           </tr>
         </ConsoleTableHead>
         <ConsoleTableBody>
-          {isLoading && <ConsoleTableSkeletonRows columns={6} />}
+          {isLoading && <ConsoleTableSkeletonRows columns={7} />}
 
           {isError && (
             <ConsoleTableEmpty
-              colSpan={6}
+              colSpan={7}
               icon={X}
               title="Could not load applications"
               description={(error as Error)?.message || "Please try again."}
@@ -379,15 +274,15 @@ function AdminJoinRequests() {
 
           {!isLoading && !isError && filtered.length === 0 && (
             <ConsoleTableEmpty
-              colSpan={6}
+              colSpan={7}
               icon={ShieldCheck}
               title={searchText ? "No matching applications" : "You're all caught up"}
               description={
                 searchText
                   ? "Try adjusting your search."
-                  : tab === "pending"
-                    ? "New tutor join requests will appear here."
-                    : `No ${STATUS_LABELS[tab].toLowerCase()} applications right now.`
+                  : tab === "linked"
+                    ? "No applications have a linked live card yet."
+                    : "New tutor join requests will appear here."
               }
             />
           )}
@@ -412,6 +307,21 @@ function AdminJoinRequests() {
                 HK${row.data.hourlyRate}
                 <span className="text-xs text-muted-foreground font-normal">/hr</span>
               </ConsoleTd>
+              <ConsoleTd>
+                {row.linked_tutor_code ? (
+                  <Link
+                    to="/tutors/$tutorCode"
+                    params={{ tutorCode: row.linked_tutor_code }}
+                    target="_blank"
+                    className="text-xs font-bold text-[color:var(--ink)] underline decoration-[color:var(--ink)]/30 underline-offset-2 hover:decoration-[color:var(--ink)]"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {row.linked_tutor_code}
+                  </Link>
+                ) : (
+                  <span className="text-xs text-muted-foreground">—</span>
+                )}
+              </ConsoleTd>
               <ConsoleTd className="text-xs text-muted-foreground">
                 {formatDate(row.created_at)}
               </ConsoleTd>
@@ -425,21 +335,13 @@ function AdminJoinRequests() {
                     openDetail(row.id);
                   }}
                 >
-                  Review
+                  View
                 </Button>
               </ConsoleTd>
             </tr>
           ))}
         </ConsoleTableBody>
       </ConsoleTable>
-
-      <RejectDialog
-        open={Boolean(rejecting)}
-        application={rejecting}
-        isPending={updateStatus.isPending}
-        onConfirm={() => rejecting && rejectApplication(rejecting)}
-        onCancel={() => setRejecting(null)}
-      />
     </div>
   );
 }
@@ -465,6 +367,7 @@ const SECTION_LABELS = {
     "High school and graduation year",
     "Primary curriculum",
     "Curricula completed",
+    "Academic headline",
     "Overall achieved score",
     "Subjects and levels confident teaching",
     "Relevant subject results / academic strengths",
@@ -514,18 +417,141 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+// Issue #323 Part 4 — partial transcript verification.
+//
+// Applications carry structured scores/grades in the jsonb `data` blob. The
+// join-form schema is evolving separately (overall score and per-subject
+// grades are becoming optional), so these readers are deliberately tolerant:
+// they read the raw record and return only data points that were explicitly
+// provided, so legacy and future shapes both render without per-row code.
+type SubjectGradeEntry = { subject: string; grade: string };
+
+function readOverallScore(data: Record<string, unknown>): string | null {
+  const raw = data.overallScore;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  // Professional-path applications store a placeholder, not a claim to verify.
+  if (/^not applicable/i.test(trimmed)) return null;
+  return trimmed;
+}
+
+function readSubjectGrades(data: Record<string, unknown>): SubjectGradeEntry[] {
+  const raw = data.subjectGrades ?? data.subject_grades;
+  if (Array.isArray(raw)) {
+    const entries: SubjectGradeEntry[] = [];
+    for (const item of raw) {
+      if (!item || typeof item !== "object") continue;
+      const record = item as Record<string, unknown>;
+      const subject = typeof record.subject === "string" ? record.subject.trim() : "";
+      if (!subject) continue;
+      const gradeRaw = record.grade;
+      const grade =
+        typeof gradeRaw === "number"
+          ? String(gradeRaw)
+          : typeof gradeRaw === "string"
+            ? gradeRaw.trim()
+            : "";
+      entries.push({ subject, grade });
+    }
+    return entries;
+  }
+  // Issue #323: the join form stores per-subject grades flattened into the
+  // free-text "subjectResults" answer, one "Subject: Grade" line per result
+  // (grouped under curriculum headers without colons). Parse the colon lines
+  // so staff still get one checkbox per stated grade; anything that does not
+  // match the pattern is bio-style prose and is not offered for verification.
+  const text = typeof data.subjectResults === "string" ? data.subjectResults : "";
+  const entries: SubjectGradeEntry[] = [];
+  for (const line of text.split("\n")) {
+    const match = line.match(/^([^:]{1,80}):\s+(.{1,60})$/);
+    if (!match) continue;
+    const subject = match[1].trim();
+    const grade = match[2].trim();
+    if (!subject || !grade) continue;
+    entries.push({ subject, grade });
+  }
+  return entries;
+}
+
+/** "[Subject] - Grade [X]", or just "[Subject]" when the grade was omitted. */
+function formatSubjectGradeLabel(entry: SubjectGradeEntry): string {
+  if (!entry.grade) return entry.subject;
+  return /^grade\b/i.test(entry.grade)
+    ? `${entry.subject} - ${entry.grade}`
+    : `${entry.subject} - Grade ${entry.grade}`;
+}
+
+function VerificationPanel({ application }: { application: TutorApplicationRecord }) {
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
+
+  const items = useMemo(() => {
+    const data = (application.data ?? {}) as unknown as Record<string, unknown>;
+    const overall = readOverallScore(data);
+    const grades = readSubjectGrades(data);
+    const list: { key: string; label: string }[] = [];
+    if (overall) {
+      const curriculum =
+        typeof data.curriculum === "string" && data.curriculum.trim()
+          ? data.curriculum.trim()
+          : "Overall";
+      list.push({ key: `overall:${overall}`, label: `${curriculum} overall score - ${overall}` });
+    }
+    for (const entry of grades) {
+      list.push({
+        key: `grade:${entry.subject}:${entry.grade}`,
+        label: formatSubjectGradeLabel(entry),
+      });
+    }
+    return list;
+  }, [application.data]);
+
+  return (
+    <ConsolePanel padding="lg">
+      <h2 className="text-base font-bold text-[color:var(--ink)]">Transcript verification</h2>
+      {items.length === 0 ? (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Nothing submitted for verification — the applicant did not provide an overall score or
+          per-subject grades.
+        </p>
+      ) : (
+        <>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Tick each data point you matched against the uploaded transcript. Verify the stated
+            grade and ignore the rest of the document.
+          </p>
+          <ul className="mt-3 space-y-1.5">
+            {items.map((item) => (
+              <li key={item.key}>
+                <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-[color:var(--ink)]/10 px-3 py-2 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)]/60">
+                  <Checkbox
+                    checked={checked[item.key] === true}
+                    onCheckedChange={(value) =>
+                      setChecked((prev) => ({ ...prev, [item.key]: value === true }))
+                    }
+                  />
+                  <span>{item.label}</span>
+                  {checked[item.key] === true ? (
+                    <span className="ml-auto rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
+                      Verified
+                    </span>
+                  ) : null}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </ConsolePanel>
+  );
+}
+
 function ApplicationDetail({
   application,
   onBack,
-  isMutating,
-  onAccept,
-  onReject,
 }: {
   application: TutorApplicationRecord;
   onBack: () => void;
-  isMutating: boolean;
-  onAccept: () => void;
-  onReject: () => void;
 }) {
   const row = application;
   const rows = useMemo(() => {
@@ -572,76 +598,29 @@ function ApplicationDetail({
         </div>
 
         <div className="flex items-center gap-2">
-          {row.status === "rejected" ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isMutating}
-              onClick={onAccept}
-              className="h-9 text-xs font-bold"
+          {row.linked_tutor_code ? (
+            <Link
+              to="/tutors/$tutorCode"
+              params={{ tutorCode: row.linked_tutor_code }}
+              target="_blank"
+              className="inline-flex h-9 items-center rounded-sm border border-[color:var(--ink)]/20 px-3 text-xs font-bold text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)]"
             >
-              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-              Re-accept (back to pending)
-            </Button>
-          ) : row.status === "accepted" ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isMutating}
-              onClick={onAccept}
-              className="h-9 text-xs font-bold"
-            >
-              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-              Move back to pending
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isMutating}
-              onClick={onAccept}
-              className="h-9 text-xs font-bold"
-            >
-              <Check className="mr-1.5 h-3.5 w-3.5" />
-              Accept &amp; Create Tutor
-            </Button>
-          )}
-          {row.status !== "rejected" ? (
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              disabled={isMutating}
-              onClick={onReject}
-              className="h-9 text-xs font-bold"
-            >
-              <X className="mr-1.5 h-3.5 w-3.5" />
-              Reject
-            </Button>
+              View live card · {row.linked_tutor_code}
+            </Link>
           ) : null}
         </div>
       </div>
 
       {row.status === "rejected" && purgeDays !== null ? (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.06] px-4 py-3 text-xs font-medium text-amber-800 dark:text-amber-300">
-          This application was rejected on {formatDate(row.rejected_at)}. You can re-accept it for
-          the next {purgeDays} day{purgeDays === 1 ? "" : "s"}; afterwards all submitted data is
-          permanently deleted from our servers.
+          Legacy rejected application (no card was published). Auto-deletes in {purgeDays} day
+          {purgeDays === 1 ? "" : "s"}.
         </div>
       ) : null}
-      {row.status === "accepted" ? (
+      {row.linked_tutor_code ? (
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] px-4 py-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-          <p>
-            Accepted. Use “AI Autofill → Load application data” in the tutor editor as a source
-            while you create the tutor card manually.
-          </p>
-          <p className="mt-1">
-            You can move it back to pending or reject it — any tutor card already created from it is
-            unaffected.
-          </p>
+          Published at submit — live card {row.linked_tutor_code}. Manage it (unpublish / suspend /
+          ban) from the Tutors page.
         </div>
       ) : null}
 
@@ -701,6 +680,10 @@ function ApplicationDetail({
         </div>
       </ConsolePanel>
 
+      {/* Issue #323 Part 4: verify only the data points the applicant
+          explicitly provided (keyed by id so ticks reset between apps). */}
+      <VerificationPanel key={application.id} application={application} />
+
       {/* Submitted data */}
       {sections.map((section) => (
         <ConsolePanel key={section.title} padding="lg">
@@ -717,9 +700,18 @@ function ApplicationDetail({
 }
 
 function DocumentStatusSummary({ application }: { application: TutorApplicationRecord }) {
-  const transcripts = application.data.academicDocuments ?? [];
-  const achievements = application.data.achievements ?? [];
-  const studentCard = application.data.studentCard;
+  // Issue #309: /join no longer collects evidence — grades now upload per-grade
+  // from the tutor profile editor (tutor_grades + the staff queue). This
+  // summary keeps rendering LEGACY applications, whose stored jsonb still
+  // carries the old evidence fields; read them defensively off the raw row.
+  const legacy = application.data as unknown as {
+    academicDocuments?: { curriculum: string; status?: string; file?: unknown }[];
+    achievements?: { title: string; description: string; proof?: unknown; proofStatus?: string }[];
+    studentCard?: unknown;
+  };
+  const transcripts = Array.isArray(legacy.academicDocuments) ? legacy.academicDocuments : [];
+  const achievements = Array.isArray(legacy.achievements) ? legacy.achievements : [];
+  const studentCard = "studentCard" in legacy ? legacy.studentCard : undefined;
   const isProfessional = application.data.status === PROFESSIONAL_STATUS;
   if (transcripts.length === 0 && achievements.length === 0 && !studentCard) return null;
 
@@ -734,7 +726,7 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
             <li className="flex items-center gap-2">
               <ImageIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <span className="font-semibold text-[color:var(--ink)]">
-                Enrollment evidence for university / major
+                Enrollment evidence for university / major (legacy)
               </span>
               <span
                 className={cn(
@@ -753,7 +745,7 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
       {transcripts.length > 0 ? (
         <div className="rounded-xl border border-[color:var(--ink)]/10 p-3.5">
           <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-            Academic documents
+            Academic documents (legacy)
           </p>
           <ul className="mt-2 space-y-1.5 text-xs">
             {transcripts.map((doc, index) => (
@@ -780,7 +772,7 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
       {achievements.length > 0 ? (
         <div className="rounded-xl border border-[color:var(--ink)]/10 p-3.5">
           <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-            Achievement evidence
+            Achievement evidence (legacy)
           </p>
           <ul className="mt-2 space-y-2 text-xs">
             {achievements.map((achievement, index) => (
@@ -817,46 +809,4 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
   );
 }
 
-function RejectDialog({
-  open,
-  application,
-  isPending,
-  onConfirm,
-  onCancel,
-}: {
-  open: boolean;
-  application: TutorApplicationRecord | null;
-  isPending: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  return (
-    <AlertDialog
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) onCancel();
-      }}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Reject this application?</AlertDialogTitle>
-          <AlertDialogDescription>
-            {application?.data.name ?? "This applicant"} will move to the rejected list and stay
-            recoverable for 30 days — you can re-accept within that window. After 30 days all
-            submitted data is permanently deleted from our servers.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            disabled={isPending}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            Reject application
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-}
+// Issue #310: the RejectDialog was removed with the Accept/Reject queue.

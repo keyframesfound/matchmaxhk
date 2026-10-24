@@ -1,6 +1,13 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { BookOpen, ExternalLink, LayoutDashboard, Settings, UsersRound } from "lucide-react";
+import {
+  BookOpen,
+  ClipboardList,
+  ExternalLink,
+  LayoutDashboard,
+  Settings,
+  UsersRound,
+} from "lucide-react";
 
 import { ConsoleShell, type ConsoleNavGroup } from "@/components/layout/console-shell";
 import { Button } from "@/components/ui/button";
@@ -11,6 +18,8 @@ import type { Organization, OrgUsage } from "@/features/business/useMyOrganizati
 export const BUSINESS_TABS = [
   { label: "Overview", tab: "overview", icon: LayoutDashboard },
   { label: "Courses", tab: "courses", icon: BookOpen },
+  // Issue #412: case requests this organisation has engaged educators for.
+  { label: "Requests", tab: "cases", icon: ClipboardList },
   { label: "Team", tab: "team", icon: UsersRound },
   { label: "Profile", tab: "profile", icon: Settings },
 ] as const;

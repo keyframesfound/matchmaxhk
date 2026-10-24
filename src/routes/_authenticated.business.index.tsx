@@ -6,6 +6,7 @@ import {
   ArrowRight,
   BookOpen,
   Check,
+  ClipboardList,
   ExternalLink,
   Eye,
   MousePointerClick,
@@ -37,6 +38,8 @@ import { BusinessLayout, UsageMeter } from "@/components/business/business-layou
 import { CoursesPanel } from "@/features/business/courses-panel";
 import { TeamPanel } from "@/features/business/team-panel";
 import { ProfilePanel } from "@/features/business/profile-panel";
+import { getOrganizationCases } from "@/features/cases/centre-case.functions";
+import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
@@ -69,7 +72,11 @@ export const Route = createFileRoute("/_authenticated/business/")({
     const tab = typeof search.tab === "string" ? search.tab : undefined;
     return {
       tab:
-        tab === "courses" || tab === "team" || tab === "profile" || tab === "overview"
+        tab === "courses" ||
+        tab === "cases" ||
+        tab === "team" ||
+        tab === "profile" ||
+        tab === "overview"
           ? tab
           : undefined,
     };
@@ -87,7 +94,7 @@ export const Route = createFileRoute("/_authenticated/business/")({
   component: BusinessOverview,
 });
 
-type ConsoleTab = "overview" | "courses" | "team" | "profile";
+type ConsoleTab = "overview" | "courses" | "cases" | "team" | "profile";
 
 function BusinessOverview() {
   const navigate = useNavigate();
@@ -588,6 +595,12 @@ function BusinessOverview() {
           <TabsContent value="profile">
             <ProfilePanel />
           </TabsContent>
+          <TabsContent value="cases">
+            <RequestsPanel
+              organizationId={organization.id}
+              organizationStatus={organization.status}
+            />
+          </TabsContent>
         </Tabs>
       </BusinessLayout>
     </div>
@@ -670,3 +683,117 @@ function PlanBadgeInline({ plan, status }: { plan: string; status: string }) {
     </div>
   );
 }
+
+// Issue #412: the org's case requests — triage status at a glance, with the
+// compliance-hold state surfaced so centres understand the review step.
+function RequestsPanel({
+  organizationId,
+  organizationStatus,
+}: {
+  organizationId: string;
+  organizationStatus: "pending" | "active" | "suspended";
+}) {
+  const casesFn = useServerFn(getOrganizationCases);
+  const { data: cases = [], isLoading } = useQuery({
+    queryKey: ["organization-cases", organizationId],
+    queryFn: () => casesFn({ data: { orgId: organizationId } }),
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold text-[color:var(--ink)]">Case requests</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Independent educator engagements requested by your organisation.
+          </p>
+        </div>
+        <Button asChild variant="solid" color="blue" className="font-bold">
+          <a href="/business/cases/new">New case request</a>
+        </Button>
+      </div>
+
+      {organizationStatus !== "active" ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
+          Your account is still under Business Registration review — case requests open once your
+          account is activated.
+        </div>
+      ) : null}
+
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading requests…</p>
+      ) : cases.length === 0 ? (
+        <EmptyState
+          icon={ClipboardList}
+          title="No case requests yet"
+          description="Engage an independent educator for a course module, exam clinic, or class series."
+          action={
+            <Button variant="solid" color="blue" className="font-bold" asChild>
+              <a href="/business/cases/new">New case request</a>
+            </Button>
+          }
+        />
+      ) : (
+        <div className="divide-y divide-border rounded-lg border border-border bg-card">
+          {cases.map((row) => {
+            const held = row.status === "compliance_hold";
+            return (
+              <div key={row.id} className="px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
+                      {row.title}
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">
+                        {row.case_code}
+                      </span>
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {new Date(row.created_at).toLocaleDateString()} ·{" "}
+                      {held
+                        ? "On compliance hold — under review before it can reach educators"
+                        : row.status === "matched"
+                          ? "Matched with an educator"
+                          : row.status === "closed"
+                            ? "Closed"
+                            : row.status === "rejected"
+                              ? "Declined"
+                              : "With the matching desk"}
+                    </p>
+                  </div>
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                      held
+                        ? "bg-purple-500/15 text-purple-700 dark:text-purple-400"
+                        : row.status === "matched"
+                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                          : "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+                    )}
+                  >
+                    {held ? "Compliance hold" : (STATUS_LABELS[row.status] ?? row.status)}
+                  </span>
+                </div>
+                {/* Issue #412 F: matched engagements confirm the summary on the
+                  exact version before contact details are finalised. */}
+                {row.status === "matched" ? (
+                  <div className="pb-3">
+                    <EngagementSummaryCard caseId={row.id} party="customer" />
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  new: "In review",
+  contacted: "Contacting",
+  compliance_hold: "Compliance hold",
+  matched: "Matched",
+  closed: "Closed",
+  rejected: "Declined",
+};

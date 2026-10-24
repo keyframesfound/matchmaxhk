@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   CalendarClock,
   Clock,
+  ShieldAlert,
   ExternalLink,
   Loader2,
   MessageCircle,
@@ -18,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
+import { SorCasePanel } from "@/features/cases/admin/sor-desk";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -25,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { TagInput } from "@/components/ui/tag-input";
 import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
 import { MatchFeePanel } from "@/features/cases/admin/MatchFeePanel";
+import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { formatStudentLevel } from "@/features/cases/display";
 import {
   AlertDialog,
@@ -52,6 +55,7 @@ import {
   START_LABEL,
   STATUS_LABEL,
   STATUS_PILL_CLASS,
+  caseBudgetHkdBounds,
   formatBudget,
   whatsappUrl,
   type CaseNoteRow,
@@ -73,6 +77,44 @@ type SuggestedTutor = {
   languages: string[] | null;
   score: number;
 };
+
+/** #412: readable labels for the stored triage answers (staff re-screen). */
+const TRIAGE_LABELS: Record<string, string> = {
+  scope: "Triage scope",
+  engagementCategory: "Engagement category",
+  contractingEntity: "Contracting entity",
+  feeStructure: "Fee structure",
+  feeAmount: "Fee amount",
+  feeOpenToCounter: "Open to counter-proposal",
+  premisesProvider: "Premises provider",
+  scopeDescription: "Scope of services",
+  adminDutiesRequired: "Admin/reception duties required",
+  replacesVacancy: "Replaces a staff vacancy",
+  methodologyOwner: "Teaching methodology owner",
+  otherClientsAllowed: "Other clients allowed",
+  substitutionAllowed: "Substitution / delegation",
+  engager: "Who is engaging",
+  nonTutoringDuties: "Non-tutoring duties required",
+};
+
+function TriageSummary({ triage }: { triage: Record<string, unknown> }) {
+  const rows = Object.entries(triage).filter(([, v]) => v !== null && v !== undefined);
+  if (rows.length === 0) return null;
+  return (
+    <dl className="mt-2 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+      {rows.map(([key, value]) => (
+        <div key={key} className="min-w-0">
+          <dt className="text-[11px] font-medium text-muted-foreground">
+            {TRIAGE_LABELS[key] ?? key}
+          </dt>
+          <dd className="truncate text-sm font-medium text-[color:var(--ink)]">
+            {typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -188,7 +230,16 @@ export function CaseDetailView({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Issue #412: a compliance-hold request is locked — no tutor recommend,
+  // no circulate (board publish), no contact flow until staff re-screen.
+  const complianceLocked = caseRow.status === "compliance_hold";
+  // The only allowed exits from a hold are clearing it (new), closing, or
+  // rejecting; escalate-to-contacted/matched must go through the unlock.
   const handleStatusChange = (next: CaseStatus) => {
+    if (complianceLocked && (next === "contacted" || next === "matched")) {
+      toast.error("Compliance hold: re-screen this request before contacting or matching.");
+      return;
+    }
     const patch: Partial<CaseRow> = { status: next };
     if (next === "contacted" && !caseRow.last_contacted_at) {
       patch.last_contacted_at = new Date().toISOString();
@@ -198,6 +249,11 @@ export function CaseDetailView({
 
   const boardPublishMutation = useMutation({
     mutationFn: async (publish: boolean) => {
+      // Issue #412: held requests never circulate — even a stale Public
+      // selection cannot publish a compliance_hold case to the board.
+      if (publish && caseRow.status === "compliance_hold") {
+        throw new Error("Compliance hold: this request cannot be published until re-screened.");
+      }
       const { error } = await supabase
         .from("tutoring_cases")
         .update({
@@ -260,6 +316,10 @@ export function CaseDetailView({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
+        {/* SoR panel (#201): status machine, lessons 1–2, admin fee, audit */}
+        <div className="space-y-6 lg:col-span-3">
+          <SorCasePanel caseId={caseRow.id} />
+        </div>
         {/* Left column: requirements + contact + notes */}
         <div className="space-y-6 lg:col-span-2">
           <ConsolePanel>
@@ -403,6 +463,28 @@ export function CaseDetailView({
 
         {/* Right column: handling */}
         <div className="space-y-6">
+          {/* Issue #412: compliance hold banner — the case is locked out of
+              matching/circulation until staff re-screen the triage answers. */}
+          {caseRow.status === "compliance_hold" ? (
+            <div className="rounded-xl border border-purple-500/30 bg-purple-500/[0.06] px-4 py-3.5">
+              <p className="flex items-center gap-2 text-sm font-bold text-purple-700 dark:text-purple-300">
+                <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
+                Compliance hold — matching, circulation, and contact release are locked
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Triage flagged this request. Review the answers below, contact the requester if
+                needed, then set the status back to New to release the hold (or Close/Reject).
+              </p>
+              {caseRow.compliance_note ? (
+                <p className="mt-2 rounded-md bg-card px-3 py-2 text-xs text-[color:var(--ink)]">
+                  “{caseRow.compliance_note}”
+                </p>
+              ) : null}
+              {caseRow.compliance_triage && Object.keys(caseRow.compliance_triage).length > 0 ? (
+                <TriageSummary triage={caseRow.compliance_triage} />
+              ) : null}
+            </div>
+          ) : null}
           <ConsolePanel>
             <h2 className="text-xs font-semibold text-muted-foreground">Handling</h2>
             <div className="mt-3 space-y-3">
@@ -425,7 +507,9 @@ export function CaseDetailView({
                 size="sm"
                 variant="outline"
                 className="h-9 w-full"
-                disabled={updateMutation.isPending || caseRow.status === "contacted"}
+                disabled={
+                  updateMutation.isPending || caseRow.status === "contacted" || complianceLocked
+                }
                 onClick={() =>
                   updateMutation.mutate({
                     status: "contacted",
@@ -444,12 +528,16 @@ export function CaseDetailView({
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
-                {formatBudget(caseRow.budget_min, caseRow.budget_max)}
+                {formatBudget(caseBudgetHkdBounds(caseRow).min, caseBudgetHkdBounds(caseRow).max)}
               </div>
             </div>
           </ConsolePanel>
 
           <MatchFeePanel caseRow={caseRow} onPatched={invalidateCase} />
+
+          {/* Issue #412 F: engagement summary + open change reports with
+              staff resolve actions. */}
+          <EngagementSummaryCard caseId={caseRow.id} party="customer" staff />
 
           <ConsolePanel>
             <div className="flex items-center justify-between">
@@ -476,7 +564,10 @@ export function CaseDetailView({
                 <Select
                   value={caseRow.board_published_at !== null ? "public" : "private"}
                   onValueChange={(v) => boardPublishMutation.mutate(v === "public")}
-                  disabled={boardPublishMutation.isPending}
+                  disabled={
+                    boardPublishMutation.isPending ||
+                    (complianceLocked && caseRow.board_published_at === null)
+                  }
                 >
                   <SelectTrigger className="h-9 w-[110px] shrink-0 text-sm font-bold">
                     <SelectValue />

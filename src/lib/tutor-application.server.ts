@@ -6,6 +6,7 @@ import type { Json } from "@/integrations/supabase/types";
 import { TutorJoinNotificationEmail } from "./email-templates/tutor-join-notification";
 import {
   ACCEPTED_FILE_TYPES,
+  ACCEPTED_PORTFOLIO_IMAGE_TYPES,
   MAX_FILE_BYTES,
   MAX_TOTAL_BYTES,
   getApplicationPath,
@@ -23,7 +24,9 @@ import { getRuntimeEnv } from "./runtime-env";
 
 const RECIPIENT = "matchmaxedu@gmail.com";
 const FROM = "MatchMax <noreply@matchmax.hk>";
-const ADMIN_REVIEW_URL = "https://matchmax.hk/admin/join-requests";
+// Issue #358: cards go live at submit (#310), so the join-requests desk is a
+// read-only archive — the email points there, not at a "review queue".
+const ADMIN_ARCHIVE_URL = "https://matchmax.hk/admin/join-requests";
 const APPLICATION_FILE_PREFIX = "tutor-application-files/";
 
 export type StoredApplicationFile = {
@@ -32,7 +35,10 @@ export type StoredApplicationFile = {
   filename: string;
   contentType: string;
   size: number;
-  source: "achievement" | "transcript" | "profile_photo" | "student_card";
+  // Issue #309: join no longer collects evidence — only the profile photo and
+  // Trophy Cabinet photos upload at intake. Legacy rows keep their original
+  // source tags ("achievement" | "transcript" | "student_card") on disk.
+  source: "profile_photo" | "portfolio_image";
   label: string;
 };
 
@@ -46,7 +52,12 @@ function validateAttachmentBytes(
 ): void {
   let total = 0;
   for (const file of files) {
-    if (!ACCEPTED_FILE_TYPES.includes(file.contentType)) {
+    // Issue #97: Trophy Cabinet photos accept WebP in addition to the standard
+    // application file types; everything else keeps the original allowlist.
+    const allowed =
+      ACCEPTED_FILE_TYPES.includes(file.contentType) ||
+      ACCEPTED_PORTFOLIO_IMAGE_TYPES.includes(file.contentType);
+    if (!allowed) {
       throw new Error(`Unsupported file type: ${file.filename}`);
     }
     const bytes = Buffer.from(file.content, "base64");
@@ -67,7 +78,7 @@ async function uploadApplicationFile(
   config: ReturnType<typeof getR2Config>,
   file: { filename: string; contentType: string; content: string; size: number },
   meta: {
-    source: "achievement" | "transcript" | "profile_photo" | "student_card";
+    source: StoredApplicationFile["source"];
     label: string;
     applicationId: string;
     index: number;
@@ -126,22 +137,19 @@ export async function storeTutorApplication(
   data: Omit<TutorApplication, "turnstileToken">,
 ): Promise<{ id: string }> {
   const attachments = [
-    ...data.achievements.flatMap((achievement) =>
-      achievement.proof
-        ? [{ file: achievement.proof, source: "achievement" as const, label: achievement.title }]
-        : [],
-    ),
-    ...data.academicDocuments.flatMap((document) =>
-      document.file
-        ? [{ file: document.file, source: "transcript" as const, label: document.curriculum }]
-        : [],
-    ),
+    // Issue #309: evidence files are gone from /join — grade slips now upload
+    // per-grade from the profile editor into the private grade-slips bucket.
+    // Only the profile photo and Trophy Cabinet photos upload at intake.
     ...(data.profilePhoto
       ? [{ file: data.profilePhoto, source: "profile_photo" as const, label: "Profile photo" }]
       : []),
-    ...(data.studentCard
-      ? [{ file: data.studentCard, source: "student_card" as const, label: "Student ID card" }]
-      : []),
+    // Issue #97: Trophy Cabinet photos go to R2, tagged portfolio_image so the
+    // admin review shows them as public portfolio files.
+    ...data.portfolioImages.map((image) => ({
+      file: image,
+      source: "portfolio_image" as const,
+      label: "Trophy cabinet",
+    })),
   ];
   validateAttachmentBytes(attachments.map((entry) => entry.file));
 
@@ -216,22 +224,22 @@ async function sendTutorJoinNotification({
     email: data.email,
     phone: data.phone,
     attachmentCount: storedFiles.length,
-    reviewUrl: `${ADMIN_REVIEW_URL}?application=${applicationId}`,
+    archiveUrl: `${ADMIN_ARCHIVE_URL}?application=${applicationId}`,
   });
   const html = await render(element);
   const text = [
-    `New tutor join request — ${data.name}`,
+    `New tutor card is live — ${data.name}`,
     `Path: ${getApplicationPath(data)}`,
     `Email: ${data.email}`,
     `Phone: ${data.phone}`,
     `Attachments stored: ${storedFiles.length}`,
-    `Review: ${ADMIN_REVIEW_URL}?application=${applicationId}`,
+    `Archive: ${ADMIN_ARCHIVE_URL}?application=${applicationId}`,
   ].join("\n");
 
   const { error } = await new Resend(apiKey).emails.send({
     from: FROM,
     to: RECIPIENT,
-    subject: `New tutor join request — ${data.name}`,
+    subject: `New tutor card is live — ${data.name}`,
     html,
     text,
   });

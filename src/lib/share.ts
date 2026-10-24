@@ -6,26 +6,55 @@ export type SharePayload = {
   url: string;
 };
 
-// Native share sheet when available, clipboard fallback otherwise.
+// navigator.clipboard only exists in secure contexts and can still reject
+// (permission denied, headless browsers) — fall back to the legacy
+// document.execCommand("copy") path through a temporary textarea.
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      try {
+        textarea.select();
+        return document.execCommand("copy");
+      } finally {
+        // Always detach the helper node, even if select()/execCommand throws.
+        document.body.removeChild(textarea);
+      }
+    } catch {
+      return false;
+    }
+  }
+}
+
+// Native share sheet when available, clipboard fallback otherwise (issue
+// #417: the fallback copies title + URL — never a WhatsApp deep link or a
+// pre-filled request intent; that path stays on the Request CTA).
 // User-cancelled shares (AbortError) are silently ignored.
 export async function shareOrCopy(
   payload: SharePayload,
   copiedMessage = "Link copied",
+  errorMessage = "Couldn't share this profile",
 ): Promise<void> {
   try {
     if (typeof navigator.share === "function") {
       await navigator.share(payload);
       return;
     }
-    await navigator.clipboard.writeText(payload.url);
-    toast.success(copiedMessage);
   } catch (error) {
     if ((error as DOMException)?.name === "AbortError") return;
-    try {
-      await navigator.clipboard.writeText(payload.url);
-      toast.success(copiedMessage);
-    } catch {
-      toast.error("Couldn't share this profile");
-    }
+  }
+  const copied = await copyText(`${payload.title}\n${payload.url}`.trim());
+  if (copied) {
+    toast.success(copiedMessage);
+  } else {
+    toast.error(errorMessage);
   }
 }

@@ -76,6 +76,56 @@ export const provisionUserAccount = createServerFn({ method: "POST" })
     return { ok: true, userId, email: data.email };
   });
 
+export const requestAccountDeletion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({}).parse(data ?? {}))
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Issue #101: deletion is a REQUEST, not an instant wipe. Flag the tutor's
+    // card (if any) for the admin queue; the account itself is only removed
+    // when an admin approves. The admin client is required because the tutor
+    // must stay able to flag the request even after flipping is_published off.
+    const { error } = await supabaseAdmin
+      .from("tutors")
+      .update({ deletion_requested_at: new Date().toISOString() })
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+
+    return { ok: true };
+  });
+
+export const resolveAccountDeletion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        action: z.enum(["approve", "deny"]),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    if (data.action === "deny") {
+      // Deny / hold: clear the pending flag, keep the account and its data.
+      const { error } = await supabaseAdmin
+        .from("tutors")
+        .update({ deletion_requested_at: null })
+        .eq("user_id", data.userId);
+      if (error) throw new Error(error.message);
+      return { ok: true };
+    }
+
+    // Approve: actual data wipe. Deleting the auth user cascades to profiles,
+    // user_roles and the tutor card (tutors.user_id) via FK ON DELETE CASCADE.
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const deleteMyAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({}).parse(data ?? {}))

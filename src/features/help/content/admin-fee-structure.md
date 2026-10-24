@@ -8,6 +8,6 @@ icon: wallet
 tags: [fees, admin fee, billing, policies]
 order: 1
 status: published
-external: /how-it-works
+external: /guide
 ---
-The fee structure is summarised in the billing FAQ on the How It Works page, alongside the concierge window for the first two lessons.
+The fee structure is summarised in the billing FAQ on the Guide page, alongside the concierge window for the first two lessons.
