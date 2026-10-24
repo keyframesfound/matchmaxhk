@@ -643,6 +643,22 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       throw acceptanceError;
     }
 
+    // Issue #55: nudge ops over the webhook (app_settings key
+    // `ops_webhook_url`, see ops-webhook.server.ts). Fire-and-forget —
+    // notifyOps never throws and must never fail the submit. Dynamic import:
+    // this module is bundled isomorphically (client imports the types), and
+    // only the handler body should touch server-only code.
+    try {
+      const { notifyOps } = await import("@/lib/ops-webhook.server");
+      void notifyOps("case_request.created", {
+        case_code: row.case_code,
+        subjects: data.subjects,
+        district: data.district ?? null,
+      }).catch(() => {});
+    } catch {
+      // Webhook dispatch is best-effort by contract.
+    }
+
     return { caseCode: row.case_code as string };
   });
 

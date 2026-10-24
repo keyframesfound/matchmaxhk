@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TagInput } from "@/components/ui/tag-input";
 import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
+import { CaseApplicationsCard } from "@/features/cases/admin/CaseApplicationsCard";
 import { MatchFeePanel } from "@/features/cases/admin/MatchFeePanel";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { formatStudentLevel } from "@/features/cases/display";
@@ -551,6 +552,9 @@ export function CaseDetailView({
           </ConsolePanel>
 
           <MatchFeePanel caseRow={caseRow} onPatched={invalidateCase} />
+
+          {/* Issue #81: 1-click applications from the tutor board, triaged here. */}
+          <CaseApplicationsCard caseId={caseRow.id} />
 
           {/* Issue #412 F: engagement summary + open change reports with
               staff resolve actions. */}

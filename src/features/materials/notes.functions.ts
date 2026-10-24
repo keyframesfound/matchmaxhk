@@ -22,7 +22,7 @@ export const PUBLIC_NOTE_COLUMNS =
  * (material status='published' AND tutors.is_published=true) is repeated
  * here explicitly on every public query.
  */
-const PUBLIC_NOTE_TUTOR_JOIN =
+export const PUBLIC_NOTE_TUTOR_JOIN =
   "tutors!inner(display_name, tutor_code, user_id, is_published, verification_tier)";
 
 export type PublicNote = {
@@ -77,7 +77,7 @@ type NoteRow = Record<string, unknown> & {
   } | null;
 };
 
-function mapPublicNote(row: NoteRow): PublicNote | null {
+export function mapPublicNote(row: NoteRow): PublicNote | null {
   const id = typeof row.id === "string" ? row.id : "";
   const tutor = row.tutors ?? null;
   const tutorCode = typeof tutor?.tutor_code === "string" ? tutor.tutor_code : "";

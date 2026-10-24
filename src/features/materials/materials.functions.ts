@@ -741,4 +741,267 @@ export const reviewGigListing = createServerFn({ method: "POST" })
     return { ok: true, status: next };
   });
 
+// ---------------------------------------------------------------------------
+// #392: kind-aware review queue for folders + courses (gigs keep their own
+// listPendingGigReviews / reviewGigListing above).
+// ---------------------------------------------------------------------------
+
+/** The shop kinds that ride this generalized queue. */
+export const LISTING_REVIEW_TYPES = ["topic_folder", "video_course", "general_course"] as const;
+
+export type PendingListingChild = {
+  id: string;
+  title: string;
+  priceHkd: number;
+  materialType: string;
+};
+
+export type PendingListingLesson = {
+  position: number;
+  title: string;
+  /** Raw link — STAFF-ONLY surface; the dialog renders the actual embed so
+   * the human can check the video on-screen for WhatsApp/phone/IG/QR. */
+  videoUrl: string | null;
+  videoProvider: string | null;
+  hasPdf: boolean;
+};
+
+export type PendingListingReviewRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  price_hkd: number;
+  material_type: string;
+  cover_image_path: string | null;
+  created_at: string;
+  tutors: { display_name: string; tutor_code: string } | null;
+  children: PendingListingChild[];
+  lessons: PendingListingLesson[];
+};
+
+/**
+ * #392 review queue: pending folders (with each child's title + price) and
+ * pending courses (with lesson titles, providers and the raw video links so
+ * the dialog can render the ACTUAL embeds — human review is the reject path
+ * for WA/phone/IG/QR visible in videos). Oldest first, same as gigs.
+ */
+export const listPendingListingReviews = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<PendingListingReviewRow[]> => {
+    const client = context.supabase as unknown as {
+      rpc: (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error?: { message?: string } }>;
+    };
+    let isAdmin = false;
+    for (const role of ["admin", "super_admin"] as const) {
+      const { data: ok, error } = await client.rpc("has_role", {
+        _user_id: context.userId,
+        _role: role,
+      });
+      if (!error && ok === true) {
+        isAdmin = true;
+        break;
+      }
+    }
+    if (!isAdmin) throw new Error("Forbidden");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    const { data, error } = await db
+      .from<PendingListingReviewRow>("digital_materials")
+      .select(
+        "id, title, description, price_hkd, material_type, cover_image_path, created_at, tutors(display_name, tutor_code)",
+      )
+      .eq("status", "pending_review")
+      .in("material_type", [...LISTING_REVIEW_TYPES])
+      .order("created_at", { ascending: true })
+      .limit(50);
+    if (error) throw new Error(error.message);
+
+    const rows = data ?? [];
+    if (rows.length === 0) return [];
+
+    // Kind payloads in two batched reads (both tables are RLS-deny for
+    // clients; this is a service-role staff read).
+    const folderIds = rows.filter((r) => r.material_type === "topic_folder").map((r) => r.id);
+    const courseIds = rows
+      .filter((r) => r.material_type === "video_course" || r.material_type === "general_course")
+      .map((r) => r.id);
+
+    const childIdsByFolder = new Map<string, string[]>();
+    if (folderIds.length > 0) {
+      const { data: items, error: itemsError } = await db
+        .from<{ folder_id: string; child_material_id: string; position: number }>(
+          "topic_folder_items",
+        )
+        .select("folder_id, child_material_id, position")
+        .in("folder_id", folderIds)
+        .order("position", { ascending: true });
+      if (itemsError) throw new Error(itemsError.message);
+      for (const item of items ?? []) {
+        const list = childIdsByFolder.get(item.folder_id) ?? [];
+        list.push(item.child_material_id);
+        childIdsByFolder.set(item.folder_id, list);
+      }
+    }
+    const allChildIds = Array.from(new Set([...childIdsByFolder.values()].flat()));
+    const childMeta = new Map<
+      string,
+      { title: string; price_hkd: number; material_type: string }
+    >();
+    if (allChildIds.length > 0) {
+      const { data: childRows, error: childError } = await db
+        .from<{
+          id: string;
+          title: string;
+          price_hkd: number;
+          material_type: string;
+        }>("digital_materials")
+        .select("id, title, price_hkd, material_type")
+        .in("id", allChildIds);
+      if (childError) throw new Error(childError.message);
+      for (const row of childRows ?? []) {
+        childMeta.set(row.id, {
+          title: row.title,
+          price_hkd: Number(row.price_hkd ?? 0),
+          material_type: row.material_type,
+        });
+      }
+    }
+
+    const lessonsByCourse = new Map<string, PendingListingLesson[]>();
+    if (courseIds.length > 0) {
+      const { data: lessons, error: lessonsError } = await db
+        .from<{
+          material_id: string;
+          position: number;
+          title: string;
+          video_url: string | null;
+          video_provider: string | null;
+          pdf_path: string | null;
+        }>("course_lessons")
+        .select("material_id, position, title, video_url, video_provider, pdf_path")
+        .in("material_id", courseIds)
+        .order("position", { ascending: true });
+      if (lessonsError) throw new Error(lessonsError.message);
+      for (const lesson of lessons ?? []) {
+        const list = lessonsByCourse.get(lesson.material_id) ?? [];
+        list.push({
+          position: Number(lesson.position),
+          title: lesson.title,
+          videoUrl: lesson.video_url,
+          videoProvider: lesson.video_provider,
+          hasPdf: Boolean(lesson.pdf_path),
+        });
+        lessonsByCourse.set(lesson.material_id, list);
+      }
+    }
+
+    return rows.map((row) => ({
+      ...row,
+      children: (childIdsByFolder.get(row.id) ?? []).map((childId) => {
+        const meta = childMeta.get(childId);
+        return {
+          id: childId,
+          title: meta?.title ?? "Unknown item",
+          priceHkd: meta?.price_hkd ?? 0,
+          materialType: meta?.material_type ?? "notes",
+        };
+      }),
+      lessons: lessonsByCourse.get(row.id) ?? [],
+    }));
+  });
+
+/**
+ * #392 generalized review decision for folders + courses — same status
+ * transitions and rejection_reason storage as the gig review. The gig
+ * integrity blocker is folded in so the shared dialog can also (re)decide a
+ * gig row without weakening that gate; folders/courses have no blocker.
+ */
+export const reviewListing = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        materialId: z.string().uuid(),
+        approve: z.boolean(),
+        reason: z.string().trim().min(3).max(500).optional(),
+      })
+      .refine((v) => v.approve || (v.reason ?? "").length >= 3, {
+        message: "A reject reason is required.",
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const client = context.supabase as unknown as {
+      rpc: (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error?: { message?: string } }>;
+    };
+    let isAdmin = false;
+    for (const role of ["admin", "super_admin"] as const) {
+      const { data: ok, error } = await client.rpc("has_role", {
+        _user_id: context.userId,
+        _role: role,
+      });
+      if (!error && ok === true) {
+        isAdmin = true;
+        break;
+      }
+    }
+    if (!isAdmin) throw new Error("Forbidden");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    const { data: row, error: fetchError } = await db
+      .from<{
+        id: string;
+        status: string;
+        material_type: string;
+        gig_category: string | null;
+        integrity_confirmed_at: string | null;
+      }>("digital_materials")
+      .select("id, status, material_type, gig_category, integrity_confirmed_at")
+      .eq("id", data.materialId)
+      .maybeSingle();
+    if (fetchError) throw new Error(fetchError.message);
+    if (!row) throw new Error("Listing not found.");
+
+    if (data.approve && row.material_type === "gig") {
+      const blocker = gigApprovalBlocker({
+        materialType: row.material_type,
+        gigCategory: row.gig_category,
+        integrityConfirmedAt: row.integrity_confirmed_at,
+      });
+      if (blocker) throw new Error(blocker);
+    }
+
+    const action = data.approve ? "approve" : "reject";
+    const next = nextStatus(row.status as MaterialStatus, action);
+    if (!next) {
+      throw new Error(`Listing in status "${row.status}" cannot be ${action}d.`);
+    }
+
+    const patch: Record<string, unknown> = {
+      status: next,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: context.userId,
+    };
+    if (data.approve) {
+      patch.rejection_reason = null;
+      patch.edit_status = null;
+    } else {
+      patch.rejection_reason = data.reason;
+    }
+    const { error } = await db
+      .from<never>("digital_materials")
+      .update(patch)
+      .eq("id", data.materialId);
+    if (error) throw new Error(error.message);
+    return { ok: true, status: next };
+  });
+
 export { bytesToBase64 };

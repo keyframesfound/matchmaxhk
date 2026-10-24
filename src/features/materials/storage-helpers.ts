@@ -5,8 +5,12 @@
  * gate. Server-side only (uses Buffer/atob via base64 utilities).
  */
 
-/** Supabase error shape we care about across the server functions. */
-export type DbError = { message: string } | null;
+/**
+ * Supabase error shape we care about across the server functions. `code`
+ * (PostgREST SQLSTATE, e.g. "23505" unique_violation) is present on real
+ * responses; typed optional so test doubles may omit it.
+ */
+export type DbError = { message: string; code?: string } | null;
 
 /**
  * Fluent builder subset actually used by the marketplace server functions.
@@ -43,6 +47,16 @@ export type AdminTable<T> = {
     select: (cols: string) => { single: () => Promise<{ data: T; error: DbError }> };
   } & PromiseLike<{ data: T | null; error: DbError }>;
   update: (row: unknown, opts?: { count?: "exact" | "planned" | "estimated" }) => AdminUpdateChain;
+  /** #392: folder/course child rows are delete+reinserted while drafts. */
+  delete: () => AdminUpdateChain;
+  /**
+   * #392 course lessons: upsert on (material_id, position) so a re-save
+   * never clobbers an uploaded pdf_path on an untouched lesson.
+   */
+  upsert: (
+    row: unknown,
+    opts?: { onConflict?: string; ignoreDuplicates?: boolean },
+  ) => PromiseLike<{ data: T | null; error: DbError }>;
 };
 
 /** The service-role client, typed just enough for the marketplace fns. */
