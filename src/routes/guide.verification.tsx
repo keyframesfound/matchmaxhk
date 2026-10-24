@@ -70,7 +70,7 @@ function GuideVerificationPage() {
             {tiers.map(([title, body], index) => (
               <div
                 key={title}
-                className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--hiw-compare-card)] p-6 md:p-8"
+                className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-6 transition-colors hover:border-[color:var(--ink)]/25 md:p-8"
               >
                 <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
                   {index === 0 ? (

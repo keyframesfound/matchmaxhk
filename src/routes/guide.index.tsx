@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Reveal } from "@/components/ui/reveal";
 import {
   Accordion,
   AccordionContent,
@@ -131,7 +132,7 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
   return (
     <div>
       <GuideHeading>{title}</GuideHeading>
-      <div className="mt-5 rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--hiw-compare-card)] p-5 md:p-8">
+      <div className="mt-5 rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-5 md:p-8">
         <div className="hidden gap-x-10 border-b border-[color:var(--ink)]/20 pb-4 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
           <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_aspect")}</p>
           <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_old")}</p>
@@ -143,7 +144,7 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
             return (
               <li
                 key={row.aspect}
-                className={`max-md:py-5 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-x-10 md:py-9 ${
+                className={`max-md:py-5 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-x-10 md:py-9 transition-colors hover:bg-[color:var(--foreground)]/[0.02] ${
                   isLast ? "" : "border-b border-[color:var(--ink)]/12"
                 }`}
               >
@@ -155,11 +156,11 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
                   <p className="text-sm leading-6 text-[color:var(--ink)]/60">{row.oldWay}</p>
                 </div>
                 <div aria-hidden="true" className="flex items-center gap-3 md:hidden max-md:mt-4">
-                  <span className="h-px flex-1 bg-[color:var(--hiw-compare-line)]" />
+                  <span className="h-px flex-1 bg-[color:var(--border)]" />
                   <span className="text-[11px] font-bold uppercase tracking-widest text-[color:var(--ink)]">
                     {t("hiw.table_vs")}
                   </span>
-                  <span className="h-px flex-1 bg-[color:var(--hiw-compare-line)]" />
+                  <span className="h-px flex-1 bg-[color:var(--border)]" />
                 </div>
                 <div className="max-md:mt-4">
                   <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[color:var(--brand-link)] md:hidden">
@@ -285,179 +286,190 @@ function GuideIndexPage() {
       </section>
 
       {/* Matching flow */}
-      <section
-        id="matching"
-        className="scroll-mt-32 bg-[#0f1419] py-16 text-[#0f1419] dark:bg-[color:var(--surface-subtle)] dark:text-white sm:py-24"
-      >
-        <div className="mx-auto max-w-[1440px] px-5 text-white sm:px-8 lg:px-12">
-          <div className="grid gap-6 md:grid-cols-[0.7fr_1.3fr] md:items-end">
-            <div>
-              <p className="text-sm font-bold text-white/60">{t("hiw.flow_eyebrow")}</p>
-              <div className="mt-5 flex items-center gap-3 text-sm font-bold">
-                <Clock3 className="h-5 w-5" /> {t("hiw.flow_speed")}
+      <Reveal>
+        <section
+          id="matching"
+          className="scroll-mt-32 bg-[#0f1419] py-16 text-[#0f1419] dark:bg-[color:var(--surface-subtle)] dark:text-white sm:py-24"
+        >
+          <div className="mx-auto max-w-[1440px] px-5 text-white sm:px-8 lg:px-12">
+            <div className="grid gap-6 md:grid-cols-[0.7fr_1.3fr] md:items-end">
+              <div>
+                <p className="text-sm font-bold text-white/60">{t("hiw.flow_eyebrow")}</p>
+                <div className="mt-5 flex items-center gap-3 text-sm font-bold">
+                  <Clock3 className="h-5 w-5" /> {t("hiw.flow_speed")}
+                </div>
               </div>
-            </div>
-            <div>
-              <h2 className="max-w-3xl text-4xl font-extrabold leading-[1.02] tracking-tight text-white sm:text-5xl">
-                {t("hiw.flow_title")}
-              </h2>
-              <p className="mt-5 max-w-xl text-base leading-7 text-white/70">
-                {t("hiw.flow_body")}
-              </p>
-              <p className="mt-3 max-w-xl text-base font-bold leading-7 text-white">
-                {t("hiw.flow_oneliner")}
-              </p>
-            </div>
-          </div>
-          <div className="mt-12 grid gap-4 md:grid-cols-2">
-            {(
-              [
-                { icon: Search, key: "parents" },
-                { icon: UserRoundCheck, key: "tutors" },
-              ] as const
-            ).map(({ icon: Icon, key }) => (
-              <div
-                key={key}
-                className="rounded-2xl border border-white/15 bg-white/[0.04] p-6 sm:p-8"
-              >
-                <Icon className="h-6 w-6" aria-hidden="true" />
-                <h3 className="mt-4 text-xl font-bold tracking-tight text-white">
-                  {t(`guide.match_${key}_title`)}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-white/75">
-                  {t(`guide.match_${key}_body`)}
+              <div>
+                <h2 className="max-w-3xl text-4xl font-extrabold leading-[1.02] tracking-tight text-white sm:text-5xl">
+                  {t("hiw.flow_title")}
+                </h2>
+                <p className="mt-5 max-w-xl text-base leading-7 text-white/70">
+                  {t("hiw.flow_body")}
                 </p>
-                <Link
-                  to={key === "parents" ? "/guide/parents" : "/guide/tutors"}
-                  className="mt-4 inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
-                >
-                  {t(`guide.match_${key}_link`)} <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                <p className="mt-3 max-w-xl text-base font-bold leading-7 text-white">
+                  {t("hiw.flow_oneliner")}
+                </p>
               </div>
-            ))}
+            </div>
+            <div className="mt-12 grid gap-4 md:grid-cols-2">
+              {(
+                [
+                  { icon: Search, key: "parents" },
+                  { icon: UserRoundCheck, key: "tutors" },
+                ] as const
+              ).map(({ icon: Icon, key }) => (
+                <div
+                  key={key}
+                  className="rounded-2xl border border-white/15 bg-white/[0.04] p-6 transition-colors hover:border-white/30 sm:p-8"
+                >
+                  <Icon className="h-6 w-6" aria-hidden="true" />
+                  <h3 className="mt-4 text-xl font-bold tracking-tight text-white">
+                    {t(`guide.match_${key}_title`)}
+                  </h3>
+                  <p className="mt-3 text-sm leading-7 text-white/75">
+                    {t(`guide.match_${key}_body`)}
+                  </p>
+                  <Link
+                    to={key === "parents" ? "/guide/parents" : "/guide/tutors"}
+                    className="mt-4 inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
+                  >
+                    {t(`guide.match_${key}_link`)} <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </Reveal>
 
       {/* Explore the guides */}
-      <section className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
-        <GuideHeading>{t("guide.index_explore_title")}</GuideHeading>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {guideCards.map(({ to, icon: Icon, title, body }) => (
-            <Link
-              key={to}
-              to={to}
-              className="group rounded-2xl border border-[color:var(--ink)]/12 p-6 transition-colors hover:border-[color:var(--brand-link)]/40"
-            >
-              <Icon className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
-              <h3 className="mt-4 flex items-center gap-2 text-lg font-bold tracking-tight">
-                {title}
-                <ArrowRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-[color:var(--ink)]/65">{body}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <Reveal>
+        <section className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
+          <GuideHeading>{t("guide.index_explore_title")}</GuideHeading>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {guideCards.map(({ to, icon: Icon, title, body }) => (
+              <Link
+                key={to}
+                to={to}
+                className="group rounded-2xl border border-[color:var(--ink)]/12 p-6 transition-colors hover:border-[color:var(--brand-link)]/40"
+              >
+                <Icon className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
+                <h3 className="mt-4 flex items-center gap-2 text-lg font-bold tracking-tight">
+                  {title}
+                  <ArrowRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-[color:var(--ink)]/65">{body}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      </Reveal>
 
       {/* Verification summary */}
-      <section
-        id="verification"
-        className="scroll-mt-32 border-t border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] py-16 sm:py-24"
-      >
-        <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
-          <div className="mx-auto max-w-4xl">
-            <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-              {t("hiw.verification_eyebrow")}
-            </p>
-            <GuideHeading>{t("hiw.verification_title")}</GuideHeading>
-            <div className="mt-8 grid gap-5 md:grid-cols-2">
-              <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--hiw-compare-card)] p-6 md:p-8">
-                <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
-                  <ShieldCheck
-                    className="h-5 w-5 text-[color:var(--brand-link)]"
-                    aria-hidden="true"
-                  />
-                  {t("hiw.verification_tier2_title")}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">
-                  {t("hiw.verification_tier2_body")}
-                </p>
+      <Reveal>
+        <section
+          id="verification"
+          className="scroll-mt-32 border-t border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] py-16 sm:py-24"
+        >
+          <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+            <div className="mx-auto max-w-4xl">
+              <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+                {t("hiw.verification_eyebrow")}
+              </p>
+              <GuideHeading>{t("hiw.verification_title")}</GuideHeading>
+              <div className="mt-8 grid gap-5 md:grid-cols-2">
+                <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-6 transition-colors hover:border-[color:var(--ink)]/25 md:p-8">
+                  <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
+                    <ShieldCheck
+                      className="h-5 w-5 text-[color:var(--brand-link)]"
+                      aria-hidden="true"
+                    />
+                    {t("hiw.verification_tier2_title")}
+                  </h3>
+                  <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">
+                    {t("hiw.verification_tier2_body")}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-6 transition-colors hover:border-[color:var(--ink)]/25 md:p-8">
+                  <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
+                    <FileText
+                      className="h-5 w-5 text-[color:var(--muted-foreground)]"
+                      aria-hidden="true"
+                    />
+                    {t("hiw.verification_tier1_title")}
+                  </h3>
+                  <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">
+                    {t("hiw.verification_tier1_body")}
+                  </p>
+                </div>
               </div>
-              <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--hiw-compare-card)] p-6 md:p-8">
-                <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
-                  <FileText
-                    className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                    aria-hidden="true"
-                  />
-                  {t("hiw.verification_tier1_title")}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">
-                  {t("hiw.verification_tier1_body")}
-                </p>
-              </div>
+              <p className="mt-6 text-sm leading-6 text-[color:var(--ink)]/55">
+                {t("hiw.verification_disclaimer")}
+              </p>
+              <Link
+                to="/guide/verification"
+                className="mt-4 inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
+              >
+                {t("guide.index_verification_link")} <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </div>
-            <p className="mt-6 text-sm leading-6 text-[color:var(--ink)]/55">
-              {t("hiw.verification_disclaimer")}
-            </p>
-            <Link
-              to="/guide/verification"
-              className="mt-4 inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
-            >
-              {t("guide.index_verification_link")} <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
           </div>
-        </div>
-      </section>
+        </section>
+      </Reveal>
 
       {/* FAQ — all three groups live here (Ryan: subpages stay lean) */}
-      <section
-        id="faq"
-        className="mx-auto max-w-[1440px] scroll-mt-32 px-5 py-16 sm:px-8 sm:py-24 lg:px-12"
-      >
-        <div className="mx-auto max-w-4xl">
-          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-            {t("hiw.faq_eyebrow")}
-          </p>
-          <GuideHeading>{t("hiw.faq_title")}</GuideHeading>
+      <Reveal>
+        <section
+          id="faq"
+          className="mx-auto max-w-[1440px] scroll-mt-32 px-5 py-16 sm:px-8 sm:py-24 lg:px-12"
+        >
+          <div className="mx-auto max-w-4xl">
+            <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
+              {t("hiw.faq_eyebrow")}
+            </p>
+            <GuideHeading>{t("hiw.faq_title")}</GuideHeading>
 
-          <div className="mt-12">
-            <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-              <UserRoundCheck
-                className="h-6 w-6 text-[color:var(--muted-foreground)]"
-                aria-hidden="true"
-              />
-              {t("hiw.faq_tutors")}
-            </h3>
-            <div className="mt-5">
-              <FaqAccordion items={tutorFaqItems} />
+            <div className="mt-12">
+              <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+                <UserRoundCheck
+                  className="h-6 w-6 text-[color:var(--muted-foreground)]"
+                  aria-hidden="true"
+                />
+                {t("hiw.faq_tutors")}
+              </h3>
+              <div className="mt-5">
+                <FaqAccordion items={tutorFaqItems} />
+              </div>
+            </div>
+
+            <div className="mt-12">
+              <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+                <Search
+                  className="h-6 w-6 text-[color:var(--muted-foreground)]"
+                  aria-hidden="true"
+                />
+                {t("hiw.faq_parents")}
+              </h3>
+              <div className="mt-5">
+                <FaqAccordion items={parentFaqItems} />
+              </div>
+            </div>
+
+            <div className="mt-12">
+              <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+                <CreditCard
+                  className="h-6 w-6 text-[color:var(--muted-foreground)]"
+                  aria-hidden="true"
+                />
+                {t("hiw.faq_billing")}
+              </h3>
+              <div className="mt-5">
+                <FaqAccordion items={billingFaqItems} />
+              </div>
             </div>
           </div>
-
-          <div className="mt-12">
-            <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-              <Search className="h-6 w-6 text-[color:var(--muted-foreground)]" aria-hidden="true" />
-              {t("hiw.faq_parents")}
-            </h3>
-            <div className="mt-5">
-              <FaqAccordion items={parentFaqItems} />
-            </div>
-          </div>
-
-          <div className="mt-12">
-            <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-              <CreditCard
-                className="h-6 w-6 text-[color:var(--muted-foreground)]"
-                aria-hidden="true"
-              />
-              {t("hiw.faq_billing")}
-            </h3>
-            <div className="mt-5">
-              <FaqAccordion items={billingFaqItems} />
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      </Reveal>
     </GuidePage>
   );
 }
