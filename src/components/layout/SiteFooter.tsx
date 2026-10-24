@@ -42,7 +42,7 @@ export function SiteFooter({
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <h3
-              className="text-4xl font-medium tracking-tight text-foreground sm:text-5xl"
+              className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl"
               style={{ fontFamily: "var(--font-wordmark)" }}
             >
               MatchMax

@@ -169,7 +169,8 @@ export function SiteHeader({
   const useDarkTheme = theme !== "dark";
   const currentLang = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
   const nextLang = currentLang === "en" ? "zh-HK" : "en";
-  const brandLabelClassName = "text-lg font-medium tracking-tight text-brand-gradient sm:text-xl";
+  const brandLabelClassName =
+    "font-wordmark-nav text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
 
   // Mobile keeps a slim top bar (logo + staggered menu); the fixed bottom
   // tab bar handles account navigation and must render outside the header.

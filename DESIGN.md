@@ -196,7 +196,8 @@ Load them as `--font-display` and `--font-body`. Both are Latin-only; zh-HK text
 ### The size scale
 Sizes come from this ladder only: 11, 12, 14, 16, 18, 22, 28, 36, 52, 72px. 11px is the floor, for captions and dense meta only; nothing smaller ships.
 
-- **Display** (500, 36 to 72px, 1.1 line-height, `-0.03em`): Marketing heroes, landing `h1`, how-it-works display headings, footer wordmark.
+- **Display** (500, 36 to 72px, 1.1 line-height, `-0.03em`): Marketing heroes, landing `h1`, how-it-works display headings.
+- **Wordmarks** (the one sanctioned exception to 400/500, by owner decision): the header "MatchMax" label is legacy Open Sans 700 (`--font-wordmark-nav`), and the footer sign-off is Poppins 800 (`--font-wordmark`). Never restyle these back to 500.
 - **Headline** (500, 22 to 28px): Page `h1`s and section `h2`s at product scale, dialog titles.
 - **Title** (500, 18 to 22px): Card titles, prices, stat numbers, panel headings.
 - **Subtitle** (400, 16 to 18px): The one supporting line under a heading, when it adds information.
@@ -332,7 +333,7 @@ For each component: one clear primary action, calm signage, tactile feedback.
 - Tutor-card icons in `--brand-link` azure are data markers, not decoration; they stay.
 
 ### Navigation
-- Sticky 64px header: `bg-[color:var(--surface)]/95` with `backdrop-blur-sm`, hairline bottom border at ink/10. Logo (32px) plus "MatchMax" wordmark in `text-brand-gradient` at 500. Desktop links: 15px at 500, ink at 85%, hover and focus shift to azure with a 2px ink underline sweeping in from the left (`spring.morph`). The account affordance is a bordered `surface-subtle` pill with an ink-initial avatar; header Sign up is an azure money CTA. Mobile uses the staggered full-screen menu (ink, azure, sky layer colours). The footer mirrors the header at `max-w-7xl`: sentence-case 14px column headings at 500, `--muted-foreground` links hovering to azure (`--color-brand` rides `--brand-link`), and a 4xl/5xl "MatchMax" sign-off at 500 in the brand gradient.
+- Sticky 64px header: `bg-[color:var(--surface)]/95` with `backdrop-blur-sm`, hairline bottom border at ink/10. Logo (32px) plus "MatchMax" wordmark in `text-brand-gradient` at 700 in the legacy Open Sans wordmark face. Desktop links: 15px at 500, ink at 85%, hover and focus shift to azure with a 2px ink underline sweeping in from the left (`spring.morph`). The account affordance is a bordered `surface-subtle` pill with an ink-initial avatar; header Sign up is an azure money CTA. Mobile uses the staggered full-screen menu (ink, azure, sky layer colours). The footer mirrors the header at `max-w-7xl`: sentence-case 14px column headings at 500, `--muted-foreground` links hovering to azure (`--color-brand` rides `--brand-link`), and a 4xl/5xl "MatchMax" sign-off at 800 in the Poppins wordmark face.
 
 ### Signature components
 - **Brand-gradient wordmark** (`text-brand-gradient`): ink, azure, sky at 135°, clipped to text (dark mode: sky to azure). The wordmark, the footer sign-off, and hero backdrops are the only gradient homes; banned on all other text, buttons, and component surfaces.

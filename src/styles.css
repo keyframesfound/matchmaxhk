@@ -1,6 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -126,8 +127,11 @@ html {
   --font-heading: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  /* Closest free alternative to Modica Pro Bold (footer wordmark), at 500. */
+  /* Closest free alternative to Modica Pro Bold (footer wordmark). Wordmarks
+   * are the sanctioned exception to the 400/500 weight rule (owner decision):
+   * footer = Poppins 800, header label = legacy Open Sans 700. */
   --font-wordmark: "Poppins", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-wordmark-nav: "Open Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
 
   /* Brand raw */
   --brand-navy: #0f1419;
@@ -550,6 +554,11 @@ html {
  * numbers); pairs with the html[lang="en"] tracking rule above. */
 @utility font-display {
   font-family: var(--font-display);
+}
+
+/* Legacy Open Sans face for the header wordmark label. */
+@utility font-wordmark-nav {
+  font-family: var(--font-wordmark-nav);
 }
 
 @layer utilities {
