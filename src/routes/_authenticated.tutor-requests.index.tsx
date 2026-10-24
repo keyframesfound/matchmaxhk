@@ -16,7 +16,6 @@ import {
   CasesSearchBar,
   CasesSearchMobile,
   useCasesCompactSegments,
-  type CasesSearchState,
 } from "@/components/search/cases-search";
 import {
   CompactSearchPill,
@@ -47,27 +46,49 @@ import { useDisplayCurrency } from "@/features/currency/display-currency-context
 import { useTutorDisplayCurrency } from "@/features/currency/tutor-currency";
 import { shareOrCopy } from "@/lib/share";
 import { normalizeProfileTag } from "@/features/tutors/profile-tags";
+import {
+  matchesCaseFilters,
+  getSelectedCaseTags,
+  parseCaseBackgroundParam,
+  parseCaseFeeParam,
+  parseCaseGenderParam,
+  parseCaseLanguageParam,
+  parseCaseModeParam,
+  parseCaseRateParam,
+  parseCaseTagsParam,
+} from "@/features/cases/case-filters";
+import { parseTierParam } from "@/features/tutors/search-tiers";
+import type { AcademicTier } from "@/features/tutors/verticals";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 
+/** Issue #423 ship-order 5: every board filter lives on the URL so chip
+ * links (?tag=/q=) and the advanced-filters dialog share one state. */
+type CaseBoardSearch = {
+  post?: true;
+  q?: string;
+  category?: string;
+  district?: string;
+  tag?: string;
+  open?: true;
+} & CaseBoardFiltersState;
+
+type CaseBoardFiltersState = {
+  tier?: AcademicTier;
+  subject?: string;
+  mode?: string;
+  fee?: string;
+  rate_min?: number;
+  rate_max?: number;
+  background?: string;
+  gender?: string;
+  language?: string;
+  sen?: boolean;
+  tags?: string;
+};
+
 export const Route = createFileRoute("/_authenticated/tutor-requests/")({
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): {
-    post?: true;
-    q?: string;
-    category?: string;
-    district?: string;
-    tag?: string;
-    open?: true;
-  } => {
-    const result: {
-      post?: true;
-      q?: string;
-      category?: string;
-      district?: string;
-      tag?: string;
-      open?: true;
-    } = {};
+  validateSearch: (search: Record<string, unknown>): CaseBoardSearch => {
+    const result: CaseBoardSearch = {};
     if (search.post === "1" || search.post === true || search.post === "true") result.post = true;
     if (typeof search.q === "string" && search.q.trim()) result.q = search.q;
     if (typeof search.category === "string" && search.category.trim())
@@ -79,6 +100,29 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
     if (typeof search.tag === "string" && search.tag.trim())
       result.tag = normalizeProfileTag(search.tag);
     if (search.open === "1" || search.open === "true" || search.open === true) result.open = true;
+    // Issue #423 ship-order 5: advanced filters. Absent params stay
+    // undefined (never null/false) so cold URLs are never rewritten.
+    const tier = parseTierParam(search.tier);
+    if (tier) result.tier = tier;
+    if (typeof search.subject === "string" && search.subject.trim())
+      result.subject = search.subject;
+    const mode = parseCaseModeParam(search.mode);
+    if (mode) result.mode = mode;
+    const fee = parseCaseFeeParam(search.fee);
+    if (fee) result.fee = fee;
+    const rateMin = parseCaseRateParam(search.rate_min);
+    if (rateMin !== undefined) result.rate_min = rateMin;
+    const rateMax = parseCaseRateParam(search.rate_max);
+    if (rateMax !== undefined) result.rate_max = rateMax;
+    const background = parseCaseBackgroundParam(search.background);
+    if (background) result.background = background;
+    const gender = parseCaseGenderParam(search.gender);
+    if (gender) result.gender = gender;
+    const language = parseCaseLanguageParam(search.language);
+    if (language) result.language = language;
+    if (search.sen === true || search.sen === "true") result.sen = true;
+    const tags = parseCaseTagsParam(search.tags);
+    if (tags) result.tags = tags;
     return result;
   },
   head: () => {
@@ -279,30 +323,32 @@ function TutorRequestsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/tutor-requests/" });
   const initialPost = search.post;
-  const [draft, setDraft] = useState<CasesSearchState>({
-    q: search.q,
-    category: search.category,
-    district: search.district,
-    tag: search.tag,
-  });
+  const [draft, setDraft] = useState<CaseBoardSearch>({ ...search });
   const [formOpen, setFormOpen] = useState(Boolean(initialPost));
   const [noticeOpen, setNoticeOpen] = useState(false);
   const formSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setDraft({
-      q: search.q,
-      category: search.category,
-      district: search.district,
-      tag: search.tag,
-    });
+    setDraft({ ...search });
   }, [search]);
 
-  const setDraftParam = (patch: Partial<CasesSearchState>) => {
-    setDraft((prev) => ({ ...prev, ...patch }));
+  const setDraftParam = (patch: Partial<CaseBoardSearch>) => {
+    setDraft((prev) => {
+      const next: CaseBoardSearch = { ...prev, ...patch };
+      (Object.keys(next) as (keyof CaseBoardSearch)[]).forEach((key) => {
+        const value = next[key];
+        if (
+          value === "" ||
+          value === undefined ||
+          (typeof value === "number" && Number.isNaN(value))
+        )
+          delete next[key];
+      });
+      return next;
+    });
   };
 
-  const applySearch = (override?: Partial<CasesSearchState>) => {
+  const applySearch = (override?: Partial<CaseBoardSearch>) => {
     const next = { ...draft, ...override };
     navigate({
       search: {
@@ -311,8 +357,21 @@ function TutorRequestsPage() {
         category: next.category,
         district: next.district,
         // Issue #311: keep the active tag filter when the search bar is
-        // applied — tag ANDs with q/category/district.
+        // applied — tag ANDs with the rest; multi-tag picks come from the
+        // advanced draft.
         tag: search.tag,
+        // Issue #423 ship-order 5: advanced filters ride the same draft.
+        tier: next.tier,
+        subject: next.subject,
+        mode: next.mode,
+        fee: next.fee,
+        rate_min: next.rate_min,
+        rate_max: next.rate_max,
+        background: next.background,
+        gender: next.gender,
+        language: next.language,
+        sen: next.sen,
+        tags: next.tags,
       },
     });
   };
@@ -338,6 +397,9 @@ function TutorRequestsPage() {
       if (search.category && caseSectionKey(item.examSystem) !== search.category) return false;
       if (search.district && item.district !== search.district) return false;
       if (tagFilter && !(item.tags ?? []).includes(tagFilter)) return false;
+      // Issue #423 ship-order 5: the advanced filters (tier/subject/mode/
+      // fee/rate/background/gender/language/SEN) plus the multi-tag AND.
+      if (!matchesCaseFilters(item, search)) return false;
       if (query) {
         const haystack = [
           item.title,
@@ -398,7 +460,40 @@ function TutorRequestsPage() {
 
   // Issue #423: the board is one flat card grid (wireframe) — the exam-system
   // sections are gone; `?category=` still filters by curriculum.
-  const hasActiveFilters = Boolean(search.q || search.category || search.district || search.tag);
+  const hasActiveFilters = Boolean(
+    search.q ||
+    search.category ||
+    search.district ||
+    search.tag ||
+    search.tags ||
+    search.tier ||
+    search.subject ||
+    search.mode ||
+    search.fee ||
+    search.rate_min !== undefined ||
+    search.rate_max !== undefined ||
+    search.background ||
+    search.gender ||
+    search.language ||
+    search.sen,
+  );
+
+  // Issue #311/#423: every active requirement tag (single ?tag= + the
+  // multi-tag advanced picks), one click to remove each.
+  const activeTags = [
+    ...(search.tag ? [search.tag] : []),
+    ...getSelectedCaseTags({ tags: search.tags }).filter((tag) => tag !== search.tag),
+  ];
+  const removeTag = (tag: string) => {
+    const remaining = getSelectedCaseTags({ tags: search.tags }).filter((value) => value !== tag);
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        tag: prev.tag === tag ? undefined : prev.tag,
+        tags: remaining.length > 0 ? remaining.join("||") : undefined,
+      }),
+    });
+  };
 
   const compactSegments = useCasesCompactSegments(draft);
 
@@ -534,29 +629,23 @@ function TutorRequestsPage() {
                   Real tutoring requests from Hong Kong parents. Open a case for the full details
                   and apply for the ones that fit your schedule.
                 </p>
-                {/* Issue #311: the active tag filter, one click to clear. */}
-                {search.tag ? (
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigate({
-                          search: {
-                            post: initialPost,
-                            q: search.q,
-                            category: search.category,
-                            district: search.district,
-                          },
-                        })
-                      }
-                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
-                    >
-                      <Hash className="h-3 w-3" aria-hidden="true" />
-                      {search.tag}
-                      <span aria-hidden="true" className="text-[color:var(--ink)]/50">
-                        ×
-                      </span>
-                    </button>
+                {/* Issue #311: the active tag filters, one click each to clear. */}
+                {activeTags.length > 0 ? (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {activeTags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                      >
+                        <Hash className="h-3 w-3" aria-hidden="true" />
+                        {tag}
+                        <span aria-hidden="true" className="text-[color:var(--ink)]/50">
+                          ×
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 ) : null}
               </div>
