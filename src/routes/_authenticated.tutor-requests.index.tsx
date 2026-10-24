@@ -4,7 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { formatPostedAgo } from "@/lib/relative-time";
 import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
-import { ArrowRight, BadgeCheck, CalendarClock, Hash, Inbox, SearchX, Share2 } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  CalendarClock,
+  Check,
+  Hash,
+  Inbox,
+  SearchX,
+  Share2,
+} from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +69,11 @@ import {
 import { parseTierParam } from "@/features/tutors/search-tiers";
 import type { AcademicTier } from "@/features/tutors/verticals";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
+import { useAuth } from "@/features/auth/useAuth";
+import {
+  listMyAppliedCaseCodes,
+  myAppliedCasesQueryKey,
+} from "@/features/cases/applications.functions";
 
 /** Issue #423 ship-order 5: every board filter lives on the URL so chip
  * links (?tag=/q=) and the advanced-filters dialog share one state. */
@@ -201,7 +215,19 @@ function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
   );
 }
 
-function CaseCard({ item }: { item: PublicCaseBoardItem }) {
+/** #81: small "Applied" pill for board cards of cases the tutor already hit
+ * 1-click Apply on. Only rendered with a true prop — additive, default off. */
+function CaseAppliedPill() {
+  const { t } = useTranslation();
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+      <Check className="h-3 w-3" aria-hidden="true" />
+      {t("caseApplications.applied", { defaultValue: "Applied" })}
+    </span>
+  );
+}
+
+function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applied?: boolean }) {
   const { t, i18n } = useTranslation();
   const { primary, secondary } = useCaseTitles(item);
   // Issue #113/#423: tutors quoting in another currency see the converted
@@ -288,7 +314,11 @@ function CaseCard({ item }: { item: PublicCaseBoardItem }) {
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between gap-2">
-        <CaseFeePill packageType={item.packageType} />
+        <div className="flex min-w-0 items-center gap-1.5">
+          <CaseFeePill packageType={item.packageType} />
+          {/* Issue #81: 1-click Apply receipt on the card itself. */}
+          {applied ? <CaseAppliedPill /> : null}
+        </div>
         <span className="shrink-0 text-xs text-muted-foreground">
           {t("case_board.posted_ago", { ago: postedAgo })}
         </span>
@@ -387,6 +417,16 @@ function TutorRequestsPage() {
   });
   const cases = useMemo(() => data?.items ?? [], [data]);
   const isLoading = !data;
+
+  // Issue #81: one fetch of the signed-in tutor's applied case codes, so the
+  // board cards can show the small Applied pill. Guests / non-tutors: [].
+  const { user } = useAuth();
+  const { data: myAppliedCaseCodes } = useQuery({
+    queryKey: myAppliedCasesQueryKey,
+    queryFn: () => listMyAppliedCaseCodes(),
+    enabled: Boolean(user),
+  });
+  const appliedCodes = useMemo(() => new Set(myAppliedCaseCodes ?? []), [myAppliedCaseCodes]);
 
   const filteredCases = useMemo(() => {
     const query = (search.q ?? "").trim().toLowerCase();
@@ -703,7 +743,11 @@ function TutorRequestsPage() {
                 ) : (
                   <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {filteredCases.map((item) => (
-                      <CaseCard key={item.id} item={item} />
+                      <CaseCard
+                        key={item.id}
+                        item={item}
+                        applied={appliedCodes.has(item.caseCode)}
+                      />
                     ))}
                   </ul>
                 )}

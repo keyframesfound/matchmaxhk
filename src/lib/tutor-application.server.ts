@@ -199,6 +199,21 @@ export async function storeTutorApplication(
     }
   }
 
+  // Issue #55: nudge ops over the webhook (app_settings key
+  // `ops_webhook_url`, see ops-webhook.server.ts) when a new tutor card goes
+  // live. Best-effort: notifyOps never throws, and the DB row + email above
+  // remain the record of truth. tutor_code does not exist yet at application
+  // time (the card is created on review), so the display name is sent.
+  try {
+    const { notifyOps } = await import("@/lib/ops-webhook.server");
+    await notifyOps("tutor_join.created", {
+      display_name: data.name,
+      path: getApplicationPath(data),
+    });
+  } catch (webhookError) {
+    console.error("[tutor-application] ops webhook dispatch failed:", webhookError);
+  }
+
   await sendTutorJoinNotification({ data, applicationId, storedFiles });
   return { id: applicationId };
 }
